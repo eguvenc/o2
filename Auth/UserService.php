@@ -46,7 +46,7 @@ Class UserService
      */
     public function __get($class)
     {
-        $key = strtolower($class); // login, identity, activity .. 
+        $key = strtolower($class); // Services: login, identity, activity .. 
 
         if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
             return $this->{$key};

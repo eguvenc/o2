@@ -10,8 +10,7 @@ use Auth\Credentials,
  *  
  * 1 - Permanent Users : To prevent sql queries for every login we keeps authorized user's identities in storage with lifetime ( default 1 hour, configurable from auth config file ).
  * 2 - Temporary Users : If verification enabled we keeps succesfull user logins as "__temporary" in storage ( cache ) with an expiration time. After that verification we move them to permanent storage.
- * 3 - Reminder : If remember me enabled, it keeps authorized user's in the storage using rememberMeSeconds as expiration.
- * 4 - Deletion : Allows to remote control rememberMe logins using storage.
+ * 3 - Security Token : We have a security token which is refreshing every 300 seconds. During the validation if it doesn't match with cookie we destroy the authentication of user.
  */
  
 use LogicException;
@@ -99,6 +98,7 @@ Class Cache implements StorageInterface
         $this->logger = $c->load('service/logger');
         $this->session = $c->load('session');
         $this->config = $c->load('config')->load('auth');
+        
         $this->identifier = $this->getIdentifier();
     }
     
@@ -111,7 +111,7 @@ Class Cache implements StorageInterface
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__Auth/Storage/RecallerId', $identifier);
+        $this->session->set('__Auth/Storage/Identifier', $identifier);
     }
 
     /**
@@ -121,17 +121,17 @@ Class Cache implements StorageInterface
      */
     public function getIdentifier()
     {
-        $sessionRecallerId = $this->c->load('session')->get('__Auth/Storage/RecallerId');
+        $sessionIdentifier = $this->c->load('session')->get('__Auth/Storage/Identifier');
 
-        return ($sessionRecallerId == false) ? $this->getRecallerId() : $sessionRecallerId;
+        return ($sessionIdentifier == false) ? $this->getMemoryIdentifier() : $sessionIdentifier;
     }
 
     /**
-     * Get recaller id from storage
+     * Get identifier from storage
      * 
      * @return mixed int|string|null
      */
-    public function getRecallerId()
+    public function getMemoryIdentifier()
     {
         if ($credentials = $this->getCredentials('__permanent')) {
             return $credentials[Credentials::IDENTIFIER];

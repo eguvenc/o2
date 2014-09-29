@@ -53,7 +53,6 @@ log        : Follow the application log file.
 clear      : Clear application log data.
 update     : Update your Obullo version.
 queue      : Queue control functions.
-host       : Create a virtual host file for apache2.
 help       : See list all of available commands.\33[0m\n\n";
 
 echo "\33[1;36mUsage:\33[0m\33[0;36m

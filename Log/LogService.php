@@ -9,11 +9,9 @@ use Closure,
     Obullo\Error\ErrorHandler;
 
 /**
- * Logger Class
+ * Log Service Class
  *
  * Modeled after Zend Log package.
- * 
- * http://www.php.net/manual/en/class.splpriorityqueue.php
  * 
  * @category  Log
  * @package   Logger
@@ -22,7 +20,7 @@ use Closure,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class Logger
+Class LogService
 {
     /**
      * Log priorities
@@ -131,6 +129,13 @@ Class Logger
     public $channel = 'system';
 
     /**
+     * Registered log handlers
+     * 
+     * @var array
+     */
+    protected $registeredHandlers = array();
+
+    /**
      * Defined handlers in the container
      * 
      * @var array
@@ -230,16 +235,50 @@ Class Logger
     }
 
     /**
+     * Register handler
+     * 
+     * @param string $name      handler name which is defined in constants
+     * @param string $namespace class path of handler
+     * 
+     * @return object
+     */
+    public function registerHandler($name, $namespace)
+    {
+        $this->registeredHandlers[$name] = $namespace;
+        return $this;
+    }
+
+    /**
+     * Get registered handler's closure
+     *
+     * @param string $name of handler
+     * 
+     * @return object Closure
+     */
+    public function getRegisteredHandler($name)
+    {
+        if ( ! isset($this->registeredHandlers[$name])) {
+            throw new RuntimeException(
+                sprintf('Handler "%s" not registered.', $name)
+            );
+        }
+        $Class = '\\'.$this->registeredHandlers[$name];
+        $handler = new $Class($this->c);
+        return $handler->getHandler();
+    }
+
+    /**
      * Add Handler
      * 
-     * @param string $name    handler name
-     * @param object $handler closure object
+     * @param string $name handler name
      *
      * @return object
      */
-    public function addHandler($name, Closure $handler)
+    public function addHandler($name)
     {
-        $this->handlers[$name] = array('handler' => $handler);
+        $closure = $this->getRegisteredHandler($name);
+
+        $this->handlers[$name] = array('handler' => $closure);
         $this->track[] = array('type' => 'handlers', 'name' => $name);
         return $this;
     }
@@ -260,15 +299,16 @@ Class Logger
     /**
      * Add writer
      * 
-     * @param string $name    handler key
-     * @param object $handler handler object
+     * @param string $name handler key
      *
      * @return object
      */
-    public function addWriter($name, Closure $handler)
+    public function addWriter($name)
     {
+        $closure = $this->getRegisteredHandler($name);
+
         $this->priorityQueue[$name] = new PriorityQueue;    // add processor
-        $this->writers[$name] = array('handler' => $handler(), 'priority' => 1);
+        $this->writers[$name] = array('handler' => $closure(), 'priority' => 1);
         $this->track[] = array('type' => 'writers', 'name' => $name);
         return $this;
     }

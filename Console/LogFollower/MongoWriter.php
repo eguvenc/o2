@@ -17,16 +17,17 @@ Class MongoWriter
     /**
      * Follow logs
      * 
-     * @param string $c     container
-     * @param string $route sections ( app, ajax, cli )
+     * @param string $c          container
+     * @param string $collection default logs
      * 
      * @return void
      */
-    public function follow($c, $route = 'app')
+    public function follow($c, $collection = 'logs')
     {
-        echo "\n\33[0;36mFollowing \"mongo\" writer $route log data ...\33[0m\n";
+        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mMongo\33[0m\33[1;36m Writer \33[1;37m\33[1;46m$collection\33[0m\33[1;36m collection ...\33[0m\n";
+
         $mongo           = $c->load('return service/provider/mongo');
-        $mongoCollection = $mongo->selectCollection('db', 'logs');
+        $mongoCollection = $mongo->{$collection};
         $resultArray     = $mongoCollection->find();
         $i = 0;
         $printer = new Printer\Colorful;

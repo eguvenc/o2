@@ -36,7 +36,7 @@ interface AdapterInterface
     public function login(GenericIdentity $genericUser);
 
     /**
-     * Login to auth adapter
+     * Login to authetication adapter
      * 
      * @param object  $genericUser identity
      * @param boolean $login       whether to authenticate user

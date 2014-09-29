@@ -40,11 +40,11 @@ interface StorageInterface
     public function getIdentifier();
 
     /**
-     * Get recaller id from storage
+     * Get identifier from storage
      * 
      * @return mixed int|string|null
      */
-    public function getRecallerId();
+    public function getMemoryIdentifier();
 
     /**
      * Get credentials and check authority

@@ -99,7 +99,7 @@ Class Container implements ArrayAccess
         // print_r($matches);
         // var_dump($noReturn);
         $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','httpInput'));
+        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','sanitizer'));
 
         $keyExists = false;
         if ($controllerExists
@@ -214,6 +214,7 @@ Class Container implements ArrayAccess
         $data = $this->getClassInfo($matches['class'], ($provider !== false) ? true : false);
 
         if (strpos($class, 'service/') === 0) {  // Resolve services & service providers
+
             $exp = explode('/', $class);
             $map = $this->mapName($exp);  // Converts "utils/uri" to "utilsUri"
             $serviceClass = '\\'.implode('\\', $map);
@@ -244,7 +245,7 @@ Class Container implements ArrayAccess
             $key  = $this->getAlias($data['cid'], $data['key'], $matches);
         }
         $matches['key'] = $key;
-        if ( ! $this->exists($data['cid']) AND ! is_object($service)) { // Don't register service again.
+        if ( ! $this->exists($data['cid']) AND ! is_object($service)) {   // Don't register service again.
             $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);

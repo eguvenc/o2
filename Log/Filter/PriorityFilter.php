@@ -2,7 +2,7 @@
 
 namespace Obullo\Log\Filter;
 
-use Obullo\Log\Logger;
+use Obullo\Log\LogService;
 
 /**
  * Priority Filter Class ( Log threshold filter )
@@ -14,7 +14,7 @@ use Obullo\Log\Logger;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class Priority implements FilterInterface
+Class PriorityFilter implements FilterInterface
 {
     /**
      * Container
@@ -51,7 +51,7 @@ Class Priority implements FilterInterface
      */
     public function filter(array $record)
     {
-        $priority = Logger::$priorities[$record['level']];
+        $priority = LogService::$priorities[$record['level']];
         if (in_array($priority, $this->priorities)) {
             return $record;
         }
@@ -67,7 +67,7 @@ Class Priority implements FilterInterface
      */
     public function notIn($record)
     {
-        $priority = Logger::$priorities[$record['level']];
+        $priority = LogService::$priorities[$record['level']];
         if ( ! in_array($priority, $this->priorities)) {
             return $record;
         }
@@ -76,7 +76,7 @@ Class Priority implements FilterInterface
 
 }
 
-// END Priority class
+// END PriorityFilter class
 
-/* End of file Priority.php */
-/* Location: .Obullo/Log/Filter/Priority.php */
+/* End of file PriorityFilter.php */
+/* Location: .Obullo/Log/Filter/PriorityFilter.php */

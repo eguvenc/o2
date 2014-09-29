@@ -296,7 +296,7 @@ Class Identity extends UserIdentity
      */
     public function getType()
     {
-        return isset($this->attributes['__type']) ? $this->attributes['__type'] : Credentials::GUEST;
+        return isset($this->attributes['__type']) ? $this->attributes['__type'] : 'Guest';
     }
 
     /**
@@ -317,10 +317,12 @@ Class Identity extends UserIdentity
     public function logout()
     {
         $credentials = $this->storage->getCredentials('__permanent');
+
         $credentials['__isAuthenticated'] = 0; // Sets memory auth to "0".
         $credentials['__token'] = $this->adapter->refreshToken();
+        $credentials['__type'] = 'Unauthorized';
 
-        $this->storage->setCredentials($credentials);
+        $this->storage->setCredentials($credentials, null, '__permanent');
     }
 
     /**

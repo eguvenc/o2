@@ -251,17 +251,17 @@ class AssociativeArray extends AbstractAdapter
     {
         if ( ! $this->isEnabledVerification()) {    // If verification disabled however we authenticate the user.
             $attributes['__isAuthenticated'] = 1;
-            $attributes['__type'] = Credentials::AUTHORIZED;
+            $attributes['__type'] = static::AUTHORIZED;
             return $attributes;
         }
         if ($this->user->identity->isVerified() == 0) {  // Otherwise verification enabled
             $attributes['__isAuthenticated'] = 0;
-            $attributes['__type'] = Credentials::UNVERIFIED;
+            $attributes['__type'] = static::UNVERIFIED;
             return $attributes;
         }
         if ($this->user->identity->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryLogin() method.
             $attributes['__isAuthenticated'] = 1;
-            $attributes['__type'] = Credentials::AUTHORIZED;
+            $attributes['__type'] = static::AUTHORIZED;
             return $attributes;
         }
     }
