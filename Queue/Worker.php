@@ -1,0 +1,483 @@
+<?php
+
+namespace Obullo\Queue;
+
+use Obullo\Queue\Job,
+    Obullo\Log\Logger,
+    Exception,
+    ErrorException;
+
+/**
+ * Queue Worker Class
+ * 
+ * @category  Queue
+ * @package   Queue
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/package/queue
+ */
+Class Worker
+{
+    /**
+     * Queue instance
+     * 
+     * @var object
+     */
+    public $queue;
+
+    /**
+     * Logger instance
+     * 
+     * @var object
+     */
+    public $logger;
+
+    /**
+     * Queue route key ( queue name )
+     * 
+     * @var string
+     */
+    public $queueName;
+
+    /**
+     * Job delay interval
+     * 
+     * @var int
+     */
+    public $delay;
+
+    /**
+     * Maximum allowed memory for current job
+     * 
+     * @var int
+     */
+    public $memory;
+
+    /**
+     * Max timeout
+     * 
+     * @var int
+     */
+    public $timeout;
+
+    /**
+     * Sleep time
+     * 
+     * @var int
+     */
+    public $sleep;
+
+    /**
+     * Max attempts
+     * 
+     * @var int
+     */
+    public $maxTries;
+
+    /**
+     * Enable debugger
+     * 
+     * @var int
+     */
+    public $debug;
+
+    /**
+     * Job instance
+     * 
+     * @var object
+     */
+    public $job;
+
+    /**
+     * Environment
+     * 
+     * @var string
+     */
+    public $env = 'prod';
+
+    /**
+     * Registered error handler
+     *
+     * @var bool
+     */
+    protected static $registeredErrorHandler = false;
+
+    /**
+     * Registered exception handler
+     *
+     * @var bool
+     */
+    protected static $registeredExceptionHandler = false;
+
+    /**
+     * Registered fatal error handler
+     * 
+     * @var boolean
+     */
+    protected static $registeredFatalErrorShutdownFunction = false;
+
+    /**
+     * Error priorities
+     * 
+     * @var array
+     */
+    public static $priorities = array(
+        'emergency' => LOG_EMERG,
+        'alert'     => LOG_ALERT,
+        'critical'  => LOG_CRIT,
+        'error'     => LOG_ERR,
+        'warning'   => LOG_WARNING,
+        'notice'    => LOG_NOTICE,
+        'info'      => LOG_INFO,
+        'debug'     => LOG_DEBUG,
+    );
+
+    /**
+     * Priority Map
+     *
+     * @var array
+     */
+    public static $errorPriorities = array(
+        E_NOTICE            => LOG_NOTICE,
+        E_USER_NOTICE       => LOG_NOTICE,
+        E_WARNING           => LOG_WARNING,
+        E_CORE_WARNING      => LOG_WARNING,
+        E_USER_WARNING      => LOG_WARNING,
+        E_ERROR             => LOG_ERR,
+        E_USER_ERROR        => LOG_ERR,
+        E_CORE_ERROR        => LOG_ERR,
+        E_RECOVERABLE_ERROR => LOG_ERR,
+        E_STRICT            => LOG_DEBUG,
+        E_DEPRECATED        => LOG_DEBUG,
+        E_USER_DEPRECATED   => LOG_DEBUG,
+    );
+
+
+    /**
+     * Create a new queue worker.
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function __construct($c)
+    {
+        $this->c = $c;
+        $this->queue = $c->load('service/queue');
+        $this->logger = $c->load('service/logger');
+
+        Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
+        Logger::unregisterExceptionHandler(); // logger error handlers.
+
+        $this->logger->channel('queue');
+        $this->logger->debug('Queue Worker Class Initialized');
+    }
+
+    /**
+     * Initialize to worker object
+     * 
+     * @param string  $channel  Sets queue channel
+     * @param string  $route    Sets queue route key ( queue name )
+     * @param integer $memory   Sets maximum allowed memory for current job.
+     * @param integer $delay    Sets job delay interval
+     * @param integer $timeout  Sets time limit execution of the current job.
+     * @param integer $sleep    If we have not job on the queue sleep the script for a given number of seconds.
+     * @param integer $maxTries If job attempt failed we push  and increase attempt number.
+     * @param integer $debug    Enabled debugger On / Off
+     * @param integer $env      Sets Environment
+     * 
+     * @return void
+     */
+    public function init($channel, $route, $memory, $delay, $timeout, $sleep, $maxTries, $debug, $env) 
+    {
+                                            // If debug closed don't show errors and use worker custom error handlers.
+        $this->registerExceptionHandler();  // Register worker error handlers.
+        $this->registerErrorHandler();
+        $this->registerFatalErrorHandler();
+    
+        ini_set('error_reporting', 0); // Disable cli errors on console mode we already had error handlers.
+        ini_set('display_errors', 0);
+                                               // Don't change here we already cathc all errors except the notices.
+        error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
+
+        $this->queue->channel($channel);
+        $this->queueName = (string)$route;
+        $this->memory = (int)$memory;
+        $this->delay  = (int)$delay;
+        $this->timeout = (int)$timeout;
+        $this->sleep = (int)$sleep;
+        $this->maxTries = (int)$maxTries;
+        $this->debug = (int)$debug;
+        $this->env = (string)$env;
+
+        if ($this->memoryExceeded($memory)) {
+            die; return;
+        }
+    }
+
+    /**
+     * Pop the next job off of the queue.
+     * 
+     * @return void
+     */
+    public function pop()
+    {
+        $this->job = $this->getNextJob();
+        if ( ! is_null($this->job)) {
+            $this->doJob();
+            $this->debugOutput($this->job->getRawBody());
+        } else {                     // If we have not job on the queue sleep the script for a given number of seconds.
+            sleep($this->sleep);  // Sleep the script for a given number of seconds.
+        }
+    }
+
+    /**
+     * Get the next job from the queue connection.
+     *
+     * @return object job
+     */
+    protected function getNextJob()
+    {
+        if (is_null($this->queueName)) {
+            return $this->queue->pop();
+        }
+        foreach (explode(',', $this->queueName) as $this->queueName) {     // If comma seperated queue
+            if ( ! is_null($job = $this->queue->pop($this->queueName))) { 
+                return $job;
+            }
+        }
+    }
+
+    /**
+     * Process a given job from the queue.
+     * 
+     * @return void
+     */
+    public function doJob()
+    {
+        if ($this->maxTries > 0 AND $this->job->getAttempts() > $this->maxTries) {
+            $this->job->delete();
+            $this->logger->channel('queue');
+            $this->logger->warning('The job failed and deleted from queue.', array('job' => $this->job->getName(), 'body' => $this->job->getRawBody()));
+            return;
+        }
+        $this->job->setEnv($this->env);
+        $this->job->fire();
+    }
+
+    /**
+     * Determine if the memory limit has been exceeded.
+     *
+     * @param integer $memoryLimit sets memory limit
+     * 
+     * @return bool
+     */
+    public function memoryExceeded($memoryLimit)
+    {
+        return (memory_get_usage() / 1024 / 1024) >= $memoryLimit;
+    }
+
+    /**
+     * Register logging system as an error handler to log PHP errors
+     *
+     * @param boolean $continueNativeHandler native handler switch
+     * 
+     * @return mixed Returns result of set_error_handler
+     */
+    public function registerErrorHandler($continueNativeHandler = false)
+    {
+        if (static::$registeredErrorHandler) {  // Only register once per instance
+            return false;
+        }
+        $errorPriorities = static::$errorPriorities;    // We need to move priorities in this class.
+        $previous = set_error_handler(
+            function ($level, $message, $file, $line) use ($errorPriorities, $continueNativeHandler) {
+                $iniLevel = error_reporting();
+                if ($iniLevel & $level) {
+                    $priority = static::$priorities['error'];
+                    if (isset($errorPriorities[$level])) {
+                        $priority = $errorPriorities[$level];
+                    } 
+                    global $c;
+                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
+                    $storage = new $storageClassName($c);
+                    $data = array(
+                        'job_id' => $this->job->getJobId(),
+                        'job_name' => $this->job->getName(),
+                        'job_body' => $this->job->getRawBody(),
+                        'job_attempts' => $this->job->getAttempts(),
+                        'error_level' => $level,
+                        'error_message' => $message, 
+                        'error_file' => $file,
+                        'error_line' => $line,
+                        'error_trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
+                        'error_xdebug' => '',
+                        'error_priority' => $priority,
+                    );
+                    if ($this->debug) {
+                        $this->debugOutput($data);
+                    }
+                    $storage->save($data);
+                }
+                return ! $continueNativeHandler;
+            }
+        );
+        static::$registeredErrorHandler = true;
+        return $previous;
+    }
+
+    /**
+     * Register logging system as an exception handler to log PHP exceptions
+     * 
+     * @return boolean
+     */
+    public function registerExceptionHandler()
+    {
+        if (static::$registeredExceptionHandler) {  // Only register once per instance
+            return false;
+        }
+        $errorPriorities = static::$errorPriorities;
+        set_exception_handler(
+            function ($exception) use ($errorPriorities) { // @see http://www.php.net/manual/tr/errorexception.getseverity.php
+                $messages = array();
+                do {
+                    $priority = static::$priorities['error'];
+                    $level = LOG_ERR;
+                    if ($exception instanceof ErrorException AND isset($errorPriorities[$exception->getSeverity()])) {
+                        $level = $exception->getSeverity();
+                        $priority = $errorPriorities[$level];
+                    }
+                    $messages[] = array(
+                        'level' => $level,
+                        'message' => $exception->getMessage(),
+                        'file'  => $exception->getFile(),
+                        'line'  => $exception->getLine(),
+                        'trace'  => $exception->getTrace(),
+                        'xdebug' => isset($exception->xdebug_message) ? $exception->xdebug_message : '',
+                        'priority' => $priority,
+                    );
+                    $exception = $exception->getPrevious();
+                } while ($exception);
+
+                global $c;
+                $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
+                $storage = new $storageClassName($c);
+                foreach (array_reverse($messages) as $message) {
+                    global $c;
+                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
+                    $storage = new $storageClassName($c);
+                    $data = array(
+                        'job_id' => $this->job->getJobId(),
+                        'job_name' => $this->job->getName(),
+                        'job_body' => $this->job->getRawBody(),
+                        'job_attempts' => $this->job->getAttempts(),
+                        'error_level' => $message['level'],
+                        'error_message' => $message['message'], 
+                        'error_file' => $message['file'],
+                        'error_line' => $message['line'],
+                        'error_trace' => $message['trace'],
+                        'error_xdebug' => $message['xdebug'],
+                        'error_priority' => $message['priority'],
+                    );
+                    if ($this->debug) {
+                        $this->debugOutput($data);
+                    }
+                    $storage->save($data);
+                }
+                if ( ! is_null($this->job) AND ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
+                    $this->job->release($this->delay);  // the queue so it is not lost. This will let is be retried at a later time by another worker.
+                }
+            }
+        );
+        static::$registeredExceptionHandler = true;
+        return true;
+    }
+
+    /**
+     * Register a shutdown handler to log fatal errors
+     * 
+     * @return bool
+     */
+    public function registerFatalErrorHandler()
+    {
+        if (static::$registeredFatalErrorShutdownFunction) {  // Only register once per instance
+            return false;
+        }          
+        register_shutdown_function(
+            function () {
+                if (null != $error = error_get_last()) {
+                    global $c;
+                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
+                    $storage = new $storageClassName($c);
+                    $data = array(
+                        'job_id' => $this->job->getJobId(),
+                        'job_name' => $this->job->getName(),
+                        'job_body' => $this->job->getRawBody(),
+                        'job_attempts' => $this->job->getAttempts(),
+                        'error_level' => $error['type'],
+                        'error_message' => $error['message'], 
+                        'error_file' => $error['file'],
+                        'error_line' => $error['line'],
+                        'error_trace' => '',
+                        'error_xdebug' => '',
+                        'error_priority' => 99,
+                    );
+                    if ($this->debug) {
+                        $this->debugOutput($data);
+                    }
+                    $storage->save($data);
+                }
+            }
+        );
+        static::$registeredFatalErrorShutdownFunction = true;
+        return true;
+    }
+
+    /**
+     * Unregister error handler
+     *
+     * @return void
+     */
+    public static function unregisterErrorHandler()
+    {
+        restore_error_handler();
+        static::$registeredErrorHandler = false;
+    }
+
+    /**
+     * Unregister exception handler
+     *
+     * @return void
+     */
+    public function unregisterExceptionHandler()
+    {
+        restore_exception_handler();
+        static::$registeredExceptionHandler = false;
+    }
+
+    /**
+     * Print errors and output
+     * 
+     * @param array|string $data output
+     * 
+     * @return void
+     */
+    public function debugOutput($data)
+    {
+        if (is_string($data)) {
+            echo "\33[1;36mOutput : \n".$data."\n\033[0m\n";
+        } elseif (is_array($data)) {
+            unset($data['error_trace']);
+            unset($data['error_xdebug']);
+            unset($data['error_priority']);
+            echo "\33[1;31mError : \n".print_r($data, true)."\n\033[0m";
+        }
+    }
+
+}
+
+// END Worker class
+
+/* End of file Worker.php */
+/* Location: .Obullo/Queue/Worker.php */

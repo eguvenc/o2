@@ -1,4 +1,4 @@
-o2
-==
+2.0
+===
 
-Obullo Framework 2.0
+Obullo 2.0 Core
