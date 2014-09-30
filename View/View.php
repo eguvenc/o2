@@ -64,6 +64,13 @@ Class View
     public $nestedController = null;
 
     /**
+     * Layouts array
+     * 
+     * @var array
+     */
+    protected $layouts;
+
+    /**
      * Constructor
      * 
      * @param array $c      container
@@ -77,7 +84,7 @@ Class View
             '@assets@' => $c['config']['url']['assets']
         );
         $this->c = $c;
-        $this->schemes = $params;
+        $this->layouts = $params;
         $this->logger = $this->c->load('service/logger');
         $this->response = $this->c->load('response');
 
@@ -182,16 +189,16 @@ Class View
     }
 
     /**
-     * Use a view scheme
+     * Use a view layout
      * 
-     * @param string $name scheme name
+     * @param string $name layout name
      * 
      * @return void
      */
-    public function getScheme($name = 'default')
+    public function layout($name = 'default')
     {
-        if (isset($this->schemes[$name]) AND is_callable($this->schemes[$name])) {
-            $this->bind($this->schemes[$name]);
+        if (isset($this->layouts[$name]) AND is_callable($this->layouts[$name])) {
+            $this->bind($this->layouts[$name]);
         }
         return $this;
     }

@@ -98,41 +98,44 @@ Scheme functions help to design your application layout using php anonymous func
 
 ```php
 <?php
-$config = array(
-    'default' => function () {
-        $this->assign('header',  '@layer.views/header');   // creates a Layer request to "public/views/controller/header.php"
-        $this->assign('sidebar', '@layer.views/sidebar');  // creates a Layer request to "public/views/controller/sidebar.php"
-        $this->assign('footer',  $this->template('footer'));  // no need controller
-    },
-    'welcome' => function () {
-        $this->assign('footer', $this->template('footer'));
-    },
+'view' => array(
+ 'layouts' => 
+    array(
+        'default' => function () {
+            $this->assign('header',  '@layer.views/header');   // creates a Layer request to "public/views/controller/header.php"
+            $this->assign('sidebar', '@layer.views/sidebar');  // creates a Layer request to "public/views/controller/sidebar.php"
+            $this->assign('footer',  '@layer.views/footer');  // no need controller
+        },
+        'welcome' => function () {
+            $this->assign('footer', $this->template('footer'));
+        },
+    )
 );
 
-/* End of file scheme.php */
-/* Location: ./app/config/scheme.php */
+/* End of file config.php */
+/* Location: ./app/config/env/local/config.php */
 ```
-Then in your controller file you can call your scheme using $this->getScheme() function.
+Then in your controller file you can call your layout using $this->layout() function.
 
 ```php
 <?php
 
 $this->view->load(
   'hello_world',
-  function () {
+    function () {
       $this->assign('title', 'Hello World !');
       $this->assign('@var@', 'My static variable !');
-      $this->getScheme();
-  }
+      $this->layout();
+    }
 );
 ```
 
-If you $this->getScheme(); not provide scheme name schem will fetch defaul configured scheme otherwise you need to provide scheme name.
+If you are not provide layout name in $this->layout(); function it will fetch default configured layout otherwise you need to provide a name.
 
 
 ```php
 <?php
-$this->getScheme('welcome');  // run welcome scheme
+$this->layout('welcome');  // run welcome layout
 ```
 
 Example view file
@@ -495,14 +498,10 @@ Gets the file from templates directory e.g. <kbd>app/templates</kbd>
 
 Sets a view variable ( Variable types can be String, Array or Object ), this method <kbd>automatically detects</kbd> the variable types.
 
-#### $this->view->getScheme('scheme_key');
+#### $this->view->layout('name');
 
-Uses the scheme function that is defined in your <kbd>app/config/scheme.php</kbd>.
+Uses the layout configuration that is defined in your <kbd>app/config/env/local/config.php</kbd>.
 
-#### $this->view->setVar('@myVariable', 'replace value');
+#### $this->view->setVar('@myVariable@', 'replace value');
 
-Adds your static variables.
-
-#### $this->view->bind($closure);
-
-Run a closure function in view class.
+Adds static variables to available them in your views like.

@@ -89,7 +89,7 @@ Class Config implements ArrayAccess
      */
     public function load($filename = '')
     {
-        $file = APP . 'config' . DS . str_replace('/', DS, $filename) . EXT;
+        $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . EXT;
         $envFile = $this->envPath . str_replace('/', DS, $filename) . EXT;
 
         if (file_exists($envFile)) {

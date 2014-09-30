@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
 /**
  * Clear Command
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class Clear implements CommandInterface
 {
@@ -90,4 +90,4 @@ Class Clear implements CommandInterface
 // END Clear class
 
 /* End of file Clear.php */
-/* Location: .Obullo/Console/Commands/Clear.php */
+/* Location: .Obullo/Cli/Commands/Clear.php */

@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Console\LogFollower;
+namespace Obullo\Cli\LogFollower;
 
 /**
  * QueueWriter Follower
  * 
- * @category  Console
+ * @category  Cli
  * @package   LogFollower
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class QueueWriter
 {
@@ -78,4 +78,4 @@ Class QueueWriter
 // END QueueWriter class
 
 /* End of file QueueWriter.php */
-/* Location: .Obullo/Console/LogFollower/QueueWriter.php */
+/* Location: .Obullo/Cli/LogFollower/QueueWriter.php */

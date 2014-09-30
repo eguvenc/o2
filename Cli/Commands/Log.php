@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
-use Obullo\Console\LogFollower;
+use Obullo\Cli\LogFollower;
 
 /**
  * Log Command
  *
  * Follow log data
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class Log implements CommandInterface
 {
@@ -79,7 +79,7 @@ You are displaying the "app" request logs. To change direction use $php task log
     public function run()
     {
         $this->logo();
-        $followerClass = '\\Obullo\Console\LogFollower\\'.ucfirst($this->logger->getHandlerWriterName());
+        $followerClass = '\\Obullo\Cli\LogFollower\\'.ucfirst($this->logger->getHandlerWriterName());
         $follower = new $followerClass;
         $follower->follow($this->c, $this->route);
     }
@@ -89,4 +89,4 @@ You are displaying the "app" request logs. To change direction use $php task log
 // END Log class
 
 /* End of file Log.php */
-/* Location: .Obullo/Console/Commands/Log.php */
+/* Location: .Obullo/Cli/Commands/Log.php */

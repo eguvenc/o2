@@ -1,17 +1,17 @@
 <?php
 
-namespace Obullo\Console\LogFollower\Printer;
+namespace Obullo\Cli\LogFollower\Printer;
 
 /**
  * LogFollower Colorful Printer
  * 
- * @category  Console
+ * @category  Cli
  * @package   LogFollower
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class Colorful
 {
@@ -138,4 +138,4 @@ $WHITE="33[1;37m";
 // END Colorful class
 
 /* End of file Colorful.php */
-/* Location: .Obullo/Console/LogFollower/Printer/Colorful.php */
+/* Location: .Obullo/Cli/LogFollower/Printer/Colorful.php */

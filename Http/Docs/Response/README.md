@@ -140,7 +140,7 @@ Manually shows an error to users.
 
 #### $this->response->showWarning(string $message);
 
-Generates user friendly warning messsages using <kbd>app/errors/warning.php</kbd> template.
+Generates user friendly warning messsages using <kbd>app/templates/errors/warning.php</kbd> template.
 
 #### $this->response->setHttpResponse($code = 401, 'text');
 

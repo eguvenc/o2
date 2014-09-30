@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Console;
+namespace Obullo\Cli;
 
 use InvalidArgumentException;
 
 /**
  * Parser Class
  * 
- * @category  Console
+ * @category  Cli
  * @package   Parser
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class Parser
 {
@@ -27,14 +27,14 @@ Class Parser
     const SIGN = '--';
 
     /**
-     * All console arguments not values
+     * All Cli arguments not values
      * 
      * @var array
      */
     public $segments;
 
     /**
-     * All console arguments with key and values ( associative array )
+     * All Cli arguments with key and values ( associative array )
      * 
      * @var array
      */
@@ -56,18 +56,18 @@ Class Parser
     /**
      * Resolve command line parameters
      * 
-     * @param array $consoleParameters parameter array
+     * @param array $CliParameters parameter array
      * 
      * @return array resolved parameters
      */
-    public function parse($consoleParameters = array())
+    public function parse($CliParameters = array())
     {
-        if ( ! is_array($consoleParameters) OR ! isset($consoleParameters[0])) {
-            throw new InvalidArgumentException('Console parameter not exists or it is not an array.');
+        if ( ! is_array($CliParameters) OR ! isset($CliParameters[0])) {
+            throw new InvalidArgumentException('Cli parameter not exists or it is not an array.');
         }
-        $this->arguments['command'] = $consoleParameters[0];
+        $this->arguments['command'] = $CliParameters[0];
         $params = array();
-        foreach ($consoleParameters as $value) {
+        foreach ($CliParameters as $value) {
             if (strpos($value, static::SIGN) === 0) {
                 $val = explode(static::SEPARATOR, $value);
                 $paramKey = trim($val[0], static::SIGN);
@@ -141,4 +141,4 @@ Class Parser
 // END Parser.php File
 /* End of file Parser.php
 
-/* Location: .Obullo/Console/Parser.php */
+/* Location: .Obullo/Cli/Parser.php */

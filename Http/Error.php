@@ -86,7 +86,7 @@ Class Error
     {
         $message = $this->sanitizeMessage($message);
         ob_start();
-        include APP .'errors'. DS .'warning'. EXT;
+        include APP .'templates'. DS .'errors'. DS .'warning'. EXT;
         $buffer = ob_get_clean();
         return $buffer;
     }
@@ -102,7 +102,7 @@ Class Error
     {
         $message = $this->sanitizeMessage($message);
         ob_start();
-        include APP .'errors'. DS .'notice'. EXT;
+        include APP .'templates'. DS .'errors'. DS .'notice'. EXT;
         $buffer = ob_get_clean();
         return $buffer;
     }
@@ -139,7 +139,7 @@ Class Error
             return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
         }
         ob_start();
-        include APP .'errors'. DS .$template. EXT;
+        include APP .'templates'. DS .'errors'. DS .$template. EXT;
         $buffer = ob_get_clean();
         return $buffer;
     }

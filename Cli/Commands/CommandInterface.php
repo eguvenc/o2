@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
 /**
  * Command Interface
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 interface CommandInterface
 {
@@ -25,4 +25,4 @@ interface CommandInterface
 // END CommandInterface class
 
 /* End of file CommandInterface.php */
-/* Location: .Obullo/Console/Commands/CommandInterface.php */
+/* Location: .Obullo/Cli/Commands/CommandInterface.php */

@@ -88,69 +88,6 @@ Class App
             Controller::$instance->{$key} = $value;
         }
     }
-
-    /**
-     * Define closure function
-     * 
-     * @param string $name    function name
-     * @param string $closure data
-     * 
-     * @return void
-     */
-    // public function func($name, $closure)
-    // {
-    //     $this->closure[$name] = $closure;
-    // }
-
-    /**
-     * Down application ( enter the maintenance mode ).
-     *
-     * @param string $func   name ( service or app )
-     * @param string $domain domain key name comes from config.xml
-     * 
-     * @return mixed
-     */
-    // public function down($func = 'app.down', $domain = 'all') 
-    // {
-    //     $section = substr($func, 0, 3);
-    //     if ($domain != '*' AND ! $domain instanceof SimpleXmlElement) {
-    //         throw new LogicException('Correct your routes.php domain option it must be like this $c[\'config\']->xml->app->$name.');
-    //     }
-    //     if ($domain == '*') {
-    //         $domainKey = 'all'; // Default application name
-    //     } else {
-    //         $domainKey = $domain->getName();  // Get xml application name
-    //     }
-    //     if (isset($this->c['config']->xml->{$section}->{$domainKey}->domain->regex) 
-    //         AND $this->c['config']->xml->{$section}->{$domainKey}->maintenance == 'down'
-    //     ) {
-    //         $closure = $this->run($func, array('domain' => $domain));
-    //         if (is_callable($closure)) {
-    //             return $closure($domain);
-    //         }
-    //     }
-    //     return true;
-    // }
-
-    /**
-     * Run closures before we store
-     *
-     * @param string $name fuction name
-     * 
-     * @return mixed closure result
-     */
-    // protected function run($name)
-    // {
-    //     if (defined('STDIN')) {  // Don't run this command for Cli.
-    //         return null;
-    //     }
-    //     if ( ! isset($this->closure[$name])) {
-    //         throw new LogicException(
-    //             sprintf('Callback method "%s" is not defined in app closure data.', $name)
-    //         );
-    //     }
-    //     return $this->closure[$name];
-    // }
 }
 
 // END App.php File

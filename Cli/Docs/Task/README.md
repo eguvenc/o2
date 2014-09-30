@@ -3,7 +3,7 @@
 
 ------
 
-Php <b>task</b> file which is located in your project root that helps you to run your console tasks.
+Php <b>task</b> file which is located in your project root that helps you to run your Cli tasks.
 
 ```php
 + app
@@ -18,7 +18,7 @@ Php <b>task</b> file which is located in your project root that helps you to run
   task
 ```
 
-Open your shell console and type
+Open your shell Cli and type
 
 ```php
 php task help
@@ -36,13 +36,13 @@ Each task command resolves a task <b>controller</b>.
 
 ### Following Logs
 
-Open your shell console and type
+Open your shell Cli and type
 
 ```php
 php task log
 ```
 
-Above the command open your log console and follow application logs by reading app.log file.
+Above the command open your log Cli and follow application logs by reading app.log file.
 
 <b>Log</b> segment is a controller that is located in your <b>app/tasks</b> folder.
 
@@ -56,7 +56,7 @@ Above the command open your log console and follow application logs by reading a
 
 ### Clear log files
 
-Open your shell console and type
+Open your shell Cli and type
 
 ```php
 php task clear
@@ -120,7 +120,7 @@ $this->cliTask->run('controller');
 
 
 
-#### Follow Log Data ( Console Debug )
+#### Follow Log Data ( Cli Debug )
 
 ```php
 root@localhost:/var/www/project$ php task log

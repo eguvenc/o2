@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Console;
+namespace Obullo\Cli;
 
 use Obullo\Logger\Logger;
 
@@ -68,4 +68,4 @@ Class Task
 // END Task.php File
 /* End of file Task.php
 
-/* Location: .Obullo/Console/Task.php */
+/* Location: .Obullo/Cli/Task.php */

@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Console\LogFollower;
+namespace Obullo\Cli\LogFollower;
 
 /**
  * FileWriter Follower
@@ -10,7 +10,7 @@ namespace Obullo\Console\LogFollower;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class FileWriter
 {
@@ -68,4 +68,4 @@ Class FileWriter
 // END FileWriter class
 
 /* End of file FileWriter.php */
-/* Location: .Obullo/Console/LogFollower/FileWriter.php */
+/* Location: .Obullo/Cli/LogFollower/FileWriter.php */

@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
 /**
  * Help Command
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
 Class Help implements CommandInterface
 {
@@ -66,4 +66,4 @@ php task [command] [arguments]\n\33[0m\n";
 // END Help class
 
 /* End of file Help.php */
-/* Location: .Obullo/Console/Commands/Help.php */
+/* Location: .Obullo/Cli/Commands/Help.php */

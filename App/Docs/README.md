@@ -34,7 +34,7 @@ Globals config saved in <b>data/globals/config.xml</b> file and it keeps applica
 <?php
 <?xml version="1.0"?>
 <root>
-<app>
+<host>
   <all>
     <name>All Site</name>
     <domain><regex>.*.example.com</regex></domain>
@@ -55,7 +55,7 @@ Globals config saved in <b>data/globals/config.xml</b> file and it keeps applica
     <domain><regex>support\.example\.com$</regex></domain>
     <maintenance>up</maintenance>
   </support>
-</app>
+</host>
 <service>
   <all>
     <name>All Services</name>
@@ -79,8 +79,8 @@ Location: .app/config/env/local/config.xml
 
 ```php
 <?php
-$this->config->xml->app->site->name = 'Test Site';
-$this->config->xml->app->site->maintenance = 'down';
+$this->config->xml->host->site->name = 'Test Site';
+$this->config->xml->host->site->maintenance = 'down';
 $this->config->save($this->config->xml->asXML());
 ```
 
@@ -90,7 +90,7 @@ Following xml file show changes after save operation
 <?php
 <?xml version="1.0"?>
 <root>
-<app>
+<host>
     <all>
         <name>All Site</name>
         <domain><regex>.*.example.com</regex></domain>
@@ -133,56 +133,10 @@ chmod -R 777 /var/www/yourproject/app/config/env/prod/config.xml
 
 #### Maintenance Mode
 
-A call to the <b>$c['app']->down()</b> method is defined in your root global.php file. When your application is in maintenance mode your custom maintenance view will be displayed for all routes into your application. This makes it easy to "disable" your application while it is updating or when you are performing maintenance. 
-
-This feature is configurable from your <b>global.php</b> which is located in your project root.
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Maintenance Mode Handler
-|--------------------------------------------------------------------------
-|
-| The "php task app down" command gives you the ability to put an application
-| into maintenance mode.
-|
-*/
-$c['app']->func(
-    'app.down',
-    function ($params) use ($c) {
-        $c->load('response')->setHttpResponse(503)->sendOutput($c->load('view')->template('maintenance'));
-        die;
-    }
-);
-
-/*
-|--------------------------------------------------------------------------
-| Service Maintenance Mode Handler
-|--------------------------------------------------------------------------
-|
-| The "php task service down" command gives you the ability to put a service
-| into maintenance mode.
-|
-*/
-$c['app']->func(
-    'service.down',
-    function ($params) use ($c) {
-        echo 'Service Unavailable !';
-        die;
-    }
-);
-
-/* End of file global.php */
-/* Location: .global.php */
-```
-
-#### Console
-
 To <b>enable</b> maintenance mode you can execute the <b>down</b> task command:
 
 ```php
-$php task app $name down
+$php task host $name down
 ```
 
 
@@ -194,11 +148,11 @@ To <b>disable</b> maintenance mode you can execute the <b>up</b> command:
 
 
 ```php
-$php task app $name up
+$php task host $name up
 ```
 
 ```php
-$php task serivce $name up
+$php task service $name up
 ```
 
 ### environments.php
@@ -285,11 +239,3 @@ Config class load your files from <kbd>app/config</kbd> folder but if the file e
 #### $app->detectEnvironment();
 
 Detect and returns current environment using your <b>app/config/env/environments.php</b> hostname array.
-
-#### $app->func(string $name, object $closure);
-
-Defines a application closure function.
-
-#### $app->run(string $name);
-
-Executes callback functions.

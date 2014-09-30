@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
 /**
  * Service Command
  *
  * Manage "data/globals/config.xml" <service></service> item.
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
-Class Service extends App implements CommandInterface
+Class Service extends Host implements CommandInterface
 {
     /**
      * Execute command
@@ -28,7 +28,7 @@ Class Service extends App implements CommandInterface
 
         if ( ! isset($this->config->xml->service->{$service})) {
             $serviceName = (isset($this->config->xml->service->{$service}->name)) ? $this->config->xml->service->{$service}->name : $service;
-            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($serviceName)."\33[0m\33[1;31m service is not defined in your xml config file.\33[0m\n";
+            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($serviceName)."\33[0m\33[1;31m must be defined in your xml config <service></service> tags.\33[0m\n";
             die;
         }
         
@@ -47,7 +47,7 @@ Class Service extends App implements CommandInterface
     }
 
     /**
-     * Console help
+     * Cli help
      * 
      * @return void
      */
@@ -60,4 +60,4 @@ Class Service extends App implements CommandInterface
 // END Service class
 
 /* End of file Service.php */
-/* Location: .Obullo/Console/Commands/Service.php */
+/* Location: .Obullo/Cli/Commands/Service.php */

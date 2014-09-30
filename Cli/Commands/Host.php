@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Console\Commands;
+namespace Obullo\Cli\Commands;
 
 /**
- * App Command
+ * Host Command
  *
- * Manages "data/globals/config.xml" <app></app> item.
+ * Manages "data/globals/config.xml" => "<host></host>"" item.
  * 
- * @category  Console
+ * @category  Cli
  * @package   Commands
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/console
+ * @link      http://obullo.com/package/Cli
  */
-Class App implements CommandInterface
+Class Host implements CommandInterface
 {
     /**
      * Container
@@ -55,7 +55,7 @@ Class App implements CommandInterface
         $this->c = $c;
         $this->config = $this->c->load('config');
         $this->logger = $c->load('service/logger');
-        $this->parser = $c->load('console/parser');
+        $this->parser = $c->load('cli/parser');
         $this->parser->parse($arguments);
     }
 
@@ -66,20 +66,20 @@ Class App implements CommandInterface
      */
     public function run()
     {
-        $app = $this->parser->segment(0);
+        $name = $this->parser->segment(0);
         $command = $this->parser->segment(1);
 
-        if ( ! isset($this->config->xml->app->{$app})) {
-            $appName = (isset($this->config->xml->app->{$app}->label)) ? $this->config->xml->app->{$app}->label : $app;
-            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($appName)."\33[0m\33[1;31m application is not defined in your xml config file.\33[0m\n";
+        if ( ! isset($this->config->xml->host->{$name})) {
+            $hostName = (isset($this->config->xml->host->{$name}->label)) ? $this->config->xml->host->{$name}->label : $name;
+            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($hostName)."\33[0m\33[1;31m must be defined in your xml config <host></host> tags.\33[0m\n";
             die;
         }
         switch ($command) {
         case 'down':
-            $this->down($app, 'app');
+            $this->down($name, 'host');
             break;
         case 'up':
-            $this->up($app, 'app');
+            $this->up($name, 'host');
             break;
         case 'update':
             $this->update();
@@ -94,35 +94,35 @@ Class App implements CommandInterface
     /**
      * Enable maintenance mode
      *
-     * @param string $app       app key ( like : site, support, sports, shop )
-     * @param string $direction app or service
+     * @param string $name      app key ( like : site, support, sports, shop )
+     * @param string $direction host or service
      * 
      * @return void
      */
-    public function down($app, $direction = 'app')
+    public function down($name, $direction = 'host')
     {
-        $this->config->xml->{$direction}->{$app}->maintenance = 'down';
+        $this->config->xml->{$direction}->{$name}->maintenance = 'down';
         $this->config->save($this->config->xml->asXML());
-        $appName = (isset($this->config->xml->{$direction}->{$app}->label)) ? $this->config->xml->{$direction}->{$app}->label : $app;
+        $hostname = (isset($this->config->xml->{$direction}->{$name}->label)) ? $this->config->xml->{$direction}->{$name}->label : $name;
 
-        echo "\33[1;31mApplication \33[1;37m\33[41m$appName\33[0m\33[1;31m down for maintenance.\33[0m\n";
+        echo "\33[1;31mHost \33[1;37m\33[41m$hostname\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
 
     /**
      * Disable maintenance mode
      *
-     * @param string $app       app key ( like : site, support, sports, shop )
-     * @param string $direction app or service
+     * @param string $name      app key ( like : site, support, sports, shop )
+     * @param string $direction host or service
      * 
      * @return void
      */
-    public function up($app, $direction = 'app')
+    public function up($name, $direction = 'host')
     {
-        $this->config->xml->{$direction}->{$app}->maintenance = 'up';
+        $this->config->xml->{$direction}->{$name}->maintenance = 'up';
         $this->config->save($this->config->xml->asXML());
-        $appName = (isset($this->config->xml->{$direction}->{$app}->label)) ? $this->config->xml->{$direction}->{$app}->label : $app;
+        $hostname = (isset($this->config->xml->{$direction}->{$name}->label)) ? $this->config->xml->{$direction}->{$name}->label : $name;
 
-        echo "\33[1;32mApplication \33[1;37m\33[42m$appName\33[0m\33[1;32m up.\33[0m\n";
+        echo "\33[1;32mHost \33[1;37m\33[42m$hostname\33[0m\33[1;32m up.\33[0m\n";
     }
 
     /**
@@ -136,7 +136,7 @@ Class App implements CommandInterface
     }
 
     /**
-     * Console help
+     * Cli help
      * 
      * @return void
      */
@@ -146,7 +146,7 @@ Class App implements CommandInterface
     }
 }
 
-// END App class
+// END Host class
 
-/* End of file App.php */
-/* Location: .Obullo/Console/Commands/App.php */
+/* End of file Host.php */
+/* Location: .Obullo/Cli/Commands/Host.php */
