@@ -166,7 +166,7 @@ $this->logger->notice('Another Notice', array('username' => $username), 1);
 
 ### Push
 
-Below the example load push handler then do filter for LOG_ALERT levels. Logger only writes alert level logs.
+Below the example load shows only pushing LOG_ALERT levels.
 
 ```php
 <?php
@@ -188,12 +188,12 @@ $this->logger->alert('Something went wrong !', array('username' => $username));
 $this->logger->push(LOGGER_EMAIL);
 $this->logger->push(LOGGER_MONGO); // Sends all log level data to mongo handler
 
-$this->logger->info('User login attempt.', array('username' => $username));  // Continue logging with default handler
+$this->logger->info('User login attempt', array('username' => $username));  // Continue logging with default handler
 ```
 
 <b>IMPORTANT:</b> For a live site you'll usually only enable for LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE levels to be logged otherwise your log files will fill up very fast. This feature is configurable from your logger service.
 
-## Logger Service
+## Service Configuration
 
 ### Primary Handler
 
@@ -201,22 +201,26 @@ Open your <b>app/classes/Service/Logger.php</b> then switch mongo database as a 
 
 ```php
 <?php
+
 namespace Service;
 
 define('LOGGER_NAME', '.Logger.');
 define('LOGGER_CHANNEL', 'Logs');
-define('LOGGER_JOB', 'QueueLogger');
+define('LOGGER_JOB', 'Workers\QueueLogger');
 
-use Obullo\Log\Handler\DisabledHandler,
-    Obullo\Log\Handler\FileHandler,
-    Obullo\Log\Handler\MongoHandler,
-    Obullo\Log\Handler\EmailHandler,
-    Obullo\Log\Logger as OLogger,
-    Obullo\Log\Writer\FileWriter,
-    Obullo\Log\Writer\MongoWriter,
-    Obullo\Log\Writer\EmailWriter,
-    Obullo\Log\Writer\QueueWriter;
+use Obullo\Log\LogService,
+    Obullo\Log\Handler\DisabledHandler;
 
+/**
+ * Log Service
+ *
+ * @category  Service
+ * @package   Logger
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/services
+ */
 Class Logger implements ServiceInterface
 {
     /**
@@ -230,109 +234,69 @@ Class Logger implements ServiceInterface
     {
         $c['logger'] = function () use ($c) {
 
-            if ($c->load('config')['log']['enabled'] == false) {  // Use disabled handler if config disabled.
-                return new Disabled;
+            if ( ! $c->load('config')['log']['enabled']) {  // Use disabled handler if config disabled.
+                return new DisabledHandler;
             }
-            $logger = new OLogger($c, $c->load('config')['log']);
+            $log = new LogService($c, $c->load('config')['log']);
             /*
             |--------------------------------------------------------------------------
-            | Filters
-            |--------------------------------------------------------------------------
-            | Register your filters here
-            */
-            $logger->registerFilter('priority', 'Obullo\Log\Filter\Priority');
-            /*
-            |--------------------------------------------------------------------------
-            | File Handler
+            | Register Filters
             |--------------------------------------------------------------------------
             */
-            $FILE_HANDLER = function () use ($c) { 
-                    return new FileHandler(
-                        $c,
-                        new FileWriter(
-                            $c->load('config')['log']
-                        )
-                    );
-            };
+            $log->registerFilter('priority', 'Log\Filters\PriorityFilter');
+            $log->registerFilter('input', 'Log\Filters\InputFilter');
             /*
             |--------------------------------------------------------------------------
-            | Mongo Handler
+            | Register Handlers
             |--------------------------------------------------------------------------
             */
-            $MONGO_HANDLER = function () use ($c) { 
-                return new MongoHandler(
-                    $c,
-                    new MongoWriter(
-                        $c->load('service/provider/mongo', 'db'),  // Mongo client instance
-                        array(
-                        'database' => 'db',
-                        'collection' => 'logs',
-                        'save_options' => null
-                        )
-                    )
-                );
-            };
+            $log->registerHandler(LOGGER_FILE, 'Log\Handlers\FileHandler\CartridgeFileWriter');
+            $log->registerHandler(LOGGER_MONGO, 'Log\Handlers\MongoHandler\CartridgeMongoWriter');
+            $log->registerHandler(LOGGER_EMAIL, 'Log\Handlers\EmailHandler\CartridgeQueueWriter');
             /*
             |--------------------------------------------------------------------------
-            | Email Handler
+            | Add Writer - Primary file writer should be available on local server.
             |--------------------------------------------------------------------------
             */
-            $EMAIL_HANDLER = function () use ($c) { 
-                return new EmailHandler(
-                    $c,
-                    new QueueWriter(
-                        $c->load('service/queue'),
-                        array(
-                            'channel' =>  LOGGER_CHANNEL,
-                            'route' => gethostname(). LOGGER_NAME .'Email',
-                            'job' => LOGGER_JOB,
-                            'delay' => 0,
-                        )
-                    )
-                );
-            };
+            $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_INFO))->filter('input.filter');
+            // $logger->addWriter(LOGGER_MONGO)->priority(5);
             /*
             |--------------------------------------------------------------------------
-            | Writers
+            | Add Handler - Adds to available log handlers
             |--------------------------------------------------------------------------
-            | Primary file writer should be available on local server.
             */
-            $logger->addWriter(LOGGER_FILE, $FILE_HANDLER)->priority(2);
+            $log->addHandler(LOGGER_EMAIL)->priority(2);
             /*
             |--------------------------------------------------------------------------
-            | Handlers
-            |--------------------------------------------------------------------------
-            | Add your available log handlers
-            */
-            $logger->addHandler(LOGGER_MONGO, $MONGO_HANDLER)->priority(1);
-            $logger->addHandler(LOGGER_EMAIL, $EMAIL_HANDLER)->priority(2)->filter('priority', array(LOG_ERR, LOG_CRIT, LOG_ALERT, LOG_WARNING, LOG_EMERG));
-            /*
-            |--------------------------------------------------------------------------
-            | Removes file handler and uses second handler as primary 
-            | in "production" env.
+            | Removes file handler and uses second handler as primary in "production" env.
             |--------------------------------------------------------------------------
             */
             if (ENV == 'prod') {
-                $logger->removeWriter(LOGGER_FILE);
-                $logger->removeHandler(LOGGER_MONGO);
-                $logger->addWriter(LOGGER_MONGO, $MONGO_HANDLER);  //  your production log writer
+                $log->removeWriter(LOGGER_FILE);
+                $log->removeHandler(LOGGER_MONGO);
+                $log->addWriter(LOGGER_MONGO);  //  Your production log writer
             }
-            return $logger;
+            return $log;
         };
     }
 }
+
+// END Logger class
+
+/* End of file Logger.php */
+/* Location: .classes/Service/Logger.php */
 ```
 
 * TIP: If you have a high traffic web site use one log handler or use QUEUE handler as primary for best performance.
 
 
-### Handler Priority
+### Handler Priorities
 
 Priority method sets your handler priority.
 
 ```php
 <?php
-$logger->addWriter(LOGGER_FILE, $FILE_HANDLER)->priority(2);
+$logger->addWriter(LOGGER_FILE)->priority(2);
 ```
 
 High numbers means your handler important than others.
@@ -345,32 +309,32 @@ If you we want to use a filter first you need to register it to a class with reg
 An example prototype:
 
 ```php
-$logger->registerFilter('class.method', 'Namespace/Class');
+$logger->registerFilter('class.method', 'Namespace\Class');
 ```
 
 ```php
 <?php
-$logger->registerFilter('priority', 'Obullo\Log\Filter\Priority');
+$logger->registerFilter('priority', 'Log\Filters\Priority');
 ```
 or you can define our own 
 
 ```php
 <?php
-$logger->registerFilter('filtername', 'MyNamespace/MyFilterClass');
+$logger->registerFilter('filtername', 'Log\Filters\MyFilterClass');
 ```
 
 Then you can use your filters.
 
 ```php
 <?php
-$logger->addHandler(LOGGER_EMAIL, $EMAIL_HANDLER)->priority(2)->filter('priority', array(LOG_NOTICE, LOG_ALERT));
+$logger->addHandler(LOGGER_EMAIL)->priority(2)->filter('priority', array(LOG_NOTICE, LOG_ALERT))->filter('input.filter');
 ```
 
 or you can use methods
 
 ```php
 <?php
-$logger->addHandler(LOGGER_EMAIL, $EMAIL_HANDLER)->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
+$logger->addHandler(LOGGER_EMAIL)->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
 ```
 Above the example executes <b>Priority</b> class <b>notIn</b> method.
 
@@ -405,22 +369,21 @@ $app = new Controller(
 
 #### Displaying Logs
 
-You can follow the all log messages using below the command.
-
 ```php
 php task log
 ```
-You can set the log level filter using the level argument.
+You can follow the all log messages using log command.
 
 ```php
-php task log level info
+php task log ajax
 ```
-
-This command display only log messages which are flagged as debug.
+This command display only ajax log messages.
 
 ```php
-php task log level debug
+php task log cli
 ```
+This command display only cli log messages.
+
 
 #### Clear All Log Data
 
@@ -436,7 +399,7 @@ php task clear
 
 Load a log handler for push method. Handler constants are defined in your root constants file.
 
-#### $this->logger->addWriter(string $name, Closure $handler);
+#### $this->logger->addWriter(string $name);
 
 Add a log writer.
 
@@ -444,7 +407,7 @@ Add a log writer.
 
 Remove a log writer.
 
-#### $this->logger->addHandler(string $name, Closure $handler);
+#### $this->logger->addHandler(string $name);
 
 Add a push handler.
 
@@ -462,7 +425,7 @@ Execute your filter before releated method.
 
 #### $this->logger->push(string $handler = LOGGER_MONGO, $threshold = null, integer $priority = 0);
 
-Push current page log data to log handlers.
+Push current page log data to your loaded log handler.
 
 #### $this->logger->printDebugger(string $handler = LOGGER_FILE);
 

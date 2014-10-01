@@ -123,18 +123,18 @@ Class QueueWriter extends AbstractWriter
     /**
      * Batch Operation
      *
-     * @param string $record multiline record data
-     * @param string $type   request types ( app, cli, ajax )
+     * @param string $records multiline record data
+     * @param string $type    request types ( app, cli, ajax )
      * 
      * @return mixed
      */
-    public function batch(array $record, $type = null)
+    public function batch(array $records, $type = null)
     {
         if ( ! $this->isAllowed($type)) {
             return;
         }
         $this->queue->channel($this->channel);
-        $this->queue->push($this->job, $this->route, array('type' => $this->type, 'record' => $record, 'batch' => true), $this->delay);
+        $this->queue->push($this->job, $this->route, array('type' => $this->type, 'record' => $records, 'batch' => true), $this->delay);
         return true;
     }
 

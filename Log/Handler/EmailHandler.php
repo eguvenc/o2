@@ -79,10 +79,12 @@ Class EmailHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write($pQ)
+    public function write(PriorityQueue $pQ)
     {
-        $formatter = new LineFormatter($this->c);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
+
+        $formatter = new LineFormatter($this->c);
+
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $lines = '';
@@ -90,7 +92,7 @@ Class EmailHandler implements HandlerInterface
                 $lines.= $formatter->format($pQ->current());
                 $pQ->next(); 
             }
-            $this->writer->write($lines);
+            $this->writer->batch($lines);
         }
     }
 

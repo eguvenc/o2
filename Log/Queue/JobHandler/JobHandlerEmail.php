@@ -47,6 +47,10 @@ Class JobHandlerEmail implements JobHandlerInterface
      */
     public function write(array $data)
     {
+        if (isset($data['batch'])) {
+            $this->writer->batch($data['record'], $data['type']);
+            return;
+        }
         $this->writer->write($data['record'], $data['type']);
     }
 

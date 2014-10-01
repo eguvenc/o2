@@ -54,15 +54,11 @@ Class FileWriter extends AbstractWriter
         /**
          * Replace cli request path
          */
-        if (defined('STDIN')) {
+        if (defined('STDIN') AND ! isset($params['worker'])) {
             if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'clear') {  //  Do not keep clear command logs.
                 $this->c['config']->array['log']['enabled'] = false;
             }
-            if (isset($params['worker'])) {
-                $this->path = static::replace($params['path']['worker']);
-            } else {
-                $this->path = static::replace($params['path']['cli']);
-            }
+            $this->path = static::replace($params['path']['cli']);
         }
     }
 
@@ -115,7 +111,11 @@ Class FileWriter extends AbstractWriter
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        return $this->write($records);
+        $lines = '';
+        foreach ($records as $record) {
+            $lines.= $record;
+        }
+        return $this->write($lines, $type);
     }
 
     /**

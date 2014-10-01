@@ -2,6 +2,8 @@
 
 namespace Obullo\Log\Handler;
 
+use Obullo\Log\PriorityQueue;
+
 /**
  * Logger Handler Interface
  * 
@@ -31,7 +33,7 @@ interface HandlerInterface
      * 
      * @return boolean
      */
-    public function write($pQ);
+    public function write(PriorityQueue $pQ);
 
     /**
      * Close handler connection

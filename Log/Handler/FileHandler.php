@@ -78,18 +78,22 @@ Class FileHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write($pQ)
+    public function write(PriorityQueue $pQ)
     {
-        $formatter = new LineFormatter($this->c);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
+
+        $formatter = new LineFormatter($this->c);
+
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
-            $lines = '';
+            $records = array();
+            $i = 0;
             while ($pQ->valid()) {    // Prepare Lines
-                $lines.= $formatter->format($pQ->current());
+                $i++;
+                $records[$i] = $formatter->format($pQ->current());
                 $pQ->next(); 
             }
-            $this->writer->write($lines);
+            $this->writer->batch($records);
         }
     }
 

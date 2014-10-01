@@ -186,7 +186,9 @@ abstract class AbstractAdapter
      */
     protected function rememberMe()
     {
-        $this->c->load('session/reminder')->rememberMe($this->config['login']['rememberMeSeconds'], false);  // Keep old session data
+        // SET REMEMBER ME COOKIE
+        // 
+        // $this->c->load('session/reminder')->rememberMe($this->config['login']['rememberMe']['cookie']['expire'], false);  // Keep old session data
     }
 
     /**

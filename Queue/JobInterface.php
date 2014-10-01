@@ -30,7 +30,7 @@ interface JobInterface
      * 
      * @return void
      */
-    public function fire(Job $job, array $data);
+    public function fire(Job $job, $data);
 }
 
 // END JobInterface class

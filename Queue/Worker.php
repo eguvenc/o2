@@ -3,7 +3,7 @@
 namespace Obullo\Queue;
 
 use Obullo\Queue\Job,
-    Obullo\Log\Logger,
+    Obullo\Log\LogService,
     Exception,
     ErrorException;
 
@@ -167,8 +167,8 @@ Class Worker
         $this->queue = $c->load('service/queue');
         $this->logger = $c->load('service/logger');
 
-        Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
-        Logger::unregisterExceptionHandler(); // logger error handlers.
+        LogService::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
+        LogService::unregisterExceptionHandler(); // logger error handlers.
 
         $this->logger->channel('queue');
         $this->logger->debug('Queue Worker Class Initialized');

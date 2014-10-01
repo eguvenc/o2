@@ -57,18 +57,18 @@ Class View
     public $response;
 
     /**
-     * Nested Controller
-     * 
-     * @var object
-     */
-    public $nestedController = null;
-
-    /**
      * Layouts array
      * 
      * @var array
      */
     protected $layouts;
+
+    /**
+     * Nested Controller
+     * 
+     * @var object
+     */
+    public $nestedController = null;
 
     /**
      * Constructor

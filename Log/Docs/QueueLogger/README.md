@@ -1,5 +1,5 @@
 
-## QUEUE Logger Configuration
+## Queue Logger Configuration
 
 Some times application need to send some logging data to background for heavy <b>async</b> operations. Forexample to sending an email with smtp is very long process. So when we use <b>Email Handler</b> in application first we need to setup a <b>Queue Writer</b> for it.
 
@@ -43,17 +43,10 @@ namespace Service;
 
 define('LOGGER_NAME', '.Logger.');
 define('LOGGER_CHANNEL', 'Logs');
-define('LOGGER_JOB', 'QueueLogger');
+define('LOGGER_JOB', 'Workers\QueueLogger');
 
-use Obullo\Log\Handler\DisabledHandler,
-    Obullo\Log\Handler\FileHandler,
-    Obullo\Log\Handler\MongoHandler,
-    Obullo\Log\Handler\EmailHandler,
-    Obullo\Log\Logger as OLogger,
-    Obullo\Log\Writer\FileWriter,
-    Obullo\Log\Writer\MongoWriter,
-    Obullo\Log\Writer\EmailWriter,
-    Obullo\Log\Writer\QueueWriter;
+use Obullo\Log\LogService,
+    Obullo\Log\Handler\DisabledHandler;
 
 /**
  * Log Service
@@ -78,94 +71,47 @@ Class Logger implements ServiceInterface
     {
         $c['logger'] = function () use ($c) {
 
-            if ($c->load('config')['log']['enabled'] == false) {  // Use disabled handler if config disabled.
-                return new Disabled;
+            if ( ! $c->load('config')['log']['enabled']) {  // Use disabled handler if config disabled.
+                return new DisabledHandler;
             }
-            $logger = new OLogger($c, $c->load('config')['log']);
+            $log = new LogService($c, $c->load('config')['log']);
             /*
             |--------------------------------------------------------------------------
-            | Filters
-            |--------------------------------------------------------------------------
-            | Register your filters here
-            */
-            $logger->registerFilter('priority', 'Obullo\Log\Filter\Priority');
-            /*
-            |--------------------------------------------------------------------------
-            | File Handler
+            | Register Filters
             |--------------------------------------------------------------------------
             */
-            $FILE_HANDLER = function () use ($c) { 
-                    return new FileHandler(
-                        $c,
-                        new FileWriter(
-                            $c->load('config')['log']
-                        )
-                    );
-            };
+            $log->registerFilter('priority', 'Log\Filters\PriorityFilter');
+            $log->registerFilter('input', 'Log\Filters\InputFilter');
             /*
             |--------------------------------------------------------------------------
-            | Mongo Handler
+            | Register Handlers
             |--------------------------------------------------------------------------
             */
-            $MONGO_HANDLER = function () use ($c) { 
-                return new MongoHandler(
-                    $c,
-                    new MongoWriter(
-                        $c->load('service/provider/mongo', 'db'),  // Mongo client instance
-                        array(
-                        'database' => 'db',
-                        'collection' => 'logs',
-                        'save_options' => null
-                        )
-                    )
-                );
-            };
+            $log->registerHandler(LOGGER_FILE, 'Log\Handlers\FileHandler\CartridgeQueueWriter');
+            $log->registerHandler(LOGGER_EMAIL, 'Log\Handlers\EmailHandler\CartridgeQueueWriter');
             /*
             |--------------------------------------------------------------------------
-            | Email Handler
+            | Add Writer - Primary file writer should be available on local server.
             |--------------------------------------------------------------------------
             */
-            $EMAIL_HANDLER = function () use ($c) { 
-                return new EmailHandler(
-                    $c,
-                    new QueueWriter(
-                        $c->load('service/queue'),
-                        array(
-                            'channel' =>  LOGGER_CHANNEL,
-                            'route' => gethostname(). LOGGER_NAME .'Email',
-                            'job' => LOGGER_JOB,
-                            'delay' => 0,
-                        )
-                    )
-                );
-            };
+            $log->addWriter(LOGGER_FILE)->priority(5);
             /*
             |--------------------------------------------------------------------------
-            | Writers
+            | Add Handler - Adds to available log handlers
             |--------------------------------------------------------------------------
-            | Primary file writer should be available on local server.
             */
-            $logger->addWriter(LOGGER_FILE, $FILE_HANDLER)->priority(2);
+            $log->addHandler(LOGGER_EMAIL)->priority(2);
             /*
             |--------------------------------------------------------------------------
-            | Handlers
-            |--------------------------------------------------------------------------
-            | Add your available log handlers
-            */
-            $logger->addHandler(LOGGER_MONGO, $MONGO_HANDLER)->priority(1);
-            $logger->addHandler(LOGGER_EMAIL, $EMAIL_HANDLER)->priority(2)->filter('priority', array(LOG_ERR, LOG_CRIT, LOG_ALERT, LOG_WARNING, LOG_EMERG));
-            /*
-            |--------------------------------------------------------------------------
-            | Removes file handler and uses second handler as primary 
-            | in "production" env.
+            | Removes file handler and uses second handler as primary in "production" env.
             |--------------------------------------------------------------------------
             */
             if (ENV == 'prod') {
-                $logger->removeWriter(LOGGER_FILE);
-                $logger->removeHandler(LOGGER_MONGO);
-                $logger->addWriter(LOGGER_MONGO, $MONGO_HANDLER);  //  your production log writer
+                $log->removeWriter(LOGGER_FILE);
+                $log->removeHandler(LOGGER_FILE);
+                $log->addWriter(LOGGER_MONGO)->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
             }
-            return $logger;
+            return $log;
         };
     }
 }
@@ -176,31 +122,15 @@ Class Logger implements ServiceInterface
 /* Location: .classes/Service/Logger.php */
 ```
 
-### Queue Writer Setup
+### Queue Cartridge Setup
 
 ------
 
-Below the example replace your file writer with Queue.
+Below the example replace your file writer cartridge with Queue.
 
 ```php
 <?php
-$FILE_HANDLER = function () use ($c) { 
-        return new FileHandler(
-            $c,
-            new QueueWriter(
-                $c->load('service/queue'),
-                array(
-                    'channel' =>  LOGGER_CHANNEL,
-                    'route' => gethostname(). LOGGER_NAME .'File',
-                    'job' => LOGGER_JOB,
-                    'delay' => 0,
-                )
-            )
-            // new FileWriter(
-            //     $c->load('config')['log']
-            // )
-        );
-};
+$log->registerHandler(LOGGER_FILE, 'Log\Handlers\FileHandler\CartridgeQueueWriter');
 ```
 
 ### Job Handler Setup

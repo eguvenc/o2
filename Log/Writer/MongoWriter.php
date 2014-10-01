@@ -104,17 +104,17 @@ Class MongoWriter extends AbstractWriter
     /**
      * Batch Operation
      *
-     * @param string $record multiline record data
-     * @param string $type   request   types ( app, cli, ajax )
+     * @param string $records multiline record data
+     * @param string $type    request   types ( app, cli, ajax )
      * 
      * @return mixed
      */
-    public function batch(array $record, $type = null)
+    public function batch(array $records, $type = null)
     {
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        return $this->mongoCollection->batchInsert($record);
+        return $this->mongoCollection->batchInsert($records);
     }
 
     /**

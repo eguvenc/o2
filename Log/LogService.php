@@ -9,7 +9,7 @@ use Closure,
     Obullo\Error\ErrorHandler;
 
 /**
- * Log Service Class
+ * LogService Class
  *
  * Modeled after Zend Log package.
  * 
@@ -419,7 +419,7 @@ Class LogService
      * 
      * @return object
      */
-    public function filter($name, array $params = array())
+    public function filter($name, $params = array())
     {
         $method = 'filter';
         if (strpos($name, '.') > 0) {
@@ -428,8 +428,9 @@ Class LogService
         if ( ! isset($this->filterNames[$name])) {
             throw new LogicException(
                 sprintf(
-                    'The filter %s is not defined in your logger service.', 
-                    $name
+                    'The filter %s is not registered in your logger service. Please first register it with following command. <pre>%s</pre> .', 
+                    $name,
+                    '$log->registerFilter(\'class.method\', \'Log\Filters\ClassNameFilter\');'
                 )
             );
         }
@@ -690,14 +691,15 @@ Class LogService
         if ( ! $this->hasFilter($handler)) {
             return $recordUnformatted;
         }
-        $data = $recordUnformatted;
         foreach ($this->filters[$handler] as $value) {
-            $Class  = '\\'.$value['class'];
+            $Class = '\\'.$value['class'];
             $method = $value['method'];
             $filter = new $Class($this->c, $value['params']);
-            $data = $filter->$method($recordUnformatted);
+            if (count($recordUnformatted) > 0) {
+                $recordUnformatted = $filter->$method($recordUnformatted);
+            }
         }
-        return $data;
+        return $recordUnformatted;
     }
 
     /**
@@ -889,7 +891,7 @@ Class LogService
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
-        foreach ($this->writers as $name => $val) {  // Write log data foreach handlers
+        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
             if ( ! isset($this->push[$name]) AND isset($this->handlers[$name])) {     // If handler available in push data.
                 return;
             }

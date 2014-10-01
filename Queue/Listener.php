@@ -25,7 +25,7 @@ Class Listener
     public function __construct($c, $arguments)
     {
         $this->queue = $c->load('service/queue');
-        $this->parser = $c->load('console/parser');
+        $this->parser = $c->load('cli/parser');
         $this->parser->parse($arguments);
 
         switch ($this->parser->segment(0)) {

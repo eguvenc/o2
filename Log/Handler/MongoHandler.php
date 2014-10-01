@@ -88,9 +88,10 @@ Class MongoHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write($pQ)
+    public function write(PriorityQueue $pQ)
     {       
-        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
+        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
+
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $records = array();

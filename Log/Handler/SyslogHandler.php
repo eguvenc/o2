@@ -87,10 +87,12 @@ Class SyslogHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write($pQ)
+    public function write(PriorityQueue $pQ)
     {
-        $formatter = new LineFormatter($this->c);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
+
+        $formatter = new LineFormatter($this->c);
+        
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $records = array();
