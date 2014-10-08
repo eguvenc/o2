@@ -92,9 +92,9 @@ Getting variable values
 echo '@myVariable' // gives my replace value
 ```
 
-### Using Schemes
+### Layouts
 
-Scheme functions help to design your application layout using php anonymous functions.
+Layout method help to design your application layout using php anonymous functions.
 
 ```php
 <?php
@@ -112,8 +112,8 @@ Scheme functions help to design your application layout using php anonymous func
     )
 );
 
-/* End of file config.php */
-/* Location: ./app/config/env/local/config.php */
+/* End of file view.php */
+/* Location: ./app/config/shared/view.php */
 ```
 Then in your controller file you can call your layout using $this->layout() function.
 

@@ -67,6 +67,7 @@ Class FileHandler implements HandlerInterface
         }
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
+            unset($record['context']['extra']);
         }
         return $record; // formatted record
     }

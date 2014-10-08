@@ -127,18 +127,45 @@ abstract class AbstractAdapter
     public function refreshToken()
     {
         $token = $this->generateToken();
+        $cookie = $this->config['security']['token'];
 
         $this->c->load('cookie')->set(
-            $this->config['security']['token']['name'],
+            $cookie['name'],
             $token,
-            $this->config['security']['token']['expire'],
+            $cookie['expire'],
             $this->c['config']['cookie']['domain'],        //  Get domain from global config
-            $this->config['security']['token']['path'],
-            $this->config['security']['token']['prefix'],
-            $this->config['security']['token']['secure'],
-            $this->config['security']['token']['httpOnly']
+            $cookie['path'],
+            $cookie['prefix'],
+            $cookie['secure'],
+            $cookie['httpOnly']
         );
         return $token;
+    }
+
+    /**
+     * Run cookie reminder
+     * 
+     * @return void
+     */
+    protected function refreshRememberMe()
+    {
+        $token = $this->c->load('return utils/random')->generate('alnum', 32);
+        $cookie = $this->config['login']['rememberMe']['cookie'];
+
+        $this->c->load('cookie')->set(
+            $cookie['name'],
+            $token,
+            $cookie['expire'],
+            $this->c['config']['cookie']['domain'],        //  Get domain from global config
+            $cookie['path'],
+            $cookie['prefix'],
+            $cookie['secure'],
+            $cookie['httpOnly']
+        );
+        
+        // SET REMEMBER ME COOKIE
+        // 
+        // $this->c->load('session/reminder')->rememberMe($this->config['login']['rememberMe']['cookie']['expire'], false);  // Keep old session data
     }
 
     /**
@@ -177,18 +204,6 @@ abstract class AbstractAdapter
             return true;
         }
         return false;
-    }
-
-    /**
-     * Run session reminder
-     * 
-     * @return void
-     */
-    protected function rememberMe()
-    {
-        // SET REMEMBER ME COOKIE
-        // 
-        // $this->c->load('session/reminder')->rememberMe($this->config['login']['rememberMe']['cookie']['expire'], false);  // Keep old session data
     }
 
     /**

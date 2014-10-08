@@ -67,8 +67,8 @@ Class Cookie
         if ($domain == '' AND $this->config['cookie']['domain'] != '') {
             $domain = $this->config['cookie']['domain'];
         }
-        if ($path   == '/' AND $this->config['cookie']['path'] != '/') {
-            $path   = $this->config['cookie']['path'];
+        if ($path == '/' AND $this->config['cookie']['path'] != '/') {
+            $path = $this->config['cookie']['path'];
         }
         if ($secure == false AND $this->config['cookie']['secure'] != false) {
             $secure = $this->config['cookie']['secure'];

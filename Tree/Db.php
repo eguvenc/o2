@@ -12,8 +12,6 @@ use RunTimeException;
  * @category  Tree
  * @package   Db
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
- * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/tree

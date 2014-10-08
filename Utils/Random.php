@@ -36,7 +36,7 @@ Class Random
     *
     * Useful for generating passwords or hashes.
     *
-    * @param string  $type type of random string. Options: alnum, alnum_upper, alnum_lower, numeric, nozero, unique
+    * @param string  $type type of random string. Options: alnum, alnum.upper, alnum.lower, numeric, nozero, unique
     * @param integer $len  number of characters
     * 
     * @return string
@@ -48,19 +48,25 @@ Class Random
             return mt_rand();
           break;
         case 'alnum'    :
-        case 'alnum_lower' :
-        case 'alnum_upper' :
+        case 'alnum.lower' :
+        case 'alnum.upper' :
         case 'numeric'  :
         case 'nozero'   :
         case 'alpha'    :
+        case 'alpha.lower' :
+        case 'alpha.upper' :
             switch ($type) {
             case 'alpha'        : $pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 break;
+            case 'alpha.lower'  : $pool = 'abcdefghijklmnopqrstuvwxyz';
+                break;
+            case 'alpha.upper'  : $pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                break;
             case 'alnum'        : $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 break;
-            case 'alnum_lower'  : $pool = '123456789abcdefghijklmnopqrstuvwxyz';
+            case 'alnum.lower'  : $pool = '123456789abcdefghijklmnopqrstuvwxyz';
                 break;
-            case 'alnum_upper'  : $pool = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            case 'alnum.upper'  : $pool = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 break;
             case 'numeric'      : $pool = '0123456789';
                 break;
@@ -72,14 +78,6 @@ Class Random
                 $str .= substr($pool, mt_rand(0, strlen($pool) -1), 1);
             }
             return $str;
-          break;
-        case 'unique'    : 
-        case 'md5'       :
-            return md5(uniqid(mt_rand()));
-          break;
-        case 'encrypt'    : 
-        case 'sha1'       : 
-            return sha1(uniqid(mt_rand(), true));
           break;
         }
     }

@@ -212,13 +212,13 @@ class AssociativeArray extends AbstractAdapter
         );
         $attributes = $this->formatAttributes(array_merge($attributes, $this->resultRowArray), $passwordNeedsRehash);
 
-        if ($this->config['login']['regenerateSessionId']) {
-            $this->regenerateSessionId($this->config['login']['deleteOldSessionAfterRegenerate']);
+        if ($this->config['login']['session']['regenerateSessionId']) {
+            $this->regenerateSessionId($this->config['login']['session']['deleteOldSessionAfterRegenerate']);
         }
         $this->user->identity->setArray($attributes);
 
         if ($this->user->identity->getRememberMe()) { // If user choosed remember feature
-            $this->rememberMe();
+            $this->refreshRememberMe();
         }
     }
 
