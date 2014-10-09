@@ -63,12 +63,12 @@ Class EmailHandler implements HandlerInterface
             'context'  => null,
             'extra'    => null,
         );
-        if (count($unformattedRecord['context']) > 0) {
-            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
-        }
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
-            unset($record['context']['extra']);
+            unset($unformattedRecord['context']['extra']);
+        }
+        if (count($unformattedRecord['context']) > 0) {
+            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // formatted record
     }

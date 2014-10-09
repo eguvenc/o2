@@ -96,10 +96,8 @@ Class Container implements ArrayAccess
     {
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
-        // print_r($matches);
-        // var_dump($noReturn);
         $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','sanitizer'));
+        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','httpSanitizer'));
 
         $keyExists = false;
         if ($controllerExists
@@ -126,16 +124,18 @@ Class Container implements ArrayAccess
             if ( ! empty($matches['new'])) {  //  If we have new class request ?
                 return $this->runClosure($this->raw[$cid], $params);
             }
+
             if ($noReturn AND $controllerExists AND $keyExists == false AND Controller::$instance != null) {
                 return Controller::$instance->{$key} = $this->values[$cid];
             }
             return $this->values[$cid];
         }             
+
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
 
         // This is assign loaded object container instance into controler instance.
-        // Also assign libraries to all Layers. In Layered Vc sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
+        // Also assign libraries to all Layers. In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
         // it says "$this->view" undefined object that's why we need to assign libraries also for sub layers.
         if ($controllerExists
             AND $noReturn  //  Store class into controller instance if return not used.
@@ -235,6 +235,7 @@ Class Container implements ArrayAccess
                 $newMatches['new'] = $matches['new'];
                 $newMatches['key'] = $key;
                 $instance = $this->offsetGet($cid, $params, $newMatches);
+
                 if ( ! empty($matches['return'])) {
                     return $instance;
                 }
@@ -242,7 +243,7 @@ Class Container implements ArrayAccess
             }
         }
         if ($service == null) {
-            $key  = $this->getAlias($data['cid'], $data['key'], $matches);
+            $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
         $matches['key'] = $key;
         if ( ! $this->exists($data['cid']) AND ! is_object($service)) {   // Don't register service again.
@@ -276,8 +277,12 @@ Class Container implements ArrayAccess
      */
     protected function getAlias($cid, $key, $matches) 
     {   
+        if (strpos($cid, 'provider/') === 0) {  //  If we have provider alias replace provider path with sign ":".
+            $cid = str_replace('provider/', 'provider'.static::PROVIDER_SIGN, $cid);
+        }
         $callable = $this->raw($cid);
-        if ( ! is_null($callable) AND isset($this->aliases[$callable])) {
+
+        if ( ! is_null($callable) AND $this->aliases->contains($callable)) {
             $key = $this->aliases[$callable];
         }
         if ( ! empty($matches['last'])) {  // Replace key with alias if we have it

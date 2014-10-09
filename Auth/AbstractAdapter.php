@@ -127,7 +127,7 @@ abstract class AbstractAdapter
     public function refreshToken()
     {
         $token = $this->generateToken();
-        $cookie = $this->config['security']['token'];
+        $cookie = $this->config['security']['cookie'];
 
         $this->c->load('cookie')->set(
             $cookie['name'],
@@ -162,10 +162,7 @@ abstract class AbstractAdapter
             $cookie['secure'],
             $cookie['httpOnly']
         );
-        
-        // SET REMEMBER ME COOKIE
-        // 
-        // $this->c->load('session/reminder')->rememberMe($this->config['login']['rememberMe']['cookie']['expire'], false);  // Keep old session data
+        $this->modelUser->refreshRememberMeToken($token, $this->user->identity);
     }
 
     /**
@@ -258,8 +255,6 @@ abstract class AbstractAdapter
      * @return AuthResult
      */
     abstract protected function validateResult();
-
-
 }
 
 // END AbstractAdapter.php File

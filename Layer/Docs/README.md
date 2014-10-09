@@ -321,7 +321,8 @@ $app->func(
         $errors = array();
         if ($this->validator->isValid()) {
 
-            $c->load('db');  // load database
+            $c->load('service/provider/database as db');  // load database
+            
             try {
                 $this->db->transaction();
                 $this->db->insert(

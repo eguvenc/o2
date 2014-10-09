@@ -93,6 +93,12 @@ Class Identity extends UserIdentity
         $this->storage = $params['storage'];
         $this->adapter = $params['adapter'];
 
+        if ($this->recallerExists()) {  // Remember the user if recaller cookie exists
+            $this->recallUser();
+        }
+
+        var_dump($this->storage->getCredentials('__permanent'));
+
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
             parent::__construct($this->attributes);
             $this->attributes['__isTemporary'] = 0;
@@ -105,7 +111,7 @@ Class Identity extends UserIdentity
             $this->attributes['__lastTokenRefresh'] = time();
         }
 
-        $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['token']['refresh'].' seconds');
+        $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['cookie']['refresh'].' seconds');
         $this->logger = $this->c->load('return service/logger');
 
         register_shutdown_function(array($this, 'writeClose'));
@@ -134,6 +140,20 @@ Class Identity extends UserIdentity
             return true;
         }
         return false;
+    }
+
+    protected function recallerExists()
+    {
+        $name = $this->config['login']['rememberMe']['cookie']['name'];
+
+        if ($cookie = $this->c->load('cookie')->get($name)) {
+            return $cookie;
+        }
+    }
+
+    protected function recallUser()
+    {
+        $this->adapter->login();
     }
 
     /**
@@ -230,7 +250,7 @@ Class Identity extends UserIdentity
         if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh) { // If identitiy data does not exists.
             return true;
         }
-        $cookie = $this->c->load('cookie')->get($this->config['security']['token']['name']);
+        $cookie = $this->c->load('cookie')->get($this->config['security']['cookie']['name']);
 
         if ($cookie == $this->getToken()) {
             return $this->tokenIsValid = true;

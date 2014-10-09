@@ -77,7 +77,6 @@ Class Db {
      */
     public function __call($method, $arguments)
     {
-        
         if ( ! method_exists($this, $method)) {
             return call_user_func_array(array($this->resultObject, $method), $arguments);
         }
@@ -111,21 +110,16 @@ Class Db {
     {
         $includes = explode(',', $includes);
 
-        if ( ! is_array($includes))
-        {
+        if ( ! is_array($includes)) {
             $includes = array($includes);
         }
-
         $includes = array_map('trim', $includes);  // trim spaces
 
-        if ( ! empty($includes))
-        {
-            foreach ($includes as $col)
-            {
+        if ( ! empty($includes)) {
+            foreach ($includes as $col) {
                 $this->selects[$col] = 1;
             }
         }
-
         return ($this);
     }
 
@@ -162,55 +156,46 @@ Class Db {
      */
     public function where($wheres, $value = null, $mongo_id = true)
     {
-        if(is_string($wheres) AND strpos(ltrim($wheres), ' ') > 0)
-        {
+        if (is_string($wheres) AND strpos(ltrim($wheres), ' ') > 0) {
             $array    = explode(' ', $wheres);
             $field    = $array[0];
             $criteria = $array[1];
           
             $this->_whereInit($field);
             
-            switch ($criteria)
-            {
-                case '>':    // greater than
-                    $this->wheres[$field]['$gt']  = $value;
-                    break;
-                
-                case '<':    // less than
-                    $this->wheres[$field]['$lt']  = $value;
-                    break;
-                
-                case '>=':   // greater than or equal to
-                    $this->wheres[$field]['$gte'] = $value;
-                    break;
-                
-                case '<=':   // less than or equal to
-                    $this->wheres[$field]['$lte'] = $value;
-                    break;
-                
-                case '!=':   // not equal to
-                    $this->wheres[$field]['$ne']  = $this->isMongoId($field, $value);
-                    break;
-                
-                default:
-                    break;
-            }
-              
+            switch ($criteria) {
+            case '>':    // greater than
+                $this->wheres[$field]['$gt']  = $value;
+                break;
+            
+            case '<':    // less than
+                $this->wheres[$field]['$lt']  = $value;
+                break;
+            
+            case '>=':   // greater than or equal to
+                $this->wheres[$field]['$gte'] = $value;
+                break;
+            
+            case '<=':   // less than or equal to
+                $this->wheres[$field]['$lte'] = $value;
+                break;
+            
+            case '!=':   // not equal to
+                $this->wheres[$field]['$ne']  = $this->isMongoId($field, $value);
+                break;
+            
+            default:
+                break;
+            } 
             return ($this);
         }
-      
-        if (is_array($wheres))
-        {
-            foreach ($wheres as $wh => $val)
-            {
+        if (is_array($wheres)) {
+            foreach ($wheres as $wh => $val) {
                 $this->wheres[$wh] = $this->isMongoId($wh, $val);
             }
-        }
-        else
-        {
+        } else {
             $this->wheres[$wheres] = $this->isMongoId($wheres, $value);   
         }
-       
         return ($this);
     }
 
@@ -225,18 +210,13 @@ Class Db {
      */
     public function orWhere($wheres, $value = null)
     {
-        if (is_array($value))
-        {
-            foreach ($value as $wh => $val)
-            {
+        if (is_array($value)) {
+            foreach ($value as $wh => $val) {
                 $this->wheres['$or'][][$wh] = $this->isMongoId($wh, $val);
             }
-        }
-        else
-        {
+        } else {
             $this->wheres['$or'][][$wheres] = $this->isMongoId($wheres, $value);
         }
-        
         return ($this);
     }
 
@@ -252,17 +232,13 @@ Class Db {
      */
     public function whereIn($field = '', $in = array())
     {
-        if(strpos($field, '!=') > 0)
-        {
+        if (strpos($field, '!=') > 0) {
             $array = explode('!=', $field);
             $field = trim($array[0]);
-            
             $this->_whereInit($field);
             $this->wheres[$field]['$nin'] = $in;
-            
             return ($this);
         }
-        
         $this->_whereInit($field);
         $this->wheres[$field]['$in'] = $in;
         
@@ -324,13 +300,10 @@ Class Db {
 
         $value = quotemeta($value);
 
-        if ($enable_start_wildcard !== true)
-        {
+        if ($enable_start_wildcard !== true) {
             $value = "^" . $value;
         }
-        
-        if ($enable_end_wildcard !== true)
-        {
+        if ($enable_end_wildcard !== true) {
             $value .= "$";
         }
         
@@ -351,14 +324,11 @@ Class Db {
     {
         $this->_whereInit('$or');
 
-        if (is_array($like) AND count($like) > 0)
-        {
-            foreach ($like as $admitted)
-            {
+        if (is_array($like) AND count($like) > 0) {
+            foreach ($like as $admitted) {
                 $this->wheres['$or'][] = array($field => new MongoRegex("/$admitted/"));
             }
         }
-
         return $this;
     }
     
@@ -373,14 +343,11 @@ Class Db {
     {
         $this->_whereInit($field);
 
-        if (is_array($like) AND count($like) > 0)
-        {
-            foreach ($like as $admitted)
-            {
+        if (is_array($like) AND count($like) > 0) {
+            foreach ($like as $admitted) {
                 $this->wheres[$field]['$nin'][] = new MongoRegex("/$admitted/");
             }
         }
-
         return $this;
     }
 
@@ -409,9 +376,9 @@ Class Db {
      * @param  string $reduce  A function that takes two arguments (the current document and the aggregation to this point) and does the aggregation
      * @return object
      */
-    public function groupBy($key = NULL , $initial = array('count' => 0) ,$reduce ='function (obj, prev) { prev.count++;}' )
+    public function groupBy($key = null , $initial = array('count' => 0) ,$reduce ='function (obj, prev) { prev.count++;}' )
     {
-        if ($key != NULL) {
+        if ($key != null) {
             $this->groupBy['keys'][$key] = true;
             $this->groupBy['initial']    = $initial;
             $this->groupBy['reduce']     = $reduce;
@@ -468,11 +435,9 @@ Class Db {
       
         $collection = (empty($this->collection)) ? $collection :  $this->collection;
         
-        if (empty($collection))
-        {
+        if (empty($collection)) {
             throw new LogicException('You need to set a collection name using $this->db->from(\'table\') method.');
         }
-        
         return $this->_query($collection);
     }
 
@@ -484,13 +449,13 @@ Class Db {
     public function _query($collection)
     {
         $rows = array();
-        if(count($this->groupBy) == 0) {
+        if (count($this->groupBy) == 0) {
             $cursor = $this->db->{$collection}
                 ->find($this->wheres, $this->selects)
                 ->limit((int) $this->limit)
                 ->skip((int) $this->offset)
                 ->sort($this->sorts);
-            while($row = $cursor->getNext()) {
+            while ($row = $cursor->getNext()) {
                 $rows[] = $row;
             }
         } else {
@@ -499,7 +464,7 @@ Class Db {
                 $cursor = $this->db->{$collection}->group(
                                                         $this->groupBy['keys'],
                                                         $this->groupBy['initial'],
-                                                        $this->groupBy['reduce'] ,
+                                                        $this->groupBy['reduce'],
                                                         $cond
                                                     );
             } else {
@@ -507,7 +472,7 @@ Class Db {
                                                         $this->groupBy['keys'],
                                                         $this->groupBy['initial'],
                                                         $this->groupBy['reduce']
-                                                    );   
+                                                    );
             }
             $rows = $cursor['retval'];
         }
@@ -551,7 +516,7 @@ Class Db {
                 ->aggregate($pipeline);
         }
         $this->collection = ''; // reset from.
-        foreach ($cursor['result'] as $key => $value)  {
+        foreach ($cursor['result'] as $key => $value) {
             $rows[$key] = $value;
         }
         $this->resultObject = new Results($rows); // Load db results
@@ -579,9 +544,8 @@ Class Db {
         if (count($data) == 0 OR ! is_array($data)) {
             throw new LogicException('Nothing to insert into Mongo collection or insert data is not an array.');
         }
-        $this->db->{$collection}
-            ->insert($data, 
-                array_merge($this->config_options, $options));
+        $this->db->{$collection}->insert($data, array_merge($this->config_options, $options));
+
         $this->_resetSelect();
         if (isset($data['_id'])) {
             $this->insert_id = $data['_id'];
@@ -615,9 +579,8 @@ Class Db {
             throw new LogicException('Nothing to insert into Mongo collection or insert data is not an array.');
         }
         $this->_resetSelect();
-        return $this->db->{$collection}
-            ->batchInsert($data, 
-                array_merge($this->config_options, $options));
+
+        return $this->db->{$collection}->batchInsert($data, array_merge($this->config_options, $options));
     }
 
     /**
@@ -669,19 +632,10 @@ Class Db {
         } else {
             $updates = array('$set' => $this->updates); // default mod = $set
         }        
-        $this->db->{$collection}
-            ->update($this->wheres,
-                $updates,
-                array_merge($default_options, $options)
-            );
+        $this->db->{$collection}->update($this->wheres, $updates, array_merge($default_options, $options));
 
         $this->_resetSelect();
-        return $this->db->{$collection}
-            ->find($updates)
-            ->count();
     }
-    
-
     
     /**
      * Increments the value of a field.
@@ -705,8 +659,6 @@ Class Db {
         return ($this);
     }
 
-
-    
     /**
      * Decrements the value of a field.
      * 
@@ -719,6 +671,7 @@ Class Db {
     public function dec($fields = '', $value = 0)
     {
         $this->_updateInit('$inc');
+
         if (is_string($fields)) {
             $this->updates['$inc'][$fields] = $value;
         } elseif (is_array($fields)) {
@@ -744,8 +697,7 @@ Class Db {
         $this->_updateInit('$set');
         if (is_string($fields)) {
             $this->updates['$set'][$fields] = $value;
-        }
-        elseif (is_array($fields)) {
+        } elseif (is_array($fields)) {
             foreach ($fields as $field => $value) {
                 $this->updates['$set'][$field] = $value;
             }
@@ -766,18 +718,13 @@ Class Db {
     {
         $this->_updateInit('$unset');
 
-        if (is_string($fields))
-        {
+        if (is_string($fields)) {
             $this->updates['$unset'][$fields] = 1;
-        }
-        elseif (is_array($fields))
-        {
-            foreach ($fields as $field)
-            {
+        } elseif (is_array($fields)) {
+            foreach ($fields as $field) {
                 $this->updates['$unset'][$field] = 1;
             }
         }
-
         return ($this);
     }
 
@@ -797,15 +744,11 @@ Class Db {
     {
         $this->_updateInit('$addToSet');
 
-        if (is_string($values))
-        {
+        if (is_string($values)) {
             $this->updates['$addToSet'][$field] = $values;
-        }
-        elseif (is_array($values))
-        {
+        } elseif (is_array($values)) {
             $this->updates['$addToSet'][$field] = array('$each' => $values);
         }
-
         return ($this);
     }
 
@@ -825,18 +768,13 @@ Class Db {
     {
         $this->_updateInit('$push');
 
-        if (is_string($fields))
-        {
+        if (is_string($fields)) {
             $this->updates['$push'][$fields] = $value;
-        }
-        elseif (is_array($fields))
-        {
-            foreach ($fields as $field => $value)
-            {
+        } elseif (is_array($fields)) {
+            foreach ($fields as $field => $value) {
                 $this->updates['$push'][$field] = $value;
             }
         }
-
         return ($this);
     }
     
@@ -855,18 +793,13 @@ Class Db {
     {
         $this->_updateInit('$pop');
 
-        if (is_string($field))
-        {
+        if (is_string($field)) {
             $this->updates['$pop'][$field] = -1;
-        }
-        elseif (is_array($field))
-        {
-            foreach ($field as $pop_field)
-            {
+        } elseif (is_array($field)) {
+            foreach ($field as $pop_field) {
                 $this->updates['$pop'][$pop_field] = -1;
             }
         }
-
         return ($this);
     }
     
@@ -902,27 +835,16 @@ Class Db {
 
         $default_options = array_merge(array('justOne' => false), $this->config_options);
 
-        if (empty($collection))
-        {
+        if (empty($collection)) {
             throw new LogicException('No Mongo collection selected to delete.');
         }
-
-        if (isset($this->wheres['_id']) AND ! ($this->wheres['_id'] instanceof MongoId))
-        {
+        if (isset($this->wheres['_id']) AND ! ($this->wheres['_id'] instanceof MongoId)) {
             $this->wheres['_id'] = new MongoId($this->wheres['_id']);
         }
         
-        $this->db->{$collection}
-        ->remove($this->wheres, 
-            array_merge($default_options, $options)
-        );
+        $this->db->{$collection}->remove($this->wheres, array_merge($default_options, $options));
 
-        $affected_rows = $this->db->{$collection}
-                                ->find($this->wheres)
-                                ->count();
         $this->_resetSelect();
-        return $affected_rows;
-
     }
 
     /**
@@ -940,7 +862,7 @@ Class Db {
     {
         if ($this->db == null) {
             $this->connection = new \MongoClient($this->connection_string);
-            $this->db         = $this->connection->{$this->dbname};
+            $this->db = $this->connection->{$this->dbname};
         }
         return ($this);
     }
@@ -962,52 +884,25 @@ Class Db {
      */
     public function setConnectionString() 
     {
-        // $config = getConfig('nosql');
-        
-        // if($config['dsn'] != '')
-        // {
-        //     $this->connection_string = $config['dsn'];
-        //     return;
-        // }
-        
-        // $this->host           = $config['host'];
-        // $this->port           = $config['port'];
-        // $this->user           = $config['username'];
-        // $this->pass           = $config['password'];
-        // $this->dbname         = $config['database'];
-        // $this->config_options = $config['options'];
-        
-        if($this->dbname == '')
-        {
+        if ($this->dbname == '') {
             throw new LogicException('Please set a $mongo[\'database\'] from app/config/mongo.php.');
         }
-        
         $connection_string = "mongodb://";
 
-        if (empty($this->host))
-        {
+        if (empty($this->host)) {
             throw new LogicException('You need to specify a hostname connect to MongoDB.');
         }
-
-        if (empty($this->dbname))
-        {
+        if (empty($this->dbname)) {
             throw new LogicException('You need to specify a database name connect to MongoDB.');
         }
-
-        if ( ! empty($this->user) AND ! empty($this->pass))
-        {
+        if ( ! empty($this->user) AND ! empty($this->pass)) {
             $connection_string .= "{$this->user}:{$this->pass}@";
         }
-
-        if (isset($this->port) AND ! empty($this->port))
-        {
+        if (isset($this->port) AND ! empty($this->port)) {
             $connection_string .= "{$this->host}:{$this->port}";
-        }
-        else
-        {
+        } else {
             $connection_string .= "{$this->host}";
         }
-
         $this->connection_string = trim($connection_string).'/'.$this->dbname;
     }
 
@@ -1016,8 +911,6 @@ Class Db {
      */
     public function _resetSelect()
     {
-        // $this->_setLastQuery(); //  Build lastest sql query.
-
         $this->selects    = array();
         $this->updates    = array();
         $this->groupBy      = array();

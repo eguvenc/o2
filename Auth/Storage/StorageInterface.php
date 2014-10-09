@@ -40,13 +40,6 @@ interface StorageInterface
     public function getIdentifier();
 
     /**
-     * Get identifier from storage
-     * 
-     * @return mixed int|string|null
-     */
-    public function getMemoryIdentifier();
-
-    /**
      * Get credentials and check authority
      * 
      * @return mixed bool

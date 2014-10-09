@@ -27,12 +27,25 @@ To create your components open your <b>components.php</b> that is located in you
 
 ```php
 <?php
-$c['db'] = function () use ($c) {
-    return new Obullo\Database\Pdo\Mysql($c, $c->load('config')['database']);
+/*
+|--------------------------------------------------------------------------
+| Session
+|--------------------------------------------------------------------------
+*/
+$c['session'] = function () use ($c) {
+    return new Obullo\Session\Session($c, $c->load('config')['session']);
 };
 
 /* End of file components.php */
 /* Location: .components.php */
+```
+
+Then your component will be available in controller when you load it.
+
+```php
+<?php
+$c->load('session');
+$this->session->method();
 ```
 
 You can pass first parameter as container to reusability of "$c" ( container object ).
@@ -104,7 +117,7 @@ We reach them using <b>$c->load()</b> method.
 <?php
 $app = new Controller(
     function ($c) {
-        $c->load('db');   // creates db connection using db component.
+        $c->load('service/provider/database as db');   // creates db connection using db component.
     }
 );
 $app->func(
@@ -228,7 +241,7 @@ Return command returns to instance of class and class name does not stored into 
 <?php
 $app = new Controller(
     function ($c) {
-        $db = $c->load('return db');
+        $db = $c->load('return service/provider/database');
         $db->query('...');
         if ( ! isset($this->db)) {
             echo 'Database object not stored into $this->db variable !';

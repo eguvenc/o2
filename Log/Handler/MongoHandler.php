@@ -68,11 +68,6 @@ Class MongoHandler implements HandlerInterface
         );
         $config = $this->writer->getConfig();
 
-        if (count($unformattedRecord['context']) > 0) {
-            if ($config['format']['context'] == 'json') {
-                $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            }
-        }
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
@@ -80,7 +75,12 @@ Class MongoHandler implements HandlerInterface
             if ($config['format']['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
-            unset($record['context']['extra']);
+            unset($unformattedRecord['context']['extra']);
+        }
+        if (count($unformattedRecord['context']) > 0) {
+            if ($config['format']['context'] == 'json') {
+                $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            }
         }
         return $record;  // Formatted record
     }

@@ -254,7 +254,7 @@ Putting this code into your Controller enough for the current database connectio
 $app = new Controller(
     function () use ($c) {
         $c->load('view');
-        $c->load('db');   // create a database connection
+        $c->load('service/provider/database as db');   // create a database connection
     }
 );
 
@@ -262,7 +262,7 @@ $app->func(
     'index', 
     function () {
 
-        $this->db->query('SELECT * FROM %s', array('users'));  // $this->db = configured to database object from your services.php
+        $this->db->query('SELECT * FROM %s', array('users'));
         $results = $this->db->resultArray();
 
         print_r($results);

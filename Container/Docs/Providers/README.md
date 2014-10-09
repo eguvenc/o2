@@ -51,16 +51,6 @@ $c->load('service/provider/mongo as mongo', 'db');
 $this->mongo->test->insert();
 ```
 
-### Using "New" Command
-
-New command creates new object of instance.
-
-```php
-<?php
-$mongo = $c->load('return new service/provider/mongo', 'db');
-$mongo->method();
-```
-
 Your provider folder looks like below.
 
 ```php
@@ -176,6 +166,31 @@ $app->func(
 /* End of file hello_world.php */
 /* Location: .public/tutorials/controller/hello_world.php */
 ```
+
+### Using "New" Command
+
+New command creates new object of instance otherwise container cache the old instance.
+
+```php
+<?php
+
+$c->load('service/provider/db', 'test');
+
+// $this->db->query('test database query');
+
+$c->load('service/provider/db as db', 'jobs'); // test db instance
+$c->load('service/provider/db as db', 'jobs'); // test db instance
+$c->load('service/provider/db as db', 'jobs'); // test db instance
+
+// $this->db->query('test database query');
+
+$c->load('new service/provider/db as db', 'jobs'); // jobs db instance
+
+// $this->db->query('jobs database query');
+```
+
+**Important:** When you enter new parameters use <b>"new"</b> keyword otherwise provider will use old provider's instance.
+
 
 ### Config
 

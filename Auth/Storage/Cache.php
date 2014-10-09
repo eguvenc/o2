@@ -98,8 +98,6 @@ Class Cache implements StorageInterface
         $this->logger = $c->load('service/logger');
         $this->session = $c->load('session');
         $this->config = $c->load('config')->load('auth');
-        
-        $this->identifier = $this->getIdentifier();
     }
     
     /**
@@ -121,22 +119,7 @@ Class Cache implements StorageInterface
      */
     public function getIdentifier()
     {
-        $sessionIdentifier = $this->c->load('session')->get('__Auth/Storage/Identifier');
-
-        return ($sessionIdentifier == false) ? $this->getMemoryIdentifier() : $sessionIdentifier;
-    }
-
-    /**
-     * Get identifier from storage
-     * 
-     * @return mixed int|string|null
-     */
-    public function getMemoryIdentifier()
-    {
-        if ($credentials = $this->getCredentials('__permanent')) {
-            return $credentials[Credentials::IDENTIFIER];
-        }
-        return null;
+        return $this->session->get('__Auth/Storage/Identifier');
     }
 
     /**
@@ -159,6 +142,7 @@ Class Cache implements StorageInterface
     public function isAuthenticated()
     {
         $rowArray = $this->getCredentials('__permanent');
+        
         if (is_array($rowArray) AND isset($rowArray['__isAuthenticated']) AND $rowArray['__isAuthenticated'] == 1) {
             return $rowArray;
         }
@@ -223,6 +207,11 @@ Class Cache implements StorageInterface
      */
     public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary')
     {
+        $identifier = $this->getIdentifier();
+
+        if (empty($identifier)) {
+            return false;
+        }
         $this->data[$block] = $oldCredentials;
         if ( ! empty($pushData)) {
             $this->data[$block] = array_merge($oldCredentials, $pushData);
@@ -239,6 +228,11 @@ Class Cache implements StorageInterface
      */
     public function getCredentials($block = '__permanent')
     {
+        $identifier = $this->getIdentifier();
+
+        if (empty($identifier)) {
+            return false;
+        }
         if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
             return $this->data[$block];
         }
@@ -268,7 +262,11 @@ Class Cache implements StorageInterface
     {
         $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
 
-        return 'Auth:'.$block.':'.$constant.$this->identifier;  // Create unique key
+        $id = $this->getIdentifier();
+
+        $identifier = empty($id) ? '__emptyIdentifier' : $id;
+
+        return 'Auth:'.$block.':'.$constant.$identifier;  // Create unique key
     }
 
     /**

@@ -2,7 +2,8 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericIdentity,
+    Auth\Identities\UserIdentity;
 
 /**
  * Query interface
@@ -14,7 +15,7 @@ use Auth\Identities\GenericIdentity;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/auth
  */
-interface LoginQueryInterface
+interface ModelUserInterface
 {
     /**
      * Constructor
@@ -31,18 +32,28 @@ interface LoginQueryInterface
      * 
      * @return mixed boolean|array
      */
-    public function execDatabase(GenericIdentity $user);
+    public function execDbQuery(GenericIdentity $user);
 
     /**
      * Execute storage query
      *
      * @return mixed boolean|array
      */
-    public function execStorage();
+    public function execStorageQuery();
+
+    /**
+     * Update remember token upon every login & logout
+     * 
+     * @param string $token name
+     * @param object $user  object UserIdentity
+     * 
+     * @return void
+     */
+    public function refreshRememberMeToken($token, UserIdentity $user);
 
 }
 
-// END LoginQueryInterfacephp File
-/* End of file LoginQueryInterface.php
+// END ModelUserInterface File
+/* End of file ModelUserInterface.php
 
-/* Location: .Obullo/Auth/LoginQueryInterface.php */
+/* Location: .Obullo/Auth/ModelUserInterface.php */

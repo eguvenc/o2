@@ -140,8 +140,8 @@ Class Layer
         $this->c['response']->clear();
         $this->processDone = false;
         $this->requestMethod = 'GET';
-        $GLOBALS['_SERVER_BACKUP']  = array();
-        unset($_SERVER['LAYER_REQUEST']);
+        // $GLOBALS['_SERVER_BACKUP']  = array();
+        unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
     }
 
     /**
@@ -168,8 +168,8 @@ Class Layer
     public function setHeaders()
     {
         $_SERVER['LAYER_REQUEST'] = true;   // Set Hvc Headers
-        $GLOBALS['_SERVER_BACKUP'] = $_SERVER; // Get backup $_SERVER variable
-        unset($_SERVER['HTTP_ACCEPT'], $_SERVER['REQUEST_METHOD']);    // Don't touch other global server items 
+        // $GLOBALS['_SERVER_BACKUP'] = $_SERVER; // Get backup $_SERVER variable
+        // unset($_SERVER['HTTP_ACCEPT'], $_SERVER['REQUEST_METHOD']);    // Don't touch other global server items 
     }
 
     /**
@@ -214,7 +214,8 @@ Class Layer
         }
         $this->prepareHash($data); // Set md5 Unique id foreach requests
 
-        $_SERVER['REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
+        $_SERVER['LAYER_REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
+
         foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
             $_REQUEST[$key] = $val;
             if ($this->requestMethod == 'POST') {
@@ -238,6 +239,7 @@ Class Layer
      */
     public function execute($expiration = '')
     {
+        // Warning ! 
         global $c; // This is required for LAYERS "$c" scope if we remove it controller function use ($c) does not works.
         static $storage = array();  // Store used "$app " variables
 
@@ -337,12 +339,12 @@ Class Layer
      */
     protected function reset()
     {
-        if ( ! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no lvc header return to null;
+        if ( ! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
             return;
         }
-        $_SERVER = array();                     // Assign global variables we get backup before.
-        $_SERVER = $GLOBALS['_SERVER_BACKUP'];  // Just reset server variable otherwise we couldn't use global variables layer in layer loops.
-        $this->clear();  // Reset all Lvc variables.
+        // $_SERVER = array();                     // Assign global variables we get backup before.
+        // $_SERVER = $GLOBALS['_SERVER_BACKUP'];  // Just reset server variable otherwise we couldn't use global variables layer in layer loops.
+        $this->clear();  // Reset all Layer variables.
     }
     
     /**

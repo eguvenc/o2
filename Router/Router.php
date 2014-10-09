@@ -166,6 +166,7 @@ Class Router
         $this->config = $this->c->load('config');
         $this->logger = $this->c->load('service/logger');
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
+
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
@@ -660,28 +661,40 @@ Class Router
         if ($this->DOMAIN != $host) {
             return;
         }
-        if ( ! isset($options['filters'])) {
-            throw new LogicException('You need to create "filters" key in options array to intialize the filters.');
+        if ( ! isset($options['before.filters']) AND ! isset($options['after.filters'])) {
+            throw new LogicException('You need to create "before.filters" or "after.filters" key in options to intialize the filters.');
         }
         if ( ! isset($options['domain'])) {
             $options['domain'] = '*';
         }
-        foreach ($options['filters'] as $value) {
-            if (strpos($value, 'before') !== false) {
-                $this->attachBefore[$this->DOMAIN][] = array(
-                    'name' => substr($value, 7), 
-                    'arguments' => $options, 
-                    'route' => trim($route, '/'), 
-                    'attachedRoute' => trim($route)
-                );
-            } else {
-                $this->attachAfter[$this->DOMAIN][] = array(
-                    'name' => substr($value, 6),
-                    'arguments' => $options,
-                    'route' => trim($route, '/'),
-                    'attachedRoute' => trim($route)
-                );
-            }
+        if (isset($options['before.filters'])) {
+            $this->configureFilters($options, $route, 'before');
+        }
+        if (isset($options['after.filters'])) {
+            $this->configureFilters($options, $route, 'after');
+        }
+    }
+
+    /**
+     * Build filter array
+     * 
+     * @param array  $options group options
+     * @param string $route   current url regex
+     * @param string $dir     direction before or after
+     * 
+     * @return void
+     */
+    protected function configureFilters(array $options, $route, $dir = 'before')
+    {
+        $direction = 'attach'.ucfirst($dir); // attachBefore, attachAfter
+
+        foreach ($options[$dir.'.filters'] as $value) {
+            $this->{$direction}[$this->DOMAIN][] = array(
+                'name' => $value, 
+                'arguments' => $options, 
+                'route' => trim($route, '/'), 
+                'attachedRoute' => trim($route)
+            );
         }
     }
 
@@ -743,7 +756,7 @@ Class Router
         $route = $this->uri->getUriString();        // Get current uri
         if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run with 
             foreach ($this->{'attach'.$direction}[$this->DOMAIN] as $value) {
-                if ($value['route'] == $route) {      // if we have natural route match
+                if ($value['route'] == $route) {    // if we have natural route match
                     $this->runFilter($value['name'], $value['arguments']);
                 } elseif (preg_match('#^' . $value['attachedRoute'] . '$#', $route)) {
                     $this->runFilter($value['name'], $value['arguments']);

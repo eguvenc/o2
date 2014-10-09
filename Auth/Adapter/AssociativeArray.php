@@ -3,7 +3,7 @@
 namespace Obullo\Auth\Adapter;
 
 use Auth\Credentials,
-    Auth\Login\Query,
+    Auth\Model\User,
     Auth\Identities\GenericIdentity,
     Auth\Identities\UserIdentity,
     Obullo\Auth\AuthResult,
@@ -74,11 +74,11 @@ class AssociativeArray extends AbstractAdapter
     protected $isValidIdentifier = false;
 
     /**
-     * Login query
+     * Auth model
      * 
      * @var object
      */
-    protected $loginQuery;
+    protected $modelUser;
 
     /**
      * Constructor
@@ -93,7 +93,7 @@ class AssociativeArray extends AbstractAdapter
         $this->config = $c->load('config')->load('auth');
         $this->storage = $storage;
         $this->session = $c->load('session');
-        $this->loginQuery = new Query($c, $storage);
+        $this->modelUser = new User($c, $storage);
 
         parent::__construct($c);
     }
@@ -124,8 +124,12 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return object authResult
      */
-    public function login(GenericIdentity $genericUser)
+    public function login(GenericIdentity $genericUser = null, RecalledIdentity $recalledUser = null)
     {
+        if ( ! empty($recalledUser)) {
+            $genericUser = $this->recalledUser();
+        }
+
         $this->initialize($genericUser);
 
         if ($this->user->identity->isAuthenticated()  // If user is already authenticated regenerate the user !
@@ -157,10 +161,10 @@ class AssociativeArray extends AbstractAdapter
      */
     public function authenticate(GenericIdentity $genericUser, $login = true)
     {
-        $this->resultRowArray = $storageResult = $this->loginQuery->execStorage();  // First do query to memory storage if user exists in memory
+        $this->resultRowArray = $storageResult = $this->modelUser->execStorageQuery();  // First do query to memory storage if user exists in memory
 
         if ($storageResult == false) {
-            $this->resultRowArray = $this->loginQuery->execDatabase($genericUser);  // If user does not exists in memory do sql query
+            $this->resultRowArray = $this->modelUser->execDbQuery($genericUser);  // If user does not exists in memory do sql query
         }
         if (is_array($this->resultRowArray)) {
 

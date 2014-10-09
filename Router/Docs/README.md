@@ -376,11 +376,12 @@ class HelloFilter {
   public function __construct($c)
   {
       $this->post = $c->load('post');
+
       if ($this->post['apikey'] != '123456') {
         echo json_encode(array(
-          'error' => 'Your api key is not valid'
+            'error' => 'Your api key is not valid'
         ));
-        exit;
+        die;
       }
   }
 }
@@ -390,7 +391,7 @@ Then attach your filter in routes.php
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world.*', array('filters' => array('before.hello')));
+$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('hello')));
 ```
 
 Filters allow you to very easily abstract complex route access logic into concise and easy to use nuggets of code. This allows you to define the logic once, but then apply it to many different routes.
@@ -402,7 +403,7 @@ Filters allow you to very easily abstract complex route access logic into concis
 ```php
 <?php
 $c['router']->createFilter(
-    'rewrite.locale',
+    'rewriteLocale',
     function () use ($c) {
       $c->load('url')->redirect('en'. $this->uri->getRequestUri());
     }
@@ -413,7 +414,7 @@ $c['router']->createFilter(
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world.*', array('filters' => array('before.rewrite.locale')));
+$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('rewriteLocale')));
 ```
 
 #### Language Filters
@@ -436,7 +437,7 @@ Advanced Example
 | Then: http://example.com/en/news/sports
 */
 $c['router']->createFilter(
-    'redirect.locale',
+    'redirectLocale',
     function () use ($c) {
         $locale = $c->load('cookie')->get('locale');
         $languages = $c->load('config')->load('translator')['languages'];
@@ -453,7 +454,7 @@ $c['router']->createFilter(
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'redirect.locale', 'domain' => '^www.example.com$|^example.com$', 'filters' => array('before.redirect.locale')),
+    array('name' => 'redirectLocale', 'domain' => '^www.example.com$|^example.com$', 'before.filters' => array('redirectLocale')),
     function ($group) {
 
         $this->defaultPage('welcome');
@@ -477,7 +478,7 @@ Example:
 ```php
 <?php
 $c['router']->group(
-    array('domain' => 'sports.*\d.example.com', 'filters' => array('before.maintenance')),
+    array('domain' => 'sports.*\d.example.com', 'before.filters' => array('maintenance')),
     function ($group) {
         $this->defaultPage('welcome');
         $this->attach('tutorials/hello_world.*', $group);
@@ -493,12 +494,7 @@ Open your filters.php file then put below the content.
 
 ```php
 <?php
-$c['router']->createFilter(
-    'maintenance',
-    function ($params = array()) use ($c) {
-        $c->load('app')->down('app.down', $params['domain']);
-    }
-);
+$c['router']->createFilter('maintenance', 'Http\Filters\MaintenanceFilter');
 ```
 
 Then we can assign our domain to filter using attach method.
@@ -508,7 +504,7 @@ Open your routes.php file then put below the content.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->app->all, array('filters' => array('before.maintenance'))), 
+    array('name' => 'general', 'domain' => $c['config']->xml->host->all, array('before.filters' => array('maintenance'))), 
     function ($group) {
 
         $this->defaultPage('welcome/index');
@@ -522,7 +518,7 @@ Configure example for <b>All Website</b> and <b>all</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->app->all, array('filters' => array('before.auth'))), 
+    array('name' => 'general', 'domain' => $c['config']->xml->host->all, array('before.filters' => array('maintenance'))), 
     function ($group) {
 
         $this->defaultPage('welcome/index');
@@ -531,13 +527,13 @@ $c['router']->group(
 );
 ```
 
-**Note:** <b>$c['config']->xml->app->all</b> fetches your config.xml "<app><all> .. </all<app/>" keys as <b>simpleXmlElement object</b>.
+**Note:** <b>$c['config']->xml->host->all</b> fetches your config.xml "<app><all> .. </all<app/>" keys as <b>simpleXmlElement object</b>.
 
 
 Then go to your console and type:
 
 ```php
-php task app all down
+php task host all down
 ```
 
 Now your application show maintenance view for all pages.
@@ -547,7 +543,7 @@ Configure example for <b>reverse</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('domain' => $c['config']->xml->app->sports, array('filters' => array('before.maintenance', 'before.auth'))), 
+    array('domain' => $c['config']->xml->host->sports, array('before.filters' => array('maintenance', 'auth'))), 
     function ($group) {
         $this->attach('((?!tutorials/hello_world).)*$', $group);  // all urls which not contains "tutorials/hello_world"
     }
@@ -557,13 +553,13 @@ $c['router']->group(
 Then go to your console and type:
 
 ```php
-php task app all down
+php task host all down
 ```
 
 Now go to your console and type:
 
 ```php
-php task app all up
+php task host all up
 ```
 
 Now your application "all" is up for your visitors.
@@ -594,11 +590,11 @@ $c['router']->createFilter(
 /* Location: .filters.php */
 ```
 
-Then attach your filter in routes.php
+Then attach your filter using routes.php
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world.*', array('filters' => 'before.https://'));
+$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('https://'));
 
 /* End of file routes.php */
 /* Location: .routes.php */
