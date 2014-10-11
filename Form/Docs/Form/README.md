@@ -111,7 +111,7 @@ $this->form->setMessage('Example of a success message.', NOTICE_SUCCESS);
 echo $this->form->message();  // Gives: Example of a native POST success message.
 ```
 
-Gets notification from session flash data with error status.
+Gets notification from session flash data with error templates.
 
 ```php
 <?php
@@ -125,7 +125,7 @@ if ($e === true) {
     $this->flash->error($e->getMessage());
 }
 
-echo $this->form->message();  // Get string output
+echo $this->flash->output();  // Get string output with template
 ```
 
 **Note :** $this->form->message() function returns to <b>boostrap</b> css template as default this feature is configurable from your <b>components.php</b>

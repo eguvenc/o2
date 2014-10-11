@@ -6,6 +6,7 @@ use Auth\Credentials,
     Auth\Model\User,
     Auth\Identities\GenericIdentity,
     Auth\Identities\UserIdentity,
+    Obullo\Auth\Token,
     Obullo\Auth\AuthResult,
     Obullo\Auth\UserService,
     Obullo\Auth\AbstractAdapter,
@@ -16,7 +17,7 @@ use Auth\Credentials,
  * O2 Authentication - Associative Array Adapter
  * 
  * @category  Auth
- * @package   Adapter
+ * @package   AssociativeArray
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
@@ -84,16 +85,15 @@ class AssociativeArray extends AbstractAdapter
      * Constructor
      * 
      * @param object $c           container object
-     * @param object $storage     object
-     * @param array  $userService user service object
+     * @param object $userService user service object
+     * @param object $storage     storage
      */
-    public function __construct($c, $storage, UserService $userService)
+    public function __construct($c, UserService $userService, $storage)
     {
         $this->user = $userService;
         $this->config = $c->load('config')->load('auth');
         $this->storage = $storage;
         $this->session = $c->load('session');
-        $this->modelUser = new User($c, $storage);
 
         parent::__construct($c);
     }
@@ -124,12 +124,8 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return object authResult
      */
-    public function login(GenericIdentity $genericUser = null, RecalledIdentity $recalledUser = null)
+    public function login(GenericIdentity $genericUser)
     {
-        if ( ! empty($recalledUser)) {
-            $genericUser = $this->recalledUser();
-        }
-
         $this->initialize($genericUser);
 
         if ($this->user->identity->isAuthenticated()  // If user is already authenticated regenerate the user !
@@ -161,10 +157,11 @@ class AssociativeArray extends AbstractAdapter
      */
     public function authenticate(GenericIdentity $genericUser, $login = true)
     {
-        $this->resultRowArray = $storageResult = $this->modelUser->execStorageQuery();  // First do query to memory storage if user exists in memory
+        $modelUser = new User($this->c, $this->storage);
+        $this->resultRowArray = $storageResult = $modelUser->execStorageQuery();  // First do query to memory storage if user exists in memory
 
         if ($storageResult == false) {
-            $this->resultRowArray = $this->modelUser->execDbQuery($genericUser);  // If user does not exists in memory do sql query
+            $this->resultRowArray = $modelUser->execQuery($genericUser);  // If user does not exists in memory do sql query
         }
         if (is_array($this->resultRowArray)) {
 
@@ -181,15 +178,10 @@ class AssociativeArray extends AbstractAdapter
                 $this->results['code'] = AuthResult::FAILURE_UNHASHED_PASSWORD;
                 return false;
             }
-            if ($this->verifyPassword($plain, $hash)) {
+            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
 
                 if ($login) {  // If login process allowed.
-
-                    $this->generateUser($genericUser, $hash);
-
-                    if ($storageResult == false) {                  // If we haven't got identity data in memory push it to cache the identity.
-                        $this->push2Storage($this->user->identity->getArray()); // Push database query result to memory storage !
-                    }
+                    $this->generateUser($genericUser, $this->resultRowArray, $modelUser, ($storageResult) ? false : true, $passwordNeedsRehash);
                 }
                 return true;
             }
@@ -201,28 +193,36 @@ class AssociativeArray extends AbstractAdapter
      * Set identities data to UserIdentity object
      * 
      * @param array $genericUser         generic identity array
+     * @param array $resultRowArray      success auth query user data
+     * @param array $modelUser           model user object
+     * @param array $push2Storage        creates identity on memory storage
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    protected function generateUser(GenericIdentity $genericUser, $passwordNeedsRehash = array())
+    public function generateUser(GenericIdentity $genericUser, $resultRowArray, $modelUser, $push2Storage = false, $passwordNeedsRehash = array())
     {
+        $token = new Token($this->c);
+
         $attributes = array(
             Credentials::IDENTIFIER => $genericUser->getIdentifier(),
-            Credentials::PASSWORD => $this->resultRowArray[Credentials::PASSWORD],
+            Credentials::PASSWORD => $resultRowArray[Credentials::PASSWORD],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
-            '__token' => $this->refreshToken(),
+            '__token' => $token->refresh(),
         );
-        $attributes = $this->formatAttributes(array_merge($attributes, $this->resultRowArray), $passwordNeedsRehash);
+        $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
+        
+        // $this->user->identity->setArray($attributes);
 
         if ($this->config['login']['session']['regenerateSessionId']) {
             $this->regenerateSessionId($this->config['login']['session']['deleteOldSessionAfterRegenerate']);
         }
-        $this->user->identity->setArray($attributes);
-
-        if ($this->user->identity->getRememberMe()) { // If user choosed remember feature
-            $this->refreshRememberMe();
+        if ($genericUser->getRememberMe()) {  // If user choosed remember feature
+            $modelUser->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
+        }
+        if ($push2Storage) {                                        // If we haven't got identity data in memory push it to cache the identity.
+            $this->push2Storage($attributes); // Push database query result to memory storage !
         }
     }
 
@@ -236,11 +236,11 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function formatAttributes(array $attributes, $rehashedPassword = array())
     {
-        if (isset($rehashedPassword['hash'])) {
+        if (is_array($rehashedPassword) AND isset($rehashedPassword['hash'])) {
             $attributes[Credentials::PASSWORD] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
-        $attributes = $this->setAuthentication($attributes);
+        $attributes = $this->setAuthType($attributes);
         return $attributes;
     }
 
@@ -251,7 +251,7 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return array $attributes
      */
-    protected function setAuthentication($attributes)
+    protected function setAuthType($attributes)
     {
         if ( ! $this->isEnabledVerification()) {    // If verification disabled however we authenticate the user.
             $attributes['__isAuthenticated'] = 1;

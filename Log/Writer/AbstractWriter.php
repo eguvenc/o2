@@ -44,13 +44,13 @@ Abstract Class AbstractWriter
      * Check log writing is allowed, 
      * don't allow log writing for cli commands
      * 
-     * @param string $type request types ( app, cli, ajax )
+     * @param string $type request types ( app, cli, ajax, worker )
      * 
      * @return boolean
      */
     public function isAllowed($type = null)
     {
-        if ( ! empty($type) AND in_array($type, array('app','ajax'))) {
+        if ( ! empty($type) AND in_array($type, array('app','ajax','worker'))) {
             return true;
         }
         if (isset($_SERVER['argv'][1]) AND in_array($_SERVER['argv'][1], array('clear','help','log','queue','update','app','worker'))) {

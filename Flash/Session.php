@@ -41,6 +41,7 @@ Class Session
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
+        
         $this->logger->debug('Session Flash Class Initialized');
     }
 
@@ -55,7 +56,6 @@ Class Session
     public function template($message, $key = 'error')
     {
         $constant = constant('NOTICE_'.strtoupper($key));
-        echo $constant;
         return str_replace(
             array('{class}','{icon}','{message}'), 
             array($this->flash[$constant]['class'], $this->flash[$constant]['icon'], $message),

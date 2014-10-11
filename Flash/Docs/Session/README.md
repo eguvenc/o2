@@ -22,7 +22,7 @@ $this->flash->error('Error.');
 $this->flash->warning('Something went wrong.');
 $this->flash->info('Email has been sent to your mail address.');
 
-$this->flash->output();  // Gives string output.
+$this->flash->output();  // Gives string output with error templates.
 ```
 
 Using in the application

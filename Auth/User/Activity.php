@@ -10,7 +10,7 @@ use Auth\Identities\UserIdentitiy,
  * O2 Authentication - Online Users Activity Class
  *
  * @category  Auth
- * @package   Auth
+ * @package   Activity
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
@@ -55,7 +55,7 @@ Class Activity
     {
         $this->c = $params['c'];
         $this->config = $params['config'];
-        $this->storage = $params['storage'];
+        $this->storage = $this->c['o2.auth.service.storage'];
         $this->user = $params['user'];
 
         $this->session = $c->load('return session');

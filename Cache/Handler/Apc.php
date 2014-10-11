@@ -20,13 +20,6 @@ Class Apc implements HandlerInterface
     const SERIALIZER_NONE = 'SERIALIZER_NONE';
 
     /**
-     * Current serializer name
-     * 
-     * @var string
-     */
-    public $serializer;
-
-    /**
      * Array container
      * 
      * @var object
@@ -36,13 +29,13 @@ Class Apc implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c          container
+     * @param array $serializer serializer type
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $serializer = null)
     {
         $c = null;
-        $params = null;
+        $serializer = null;
         $this->container = new ArrayContainer;
         
         if ( ! extension_loaded('apc') OR ini_get('apc.enabled') != '1') {
@@ -64,7 +57,6 @@ Class Apc implements HandlerInterface
     public function setOption($params = array()) 
     {
         $params = null;
-        $this->serializer = static::SERIALIZER_NONE;
     }
 
     /**
@@ -74,7 +66,7 @@ Class Apc implements HandlerInterface
      */
     public function getSerializer()
     {
-        return $this->serializer;
+        return null;
     }
 
     /**

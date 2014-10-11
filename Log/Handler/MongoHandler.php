@@ -63,7 +63,7 @@ Class MongoHandler implements HandlerInterface
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
-            'context'  => $unformattedRecord['context'],
+            'context'  => null,
             'extra'    => null,
         );
         $config = $this->writer->getConfig();
@@ -78,6 +78,7 @@ Class MongoHandler implements HandlerInterface
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
+            $record['context'] = $unformattedRecord['context'];
             if ($config['format']['context'] == 'json') {
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }

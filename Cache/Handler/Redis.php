@@ -64,26 +64,18 @@ Class Redis implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c          container
+     * @param array $serializer serializer type
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $serializer = null)
     {
-        $c = null;
+        $this->params = $c->load('config')['cache']['redis'];
         $this->container = new ArrayContainer;
 
         if ( ! extension_loaded('redis')) {
             throw new RunTimeException(
                 sprintf(
                     ' %s driver is not installed.', get_class()
-                )
-            );
-        }
-        $this->params = $params;
-        if ( ! isset($this->params['servers'][0]['hostname']) OR ! isset($this->params['servers'][0]['port'])) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s connection configuration items hostname or port can\'t be empty.', get_class()
                 )
             );
         }
@@ -94,7 +86,7 @@ Class Redis implements HandlerInterface
                 )
             );
         }
-        $serializer = (isset($this->params['serializer'])) ? $this->params['serializer'] : static::SERIALIZER_PHP;
+        $serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
         $this->setOption($serializer);
     }
 
@@ -107,13 +99,24 @@ Class Redis implements HandlerInterface
     {
         $this->redis = new \Redis;
         $i = 0;
-        foreach ($this->params['servers'] as $val) {
+        foreach ($this->params['servers'] as $servers) {
             $i++;
-            $expiration  = (isset($val['timeout'])) ? $val['timeout'] : 0;
+            if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
+                throw new RunTimeException(
+                    sprintf(
+                        ' %s connection configuration items hostname or port can\'t be empty.', get_class()
+                    )
+                );
+            }
+            $expiration  = (isset($servers['timeout'])) ? $servers['timeout'] : 0;
             if ($i == 1) {
-                $this->redis->connect($val['hostname'], $val['port'], $expiration);
+                if ($this->params['persistentConnect'] == 1) {
+                    $this->redis->pconnect($servers['hostname'], $servers['port'], $expiration, null, $this->params['reconnectionAttemps']);
+                } else {
+                    $this->redis->connect($servers['hostname'], $servers['port'], $expiration);
+                }
             } else {
-                $this->redis->slaveof($val['hostname'], $val['port'], $expiration);
+                $this->redis->slaveof($servers['hostname'], $servers['port'], $expiration);
             }
             if (isset($this->params['auth']) AND ! empty($this->params['auth'])) {
                 $this->auth($this->params['auth']);

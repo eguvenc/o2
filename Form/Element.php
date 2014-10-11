@@ -274,7 +274,7 @@ Class Element
                 $label .= ' '.$key.'="'.$val.'"';
             }
         } else {
-            $label .= $attributes;
+            $label .= ' '.ltrim($attributes);
         }
         return $label .= ">$label_text</label>";
     }
@@ -530,7 +530,7 @@ Class Element
             if (strpos($attributes, 'accept-charset=') === false) {
                 $attributes.= ' accept-charset="'.strtolower($this->c->load('config')['locale']['charset']).'"';
             }
-            return ' '.$attributes;
+            return ' '.ltrim($attributes);
         }
         if (is_object($attributes) AND count($attributes) > 0) {
             $attributes = (array)$attributes;

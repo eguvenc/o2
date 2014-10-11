@@ -2,6 +2,9 @@
 
 namespace Obullo\Auth;
 
+use Auth\Model\User,
+    Auth\Identities\GenericIdentity;
+
 /**
  * Abstract Adapter
  * 
@@ -42,13 +45,6 @@ abstract class AbstractAdapter
      * @var string
      */
     protected $verification = false;
-
-    /**
-     * Security token
-     * 
-     * @var string
-     */
-    protected $token = null;
 
     /**
      * Constructor
@@ -105,49 +101,11 @@ abstract class AbstractAdapter
     }
 
     /**
-     * Generates random token for o2 auth security cookie
-     * 
-     * @return void
-     */
-    public function generateToken()
-    {
-        if ($this->token != null) {  // If we have already token don't regenerate it.
-            return $this->token;
-        }
-        $token = $this->c->load('return utils/random')->generate('alnum', 16);
-        $userAgent = trim(substr($this->c->load('request')->server('HTTP_USER_AGENT'), 0, 50));  // First 50 characters of the user agent
-        return $this->token = $token .'.'. hash('adler32', $userAgent);  // Smallest token
-    }
-
-    /**
-     * Refresh unique security token
-     * 
-     * @return void
-     */
-    public function refreshToken()
-    {
-        $token = $this->generateToken();
-        $cookie = $this->config['security']['cookie'];
-
-        $this->c->load('cookie')->set(
-            $cookie['name'],
-            $token,
-            $cookie['expire'],
-            $this->c['config']['cookie']['domain'],        //  Get domain from global config
-            $cookie['path'],
-            $cookie['prefix'],
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
-        return $token;
-    }
-
-    /**
      * Run cookie reminder
      * 
-     * @return void
+     * @return string token
      */
-    protected function refreshRememberMe()
+    protected function getRememberToken()
     {
         $token = $this->c->load('return utils/random')->generate('alnum', 32);
         $cookie = $this->config['login']['rememberMe']['cookie'];
@@ -162,7 +120,7 @@ abstract class AbstractAdapter
             $cookie['secure'],
             $cookie['httpOnly']
         );
-        $this->modelUser->refreshRememberMeToken($token, $this->user->identity);
+        return $token;
     }
 
     /**
@@ -237,7 +195,7 @@ abstract class AbstractAdapter
      * 
      * @return array $attributes
      */
-    abstract protected function setAuthentication($attributes);
+    abstract protected function setAuthType($attributes);
 
     /**
      * This method attempts to make

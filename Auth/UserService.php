@@ -6,7 +6,7 @@ namespace Obullo\Auth;
  * O2 Authentication - User Service
  *
  * @category  Auth
- * @package   Auth
+ * @package   UserService
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
@@ -28,13 +28,24 @@ Class UserService
         $Adapter = '\Obullo\Auth\Adapter\\'.$config['adapter'];
         $Storage = '\Obullo\Auth\Storage\\'.ucfirst($config['memory']['storage']);
 
+        // $c['o2.auth.service.storage'] = function () use ($c, $Storage) {
+        //     return new $Storage($c);
+        // };
+
+        $storage = new $Storage($c);
+
         $this->params = array(
             'c' => $c,
             'config' => $config,
-            'storage' => new $Storage($c),
-            'user' => $this
+            'user' => $this,
+            'adapter' => new $Adapter($c, $this, $storage),
+            'storage' => $storage
         );
-        $this->params['adapter'] = new $Adapter($c, $this->params['storage'], $this);
+
+        // $c['o2.auth.service.adapter'] = function () use ($c, $Adapter) {
+        //     return new $Adapter($c, $this);
+        // };
+
     }
 
     /**
@@ -46,7 +57,7 @@ Class UserService
      */
     public function __get($class)
     {
-        $key = strtolower($class); // Services: login, identity, activity .. 
+        $key = strtolower($class); // Services: $this->user->login, $this->user->identity, $this->user->activity .. 
 
         if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
             return $this->{$key};

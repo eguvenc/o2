@@ -34,28 +34,23 @@ Class Memcache implements HandlerInterface
     public $params = array();
 
     /**
-     * Current serializer name
-     * 
-     * @var string
-     */
-    public $serializer;
-
-    /**
      * Array container
      * 
      * @var object
      */
     protected $container;
 
+
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c          container
+     * @param array $serializer serializer type
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $serializer = null)
     {
-        $c = null;
+        $serializer = null;
+        $this->params = $c->load('config')['cache']['memcache'];
         $this->container = new ArrayContainer;
         
         if ( ! extension_loaded('memcache')) {
@@ -65,8 +60,6 @@ Class Memcache implements HandlerInterface
                 )
             );
         }
-        $this->params = $params;
-
         if ( ! $this->connect()) {
             throw new RunTimeException(
                 sprintf(
@@ -86,7 +79,6 @@ Class Memcache implements HandlerInterface
     public function setOption($params = array()) 
     {
         $params = null;
-        $this->serializer = static::SERIALIZER_NONE;
     }
 
     /**
@@ -96,7 +88,7 @@ Class Memcache implements HandlerInterface
      */
     public function getSerializer()
     {
-        return $this->serializer;
+        return null;
     }
 
     /**
@@ -107,6 +99,7 @@ Class Memcache implements HandlerInterface
     public function connect()
     {
         $this->memcache = new \Memcache;
+
         foreach ($this->params['servers'] as $servers) {
             if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
                 throw new RunTimeException(

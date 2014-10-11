@@ -14,8 +14,8 @@ If you are new to service containers or Dependency Injection, it would be a good
 Providers allow the developer to <b>reuse parts</b> of an application into another one. The usage of providers are the same as well services but the main differences are :
 
 1. Each provider wraps a service.
-2. They always return <b>new instance</b>.
-3. Second parameter must be always an array.
+2. Before loading them if you use new paramters we need to use <b>"new"</b> keyword to get <b>new instance</b> otherwise we get <b>old instance</b>.
+3. Second parameter can be string or an array.
 4. All providers implement ProviderInterface.
 
 ### Loading a Provider

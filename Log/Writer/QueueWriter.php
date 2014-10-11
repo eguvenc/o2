@@ -83,13 +83,16 @@ Class QueueWriter extends AbstractWriter
         $this->job = $params['job'];  // Logging
         $this->delay = $params['delay'];  // Delay
 
-        $this->type = 'app'; // Http requests
+        $this->type = 'app';    // Http requests
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             $this->type ='ajax';  // Ajax requests
         }
-        if (defined('STDIN')) {
+        if ( empty($params['type']) AND defined('STDIN')) {
             $this->type = 'cli';  // Cli requests
         }
+        if ( ! empty($params['type']) AND $params['type'] == 'worker') {  // Other type requests ( worker, etc )
+            $this->type = 'worker';
+        }   
     }
 
     /**

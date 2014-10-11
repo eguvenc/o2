@@ -25,11 +25,6 @@ interface HandlerInterface
     /**
      * Sets serializer options 
      * 
-     * 'SERIALIZER_NONE'
-     * 'SERIALIZER_PHP'
-     * 'SERIALIZER_JSON'
-     * 'SERIALIZER_IGBINARY'
-     * 
      * @param array $params options
      * 
      * @return boolean true or false

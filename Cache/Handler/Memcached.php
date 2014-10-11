@@ -63,17 +63,18 @@ Class Memcached implements HandlerInterface
      */
     protected $container;
 
+
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c          container
+     * @param array $serializer serializer type
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $serializer = null)
     {
-        $c = null;
+        $this->params = $c->load('config')['cache']['memcached'];
         $this->container = new ArrayContainer;
-        
+
         if ( ! extension_loaded('memcached')) {
             throw new RunTimeException(
                 sprintf(
@@ -81,8 +82,6 @@ Class Memcached implements HandlerInterface
                 )
             );
         }
-        $this->params = $params;
-
         if ( ! $this->connect()) {
             throw new RunTimeException(
                 sprintf(
@@ -90,6 +89,7 @@ Class Memcached implements HandlerInterface
                 )
             );
         }
+        $this->serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
     }
 
     /**
@@ -100,6 +100,7 @@ Class Memcached implements HandlerInterface
     public function connect()
     {
         $this->memcached = new \Memcached;
+
         foreach ($this->params['servers'] as $servers) {
             if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
                 throw new RunTimeException(

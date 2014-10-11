@@ -109,7 +109,7 @@ Class Cache implements StorageInterface
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__Auth/Storage/Identifier', $identifier);
+        $this->session->set('__Auth/Identifier', $identifier);
     }
 
     /**
@@ -119,7 +119,7 @@ Class Cache implements StorageInterface
      */
     public function getIdentifier()
     {
-        return $this->session->get('__Auth/Storage/Identifier');
+        return $this->session->get('__Auth/Identifier');
     }
 
     /**

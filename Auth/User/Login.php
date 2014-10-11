@@ -11,7 +11,7 @@ use Auth\Identities\GenericIdentity,
  * O2 Authentication - User Login Class
  *
  * @category  Auth
- * @package   Auth
+ * @package   Login
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
@@ -34,18 +34,18 @@ Class Login
     protected $config;
 
     /**
+     * Storage class
+     * 
+     * @var object
+     */
+    protected $storage;
+
+    /**
      * Login database adapter
      * 
      * @var object
      */
     protected $adapter;
-
-    /**
-     * Result class
-     * 
-     * @var object
-     */
-    protected $result;
 
     /**
      * Constructor
@@ -58,7 +58,6 @@ Class Login
         $this->config = $params['config'];
         $this->storage = $params['storage'];
         $this->adapter = $params['adapter'];
-        $this->session = $this->c->load('session');
     }
 
     /**

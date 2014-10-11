@@ -34,13 +34,6 @@ Class File implements HandlerInterface
     public $params = array();
 
     /**
-     * Current serializer name
-     * 
-     * @var string
-     */
-    public $serializer;
-
-    /**
      * Array container
      * 
      * @var object
@@ -50,15 +43,15 @@ Class File implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c          container
+     * @param array $serializer serializer type
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $serializer = null)
     {
-        $c = null;
-        $this->params   = $params;
-        $this->filePath = APP . str_replace('/', DS, trim($this->params['cachePath'], '/')) . DS;
+        $serializer = null;
+        $this->params = $c->load('config')['cache']['file'];
         $this->container = new ArrayContainer;
+        $this->filePath = APP . str_replace('/', DS, trim($this->params['cachePath'], '/')) . DS;
 
         if ( ! is_writable($this->filePath)) {
             throw new RunTimeException(
@@ -79,7 +72,6 @@ Class File implements HandlerInterface
     public function setOption($params = array()) 
     {
         $params = null;
-        $this->serializer = static::SERIALIZER_NONE;
     }
 
     /**

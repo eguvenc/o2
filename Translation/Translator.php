@@ -100,14 +100,19 @@ Class Translator implements ArrayAccess
     public function __construct($c)
     {
         $this->c = $c;
-        $this->translator = $this->c->load('config')->load('translator');  // Get package config file
-        $this->config     = $this->c->load('config');  // Get package config file
 
-        $this->setFallback($this->translator['locale']['default']);
+        /**
+         * If cookie not exists ( especially in Cli mode ) we cannot get the default locale
+         * so first of all we need set default locale code.
+         */
+        $this->translator = $this->c->load('config')->load('translator');  // Get package config file
+        $this->locale = $this->translator['locale']['default'];  // Default lang code
+        $this->config = $this->c->load('config');  // Get package config file
+
+        $this->setFallback($this->locale);
 
         $this->cookieName = $this->translator['cookie']['name'];
         $this->cookiePrefix = $this->config['cookie']['prefix'];  // Set cookie prefix
-        // $this->locale = $this->default;  // default lang code
 
         $this->setDefault(); // Initialize to default language
 
@@ -244,7 +249,7 @@ Class Translator implements ArrayAccess
      */
     public function setDefault()
     {
-        if (defined('STDIN')) { // Disable console & task errors
+        if ( ! defined('STDIN')) { // Disable console & task errors
             return;
         }
         $cookie = $this->getCookie();
@@ -347,7 +352,10 @@ Class Translator implements ArrayAccess
      * @return void
      */
     public function setCookie()
-    {
+    {   
+        if (defined('STDIN')) {  // Disable command line interface errors
+            return;
+        }
         $this->cookieDomain = $this->config['cookie']['domain'];
         $this->cookiePath   = $this->config['cookie']['path'];
         $this->expiration   = $this->translator['cookie']['expire'];
