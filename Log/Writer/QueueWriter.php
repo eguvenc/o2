@@ -76,7 +76,6 @@ Class QueueWriter extends AbstractWriter
         parent::__construct($params);
 
         $this->config = $params;
-
         $this->queue = $queue;
         $this->channel = $params['channel']; // Log channel
         $this->route = $params['route'];     // Server1.Logger.File
@@ -87,12 +86,9 @@ Class QueueWriter extends AbstractWriter
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             $this->type ='ajax';  // Ajax requests
         }
-        if ( empty($params['type']) AND defined('STDIN')) {
+        if (defined('STDIN')) {
             $this->type = 'cli';  // Cli requests
         }
-        if ( ! empty($params['type']) AND $params['type'] == 'worker') {  // Other type requests ( worker, etc )
-            $this->type = 'worker';
-        }   
     }
 
     /**

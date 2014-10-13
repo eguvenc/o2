@@ -54,10 +54,7 @@ Class FileWriter extends AbstractWriter
         /**
          * Replace cli request path
          */
-        if (defined('STDIN') AND ! isset($params['worker'])) {
-            if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'clear') {  //  Do not keep clear command logs.
-                $this->c['config']->array['log']['enabled'] = false;
-            }
+        if (defined('STDIN')) {
             $this->path = static::replace($params['path']['cli']);
         }
     }

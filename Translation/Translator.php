@@ -191,7 +191,7 @@ Class Translator implements ArrayAccess
      * @param string  $filename filename
      * @param boolean $return   return to array or not
      * 
-     * @return mixed
+     * @return object translator
      */
     public function load($filename = '', $return = false)
     {
@@ -216,7 +216,7 @@ Class Translator implements ArrayAccess
         unset($translateArray);
 
         $this->logger->debug('Translation file loaded: ' . APP .'translations'. DS .$locale. DS .$filename. EXT);
-        return $this->translateArray;
+        return $this;
     }
 
     /**
@@ -261,9 +261,6 @@ Class Translator implements ArrayAccess
                 if ($this->setLocale($segment, $bool)) {
                     return;
                 }
-                // if ($this->setLocale($segment, $bool) == false AND ! empty($cookie)) {
-                //     $this->setLocale($cookie, false);
-                // }
             }
         }
         // If have a cookie then set locale using cookie.

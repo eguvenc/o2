@@ -123,6 +123,16 @@ Class Cache implements StorageInterface
     }
 
     /**
+     * Unset identifier from session
+     * 
+     * @return void
+     */
+    public function unsetIdentifier()
+    {
+        $this->session->remove('__Auth/Identifier');
+    }
+
+    /**
      * Returns true if temporary credentials does "not" exists
      *
      * @param string $block __temporary or __permanent

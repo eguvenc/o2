@@ -8,12 +8,6 @@ O2 Auth is concerned only with authentication and not with authorization. For mo
 Below the flow chart shows authentication process of users:
 
 
-
-
-
-
-
-
 ## Adapters
 
 Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based storage. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
@@ -23,20 +17,21 @@ Auth adapter is used to authenticate against a particular type of authentication
 
 ## Login Class
 
-##  Class
 
-## User Class
+## UserService Class
 
 ------
 
-User class simply manage <b>login</b>, <b>idenitity</b>, <b></b>
+User class simply manage <b>login</b>, <b>identity</b> and <b>activities</b>.
 
 
-### User Login Reference
+### Login Reference
+
+------
 
 ```php
 <?php
-$c->load('service/user');
+$c->load('service/auth/user');
 $this->user->class->method();
 ```
 
@@ -58,12 +53,16 @@ After verification, method authenticate temporary identity and removes old tempo
 
 ### $this->user->login->validate(array $credentials);
 
-Validate a user's credentials without login.
+Validate a user's credentials without authentication.
 
 ### $this->user->login->validateCredentials(UserIdentity $user, array $credentials);
 
+Validate a user against the given credentials.
 
-### User Identity Reference
+
+### Identity Reference
+
+------
 
 ### $this->user->identity->isAuthenticed();
 
@@ -81,14 +80,6 @@ Checks if the user is guest, if so, it returns to true, otherwise false.
 
 Returns to "1" if user authenticated on temporary memory block otherwise  "0".
 
-### $this->user->identity->setRoles(int|string|array $roles);
-
-Save user roles to your memory storage.
-
-### $this->user->identity->getRoles();
-
-Gets role(s) of the user.
-
 ### $this->user->identity->logout();
 
 Logs out user, sets __isAuthenticated key to "0". This method <kbd>does not destroy</kbd> the user <kbd>sessions</kbd>. It will just set authority data to "0".
@@ -101,7 +92,9 @@ Destroys all identity stored in memory.
 
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
 
-### User Identity Atributes Get Methods
+### Identity Get Methods
+
+------
 
 ### $this->user->identity->getIdentifier();
 
@@ -131,8 +124,18 @@ Returns to all user identity data ( attributes of user ).
 
 Set new identity attributes.
 
+### $this->user->identity->setRoles(int|string|array $roles);
 
-### User Identity Magic Methods
+Save user roles to your memory storage.
+
+### $this->user->identity->getRoles();
+
+Gets role(s) of the user.
+
+
+### Identity Magic Methods
+
+------
 
 ### $this->user->identity->variable
 
@@ -147,7 +150,9 @@ Set value to identity array.
 Remove value from identity array.
 
 
-### User Activity Reference
+### Activity Reference
+
+------
 
 ### $this->user->activity->add();
 

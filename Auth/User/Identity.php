@@ -87,7 +87,7 @@ Class Identity extends UserIdentity
         $this->c = $params['c'];
         $this->config = $params['config'];
         $this->storage = $params['storage'];
-        $this->adapter = $params['adapter'];
+        // $this->adapter = $params['adapter'];
 
         if ($token = $this->recallerExists()) {  // Remember the user if recaller cookie exists
             $this->recallUser($token);
@@ -162,16 +162,26 @@ Class Identity extends UserIdentity
         $modelUser = new User($this->c, $this->storage);
         $resultRowArray = $modelUser->execRecallerQuery($token);
 
+        if ( ! is_array($resultRowArray)) {           // If login query not success.
+            $this->storage->setIdentifier('Guest');   // Mark user as guest
+
+            $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
+            $this->c->load('cookie')->delete(
+                $cookie['name'],
+                $this->c['config']['cookie']['domain'], //  Get domain from global config
+                $cookie['path'],
+                $cookie['prefix']
+            );
+            return;
+        }
         $id = $resultRowArray[Credentials::IDENTIFIER];
         $this->storage->setIdentifier($id);
         
         $genericUser = new GenericIdentity(array(Credentials::IDENTIFIER => $id));
 
-        // $adapter = $this->c['o2.auth.service.adapter'];
-        
-        $this->adapter->generateUser($genericUser, $resultRowArray, $modelUser, true);
-
-        $modelUser->refreshRememberMeToken($this->adapter->getRememberToken(), $genericUser);
+        $adapter = $this->c['o2.auth.service.adapter'];
+        $adapter->generateUser($genericUser, $resultRowArray, $modelUser, true);
+        $modelUser->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
     }
 
     /**
@@ -276,7 +286,7 @@ Class Identity extends UserIdentity
         $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
 
         $this->logger->channel('security');
-        $this->logger->notice('Auth token does not matched credentials removed.', array('identifer' => $this->getIdentifier()));
+        $this->logger->notice('Auth token does not matched credentials removed.', array('identifier' => $this->getIdentifier()));
 
         return $this->tokenIsValid = false;
     }
@@ -373,7 +383,7 @@ Class Identity extends UserIdentity
 
         if ($credentials['__rememberMe'] == 1) {             // If user checked rememberMe option
             $modelUser = new User($this->c, $this->storage);
-            $modelUser->refreshRememberMeToken($this->adapter->getRememberToken(), new GenericIdentity($credentials)); // refresh rememberToken
+            $modelUser->refreshRememberMeToken($this->c['o2.auth.service.adapter']->getRememberToken(), new GenericIdentity($credentials)); // refresh rememberToken
         }
         $this->storage->setCredentials($credentials, null, '__permanent');
     }

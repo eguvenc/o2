@@ -32,7 +32,6 @@ Class JobHandlerFile implements JobHandlerInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $params['worker'] = true;
         $this->writer = new FileWriter($params);
     }
 

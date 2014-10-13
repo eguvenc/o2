@@ -105,7 +105,7 @@ abstract class AbstractAdapter
      * 
      * @return string token
      */
-    protected function getRememberToken()
+    public function getRememberToken()
     {
         $token = $this->c->load('return utils/random')->generate('alnum', 32);
         $cookie = $this->config['login']['rememberMe']['cookie'];

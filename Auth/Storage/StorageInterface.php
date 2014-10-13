@@ -40,6 +40,13 @@ interface StorageInterface
     public function getIdentifier();
 
     /**
+     * Unset identifier from session
+     * 
+     * @return void
+     */
+    public function unsetIdentifier();
+
+    /**
      * Get credentials and check authority
      * 
      * @return mixed bool

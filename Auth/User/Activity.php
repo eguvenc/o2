@@ -55,7 +55,7 @@ Class Activity
     {
         $this->c = $params['c'];
         $this->config = $params['config'];
-        $this->storage = $this->c['o2.auth.service.storage'];
+        $this->storage = $this->params['storage'];
         $this->user = $params['user'];
 
         $this->session = $c->load('return session');

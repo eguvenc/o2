@@ -50,13 +50,16 @@ Abstract Class AbstractWriter
      */
     public function isAllowed($type = null)
     {
-        if ( ! empty($type) AND in_array($type, array('app','ajax','worker'))) {
+        if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker' AND $this->c['config']['log']['queue']['workers']) {  //  If worker logs allowed from config file.
             return true;
         }
         if (isset($_SERVER['argv'][1]) AND in_array($_SERVER['argv'][1], array('clear','help','log','queue','update','app','worker'))) {
             return false;
         }
-        return true;
+        if (in_array($type, array(null, 'app','ajax','cli'))) {
+            return true;
+        }
+        return false;
     }
 
     /**

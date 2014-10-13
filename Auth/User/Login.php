@@ -41,13 +41,6 @@ Class Login
     protected $storage;
 
     /**
-     * Login database adapter
-     * 
-     * @var object
-     */
-    protected $adapter;
-
-    /**
      * Constructor
      * 
      * @param array $params parameters
@@ -57,7 +50,6 @@ Class Login
         $this->c = $params['c'];
         $this->config = $params['config'];
         $this->storage = $params['storage'];
-        $this->adapter = $params['adapter'];
     }
 
     /**
@@ -67,7 +59,7 @@ Class Login
      */
     public function enableVerification()
     {
-        $this->adapter->enableVerification();
+        $this->c['o2.auth.service.adapter']->enableVerification();
     }
 
     /**
@@ -77,7 +69,7 @@ Class Login
      */
     public function disableVerification()
     {
-        $this->adapter->disableVerification();
+        $this->c['o2.auth.service.adapter']->disableVerification();
     }
 
     /**
@@ -100,13 +92,13 @@ Class Login
             );
             return new AuthResult(
                 array(
-                    'code'     => AuthResult::FAILURE,
+                    'code' => AuthResult::FAILURE,
                     'identity' => $this->storage->getIdentifier(),
                     'messages' => array($message)
                 )
             );
         }
-        $authResult = $this->adapter->login(new GenericIdentity($credentials));
+        $authResult = $this->c['o2.auth.service.adapter']->login(new GenericIdentity($credentials));
         return $authResult;
     }
  
@@ -121,7 +113,7 @@ Class Login
     }
 
     /**
-     * Validate a user's credentials without login.
+     * Validate a user's credentials without authenticate the user.
      *
      * @param array $credentials identities
      * 
@@ -129,7 +121,7 @@ Class Login
      */
     public function validate(array $credentials = array())
     {
-        return $this->adapter->authenticate(new GenericIdentity($credentials), false);
+        return $this->c['o2.auth.service.adapter']->authenticate(new GenericIdentity($credentials), false);
     }
 
     /**
@@ -158,7 +150,7 @@ Class Login
      */
     public function getAdapter()
     {
-        return $this->adapter;
+        return $this->c['o2.auth.service.adapter'];
     }
 
     /**
@@ -170,7 +162,7 @@ Class Login
      */
     public function getStorage()
     {
-        return $this->adapter->getStorage();
+        return $this->c['o2.auth.service.adapter']->getStorage();
     }
 
 }

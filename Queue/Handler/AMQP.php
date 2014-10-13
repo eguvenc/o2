@@ -2,7 +2,8 @@
 
 namespace Obullo\Queue\Handler;
 
-use Obullo\Queue\JobHandler\AMQPJob,
+use Obullo\Queue\Queue,
+    Obullo\Queue\JobHandler\AMQPJob,
     AMQPChannel, 
     AMQPConnection,
     AMQPEnvelope,
@@ -24,7 +25,7 @@ use Obullo\Queue\JobHandler\AMQPJob,
  * @link      http://obullo.com/package/queue
  * @see       http://www.php.net/manual/pl/book.amqp.php
  */
-Class AMQP implements HandlerInterface
+Class AMQP extends Queue implements HandlerInterface
 {
     /**
      * Container

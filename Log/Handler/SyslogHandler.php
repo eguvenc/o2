@@ -2,8 +2,7 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Log\Logger,
-    Obullo\Log\PriorityQueue,
+use Obullo\Log\PriorityQueue,
     Obullo\Log\Formatter\LineFormatter;
 
 use Exception;
@@ -101,8 +100,7 @@ Class SyslogHandler implements HandlerInterface
             while ($pQ->valid()) {     // Prepare Lines
                 $records[$i] = $pQ->current(); 
                 $pQ->next();
-                $level = Logger::$priorities[$records[$i]['level']];
-                $this->writer->write($formatter->format($records[$i]), $level);
+                $this->writer->write($formatter->format($records[$i]));
                 $i++;
             }
         }

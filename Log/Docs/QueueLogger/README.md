@@ -94,7 +94,11 @@ Class Logger implements ServiceInterface
             | Add Writer - Primary file writer should be available on local server.
             |--------------------------------------------------------------------------
             */
-            $log->addWriter(LOGGER_FILE)->priority(5);
+            if (defined('STDIN')) { 
+                $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO)); // Cli
+            } else {
+                $log->addWriter(LOGGER_FILE)->priority(5); // Http
+            }
             /*
             |--------------------------------------------------------------------------
             | Add Handler - Adds to available log handlers
@@ -187,7 +191,6 @@ Class CartridgeQueueWriter
                         'route' => gethostname(). LOGGER_NAME .'File',
                         'job' => LOGGER_JOB,
                         'delay' => 0,
-                        'type' => null,  // Application Type: "app", "worker", default is auto
                     )
                 )
             );

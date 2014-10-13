@@ -15,6 +15,13 @@ namespace Obullo\Auth;
 Class UserService
 {
     /**
+     * Service configuration parameters
+     * 
+     * @var array
+     */
+    public $params = array();
+
+    /**
      * Constructor
      * 
      * @param object $c container
@@ -28,24 +35,15 @@ Class UserService
         $Adapter = '\Obullo\Auth\Adapter\\'.$config['adapter'];
         $Storage = '\Obullo\Auth\Storage\\'.ucfirst($config['memory']['storage']);
 
-        // $c['o2.auth.service.storage'] = function () use ($c, $Storage) {
-        //     return new $Storage($c);
-        // };
-
-        $storage = new $Storage($c);
-
         $this->params = array(
             'c' => $c,
             'config' => $config,
             'user' => $this,
-            'adapter' => new $Adapter($c, $this, $storage),
-            'storage' => $storage
+            'storage' => new $Storage($c)
         );
-
-        // $c['o2.auth.service.adapter'] = function () use ($c, $Adapter) {
-        //     return new $Adapter($c, $this);
-        // };
-
+        $c['o2.auth.service.adapter'] = function () use ($c, $Adapter) {
+            return new $Adapter($c, $this);
+        };
     }
 
     /**

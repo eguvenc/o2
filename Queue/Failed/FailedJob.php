@@ -48,7 +48,7 @@ Abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c->load('return service/provider/'.$provider['name'], $provider['key']);
+        $this->db = $c->load('return new service/provider/'.$provider['name'], $provider['key']);
 
         if ( ! $c->exists('provider:'.strtolower($provider['name']))) {  // If provider not exists ! Alert to developer
             throw new LogicException(

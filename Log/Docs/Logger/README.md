@@ -129,6 +129,9 @@ On your local environment config file  set <kbd>threshold</kbd> level <b>1</b> t
         'format'    => 'Y-m-d H:i:s', // Date format
         'queries'   => true,          // If true "all" SQL Queries gets logged.
         'benchmark' => true,          // If true "all" Application Benchmarks gets logged.
+        'queue' => array(
+            'workers' => false, // On / Off Queue workers logging functionality.
+        )
 ),
 ```
 #### Explanation of Settings:
@@ -141,6 +144,7 @@ On your local environment config file  set <kbd>threshold</kbd> level <b>1</b> t
 * <b>format</b> - Date format for each records.
 * <b>queries</b> - If true all Database SQL Queries gets logged.
 * <b>benchmark</b> - If true all framework benchmarks gets logged.
+* <b>queue/workers</b> - If true all queue worker's jobs get logged. When you enable it you need to use priority filter otherwise your log data fill up very fast.
 
 
 #### $this->logger->level($message = string,  $context = array(), $priority = 0);
@@ -258,7 +262,11 @@ Class Logger implements ServiceInterface
             | Add Writer - Primary file writer should be available on local server.
             |--------------------------------------------------------------------------
             */
-            $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_INFO))->filter('input.filter');
+            if (defined('STDIN')) { 
+                $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO)); // Cli
+            } else {
+                $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_INFO))->filter('input.filter'); // Http
+            }
             // $logger->addWriter(LOGGER_MONGO)->priority(5);
             /*
             |--------------------------------------------------------------------------

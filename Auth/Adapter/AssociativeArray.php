@@ -86,13 +86,12 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @param object $c           container object
      * @param object $userService user service object
-     * @param object $storage     storage
      */
-    public function __construct($c, UserService $userService, $storage)
+    public function __construct($c, UserService $userService)
     {
         $this->user = $userService;
         $this->config = $c->load('config')->load('auth');
-        $this->storage = $storage;
+        $this->storage = $this->user->params['storage'];
         $this->session = $c->load('session');
 
         parent::__construct($c);
@@ -213,8 +212,6 @@ class AssociativeArray extends AbstractAdapter
         );
         $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
         
-        // $this->user->identity->setArray($attributes);
-
         if ($this->config['login']['session']['regenerateSessionId']) {
             $this->regenerateSessionId($this->config['login']['session']['deleteOldSessionAfterRegenerate']);
         }

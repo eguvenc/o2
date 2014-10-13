@@ -188,9 +188,9 @@ $app = new Controller(
     function ($c) {
         $c->load('service/queue');
         $this->queue->channel('Log');
-        $this->queue->push('SendLog', 'Server1.logger', array('log' => array('debug' => 'Test')));
-        $this->queue->push('SendLog', 'Server1.logger', array('message' => 'This is my message'));
-        $this->queue->push('SendLog', 'Server1.logger', array('log' => array('debug' => 'Test')));
+        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('log' => array('debug' => 'Test')));
+        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('message' => 'This is my message'));
+        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('log' => array('debug' => 'Test')));
     }
 );
 
@@ -231,9 +231,9 @@ Route   : localhost.logger
 ------------------------------------------------------------------------------------------
  Job ID | Job Name             | Data 
 ------------------------------------------------------------------------------------------
- 1      | SendLog              | {"log":{"debug":"test"}}
- 2      | SendLog              | {"message":"this is my message"}
- 3      | SendLog              | {"log":{"debug":"test"}}
+ 1      | Workers/QueueLogger  | {"log":{"debug":"test"}}
+ 2      | Workers/QueueLogger  | {"message":"this is my message"}
+ 3      | Workers/QueueLogger  | {"log":{"debug":"test"}}
 ```
 
 
@@ -319,8 +319,8 @@ Push examle
 $c->load('service/queue');
 
 $this->queue->channel('Logs');
-$this->queue->push($route = 'MyHostname.Logger.File', $job = 'SendLog', array('log' => array('debug' => 'Test')));
-$this->queue->push($route = 'MyHostname.Logger.Email', $job = 'SendLog', array('message' => 'This is my message'));
+$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.File', array('log' => array('debug' => 'Test')));
+$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.Email', array('message' => 'This is my message'));
 ```
 
 Push example with delivery mode
@@ -330,7 +330,7 @@ Push example with delivery mode
 $c->load('service/queue');
 
 $this->queue->channel('Logs');
-$this->queue->push($route = 'MyHostname.Logger.File', $job = 'SendLog',
+$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.File', 
   $data = array('log' => 'test'), 
   $delay = 0, 
   $options = array(
@@ -348,7 +348,7 @@ $this->queue->push($route = 'MyHostname.Logger.File', $job = 'SendLog',
 
 Sets your queue exchange.
 
-#### $this->queue->push(string $queueName, string $job, array $data, int $delay = 0, array $options = array());
+#### $this->queue->push(string $job, string $queueName, array $data, int $delay = 0, array $options = array());
 
 Push a new job onto the queue.
 
