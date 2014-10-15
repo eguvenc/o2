@@ -1140,7 +1140,6 @@ Class Adapter
             $order = (int)$val[static::ELEMENT_ORDER];
             $role  = isset($val[static::ELEMENT_ROLE]) ? $val[static::ELEMENT_ROLE] : '';
             $this->order = 0;
-            
             if ($val[static::ELEMENT_GROUP_ID] > 0) { // Let's do order for grouped elements
                 $this->order = $order;
                 $elementsOfGroup = $this->getElementsOfGroup($groupData, $val[static::ELEMENT_GROUP_ID]);
@@ -1171,7 +1170,6 @@ Class Adapter
                 // If user doesn't have form or the input permission
                 // and type "submit" is not,
                 // We add "disabled" the input attribute.
-
                 if ($this->user->isPermitted($formData[static::FORM_NAME], $formOpPermission) === false
                     AND $role !== 'widget'
                     AND $val[static::ELEMENT_TYPE] !== 'submit'
@@ -1456,10 +1454,10 @@ Class Adapter
                 }
                 $value = (isset($postData[$v[static::ELEMENT_NAME]])) ? $postData[$v[static::ELEMENT_NAME]] : '';
                 $this->rules[$v[static::ELEMENT_NAME]] = array(
-                                                            'field' => $v[static::ELEMENT_NAME],
-                                                            'label' => $v[static::ELEMENT_LABEL],
-                                                            'rules' => $v[static::ELEMENT_RULES]
-                                                        );
+                    'field' => $v[static::ELEMENT_NAME],
+                    'label' => $v[static::ELEMENT_LABEL],
+                    'rules' => $v[static::ELEMENT_RULES]
+                );
             }
             if ($v[static::ELEMENT_GROUP_ID] > 0 AND ! empty($group[static::GROUP_WIDGET]) AND ! empty($groupTempClosureData)) {
                 $value = $groupTempClosureData;
@@ -1474,7 +1472,7 @@ Class Adapter
                 }
             }
             // Set rules for all form elements.
-            if (isset($postData[$v[static::ELEMENT_NAME]]) AND isset($this->rules[$v[static::ELEMENT_NAME]])) {
+            if (isset($this->rules[$v[static::ELEMENT_NAME]])) {
                 // if ($this->view->isTranslatorEnabled() === true) {
                 //     $v[static::ELEMENT_LABEL] = $this->c->load('translator')[$v[static::ELEMENT_LABEL]];
                 // }
