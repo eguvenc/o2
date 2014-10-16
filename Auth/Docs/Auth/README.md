@@ -1,28 +1,31 @@
 
 ## O2 Authentication
 
-Auth package provides an API for authentication and includes concrete authentication adapters for common use case scenarios.
+Auth package provides an API for authentication and includes concrete authentication adapters for common use case scenarios. O2 Auth is concerned only with <b>authentication</b> and <b>not</b> with authorization. For more information about authorization please see <b>Permissions</b> package.
 
-O2 Auth is concerned only with authentication and not with authorization. For more information about authorization please see Permissions package.
+**Note:** Auth package cache storage only supports <b>Redis</b> driver at this time. Look at here for <a href="https://github.com/obullo/warmup/tree/master/Redis">redis installation</a>.
+
+## Flow Chart
 
 Below the flow chart shows authentication process of users:
-
 
 ## Adapters
 
 Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based storage. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
 
 
-## Identities Class
-
-## Login Class
-
-
-## UserService Class
+## User ( Service )
 
 ------
 
-User class simply manage <b>login</b>, <b>identity</b> and <b>activities</b>.
+User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</b> modules of the auth.
+
+
+## Identity
+
+## Login
+
+## Activity
 
 
 ### Login Reference
@@ -31,7 +34,7 @@ User class simply manage <b>login</b>, <b>identity</b> and <b>activities</b>.
 
 ```php
 <?php
-$c->load('service/auth/user');
+$c->load('service/user');
 $this->user->class->method();
 ```
 
@@ -64,7 +67,7 @@ Validate a user against the given credentials.
 
 ------
 
-### $this->user->identity->isAuthenticed();
+### $this->user->identity->isAuthenticated();
 
 Returns "true" if user is autheticated otherwise "false".
 

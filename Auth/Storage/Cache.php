@@ -109,7 +109,7 @@ Class Cache implements StorageInterface
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__Auth/Identifier', $identifier);
+        $this->session->set('__Auth/Identifier', $identifier.':'.microtime(true));
     }
 
     /**

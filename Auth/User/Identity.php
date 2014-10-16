@@ -286,7 +286,7 @@ Class Identity extends UserIdentity
         $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
 
         $this->logger->channel('security');
-        $this->logger->notice('Auth token does not matched credentials removed.', array('identifier' => $this->getIdentifier()));
+        $this->logger->notice('Auth token is not valid, identity removed.', array('identifier' => $this->getIdentifier()));
 
         return $this->tokenIsValid = false;
     }
@@ -412,6 +412,8 @@ Class Identity extends UserIdentity
         }
         $oldCredentials = json_encode($this->credentials);
         $newCredentials = json_encode($this->getArray());
+
+        print_r($this->getArray());
 
         $block = ($this->attributes['__isTemporary'] == 1) ? '__temporary' : '__permanent';
 

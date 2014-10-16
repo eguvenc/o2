@@ -106,8 +106,9 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function initialize(GenericIdentity $genericUser)
     {
-        $this->storage->setIdentifier($genericUser->getIdentifier()); // Set identifier to storage
-
+        if ($this->user->identity->isGuest()) {
+            $this->storage->setIdentifier($genericUser->getIdentifier()); // Set identifier to storage
+        }
         $this->results = array(
             'code'     => AuthResult::FAILURE,
             'identity' => $this->storage->getIdentifier(),

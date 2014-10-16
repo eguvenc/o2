@@ -41,6 +41,7 @@ Class UserService
             'user' => $this,
             'storage' => new $Storage($c)
         );
+        
         $c['o2.auth.service.adapter'] = function () use ($c, $Adapter) {
             return new $Adapter($c, $this);
         };
