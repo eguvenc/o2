@@ -162,7 +162,7 @@ Class Activity
      */
     public function isSignedIn()
     {
-        if ($this->user->identity->isAuthenticated() AND isset($this->attributes['sid'])) {
+        if ($this->user->identity->isAuthenticated()) {
             return true;
         }
         return false;
@@ -175,7 +175,7 @@ Class Activity
      */
     public function isSignedOut()
     {
-        if ($this->user->identity->isGuest() OR  ! isset($this->attributes['sid'])) {
+        if ($this->user->identity->isGuest()) {
             return true;
         }
         return false;
@@ -201,14 +201,13 @@ Class Activity
             $lastSession = max($sessionKeys);      // Get the highest integer
             unset($sessions[$lastSession]);  // Don't touch the current session
 
-            // Array ( [1] => Array ( 
-            //     [aid] => 1413449703.5931 
-            //     [uid] => user@example.com 
+            // Array ( [ 1413449703.5931] => Array ( 
+            //     [id] => user@example.com 
             //     [key] => Auth:__permanent:Authorized:user@example.com:1413449703.5931 
             //     [prefix] => Auth:__permanent:Authorized:user@example.com ) 
             // )
 
-            foreach (array_keys($sessions) as $aid) {    // Destroy all other sessions
+            foreach (array_keys($sessions) as $aid) { // Destroy all other sessions
                 $this->killAuthSession($aid);
             }
         }

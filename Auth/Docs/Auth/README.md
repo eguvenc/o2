@@ -21,18 +21,53 @@ Auth class uses redis storage like database. The following picture shown an exam
 
 ### Package predefined keys:
 
-Auth package build its own variables which keys are start by 2 underscore "__". You should don't change these variables by manually.
+Auth package build its own variables which keys are start by 2 underscore "__". You should not change these variables by manually.
 
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>    
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>__activity</td>
+            <td>Contains online user activity data: session id (sid), lastActivity time and any other data you want to add.</td>
+        </tr>
+        <tr>
+            <td>__isAuthenticated</td>
+            <td>If user has authority this key contains "1" otherwise "0".</td>
+        </tr>
+        <tr>
+            <td>__isTemporary</td>
+            <td>If verification method <kbd>$this->user->login->enableVerification()</kbd> used before login the temporary authentication value will be "1" otherwise "0". If user verified by mobile phone or any kind of verification then you need authenticate user by using <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> method.</td>
+        </tr>
+        <tr>
+            <td>__lastTokenRefresh</td>
+            <td>The config <b>security token</b> updates cookie and memory token value every <b>1</b> minutes by default. If memory token and cookie does not match we logout the user. This is a strong security measure for hijacking session id or token. ( Refreshing time is configurable item from your auth.php config file )</td>
+        </tr>
+        <tr>
+            <td>__rememberMe</td>
+            <td>If user checked rememberMe input before login it contains to "1" otherwise "0".</td>
+        </tr>
+        <tr>
+            <td>__token</td>
+            <td>Random token value.</td>
+        </tr>
+        <tr>
+            <td>__type</td>
+            <td>Contains authentication types of user: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
+        </tr>
 
+    </tbody>
+</table>
 
 Example output of the identity
 
 ```php
 <?php
-$this->user->identity->getArray();
-
-// Gives
-
+print_r($this->user->identity->getArray()); // Gives
 /*
 Array
 (
@@ -55,6 +90,86 @@ Array
 )
 */
 ```
+
+## Configuration
+
+```php
+<?php
+/*
+|--------------------------------------------------------------------------
+| Auth
+|--------------------------------------------------------------------------
+| Configuration file
+|
+*/
+return array(
+    'adapter' => 'AssociativeArray',
+    'memory' => array(          // Keeps user identitiy data in your cache driver.
+        'storage' => 'Redis',   // Storage driver uses cache package
+        'block' => array(
+            'permanent' => array(
+                'lifetime' => 3600  // 1 hour is default storage life time. if remember choosed we use "rememberMeSeconds" value as lifetime otherwise default.
+            ),
+            'temporary'  => array(
+                'lifetime' => 300  // 5 minutes is default temporary login lifetime.
+            )
+        )
+    ),
+    'security' => array(
+        'cookie' => array(
+            'name' => '__ot',  // Cookie name, change it if you want
+            'refresh' => 60,   // Every 1 minutes do the cookie validation
+            'path' => '/',
+            'secure' => false,
+            'httpOnly' => false,
+            'prefix' => '',
+            'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ". Should be same with rememberMeSeconds value.
+        ),
+        'passwordNeedsRehash' => array(
+            'cost' => 10
+        ),
+    ),
+    'login' => array(
+        'rememberMe'  => array(
+            'cookie' => array(
+                'name' => '__rm',
+                'path' => '/',
+                'secure' => false,
+                'httpOnly' => false,
+                'prefix' => '',
+                'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ". Should be same with rememberMeSeconds value.
+            )
+        ),
+        'session' => array(
+            'regenerateSessionId' => true,               // Regenerate session id upon new logins.
+            'deleteOldSessionAfterRegenerate' => false,  // Destroy old session data after regenerate the new session id upon new logins
+        )
+    ),
+    'activity' => array(
+        'singleSignOff' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple agents.
+    )
+);
+
+/* End of file auth.php */
+/* Location: .app/config/shared/auth.php */
+```
+
+## Description Of Config Items
+
+<table>
+    <thead>
+        <tr>
+            <th>Key</th>    
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>adapter</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
 
 
 ## User ( Service )
@@ -110,31 +225,43 @@ Validate a user against the given credentials.
 
 ------
 
+### $this->user->identity->exists();
+
+Checks identity block available in memory. If yes returns to <b>true</b> otherwise <b>false</b>.
+
 ### $this->user->identity->isAuthenticated();
 
-Returns "true" if user is autheticated otherwise "false".
+if user is autheticated returns to <b>true</b> otherwise <b>false</b>.
 
 ### $this->user->identity->isVerified();
 
-Returns "true" if user is verified () after successfull login otherwise "false".
+if user is verified () after successfull login returns to <b>true</b> otherwise <b>false</b>.
 
 ### $this->user->identity->isGuest();
 
-Checks if the user is guest, if so, it returns to true, otherwise false.
+Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false</b>.
 
 ### $this->user->identity->isTemporary();
 
-Returns to "1" if user authenticated on temporary memory block otherwise  "0".
+Returns to <b>1</b> if user authenticated on temporary memory block otherwise <b>0</b>.
 
 ### $this->user->identity->logout();
 
-Logs out user, sets __isAuthenticated key to "0". This method <kbd>does not destroy</kbd> the user <kbd>sessions</kbd>. It will just set authority data to "0".
+Logs out user, sets __isAuthenticated key to <b>0</b>. This method <kbd>does not destroy</kbd> the user <kbd>sessions</kbd>. It will just set authority of user to <b>0</b>.
 
 **Note:** When you use logout method, user logins will work on memory storage if cached auth exists.
 
 ### $this->user->identity->destroy();
 
 Destroys all identity stored in memory. 
+
+### $this->user->identity->forgetMe();
+
+Removes the rememberMe cookie.
+
+### $this->user->identity->refreshRememberToken(GenericIdentity $genericUser);
+
+Regenerates rememberMe token in <b>database</b>.
 
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
 
@@ -152,15 +279,15 @@ Returns to hashed password of the user.
 
 ### $this->user->identity->getType();
 
-Get user type who has successfull memory token using by their session identifier. User types : UNVERIFIED, AUTHORIZED.
+Get user type who has successfull memory token using by their session identifier. User types : <b>UNVERIFIED, AUTHORIZED</b>.
 
 ### $this->user->identity->getRememberMe();
 
-Returns to "1" user if used remember me option.
+Get rememberMe option if user choosed returns to <b>1</b> otherwise <b>0</b>.
 
 ### $this->user->identity->getPasswordNeedsReHash();
 
-If user password needs rehash returns to "hashed password" string otherwise "false".
+Checks the password needs rehash if yes returns to <b>array</b> that contains new hashed password otherwise <b>false</b>.
 
 ### $this->user->identity->getArray()
 
@@ -200,24 +327,26 @@ Remove value from identity array.
 
 ------
 
-### $this->user->activity->add();
+### $this->user->activity->set($key, $val);
 
-Add user to online members.
+Add activity data to user.
+
+### $this->user->activity->get($key);
+
+Get activity data item of user.
 
 ### $this->user->activity->remove();
 
-Remove user from online members.
+Remove activity key from container.
 
-### $this->user->activity->isOnline();
+### $this->user->activity->isSignedIn();
 
-Returns true if user is online otherwie false.
+Returns <b>true</b> if user online.
 
-### $this->user->activity->refreshTime();
+### $this->user->activity->isSignedOut();
 
-Updates last activity time of the user.
+Returns <b>false</b> if user not online.
 
-### $this->user->activity->setAttribute($key, $value);
+### $this->user->activity->update();
 
-Adds custom item to online user data.
-
-### $this->user->activity->getAttribute($key, $value);
+Updates all activity data of the user which we set them before using $this->user->activity->set(); method.

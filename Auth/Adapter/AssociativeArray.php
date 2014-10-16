@@ -2,8 +2,8 @@
 
 namespace Obullo\Auth\Adapter;
 
-use Auth\Credentials,
-    Auth\Model\User,
+use Auth\Model\User,
+    Auth\Credentials,
     Auth\Identities\GenericIdentity,
     Auth\Identities\UserIdentity,
     Obullo\Auth\Token,
@@ -31,13 +31,6 @@ class AssociativeArray extends AbstractAdapter
      * @var object
      */
     public $user;
-
-    /**
-     * Application config
-     * 
-     * @var object
-     */
-    protected $config;
 
     /**
      * Session class
@@ -90,7 +83,6 @@ class AssociativeArray extends AbstractAdapter
     public function __construct($c, UserService $userService)
     {
         $this->user = $userService;
-        $this->config = $c->load('config')->load('auth');
         $this->storage = $this->user->params['storage'];
         $this->session = $c->load('session');
 
@@ -111,7 +103,7 @@ class AssociativeArray extends AbstractAdapter
         }
         $this->results = array(
             'code'     => AuthResult::FAILURE,
-            'identity' => $this->storage->getIdentifier(),
+            'identity' => $genericUser->getIdentifier(),
             'messages' => array()
         );
         return true;
@@ -128,9 +120,7 @@ class AssociativeArray extends AbstractAdapter
     {
         $this->initialize($genericUser);
 
-        if ($this->user->identity->isAuthenticated()  // If user is already authenticated regenerate the user !
-            AND $genericUser->getIdentifier() == $this->user->identity->getIdentifier()
-        ) {
+        if ($this->user->identity->isAuthenticated()) { // If user is already authenticated regenerate the user !
             $this->results['code'] = AuthResult::FAILURE_ALREADY_LOGGEDIN;
         } else {
             $this->authenticate($genericUser);  // Perform Query
@@ -221,6 +211,9 @@ class AssociativeArray extends AbstractAdapter
         }
         if ($push2Storage) {                                        // If we haven't got identity data in memory push it to cache the identity.
             $this->push2Storage($attributes); // Push database query result to memory storage !
+        }
+        if ($attributes['__rememberMe'] == 0) {
+            $this->deleteRememberMeCookie();
         }
     }
 

@@ -40,6 +40,13 @@ abstract class AbstractAdapter
     protected $c;
 
     /**
+     * Auth config
+     * 
+     * @var object
+     */
+    protected $config;
+
+    /**
      * Verification switch after successfull login
      * 
      * @var string
@@ -56,6 +63,7 @@ abstract class AbstractAdapter
     public function __construct($c)
     {
         $this->c = $c;
+        $this->config = $c->load('config')->load('auth');
     }
 
     /**
