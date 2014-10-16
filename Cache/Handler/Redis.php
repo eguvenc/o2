@@ -452,12 +452,17 @@ Class Redis implements HandlerInterface
      * @param string $key     cache key.
      * @param string $hashKey hash key.
      * @param string $data    cache data.
+     * @param int    $ttl     expiration time
      * 
      * @return LONG 1 if value didn't exist and was added successfully, 0 if the value was already present and was replaced, FALSE if there was an error.
      */
-    public function hSet($key, $hashKey, $data)
+    public function hSet($key, $hashKey, $data, $ttl = 0)
     {
-        return $this->redis->hSet($key, $hashKey, $data);
+        $hSet = $this->redis->hSet($key, $hashKey, $data);
+        if ($hSet AND (int)$ttl > 0) {
+            $this->redis->setTimeout($key, (int)$ttl);
+        }
+        return $hSet;
     }
 
     /**
@@ -566,20 +571,25 @@ Class Redis implements HandlerInterface
      * Fills in a whole hash. Non-string values are converted to string, using the standard (string) cast. NULL values are stored as empty strings.
      * 
      * @param string $key     cache key.
-     * @param array  $members key->value array.
+     * @param array  $members key - value array.
+     * @param int    $ttl     expiration
      * 
      * @return bool
      */
-    public function hMSet($key, $members)
+    public function hMSet($key, $members, $ttl = 0)
     {
-        return $this->redis->hMSet($key, $members);
+        $hMSet = $this->redis->hMSet($key, $members);
+        if ($hMSet AND (int)$ttl > 0) {
+            $this->redis->setTimeout($key, (int)$ttl);
+        }
+        return $hMSet;
     }
 
     /**
      * Retrieve the values associated to the specified fields in the hash.
      * 
      * @param string $key        cache key.
-     * @param array  $memberKeys key->value array
+     * @param array  $memberKeys key - value array
      * 
      * @return Array An array of elements, the values of the specified fields in the hash, with the hash keys as array keys.
      */

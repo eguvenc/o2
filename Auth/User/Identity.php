@@ -87,7 +87,6 @@ Class Identity extends UserIdentity
         $this->c = $params['c'];
         $this->config = $params['config'];
         $this->storage = $params['storage'];
-        // $this->adapter = $params['adapter'];
 
         if ($token = $this->recallerExists()) {  // Remember the user if recaller cookie exists
             $this->recallUser($token);
@@ -324,6 +323,7 @@ Class Identity extends UserIdentity
      */
     public function getArray()
     {
+        ksort($this->attributes);
         return $this->attributes;
     }
 

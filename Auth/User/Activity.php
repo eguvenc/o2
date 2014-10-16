@@ -68,37 +68,40 @@ Class Activity
         $this->session = $this->c->load('return session');
         $this->request = $this->c->load('return request');
 
+        $this->attributes = array(
+            'sid' => $this->session->get('session_id'),
+            'lastActivity' => time()
+        );
         $this->identifier = $this->user->identity->getIdentifier();
     }
 
     /**
      * Add activity data to user
      *
-     * @return void
+     * @param string|int $key key
+     * @param string|int $val value
+     * 
+     * @return object this
      */
-    public function add()
+    public function set($key = null, $val = null)
     {
-        if (empty($this->identifier)) {
+        if (empty($this->identifier) OR empty($key)) {
             return false;
         }
-        $this->attributes = array(
-            'sid' => $this->session->get('session_id'),
-            'lastActivity' => time()
-        );
-        if ($this->config['singleSignOff'] AND $this->isSignedIn()) {  // Single sign-off is the property whereby a single action of signing out 
-                                                                       // terminates access to multiple agents.
-            $sessions = $this->getAuthSessions();
-            if (sizeof($sessions) < 1) {  // If we user have more than one auth session continue and destroy them.
-                return;
-            }
-            $sessionKeys = array_keys($sessions);  // Keep last session
-            $lastSession = end($sessionKeys);
-            unset($sessions[$lastSession]);  // Don't touch the last session
+        $this->attributes[$key] = $val;
+        return $this;
+    }
 
-            foreach ($sessions as $aid) {    // Destroy all other sessions
-                $this->killAuthSession($aid);
-            }
-        }
+    /**
+     * Get an attribute value
+     * 
+     * @param string $key key
+     * 
+     * @return void
+     */
+    public function get($key)
+    {
+        return $this->attributes[$key];
     }
 
     /**
@@ -127,15 +130,12 @@ Class Activity
         }
         $sessions = array();
         $key = 'Auth:__permanent:Authorized:';
-        $i = 0;
         foreach ($this->cache->getAllKeys($key.$this->identifier.':*') as $val) {
-            ++$i;
             $exp = explode(':', $val);
             $aid = end($exp);
-            $sessions[$i]['aid'] = $aid;
-            $sessions[$i]['uid'] = $this->identifier;
-            $sessions[$i]['key'] = $key.$this->identifier.':'.$aid;
-            $sessions[$i]['prefix'] = $key.$this->identifier;
+            $sessions[$aid]['id'] = $this->identifier;
+            $sessions[$aid]['key'] = $key.$this->identifier.':'.$aid;
+            $sessions[$aid]['prefix'] = $key.$this->identifier;
         }
         return $sessions;
     }
@@ -152,7 +152,7 @@ Class Activity
         if (empty($this->identifier)) {
             return false;
         }
-        return $this->cache->delete('Auth:__permanent:Authorized:'.$this->identifier.':'.$aid);
+        $this->cache->delete('Auth:__permanent:Authorized:'.$this->identifier.':'.$aid);
     }
 
     /**
@@ -182,41 +182,37 @@ Class Activity
     }
 
     /**
-     * Set an attribute to activity data
-     * 
-     * @param string $key key
-     * @param mixed  $val value
-     *
-     * @return void
-     */
-    public function setAttribute($key, $val)
-    {
-        $this->attributes[$key] = $val;
-    }
-
-    /**
-     * Get an attribute value
-     * 
-     * @param string $key key
-     * 
-     * @return void
-     */
-    public function getAttribute($key)
-    {
-        return $this->attributes[$key];
-    }
-
-    /**
      * Update user activity
      * 
      * @return void
      */
-    public function refresh()
+    public function update()
     {
         if (empty($this->identifier)) {
             return false;
         }
-        $this->user->identity->__activity = $this->attributes;
+        if ($this->config['singleSignOff'] AND $this->isSignedIn()) {  // Single sign-off is the property whereby a single action of signing out 
+                                                                       // terminates access to multiple agents.
+            $sessions = $this->getAuthSessions();
+            if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
+                return;
+            }
+            $sessionKeys = array_keys($sessions);  // Keep the last session
+            $lastSession = max($sessionKeys);      // Get the highest integer
+            unset($sessions[$lastSession]);  // Don't touch the current session
+
+            // Array ( [1] => Array ( 
+            //     [aid] => 1413449703.5931 
+            //     [uid] => user@example.com 
+            //     [key] => Auth:__permanent:Authorized:user@example.com:1413449703.5931 
+            //     [prefix] => Auth:__permanent:Authorized:user@example.com ) 
+            // )
+
+            foreach (array_keys($sessions) as $aid) {    // Destroy all other sessions
+                $this->killAuthSession($aid);
+            }
+        }
+        $this->user->identity->__activity = $this->attributes;  // Update activity data
     }
 
 }

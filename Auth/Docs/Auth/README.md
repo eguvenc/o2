@@ -13,6 +13,49 @@ Below the flow chart shows authentication process of users:
 
 Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based storage. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
 
+## Redis Storage
+
+Auth class uses redis storage like database. The following picture shown an example authentication data stored in redis.
+
+![PhpRedisAdmin](/images/redis.png?raw=true "PhpRedisAdmin")
+
+### Package predefined keys:
+
+Auth package build its own variables which keys are start by 2 underscore "__". You should don't change these variables by manually.
+
+
+
+Example output of the identity
+
+```php
+<?php
+$this->user->identity->getArray();
+
+// Gives
+
+/*
+Array
+(
+    [__activity] => Array
+        (
+            [sid] => 0ri8fsfoksutisaifioq60mu16
+            [lastActivity] => 1413454236
+        )
+
+    [__isAuthenticated] => 1
+    [__isTemporary] => 0
+    [__lastTokenRefresh] => 1413454236
+    [__rememberMe] => 0
+    [__token] => 6ODDUT3FtmmXEZ70.86f40e86
+    [__type] => Authorized
+    [id] => 1
+    [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
+    [remember_token] => bqhiKfIWETlSRo7wB2UByb1Oyo2fpb86
+    [username] => user@example.com
+)
+*/
+```
+
 
 ## User ( Service )
 

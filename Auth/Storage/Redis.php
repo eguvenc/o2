@@ -25,7 +25,7 @@ use LogicException;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/auth
  */
-Class Cache implements StorageInterface
+Class Redis implements StorageInterface
 {
     /**
      * Cache storage unverified users key
@@ -168,11 +168,11 @@ Class Cache implements StorageInterface
      */
     public function loginAsTemporary(array $credentials)
     {
-        $this->cache->set($this->getMemoryBlockKey('__temporary'), $credentials, $this->getMemoryBlockLifetime('__temporary'));
+        $this->cache->hMSet($this->getMemoryBlockKey('__temporary'), $credentials, $this->getMemoryBlockLifetime('__temporary'));
     }
 
     /**
-     * Register credentials to temporary storage
+     * Register credentials to permanent storage
      * 
      * @param array $credentials user identities
      * 
@@ -180,7 +180,7 @@ Class Cache implements StorageInterface
      */
     public function loginAsPermanent(array $credentials)
     {
-        $this->cache->set($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
+        $this->cache->hMSet($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
     }
 
     /**
@@ -218,7 +218,6 @@ Class Cache implements StorageInterface
     public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary')
     {
         $identifier = $this->getIdentifier();
-
         if (empty($identifier)) {
             return false;
         }
@@ -226,7 +225,7 @@ Class Cache implements StorageInterface
         if ( ! empty($pushData)) {
             $this->data[$block] = array_merge($oldCredentials, $pushData);
         }
-        return $this->cache->set($this->getMemoryBlockKey($block), $this->data[$block], $this->getMemoryBlockLifetime($block));
+        $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $this->getMemoryBlockLifetime($block));
     }
 
     /**
@@ -239,14 +238,13 @@ Class Cache implements StorageInterface
     public function getCredentials($block = '__permanent')
     {
         $identifier = $this->getIdentifier();
-
         if (empty($identifier)) {
             return false;
         }
         if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
             return $this->data[$block];
         }
-        return $this->data[$block] = $this->cache->get($this->getMemoryBlockKey($block));
+        return $this->data[$block] = $this->cache->hGetAll($this->getMemoryBlockKey($block));
     }
 
     /**
@@ -273,7 +271,6 @@ Class Cache implements StorageInterface
         $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
 
         $id = $this->getIdentifier();
-
         $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
         return 'Auth:'.$block.':'.$constant.$identifier;  // Create unique key
@@ -306,7 +303,7 @@ Class Cache implements StorageInterface
 
 }
 
-// END Cache.php File
-/* End of file Cache.php
+// END Redis.php File
+/* End of file Redis.php
 
-/* Location: .Obullo/Auth/Storage/Cache.php */
+/* Location: .Obullo/Auth/Storage/Redis.php */
