@@ -17,7 +17,7 @@ Auth adapter is used to authenticate against a particular type of authentication
 
 Auth class uses redis storage like database. The following picture shown an example authentication data stored in redis.
 
-![PhpRedisAdmin](/images/redis.png?raw=true "PhpRedisAdmin")
+![PhpRedisAdmin](/Auth/Docs/Auth/images/redis.png?raw=true "PhpRedisAdmin")
 
 ### Package predefined keys:
 
