@@ -125,7 +125,6 @@ class AssociativeArray extends AbstractAdapter
         } else {
             $this->authenticate($genericUser);  // Perform Query
         }
-
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
         }
@@ -204,16 +203,17 @@ class AssociativeArray extends AbstractAdapter
         $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
         
         if ($this->config['login']['session']['regenerateSessionId']) {
-            $this->regenerateSessionId($this->config['login']['session']['deleteOldSessionAfterRegenerate']);
+            $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
+            $this->regenerateSessionId($deleteOldSession);
+            if ($deleteOldSession) {  // If session data destroyed we need to keep auth identifier.
+                $this->storage->setIdentifier($genericUser->getIdentifier()); 
+            }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $modelUser->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
-        if ($push2Storage) {                                        // If we haven't got identity data in memory push it to cache the identity.
+        if ($push2Storage) {                                        // If we haven't got identity data in memory push it to cache.
             $this->push2Storage($attributes); // Push database query result to memory storage !
-        }
-        if ($attributes['__rememberMe'] == 0) {
-            $this->deleteRememberMeCookie();
         }
     }
 
@@ -280,7 +280,7 @@ class AssociativeArray extends AbstractAdapter
         }
         if ($this->results['code'] === AuthResult::FAILURE_ALREADY_LOGGEDIN) {
             $this->results['messages'][] = 'You are already logged in.';
-            return;
+            return $this->createResult();
         }
         if ( ! is_array($this->resultRowArray)) {
             $this->results['code'] = AuthResult::FAILURE;

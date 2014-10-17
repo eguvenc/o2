@@ -446,13 +446,25 @@ Class Validator
     public function setError($key, $val = '')
     {
         if (is_array($key)) {
-            foreach ($key as $k => $v) {
-                $this->fieldData[$k]['error'] = $v;
-                $this->errorArray[$k] = $v;
-            }
+            $this->setErrors($key);
         } else {
             $this->fieldData[$key]['error'] = $val;
             $this->errorArray[$key] = $val;
+        }
+    }
+
+    /**
+     * Set validator errors as array
+     * 
+     * @param array $errors key - value
+     * 
+     * @return void
+     */
+    public function setErrors($errors)
+    {
+        foreach ($errors as $k => $v) {
+            $this->fieldData[$k]['error'] = $v;
+            $this->errorArray[$k] = $v;
         }
     }
 

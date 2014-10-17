@@ -70,7 +70,7 @@ Class Activity
 
         $this->attributes = array(
             'sid' => $this->session->get('session_id'),
-            'lastActivity' => time()
+            'date' => time()
         );
         $this->identifier = $this->user->identity->getIdentifier();
     }

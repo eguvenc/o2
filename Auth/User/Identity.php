@@ -2,10 +2,10 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Recaller,
-    Auth\Model\User,
+use Auth\Model\User,
     Auth\Credentials,
     Obullo\Auth\Token,
+    Obullo\Auth\Recaller,
     Obullo\Auth\UserService,
     Auth\Identities\UserIdentity,
     Auth\Identities\GenericIdentity;
@@ -349,7 +349,7 @@ Class Identity extends UserIdentity
         $credentials['__token'] = $token->refresh();  // Refresh the security token 
         $credentials['__type'] = 'Unauthorized';
 
-        if ($this->getRememberMe() == 1) {            // If user checked rememberMe option
+        if ($this->getRememberMe() == 1) {            // If user checked rememberMe option refresh rememberMe token
             $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->setCredentials($credentials, null, '__permanent');

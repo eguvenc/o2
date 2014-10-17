@@ -51,7 +51,7 @@ Class Recaller
      * 
      * @return void
      */
-    protected function recallUser($token)
+    public function recallUser($token)
     {
         $modelUser = new User($this->c, $this->storage);
         $resultRowArray = $modelUser->execRecallerQuery($token);

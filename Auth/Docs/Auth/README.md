@@ -11,7 +11,7 @@ Below the flow chart shows authentication process of users:
 
 ## Adapters
 
-Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based storage. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
+Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
 
 ## Redis Storage
 
@@ -137,7 +137,7 @@ return array(
                 'secure' => false,
                 'httpOnly' => false,
                 'prefix' => '',
-                'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ". Should be same with rememberMeSeconds value.
+                'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ".
             )
         ),
         'session' => array(
@@ -146,7 +146,7 @@ return array(
         )
     ),
     'activity' => array(
-        'singleSignOff' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple agents.
+        'singleSignOff' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions.
     )
 );
 
@@ -166,10 +166,70 @@ return array(
     <tbody>
         <tr>
             <td>adapter</td>
-            <td></td>
+            <td>Adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based.</td>
+        </tr>
+        <tr>
+            <td>memory[storage]</td>
+            <td>Auth class uses a memory container to speed up your application default driver is Redis.</td>
+        </tr>
+        <tr>
+            <td>memory[block][permanent][lifetime]</td>
+            <td>Before the login action if verification is disabled by the <kbd>$this->user->login->disableVerification()</kbd> method user identity data is stored into <b>permanent</b> memory block otherwise it will be stored in temporary block. Permanent block expires after <b>3600</b> seconds by default. To speed up your login this feature prevents more than one login queries within the specified time period.</td>
+        </tr>
+
+        <tr>
+            <td>memory[block][temporary][lifetime]</td>
+            <td>Before the login action if verification is enabled by the <kbd>$this->user->login->enableVerification()</kbd> method user identity data is stored into <b>temporary</b> memory block otherwise it will be stored in permanent block. Temporary block expires after <b>300</b> seconds by default. 
+
+            The temporary data is designed for the user <b>verification</b> protocols ( verification by <b>phone call</b>, verification by <b>SMS</b> etc.).
+            <br />
+            If the verification code you have generated is confirmed by the user within the specific time, the user information in the temporary data is updated and the user becomes authorized with the method <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd>. Otherwise, while you do not use this method the temporary identity information will be <b>lost</b>.
+            </td>
+        </tr>
+
+        <tr>
+            <td>security[cookie]</td>
+            <td>Session id yada kullanıcıya ait bilgilerin çalınmasını önlemek amacıyla alınmış bir güvenlik önlemidir. Rastgele oluşturulmuş güvenlik kodu ( token ) kulanıcının tarayıcısına özgü bilgiler ile memory container a kaydedilir belirli aralıklarla bu token yenilenir ( varsayılan 1 dakika ) yenileme gerçekleştiği anda doğrulama fonksiyonu çalışır ve eğer memory deki token kullanıcı tarayıcısındaki token ile eşleşmez ise kullanıcıya ait oturum sonlandırılır. Güvenlik çerezinin yok olma süresi kullanıcya ait rememberMe çerezinin süresi ile aynı olması tavsiye edilir ( Varsayılan 6 ay ).</td>
+        </tr>
+
+        <tr>
+            <td>security[passwordNeedsRehash][cost]</td>
+            <td>Password hash karakter genişliğidir bu sayı 10 u geçmemelidir aksi takdirde uygulamanızda performans sorunlarına yol açabilir.<b>Note:</b> Kullanıcının güvenliği açısından eğer password un yeniden rehash edilmesi gerekiyorsa <kbd>$this->user->identity->getPasswordNeedsReHash()</kbd> methodu nu çalıştırın bu metod eğer yenileme varsa array formatında yeni hash password değerine döner ve database iniz deki kullanıcıya ait password alanı dönen bu değer ile update edilmesi gerekir. </td>
+        </tr>
+
+        <tr>
+            <td>login[rememberMe]</td>
+            <td>Kullanıcı kimlik bilgilerinin tarayıcıda sürekli kalmasını istiyorsa bunun için <b>__rm</b> adında bir cookie oluşturulup tarayıcıya kaydedilir. ( Çerezin sona erme süresi varsayılan 6 ay dır ). Kullanıcı farklı zamanlarda geldiğinde tarayıcısında bu cookie varsa ve session oturumunda kullanıcı id tanımlı değilse ( bu değer login esnasında <b>$_SESSION['__Auth\Identifier']</b> key ine kaydedilir  )  <b>Auth\Recaller->recallUser($rememberToken)</b> methodu ile kullanıcı kimlik bilgileri geri çağrılır ve kullanıcı sitede tekrar aktif olmaya başlar. Her login ve logout işleminden sonra bu değer güvenlik amacıyla hem database hem de cookie de yenilenir.</td>
+        </tr>
+
+        <tr>
+            <td>login[session][regenerateSessionId]</td>
+            <td>Session id nin çalınmaması için bir güvenlik önlemidir eğer bu opsiyon açıksa kullanıcı her login olduktan sonra session id yenilenir fakat oturum da ki bilgiler silinmez.</td>
+        </tr>
+
+        <tr>
+            <td>login[session][deleteOldSessionAfterRegenerate]</td>
+            <td>Eğer bu opsiyon açık ise login esnasında session regenerate edildikten sonra kullanıcı oturumunda önceden oluşturulmuş bilgiler silinir.</td>
+        </tr>
+
+        <tr>
+            <td>activity[singleSignOff]</td>
+            <td>Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions. Eğer kullanıcı farklı tarayıcılarda yada makinalarda oturum açmış ise bu opsiyon açık oldugunda kullanıcıya ait olan eski oturumlar otomatik olarak sonlandırılır. En son giriş yapılan oturum daima açık olur.</td>
         </tr>
     </tbody>
 </table>
+
+
+## Tutorial
+
+Controller Example
+
+* <a href="https://gist.github.com/eguvenc/7cff67ebec6ebe3ca3c5" target="_blank">Click to see example code</a>
+
+Vie Example
+
+* <a href="https://gist.github.com/eguvenc/6ce279d1fb0e2378e611" target="_blank">Click to see example code</a>
+
 
 
 ## User ( Service )
@@ -178,13 +238,29 @@ return array(
 
 User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</b> modules of the auth.
 
+## Login
+
 
 ## Identity
 
-## Login
+Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Kullanıcının giriş, çıkış, 
+
 
 ## Activity
 
+Aktivite class ı giriş yapmış kullanıcıların aktivitelerini yönetmek için bir container görevi görür. Kullanıcının en son aktivitesi hangi sayfada oldugu gibi anlık bilgiler 
+bu class içerisinden identity data içerisine gönderilir. Bilgilerin memory e yazılabilmesi için update() methodun en altta bir kez çalıştırılması gerekir. Kullanıcı giriş yaptıgında
+session id değeri data içerisine varsayılan olarak gönderilmektedir.
+
+#### Adding activity data and update.
+
+```php
+<?php
+$this->user->activity->set('date', time());
+$this->user->activity->update();
+
+// __activity a:3:{s:3:"sid";s:26:"f0usdabogp203n5df4srf9qrg1";s:4:"date";i:1413539421;}
+```
 
 ### Login Reference
 
@@ -193,7 +269,7 @@ User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</
 ```php
 <?php
 $c->load('service/user');
-$this->user->class->method();
+$this->user->login->method();
 ```
 
 ### $this->user->login->enableVerification();
@@ -224,6 +300,12 @@ Validate a user against the given credentials.
 ### Identity Reference
 
 ------
+
+```php
+<?php
+$c->load('service/user');
+$this->user->identity->method();
+```
 
 ### $this->user->identity->exists();
 
@@ -265,6 +347,7 @@ Regenerates rememberMe token in <b>database</b>.
 
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
 
+
 ### Identity Get Methods
 
 ------
@@ -293,30 +376,28 @@ Checks the password needs rehash if yes returns to <b>array</b> that contains ne
 
 Returns to all user identity data ( attributes of user ).
 
-### $this->user->identity->setArray(array $attributes)
+### $this->user->identity->getToken();
 
-Set new identity attributes.
-
-### $this->user->identity->setRoles(int|string|array $roles);
-
-Save user roles to your memory storage.
+Returns to security token.
 
 ### $this->user->identity->getRoles();
 
 Gets role(s) of the user.
 
 
-### Identity Magic Methods
+### Identity Set Methods
 
-------
+### $this->user->identity->setRoles(int|string|array $roles);
 
-### $this->user->identity->variable
+Set user roles to identity data.
 
-Gets value from identity array.
+### $this->user->identity->setArray(array $attributes)
+
+Reset identity attributes with new values.
 
 ### $this->user->identity->variable = 'value'
 
-Set value to identity array.
+Set a value to identity array.
 
 ### unset($this->user->identity->variable)
 
@@ -326,6 +407,12 @@ Remove value from identity array.
 ### Activity Reference
 
 ------
+
+```php
+<?php
+$c->load('service/user');
+$this->user->activity->method();
+```
 
 ### $this->user->activity->set($key, $val);
 

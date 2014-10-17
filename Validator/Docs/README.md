@@ -816,6 +816,14 @@ Shows an individual error message associated with the field name supplied to the
 <?php var_dump( $this->validator->isError('username') );  // boolean  ?>
 ```
 
+#### $this->validator->setError(string $key, string $message);
+
+Set error message as string ( field - error ). 
+
+#### $this->validator->setErrors(array $errors);
+
+Sets key - value errors as array. ( Field - Error message ).
+
 #### $this->validator->setErrorDelimiters(string $prefix = '&lt;p&gt;', $suffix = '&lt;/p&gt;')
 
 Change error delimiters globally. See the [Changing the Error Delimiters](#changing-the-error-delimiters) section above.
