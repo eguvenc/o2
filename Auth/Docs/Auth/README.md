@@ -19,7 +19,7 @@ Auth class uses redis storage like database. The following picture shown an exam
 
 ![PhpRedisAdmin](/Auth/Docs/Auth/images/redis.png?raw=true "PhpRedisAdmin")
 
-### Package predefined keys:
+### Predefined keys:
 
 Auth package build its own variables which keys are start by 2 underscore "__". You should not change these variables by manually.
 
@@ -154,7 +154,7 @@ return array(
 /* Location: .app/config/shared/auth.php */
 ```
 
-## Description Of Config Items
+### Description Of Config Items
 
 <table>
     <thead>
@@ -236,9 +236,20 @@ Vie Example
 
 ------
 
-User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</b> modules of the auth.
+User service class <b>login</b>, <b>identity</b> ve <b>activity</b> sınıflarını yükleyen genel servistir. User servisi sayesinde ihtiyaç olan sınıflar gereken yerlerde yüklendiği için performanstan kazanılmış olur.
 
-## Login
+```php
+<?php
+$c->load('service/user');
+```
+User servisi bir kere yüklendikten sonra önceden tanımlı sınıflar <b>__get</b> yöntemi ile otomatik olarak çağırır.
+
+```php
+<?php
+$this->user->class->method();
+```
+
+## Login Class
 
 ------
 
@@ -255,7 +266,7 @@ $this->user->login->attempt(
 );
 ```
 
-## Identity
+## Identity Class
 
 ------
 
@@ -270,7 +281,7 @@ Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Ku
 * Kimlik hatırlama ( remeberMe ), ve daimi kimligi çerezden silme ( forgetMe )
 
 
-## Activity
+## Activity Class
 
 ------
 
