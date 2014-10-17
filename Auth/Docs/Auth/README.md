@@ -240,17 +240,43 @@ User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</
 
 ## Login
 
+------
+
+Login sınıfı kullanıcı girişleri, kimlik doğrulama ve login olmadan önce onaya düşme gibi işlemleri yönetir.
+
+```php
+<?php
+$this->user->login->attempt(
+    array(
+        Auth\Credentials::IDENTIFIER => $this->post['email'], 
+        Auth\Credentials::PASSWORD => $this->post['password']
+    ),
+    $this->post['rememberMe']
+);
+```
 
 ## Identity
 
-Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Kullanıcının giriş, çıkış, 
+------
+
+Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Kullanıcılara ait aşağıdaki işlemleri yapar
+
+* Kimlikten veri okuma ve kaydetme
+* Kullanıcıya ait kimlik varmı kontrolü
+* Kimlik yetkilendirilmişmi kontrolü
+* Kimlik geçicimi kalıcımı kontrolü
+* Kimliğini geçerliliğini pasif etme ( logout )
+* Kimliği yoketme ( destroy )
+* Kimlik hatırlama ( remeberMe ), ve daimi kimligi çerezden silme ( forgetMe )
 
 
 ## Activity
 
+------
+
 Aktivite class ı giriş yapmış kullanıcıların aktivitelerini yönetmek için bir container görevi görür. Kullanıcının en son aktivitesi hangi sayfada oldugu gibi anlık bilgiler 
 bu class içerisinden identity data içerisine gönderilir. Bilgilerin memory e yazılabilmesi için update() methodun en altta bir kez çalıştırılması gerekir. Kullanıcı giriş yaptıgında
-session id değeri data içerisine varsayılan olarak gönderilmektedir.
+<b>sid</b> ( session id ) değeri data içerisine varsayılan olarak gönderilmektedir.
 
 #### Adding activity data and update.
 
