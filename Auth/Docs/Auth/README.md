@@ -242,7 +242,7 @@ User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</
 
 ------
 
-Login sınıfı kullanıcı girişleri, kimlik doğrulama ve login olmadan önce onaya düşme gibi işlemleri yönetir.
+The class Login manages the operations like login, authentication and verification. 
 
 ```php
 <?php
@@ -259,15 +259,15 @@ $this->user->login->attempt(
 
 ------
 
-Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Kullanıcılara ait aşağıdaki işlemleri yapar
+The class Identity manages the identity information and does the operations below:
 
-* Kimlikten veri okuma ve kaydetme
-* Kullanıcıya ait kimlik varmı kontrolü
-* Kimlik yetkilendirilmişmi kontrolü
-* Kimlik geçicimi kalıcımı kontrolü
-* Kimliğini geçerliliğini pasif etme ( logout )
-* Kimliği yoketme ( destroy )
-* Kimlik hatırlama ( remeberMe ), ve daimi kimligi çerezden silme ( forgetMe )
+* Reads data from the identity and saves the data to identity  
+* Checks if the user has identity
+* Checks if the identity is authorized
+* Checks if the identity is permanent or not
+* Makes the identity passive( logout )
+* Expires the identity ( destroy )
+* Remembers the identity ( remeberMe ), removes the identity from the cookie ( forgetMe )
 
 
 ## Activity
