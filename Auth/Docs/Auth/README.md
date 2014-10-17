@@ -273,10 +273,7 @@ The class Identity manages the identity information and does the operations belo
 ## Activity
 
 ------
-
-Aktivite class ı giriş yapmış kullanıcıların aktivitelerini yönetmek için bir container görevi görür. Kullanıcının en son aktivitesi hangi sayfada oldugu gibi anlık bilgiler 
-bu class içerisinden identity data içerisine gönderilir. Bilgilerin memory e yazılabilmesi için update() methodun en altta bir kez çalıştırılması gerekir. Kullanıcı giriş yaptıgında
-<b>sid</b> ( session id ) değeri data içerisine varsayılan olarak gönderilmektedir.
+The classs Activity acts as a container to manage the activities of the logged in users. The instant information like the last action of the user is on which page is sent to the identity data from this container. In order for information to be written on the memory, the update() method needs to be run once at the bottom. When the user logs in <b>sid</b> (session id) value is sent to the inside of the activity data by default.
 
 #### Adding activity data and update.
 
