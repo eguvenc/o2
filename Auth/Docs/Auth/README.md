@@ -189,12 +189,12 @@ return array(
 
         <tr>
             <td>security[cookie]</td>
-            <td>Session id yada kullanıcıya ait bilgilerin çalınmasını önlemek amacıyla alınmış bir güvenlik önlemidir. Rastgele oluşturulmuş güvenlik kodu ( token ) kulanıcının tarayıcısına özgü bilgiler ile memory container a kaydedilir belirli aralıklarla bu token yenilenir ( varsayılan 1 dakika ) yenileme gerçekleştiği anda doğrulama fonksiyonu çalışır ve eğer memory deki token kullanıcı tarayıcısındaki token ile eşleşmez ise kullanıcıya ait oturum sonlandırılır. Güvenlik çerezinin yok olma süresi kullanıcya ait rememberMe çerezinin süresi ile aynı olması tavsiye edilir ( Varsayılan 6 ay ).</td>
+            <td>This precaution is taken for preventing user information and session id from being stolen. Randomly generated security token with the information special to browser information of the user is saved to memory container and these tokens are renewed within a certain periods (1 minute by default). When the token is renewed, the verification function runs and if the token in the memory is not equal to the token in the browser of the user, the session of the user is expired. The expiration time of a security token is recommended to be the same with the time of the rememberMe cookie (6 months by default).</td>
         </tr>
 
         <tr>
             <td>security[passwordNeedsRehash][cost]</td>
-            <td>Password hash karakter genişliğidir bu sayı 10 u geçmemelidir aksi takdirde uygulamanızda performans sorunlarına yol açabilir.<b>Note:</b> Kullanıcının güvenliği açısından eğer password un yeniden rehash edilmesi gerekiyorsa <kbd>$this->user->identity->getPasswordNeedsReHash()</kbd> methodu nu çalıştırın bu metod eğer yenileme varsa array formatında yeni hash password değerine döner ve database iniz deki kullanıcıya ait password alanı dönen bu değer ile update edilmesi gerekir. </td>
+            <td>It is the length of the password hash and it should not exceed the 10, otherwise it may cause performance problems in your application.<b>Note:</b> If user password needs to be rehashed for the security purposes, run this method  <kbd>$this->user->identity->getPasswordNeedsReHash()</kbd> . If renewed, the method returns new hash password in the array format and the user password field in your database must be updated with the returned value. </td>
         </tr>
 
         <tr>
