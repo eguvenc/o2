@@ -19,7 +19,7 @@ Auth class uses redis storage like database. The following picture shown an exam
 
 ![PhpRedisAdmin](/Auth/Docs/Auth/images/redis.png?raw=true "PhpRedisAdmin")
 
-### Predefined keys:
+### Package predefined keys:
 
 Auth package build its own variables which keys are start by 2 underscore "__". You should not change these variables by manually.
 
@@ -154,7 +154,7 @@ return array(
 /* Location: .app/config/shared/auth.php */
 ```
 
-### Description Of Config Items
+## Description Of Config Items
 
 <table>
     <thead>
@@ -199,22 +199,22 @@ return array(
 
         <tr>
             <td>login[rememberMe]</td>
-            <td>Kullanıcı kimlik bilgilerinin tarayıcıda sürekli kalmasını istiyorsa bunun için <b>__rm</b> adında bir cookie oluşturulup tarayıcıya kaydedilir. ( Çerezin sona erme süresi varsayılan 6 ay dır ). Kullanıcı farklı zamanlarda geldiğinde tarayıcısında bu cookie varsa ve session oturumunda kullanıcı id tanımlı değilse ( bu değer login esnasında <b>$_SESSION['__Auth\Identifier']</b> key ine kaydedilir  )  <b>Auth\Recaller->recallUser($rememberToken)</b> methodu ile kullanıcı kimlik bilgileri geri çağrılır ve kullanıcı sitede tekrar aktif olmaya başlar. Her login ve logout işleminden sonra bu değer güvenlik amacıyla hem database hem de cookie de yenilenir.</td>
+            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__Auth\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
         </tr>
 
         <tr>
             <td>login[session][regenerateSessionId]</td>
-            <td>Session id nin çalınmaması için bir güvenlik önlemidir eğer bu opsiyon açıksa kullanıcı her login olduktan sonra session id yenilenir fakat oturum da ki bilgiler silinmez.</td>
+            <td>This is a security preacution for session id not to be stolen, if this option is active session id is updated on every login and the user information on the session is not removed.</td>
         </tr>
 
         <tr>
             <td>login[session][deleteOldSessionAfterRegenerate]</td>
-            <td>Eğer bu opsiyon açık ise login esnasında session regenerate edildikten sonra kullanıcı oturumunda önceden oluşturulmuş bilgiler silinir.</td>
+            <td>If this option is active, during a login operation after session is regenerated, all the created information in the user's session is removed.</td>
         </tr>
 
         <tr>
             <td>activity[singleSignOff]</td>
-            <td>Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions. Eğer kullanıcı farklı tarayıcılarda yada makinalarda oturum açmış ise bu opsiyon açık oldugunda kullanıcıya ait olan eski oturumlar otomatik olarak sonlandırılır. En son giriş yapılan oturum daima açık olur.</td>
+            <td>Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions. If this option is active, all sessions of the user expired and only the last session remains active.</td>
         </tr>
     </tbody>
 </table>
@@ -236,20 +236,9 @@ Vie Example
 
 ------
 
-User service class <b>login</b>, <b>identity</b> ve <b>activity</b> sınıflarını yükleyen genel servistir. User servisi sayesinde ihtiyaç olan sınıflar gereken yerlerde yüklendiği için performanstan kazanılmış olur.
+User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</b> modules of the auth.
 
-```php
-<?php
-$c->load('service/user');
-```
-User servisi bir kere yüklendikten sonra önceden tanımlı sınıflar <b>__get</b> yöntemi ile otomatik olarak çağırır.
-
-```php
-<?php
-$this->user->class->method();
-```
-
-## Login Class
+## Login
 
 ------
 
@@ -266,7 +255,7 @@ $this->user->login->attempt(
 );
 ```
 
-## Identity Class
+## Identity
 
 ------
 
@@ -281,7 +270,7 @@ Identity sınıfı kullanıcıların kimlik bilgilerini yöneten sınıftır. Ku
 * Kimlik hatırlama ( remeberMe ), ve daimi kimligi çerezden silme ( forgetMe )
 
 
-## Activity Class
+## Activity
 
 ------
 
