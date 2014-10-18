@@ -9,6 +9,8 @@ Auth package provides an API for authentication and includes concrete authentica
 
 Below the flow chart shows authentication process of users:
 
+* [Click to see flowchart](/Auth/Docs/Auth/images/flowchart.png)
+
 ## Adapters
 
 Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
@@ -154,7 +156,7 @@ return array(
 /* Location: .app/config/shared/auth.php */
 ```
 
-## Description Of Config Items
+### Description Of Config Items
 
 <table>
     <thead>
@@ -246,6 +248,7 @@ The class Login manages the operations like login, authentication and verificati
 
 ```php
 <?php
+$this->user->login->disableVerification();
 $this->user->login->attempt(
     array(
         Auth\Credentials::IDENTIFIER => $this->post['email'], 
@@ -265,7 +268,7 @@ The class Identity manages the identity information and does the operations belo
 * Checks if the user has identity
 * Checks if the identity is authorized
 * Checks if the identity is permanent or not
-* Makes the identity passive( logout )
+* Makes the identity passive ( logout )
 * Expires the identity ( destroy )
 * Remembers the identity ( remeberMe ), removes the identity from the cookie ( forgetMe )
 
