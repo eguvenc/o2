@@ -32,13 +32,6 @@ interface ModelUserInterface
      * @return mixed boolean|array
      */
     public function execQuery(GenericIdentity $user);
-
-    /**
-     * Execute storage query
-     *
-     * @return mixed boolean|array
-     */
-    public function execStorageQuery();
     
     /**
      * Recalled user sql query using remember cookie

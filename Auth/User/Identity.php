@@ -96,14 +96,17 @@ Class Identity extends UserIdentity
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
             parent::__construct($this->attributes);
             $this->attributes['__isTemporary'] = 0;
+            ksort($this->credentials);
 
         } elseif ($this->attributes = $this->credentials = $this->storage->getCredentials('__temporary')) {
             parent::__construct($this->attributes);
             $this->attributes['__isTemporary'] = 1;
+            ksort($this->credentials);
         }
         if ( ! isset($this->attributes['__lastTokenRefresh'])) { // Create default token refresh value
             $this->attributes['__lastTokenRefresh'] = time();
         }
+
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['cookie']['refresh'].' seconds');
         $this->logger = $this->c->load('return service/logger');
 
@@ -118,7 +121,10 @@ Class Identity extends UserIdentity
      * @return boolean 
      */
     public function isAuthenticated()
-    {          
+    {
+        // var_dump($this->tokenRefreshSeconds);
+        // var_dump($this->attributes['__lastTokenRefresh']);
+
         if ( ! isset($this->attributes['__isAuthenticated'])) {
             return false;
         }
@@ -246,14 +252,15 @@ Class Identity extends UserIdentity
             return true;
         }
         $cookie = $this->c->load('cookie')->get($this->config['security']['cookie']['name']);
+        $token = $this->getToken();
 
-        if ($cookie == $this->getToken()) {
+        if ($cookie == $token) {
             return $this->tokenIsValid = true;
         }
-        $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
+        // $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
 
         $this->logger->channel('security');
-        $this->logger->notice('Auth token is not valid, identity removed.', array('identifier' => $this->getIdentifier()));
+        $this->logger->notice('Auth token is not valid, identity removed.', array('identifier' => $this->getIdentifier(), 'token' => $token, 'cookie' => $cookie));
 
         return $this->tokenIsValid = false;
     }
@@ -269,6 +276,16 @@ Class Identity extends UserIdentity
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns to unix microtime value.
+     * 
+     * @return string
+     */
+    public function getTime()
+    {
+        return isset($this->attributes['__time']) ? $this->attributes['__time'] : null;
     }
 
     /**
@@ -353,7 +370,7 @@ Class Identity extends UserIdentity
             $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->setCredentials($credentials, null, '__permanent');
-        $this->storage->unsetIdentifier();
+        // $this->storage->unsetIdentifier();  Don't unset identifier otherwise we encounter recaller loop.
     }
 
     /**
@@ -367,7 +384,7 @@ Class Identity extends UserIdentity
             $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->deleteCredentials('__permanent');
-        $this->storage->unsetIdentifier();
+        // $this->storage->unsetIdentifier();  Don't unset identifier otherwise we encounter recaller loop.
     }
 
     /**
@@ -411,7 +428,7 @@ Class Identity extends UserIdentity
      */
     public function writeClose()
     {
-        if ( ! isset($this->attributes['__isTemporary']) OR  ! is_array($this->credentials)) {  //  If user not logged in.
+        if ( ! isset($this->attributes['__isTemporary']) OR ! is_array($this->credentials)) {  //  If user not logged in.
             return;
         }
         $oldCredentials = json_encode($this->credentials);

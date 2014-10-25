@@ -33,6 +33,20 @@ class AssociativeArray extends AbstractAdapter
     public $user;
 
     /**
+     * Token
+     * 
+     * @var object
+     */
+    protected $token;
+
+    /**
+     * Logger class
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
      * Session class
      * 
      * @var object
@@ -61,18 +75,25 @@ class AssociativeArray extends AbstractAdapter
     protected $resultRowArray = null;
 
     /**
-     * Check identifier exists after login query
-     * 
-     * @var boolean
-     */
-    protected $isValidIdentifier = false;
-
-    /**
      * Auth model
      * 
      * @var object
      */
     protected $modelUser;
+
+    /**
+     * Check temporary identity exists in storage
+     * 
+     * @var boolean
+     */
+    protected $isTemporary = false;
+
+    /**
+     * Old identifier
+     * 
+     * @var string
+     */
+    protected $trashIdentifier;
 
     /**
      * Constructor
@@ -85,6 +106,8 @@ class AssociativeArray extends AbstractAdapter
         $this->user = $userService;
         $this->storage = $this->user->params['storage'];
         $this->session = $c->load('session');
+        $this->logger = $c->load('service/logger');
+        $this->token = new Token($c);
 
         parent::__construct($c);
     }
@@ -99,10 +122,11 @@ class AssociativeArray extends AbstractAdapter
     protected function initialize(GenericIdentity $genericUser)
     {
         if ($this->user->identity->isGuest()) {
-            $this->storage->setIdentifier($genericUser->getIdentifier()); // Set identifier to storage
+            $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
+            $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
         }
         $this->results = array(
-            'code'     => AuthResult::FAILURE,
+            'code' => AuthResult::FAILURE,
             'identity' => $genericUser->getIdentifier(),
             'messages' => array()
         );
@@ -120,8 +144,10 @@ class AssociativeArray extends AbstractAdapter
     {
         $this->initialize($genericUser);
 
-        if ($this->user->identity->isAuthenticated()) { // If user is already authenticated regenerate the user !
+        if ($this->user->identity->isAuthenticated()) {    // If user already authenticated ?
             $this->results['code'] = AuthResult::FAILURE_ALREADY_LOGGEDIN;
+        } elseif ( ! $this->storage->isEmpty('__temporary')) {
+            $this->isTemporary = true;
         } else {
             $this->authenticate($genericUser);  // Perform Query
         }
@@ -146,8 +172,9 @@ class AssociativeArray extends AbstractAdapter
      */
     public function authenticate(GenericIdentity $genericUser, $login = true)
     {
+        $this->resultRowArray = $storageResult = $this->storage->query($this->token);  // First do query to memory storage if user exists in memory
+
         $modelUser = new User($this->c, $this->storage);
-        $this->resultRowArray = $storageResult = $modelUser->execStorageQuery();  // First do query to memory storage if user exists in memory
 
         if ($storageResult == false) {
             $this->resultRowArray = $modelUser->execQuery($genericUser);  // If user does not exists in memory do sql query
@@ -158,8 +185,6 @@ class AssociativeArray extends AbstractAdapter
                 $this->results['code'] = AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR;
                 return false;
             }
-            $this->isValidIdentifier = true;  // There is no identifier error.
-
             $plain = $genericUser->getPassword();
             $hash = $this->resultRowArray[Credentials::PASSWORD];
 
@@ -184,36 +209,42 @@ class AssociativeArray extends AbstractAdapter
      * @param array $genericUser         generic identity array
      * @param array $resultRowArray      success auth query user data
      * @param array $modelUser           model user object
-     * @param array $push2Storage        creates identity on memory storage
+     * @param array $write2Storage       creates identity on memory storage
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    public function generateUser(GenericIdentity $genericUser, $resultRowArray, $modelUser, $push2Storage = false, $passwordNeedsRehash = array())
+    public function generateUser(GenericIdentity $genericUser, $resultRowArray, $modelUser, $write2Storage = false, $passwordNeedsRehash = array())
     {
-        $token = new Token($this->c);
-
         $attributes = array(
             Credentials::IDENTIFIER => $genericUser->getIdentifier(),
             Credentials::PASSWORD => $resultRowArray[Credentials::PASSWORD],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
-            '__token' => $token->refresh(),
+            '__token' => $this->token->get(),
+            '__time' => microtime(true),
         );
         $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
-        
+
         if ($this->config['login']['session']['regenerateSessionId']) {
             $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
-            $this->regenerateSessionId($deleteOldSession);
-            if ($deleteOldSession) {  // If session data destroyed we need to keep auth identifier.
-                $this->storage->setIdentifier($genericUser->getIdentifier()); 
+            $getRandomId = $this->storage->getRandomId();
+            $this->regenerateSessionId($deleteOldSession);  // If session data destroyed we need to keep auth ids.
+            if ($deleteOldSession) {  
+                $this->storage->setRandomId($getRandomId);
+                $this->storage->setIdentifier($genericUser->getIdentifier());
             }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $modelUser->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
-        if ($push2Storage) {                                        // If we haven't got identity data in memory push it to cache.
-            $this->push2Storage($attributes); // Push database query result to memory storage !
+        if ($write2Storage || $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
+            $this->write2Storage($attributes);  
+        }
+        $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
+
+        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {  // If verification enabled "delete" old permanent credentials if exists
+            $this->storage->deleteCredentials($trashKey);
         }
     }
 
@@ -269,9 +300,18 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function validateResultSet()
     {
+        if ($this->isEnabledVerification() AND $this->isTemporary) {
+            $this->results['code'] = AuthResult::FAILURE_UNVERIFIED;
+            $this->results['messages'][] = 'Unverified account.';
+            return $this->createResult();
+        }
+        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
+            $this->results['code'] = AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED;
+            $this->results['messages'][] = 'Temporary auth has been created.';
+            return $this->createResult();
+        }
         if ($this->results['code'] === AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR) {
-            $this->results['messages'][] = 'Credentials::IDENTIFIER constant error: Db column name doesn\'t match constant value."
-';
+            $this->results['messages'][] = 'Credentials::IDENTIFIER constant error: Db column name doesn\'t match constant value."';
             return $this->createResult();
         }
         if ($this->results['code'] === AuthResult::FAILURE_UNHASHED_PASSWORD) {
@@ -282,21 +322,6 @@ class AssociativeArray extends AbstractAdapter
             $this->results['messages'][] = 'You are already logged in.';
             return $this->createResult();
         }
-        if ( ! is_array($this->resultRowArray)) {
-            $this->results['code'] = AuthResult::FAILURE;
-            $this->results['messages'][] = 'Supplied credential is invalid.';
-            return $this->createResult();
-        }
-        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Credentials::IDENTIFIER]) {
-            $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
-            $this->results['messages'][] = 'More than one record matches the supplied identity.';
-            return $this->createResult();
-        }
-        if ($this->isValidIdentifier == false) {
-            $this->results['code'] = AuthResult::FAILURE_IDENTITY_NOT_FOUND;
-            $this->results['messages'][] = 'A record with the supplied identity could not be found.';
-            return $this->createResult();
-        } 
         return true;
     }
 
@@ -309,9 +334,19 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function validateResult()
     {
+        if ( ! is_array($this->resultRowArray)) {
+            $this->results['code'] = AuthResult::FAILURE;
+            $this->results['messages'][] = 'Supplied credential is invalid.';
+            return $this->createResult();
+        }
         if (sizeof($this->resultRowArray) == 0) {
             $this->results['code'] = AuthResult::FAILURE_CREDENTIAL_INVALID;
             $this->results['messages'][] = 'Supplied credential is invalid.';
+            return $this->createResult();
+        }
+        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Credentials::IDENTIFIER]) {
+            $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
+            $this->results['messages'][] = 'More than one record matches the supplied identity.';
             return $this->createResult();
         }
         $this->results['code'] = AuthResult::SUCCESS;

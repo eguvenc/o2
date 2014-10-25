@@ -69,7 +69,6 @@ Class Activity
         $this->request = $this->c->load('return request');
 
         $this->attributes = array(
-            'sid' => $this->session->get('session_id'),
             'date' => time()
         );
         $this->identifier = $this->user->identity->getIdentifier();
@@ -129,7 +128,7 @@ Class Activity
             return false;
         }
         $sessions = array();
-        $key = 'Auth:__permanent:Authorized:';
+        $key = $this->config['memory']['key'].':__permanent:Authorized:';
         foreach ($this->cache->getAllKeys($key.$this->identifier.':*') as $val) {
             $exp = explode(':', $val);
             $aid = end($exp);
@@ -152,7 +151,7 @@ Class Activity
         if (empty($this->identifier)) {
             return false;
         }
-        $this->cache->delete('Auth:__permanent:Authorized:'.$this->identifier.':'.$aid);
+        $this->cache->delete($this->config['memory']['key'].':__permanent:Authorized:'.$this->identifier.':'.$aid);
     }
 
     /**
@@ -197,7 +196,10 @@ Class Activity
             if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
                 return;
             }
-            $sessionKeys = array_keys($sessions);  // Keep the last session
+            $sessionKeys = array();  // Keep the last session
+            foreach (array_keys($sessions) as $key) {
+                $sessionKeys[] = $this->cache->hGet($key, '__mtime');
+            }
             $lastSession = max($sessionKeys);      // Get the highest integer
             unset($sessions[$lastSession]);  // Don't touch the current session
 

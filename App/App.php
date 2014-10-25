@@ -71,7 +71,6 @@ Class App
             return self::$env = 'local';
         }
         die('We could not detect your application environment, please correct your <b>app/config/env/environments.php</b> hostname array.');
-        return 'local';
     }
 
     /**

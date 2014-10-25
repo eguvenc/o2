@@ -20,39 +20,44 @@ class AuthResult
     const FAILURE = 0;
 
     /**
-     * Failure due to identity not being found.
-     */
-    const FAILURE_IDENTITY_NOT_FOUND = -1;
-
-    /**
      * Failure due to identity being ambiguous.
      */
-    const FAILURE_IDENTITY_AMBIGUOUS = -2;
+    const FAILURE_IDENTITY_AMBIGUOUS = -1;
 
     /**
      * Failure due to invalid credential being supplied.
      */
-    const FAILURE_CREDENTIAL_INVALID = -3;
+    const FAILURE_CREDENTIAL_INVALID = -2;
 
     /**
      * Failure due to uncategorized reasons.
      */
-    const FAILURE_UNCATEGORIZED = -4;
+    const FAILURE_UNCATEGORIZED = -3;
 
     /**
      * Failure idenitifer not matched with results array.
      */
-    const FAILURE_IDENTIFIER_CONSTANT_ERROR = -5;
+    const FAILURE_IDENTIFIER_CONSTANT_ERROR = -4;
 
     /**
      * Already loggedin.
      */
-    const FAILURE_ALREADY_LOGGEDIN = -6;
+    const FAILURE_ALREADY_LOGGEDIN = -5;
 
     /**
      * User password not hashed.
      */
-    const FAILURE_UNHASHED_PASSWORD = -7;
+    const FAILURE_UNHASHED_PASSWORD = -6;
+
+    /**
+     * Temporary auth has been created
+     */
+    const FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED = -7;
+
+    /**
+     * Temporary auth ( Unverified user )
+     */
+    const FAILURE_UNVERIFIED = -8;
 
     /**
      * Authentication success.

@@ -146,7 +146,7 @@ Class Login
      *
      * The adapter does not have a default if the storage adapter has not been set.
      *
-     * @return Adapter\AdapterInterface|null
+     * @return Adapter|null
      */
     public function getAdapter()
     {

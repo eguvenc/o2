@@ -88,12 +88,14 @@ Class EmailHandler implements HandlerInterface
 
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
-            $lines = '';
+            $records = array();
+            $i = 0;
             while ($pQ->valid()) {    // Prepare Lines
-                $lines.= $formatter->format($pQ->current());
+                $i++;
+                $records[$i] = $formatter->format($pQ->current());
                 $pQ->next(); 
             }
-            $this->writer->batch($lines);
+            $this->writer->batch($records);
         }
     }
 

@@ -80,6 +80,13 @@ Class Redis implements StorageInterface
     protected $identifier;
 
     /**
+     * Auth keys which we get with getAllKeys() method
+     * 
+     * @var array
+     */
+    public $keys;
+
+    /**
      * Logger
      * 
      * @var object
@@ -109,7 +116,7 @@ Class Redis implements StorageInterface
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__Auth/Identifier', $identifier.':'.microtime(true));
+        $this->session->set('__'.$this->config['memory']['key'].'/Identifier', $identifier.':'.$this->getRandomId());
     }
 
     /**
@@ -119,7 +126,53 @@ Class Redis implements StorageInterface
      */
     public function getIdentifier()
     {
-        return $this->session->get('__Auth/Identifier');
+        return $this->session->get('__'.$this->config['memory']['key'].'/Identifier');
+    }
+
+    /**
+     * Get id of identifier without random Id value
+     * 
+     * @return string
+     */
+    public function getId()
+    {
+        $identifier = $this->getIdentifier();
+        if (empty($identifier)) {
+            return '__emptyIdentifier';
+        }
+        $exp = explode(':', $identifier);
+        return $exp[0];
+    }
+
+    /**
+     * Get random id
+     * 
+     * @return string
+     */
+    public function getRandomId()
+    {
+        $id = $this->session->get('__'.$this->config['memory']['key'].'/RandomId');
+        if ($id == false) {
+            $id = $this->setRandomId();
+            return $id;
+        }
+        return $id;
+    }
+
+    /**
+     * Set random auth session id to sessions
+     *
+     * @param string $id id
+     * 
+     * @return string
+     */
+    public function setRandomId($id = null)
+    {
+        if (empty($id)) {
+            $id = $this->c->load('utils/random')->generate('alnum.lower', 10);
+        }
+        $this->session->set('__'.$this->config['memory']['key'].'/RandomId', $id);
+        return $id;
     }
 
     /**
@@ -128,20 +181,40 @@ Class Redis implements StorageInterface
      * @return void
      */
     public function unsetIdentifier()
+    {   
+        $this->session->remove('__'.$this->config['memory']['key'].'/Identifier');
+    }
+
+    /**
+     * Check whether to identify exists
+     *
+     * @param string $block __temporary or __permanent
+     * 
+     * @return array keys if succes otherwise false
+     */
+    public function getAllKeys($block = '__permanent')
     {
-        $this->session->remove('__Auth/Identifier');
+        if (isset($this->keys[$block])) {
+            return $this->keys[$block];
+        }
+        $this->keys[$block] = $this->cache->getAllKeys($this->getKey($block).':*');
+        if (isset($this->keys[$block][0])) {
+            return $this->keys[$block];
+        }
+        return false;
     }
 
     /**
      * Returns true if temporary credentials does "not" exists
      *
-     * @param string $block __temporary or __permanent
+     * @param string $block __temporary or __permanent | full key
      * 
      * @return bool
      */
     public function isEmpty($block = '__permanent')
     {
-        return $this->cache->keyExists($this->getMemoryBlockKey($block));
+        $exists = $this->cache->keyExists($this->getBlock($block));
+        return ($exists) ? false : true;
     }
 
     /**
@@ -191,18 +264,19 @@ Class Redis implements StorageInterface
     public function authenticateTemporaryIdentity()
     {
         if ($this->isEmpty('__temporary')) {
-            $this->logger->error('Auth user identifier not found in __temporary memory block.', array('identifier' => $this->getIdentifier()));
+            $this->logger->debug('Auth identifier not matched with __temporary redis key.', array('identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')));
             return false;
         }
         $credentials = $this->getCredentials('__temporary');
         $credentials['__isAuthenticated'] = 1;
         $credentials['__isVerified'] = 1;
+        $credentials['__type'] = 'Authorized';
 
-        if ($this->setCredentials($credentials, '__permanent')) {
+        if ($this->setCredentials($credentials, null, '__permanent')) {
             $this->deleteCredentials('__temporary');
             return $credentials;
         }
-        $this->logger->error('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
+        $this->logger->debug('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
         return false;
     }
     
@@ -212,20 +286,25 @@ Class Redis implements StorageInterface
      * @param array  $oldCredentials user identity old data
      * @param mixed  $pushData       push to identity data
      * @param string $block          storage persistence type permanent / temporary
+     * @param string $ttl            storage lifetime
      * 
      * @return boolean
      */
-    public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary')
+    public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary', $ttl = null)
     {
         $identifier = $this->getIdentifier();
         if (empty($identifier)) {
             return false;
         }
         $this->data[$block] = $oldCredentials;
-        if ( ! empty($pushData)) {
+        if ( ! empty($pushData) AND is_array($pushData)) {
             $this->data[$block] = array_merge($oldCredentials, $pushData);
         }
-        $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $this->getMemoryBlockLifetime($block));
+        $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
+
+        $this->logger->debug('Auth temporary data redis key.', array('key' => $this->getMemoryBlockKey($block)));
+
+        return $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
     }
 
     /**
@@ -244,23 +323,35 @@ Class Redis implements StorageInterface
         if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
             return $this->data[$block];
         }
-        return $this->data[$block] = $this->cache->hGetAll($this->getMemoryBlockKey($block));
+        return $this->data[$block] = $this->cache->hGetAll($this->getBlock($block));
     }
 
     /**
      * Deletes memory block
      *
-     * @param string $block name
+     * @param string $block name or key
      * 
      * @return void
      */
     public function deleteCredentials($block = '__temporary')
     {
-        return $this->cache->delete($this->getMemoryBlockKey($block));
+        return $this->cache->delete($this->getBlock($block));
     }
 
     /**
-     * Creates storage key for temporary guest data
+     * [getBlock description]
+     * 
+     * @param string $block name
+     * 
+     * @return string
+     */
+    protected function getBlock($block)
+    {
+        return ($block == '__temporary' || $block == '__permanent') ? $this->getMemoryBlockKey($block) : $block;
+    }
+
+    /**
+     * Returns to storage full key of identity data
      *
      * @param string $block name
      * 
@@ -273,7 +364,21 @@ Class Redis implements StorageInterface
         $id = $this->getIdentifier();
         $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
-        return 'Auth:'.$block.':'.$constant.$identifier;  // Create unique key
+        return $this->config['memory']['key']. ':' .$block. ':' .$constant.$identifier;  // Create unique key
+    }
+
+    /**
+     * Returns to storage prefix key of identity data
+     *
+     * @param string $block memory block
+     * 
+     * @return string
+     */
+    public function getKey($block = '__temporary')
+    {
+        $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
+
+        return $this->config['memory']['key']. ':' .$block. ':' .$key.$this->getId();
     }
 
     /**
@@ -293,12 +398,28 @@ Class Redis implements StorageInterface
 
     /**
      * Match the user credentials.
+     *
+     * @param object $token security token
      * 
      * @return array|false
      */
-    public function query()
+    public function query($token)
     {
-        return $this->getCredentials('__permanent');
+        if ( ! $this->isEmpty('__permanent')) {
+
+            $key = $this->getMemoryBlockKey('__permanent');
+            $data = $this->cache->hGetAll($key);
+ 
+            $data['__isAuthenticated'] = 1;
+            $data['__isTemporary'] = 0;
+            $data['__type'] = 'Authorized';
+            $data['__token'] = $token->get();
+            $block = '__permanent';
+            
+            $this->cache->hMSet($key, $data, $this->getMemoryBlockLifetime($block)); // Create new block
+            return $data;
+        }
+        return false;
     }
 
 }

@@ -177,7 +177,7 @@ abstract class AbstractAdapter
      * 
      * @return void
      */
-    protected function push2Storage(array $credentials)
+    protected function write2Storage(array $credentials)
     {
         if ($this->isEnabledVerification()) {
             $this->storage->loginAsTemporary($credentials);

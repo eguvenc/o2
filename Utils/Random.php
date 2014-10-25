@@ -42,7 +42,9 @@ Class Random
     * @return string
     */
     public function generate($type = 'alnum', $len = 8)
-    {        
+    {   
+        $type = str_replace('_', '.', $type);
+
         switch($type) {
         case 'basic'    :
             return mt_rand();
@@ -55,24 +57,7 @@ Class Random
         case 'alpha'    :
         case 'alpha.lower' :
         case 'alpha.upper' :
-            switch ($type) {
-            case 'alpha'        : $pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-            case 'alpha.lower'  : $pool = 'abcdefghijklmnopqrstuvwxyz';
-                break;
-            case 'alpha.upper'  : $pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-            case 'alnum'        : $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-            case 'alnum.lower'  : $pool = '123456789abcdefghijklmnopqrstuvwxyz';
-                break;
-            case 'alnum.upper'  : $pool = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                break;
-            case 'numeric'      : $pool = '0123456789';
-                break;
-            case 'nozero'       : $pool = '123456789';
-                break;
-            }
+            $pool = $this->getPool($type);
             $str = '';
             for ($i=0; $i < $len; $i++) {
                 $str .= substr($pool, mt_rand(0, strlen($pool) -1), 1);
@@ -80,6 +65,36 @@ Class Random
             return $str;
           break;
         }
+    }
+
+    /**
+     * Get character pool
+     * 
+     * @param string $type function
+     * 
+     * @return string
+     */
+    protected function getPool($type)
+    {
+        switch ($type) {
+        case 'alpha'        : $pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            break;
+        case 'alpha.lower'  : $pool = 'abcdefghijklmnopqrstuvwxyz';
+            break;
+        case 'alpha.upper'  : $pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            break;
+        case 'alnum'        : $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            break;
+        case 'alnum.lower'  : $pool = '123456789abcdefghijklmnopqrstuvwxyz';
+            break;
+        case 'alnum.upper'  : $pool = '123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            break;
+        case 'numeric'      : $pool = '0123456789';
+            break;
+        case 'nozero'       : $pool = '123456789';
+            break;
+        }
+        return $pool;
     }
 
 }

@@ -9,7 +9,7 @@ Auth package provides an API for authentication and includes concrete authentica
 
 Below the flow chart shows authentication process of users:
 
-* [Click to see flowchart](/Auth/Docs/Auth/images/flowchart.png)
+* [Click to see flowchart](/Auth/Docs/Auth/images/flowchart.png?raw=true)
 
 ## Adapters
 
@@ -21,7 +21,7 @@ Auth class uses redis storage like database. The following picture shown an exam
 
 ![PhpRedisAdmin](/Auth/Docs/Auth/images/redis.png?raw=true "PhpRedisAdmin")
 
-### Package predefined keys:
+### Predefined keys:
 
 Auth package build its own variables which keys are start by 2 underscore "__". You should not change these variables by manually.
 
@@ -35,31 +35,39 @@ Auth package build its own variables which keys are start by 2 underscore "__". 
     <tbody>
         <tr>
             <td>__activity</td>
-            <td>Contains online user activity data: session id (sid), lastActivity time and any other data you want to add.</td>
+            <td>Contains online user activity data: lastActivity time and any other data you want to add.</td>
         </tr>
         <tr>
             <td>__isAuthenticated</td>
-            <td>If user has authority this key contains "1" otherwise "0".</td>
+            <td>If user has authority this key contains <b>1</b> otherwise <b>0</b>.</td>
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>If verification method <kbd>$this->user->login->enableVerification()</kbd> used before login the temporary authentication value will be "1" otherwise "0". If user verified by mobile phone or any kind of verification then you need authenticate user by using <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> method.</td>
+            <td>If verification method <kbd>$this->user->login->enableVerification()</kbd> used before login the temporary authentication value will be <b>1</b> otherwise <b>0</b>. If user verified by mobile phone or any kind of verification then you need authenticate user by using <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> method.</td>
+        </tr>
+        <tr>
+            <td>__isVerified</td>
+            <td>If user verified returns to <b>1</b> otherwise <b>0</b>.</td>
         </tr>
         <tr>
             <td>__lastTokenRefresh</td>
-            <td>The config <b>security token</b> updates cookie and memory token value every <b>1</b> minutes by default. If memory token and cookie does not match we logout the user. This is a strong security measure for hijacking session id or token. ( Refreshing time is configurable item from your auth.php config file )</td>
+            <td>The config <b>security token</b> updates cookie and memory token value every <b>1</b> minutes by default. If memory token and cookie does not match then we logout the user. This is a strong security measure for hijacking session id or token. ( Refreshing time is configurable item from your auth.php config file )</td>
         </tr>
         <tr>
             <td>__rememberMe</td>
-            <td>If user checked rememberMe input before login it contains to "1" otherwise "0".</td>
+            <td>If user checked rememberMe input before login it contains to <b>1</b> otherwise <b>0</b>.</td>
         </tr>
         <tr>
             <td>__token</td>
-            <td>Random token value.</td>
+            <td>Random token for security cookie.</td>
         </tr>
         <tr>
             <td>__type</td>
             <td>Contains authentication types of user: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
+        </tr>
+        <tr>
+            <td>__mtime</td>
+            <td>Identity creation date in unix microtime format.</td>
         </tr>
 
     </tbody>
@@ -107,6 +115,7 @@ Array
 return array(
     'adapter' => 'AssociativeArray',
     'memory' => array(          // Keeps user identitiy data in your cache driver.
+        'key' => 'Auth',        // Auth key should be replace with your projectameAuth
         'storage' => 'Redis',   // Storage driver uses cache package
         'block' => array(
             'permanent' => array(
@@ -169,6 +178,10 @@ return array(
         <tr>
             <td>adapter</td>
             <td>Adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based.</td>
+        </tr>
+        <tr>
+            <td>memory[key]</td>
+            <td>This is Redis key, using same key may cause collison with your other projects. It should be replace with your "projectameAuth" ( e.g. frontendAuth, backendAuth ).</td>
         </tr>
         <tr>
             <td>memory[storage]</td>
@@ -257,6 +270,146 @@ $this->user->login->attempt(
     $this->post['rememberMe']
 );
 ```
+
+## Auth Results
+
+AuthResult class ile sonuç doğrulama filtersinden geçer oluşan hata kodları ve mesajlar array içerisine kaydedilir.
+
+```php
+<?php
+$result = $this->user->login->attempt(
+    array(
+        Auth\Credentials::IDENTIFIER => $this->post['email'], 
+        Auth\Credentials::PASSWORD => $this->post['password']
+    ),
+    $this->post['rememberMe']
+);
+
+if ($result->isValid()) {
+    print_r($result->getArray());
+
+    /* Array ( 
+        [code] => -6 
+        [messages] => Array ( 
+            [0] => You are already logged in. 
+        ) 
+        [identifier] => user@example.com 
+    ) 
+    */
+}
+```
+
+#### AuthResult Codes
+
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>    
+            <th>Constant</th>    
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>0</td>
+            <td>AuthResult::FAILURE</td>
+            <td>General Failure.</td>
+        </tr>
+        <tr>
+            <td>-1</td>
+            <td>AuthResult::FAILURE_IDENTITY_AMBIGUOUS</td>
+            <td>Failure due to identity being ambiguous.( Found more than 1 identity record ).</td>
+        </tr>
+        <tr>
+            <td>-2</td>
+            <td>AuthResult::FAILURE_CREDENTIAL_INVALID</td>
+            <td>Failure due to invalid credential being supplied.</td>
+        </tr>
+        <tr>
+            <td>-3</td>
+            <td>AuthResult::FAILURE_UNCATEGORIZED</td>
+            <td>Failure due to uncategorized reasons.</td>
+        </tr>
+        <tr>
+            <td>-4</td>
+            <td>AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR</td>
+            <td>Failure due to idenitifer constant not matched with results array.</td>
+        </tr>
+        <tr>
+            <td>-5</td>
+            <td>AuthResult::FAILURE_ALREADY_LOGGEDIN</td>
+            <td>Failure due to user already autheticated.</td>
+        </tr>
+        <tr>
+            <td>-6</td>
+            <td>AuthResult::FAILURE_UNHASHED_PASSWORD</td>
+            <td>Failure due to user password not hashed.</td>
+        </tr>
+        <tr>
+            <td>-7</td>
+            <td>AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED</td>
+            <td>Failure due to temporary user auth has been created and not verified.</td>
+        </tr>
+        <tr>
+            <td>-8</td>
+            <td>AuthResult::FAILURE_UNVERIFIED</td>
+            <td>Failure due to user account not verified.</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>AuthResult::SUCCESS</td>
+            <td>Authentication success.</td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+## Customizing Auth
+
+Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketi ile senkron çalışır ve aşağıdaki dizindedir.
+
+```php
+- app
+    - classes
+        - Auth
+            Identities
+                - GenericIdentity
+                - UserIdentity
+        - Model
+            User.php
+        Credentials.php
+```
+
+#### Class Descriptions
+
+<table>
+    <thead>
+        <tr>
+            <th>Class</th>    
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Auth\Credentials</td>
+            <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
+        </tr>
+        <tr>
+            <td>Auth\Identities\GenericIdentity</td>
+            <td>Guest user identity.</td>
+        </tr>
+        <tr>
+            <td>Auth\Identities\UserIdentity</td>
+            <td>Authorized user identity.</td>
+        </tr>
+        <tr>
+            <td>Auth\Model\User</td>
+            <td>Contains user database query sql methods.</td>
+        </tr>
+    </tbody>
+</table>
+
 
 ## Identity
 
@@ -397,6 +550,10 @@ Get rememberMe option if user choosed returns to <b>1</b> otherwise <b>0</b>.
 ### $this->user->identity->getPasswordNeedsReHash();
 
 Checks the password needs rehash if yes returns to <b>array</b> that contains new hashed password otherwise <b>false</b>.
+
+### $this->user->identity->getTime();
+
+Returns to creation time of identity. ( Php Unix microtime ).
 
 ### $this->user->identity->getArray()
 

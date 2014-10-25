@@ -45,15 +45,36 @@ Class Token
      */
     public function generate()
     {
-        if ($this->token != null) {  // If we have already token don't regenerate it.
-            return $this->token;
-        }
         $request = $this->c->load('request');
         $utils = $this->c->load('return utils/random');
         $token = $utils->generate('alnum', 16);
         $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
 
         return $this->token = $token .'.'. hash('adler32', trim($userAgent));  // Creates smaller token
+    }
+
+    /**
+     * If token exists don't refresh return to old.
+     * 
+     * @return string token
+     */
+    public function get()
+    {
+        if ($this->token != null) {  // If we have already token don't regenerate it.
+            return $this->token;
+        }
+        return $this->refresh();
+    }
+
+    /**
+     * Get token from cookie
+     * 
+     * @return string
+     */
+    public function getCookie()
+    {
+        $cookie = $this->c['config']->load('auth')['security']['cookie'];
+        return $this->c->load('cookie')->get($cookie['name']);
     }
 
     /**

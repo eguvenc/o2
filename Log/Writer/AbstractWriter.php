@@ -53,9 +53,6 @@ Abstract Class AbstractWriter
         if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker' AND $this->c['config']['log']['queue']['workers']) {  //  If worker logs allowed from config file.
             return true;
         }
-        if (isset($_SERVER['argv'][1]) AND in_array($_SERVER['argv'][1], array('clear','help','log','queue','update','app','worker'))) {
-            return false;
-        }
         if (in_array($type, array(null, 'app','ajax','cli'))) {
             return true;
         }
