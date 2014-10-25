@@ -339,7 +339,7 @@ Class Redis implements StorageInterface
     }
 
     /**
-     * [getBlock description]
+     * Get valid memory segment
      * 
      * @param string $block name
      * 
@@ -415,7 +415,7 @@ Class Redis implements StorageInterface
             $data['__type'] = 'Authorized';
             $data['__token'] = $token->get();
             $block = '__permanent';
-            
+
             $this->cache->hMSet($key, $data, $this->getMemoryBlockLifetime($block)); // Create new block
             return $data;
         }

@@ -58,14 +58,7 @@ Class Recaller
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
-
-            $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
-            $this->c->load('cookie')->delete(
-                $cookie['name'],
-                $this->c['config']['cookie']['domain'], //  Get domain from global config
-                $cookie['path'],
-                $cookie['prefix']
-            );
+            $this->removeCookie();
             return;
         }
         $id = $resultRowArray[Credentials::IDENTIFIER];
@@ -76,6 +69,22 @@ Class Recaller
         $adapter = $this->c['o2.auth.service.adapter'];
         $adapter->generateUser($genericUser, $resultRowArray, $modelUser, true);
         $modelUser->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
+    }
+
+    /**
+     * Delete rememberMe cookie
+     * 
+     * @return void
+     */
+    public function removeCookie()
+    {
+        $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
+        $this->c->load('cookie')->delete(
+            $cookie['name'],
+            $this->c['config']['cookie']['domain'], //  Get domain from global config
+            $cookie['path'],
+            $cookie['prefix']
+        );
     }
 
 }

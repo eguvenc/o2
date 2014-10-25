@@ -66,7 +66,7 @@ Auth package build its own variables which keys are start by 2 underscore "__". 
             <td>Contains authentication types of user: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
         </tr>
         <tr>
-            <td>__mtime</td>
+            <td>__time</td>
             <td>Identity creation date in unix microtime format.</td>
         </tr>
 
@@ -83,8 +83,7 @@ Array
 (
     [__activity] => Array
         (
-            [sid] => 0ri8fsfoksutisaifioq60mu16
-            [lastActivity] => 1413454236
+            [last] => 1413454236
         )
 
     [__isAuthenticated] => 1
@@ -93,6 +92,7 @@ Array
     [__rememberMe] => 0
     [__token] => 6ODDUT3FtmmXEZ70.86f40e86
     [__type] => Authorized
+    [__time] => 1414244130.719945
     [id] => 1
     [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
     [remember_token] => bqhiKfIWETlSRo7wB2UByb1Oyo2fpb86

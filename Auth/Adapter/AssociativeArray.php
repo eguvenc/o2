@@ -239,6 +239,7 @@ class AssociativeArray extends AbstractAdapter
             $modelUser->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
         if ($write2Storage || $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
+            print_r($attributes);
             $this->write2Storage($attributes);  
         }
         $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;

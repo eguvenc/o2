@@ -73,7 +73,7 @@ Json Layers
 
 ```
 
-Below the example simply demonstrate <b>Layered Vc</b> technique.
+Below the example simply demonstrate <b>Layers</b> technique.
 
 ```php
 ------------------------------------------------------------------------------------

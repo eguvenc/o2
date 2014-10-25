@@ -58,6 +58,13 @@ Class Identity extends UserIdentity
     protected $tokenIsValid = false;
 
     /**
+     * Store if user authenticated
+     * 
+     * @var boolean
+     */
+    protected $isAuthenticated = null;
+
+    /**
      * Security token refresh seconds
      * 
      * @var int
@@ -79,6 +86,13 @@ Class Identity extends UserIdentity
     protected $logger;
 
     /**
+     * Recaller
+     * 
+     * @var object
+     */
+    protected $recaller = null;
+
+    /**
      * Constructor
      * 
      * @param array $params object parameters
@@ -90,8 +104,8 @@ Class Identity extends UserIdentity
         $this->storage = $params['storage'];
 
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists
-            $recaller = new Recaller($this->c, $this->storage);
-            $recaller->recallUser($token);
+            $this->recaller = new Recaller($this->c, $this->storage);
+            $this->recaller->recallUser($token);
         }
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
             parent::__construct($this->attributes);
@@ -122,23 +136,23 @@ Class Identity extends UserIdentity
      */
     public function isAuthenticated()
     {
-        // var_dump($this->tokenRefreshSeconds);
-        // var_dump($this->attributes['__lastTokenRefresh']);
-
+        if ( ! is_null($this->isAuthenticated)) {
+            return $this->isAuthenticated;
+        }
         if ( ! isset($this->attributes['__isAuthenticated'])) {
-            return false;
+            return $this->isAuthenticated = false;
         }
         $tokenRefresh = false;
         if ($this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
             $token = new Token($this->c, $this->config);
-            $this->attributes['__token'] = $token->refresh();  // Refresh the token and write it to memory
+            $this->attributes['__token'] = $token->get();  // Refresh the token and write it to memory
             $this->attributes['__lastTokenRefresh'] = time();
             $tokenRefresh = true;
         }
         if ($this->attributes['__isAuthenticated'] == 1 AND $this->isValidToken($tokenRefresh)) {
-            return true;
+            return $this->isAuthenticated = true;
         }
-        return false;
+        return $this->isAuthenticated = false;
     }
 
     /**
@@ -248,8 +262,8 @@ Class Identity extends UserIdentity
      */
     public function isValidToken($tokenRefresh)
     {
-        if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh) { // If identitiy data does not exists.
-            return true;
+        if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh || ! is_null($this->recaller)) { // If identity data does not exists.
+            return $this->tokenIsValid = true;
         }
         $cookie = $this->c->load('cookie')->get($this->config['security']['cookie']['name']);
         $token = $this->getToken();
@@ -257,11 +271,10 @@ Class Identity extends UserIdentity
         if ($cookie == $token) {
             return $this->tokenIsValid = true;
         }
-        // $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
-
+        $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
         $this->logger->channel('security');
-        $this->logger->notice('Auth token is not valid, identity removed.', array('identifier' => $this->getIdentifier(), 'token' => $token, 'cookie' => $cookie));
-
+        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(), 'token' => $token, 'cookie' => $cookie));
+    
         return $this->tokenIsValid = false;
     }
 
@@ -370,7 +383,6 @@ Class Identity extends UserIdentity
             $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->setCredentials($credentials, null, '__permanent');
-        // $this->storage->unsetIdentifier();  Don't unset identifier otherwise we encounter recaller loop.
     }
 
     /**
@@ -384,7 +396,6 @@ Class Identity extends UserIdentity
             $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->deleteCredentials('__permanent');
-        // $this->storage->unsetIdentifier();  Don't unset identifier otherwise we encounter recaller loop.
     }
 
     /**
