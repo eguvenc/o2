@@ -212,15 +212,15 @@ Xml variable returns to <b>SimpleXmlElement object</b>.
 
 ```php
 <?php
-echo $this->config->xml->app->site->name; // gives Web Site
+echo $this->config->xml->host->site->name; // gives Web Site
 ```
 
 #### Saving Variables
 
 ```php
 <?php
-$this->config->xml->app->site->name = 'Test Site';
-$this->config->xml->app->site->maintenance = 'down';
+$this->config->xml->host->site->name = 'Test Site';
+$this->config->xml->host->site->maintenance = 'down';
 $this->config->save($this->config->xml->asXML());
 ```
 

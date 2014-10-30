@@ -40,6 +40,13 @@ Class App
     protected static $env = null;
 
     /**
+     * Env array
+     * 
+     * @var array
+     */
+    protected $envArray = array();
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -56,21 +63,32 @@ Class App
      */
     public function detectEnvironment()
     {
-        $envArray = include ROOT.'app'. DS .'config'. DS .'env'. DS .'environments.php';
+        $this->envArray = $this->c->envArray;
+
         $hostname = gethostname();
         if (self::$env != null) {
             return self::$env;
         }
-        if (in_array($hostname, $envArray['prod']['server']['hostname'])) {
+        if (in_array($hostname, $this->envArray['env']['prod']['server']['hostname'])) {
             return self::$env = 'prod';
         }
-        if (in_array($hostname, $envArray['test']['server']['hostname'])) {
+        if (in_array($hostname, $this->envArray['env']['test']['server']['hostname'])) {
             return self::$env = 'test';
         }
-        if (in_array($hostname, $envArray['local']['server']['hostname'])) {
+        if (in_array($hostname, $this->envArray['env']['local']['server']['hostname'])) {
             return self::$env = 'local';
         }
         die('We could not detect your application environment, please correct your <b>app/config/env/environments.php</b> hostname array.');
+    }
+
+    /**
+     * Returns to environment config array
+     * 
+     * @return array
+     */
+    public function getEnvArray()
+    {
+        return $this->envArray;
     }
 
     /**

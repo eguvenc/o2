@@ -1,20 +1,23 @@
 <?php
 
-namespace Obullo\Log\Writer;
+namespace Obullo\Log\Queue\Handler;
 
-use Obullo\Log\Writer\AbstractWriter;
+use Obullo\Log\PriorityQueue,
+    Obullo\Log\Formatter\LineFormatter;
 
 /**
- * Queue Writer Class
+ * Email Handler Class
+ *
+ * You should use this handler for emergency, alerts or rarely used important notices.
  * 
  * @category  Log
- * @package   Writer
+ * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class QueueWriter extends AbstractWriter
+Class EmailHandler extends AbstractHandler implements HandlerInterface
 {
     /**
      * Config
@@ -92,13 +95,56 @@ Class QueueWriter extends AbstractWriter
     }
 
     /**
-     * Config
-     * 
-     * @return array
-     */
-    public function getConfig()
+    * Format log records and build lines
+    *
+    * @param string $dateFormat        log date format
+    * @param array  $unformattedRecord log data
+    * 
+    * @return array formatted record
+    */
+    public function format($dateFormat, $unformattedRecord)
     {
-        return $this->config;
+        $record = array(
+            'datetime' => date($dateFormat),
+            'channel'  => $unformattedRecord['channel'],
+            'level'    => $unformattedRecord['level'],
+            'message'  => $unformattedRecord['message'],
+            'context'  => null,
+            'extra'    => null,
+        );
+        if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
+            $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
+            unset($unformattedRecord['context']['extra']);
+        }
+        if (count($unformattedRecord['context']) > 0) {
+            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
+        }
+        return $record; // formatted record
+    }
+
+    /**
+     * Write processor output to file
+     *
+     * @param object $pQ priorityQueue object
+     * 
+     * @return boolean
+     */
+    public function exec(PriorityQueue $pQ)
+    {
+        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
+        $formatter = new LineFormatter($this->c);
+
+        if ($pQ->count() > 0) {
+            $pQ->top();  // Go to Top
+            $records = array();
+            $i = 0;
+            while ($pQ->valid()) {    // Prepare Lines
+                $i++;
+                $records[$i] = $formatter->format($pQ->current());
+                $pQ->next(); 
+            }
+            $this->batch($records);
+        }
     }
 
     /**
@@ -146,10 +192,9 @@ Class QueueWriter extends AbstractWriter
     {
         return;
     }
-
 }
 
-// END QueueWriter class
+// END EmailHandler class
 
-/* End of file QueueWriter.php */
-/* Location: .Obullo/Log/Writer/QueueWriter.php */
+/* End of file EmailHandler.php */
+/* Location: .Obullo/Log/Handler/EmailHandler.php */

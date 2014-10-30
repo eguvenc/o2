@@ -27,9 +27,9 @@ Class Queue
         $queue = $c->load('service/queue');
         $logger = $c->load('service/logger');
 
-        $writer = substr($logger->getWriterName(), 0, -6);
+        $writer = $logger->getWriterName();
 
-        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mQueue\33[0m\33[1;36m Writer data ...\33[0m\n";
+        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mQueue Handler ".ucfirst($route)."\33[0m\33[1;36m logs ...\33[0m\n";
 
         echo "\33[1;36mChannel : ". LOGGER_CHANNEL ."\33[0m\n";
         echo "\33[1;36mRoute   : ". gethostname(). LOGGER_NAME . $writer."\33[0m\n";

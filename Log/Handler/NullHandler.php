@@ -3,7 +3,7 @@
 namespace Obullo\Log\Handler;
 
 /**
- * Disable Handler Class
+ * Disable Logger Class
  * 
  * @category  Log
  * @package   Handler
@@ -12,11 +12,10 @@ namespace Obullo\Log\Handler;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class DisabledHandler
+Class NullHandler
 {
     /**
-     * If logger disabled all logger
-     * methods returns to null.
+     * If logger disabled all logger methods returns to null.
      * 
      * @param string $method    name
      * @param array  $arguments array
@@ -27,11 +26,12 @@ Class DisabledHandler
     {
         $method    = null;
         $arguments = array();
-        return false;
+
+        return null;
     }
 }
 
-// END DisabledHandler Class
+// END NullHandler Class
 
-/* End of file Disabled.php */
-/* Location: .Obullo/Log/Handler/DisabledHandler.php */
+/* End of file NullHandler.php */
+/* Location: .Obullo/Log/Handler/NullHandler.php */

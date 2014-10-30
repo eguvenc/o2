@@ -30,7 +30,8 @@ Class Container implements ArrayAccess
     protected $raw = array();
     protected $keys = array();
     protected $aliases = array();
-    protected $unset = array();         // Stores 
+    protected $unset = array();         // Stores classes we want to remove
+    protected $registered = array();    // Stores registered services
     protected $unRegistered = array();  // Whether to stored in controller instance
     protected $return = array(); // Stores return requests
     protected $resolved = array(); // Stores resolved class names
@@ -43,6 +44,7 @@ Class Container implements ArrayAccess
      */
     public function __construct() 
     {
+        $this->envArray = include ROOT.'app'. DS .'config'. DS .'env'. DS .'environments.php';
         $this->aliases = new SplObjectStorage;
     }
 
@@ -55,6 +57,9 @@ Class Container implements ArrayAccess
      */
     public function exists($cid) 
     {
+        if (strpos($cid, 'provider/') === 0) {  //  If we have provider alias replace provider path with sign ":".
+            $cid = str_replace('provider/', 'provider'.static::PROVIDER_SIGN, $cid);
+        }
         return $this->offsetExists($cid);
     }
 
@@ -218,17 +223,30 @@ Class Container implements ArrayAccess
             $exp = explode('/', $class);
             $map = $this->mapName($exp);  // Converts "utils/uri" to "utilsUri"
             $serviceClass = '\\'.implode('\\', $map);
-            $service = new $serviceClass;
-            $service->register($this);
 
-            $implements = key(class_implements($service));
             $data['key'] = end($exp);
             $data['cid'] = substr($class, 8); // Remove "service/" word
+
+            if (isset($this->values['config']->xml()->container->service->{$data['key']})) {   // Check environment based services
+                $serviceClass = '\\'.str_replace('/', '\\', $this->values['config']->xml()->container->service->{$data['key']}->attributes()->class);
+            };
+            if (isset($this->values['config']->xml()->container->provider->{$data['key']})) {
+                $serviceClass = '\\'.str_replace('/', '\\', $this->values['config']->xml()->container->provider->{$data['key']}->attributes()->class);
+            };
+
+            if (isset($this->registered[$serviceClass])) {  // If service registered before don't register it again.
+                $service = $this->registered[$serviceClass];
+            } else {
+                $service = new $serviceClass;
+                $service->register($this);
+                $this->registered[$serviceClass] = $service;
+            }
+            $implements = key(class_implements($service));
 
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
 
             if ($implements == 'Service\Provider\ProviderInterface') {
-                $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Don't mix providers with services
+                $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
                 $key = $this->getAlias($data['cid'], lcfirst(substr(implode('', $map), 7)), $matches);  // Converts "serviceProviderCache" to "providerCache"
 
                 $newMatches['return'] = 'return'; // Provider must be return to closure.
@@ -242,7 +260,8 @@ Class Container implements ArrayAccess
                 return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
             }
         }
-        if ($service == null) {
+
+        if ($service == null) {  // Load none service libraries
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
         $matches['key'] = $key;
@@ -372,6 +391,7 @@ Class Container implements ArrayAccess
         }
         $Class = ucfirst($cid);
         $Class = str_replace('/', '\\', trim($Class));  // Replace  all forward slashes "/" backslashes to "\\".
+
         if ($this->exists($cid) || $this->exists(strtolower($cid)) AND strpos($cid, '/') > 0) {  // If its a provider "/"
             $Class = $cid;
             return $this->_resolveNamespace($Class, $cid, '/', true, $provider);

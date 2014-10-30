@@ -45,7 +45,7 @@ Class Token
      */
     public function generate()
     {
-        $request = $this->c->load('request');
+        $request = $this->c->load('return request');
         $utils = $this->c->load('return utils/random');
         $token = $utils->generate('alnum', 16);
         $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent

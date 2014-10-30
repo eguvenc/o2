@@ -29,8 +29,7 @@ Class File
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
             $file = str_replace('data', DS . trim(DATA, DS), $path);
         }
-
-        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mFile\33[0m\33[1;36m Writer \33[1;37m\33[1;46m$route\33[0m\33[1;36m data ...\33[0m\n";
+        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mFile Handler ".ucfirst($route)."\33[0m\33[1;36m logs ...\33[0m\n";
 
         static $lines = array();
         $size = 0;

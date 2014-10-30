@@ -136,11 +136,11 @@ Class LogService
     protected $registeredHandlers = array();
 
     /**
-     * Defined handlers in the container
+     * Loaded handlers in current page
      * 
      * @var array
      */
-    protected $handlers = array();
+    protected $loadedHandlers = array();
 
     /**
      * Log priority queue objects
@@ -221,16 +221,8 @@ Class LogService
      */
     public function load($name)
     {
-        if ( ! isset($this->handlers[$name])) {
-            throw new LogicException(
-                sprintf(
-                    'The push handler %s is not defined in your log service.', 
-                    $name
-                )
-            );
-        }
-        $val = $this->handlers[$name];
-        $this->addWriter($name, $val['handler'], $val['priority']);
+        $this->addWriter($name);
+        $this->loadedHandlers[$name] = $name; // track handlers for close method.
         return $this;
     }
 
@@ -239,12 +231,13 @@ Class LogService
      * 
      * @param string $name      handler name which is defined in constants
      * @param string $namespace class path of handler
+     * @param string $priority  global priority
      * 
      * @return object
      */
-    public function registerHandler($name, $namespace)
+    public function registerHandler($name, $namespace, $priority = 0)
     {
-        $this->registeredHandlers[$name] = $namespace;
+        $this->registeredHandlers[$name] = array('namespace' => $namespace, 'priority' => $priority);
         return $this;
     }
 
@@ -262,38 +255,9 @@ Class LogService
                 sprintf('Handler "%s" not registered.', $name)
             );
         }
-        $Class = '\\'.$this->registeredHandlers[$name];
-        $handler = new $Class($this->c);
-        return $handler->getHandler();
-    }
-
-    /**
-     * Add Handler
-     * 
-     * @param string $name handler name
-     *
-     * @return object
-     */
-    public function addHandler($name)
-    {
-        $closure = $this->getRegisteredHandler($name);
-
-        $this->handlers[$name] = array('handler' => $closure);
-        $this->track[] = array('type' => 'handlers', 'name' => $name);
-        return $this;
-    }
-
-    /**
-     * Remove Handler
-     * 
-     * @param string $name handler name
-     * 
-     * @return object
-     */
-    public function removeHandler($name)
-    {
-        unset($this->handlers[$name]);
-        return $this;
+        $Class = '\\'.$this->registeredHandlers[$name]['namespace'];
+        $handler = new $Class($this->c, $this->registeredHandlers[$name]['priority']);
+        return $handler;
     }
 
     /**
@@ -305,10 +269,12 @@ Class LogService
      */
     public function addWriter($name)
     {
-        $closure = $this->getRegisteredHandler($name);
+        $handler = $this->getRegisteredHandler($name);
+        $closure = $handler->getHandler();
+        $priority = $handler->getPriority();
 
         $this->priorityQueue[$name] = new PriorityQueue;    // add processor
-        $this->writers[$name] = array('handler' => $closure(), 'priority' => 1);
+        $this->writers[$name] = array('handler' => $closure(), 'priority' => $priority);
         $this->track[] = array('type' => 'writers', 'name' => $name);
         return $this;
     }
@@ -329,37 +295,6 @@ Class LogService
     }
 
     /**
-     * Returns to writer name of current handler.
-     * 
-     * @param integer $n order of handler
-     * 
-     * @return string returns to "xWriter"
-     */
-    public function getHandlerWriterName($n = 0)
-    {
-        $writer = $this->getHandlerWriter($n);
-        $className = get_class($writer);
-        $exp = explode('\\', $className);
-        return end($exp);
-    }
-
-    /**
-     * Returns to first object of writer.
-     *
-     * @param integer $n order of handler
-     * 
-     * @return object
-     */
-    public function getHandlerWriter($n = 0)
-    {
-        $writers = array_values($this->getWriters());
-        if (empty($writers)) {
-            throw new RuntimeException('At least one handler must be defined in your Logger Service.');
-        }
-        return $writers[$n]['handler']->writer;
-    }
-
-    /**
      * Returns to primary writer name.
      * 
      * @return string returns to "xWriter"
@@ -367,7 +302,7 @@ Class LogService
     public function getWriterName()
     {
         $writers = $this->getWriters();
-        return ucfirst(array_keys($writers)[0]).'Writer';
+        return array_keys($writers)[0];
     }
 
     /**
@@ -614,10 +549,10 @@ Class LogService
      */
     public function push($handler)
     {
-        if ( ! isset($this->handlers[$handler])) {
+        if ( ! isset($this->registeredHandlers[$handler])) {
             throw new LogicException(
                 sprintf(
-                    'The push handler %s is not defined in your logger service file.', 
+                    'The push handler %s is not registered in your logger service.', 
                     $handler
                 )
             );
@@ -883,7 +818,7 @@ Class LogService
     public function close()
     {
         if ($this->debug) {             // Debug output for log data if enabled
-            $primaryWriter = strtolower(substr($this->getWriterName(), 0, -6));
+            $primaryWriter = $this->getWriterName();
             $debug = new Debug($this->c, $this, $primaryWriter);
             echo $debug->printDebugger($this->getQueue($primaryWriter));
             return;
@@ -892,10 +827,10 @@ Class LogService
             return;
         }
         foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ( ! isset($this->push[$name]) AND isset($this->handlers[$name])) {     // If handler available in push data.
+            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {  // If push method used allow to pust data (write) otherwise not.
                 return;
             }
-            $val['handler']->write($this->getQueue($name));
+            $val['handler']->exec($this->getQueue($name));
             $val['handler']->close();
         }
         $this->push = array(); // Reset push data

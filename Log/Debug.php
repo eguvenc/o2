@@ -42,7 +42,7 @@ Class Debug
     {
         $this->c = $c;
         $this->logger = $logger;
-        $this->handler = $handler;
+        $this->handler = strtolower($handler);
     }
 
     /**

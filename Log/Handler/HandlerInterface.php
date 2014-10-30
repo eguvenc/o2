@@ -27,13 +27,23 @@ interface HandlerInterface
     public function format($dateFormat, $unformattedRecord);
 
     /**
-     * Write processor output
+     * Write processor output to file
      *
      * @param object $pQ priorityQueue object
      * 
      * @return boolean
      */
-    public function write(PriorityQueue $pQ);
+    public function exec(PriorityQueue $pQ);
+
+    /**
+     * Write output
+     *
+     * @param string $record single record data
+     * @param string $type   request types ( app, cli, ajax )
+     * 
+     * @return mixed
+     */
+    public function write($record, $type = null);
 
     /**
      * Close handler connection

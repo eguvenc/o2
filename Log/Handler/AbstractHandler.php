@@ -1,9 +1,11 @@
 <?php
 
-namespace Obullo\Log\Writer;
+namespace Obullo\Log\Handler;
+
+use Obullo\Log\PriorityQueue;
 
 /**
- * Logger Abstract Writer
+ * Logger Abstract Handler
  * 
  * @category  Log
  * @package   Writer
@@ -12,7 +14,7 @@ namespace Obullo\Log\Writer;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Abstract Class AbstractWriter
+Abstract Class AbstractHandler
 {
     /**
      * Container
@@ -34,13 +36,6 @@ Abstract Class AbstractWriter
     }
 
     /**
-     * Get config
-     * 
-     * @return array
-     */
-    abstract public function getConfig();
-
-    /**
      * Check log writing is allowed, 
      * don't allow log writing for cli commands
      * 
@@ -58,6 +53,25 @@ Abstract Class AbstractWriter
         }
         return false;
     }
+
+    /**
+    * Format log records and build lines
+    *
+    * @param string $dateFormat        log date format
+    * @param array  $unformattedRecord log data
+    * 
+    * @return array formatted record
+    */
+    abstract public function format($dateFormat, $unformattedRecord);
+
+    /**
+     * Write processor output to file
+     *
+     * @param object $pQ priorityQueue object
+     * 
+     * @return boolean
+     */
+    abstract public function exec(PriorityQueue $pQ);
 
     /**
      * Write output
@@ -88,7 +102,7 @@ Abstract Class AbstractWriter
 
 }
 
-// END AbstractWriter class
+// END AbstractHandler class
 
-/* End of file AbstractWriter.php */
-/* Location: .Obullo/Log/Writer/AbstractWriter.php */
+/* End of file AbstractHandler.php */
+/* Location: .Obullo/Log/Handler/AbstractHandler.php */

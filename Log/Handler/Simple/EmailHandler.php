@@ -1,9 +1,11 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\Handler\Simple;
 
 use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter;
+    Obullo\Log\Formatter\LineFormatter,
+    Obullo\Log\Handler\AbstractHandler,
+    Obullo\Log\Handler\HandlerInterface;
 
 /**
  * Email Handler Class
@@ -17,7 +19,7 @@ use Obullo\Log\PriorityQueue,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class EmailHandler implements HandlerInterface
+Class EmailHandler extends AbstractHandler implements HandlerInterface
 {
     /**
      * Container
@@ -27,22 +29,82 @@ Class EmailHandler implements HandlerInterface
     public $c;
 
     /**
-     * Writer class name
+     * Config
+     * 
+     * @var array
+     */
+    public $config;
+
+    /**
+     * Service mailer
+     * 
+     * @var object
+     */
+    public $mailer;
+
+    /**
+     * Sender email
      * 
      * @var string
      */
-    public $writer;
+    public $from;
+
+    /**
+     * Receiver
+     * 
+     * @var string
+     */
+    public $to;
+
+    /**
+     * Carbon copy addresses
+     * 
+     * @var string
+     */
+    public $cc = null;
+
+    /**
+     * Blind carbon copy addresses
+     * 
+     * @var string
+     */
+    public $bcc = null;
+
+    /**
+     * Subject
+     * 
+     * @var string
+     */
+    public $subject;
+
+    /**
+     * Message body
+     * 
+     * @var string
+     */
+    public $message;
 
     /**
      * Config Constructor
      *
      * @param object $c      container
-     * @param object $writer writer 
+     * @param object $mailer mailer object
+     * @param array  $params configuration
      */
-    public function __construct($c, $writer)
+    public function __construct($c, $mailer, $params)
     {
         $this->c = $c;
-        $this->writer = $writer;
+        $this->config = $params;
+        $this->mailer = $mailer;
+
+        parent::__construct($params);
+
+        $this->message = $params['message'];
+        $this->mailer->from($params['from']);
+        $this->mailer->to($params['to']);
+        $this->mailer->cc($params['cc']); 
+        $this->mailer->bcc($params['bcc']);
+        $this->mailer->subject($params['subject']);
     }
 
     /**
@@ -80,10 +142,9 @@ Class EmailHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write(PriorityQueue $pQ)
+    public function exec(PriorityQueue $pQ)
     {
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-
         $formatter = new LineFormatter($this->c);
 
         if ($pQ->count() > 0) {
@@ -95,8 +156,48 @@ Class EmailHandler implements HandlerInterface
                 $records[$i] = $formatter->format($pQ->current());
                 $pQ->next(); 
             }
-            $this->writer->batch($records);
+            $this->batch($records);
         }
+    }
+
+    /**
+     * Write line to file
+     * 
+     * @param string $record single record data
+     * @param string $type   request types ( app, cli, ajax )
+     * 
+     * @return boolean
+     */
+    public function write($record, $type = null)
+    {
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        $this->mailer->message(sprintf($this->message, $record)); 
+        $this->mailer->send();
+        return true;
+    }
+
+    /**
+     * Store multiple log records into variable then send.
+     * 
+     * @param array  $records multiline record data
+     * @param string $type    request types ( app, cli, ajax )
+     * 
+     * @return boolean
+     */
+    public function batch(array $records, $type = null)
+    {
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        $lines = '';
+        foreach ($records as $record) {
+            $lines.= $record;
+        }
+        $this->mailer->message(sprintf($this->message, $lines));
+        $this->mailer->send();
+        return true;
     }
 
     /**
@@ -106,7 +207,7 @@ Class EmailHandler implements HandlerInterface
      */
     public function close() 
     {
-        return $this->writer->close();
+        return;
     }
 }
 

@@ -33,14 +33,13 @@ function Obullo_autoloader($realname)
         $className = substr($className, $lastNsPos + 1);
         $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
     }
-    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . EXT;
+    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className);
 
     if (strpos($fileName, 'Obullo') === 0) {     // Check is it Obullo Package ?
-        include_once OBULLO .substr($fileName, 7);
-        // echo $fileName.'<br>';
+        include_once OBULLO .substr($fileName, 7). EXT;
         return;
     }
-    include_once CLASSES .$fileName; // Otherwise load it from user directory
+    include_once CLASSES .$fileName. EXT; // Otherwise load it from user directory
 }
 spl_autoload_register('Obullo_autoloader', true);
 

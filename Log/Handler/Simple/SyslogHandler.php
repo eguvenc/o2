@@ -1,9 +1,11 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\Handler\Simple;
 
 use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter;
+    Obullo\Log\Formatter\LineFormatter,
+    Obullo\Log\Handler\AbstractHandler,
+    Obullo\Log\Handler\HandlerInterface;
 
 use Exception;
 
@@ -17,7 +19,7 @@ use Exception;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class SyslogHandler implements HandlerInterface
+Class SyslogHandler extends AbstractHandler implements HandlerInterface
 {
     /**
      * Container class
@@ -27,29 +29,46 @@ Class SyslogHandler implements HandlerInterface
     public $c;
 
     /**
-     * Logger class
+     * Config variable
      * 
-     * @var object
+     * @var array
      */
-    public $logger;
+    public $config;
 
     /**
-     * Writer class
+     * Facility used by this syslog instance
      * 
-     * @var object
+     * @var string
      */
-    public $writer;
+    public $facility = LOG_USER;
 
     /**
-     * Constructor
+     * Syslog application name
      * 
+     * @var string
+     */
+    public $name = 'Log.Handler.Syslog';
+
+    /**
+     * Config Constructor
+     *
      * @param object $c      container
-     * @param array  $writer array
+     * @param array  $params parameters
      */
-    public function __construct($c, $writer)
+    public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->writer = $writer;   
+        $this->config = $params;
+
+        parent::__construct($params);
+
+        if (isset($params['facility'])) {
+            $this->facility = $params['facility'];  // Application facility
+        }
+        if (isset($params['name'])) {       // Application name
+            $this->name = $params['name'];
+        }
+        openlog($this->name, LOG_PID, $this->facility);
     }
 
     /**
@@ -81,13 +100,13 @@ Class SyslogHandler implements HandlerInterface
     }
 
     /**
-     * Write processor output to mongo
+     * Write processor output to file
      *
      * @param object $pQ priorityQueue object
      * 
      * @return boolean
      */
-    public function write(PriorityQueue $pQ)
+    public function exec(PriorityQueue $pQ)
     {
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
 
@@ -100,10 +119,45 @@ Class SyslogHandler implements HandlerInterface
             while ($pQ->valid()) {     // Prepare Lines
                 $records[$i] = $pQ->current(); 
                 $pQ->next();
-                $this->writer->write($formatter->format($records[$i]));
+                $this->write($formatter->format($records[$i]));
                 $i++;
             }
         }
+    }
+
+    /**
+     * Write line to file
+     * 
+     * @param string $record single  record data
+     * @param string $type   request types ( app, cli, ajax )
+     * 
+     * @return void
+     */
+    public function write($record, $type = null)
+    {       
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        syslog($record['level'], $record);
+    }
+
+    /**
+     * NO batch reuired in syslog
+     * 
+     * @param string $records multi record data
+     * @param string $type    request types ( app, cli, ajax )
+     * 
+     * @return boolean
+     */
+    public function batch(array $records, $type = null)
+    {
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        foreach ($records as $record) {
+            syslog($record['level'], $record);
+        }
+        return true;
     }
 
     /**
@@ -113,7 +167,7 @@ Class SyslogHandler implements HandlerInterface
      */
     public function close()
     {
-        $this->writer->close();
+        closelog();
     }
 
 }

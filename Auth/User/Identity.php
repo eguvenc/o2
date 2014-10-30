@@ -160,7 +160,7 @@ Class Identity extends UserIdentity
      * 
      * @return string|boolean false
      */
-    protected function recallerExists()
+    public function recallerExists()
     {
         $id = $this->storage->getIdentifier();
         $name = $this->config['login']['rememberMe']['cookie']['name'];

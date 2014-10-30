@@ -14,8 +14,6 @@ use Obullo\Queue\Queue,
 
 /**
  * AMQP Handler
- *
- * http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  * 
  * @category  Queue
  * @package   Queue
@@ -24,6 +22,7 @@ use Obullo\Queue\Queue,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/queue
  * @see       http://www.php.net/manual/pl/book.amqp.php
+ * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
 Class AMQP extends Queue implements HandlerInterface
 {

@@ -243,6 +243,7 @@ $app = new Controller(
     function ($c) {
         $db = $c->load('return service/provider/database');
         $db->query('...');
+
         if ( ! isset($this->db)) {
             echo 'Database object not stored into $this->db variable !';
         }
@@ -308,6 +309,19 @@ $c['cache'] = function () {   // re assign your service
     return new stdClass;
 };
 ```
+
+### Configuring different services for different environments
+
+Servis ortam sınıfı servisimizin herbir ortam için farklı konfigurasyonlara configure edilmesini sağlar.
+
+Forexample you would not want to turn logging off for production but you may want to for an environment used for tests.
+
+So you can look over following service logger example:
+
+
+```php
+```
+
 
 ### Protecting Your Parameters
 

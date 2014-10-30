@@ -20,11 +20,11 @@ use ArrayAccess,
 Class Config implements ArrayAccess
 {
     /**
-     * Config folder full path with current environment
+     * SimpleXmlElement Object
      * 
-     * @var string
+     * @var object
      */
-    protected $envPath;
+    public $xml;
 
     /**
      * Configuration container
@@ -32,13 +32,6 @@ Class Config implements ArrayAccess
      * @var array
      */
     public $array = array();
-
-    /**
-     * SimpleXmlElement Object
-     * 
-     * @var object
-     */
-    public $xml;
 
     /**
      * Xml file fullpath
@@ -52,7 +45,14 @@ Class Config implements ArrayAccess
      * 
      * @var array
      */
-    public $loaded = array();
+    protected $loaded = array();
+
+    /**
+     * Config folder full path with current environment
+     * 
+     * @var string
+     */
+    protected $envPath;
 
     /**
      * Constructor
@@ -114,14 +114,26 @@ Class Config implements ArrayAccess
     }
 
     /**
+     * Returns to simple xml element object
+     * 
+     * @return object
+     */
+    public function xml()
+    {
+        return $this->xml;
+    }
+
+    /**
      * Save xml file
      *
-     * @param string $xml config file
+     * @param string $xmlOutput xml file string
      * 
      * @return void
      */
-    public function save($xml)
+    public function save($xmlOutput = null)
     {
+        $xml = empty($xmlOutput) ? $this->xml->asXML() : $xmlOutput;
+
         if ( ! is_writable($this->xmlFile)) {
             throw new LogicException(
                 sprintf(

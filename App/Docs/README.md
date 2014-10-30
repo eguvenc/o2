@@ -1,5 +1,5 @@
 
-## Application Class
+## Environment Class
 
 ------
 
@@ -34,38 +34,17 @@ Globals config saved in <b>data/globals/config.xml</b> file and it keeps applica
 <?php
 <?xml version="1.0"?>
 <root>
-<host>
-  <all>
-    <name>All Site</name>
-    <domain><regex>.*.example.com</regex></domain>
-    <maintenance>up</maintenance>
-  </all>
-  <site>
-    <name>Web Site</name>
-    <domain><regex>^(www\.)?example\.com$</regex></domain>
-    <maintenance>down</maintenance>
-  </site>
-  <sports>
-    <name>Sports</name>
-    <domain><regex>sports\d+\.example\.com$</regex></domain>
-    <maintenance>up</maintenance>
-  </sports>
-  <support>
-    <name>Support</name>
-    <domain><regex>support\.example\.com$</regex></domain>
-    <maintenance>up</maintenance>
-  </support>
-</host>
-<service>
-  <all>
-    <name>All Services</name>
-    <maintenance>up</maintenance>
-  </all>
-  <queue>
-    <name>Queue Service</name>
-    <maintenance>down</maintenance>
-  </queue>
-</service>
+    <route>
+        <all maintenance="up" label="All Application"/>
+        <site maintenance="up" label="Web Server" regex="^framework$"/>
+        <test maintenance="up" label="Test Server" regex="test\d+.framework"/>
+        <support maintenance="up" label="Support Domain" regex="support.framework"/>
+    </route>
+    <container>
+        <service>
+            <logger class="Log/Env/Local/Logger"/>
+        </service>
+    </container>
 </root>
 <!--
 END xml config File
@@ -73,42 +52,49 @@ End of file config.xml
 
 Location: .app/config/env/local/config.xml
 -->
+
 ```
 
 #### Updating config.xml
 
 ```php
 <?php
-$this->config->xml->host->site->name = 'Test Site';
-$this->config->xml->host->site->maintenance = 'down';
-$this->config->save($this->config->xml->asXML());
+$this->config->xml()->route->site->attributes()->label = 'Test Site';
+$this->config->xml()->route->site->attributes()->maintenance = 'down';
+$this->config->save();
 ```
 
 Following xml file show changes after save operation
 
 ```php
-<?php
 <?xml version="1.0"?>
 <root>
-<host>
-    <all>
-        <name>All Site</name>
-        <domain><regex>.*.example.com</regex></domain>
-        <maintenance>up</maintenance>
-    </all>
-    <site>
-        <name>Test Site</name>
-        <domain><regex>^(www\.)?example\.com$</regex></domain>
-        <maintenance>down</maintenance>
-    </site>
-    .....
+    <route>
+        <all maintenance="up" label="All Application"/>
+        <site maintenance="up" label="Web Server" regex="^framework$"/>
+        <test maintenance="down" label="Test Site" regex="test\d+.framework"/>
+        <support maintenance="up" label="Support Domain" regex="support.framework"/>
+    </route>
+    <container>
+        <service>
+            <logger class="Log/Env/Local/Logger"/>
+        </service>
+    </container>
+</root>
+<!--
+END xml config File
+End of file config.xml
+
+Location: .app/config/env/local/config.xml
+-->
+
 ```
 
 #### Reading from config.xml
 
 ```php
 <?php
-echo $this->config->xml->variable->item;
+echo $this->config->xml()->variable->attributes()->item;
 ```
 
 ### Give write access to your /env/$env/config.xml file
@@ -136,7 +122,7 @@ chmod -R 777 /var/www/yourproject/app/config/env/prod/config.xml
 To <b>enable</b> maintenance mode you can execute the <b>down</b> task command:
 
 ```php
-$php task host $name down
+$php task route $name down
 ```
 
 
@@ -148,7 +134,7 @@ To <b>disable</b> maintenance mode you can execute the <b>up</b> command:
 
 
 ```php
-$php task host $name up
+$php task route $name up
 ```
 
 ```php

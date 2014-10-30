@@ -1,14 +1,18 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\Handler\Simple;
 
-use Obullo\Log\PriorityQueue;
+use Obullo\Log\PriorityQueue,
+    Obullo\Log\Formatter\LineFormatter,
+    Obullo\Log\Handler\AbstractHandler,
+    Obullo\Log\Handler\HandlerInterface;
 
 use Exception,
     MongoDate,
     MongoCollection,
     MongoClient,
-    RunTimeException;
+    RunTimeException,
+    InvalidArgumentException;
 
 /**
  * Mongo Handler Class
@@ -20,7 +24,7 @@ use Exception,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class MongoHandler implements HandlerInterface
+Class MongoHandler extends AbstractHandler implements HandlerInterface
 {
     /**
      * Container
@@ -30,22 +34,62 @@ Class MongoHandler implements HandlerInterface
     public $c;
 
     /**
-     * Writer class
+     * Config params
+     * 
+     * @var array
+     */
+    public $config;
+
+    /**
+     * mongoClient object
      * 
      * @var object
      */
-    public $writer;
+    public $mongoClient;
+
+    /**
+     * mongoCollection object
+     * 
+     * @var object
+     */
+    public $mongoCollection;
+
+    /**
+     * Mongo save options
+     * 
+     * @var array
+     */
+    public $saveOptions;
 
     /**
      * Constructor
      * 
      * @param object $c      container
-     * @param array  $writer array
+     * @param array  $params array
      */
-    public function __construct($c, $writer)
+    public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->writer = $writer;
+        $this->config = $params;
+        
+        parent::__construct($params);
+
+        $database = isset($params['database']) ? $params['database'] : null;
+        $collection = isset($params['collection']) ? $params['collection'] : null;
+        $saveOptions = isset($params['save_options']) ? $params['save_options'] : null;
+
+        if (null === $collection) {
+            throw new InvalidArgumentException('The collection parameter cannot be empty');
+        }
+        if (null === $database) {
+            throw new InvalidArgumentException('The database parameter cannot be empty');
+        }
+        if (get_class($mongo) != 'MongoClient') {
+            throw new InvalidArgumentException('Parameter of type %s is invalid; must be MongoClient or Mongo', (is_object($mongo) ? get_class($mongo) : gettype($mongo)));
+        }
+        $this->mongoClient = $mongo;
+        $this->mongoCollection = $mongo->selectCollection($database, $collection);
+        $this->saveOptions = $saveOptions;
     }
 
     /**
@@ -66,20 +110,18 @@ Class MongoHandler implements HandlerInterface
             'context'  => null,
             'extra'    => null,
         );
-        $config = $this->writer->getConfig();
-
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
 
-            if ($config['format']['extra'] == 'json') { // if extra data format json ?
+            if ($this->config['format']['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = $unformattedRecord['context'];
-            if ($config['format']['context'] == 'json') {
+            if ($this->config['format']['context'] == 'json') {
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
         }
@@ -93,7 +135,7 @@ Class MongoHandler implements HandlerInterface
      * 
      * @return boolean
      */
-    public function write(PriorityQueue $pQ)
+    public function exec(PriorityQueue $pQ)
     {       
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
 
@@ -106,8 +148,40 @@ Class MongoHandler implements HandlerInterface
                 $pQ->next();
                 $i++;
             }
-            $this->writer->batch($records);
+            $this->batch($records);
         }
+    }
+
+    /**
+     * Write output
+     *
+     * @param string $record single  record data
+     * @param string $type   request types ( app, cli, ajax )
+     * 
+     * @return mixed
+     */
+    public function write($record, $type = null)
+    {
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        return $this->mongoCollection->insert($record);
+    }
+
+    /**
+     * Batch Operation
+     *
+     * @param string $records multiline record data
+     * @param string $type    request   types ( app, cli, ajax )
+     * 
+     * @return mixed
+     */
+    public function batch(array $records, $type = null)
+    {
+        if ( ! $this->isAllowed($type)) {
+            return;
+        }
+        return $this->mongoCollection->batchInsert($records);
     }
 
     /**
@@ -117,7 +191,7 @@ Class MongoHandler implements HandlerInterface
      */
     public function close()
     {
-        $this->writer->close();
+        $this->mongoClient->close();
     }
 
 }

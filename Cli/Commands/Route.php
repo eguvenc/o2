@@ -3,9 +3,7 @@
 namespace Obullo\Cli\Commands;
 
 /**
- * Host Command
- *
- * Manages "data/globals/config.xml" => "<host></host>"" item.
+ * Route Command
  * 
  * @category  Cli
  * @package   Commands
@@ -14,7 +12,7 @@ namespace Obullo\Cli\Commands;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/Cli
  */
-Class Host implements CommandInterface
+Class Route implements CommandInterface
 {
     /**
      * Container
@@ -69,17 +67,17 @@ Class Host implements CommandInterface
         $name = $this->parser->segment(0);
         $command = $this->parser->segment(1);
 
-        if ( ! isset($this->config->xml->host->{$name})) {
-            $hostName = (isset($this->config->xml->host->{$name}->label)) ? $this->config->xml->host->{$name}->label : $name;
-            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($hostName)."\33[0m\33[1;31m must be defined in your xml config <host></host> tags.\33[0m\n";
+        if ( ! isset($this->config->xml()->route->{$name})) {
+            $route = (isset($this->config->xml()->route->{$name}->attributes()->label)) ? $this->config->xml()->route->{$name}->attributes()->label : $name;
+            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($route)."\33[0m\33[1;31m must be defined in your xml config <route></route> tags.\33[0m\n";
             die;
         }
         switch ($command) {
         case 'down':
-            $this->down($name, 'host');
+            $this->down($name, 'route');
             break;
         case 'up':
-            $this->up($name, 'host');
+            $this->up($name, 'route');
             break;
         case 'update':
             $this->update();
@@ -99,11 +97,12 @@ Class Host implements CommandInterface
      * 
      * @return void
      */
-    public function down($name, $direction = 'host')
+    public function down($name, $direction = 'route')
     {
-        $this->config->xml->{$direction}->{$name}->maintenance = 'down';
-        $this->config->save($this->config->xml->asXML());
-        $hostname = (isset($this->config->xml->{$direction}->{$name}->label)) ? $this->config->xml->{$direction}->{$name}->label : $name;
+        $this->config->xml()->{$direction}->{$name}->attributes()->maintenance = 'down';
+        $this->config->save();
+
+        $hostname = (isset($this->config->xml()->{$direction}->{$name}->attributes()->label)) ? $this->config->xml()->{$direction}->{$name}->attributes()->label : $name;
 
         echo "\33[1;31mHost \33[1;37m\33[41m$hostname\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
@@ -112,15 +111,16 @@ Class Host implements CommandInterface
      * Disable maintenance mode
      *
      * @param string $name      app key ( like : site, support, sports, shop )
-     * @param string $direction host or service
+     * @param string $direction route or service
      * 
      * @return void
      */
-    public function up($name, $direction = 'host')
+    public function up($name, $direction = 'route')
     {
-        $this->config->xml->{$direction}->{$name}->maintenance = 'up';
-        $this->config->save($this->config->xml->asXML());
-        $hostname = (isset($this->config->xml->{$direction}->{$name}->label)) ? $this->config->xml->{$direction}->{$name}->label : $name;
+        $this->config->xml()->{$direction}->{$name}->attributes()->maintenance = 'up';
+        $this->config->save();
+
+        $hostname = (isset($this->config->xml()->{$direction}->{$name}->attributes()->label)) ? $this->config->xml()->{$direction}->{$name}->attributes()->label : $name;
 
         echo "\33[1;32mHost \33[1;37m\33[42m$hostname\33[0m\33[1;32m up.\33[0m\n";
     }
@@ -146,7 +146,7 @@ Class Host implements CommandInterface
     }
 }
 
-// END Host class
+// END Route class
 
-/* End of file Host.php */
-/* Location: .Obullo/Cli/Commands/Host.php */
+/* End of file Route.php */
+/* Location: .Obullo/Cli/Commands/Route.php */

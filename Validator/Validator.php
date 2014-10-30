@@ -39,6 +39,7 @@ Class Validator
     public function __construct($c)
     {    
         mb_internal_encoding($c->load('config')['locale']['charset']);
+        
         $this->c = $c;
         $this->logger = $c->load('service/logger');
         $this->translator = $c->load('translator');
@@ -141,8 +142,8 @@ Class Validator
                                               // No validation rules ?  We're done...        
             if (sizeof($this->fieldData) == 0) {    // We're we able to set the rules correctly ?
                 $this->errorMessages['message'] = 'Unable to find validation rules';
-                $this->logger->error($this->errorMessages['message']);
-                return false;
+                $this->logger->debug($this->errorMessages['message']);
+                return true;
             }
         }
         // Cycle through the rules for each field, match the 
