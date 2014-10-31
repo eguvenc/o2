@@ -1,11 +1,10 @@
 <?php
 
-namespace Obullo\Log\Handler\Simple;
+namespace Obullo\Log\Handler;
 
 use Obullo\Log\PriorityQueue,
     Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler,
-    Obullo\Log\Handler\HandlerInterface;
+    Obullo\Log\Handler\AbstractHandler;
 
 use Exception,
     MongoDate,
@@ -24,7 +23,7 @@ use Exception,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class MongoHandler extends AbstractHandler implements HandlerInterface
+Class MongoHandler extends AbstractHandler
 {
     /**
      * Container

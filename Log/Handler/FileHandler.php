@@ -1,14 +1,13 @@
 <?php
 
-namespace Obullo\Log\Queue\Handler;
+namespace Obullo\Log\Handler;
 
 use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter;
+    Obullo\Log\Formatter\LineFormatter,
+    Obullo\Log\Handler\AbstractHandler;
 
 /**
- * Email Handler Class
- *
- * You should use this handler for emergency, alerts or rarely used important notices.
+ * File Handler Class
  * 
  * @category  Log
  * @package   Handler
@@ -17,80 +16,56 @@ use Obullo\Log\PriorityQueue,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class EmailHandler extends AbstractHandler implements HandlerInterface
+Class FileHandler extends AbstractHandler
 {
     /**
-     * Config
+     * Container
+     * 
+     * @var object
+     */
+    public $c;
+
+    /**
+     * Writer class name
+     * 
+     * @var string
+     */
+    public $path;
+
+    /**
+     * Config variable
      * 
      * @var array
      */
     public $config;
 
     /**
-     * Request Type ( app, cli, ajax )
-     * 
-     * @var string
+     * Config Constructor
+     *
+     * @param object $c      container
+     * @param array  $params parameters
      */
-    public $type;
-
-    /**
-     * Queue object
-     * 
-     * @var object
-     */
-    public $queue;
-
-    /**
-     * Log channel
-     * 
-     * @var string
-     */
-    public $channel = 'Logs';
-
-    /**
-     * Log route
-     * 
-     * @var string
-     */
-    public $route;
-
-    /**
-     * Job name
-     * 
-     * @var string
-     */
-    public $job = 'QueueLogger';
-
-    /**
-     * DateTime or integer push job onto the queue after a delay.
-     * 
-     * @var integer
-     */
-    public $delay = 0;
-
-    /**
-     * Constructor
-     * 
-     * @param array $queue  object
-     * @param array $params configuration
-     */
-    public function __construct($queue, $params)
+    public function __construct($c, $params)
     {
-        parent::__construct($params);
-
+        $this->c = $c;
         $this->config = $params;
-        $this->queue = $queue;
-        $this->channel = $params['channel']; // Log channel
-        $this->route = $params['route'];     // Server1.Logger.File
-        $this->job = $params['job'];  // Logging
-        $this->delay = $params['delay'];  // Delay
 
-        $this->type = 'app';    // Http requests
+        parent::__construct($params);
+        /**
+         * Replace application request path
+         */
+        $this->path = static::replace($params['path']['app']);
+        /**
+         * Replace ajax request path
+         */
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $this->type ='ajax';  // Ajax requests
+            $this->path = static::replace($params['path']['ajax']);
         }
+        /**
+         * Replace cli request path
+         */
         if (defined('STDIN')) {
-            $this->type = 'cli';  // Cli requests
+            $this->path = static::replace($params['path']['cli']);
         }
     }
 
@@ -114,7 +89,7 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
         );
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
-            unset($unformattedRecord['context']['extra']);
+            unset($unformattedRecord['context']['extra']);     
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
@@ -160,27 +135,53 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        $this->queue->channel($this->channel);
-        $this->queue->push($this->job, $this->route, array('type' => $this->type, 'record' => $record), $this->delay);
+        if ( ! $fop = fopen($this->path, 'ab')) {
+            return false;
+        }
+        flock($fop, LOCK_EX);
+        fwrite($fop, $record);
+        flock($fop, LOCK_UN);
+        fclose($fop);
+        if ( ! defined('STDIN')) {   // Do not do ( chmod ) in CLI mode, it cause write errors
+            chmod($this->path, 0666);
+        }
         return true;
     }
 
     /**
      * Batch Operation
-     *
-     * @param string $records multiline record data
+     * 
+     * @param array  $records multiline record data
      * @param string $type    request types ( app, cli, ajax )
      * 
-     * @return mixed
+     * @return boolean
      */
     public function batch(array $records, $type = null)
     {
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        $this->queue->channel($this->channel);
-        $this->queue->push($this->job, $this->route, array('type' => $this->type, 'record' => $records, 'batch' => true), $this->delay);
-        return true;
+        $lines = '';
+        foreach ($records as $record) {
+            $lines.= $record;
+        }
+        return $this->write($lines, $type);
+    }
+
+    /**
+     * If log path has "data/logs" folder, we replace it with "DIRECTORY_SEPERATOR. data".
+     * 
+     * @param string $path log path
+     * 
+     * @return string current path
+     */
+    public static function replace($path)
+    {
+        if (strpos($path, 'data') === 0) {
+            $path = str_replace('/', DS, trim($path, '/'));
+            $path = DATA .substr($path, 5);
+        }
+        return $path;
     }
 
     /**
@@ -192,9 +193,10 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
     {
         return;
     }
+
 }
 
-// END EmailHandler class
+// END FileHandler class
 
-/* End of file EmailHandler.php */
-/* Location: .Obullo/Log/Handler/EmailHandler.php */
+/* End of file FileHandler.php */
+/* Location: .Obullo/Log/Handler/FileHandler.php */

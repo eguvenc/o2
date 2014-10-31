@@ -1,16 +1,13 @@
 <?php
 
-namespace Obullo\Log\Handler\Simple;
+namespace Obullo\Log\Handler;
 
 use Obullo\Log\PriorityQueue,
     Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler,
-    Obullo\Log\Handler\HandlerInterface;
-
-use Exception;
+    Obullo\Log\Handler\AbstractHandler;
 
 /**
- * Syslog Handler Class
+ * File Handler Class
  * 
  * @category  Log
  * @package   Handler
@@ -19,14 +16,21 @@ use Exception;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class SyslogHandler extends AbstractHandler implements HandlerInterface
+Class FileHandler extends AbstractHandler
 {
     /**
-     * Container class
+     * Container
      * 
      * @var object
      */
     public $c;
+
+    /**
+     * Writer class name
+     * 
+     * @var string
+     */
+    public $path;
 
     /**
      * Config variable
@@ -34,20 +38,6 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
      * @var array
      */
     public $config;
-
-    /**
-     * Facility used by this syslog instance
-     * 
-     * @var string
-     */
-    public $facility = LOG_USER;
-
-    /**
-     * Syslog application name
-     * 
-     * @var string
-     */
-    public $name = 'Log.Handler.Syslog';
 
     /**
      * Config Constructor
@@ -61,14 +51,22 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
         $this->config = $params;
 
         parent::__construct($params);
-
-        if (isset($params['facility'])) {
-            $this->facility = $params['facility'];  // Application facility
+        /**
+         * Replace application request path
+         */
+        $this->path = static::replace($params['path']['app']);
+        /**
+         * Replace ajax request path
+         */
+        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $this->path = static::replace($params['path']['ajax']);
         }
-        if (isset($params['name'])) {       // Application name
-            $this->name = $params['name'];
+        /**
+         * Replace cli request path
+         */
+        if (defined('STDIN')) {
+            $this->path = static::replace($params['path']['cli']);
         }
-        openlog($this->name, LOG_PID, $this->facility);
     }
 
     /**
@@ -84,19 +82,19 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
         $record = array(
             'datetime' => date($dateFormat),
             'channel'  => $unformattedRecord['channel'],
-            'level'    => $unformatted_record['level'],
-            'message'  => $unformatted_record['message'],
+            'level'    => $unformattedRecord['level'],
+            'message'  => $unformattedRecord['message'],
             'context'  => null,
             'extra'    => null,
         );
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
-            unset($unformattedRecord['context']['extra']);
+            unset($unformattedRecord['context']['extra']);     
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
-        return $record; // Formatted record
+        return $record; // formatted record
     }
 
     /**
@@ -109,42 +107,25 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
     public function exec(PriorityQueue $pQ)
     {
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-
         $formatter = new LineFormatter($this->c);
-        
+
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $records = array();
             $i = 0;
-            while ($pQ->valid()) {     // Prepare Lines
-                $records[$i] = $pQ->current(); 
-                $pQ->next();
-                $this->write($formatter->format($records[$i]));
+            while ($pQ->valid()) {    // Prepare Lines
                 $i++;
+                $records[$i] = $formatter->format($pQ->current());
+                $pQ->next(); 
             }
+            $this->batch($records);
         }
     }
 
     /**
-     * Write line to file
+     * Batch Operation
      * 
-     * @param string $record single  record data
-     * @param string $type   request types ( app, cli, ajax )
-     * 
-     * @return void
-     */
-    public function write($record, $type = null)
-    {       
-        if ( ! $this->isAllowed($type)) {
-            return;
-        }
-        syslog($record['level'], $record);
-    }
-
-    /**
-     * NO batch reuired in syslog
-     * 
-     * @param string $records multi record data
+     * @param array  $records multiline record data
      * @param string $type    request types ( app, cli, ajax )
      * 
      * @return boolean
@@ -154,10 +135,25 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        foreach ($records as $record) {
-            syslog($record['level'], $record);
-        }
+        $this->queue->channel($this->channel);
+        $this->queue->push($this->job, $this->route, array('type' => $this->type, 'record' => $records), $this->delay);
         return true;
+    }
+
+    /**
+     * If log path has "data/logs" folder, we replace it with "DIRECTORY_SEPERATOR. data".
+     * 
+     * @param string $path log path
+     * 
+     * @return string current path
+     */
+    public static function replace($path)
+    {
+        if (strpos($path, 'data') === 0) {
+            $path = str_replace('/', DS, trim($path, '/'));
+            $path = DATA .substr($path, 5);
+        }
+        return $path;
     }
 
     /**
@@ -167,12 +163,12 @@ Class SyslogHandler extends AbstractHandler implements HandlerInterface
      */
     public function close()
     {
-        closelog();
+        return;
     }
 
 }
 
-// END SyslogHandler class
+// END FileHandler class
 
-/* End of file SyslogHandler.php */
-/* Location: .Obullo/Log/Handler/SyslogHandler.php */
+/* End of file FileHandler.php */
+/* Location: .Obullo/Log/Handler/FileHandler.php */

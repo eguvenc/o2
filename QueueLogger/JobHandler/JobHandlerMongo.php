@@ -1,8 +1,6 @@
 <?php
 
-namespace Obullo\Log\Queue\JobHandler;
-
-use Obullo\Log\Writer\MongoWriter;
+namespace Obullo\QueueLogger\JobHandler;
 
 /**
  * File JobHandler Class
@@ -17,11 +15,39 @@ use Obullo\Log\Writer\MongoWriter;
 Class JobHandlerMongo implements JobHandlerInterface
 {
     /**
-     * File writer
+     * Container
      * 
      * @var object
      */
-    public $writer;
+    public $c;
+
+    /**
+     * Config params
+     * 
+     * @var array
+     */
+    public $config;
+
+    /**
+     * mongoClient object
+     * 
+     * @var object
+     */
+    public $mongoClient;
+
+    /**
+     * mongoCollection object
+     * 
+     * @var object
+     */
+    public $mongoCollection;
+
+    /**
+     * Mongo save options
+     * 
+     * @var array
+     */
+    public $saveOptions;
 
     /**
      * Config Constructor
@@ -32,10 +58,24 @@ Class JobHandlerMongo implements JobHandlerInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $this->writer = new MongoWriter(
-            $c->load('service/provider/mongo', $params['database']),  // Mongo client instance
-            $params
-        );
+        $this->config = $params;
+
+        $database = isset($params['database']) ? $params['database'] : null;
+        $collection = isset($params['collection']) ? $params['collection'] : null;
+        $saveOptions = isset($params['save_options']) ? $params['save_options'] : null;
+
+        if (null === $collection) {
+            throw new InvalidArgumentException('The collection parameter cannot be empty');
+        }
+        if (null === $database) {
+            throw new InvalidArgumentException('The database parameter cannot be empty');
+        }
+        if (get_class($mongo) != 'MongoClient') {
+            throw new InvalidArgumentException('Parameter of type %s is invalid; must be MongoClient or Mongo', (is_object($mongo) ? get_class($mongo) : gettype($mongo)));
+        }
+        $this->mongoClient = $mongo;
+        $this->mongoCollection = $mongo->selectCollection($database, $collection);
+        $this->saveOptions = $saveOptions;
     }
 
     /**
@@ -48,10 +88,8 @@ Class JobHandlerMongo implements JobHandlerInterface
     public function write(array $data)
     {
         if (isset($data['batch'])) {
-            $this->writer->batch($data['record'], $data['type']);
-            return;
-        }
-        $this->writer->write($data['record'], $data['type']);
+            return $this->mongoCollection->batchInsert($data['record']);
+        }        
     }
 
     /**
@@ -61,7 +99,7 @@ Class JobHandlerMongo implements JobHandlerInterface
      */
     public function close() 
     {
-        return $this->writer->close();
+        return $this->mongoCollection->close();
     }
 }
 

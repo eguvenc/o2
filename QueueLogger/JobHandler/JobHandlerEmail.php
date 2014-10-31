@@ -1,8 +1,6 @@
 <?php
 
-namespace Obullo\Log\Queue\JobHandler;
-
-use Obullo\Log\Writer\EmailWriter;
+namespace Obullo\QueueLogger\JobHandler;
 
 /**
  * Email JobHandler Class
@@ -17,11 +15,67 @@ use Obullo\Log\Writer\EmailWriter;
 Class JobHandlerEmail implements JobHandlerInterface
 {
     /**
-     * File writer
+     * Container
      * 
      * @var object
      */
-    public $writer;
+    public $c;
+
+    /**
+     * Config
+     * 
+     * @var array
+     */
+    public $config;
+
+    /**
+     * Service mailer
+     * 
+     * @var object
+     */
+    public $mailer;
+
+    /**
+     * Sender email
+     * 
+     * @var string
+     */
+    public $from;
+
+    /**
+     * Receiver
+     * 
+     * @var string
+     */
+    public $to;
+
+    /**
+     * Carbon copy addresses
+     * 
+     * @var string
+     */
+    public $cc = null;
+
+    /**
+     * Blind carbon copy addresses
+     * 
+     * @var string
+     */
+    public $bcc = null;
+
+    /**
+     * Subject
+     * 
+     * @var string
+     */
+    public $subject;
+
+    /**
+     * Message body
+     * 
+     * @var string
+     */
+    public $message;
 
     /**
      * Config Constructor
@@ -31,11 +85,15 @@ Class JobHandlerEmail implements JobHandlerInterface
      */
     public function __construct($c, array $params = array())
     {
-        $this->c = $c;
-        $this->writer = new EmailWriter(
-            $c->load('service/mailer'),
-            $params
-        );
+        $c = null;
+        $this->mailer = $params['mailer'];
+        $this->message = $params['message'];
+
+        $this->mailer->from($params['from']);
+        $this->mailer->to($params['to']);
+        $this->mailer->cc($params['cc']); 
+        $this->mailer->bcc($params['bcc']);
+        $this->mailer->subject($params['subject']);
     }
 
     /**
@@ -48,10 +106,16 @@ Class JobHandlerEmail implements JobHandlerInterface
     public function write(array $data)
     {
         if (isset($data['batch'])) {
-            $this->writer->batch($data['record'], $data['type']);
+            $lines = '';
+            foreach ($data['record'] as $record) {
+                $lines.= $record;
+            }
+            $this->mailer->message(sprintf($this->message, $lines));
+            $this->mailer->send();
             return;
         }
-        $this->writer->write($data['record'], $data['type']);
+        $this->mailer->message(sprintf($this->message, $data['record']));
+        $this->mailer->send();
     }
 
     /**
@@ -61,7 +125,7 @@ Class JobHandlerEmail implements JobHandlerInterface
      */
     public function close() 
     {
-        return $this->writer->close();
+        return;
     }
 }
 

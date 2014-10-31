@@ -1,16 +1,15 @@
 <?php
 
-namespace Obullo\Log\Handler\Simple;
+namespace Obullo\Log\Handler;
 
 use Obullo\Log\PriorityQueue,
     Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler,
-    Obullo\Log\Handler\HandlerInterface;
+    Obullo\Log\Handler\AbstractHandler;
+
+use Exception;
 
 /**
- * Email Handler Class
- *
- * You should use this handler for emergency, alerts or rarely used important notices.
+ * Syslog Handler Class
  * 
  * @category  Log
  * @package   Handler
@@ -19,92 +18,56 @@ use Obullo\Log\PriorityQueue,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class EmailHandler extends AbstractHandler implements HandlerInterface
+Class SyslogHandler extends AbstractHandler
 {
     /**
-     * Container
+     * Container class
      * 
      * @var object
      */
     public $c;
 
     /**
-     * Config
+     * Config variable
      * 
      * @var array
      */
     public $config;
 
     /**
-     * Service mailer
-     * 
-     * @var object
-     */
-    public $mailer;
-
-    /**
-     * Sender email
+     * Facility used by this syslog instance
      * 
      * @var string
      */
-    public $from;
+    public $facility = LOG_USER;
 
     /**
-     * Receiver
+     * Syslog application name
      * 
      * @var string
      */
-    public $to;
-
-    /**
-     * Carbon copy addresses
-     * 
-     * @var string
-     */
-    public $cc = null;
-
-    /**
-     * Blind carbon copy addresses
-     * 
-     * @var string
-     */
-    public $bcc = null;
-
-    /**
-     * Subject
-     * 
-     * @var string
-     */
-    public $subject;
-
-    /**
-     * Message body
-     * 
-     * @var string
-     */
-    public $message;
+    public $name = 'Log.Handler.Syslog';
 
     /**
      * Config Constructor
      *
      * @param object $c      container
-     * @param object $mailer mailer object
-     * @param array  $params configuration
+     * @param array  $params parameters
      */
-    public function __construct($c, $mailer, $params)
+    public function __construct($c, $params)
     {
         $this->c = $c;
         $this->config = $params;
-        $this->mailer = $mailer;
 
         parent::__construct($params);
 
-        $this->message = $params['message'];
-        $this->mailer->from($params['from']);
-        $this->mailer->to($params['to']);
-        $this->mailer->cc($params['cc']); 
-        $this->mailer->bcc($params['bcc']);
-        $this->mailer->subject($params['subject']);
+        if (isset($params['facility'])) {
+            $this->facility = $params['facility'];  // Application facility
+        }
+        if (isset($params['name'])) {       // Application name
+            $this->name = $params['name'];
+        }
+        openlog($this->name, LOG_PID, $this->facility);
     }
 
     /**
@@ -120,8 +83,8 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
         $record = array(
             'datetime' => date($dateFormat),
             'channel'  => $unformattedRecord['channel'],
-            'level'    => $unformattedRecord['level'],
-            'message'  => $unformattedRecord['message'],
+            'level'    => $unformatted_record['level'],
+            'message'  => $unformatted_record['message'],
             'context'  => null,
             'extra'    => null,
         );
@@ -132,7 +95,7 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
-        return $record; // formatted record
+        return $record; // Formatted record
     }
 
     /**
@@ -145,43 +108,42 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
     public function exec(PriorityQueue $pQ)
     {
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-        $formatter = new LineFormatter($this->c);
 
+        $formatter = new LineFormatter($this->c);
+        
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $records = array();
             $i = 0;
-            while ($pQ->valid()) {    // Prepare Lines
+            while ($pQ->valid()) {     // Prepare Lines
+                $records[$i] = $pQ->current(); 
+                $pQ->next();
+                $this->write($formatter->format($records[$i]));
                 $i++;
-                $records[$i] = $formatter->format($pQ->current());
-                $pQ->next(); 
             }
-            $this->batch($records);
         }
     }
 
     /**
      * Write line to file
      * 
-     * @param string $record single record data
+     * @param string $record single  record data
      * @param string $type   request types ( app, cli, ajax )
      * 
-     * @return boolean
+     * @return void
      */
     public function write($record, $type = null)
-    {
+    {       
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        $this->mailer->message(sprintf($this->message, $record)); 
-        $this->mailer->send();
-        return true;
+        syslog($record['level'], $record);
     }
 
     /**
-     * Store multiple log records into variable then send.
+     * NO batch reuired in syslog
      * 
-     * @param array  $records multiline record data
+     * @param string $records multi record data
      * @param string $type    request types ( app, cli, ajax )
      * 
      * @return boolean
@@ -191,27 +153,25 @@ Class EmailHandler extends AbstractHandler implements HandlerInterface
         if ( ! $this->isAllowed($type)) {
             return;
         }
-        $lines = '';
         foreach ($records as $record) {
-            $lines.= $record;
+            syslog($record['level'], $record);
         }
-        $this->mailer->message(sprintf($this->message, $lines));
-        $this->mailer->send();
         return true;
     }
 
     /**
-     * Close handler connection
+     * Close connection
      * 
      * @return void
      */
-    public function close() 
+    public function close()
     {
-        return;
+        closelog();
     }
+
 }
 
-// END EmailHandler class
+// END SyslogHandler class
 
-/* End of file EmailHandler.php */
-/* Location: .Obullo/Log/Handler/EmailHandler.php */
+/* End of file SyslogHandler.php */
+/* Location: .Obullo/Log/Handler/SyslogHandler.php */

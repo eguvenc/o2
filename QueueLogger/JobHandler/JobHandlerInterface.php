@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Log\Queue\JobHandler;
+namespace Obullo\QueueLogger\JobHandler;
 
 /**
  * JobHandler Interface
@@ -42,4 +42,4 @@ interface JobHandlerInterface
 // END JobHandlerInterface class
 
 /* End of file JobHandlerInterface.php */
-/* Location: .Obullo/Log/Queue/JobHandler/JobHandlerInterface.php */
+/* Location: .Obullo/QueueLogger/JobHandler/JobHandlerInterface.php */

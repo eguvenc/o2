@@ -1,8 +1,6 @@
 <?php
 
-namespace Obullo\Log\Queue\JobHandler;
-
-use Obullo\Log\Writer\FileWriter;
+namespace Obullo\QueueLogger\JobHandler;
 
 /**
  * File JobHandler Class
@@ -17,11 +15,18 @@ use Obullo\Log\Writer\FileWriter;
 Class JobHandlerFile implements JobHandlerInterface
 {
     /**
-     * File writer
+     * Container
      * 
      * @var object
      */
-    public $writer;
+    protected $c;
+
+    /**
+     * Config parameters
+     * 
+     * @var array
+     */
+    protected $config;
 
     /**
      * Config Constructor
@@ -32,23 +37,36 @@ Class JobHandlerFile implements JobHandlerInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $this->writer = new FileWriter($params);
+        $this->config = $params;
     }
 
     /**
-     * Writer 
+     * Write output
      *
-     * @param array $data log record
+     * @param string $record single record data
      * 
-     * @return boolean
+     * @return mixed
      */
-    public function write(array $data)
+    public function write($record)
     {
         if (isset($data['batch'])) {
-            $this->writer->batch($data['record'], $data['type']);
-            return;
+            $lines = '';
+            foreach ($data['record'] as $record) {
+                $lines.= $record;
+            }
+            if ( ! $fop = fopen($this->path, 'ab')) {
+                return false;
+            }
+            flock($fop, LOCK_EX);
+            fwrite($fop, $lines);
+            flock($fop, LOCK_UN);
+            fclose($fop);
+            if ( ! defined('STDIN')) {   // Do not do ( chmod ) in CLI mode, it cause write errors
+                chmod($this->path, 0666);
+            }
+            return true;
         }
-        $this->writer->write($data['record'], $data['type']);
+        return false;
     }
 
     /**
@@ -58,11 +76,11 @@ Class JobHandlerFile implements JobHandlerInterface
      */
     public function close() 
     {
-        return $this->writer->close();
+        return;
     }
 }
 
 // END JobHandlerFile class
 
 /* End of file JobHandlerFile.php */
-/* Location: .Obullo/Log/Queue/JobHandler/JobHandlerFile.php */
+/* Location: .Obullo/QueueLogger/JobHandler/JobHandlerFile.php */

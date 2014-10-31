@@ -80,7 +80,7 @@ You are displaying the "app" request logs. To change direction use $php task log
     {
         $this->logo();
         
-        $followerClass = '\\Obullo\Cli\LogFollower\\'.$this->logger->getWriterName();
+        $followerClass = '\\Obullo\Cli\LogFollower\\'.ucfirst($this->logger->getWriterName());
         $follower = new $followerClass;
         $follower->follow($this->c, $this->route);
     }
