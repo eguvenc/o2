@@ -1,38 +1,34 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\JobHandler;
 
-use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler;
-
-use Exception;
+use Obullo\Log\Formatter\LineFormatter;
 
 /**
- * Syslog Handler Class
+ * Syslog JobHandler Class
  * 
  * @category  Log
- * @package   Handler
+ * @package   JobHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class SyslogHandler extends AbstractHandler
+Class JobHandlerSyslog implements JobHandlerInterface
 {
     /**
-     * Container class
+     * Container
      * 
      * @var object
      */
     public $c;
 
     /**
-     * Config variable
+     * Formatter
      * 
-     * @var array
+     * @var object
      */
-    public $config;
+    protected $formatter;
 
     /**
      * Facility used by this syslog instance
@@ -46,7 +42,7 @@ Class SyslogHandler extends AbstractHandler
      * 
      * @var string
      */
-    public $name = 'Log.Handler.Syslog';
+    public $name = 'QueueLogger.Handler.Syslog';
 
     /**
      * Config Constructor
@@ -54,12 +50,11 @@ Class SyslogHandler extends AbstractHandler
      * @param object $c      container
      * @param array  $params parameters
      */
-    public function __construct($c, $params)
+    public function __construct($c, array $params = array())
     {
         $this->c = $c;
         $this->config = $params;
-
-        parent::__construct($params);
+        $this->formatter = new LineFormatter($this->c);
 
         if (isset($params['facility'])) {
             $this->facility = $params['facility'];  // Application facility
@@ -99,79 +94,34 @@ Class SyslogHandler extends AbstractHandler
     }
 
     /**
-     * Write processor output to file
+     * Write output
      *
-     * @param object $pQ priorityQueue object
+     * @param string $data single record data
      * 
-     * @return boolean
+     * @return mixed
      */
-    public function exec(PriorityQueue $pQ)
+    public function write(array $data)
     {
-        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-
-        $formatter = new LineFormatter($this->c);
-        
-        if ($pQ->count() > 0) {
-            $pQ->top();  // Go to Top
-            $records = array();
-            $i = 0;
-            while ($pQ->valid()) {     // Prepare Lines
-                $records[$i] = $pQ->current(); 
-                $pQ->next();
-                $this->write($formatter->format($records[$i]));
-                $i++;
+        if (isset($data['batch'])) {
+            foreach ($data['record'] as $record) {
+                syslog($record['level'], $this->formmater->format($record));
             }
-        }
-    }
-
-    /**
-     * Write line to file
-     * 
-     * @param string $record single  record data
-     * @param string $type   request types ( app, cli, ajax )
-     * 
-     * @return void
-     */
-    public function write($record, $type = null)
-    {       
-        if ( ! $this->isAllowed($type)) {
-            return;
-        }
-        syslog($record['level'], $record);
-    }
-
-    /**
-     * NO batch reuired in syslog
-     * 
-     * @param string $records multi record data
-     * @param string $type    request types ( app, cli, ajax )
-     * 
-     * @return boolean
-     */
-    public function batch(array $records, $type = null)
-    {
-        if ( ! $this->isAllowed($type)) {
-            return;
-        }
-        foreach ($records as $record) {
-            syslog($record['level'], $record);
         }
         return true;
     }
 
     /**
-     * Close connection
+     * Close handler connection
      * 
      * @return void
      */
-    public function close()
+    public function close() 
     {
         closelog();
     }
-
 }
 
-// END SyslogHandler class
+// END JobHandlerSyslog class
 
-/* End of file SyslogHandler.php */
-/* Location: .Obullo/Log/Handler/SyslogHandler.php */
+/* End of file JobHandlerSyslog.php */
+/* Location: .Obullo/Log/JobHandler/JobHandlerSyslog.php */

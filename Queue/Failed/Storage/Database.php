@@ -46,7 +46,6 @@ Class Database extends FailedJob implements StorageInterface
             $xml = new SimpleXMLElement('<root/>');
             array_walk_recursive($data['error_trace'], array($xml, 'addChild'));
             $data['error_trace'] = $xml->asXML();
-
         }
         if ( ! empty($data['error_xdebug'])) {
             $xml = new SimpleXMLElement('<root/>');

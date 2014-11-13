@@ -9,13 +9,12 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
 
 ### Available Log Hanlers
 
-* DisabledHandler
 * FileHandler
 * MongoHandler
 * SyslogHandler
 * EmailHandler
 
-### Syslog Constants
+### Constants
 
 ```php
 /*
@@ -107,32 +106,59 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
 </tbody>
 </table>
 
+### Creating Log Messages
+
+#### $this->logger->channel(string $channel);
+
+Sets channel of your log messages.
+
+#### $this->logger->severity(string $message, $context = array(), $priority = 0);
+
+First choose your channel and set log severity then you can send your additinonal context data using second optional parameter. Also third parameter is optinal, it is priority of the message.
+
+```php
+<?php
+$this->logger->channel('security');
+$this->logger->alert('Possible hacking attempt !', array('username' => $username));
+```
+
+
 ### Enable / Disable Logger
 
 As default framework comes with logging disabled <kbd>false</kbd>. You can enable logger setting <kbd>enabled to true.</kbd>
 
-On your local environment config file  set <kbd>threshold</kbd> level <b>1</b> to <b>7</b>.
-
 ```php
 <?php
-'log' =>   array(
-        'enabled'   => true,  // On / Off logging.
-        'output'    => false, // On / Off debug html output. When it is enabled all handlers will be disabled.
-        'channel'   => 'system', // Default channel name should be general.
-        'line'      => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',
-        'path'      => array(
-            'app'   => 'data/logs/app.log',    // File handler application log path
-            'cli'   => 'data/logs/cli.log', // File handler cli log path  
-            'ajax'  => 'data/logs/ajax.log', // File handler ajax log path
-            'worker'  => 'data/logs/worker.log', // Queue workers log path  
+    'log' =>   array(
+        'enabled' => true,      // On / Off logging.
+        'output' => false,      // On / Off debug html output. All handlers disabled in this mode.
+        'service' => array(
+            'filters' => 'Log\Filters',  // Class paths
         ),
-        'format'    => 'Y-m-d H:i:s', // Date format
-        'queries'   => true,          // If true "all" SQL Queries gets logged.
-        'benchmark' => true,          // If true "all" Application Benchmarks gets logged.
+        'default' => array(
+            'channel' => 'system',       // Default channel name should be general.
+        ),
+        'file' => array(
+            'path' => array(
+                'http'  => 'data/logs/http.log',  // Http requests log path  ( Only for File Handler )
+                'cli'   => 'data/logs/cli.log',   // Cli log path  
+                'ajax'  => 'data/logs/ajax.log',  // Ajax log path
+            )
+        ),
+        'format' => array(
+            'line' => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',  // This format just for line based log drivers.
+            'date' =>  'Y-m-d H:i:s',
+        ),
+        'extra'     => array(
+            'queries'   => true,       // If true "all" SQL Queries gets logged.
+            'benchmark' => true,       // If true "all" Application Benchmarks gets logged.
+        ),
         'queue' => array(
-            'workers' => false, // On / Off Queue workers logging functionality.
+            'workers' => array(
+                'logging' => false     // On / Off Queue workers logging functionality.
+            ), 
         )
-),
+    ),
 ```
 #### Explanation of Settings:
 
@@ -142,22 +168,10 @@ On your local environment config file  set <kbd>threshold</kbd> level <b>1</b> t
 * <b>line</b> - Logging line format for line based handlers.
 * <b>path</b> - File handler paths
 * <b>format</b> - Date format for each records.
-* <b>queries</b> - If true all Database SQL Queries gets logged.
-* <b>benchmark</b> - If true all framework benchmarks gets logged.
-* <b>queue/workers</b> - If true all queue worker's jobs get logged. When you enable it you need to use priority filter otherwise your log data fill up very fast.
+* <b>extra/queries</b> - If true all Database SQL Queries gets logged.
+* <b>extra/benchmark</b> - If true all framework benchmarks gets logged.
+* <b>queue/workers/logging</b> - If true all queue worker jobs gets logged. Enable it if you want to install framework as a worker application, otherwise your log data fill up very fast.
 
-
-#### $this->logger->level($message = string,  $context = array(), $priority = 0);
-
-First choose your channel and set log level, you can send your additinonal context data using second parameter.
-
-### Logging
-
-```php
-<?php
-$this->logger->channel('security');
-$this->logger->alert('Possible hacking attempt !', array('username' => $username));
-```
 
 ### Priorities
 
@@ -177,7 +191,7 @@ Below the example load shows only pushing LOG_ALERT levels.
 $this->logger->load('mongo')->filter('priority', array(LOG_ALERT));
 $this->logger->channel('security');               
 $this->logger->alert('Possible hacking attempt !', array('username' => $username));
-$this->logger->push('mongo');
+$this->logger->push();
 ```
 or you can use multiple push handlers.
 
@@ -189,27 +203,29 @@ $this->logger->load('mongo');
 $this->logger->channel('security');
 $this->logger->alert('Something went wrong !', array('username' => $username));
 
-$this->logger->push('email');
-$this->logger->push('mongo'); // Sends all log level data to mongo handler
+$this->logger->channel('test');
+$this->logger->info('User login attempt', array('username' => $username));  // Continue push to another handler
 
-$this->logger->info('User login attempt', array('username' => $username));  // Continue logging with default handler
+$this->logger->push();
+
 ```
 
-<b>IMPORTANT:</b> For a live site you'll usually only enable for LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE levels to be logged otherwise your log files will fill up very fast. This feature is configurable from your logger service.
+<b>IMPORTANT:</b> For a live site you will need priority filter for LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE levels to be logged otherwise your log files will fill up very fast.
 
 ## Service Configuration
 
-### Primary Handler
+### Example for Mongo Writer
 
-Open your <b>app/classes/Service/Logger.php</b> then switch mongo database as a primary handler this will replace your "file" handler as "mongo".
+Open your <b>app/classes/Log/Env/$EnvLogger.php</b> then switch mongo database as a primary handler this will replace your "file" handler as "mongo".
 
 ```php
 <?php
 
-namespace Service;
+namespace Log\Env;
 
-use Obullo\Log\LogService,
-    Obullo\Log\Handler\DisabledHandler;
+use Service\ServiceInterface,
+    Obullo\Log\LogService,
+    Obullo\Log\Handler\NullHandler;
 
 /**
  * Log Service
@@ -221,7 +237,7 @@ use Obullo\Log\LogService,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/services
  */
-Class Logger implements ServiceInterface
+Class Local implements ServiceInterface
 {
     /**
      * Registry
@@ -232,51 +248,32 @@ Class Logger implements ServiceInterface
      */
     public function register($c)
     {
-        $c['logger'] = function () use ($c) {
-
-            if ( ! $c->load('config')['log']['enabled']) {  // Use disabled handler if config disabled.
-                return new DisabledHandler;
-            }
-            $log = new LogService($c, $c->load('config')['log']);
-            /*
-            |--------------------------------------------------------------------------
-            | Register Filters
-            |--------------------------------------------------------------------------
-            */
-            $log->registerFilter('priority', 'Log\Filters\PriorityFilter');
-            $log->registerFilter('input', 'Log\Filters\InputFilter');
-            /*
-            |--------------------------------------------------------------------------
-            | Register Handlers
-            |--------------------------------------------------------------------------
-            */
-            $log->registerHandler('file', 'Log\Handlers\Simple\File', 5);
-            $log->registerHandler('mongo', 'Log\Handlers\Simple\Mongo', 4);
-            $log->registerHandler('email', 'Log\Handlers\Simple\Email', 3);
-            /*
-            |--------------------------------------------------------------------------
-            | Add Writer - Primary file writer should be available on local server.
-            |--------------------------------------------------------------------------
-            */
-            if (defined('STDIN')) { 
-                $log->addWriter('file')->priority(2)->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO)); // Cli
-            } else {
-                $log->addWriter('file')->priority(2)->filter('priority.notIn', array(LOG_INFO))->filter('input.filter'); // Http
-            }
-
-            return $log;
-        };
+        // ..
     }
 }
 
-// END Logger class
+// END Local class
 
-/* End of file Logger.php */
-/* Location: .classes/Service/Logger.php */
+/* End of file Local.php */
+/* Location: .classes/Log/Env/QueueLogger/Local.php */
 ```
 
-* TIP: If you have a high traffic web site use one log handler or use QUEUE handler as primary for best performance.
+* TIP: If you have a high traffic web site change your handler path as QueueLogger for best performance.
 
+```php
+<?php
+$service->logger->registerHandlerPath('Log\QueueLogger');
+```
+
+### Adding Multiple Writers
+
+```php
+<?php
+$service->logger->addWriter('mongo')->priority(5)->filter('priority.notIn', array(LOG_INFO, LOG_DEBUG));
+$service->logger->addWriter('file')->priority(4)->filter('priority.notIn', array(LOG_DEBUG));
+```
+
+Higher numbers means your handler important than others.
 
 ### Handler Priorities
 
@@ -284,11 +281,17 @@ Priority method sets your handler priority.
 
 ```php
 <?php
-$logger->addWriter('file')->priority(2);
+$service->logger->registerHandler('file', 'FileHandler', $priority = 5);
+$service->logger->registerHandler('email', 'EmailHandler', $priority = 4);
 ```
 
-High numbers means your handler important than others.
+### Writer Priorities
 
+
+```php
+<?php
+$logger->addWriter('file')->priority(2);
+```
 
 ### Global Filters
 
@@ -297,34 +300,34 @@ If you we want to use a filter first you need to register it to a class with reg
 An example prototype:
 
 ```php
-$logger->registerFilter('class.method', 'Namespace\Class', $priority = 5);
+$logger->registerFilter('class.method', 'Namespace\Class');
 ```
 
 ```php
 <?php
-$logger->registerFilter('priority', 'Log\Filters\Priority', 4);
+$logger->registerFilter('priority', 'Log\Filters\Priority');
 ```
 or you can define our own 
 
 ```php
 <?php
-$logger->registerFilter('filtername', 'Log\Filters\MyFilterClass', 3);
+$logger->registerFilter('filtername', 'Log\Filters\MyFilterClass');
 ```
 
-Then you can use your filters.
+Then you can use your filters like below.
 
 ```php
 <?php
 $logger->addWriter('email')->priority(2)->filter('priority', array(LOG_NOTICE, LOG_ALERT))->filter('input.filter');
 ```
 
-or you can use methods
+or you can run custom methods using "."
 
 ```php
 <?php
 $logger->addWriter('email')->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
 ```
-Above the example executes <b>Priority</b> class <b>notIn</b> method.
+Above the example executes <b>Priority</b> class <b>notIn</b> method. If you not provide a method name it will run the <b>__construct</b> method.
 
 ### Page Filters
 
@@ -348,7 +351,7 @@ $app = new Controller(
         $this->logger->notice('Hello Notice !');
         $this->logger->alert('Hello alert !');
 
-        $this->logger->push('mongo');
+        $this->logger->push();
     }
 );
 ```
@@ -356,6 +359,14 @@ $app = new Controller(
 **Note:** You can create your own filters in your <kbd>app/classes/</kbd> folder then you need set it with <b>$logger->registerFilter('myPriority', 'Filters\MyfilterClass');</b> method in your logger service.
 
 #### Displaying Logs
+
+Open your console and enter the project path
+
+```php
+cd /var/www/myproject
+```
+
+then run task file
 
 ```php
 php task log
@@ -378,6 +389,292 @@ This command display only cli log messages.
 ```php
 php task clear
 ```
+
+Completely remove log files from <b>data/logs</b> folder or queue if QueueLogger is enabled.
+
+
+
+## Queue Logger Configuration
+
+Some times application need to send some logging data to background for heavy <b>async</b> operations. Forexample to sending an email with smtp is very long process. So when we use <b>Email Handler</b> in application first we need to setup a <b>Queue Writer</b> for it.
+
+### Terms
+
+------
+
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Description</th>
+</thead>
+<tbody>
+<tr>
+<td>Push handler</td>
+<td>Allows copy of application log data and send them to another handler in the current page.</td>
+</tr>
+<tr>
+<td>Queue writer</td>
+<td>Allows send a new log data onto the queue. ( Uses queue service )</td>
+</tr>
+<tr>
+<td>Queue Job handler</td>
+<td>Listen queued logging jobs and consume them using <b>QueueLogger</b> class which is located in <b>app/Classes</b> folder.</td>
+</tr>
+</tbody>
+</table>
+
+### Setup
+
+------
+
+Open your <kbd>app/Classes/Log/Env/LocalLogger.php</kbd> then update which handler you want to send log data onto the queue.
+Please look at following example.
+
+```php
+<?php
+
+namespace Log\Env;
+
+use Service\ServiceInterface,
+    Obullo\Log\LogService,
+    Obullo\Log\Handler\NullHandler;
+
+/**
+ * Log Service
+ *
+ * @category  Service
+ * @package   Logger
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/services
+ */
+Class LocalLogger implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        // .. 
+    }
+}
+
+// END LocalLogger class
+
+/* End of file LocalLogger.php */
+/* Location: .classes/Log/Env/LocalLogger.php */
+```
+
+### Handler Setup
+
+------
+
+Below the example setup file handler and priority.
+
+```php
+<?php
+$log->registerHandler(4, 'file');
+```
+
+### Workers ( Job Handler ) Setup
+
+------
+
+QueueLogger class listen your <b>logger queue</b> data then consume them using <b>Job Handlers</b>.
+
+### Available Job Process Handlers
+
+* File
+* Mongo
+* Email
+
+
+```php
+<?php
+
+namespace Workers;
+
+use Obullo\Queue\Job,
+    Obullo\Queue\JobInterface;
+
+/**
+ * Queue Logger
+ *
+ * @category  Queue
+ * @package   QueueLogger
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/queue
+ */
+Class QueueLogger implements JobInterface
+{
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    public $c;
+
+    /**
+     * Environment
+     * 
+     * @var string
+     */
+    public $env;
+
+    /**
+     * Constructor
+     * 
+     * @param object $c   container
+     * @param string $env environments
+     */
+    public function __construct($c, $env)
+    {
+        $this->c = $c;
+        $this->env = $env;
+    }
+
+    /**
+     * Fire the job
+     * 
+     * @param Job   $job  object
+     * @param array $data data array
+     * 
+     * @return void
+     */
+    public function fire(Job $job, $data)
+    {
+        // ...
+    }
+
+}
+
+/* End of file QueueLogger.php */
+/* Location: .app/classes/Workers/QueueLogger.php */
+```
+
+### Listing Queues
+
+```php
+php task queue list --channel=Logs --route=MyHostname.Logger.Email
+```
+
+```php
+            ______  _            _  _
+           |  __  || |__  _   _ | || | ____
+           | |  | ||  _ || | | || || ||  _ |
+           | |__| || |_||| |_| || || || |_||
+           |______||____||_____||_||_||____|
+
+            Welcome to Task Manager (c) 2014
+    You are running $php task queue command which is located in app / tasks folder.
+
+Following queue data ...
+
+Channel : Logs
+Route   : MyHostname.Logger.Email
+------------------------------------------------------------------------------------------
+ Job ID | Job Name             | Data 
+------------------------------------------------------------------------------------------
+ 1      | QueueLogger          |  {"type":"app","record":"[2014-08-15 19:11:50] system.notice: --> test email notice !   \n[2014-08-15 19:11:50] system.alert: --> test email alert  array (  'test' => 'example data 123',) \n"}
+
+```
+
+
+### Listening Queues from Command Line
+
+Open your console and write below the command
+
+```php
+php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+```
+
+Above the command listen <b>Logs</b> channel and <b>Email</b> queue.
+
+### Changing Route
+
+You can listen a <b>different route</b> by changing the route name like below.
+
+```php
+php task queue listen --channel=Logs --route=MyHostname.Logger.File --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+php task queue listen --channel=Logs --route=MyHostname.Logger.Mongo --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+```
+
+### Enabling Debbuger
+
+Put <b>--debug</b> end of your command with debug variable you can enable console debug to see errors and queues.
+
+```php
+php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 --memory=128 --debug=1
+```
+
+### Console Parameters
+
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</thead>
+<tbody>
+<tr>
+<td>--channel</td>
+<td>Sets queue exchange ( Channel ).</td>
+</tr>
+<tr>
+<td>--route</td>
+<td>Sets queue name.</td>
+</tr>
+<tr>
+<td>--delay</td>
+<td>Sets delay time for uncompleted jobs.</td>
+</tr>
+<tr>
+<td>--memory</td>
+<td>Sets maximum allowed memory for current job.</td>
+</tr>
+<tr>
+<td>--timeout</td>
+<td>Sets time limit execution of the current job.</td>
+</tr>
+<tr>
+<td>--sleep</td>
+<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
+</tr>
+<tr>
+<td>--maxTries</td>
+<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
+</tr>
+<tr>
+<td>--debug</td>
+<td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
+</tr>
+</tbody>
+</table>
+
+
+### Installing Framework as a Completely Worker Application
+
+If you want to setup a completely worker application open config file and set "queue => workers => true" otherwise "AbstractHandler" class will 
+not allow your data send to writers.
+
+```php
+'queue' => array(
+    'workers' => array(
+        'logging' => true  // On / Off Queue workers logging functionality.
+    ), 
+)
+```
+
+This enables logging process of workers ( background logging ) and disables http logging. It is normally disabled for normal applications which they work with http requests.
+
 
 ### Handlers Reference
 
@@ -407,16 +704,16 @@ Register your handlers using namespace and sets priority of handler.
 
 Execute your filter before releated method.
 
-#### $this->logger->push(string $handler = 'mongo', $threshold = null, integer $priority = 0);
+#### $this->logger->push($handlername = null);
 
-Push current page log data to your loaded log handler.
+Push current page log data to your loaded log handler. Handlername variable is optional.
 
 #### $this->logger->printDebugger(string $handler = 'file');
 
 On / Off debug html output. When it is enabled all push handlers will be disabled.
 
 
-### Function Reference
+### Logger Reference
 
 ------
 
@@ -455,3 +752,4 @@ Create <b>LOG_INFO</b> level log message.
 #### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_DEBUG</b> level log message.
+

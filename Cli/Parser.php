@@ -78,7 +78,7 @@ Class Parser
             }
         }
         if ($this->logger instanceof Logger) {
-            $this->logger->debug('$_COMMAND parameters resolved', array('parameters' => $params));
+            $this->logger->debug('Cli parameters resolved', array('parameters' => $params));
         }
         $this->segments = $params;
         return $params;

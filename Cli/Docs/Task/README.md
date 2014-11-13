@@ -117,9 +117,6 @@ Using below the command your task will be done in the background without wait th
 $this->cliTask->run('controller');
 ```
 
-
-
-
 #### Follow Log Data ( Cli Debug )
 
 ```php
@@ -189,7 +186,6 @@ php task [command] [arguments]
 Available commands:
 log        : Follows the application log file.
 clear      : Clear application log data. It is currently located in data folder.
-update     : Update your Obullo version.
 help       : See list all of available commands.
 ```
 
@@ -203,20 +199,4 @@ If your current php path is not <b>/usr/bin/php</b> open the <b>constants</b> fi
 
 ```php
 define('PHP_PATH', 'your_php_path_that_you_learned_by_which_command'); 
-```
-
-### Running Native Cli Tasks
-
-In some cases you may need to use php native exec() commands. Also you can use it like below the example.
-
-```php
-echo shell_exec(TASK .'welcome/start.php');  //  gives Hello World !
-```
-
-#### Native Continious Tasks
-
-Using below the command your task will be done in the background without wait the http server response.
-
-```php
-shell_exec(TASK .'welcome/start.php > /dev/null &');
 ```

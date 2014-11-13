@@ -258,10 +258,16 @@ php task queue list --channel=Logs --route=locahost.logger --clear
 ### Running Your Queue Workers
 
 ```php
+php task queue listen --channel=Logs --route=localhost.logger --debug=1
+```
+
+Advanced Parameters
+
+```php
 php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory=128 --timeout=0 --sleep=3 --maxTries=0 --debug=1
 ```
 
-### Console Parameters
+### Required Parameters
 
 <table>
 <thead>
@@ -278,6 +284,18 @@ php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory
 <td>--route</td>
 <td>Sets queue name.</td>
 </tr>
+</tbody>
+</table>
+
+### Optional Parameters
+
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</thead>
+<tbody>
 <tr>
 <td>--delay</td>
 <td>Sets delay time for uncompleted jobs.</td>
@@ -301,6 +319,14 @@ php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory
 <tr>
 <td>--debug</td>
 <td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
+</tr>
+<tr>
+<td>--project</td>
+<td>Sets your project name to works with multiple projects.</td>
+</tr>
+<tr>
+<td>--var</td>
+<td>Sets a custom variable.</td>
 </tr>
 </tbody>
 </table>

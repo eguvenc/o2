@@ -83,8 +83,8 @@ Class AMQP extends Queue implements HandlerInterface
         $this->connection->setPassword($this->config['pass']); 
         $this->connection->setVHost($this->config['vhost']); 
         $this->connection->connect();
-
-        $this->defaultQueueName = $this->config['defaultQueueName'];
+        $this->channel = new AMQPChannel($this->connection);
+        $this->defaultQueueName = $this->config['default']['queue'];
     }
 
     /**
@@ -102,10 +102,9 @@ Class AMQP extends Queue implements HandlerInterface
             $this->exchange = $this->channels[$name];
             return $this->channels[$name];  // Return to instance of it.
         }
-        $type = (empty($type)) ? constant($this->config['exchangeType']) : $type;
-        $flag = (empty($flag)) ? constant($this->config['exchangeFlag']) : $flag;
+        $type = (empty($type)) ? constant($this->config['exchange']['type']) : $type;
+        $flag = (empty($flag)) ? constant($this->config['exchange']['flag']) : $flag;
 
-        $this->channel = new AMQPChannel($this->connection);
         $this->exchange = new AMQPExchange($this->channel);
         $this->exchange->setName($name);
         $this->exchange->setFlags($flag);
@@ -171,8 +170,7 @@ Class AMQP extends Queue implements HandlerInterface
         //     return $output;
         // }
     
-        // * Send Message to JOB QUEUE
-        if ($envelope instanceof AMQPEnvelope) {
+        if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
             return new AMQPJob($this->c, $queue, $envelope);  // Send incoming message to job class.
         }
         return null;
@@ -189,13 +187,14 @@ Class AMQP extends Queue implements HandlerInterface
     {
         $name = (empty($name)) ? $this->defaultQueueName : $name;
 
-        $queue = new AMQPQueue($this->channel);
-        $queue->setName($name);
-        $queue->setFlags(AMQP_DURABLE);
-        $queue->declareQueue();
-        $queue->bind($this->exchange->getName(), $name);
-        $queue->declareQueue();
-        return $queue;
+        $this->queue = new AMQPQueue($this->channel);
+        $this->queue->setName($name);
+        $this->queue->setFlags(AMQP_DURABLE);
+        $this->queue->declareQueue();
+        $this->queue->bind($this->exchange->getName(), $name);
+        $this->queue->declareQueue();
+
+        return $this->queue;
     }
 
     /**

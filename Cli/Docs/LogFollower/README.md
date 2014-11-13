@@ -12,4 +12,3 @@ This package helps to you follow Cli log data.
 
 * FileWriter
 * MongoHandler
-* QueueWriter

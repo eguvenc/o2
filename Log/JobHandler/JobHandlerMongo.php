@@ -1,29 +1,18 @@
 <?php
 
-namespace Obullo\Log\Handler;
-
-use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler;
-
-use Exception,
-    MongoDate,
-    MongoCollection,
-    MongoClient,
-    RunTimeException,
-    InvalidArgumentException;
+namespace Obullo\Log\JobHandler;
 
 /**
- * Mongo Handler Class
+ * File JobHandler Class
  * 
  * @category  Log
- * @package   Handler
+ * @package   JobHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class MongoHandler extends AbstractHandler
+Class JobHandlerMongo implements JobHandlerInterface
 {
     /**
      * Container
@@ -61,17 +50,16 @@ Class MongoHandler extends AbstractHandler
     public $saveOptions;
 
     /**
-     * Constructor
-     * 
+     * Config Constructor
+     *
      * @param object $c      container
-     * @param array  $params array
+     * @param object $mongo  $mongo service provider
+     * @param array  $params parameters
      */
-    public function __construct($c, $params)
+    public function __construct($c, $mongo, array $params = array())
     {
         $this->c = $c;
         $this->config = $params;
-        
-        parent::__construct($params);
 
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
@@ -84,10 +72,13 @@ Class MongoHandler extends AbstractHandler
             throw new InvalidArgumentException('The database parameter cannot be empty');
         }
         if (get_class($mongo) != 'MongoClient') {
-            throw new InvalidArgumentException('Parameter of type %s is invalid; must be MongoClient or Mongo', (is_object($mongo) ? get_class($mongo) : gettype($mongo)));
+            throw new InvalidArgumentException(
+                'Parameter of type %s is invalid; must be MongoClient or Mongo instance.', 
+                (is_object($mongo) ? get_class($mongo) : gettype($$mongo))
+            );
         }
         $this->mongoClient = $mongo;
-        $this->mongoCollection = $mongo->selectCollection($database, $collection);
+        $this->mongoCollection = $this->mongoClient->selectCollection($database, $collection);
         $this->saveOptions = $saveOptions;
     }
 
@@ -128,74 +119,32 @@ Class MongoHandler extends AbstractHandler
     }
 
     /**
-     * Write processor output to mongo
+     * Writer 
      *
-     * @param object $pQ priorityQueue object
+     * @param array $data log record
      * 
      * @return boolean
      */
-    public function exec(PriorityQueue $pQ)
-    {       
-        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
-
-        if ($pQ->count() > 0) {
-            $pQ->top();  // Go to Top
-            $records = array();
-            $i = 0;
-            while ($pQ->valid()) {         // Prepare Lines
-                $records[$i] = $pQ->current(); 
-                $pQ->next();
-                $i++;
-            }
-            $this->batch($records);
-        }
-    }
-
-    /**
-     * Write output
-     *
-     * @param string $record single  record data
-     * @param string $type   request types ( app, cli, ajax )
-     * 
-     * @return mixed
-     */
-    public function write($record, $type = null)
+    public function write(array $data)
     {
-        if ( ! $this->isAllowed($type)) {
+        if ( ! $this->isAllowed($data['type'])) {
             return;
         }
-        return $this->mongoCollection->insert($record);
+        $this->mongoCollection->batchInsert($data['record'], array('continueOnError' => true));
     }
 
     /**
-     * Batch Operation
-     *
-     * @param string $records multiline record data
-     * @param string $type    request   types ( app, cli, ajax )
-     * 
-     * @return mixed
-     */
-    public function batch(array $records, $type = null)
-    {
-        if ( ! $this->isAllowed($type)) {
-            return;
-        }
-        return $this->mongoCollection->batchInsert($records);
-    }
-
-    /**
-     * Close mongo connection
+     * Close handler connection
      * 
      * @return void
      */
-    public function close()
+    public function close() 
     {
-        $this->mongoClient->close();
+        return $this->mongoCollection->close();
     }
-
 }
 
-// END MongoHandler class
+// END JobHandlerMongo class
 
-/* End of file MongoHandler.php */
-/* Location: .Obullo/Log/Handler/MongoHandler.php */
+/* End of file JobHandlerMongo.php */
+/* Location: .Obullo/Log/JobHandler/JobHandlerMongo.php */

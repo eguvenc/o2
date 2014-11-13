@@ -64,7 +64,6 @@ Class App
     public function detectEnvironment()
     {
         $this->envArray = $this->c->envArray;
-
         $hostname = gethostname();
         if (self::$env != null) {
             return self::$env;

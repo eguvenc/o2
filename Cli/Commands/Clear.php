@@ -2,6 +2,8 @@
 
 namespace Obullo\Cli\Commands;
 
+use Log\Constants as LogConstants;
+
 /**
  * Clear Command
  * 
@@ -50,9 +52,9 @@ Class Clear implements CommandInterface
          * Clear File handler data
          */
         $files = array(
-            trim($this->c->load('config')['log']['path']['app'], '/'),
-            trim($this->c->load('config')['log']['path']['ajax'], '/'),
-            trim($this->c->load('config')['log']['path']['cli'], '/'),
+            trim($this->c->load('config')['log']['file']['path']['http'], '/'),
+            trim($this->c->load('config')['log']['file']['path']['ajax'], '/'),
+            trim($this->c->load('config')['log']['file']['path']['cli'], '/'),
         );
         foreach ($files as $file) {
             $file = str_replace('/', DS, $file);
@@ -66,22 +68,16 @@ Class Clear implements CommandInterface
                 unlink($path.$filename);
             }
         }
-        // /**
-        //  * Clear Queue handler data
-        //  */
-        // if ($this->logger->getHandlerWriterName() == 'QueueWriter') { // Also clear queue data
-
-        //     $queue = $this->c->load('service/queue');
-            
-        //     $queue->deleteQueue(LOGGER_CHANNEL, gethostname(). LOGGER_NAME .'File');
-        //     $queue->deleteQueue(LOGGER_CHANNEL, gethostname(). LOGGER_NAME .'Mongo');
-        //     $queue->deleteQueue(LOGGER_CHANNEL, gethostname(). LOGGER_NAME .'Email');
-        //     $queue->deleteQueue(LOGGER_CHANNEL, gethostname(). LOGGER_NAME .'Syslog');
-        // }
-        echo "\33[1;36mApplication logs deleted.\33[0m\n";
         /**
-         * Return
+         * Clear Queue handler data
          */
+        $queue = $this->c->load('service/queue');
+        $writer = $this->logger->getWriterName();
+
+        $queue->deleteQueue(LogConstants::QUEUE_CHANNEL, gethostname(). LogConstants::QUEUE_SEPARATOR .ucfirst($writer));
+        
+        echo "\33[1;36mApplication logs deleted.\33[0m\n";
+
         return true;
     }
 

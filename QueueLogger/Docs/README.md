@@ -29,24 +29,21 @@ Some times application need to send some logging data to background for heavy <b
 </tbody>
 </table>
 
-### Push Handler Setup
+### Setup
 
 ------
 
-Open your <kbd>app/Classes/Service/Logger.php</kbd> then update which handler you want to send log data onto the queue.
+Open your <kbd>app/Classes/Log/Env/LocalLogger.php</kbd> then update which handler you want to send log data onto the queue.
 Please look at following example.
 
 ```php
 <?php
 
-namespace Service;
+namespace Log\Env;
 
-define('LOGGER_NAME', '.Logger.');
-define('LOGGER_CHANNEL', 'Logs');
-define('LOGGER_JOB', 'Workers\QueueLogger');
-
-use Obullo\Log\LogService,
-    Obullo\Log\Handler\DisabledHandler;
+use Service\ServiceInterface,
+    Obullo\Log\LogService,
+    Obullo\Log\Handler\NullHandler;
 
 /**
  * Log Service
@@ -58,7 +55,7 @@ use Obullo\Log\LogService,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/services
  */
-Class Logger implements ServiceInterface
+Class LocalLogger implements ServiceInterface
 {
     /**
      * Registry
@@ -71,8 +68,8 @@ Class Logger implements ServiceInterface
     {
         $c['logger'] = function () use ($c) {
 
-            if ( ! $c->load('config')['log']['enabled']) {  // Use disabled handler if config disabled.
-                return new DisabledHandler;
+            if ( ! $c->load('config')['log']['enabled']) {  // Use null handler if config disabled.
+                return new NullHandler;
             }
             $log = new LogService($c, $c->load('config')['log']);
             /*
@@ -80,149 +77,52 @@ Class Logger implements ServiceInterface
             | Register Filters
             |--------------------------------------------------------------------------
             */
-            $log->registerFilter('priority', 'Log\Filters\PriorityFilter');
-            $log->registerFilter('input', 'Log\Filters\InputFilter');
+            $log->registerFilterPath('Log\Filters');
+            $log->registerFilter('priority', 'PriorityFilter')->registerFilter('input', 'InputFilter');
             /*
             |--------------------------------------------------------------------------
             | Register Handlers
             |--------------------------------------------------------------------------
             */
-            $log->registerHandler(LOGGER_FILE, 'Log\Handlers\FileHandler\CartridgeQueueWriter');
-            $log->registerHandler(LOGGER_EMAIL, 'Log\Handlers\EmailHandler\CartridgeQueueWriter');
+            $log->registerHandlerPath('Log\QueueLogger');
+            $log->registerHandler('file', 'FileHandler', 5)->registerHandler('mongo', 'MongoHandler', 4)->registerHandler('email', 'EmailHandler', 3);
             /*
             |--------------------------------------------------------------------------
             | Add Writer - Primary file writer should be available on local server.
             |--------------------------------------------------------------------------
             */
             if (defined('STDIN')) { 
-                $log->addWriter(LOGGER_FILE)->priority(2)->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO)); // Cli
+                $log->addWriter('file')->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO)); // Cli
             } else {
-                $log->addWriter(LOGGER_FILE)->priority(5); // Http
-            }
-            /*
-            |--------------------------------------------------------------------------
-            | Add Handler - Adds to available log handlers
-            |--------------------------------------------------------------------------
-            */
-            $log->addHandler(LOGGER_EMAIL)->priority(2);
-            /*
-            |--------------------------------------------------------------------------
-            | Removes file handler and uses second handler as primary in "production" env.
-            |--------------------------------------------------------------------------
-            */
-            if (ENV == 'prod') {
-                $log->removeWriter(LOGGER_FILE);
-                $log->removeHandler(LOGGER_FILE);
-                $log->addWriter(LOGGER_MONGO)->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
+                $log->addWriter('file')->filter('priority.notIn', array(LOG_INFO)); // Http
             }
             return $log;
         };
     }
 }
 
-// END Logger class
+// END LocalLogger class
 
-/* End of file Logger.php */
-/* Location: .classes/Service/Logger.php */
+/* End of file LocalLogger.php */
+/* Location: .classes/Log/Env/LocalLogger.php */
 ```
 
-### Queue Cartridge Setup
+### Queue Handler Setup
 
 ------
 
-Below the example replace your file writer cartridge with Queue.
+Below the example setup file handler and priority.
 
 ```php
 <?php
-$log->registerHandler(LOGGER_FILE, 'Log\Handlers\FileHandler\CartridgeQueueWriter');
+$log->registerHandler('file', 'FileHandler', $priority = 4);
 ```
 
-Example cartridge setup
-
-```php
-<?php
-
-namespace Log\Handlers\FileHandler;
-
-use Obullo\Log\Handler\FileHandler,
-    Obullo\Log\Writer\QueueWriter;
-
-/**
- * "FileHandler" with "CartridgeQueueWriter"
- * 
- * @category  Log
- * @package   Handler
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/log
- */
-Class CartridgeQueueWriter
-{
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Handler closure
-     * 
-     * @var object
-     */
-    protected $closure;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->closure = function () use ($c) {
-
-            return new FileHandler(
-                $c,
-                new QueueWriter(
-                    $c->load('service/queue'),
-                    array(
-                        'channel' =>  LOGGER_CHANNEL,
-                        'route' => gethostname(). LOGGER_NAME .'File',
-                        'job' => LOGGER_JOB,
-                        'delay' => 0,
-                    )
-                )
-            );
-        };
-    }
-
-    /**
-     * Returns to closure data of handler
-     * 
-     * @return object closure
-     */
-    public function getHandler()
-    {
-        return $this->closure;
-    }
-}
-
-// END CartridgeQueueWriter class
-
-/* End of file CartridgeQueueWriter.php */
-/* Location: .app/Log/Handlers/FileHandler/CartridgeQueueWriter.php */
-```
-
-**Note:** If you want to setup a completely worker application using framework set application type to "worker" instead of "null" otherwise "AbstractQueueWriter" class will 
-not allow your data send to writers.
-
-
-### Job Handler Setup
+### Workers ( Job Handler ) Setup
 
 ------
 
-QueueLogger class listen your logger queue data then consume them using <b>Job Handlers</b>.
+QueueLogger class listen your <b>logger queue</b> data then consume them using <b>Job Handlers</b>.
 
 ### Available Job Process Handlers
 
@@ -234,7 +134,10 @@ QueueLogger class listen your logger queue data then consume them using <b>Job H
 ```php
 <?php
 
-use Obullo\Queue\Job;
+namespace Workers;
+
+use Obullo\Queue\Job,
+    Obullo\Queue\JobInterface;
 
 /**
  * Queue Logger
@@ -246,7 +149,7 @@ use Obullo\Queue\Job;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/queue
  */
-Class QueueLogger
+Class QueueLogger implements JobInterface
 {
     /**
      * Container
@@ -286,46 +189,54 @@ Class QueueLogger
     {
         $exp = explode('.', $job->getName());  // File, Mongo, Email ..
         $handlerName = ucfirst(end($exp));
-        $JobHandlerClass = '\\Obullo\Log\Queue\JobHandler\JobHandler'.$handlerName;
+        $JobHandlerClass = '\\Obullo\QueueLogger\JobHandler\JobHandler'.$handlerName;
         $JobHandlerName = strtolower($handlerName);
 
         switch ($JobHandlerName) {
-        case LOGGER_FILE:
-            $writer = new $JobHandlerClass($this->c);
+
+        case 'file':
+            $handler = new $JobHandlerClass($this->c, $this->c->load('config')['log']);
             break;
-        case LOGGER_EMAIL:
-            $writer = new $JobHandlerClass(
+
+        case 'email':
+            $handler = new $JobHandlerClass(
                 $this->c,
+                $this->c->load('service/mailer'),
                 array(
-                'from' => '<noreply@example.com> Server Admin',
-                'to' => 'example@example.com',
-                'cc' => '',
-                'bcc' => '',
-                'subject' => 'Server Logs',
-                'message' => 'Detailed logs here --> <br /> %s',
+                    'from' => '<noreply@example.com> Server Admin',
+                    'to' => 'obulloframework@gmail.com',
+                    'cc' => '',
+                    'bcc' => '',
+                    'subject' => 'Server Logs',
+                    'message' => 'Detailed logs here --> <br /> %s',
                 )
             );
-            break;  
-        case LOGGER_MONGO:
-            $writer = new $JobHandlerClass($this->c,
+            break;
+
+        case 'mongo':
+            $handler = new $JobHandlerClass($this->c,
+                $this->c->load('service/provider/mongo', 'db'),
                 array(
-                'database' => 'db',
-                'collection' => 'logs',
-                'save_options' => null,
-                'format' => array(
+                    'database' => 'db',
+                    'collection' => 'logs',
+                    'save_options' => null,
+                    'format' => array(
                         'context' => 'array',  // json
                         'extra'   => 'array'   // json
                     ),
                 )
             );
             break;
+
         default:
-            $writer = null;
+            $handler = null;
             break;
         }
-        if ($writer != null) {
-            $writer->write($data);  // Do job
-            $writer->close();
+
+        if ($handler != null) {
+            $handler->write($data);  // Do job
+            $handler->close();
+
             $job->delete();  // Delete job from queue
         }
     }
@@ -333,7 +244,7 @@ Class QueueLogger
 }
 
 /* End of file QueueLogger.php */
-/* Location: .app/classes/QueueLogger.php */
+/* Location: .app/classes/Workers/QueueLogger.php */
 ```
 
 ### Listing Queues
@@ -434,3 +345,19 @@ php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 -
 </tr>
 </tbody>
 </table>
+
+
+### Installing Framework as a Completely Worker Application
+
+If you want to setup a completely worker application open config file and set "queue => workers => true" otherwise "AbstractHandler" class will 
+not allow your data send to writers.
+
+```php
+'queue' => array(
+    'workers' => array(
+        'logging' => true  // On / Off Queue workers logging functionality.
+    ), 
+)
+```
+
+This enables logging process of workers ( background logging ) and disables http logging. It is normally disabled for normal applications which they work with http requests.

@@ -165,40 +165,34 @@ $this->config->load('filename', true);
 
 ## Xml Config File
 
-Xml config xml keeps configuration of your multiple application's <b>global</b> data. Also it helps to you read and write to global xml file. It is located in your <kbd>data/globals/</kbd> folder.
+Xml config file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
 
 ```php
 <?php
 <?xml version="1.0"?>
 <root>
-<app>
-    <all>
-        <name>All Site</name>
-        <domain><regex>.*.example.com</regex></domain>
-        <maintenance>up</maintenance>
-    </all>
-    <site>
-        <name>Web Site</name>
-        <domain><regex>^example.com$|^www.example.com$</regex></domain>
-        <maintenance>up</maintenance>
-    </site>
-    <sports>
-        <name>Sports</name>
-        <domain><regex>sports\d+.example.com</regex></domain>
-        <maintenance>up</maintenance>
-    </sports>
-    <support>
-        <name>Support</name>
-        <domain><regex>support.example.com</regex></domain>
-        <maintenance>up</maintenance>
-    </support>
-</app>
+    <route>
+        <all maintenance="up" label="All Application" regex=".*.example.com"/>
+        <site maintenance="up" label="Web Server" regex="^example.com$|^www.example.com$"/>
+        <test maintenance="up" label="Sports" regex="sports\d+.example.com"/>
+        <support maintenance="up" label="Support" regex="support.example.com"/>
+    </route>
+    <service>
+        <all maintenance="down" label="All Services"/>
+        <queue maintenance="up" label="Queue Service"/>
+    </service>
+    <container>
+        <service>
+            <logger class="Log/Env/LocalLogger" cli="Log/Env/CliLogger"/>
+        </service>
+        <provider></provider>
+    </container>
 </root>
 <!--
 END xml config File
 End of file config.xml
 
-Location: .data/globals/config.xml
+Location: .app/config/env/local/config.xml
 -->
 ```
 
@@ -212,37 +206,36 @@ Xml variable returns to <b>SimpleXmlElement object</b>.
 
 ```php
 <?php
-echo $this->config->xml->host->site->name; // gives Web Site
+echo $this->config->xml()->route->site->attributes()->label; // gives "Web Server"
 ```
 
 #### Saving Variables
 
 ```php
 <?php
-$this->config->xml->host->site->name = 'Test Site';
-$this->config->xml->host->site->maintenance = 'down';
-$this->config->save($this->config->xml->asXML());
+$this->config->xml()->route->site->attributes()->label = 'Test Server';
+$this->config->xml()->route->site->attributes()->maintenance = 'down';
+$this->config->save();
 ```
 
-Now look your xml config site item's value it will change immediately.
+Now your xml config file updated as following example.
 
 ```php
-<?php
 <?xml version="1.0"?>
 <root>
-<app>
-    <all>
-        <name>All Site</name>
-        <domain><regex>.*.example.com</regex></domain>
-        <maintenance>up</maintenance>
-    </all>
-    <site>
-        <name>Test Site</name>
-        <domain><regex>^example.com$|^www.example.com$</regex></domain>
-        <maintenance>down</maintenance>
-    </site>
-    .....
+    <route>
+        <all maintenance="up" label="All Application" regex=".*.example.com"/>
+        <site maintenance="down" label="Test Server" regex="^example.com$|^www.example.com$"/>
+        <test maintenance="up" label="Sports" regex="sports\d+.example.com"/>
+        <support maintenance="up" label="Support" regex="support.example.com"/>
+    </route>
+    ....
+<!--
+END xml config File
+End of file config.xml
 
+Location: .app/config/env/local/config.xml
+-->
 ```
 
 ### environments.php
@@ -317,14 +310,18 @@ Gets config variable from array config.
 
 Sets config variable to array config.
 
-#### $this->config->xml->variable->item;
+#### $this->config->xml()->variable->item;
 
-Gets config variable from <b>data/globals/config.xml</b> file.
+Gets config variable from <b>app/config/config.xml</b> file.
 
-#### $this->config->xml->variable->item = 'value';
+#### $this->config->xml()->variable->item = 'value';
 
 Sets config variable to xml config.
 
-#### $this->config->save(string $xml);
+#### $this->config->xml()->variable->attributes()->item = 'value';
 
-Save xml output string to xml configuration file.
+Updates attributes value.
+
+#### $this->config->save();
+
+Save valid xml output to xml configuration file.

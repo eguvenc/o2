@@ -1,24 +1,20 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\JobHandler;
 
-use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\Handler\AbstractHandler;
+use Obullo\Log\Formatter\LineFormatter;
 
 /**
- * Email Handler Class
- *
- * You should use this handler for emergency, alerts or rarely used important notices.
+ * Email JobHandler Class
  * 
  * @category  Log
- * @package   Handler
+ * @package   JobHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class EmailHandler extends AbstractHandler
+Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
 {
     /**
      * Container
@@ -84,21 +80,26 @@ Class EmailHandler extends AbstractHandler
     public $message;
 
     /**
+     * Formatter
+     * 
+     * @var object
+     */
+    protected $formatter;
+
+    /**
      * Config Constructor
      *
      * @param object $c      container
-     * @param object $mailer mailer object
-     * @param array  $params configuration
+     * @param object $mailer mailer service
+     * @param array  $params parameters
      */
-    public function __construct($c, $mailer, $params)
+    public function __construct($c, $mailer, array $params = array())
     {
-        $this->c = $c;
-        $this->config = $params;
+        $c = null;
         $this->mailer = $mailer;
-
-        parent::__construct($params);
-
         $this->message = $params['message'];
+        $this->formatter = new LineFormatter($this->c);
+
         $this->mailer->from($params['from']);
         $this->mailer->to($params['to']);
         $this->mailer->cc($params['cc']); 
@@ -135,68 +136,25 @@ Class EmailHandler extends AbstractHandler
     }
 
     /**
-     * Write processor output to file
+     * Writer 
      *
-     * @param object $pQ priorityQueue object
+     * @param array $data log record
      * 
      * @return boolean
      */
-    public function exec(PriorityQueue $pQ)
+    public function write(array $data)
     {
-        $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-        $formatter = new LineFormatter($this->c);
-
-        if ($pQ->count() > 0) {
-            $pQ->top();  // Go to Top
-            $records = array();
-            $i = 0;
-            while ($pQ->valid()) {    // Prepare Lines
-                $i++;
-                $records[$i] = $formatter->format($pQ->current());
-                $pQ->next(); 
+        if (isset($data['batch'])) {
+            $lines = '';
+            foreach ($data['record'] as $record) {
+                $lines.= $this->formatter->format($record);
             }
-            $this->batch($records);
-        }
-    }
-
-    /**
-     * Write line to file
-     * 
-     * @param string $record single record data
-     * @param string $type   request types ( app, cli, ajax )
-     * 
-     * @return boolean
-     */
-    public function write($record, $type = null)
-    {
-        if ( ! $this->isAllowed($type)) {
+            $this->mailer->message(sprintf($this->message, $lines));
+            $this->mailer->send();
             return;
         }
-        $this->mailer->message(sprintf($this->message, $record)); 
+        $this->mailer->message(sprintf($this->message, $data['record']));
         $this->mailer->send();
-        return true;
-    }
-
-    /**
-     * Store multiple log records into variable then send.
-     * 
-     * @param array  $records multiline record data
-     * @param string $type    request types ( app, cli, ajax )
-     * 
-     * @return boolean
-     */
-    public function batch(array $records, $type = null)
-    {
-        if ( ! $this->isAllowed($type)) {
-            return;
-        }
-        $lines = '';
-        foreach ($records as $record) {
-            $lines.= $record;
-        }
-        $this->mailer->message(sprintf($this->message, $lines));
-        $this->mailer->send();
-        return true;
     }
 
     /**
@@ -210,7 +168,7 @@ Class EmailHandler extends AbstractHandler
     }
 }
 
-// END EmailHandler class
+// END JobHandlerEmail class
 
-/* End of file EmailHandler.php */
-/* Location: .Obullo/Log/Handler/EmailHandler.php */
+/* End of file JobHandlerEmail.php */
+/* Location: .Obullo/Log/JobHandler/JobHandlerEmail.php */

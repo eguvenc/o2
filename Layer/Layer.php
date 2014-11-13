@@ -6,10 +6,10 @@ use stdClass,
     Controller;
 
 /**
- * Layered Vc ( Layered View Controller ) is a programming technique that delivers you to
- * "Multitier Architecture" to scale your applications. ( Derived from HMVC ).
+ * Layers ( Layered View Controller ) is a programming technique that delivers you to
+ * "Multitier Architecture" to scale your applications.
  * 
- * We call it "Layers".
+ * Derived from HMVC pattern and named as "Layers" in Obullo.
  * 
  * Copyright (c) 2009 - 2014 Ersin Guvenc
  *
@@ -213,7 +213,6 @@ Class Layer
             $data = array();
         }
         $this->prepareHash($data); // Set md5 Unique id foreach requests
-
         $_SERVER['LAYER_REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
 
         foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
@@ -369,21 +368,6 @@ Class Layer
         $this->processDone = true;
     }
 
-    // /**
-    //  * Set $_SERVER vars foreach lvc
-    //  * requests.
-    //  * 
-    //  * @param string $key key
-    //  * @param string $val val
-    //  *
-    //  * @return void
-    //  */
-    // public function setServer($key, $val)
-    // {
-    //     $_SERVER[$key] = $val;
-    //     $this->prepareHash($key .'-'. $val);
-    // }
-
     /**
      * Create Lvc connection string next
      * we will convert it to connection id.
@@ -413,20 +397,6 @@ Class Layer
         $id = trim($this->hashString);
         return self::CACHE_KEY. (int)sprintf("%u", crc32((string)$id));
     }
-
-    // /**
-    //  * Create unsigned integer id using 
-    //  * hash string.
-    //  * 
-    //  * @param string $hashString resource
-    //  * 
-    //  * @return string id
-    //  */
-    // public function generateId($hashString)
-    // {
-    //     $id = trim($hashString);
-    //     return self::CACHE_KEY. (int)sprintf("%u", crc32((string)$id));
-    // }
 
     /**
      * Get last Layer uri

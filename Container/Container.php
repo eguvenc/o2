@@ -25,6 +25,7 @@ use Controller,
  */
 Class Container implements ArrayAccess
 {
+    public $envArray = array();         // $app->detectEnvironment() use this configuration
     protected $values = array();
     protected $frozen = array();
     protected $raw = array();
@@ -33,8 +34,8 @@ Class Container implements ArrayAccess
     protected $unset = array();         // Stores classes we want to remove
     protected $registered = array();    // Stores registered services
     protected $unRegistered = array();  // Whether to stored in controller instance
-    protected $return = array(); // Stores return requests
-    protected $resolved = array(); // Stores resolved class names
+    protected $return = array();        // Stores return requests
+    protected $resolved = array();      // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
 
     const PROVIDER_SIGN = ':';  // To protect providers we use a sign.
@@ -227,12 +228,8 @@ Class Container implements ArrayAccess
             $data['key'] = end($exp);
             $data['cid'] = substr($class, 8); // Remove "service/" word
 
-            if (isset($this->values['config']->xml()->container->service->{$data['key']})) {   // Check environment based services
-                $serviceClass = '\\'.str_replace('/', '\\', $this->values['config']->xml()->container->service->{$data['key']}->attributes()->class);
-            };
-            if (isset($this->values['config']->xml()->container->provider->{$data['key']})) {
-                $serviceClass = '\\'.str_replace('/', '\\', $this->values['config']->xml()->container->provider->{$data['key']}->attributes()->class);
-            };
+            $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'service');
+            $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'provider');
 
             if (isset($this->registered[$serviceClass])) {  // If service registered before don't register it again.
                 $service = $this->registered[$serviceClass];
@@ -260,7 +257,6 @@ Class Container implements ArrayAccess
                 return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
             }
         }
-
         if ($service == null) {  // Load none service libraries
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
@@ -394,12 +390,12 @@ Class Container implements ArrayAccess
 
         if ($this->exists($cid) || $this->exists(strtolower($cid)) AND strpos($cid, '/') > 0) {  // If its a provider "/"
             $Class = $cid;
-            return $this->_resolveNamespace($Class, $cid, '/', true, $provider);
+            return $this->resolveNamespace($Class, $cid, '/', true, $provider);
         }
         if (strpos($Class, '\\') > 0) {
-            return $this->_resolveNamespace($Class, $cid, '\\', true, $provider);
+            return $this->resolveNamespace($Class, $cid, '\\', true, $provider);
         }
-        return $this->_resolveNamespace($Class.'\\'.$Class, strtolower($cid), '\\', false);
+        return $this->resolveNamespace($Class.'\\'.$Class, strtolower($cid), '\\', false);
     }
 
     /**
@@ -413,7 +409,7 @@ Class Container implements ArrayAccess
      * 
      * @return string
      */
-    private function _resolveNamespace($Class, $key, $separator = '\\', $implode = true, $provider = false)
+    protected function resolveNamespace($Class, $key, $separator = '\\', $implode = true, $provider = false)
     {
         $exp = explode($separator, $Class);
         $ClassName = end($exp);
@@ -503,6 +499,29 @@ Class Container implements ArrayAccess
     public function unRegisteredKeys()
     {
         return array_keys($this->unRegistered);
+    }
+
+    /**
+     * Resolve environment based services or service providers
+     * 
+     * @param string $serviceClass namespace
+     * @param string $class        class key
+     * @param string $service      service or provider
+     * 
+     * @return string class namespace
+     */
+    protected function resolveServiceClass($serviceClass, $class, $service = 'service')
+    {
+        if (isset($this->values['config']->xml()->container->{$service}->{$class})) {   // Check environment based services
+
+            $attributes = $this->values['config']->xml()->container->{$service}->{$class}->attributes();
+            $serviceClass = '\\'.str_replace('/', '\\', $attributes->class);
+
+            if (isset($attributes->cli) AND defined('STDIN')) {
+                $serviceClass = '\\'.str_replace('/', '\\', $attributes->cli);
+            }
+        };
+        return $serviceClass;
     }
 
 }

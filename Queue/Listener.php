@@ -5,7 +5,7 @@ namespace Obullo\Queue;
 use Obullo\Process\Process;
 
 /**
- * Queue Lister Class
+ * Queue Listener Class
  * 
  * @category  Queue
  * @package   Queue
@@ -150,6 +150,16 @@ Class Listener
     {
         $channel = $this->parser->argument('channel', null); // Sets queue exchange
         $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
+        $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
+        $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
+        $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
+        $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
+        $maxTries = $this->parser->argument('maxTries', 0);  // If job attempt failed we push and increase attempt number.
+        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
+        $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
+        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
+        $var = $this->parser->argument('var', null);         // Sets your custom variable
+        
         if (empty($channel)) {
             echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
             exit;
@@ -158,15 +168,10 @@ Class Listener
             echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
             exit;
         }
-        $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
-        $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
-        $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $maxTries = $this->parser->argument('maxTries', 0);  // If job attempt failed we push and increase attempt number.
-        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
-        $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
-        
-        $process = new Process("php task worker $channel $route $memory $delay $timeout $sleep $maxTries $debug $env", ROOT, null, null, $timeout);
+
+        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --maxTries=$maxTries --debug=$debug --env=$env --project=$project --var=$var";
+
+        $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
             $process->run();
             if ($debug == 1) {

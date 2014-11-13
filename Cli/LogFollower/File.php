@@ -18,13 +18,13 @@ Class File
      * Follow logs
      * 
      * @param string $c     container
-     * @param string $route sections ( app, ajax, cli )
+     * @param string $route sections ( http, ajax, cli )
      * 
      * @return void
      */
-    public function follow($c, $route = 'app')
+    public function follow($c, $route = 'http')
     {
-        $path = str_replace('/', DS, trim($c->load('config')['log']['path'][$route], '/'));
+        $path = str_replace('/', DS, trim($c->load('config')['log']['file']['path'][$route], '/'));
         $file = $path;
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
             $file = str_replace('data', DS . trim(DATA, DS), $path);

@@ -2,8 +2,6 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Log\PriorityQueue;
-
 /**
  * Logger Abstract Handler
  * 
@@ -14,7 +12,7 @@ use Obullo\Log\PriorityQueue;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Abstract Class AbstractHandler
+Abstract Class AbstractJobHandler
 {
     /**
      * Container
@@ -22,6 +20,13 @@ Abstract Class AbstractHandler
      * @var object
      */
     public $c;
+
+    /**
+     * Application request type
+     * 
+     * @var string
+     */
+    public $type;
 
     /**
      * Constructor
@@ -38,17 +43,17 @@ Abstract Class AbstractHandler
     /**
      * Check log writing is allowed, 
      * don't allow log writing for cli commands
-     * 
-     * @param string $type request types ( app, cli, ajax, worker )
+     *
+     * @param string $type request type
      * 
      * @return boolean
      */
-    public function isAllowed($type = null)
+    public function isAllowed($type)
     {
-        if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker' AND $this->c['config']['log']['queue']['workers']) {  //  If worker logs allowed from config file.
-            return true;
+        if ($type == 'worker') {  //  If worker logs allowed from config file.
+            return $this->c['config']['log']['queue']['workers']['logging'];
         }
-        if (in_array($type, array(null, 'app','ajax','cli'))) {
+        if (in_array($type, array(null, 'http','ajax','cli'))) {
             return true;
         }
         return false;
@@ -67,31 +72,11 @@ Abstract Class AbstractHandler
     /**
      * Write processor output to file
      *
-     * @param object $pQ priorityQueue object
+     * @param array $records log data
      * 
      * @return boolean
      */
-    abstract public function exec(PriorityQueue $pQ);
-
-    /**
-     * Write output
-     *
-     * @param string $record single record data
-     * @param string $type   request types ( app, cli, ajax )
-     * 
-     * @return mixed
-     */
-    abstract public function write($record, $type = null);
-
-    /**
-     * Batch operation
-     * 
-     * @param array  $records multiline record data
-     * @param string $type    request types ( app, cli, ajax )
-     * 
-     * @return mixed
-     */
-    abstract public function batch(array $records, $type = null);
+    abstract public function write(array $records);
 
     /**
      * Close connection
@@ -102,7 +87,7 @@ Abstract Class AbstractHandler
 
 }
 
-// END AbstractHandler class
+// END AbstractJobHandler class
 
-/* End of file AbstractHandler.php */
-/* Location: .Obullo/Log/Handler/AbstractHandler.php */
+/* End of file AbstractJobHandler.php */
+/* Location: .Obullo/Log/JobHandler/AbstractJobHandler.php */

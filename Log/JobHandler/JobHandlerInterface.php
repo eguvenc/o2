@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\QueueLogger\JobHandler;
+namespace Obullo\Log\JobHandler;
 
 /**
  * JobHandler Interface
@@ -14,13 +14,16 @@ namespace Obullo\QueueLogger\JobHandler;
  */
 interface JobHandlerInterface
 {
+
     /**
-     * Config Constructor
-     *
-     * @param object $c      container
-     * @param array  $params parameters
-     */
-    public function __construct($c, array $params = array());
+    * Format log records and build lines
+    *
+    * @param string $dateFormat        log date format
+    * @param array  $unformattedRecord log data
+    * 
+    * @return array formatted record
+    */
+    public function format($dateFormat, $unformattedRecord);
 
     /**
      * Hanlder writer
@@ -42,4 +45,4 @@ interface JobHandlerInterface
 // END JobHandlerInterface class
 
 /* End of file JobHandlerInterface.php */
-/* Location: .Obullo/QueueLogger/JobHandler/JobHandlerInterface.php */
+/* Location: .Obullo/Log/JobHandler/JobHandlerInterface.php */

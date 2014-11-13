@@ -48,7 +48,7 @@ Class Log implements CommandInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $this->route = isset($params[0]) ? $params[0] : 'app';
+        $this->route = isset($params[0]) ? $params[0] : 'http';
         $this->logger = $c->load('service/logger');
     }
 
@@ -67,7 +67,7 @@ Class Log implements CommandInterface
        |______||____||_____||_||_||____|
 
         Welcome to Log Manager v2.0 (c) 2014
-You are displaying the "app" request logs. To change direction use $php task log "ajax" or "cli".'."\n\033[0m";
+You are displaying the "http" request logs. To change direction use $php task log "ajax" or "cli".'."\n\033[0m";
 
     }
 

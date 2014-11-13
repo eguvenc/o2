@@ -60,12 +60,12 @@ Class Mysql extends Adapter
         $port = empty($this->port) ? '' : ';port=' . $this->port;
         $dsn  = empty($this->dsn) ? 'mysql:host=' . $this->host . $port . ';dbname=' . $this->database : $this->dsn;
 
-        if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) { // Automatically use buffered queries.
+        if ($this->autoinit['bufferedQuery'] AND defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) { // Automatically use buffered queries.
             $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = true;
         }
-        if ( ! isset($this->options[PDO::MYSQL_ATTR_INIT_COMMAND])) {
+        if ($this->autoinit['charset']) {
             $this->options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES $this->charset";
-        }        
+        }   
         $this->pdoObject = $this->pdoConnect($dsn, $this->username, $this->password, $this->options);
 
         // We set exception attribute for always showing the pdo exceptions errors.

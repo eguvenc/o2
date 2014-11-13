@@ -32,7 +32,7 @@ Class LineFormatter
     }
 
     /**
-     * Format the line which is defined in your app/config/$env/config.php
+     * Format the line comes from app/config/$env/config.php
      * 
      * 'line' => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',
      * 
@@ -62,7 +62,7 @@ Class LineFormatter
             (empty($record['extra'])) ? '' : $record['extra'],
             $record['extra'],
             ),
-            str_replace('\n', "\n", $this->c['config']['log']['line'])
+            str_replace('\n', "\n", $this->c['config']['log']['format']['line'])
         );
     }
 

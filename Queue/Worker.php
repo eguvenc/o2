@@ -3,7 +3,7 @@
 namespace Obullo\Queue;
 
 use Obullo\Queue\Job,
-    Obullo\Log\LogService,
+    Obullo\Log\Logger,
     Exception,
     ErrorException;
 
@@ -34,11 +34,18 @@ Class Worker
     public $logger;
 
     /**
+     * Command line parser
+     * 
+     * @var object
+     */
+    public $parser;
+
+    /**
      * Queue route key ( queue name )
      * 
      * @var string
      */
-    public $queueName;
+    public $route;
 
     /**
      * Job delay interval
@@ -97,6 +104,20 @@ Class Worker
     public $env = 'prod';
 
     /**
+     * Your project name
+     * 
+     * @var string
+     */
+    public $project = null;
+
+    /**
+     * Your custom variable
+     * 
+     * @var string
+     */
+    public $var = null;
+
+    /**
      * Registered error handler
      *
      * @var bool
@@ -153,7 +174,6 @@ Class Worker
         E_USER_DEPRECATED   => LOG_DEBUG,
     );
 
-
     /**
      * Create a new queue worker.
      *
@@ -166,9 +186,10 @@ Class Worker
         $this->c = $c;
         $this->queue = $c->load('service/queue');
         $this->logger = $c->load('service/logger');
+        $this->parser = $c->load('cli/parser');
 
-        LogService::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
-        LogService::unregisterExceptionHandler(); // logger error handlers.
+        Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
+        Logger::unregisterExceptionHandler(); // logger error handlers.
 
         $this->logger->channel('queue');
         $this->logger->debug('Queue Worker Class Initialized');
@@ -177,41 +198,35 @@ Class Worker
     /**
      * Initialize to worker object
      * 
-     * @param string  $channel  Sets queue channel
-     * @param string  $route    Sets queue route key ( queue name )
-     * @param integer $memory   Sets maximum allowed memory for current job.
-     * @param integer $delay    Sets job delay interval
-     * @param integer $timeout  Sets time limit execution of the current job.
-     * @param integer $sleep    If we have not job on the queue sleep the script for a given number of seconds.
-     * @param integer $maxTries If job attempt failed we push  and increase attempt number.
-     * @param integer $debug    Enabled debugger On / Off
-     * @param integer $env      Sets Environment
-     * 
      * @return void
      */
-    public function init($channel, $route, $memory, $delay, $timeout, $sleep, $maxTries, $debug, $env) 
+    public function init() 
     {
+        $args = func_get_args();
+        $this->parser->parse($args[0]);
                                             // If debug closed don't show errors and use worker custom error handlers.
         $this->registerExceptionHandler();  // Register worker error handlers.
         $this->registerErrorHandler();
         $this->registerFatalErrorHandler();
     
-        ini_set('error_reporting', 0); // Disable cli errors on console mode we already had error handlers.
+        ini_set('error_reporting', 0);      // Disable cli errors on console mode we already had error handlers.
         ini_set('display_errors', 0);
-                                               // Don't change here we already cathc all errors except the notices.
+                                               // Don't change here we already catch all errors except the notices.
         error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
 
-        $this->queue->channel($channel);
-        $this->queueName = (string)$route;
-        $this->memory = (int)$memory;
-        $this->delay  = (int)$delay;
-        $this->timeout = (int)$timeout;
-        $this->sleep = (int)$sleep;
-        $this->maxTries = (int)$maxTries;
-        $this->debug = (int)$debug;
-        $this->env = (string)$env;
+        $this->queue->channel($this->parser->argument('channel', null));
+        $this->route = $this->parser->argument('route', null);
+        $this->memory = $this->parser->argument('memory', 128);
+        $this->delay  = $this->parser->argument('delay', 0);
+        $this->timeout = $this->parser->argument('timeout', 0);
+        $this->sleep = $this->parser->argument('sleep', 0);
+        $this->maxTries = $this->parser->argument('maxTries', 0);
+        $this->debug = $this->parser->argument('debug', 0);
+        $this->env = $this->parser->argument('env', 'local');
+        $this->project = $this->parser->argument('project', 'default');
+        $this->var = $this->parser->argument('var', null);
 
-        if ($this->memoryExceeded($memory)) {
+        if ($this->memoryExceeded($this->memory)) {
             die; return;
         }
     }
@@ -227,7 +242,7 @@ Class Worker
         if ( ! is_null($this->job)) {
             $this->doJob();
             $this->debugOutput($this->job->getRawBody());
-        } else {                     // If we have not job on the queue sleep the script for a given number of seconds.
+        } else {                  // If we have not job on the queue sleep the script for a given number of seconds.
             sleep($this->sleep);  // Sleep the script for a given number of seconds.
         }
     }
@@ -239,11 +254,11 @@ Class Worker
      */
     protected function getNextJob()
     {
-        if (is_null($this->queueName)) {
+        if (is_null($this->route)) {
             return $this->queue->pop();
         }
-        foreach (explode(',', $this->queueName) as $this->queueName) {     // If comma seperated queue
-            if ( ! is_null($job = $this->queue->pop($this->queueName))) { 
+        foreach (explode(',', $this->route) as $this->route) {     // If comma seperated queue
+            if ( ! is_null($job = $this->queue->pop($this->route))) { 
                 return $job;
             }
         }
@@ -303,10 +318,6 @@ Class Worker
                     $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
                     $storage = new $storageClassName($c);
                     $data = array(
-                        'job_id' => $this->job->getJobId(),
-                        'job_name' => $this->job->getName(),
-                        'job_body' => $this->job->getRawBody(),
-                        'job_attempts' => $this->job->getAttempts(),
                         'error_level' => $level,
                         'error_message' => $message, 
                         'error_file' => $file,
@@ -315,6 +326,7 @@ Class Worker
                         'error_xdebug' => '',
                         'error_priority' => $priority,
                     );
+                    $this->prependJobDetails($data);
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
@@ -368,10 +380,6 @@ Class Worker
                     $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
                     $storage = new $storageClassName($c);
                     $data = array(
-                        'job_id' => $this->job->getJobId(),
-                        'job_name' => $this->job->getName(),
-                        'job_body' => $this->job->getRawBody(),
-                        'job_attempts' => $this->job->getAttempts(),
                         'error_level' => $message['level'],
                         'error_message' => $message['message'], 
                         'error_file' => $message['file'],
@@ -380,6 +388,7 @@ Class Worker
                         'error_xdebug' => $message['xdebug'],
                         'error_priority' => $message['priority'],
                     );
+                    $this->prependJobDetails($data);
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
@@ -411,10 +420,6 @@ Class Worker
                     $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
                     $storage = new $storageClassName($c);
                     $data = array(
-                        'job_id' => $this->job->getJobId(),
-                        'job_name' => $this->job->getName(),
-                        'job_body' => $this->job->getRawBody(),
-                        'job_attempts' => $this->job->getAttempts(),
                         'error_level' => $error['type'],
                         'error_message' => $error['message'], 
                         'error_file' => $error['file'],
@@ -423,6 +428,7 @@ Class Worker
                         'error_xdebug' => '',
                         'error_priority' => 99,
                     );
+                    $this->prependJobDetails($data);
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
@@ -432,6 +438,29 @@ Class Worker
         );
         static::$registeredFatalErrorShutdownFunction = true;
         return true;
+    }
+
+    /**
+     * Append job data to valid array
+     * 
+     * @param array $data array
+     * 
+     * @return array merge data
+     */
+    protected function prependJobDetails($data)
+    {
+        if ( ! is_object($this->job)) {
+            return $data;
+        }
+        return array_merge(
+            $data,
+            array(
+                'job_id' => $this->job->getJobId(),
+                'job_name' => $this->job->getName(),
+                'job_body' => $this->job->getRawBody(),
+                'job_attempts' => $this->job->getAttempts()
+            )
+        );
     }
 
     /**

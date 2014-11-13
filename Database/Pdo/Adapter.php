@@ -59,7 +59,7 @@ Class Adapter
     public function __construct($c, $params = array())
     {
         $this->options = array();
-        foreach (array('host','username','password','database','prefix','port','charset','dsn','pdo') as $key) {
+        foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
             $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
         }
         $this->config = $c->load('config');
@@ -228,7 +228,7 @@ Class Adapter
         $this->Stmt = $this->connection->query($this->lastSql);
         $time = microtime(true) - $start;
         ++$this->queryCount;
-        if ($this->config['log']['queries']) {
+        if ($this->config['log']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Query ):', 
                 array(
@@ -570,7 +570,7 @@ Class Adapter
         $this->Stmt->execute($array);
         $time = microtime(true) - $this->startQueryTimer;
 
-        if ($this->config['log']['queries'] AND isset($this->prepQueries[0])) {
+        if ($this->config['log']['extra']['queries'] AND isset($this->prepQueries[0])) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Execute ):', 
                 array('time' => number_format($time, 4), 
@@ -617,7 +617,7 @@ Class Adapter
         $time  = microtime(true) - $start;
         ++$this->queryCount;
 
-        if ($this->config['log']['queries']) {
+        if ($this->config['log']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Exec ):', 
                 array('time' => number_format($time, 4), 

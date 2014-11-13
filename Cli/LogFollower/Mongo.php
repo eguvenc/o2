@@ -26,9 +26,9 @@ Class Mongo
     {
         echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mMongo Handler ".ucfirst($collection)."\33[0m\33[1;36m database ...\33[0m\n";
 
-        $mongo           = $c->load('return service/provider/mongo');
+        $mongo = $c->load('return service/provider/mongo');
         $mongoCollection = $mongo->{$collection};
-        $resultArray     = $mongoCollection->find();
+        $resultArray = $mongoCollection->find();
         
         $i = 0;
         $printer = new Printer\Colorful;
