@@ -162,10 +162,10 @@ Class Logger extends AbstractLogger
      * 
      * @var array
      */
-    protected $track = array();
+    public $track = array();
 
     /**
-     * Queue payload
+     * Payload
      * 
      * @var array
      */
@@ -210,6 +210,7 @@ Class Logger extends AbstractLogger
             static::unregisterErrorHandler();                   // Also write errors to log file. Especially designed for "local" environment.
             static::unregisterExceptionHandler();
         }
+        $this->type = 'http';   // Default Http requests
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') { // Ajax requests
             $this->type ='ajax';
         }
@@ -218,11 +219,10 @@ Class Logger extends AbstractLogger
         }
         if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker') {  // Job Server
             $this->type = 'worker';
+            if ($this->c['config']['log']['queue']['workers']['logging'] == false) {
+                $this->enabled == false;
+            }
         }
-        $this->type = 'http';   // Default Http requests
-
-        $this->queue->channel($this->config['queue']['channel']);
-
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -248,7 +248,16 @@ Class Logger extends AbstractLogger
      */
     public function load($name)
     {
+        if ( ! isset($this->registeredHandlers[$name])) {
+            throw new LogicException(
+                sprintf(
+                    'The push handler %s is not defined in your log service.', 
+                    $name
+                )
+            );
+        }
         $this->addWriter($name, 'handler');
+        $this->loadedHandlers[$name] = $name;
         return $this;
     }
 
@@ -301,23 +310,6 @@ Class Logger extends AbstractLogger
     {
         return $this->writers;
     }
-
-    /**
-     * Set priority value for current handler 
-     * or writer.
-     * 
-     * @param integer $priority level
-     * 
-     * @return object
-     */
-    // public function priority($priority = 0)
-    // {
-    //     $end = end($this->track);
-    //     $type = $end['type'];
-    //     $name = $end['name'];
-    //     $this->{$type}[$name]['priority'] = $priority;
-    //     return $this;
-    // }
 
     /**
      * Reserve your filter to valid log handler
@@ -375,6 +367,9 @@ Class Logger extends AbstractLogger
      */
     public function log($level, $message, $context = array(), $priority = null)
     {
+        if ( ! $this->enabled) {
+            return $this;
+        }
         $recordUnformatted = array();
         if (isset(static::$priorities[$level])) { // is Allowed level ?
             $recordUnformatted['channel'] = $this->channel;
@@ -613,14 +608,13 @@ Class Logger extends AbstractLogger
     {
         $pQ = $this->getQueue($name);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
-
         $records = array();
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $i = 0;
             while ($pQ->valid()) {         // Prepare Lines
-                $pQ->next();
                 $records[$i] = $pQ->current();
+                $pQ->next();
                 ++$i;
             }
         }
@@ -630,17 +624,43 @@ Class Logger extends AbstractLogger
     /**
      * Execute writer process
      * 
-     * @param string $type processor
+     * @return void
+     */
+    protected function exec()
+    {
+        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
+            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
+                return;
+            }
+            $this->payload[$name]['type'] = $this->type;
+            $this->payload[$name]['priority'] = $val['priority'];
+            $this->payload[$name]['record'] = $this->extract($name);
+            $this->payload[$name]['batch'] = true;
+        }
+    }
+
+    /**
+     * Push ( Write log handlers data )
      * 
      * @return void
      */
-    protected function exec($type = 'writer')
-    {
-        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ($val['type'] == $type) {
-                $this->payload[$name]['type'] = $this->type;
-                $this->payload[$name]['record'] = $this->extract($name);
-                $this->payload[$name]['batch'] = true;
+    public function push()
+    {        
+        if ($this->debug OR $this->enabled == false) {
+            return;
+        }
+        foreach ($this->writers as $name => $val) {
+            if ($val['type'] == 'handler') {
+                if ( ! isset($this->writers[$name])) {
+                    throw new LogicException(
+                        sprintf(
+                            'The push handler %s not available in log writers please first load it using below the command.
+                            <pre>$this->logger->load(handler);</pre>', 
+                            $name
+                        )
+                    );
+                }
+                $this->push[$name] = 1; // Allow push data to valid push handler.
             }
         }
     }
@@ -655,32 +675,24 @@ Class Logger extends AbstractLogger
         if ($this->debug) {         // Debug output for log data if enabled
             $primaryWriter = $this->getWriterName();
             $debug = new Debug($this->c, $this, $primaryWriter);
-            echo $debug->printDebugger($this->getQueue($primaryWriter));
+            $pQ = $this->getQueue($primaryWriter);
+            echo $debug->printDebugger($pQ);
             return;
         }
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
         $this->exec('writer');
+
+        // print_r($this->payload);
+
+        $this->queue->channel($this->config['queue']['channel']); // Set channel at top
         $this->queue->push(
             $this->config['queue']['job'],
             $this->config['queue']['route'],
             $this->payload,
             $this->config['queue']['delay']
         );
-    }
-
-    /**
-     * Push ( Write log handlers data )
-     * 
-     * @return void
-     */
-    public function push()
-    {        
-        if ($this->debug OR $this->enabled == false) {
-            return;
-        }
-        $this->exec('handler');
     }
 
 }

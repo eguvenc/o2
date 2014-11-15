@@ -88,7 +88,9 @@ Class JobHandlerSyslog implements JobHandlerInterface
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
-            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
+            $str = var_export($unformattedRecord['context'], true);
+            $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
+            // $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // Formatted record
     }
@@ -104,7 +106,7 @@ Class JobHandlerSyslog implements JobHandlerInterface
     {
         if (isset($data['batch'])) {
             foreach ($data['record'] as $record) {
-                syslog($record['level'], $this->formmater->format($record));
+                syslog($record['level'], $this->formatter->format($record));
             }
         }
         return true;

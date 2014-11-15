@@ -210,7 +210,7 @@ $app->func(
 To follow your Queue data <b>Open your console and type</b>
 
 ```
-php task queue list --channel=Log --route=Server1.logger
+php task queue list --route=Server1.logger
 ```
 
 Then you will see your Queue data here
@@ -252,7 +252,7 @@ php task queue list --channel=Logs --route=locahost.logger
 ### Clear Queue Data
 
 ```php
-php task queue list --channel=Logs --route=locahost.logger --clear
+php task queue list --channel=Logs --route=locahost.logger --clear=1
 ```
 
 ### Running Your Queue Workers
@@ -382,11 +382,11 @@ Push a new job onto the queue.
 
 Pop the next job off of the queue.
 
-#### $this->queue->purgeQueue(string $channel, string $queueName);
+#### $this->queue->purgeQueue(string $queueName);
 
 Clear the contents of a queue.
 
-#### $this->queue->deleteQueue(string $channel, string $queueName);
+#### $this->queue->deleteQueue(string $queueName);
 
 Delete a queue and its contents.
 

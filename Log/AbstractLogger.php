@@ -38,16 +38,6 @@ Abstract Class AbstractLogger
     abstract public function load($name);
 
     /**
-     * Set priority value for current handler 
-     * or writer.
-     * 
-     * @param integer $priority level
-     * 
-     * @return object
-     */
-    // abstract public function priority($priority = 0);
-
-    /**
      * Change channel
      * 
      * @param string $channel add a channel

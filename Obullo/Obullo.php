@@ -142,9 +142,6 @@ if ($c->load('config')['log']['extra']['benchmark']) {     // Do we need to gene
     }
     $extra = array('time' => number_format($end, 4), 'memory' => $usage);
 }
-
-print_r($extra);
-
 $logger->debug('Final output sent to browser', $extra, -99);
 
 // $['event']->fire('shutdown');

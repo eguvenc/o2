@@ -36,6 +36,7 @@ Class Adapter
     public $port = '';        // optional
     public $dsn = '';         // optional
     public $options = array(); // optional
+    public $autoinit = array(); // optional
     public $prefix = '';
     public $prepare = false;    // Prepare used or not
     public $lastSql = null;     // stores last queried sql

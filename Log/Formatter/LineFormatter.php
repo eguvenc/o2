@@ -53,7 +53,8 @@ Class LineFormatter
             '%message%',
             '%context%',
             '%extra%',
-            ), array(
+            ), 
+            array(
             $record['datetime'],
             $record['channel'],
             $record['level'],

@@ -60,6 +60,7 @@ Class Log implements CommandInterface
     public function logo() 
     {
         echo "\33[1;36m".'
+
         ______  _            _  _
        |  __  || |__  _   _ | || | ____
        | |  | ||  _ || | | || || ||  _ |

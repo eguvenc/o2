@@ -171,11 +171,10 @@ class AssociativeArray extends AbstractAdapter
      * @return object
      */
     public function authenticate(GenericIdentity $genericUser, $login = true)
-    {
+    {                
         $this->resultRowArray = $storageResult = $this->storage->query($this->token);  // First do query to memory storage if user exists in memory
-
         $modelUser = new User($this->c, $this->storage);
-
+        
         if ($storageResult == false) {
             $this->resultRowArray = $modelUser->execQuery($genericUser);  // If user does not exists in memory do sql query
         }

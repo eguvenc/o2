@@ -73,7 +73,9 @@ Class JobHandlerFile implements JobHandlerInterface
             unset($unformattedRecord['context']['extra']);     
         }
         if (count($unformattedRecord['context']) > 0) {
-            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
+            $str = var_export($unformattedRecord['context'], true);
+            $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
+            // preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // formatted record
     }
@@ -94,7 +96,7 @@ Class JobHandlerFile implements JobHandlerInterface
         if (isset($data['batch'])) {
             $lines = '';
             foreach ($data['record'] as $record) {
-                $lines.= $record; // $this->formatter->format($record);
+                $lines.= $this->formatter->format($record);
             }
             $this->path = static::replace($this->config['file']['path']['http']); // Default http requests
             if ($data['type'] == 'ajax') {

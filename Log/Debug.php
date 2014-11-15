@@ -22,14 +22,21 @@ Class Debug
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Logger class
      * 
      * @var object
      */
-    public $logger;
+    protected $logger;
+
+    /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $config;
 
     /**
      * Constructor
@@ -42,43 +49,36 @@ Class Debug
     {
         $this->c = $c;
         $this->logger = $logger;
+        $this->config = $c->load('config');
         $this->handler = strtolower($handler);
     }
 
     /**
-     * Format the line which is defined in app/config/$env/config.php
-     * This feature just for line based loggers.
-     * 
-     * 'line' => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',
-     * 
-     * @param array $record array of log data
-     * 
-     * @return string returns to formated string
-     */
-    public function lineFormat($record)
+    * Format log records and build lines
+    *
+    * @param string $dateFormat        log date format
+    * @param array  $unformattedRecord log data
+    * 
+    * @return array formatted record
+    */
+    public function format($dateFormat, $unformattedRecord)
     {
-        if ( ! is_array($record)) {
-            return;
-        }
-        return str_replace(
-            array(
-            '%datetime%',
-            '%channel%',
-            '%level%',
-            '%message%',
-            '%context%',
-            '%extra%',
-            ), array(
-            $record['datetime'],
-            $record['channel'],
-            $record['level'],
-            $record['message'],
-            (empty($record['context'])) ? '' : $record['context'],
-            (empty($record['extra'])) ? '' : $record['extra'],
-            $record['extra'],
-            ),
-            str_replace('\n', "\n", $this->c['config']['log']['line'])
+        $record = array(
+            'datetime' => date($dateFormat),
+            'channel'  => $unformattedRecord['channel'],
+            'level'    => $unformattedRecord['level'],
+            'message'  => $unformattedRecord['message'],
+            'context'  => null,
+            'extra'    => null,
         );
+        if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
+            $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
+            unset($unformattedRecord['context']['extra']);     
+        }
+        if (count($unformattedRecord['context']) > 0) {
+            $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
+        }
+        return $record; // formatted record
     }
 
     /**
@@ -92,21 +92,26 @@ Class Debug
     {
         $isXmlHttp = ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? true : false;
         if ( ! $isXmlHttp AND ! defined('STDIN')) {      // Disable html output for ajax and task requests
+            $lines = '';
             if ($pQ == false) {
                 $lines = sprintf('The log handler %s is not defined.', $this->handler);
             } else {
-                $formatter = new LineFormatter($this->c, $this->logger);
                 $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
                 $count = $pQ->count();
                 if ($count > 0) {
+                    $i = 0;
                     $pQ->top();  // Go to Top
-                    $lines = '';
+                    $records = array();
                     while ($pQ->valid()) {         // Prepare Lines 
-                        $lines.= str_replace('\n', '<br />', $formatter->format($pQ->current()));  // output handler must be file for debugging
-                        $pQ->next();                                       
+                        $records[$i] = $this->format($this->config['log']['format']['date'], $pQ->current());
+                        $pQ->next();
+                        ++$i;                               
                     }
-                }
-                if ($count == 0) {
+                    $formatter = new LineFormatter($this->c, $this->logger);
+                    foreach ($records as $record) {
+                        $lines.= $formatter->format($record);
+                    }
+                } else {
                     $lines = sprintf('There is no data in %s handler.', $this->handler);
                 }
             }

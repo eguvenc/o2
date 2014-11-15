@@ -85,6 +85,8 @@ Class Listener
 
     /**
      * List ( debug ) queue data
+     *
+     * php task queue list --route=Server1.Logger clear=1
      * 
      * @return string
      */
@@ -97,19 +99,14 @@ Class Listener
         $route = $this->parser->argument('route', null);  // Sets queue route key ( queue name )
         $clear = $this->parser->argument('clear');
 
-        if (empty($channel)) {
-            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
-            exit;
-        }
-        if (empty($route)) {
-            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
-            exit;
-        }
+        $this->emptyControl($channel, $route);
+
         echo "\33[0;36mFollowing queue data ...\33[0m\n\n";
         echo "\33[1;36mChannel : ".$channel."\33[0m\n";
         echo "\33[1;36mRoute   : ".$route."\33[0m\n";
 
         $this->queue->channel($channel);  // Sets queue exchange
+        
         echo "\033[1;36m".$break."\33[0m\n";
         echo "\033[1;36m".' Job ID | Job Name             | Data '."\33[0m\n";
         echo "\033[1;36m".$break."\33[0m\n";
@@ -129,10 +126,10 @@ Class Listener
                 }
                 $lines = "\033[1;36m ".$job->getJobId().str_repeat(' ', $jobIdRepeat).' | ';
                 $lines.= $raw['job'].str_repeat(' ', $jobNameRepeat).' | ';
-                $lines.= "\033[0;36m ".json_encode($raw['data'])."\33[0m\n";
+                $lines.= "\033[0;36m ".json_encode($raw['data'], true)."\33[0m\n";
                 $lines.= "\33[0m\n";
                 echo $lines;
-                if ($clear == 'clear') {  // Delete all jobs in the queue
+                if ($clear == 1) {  // Delete all jobs in the queue
                      $job->delete();
                 }
             }
@@ -142,7 +139,7 @@ Class Listener
     /**
      * Listen Queue
      *
-     * php task queue listen --channel=Logger --route=Server1.Logger.File --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
+     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
      * 
      * @return void
      */
@@ -160,14 +157,7 @@ Class Listener
         $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
         $var = $this->parser->argument('var', null);         // Sets your custom variable
         
-        if (empty($channel)) {
-            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
-            exit;
-        }
-        if (empty($route)) {
-            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
-            exit;
-        }
+        $this->emptyControl($channel, $route);
 
         $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --maxTries=$maxTries --debug=$debug --env=$env --project=$project --var=$var";
 
@@ -180,6 +170,25 @@ Class Listener
         }
     }
 
+    /**
+     * Check --channel and --route is empty
+     * 
+     * @param string $channel exchange
+     * @param string $route   queue name
+     * 
+     * @return void
+     */
+    protected function emptyControl($channel, $route)
+    {
+        if (empty($channel)) {
+            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
+            exit;
+        }
+        if (empty($route)) {
+            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
+            exit;
+        }
+    }
 
 }
 

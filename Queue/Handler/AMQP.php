@@ -228,33 +228,31 @@ Class AMQP extends Queue implements HandlerInterface
 
     /**
      * Clear the contents of a queue
-     * 
-     * @param string $channel   name
-     * @param string $queueName name
+     *
+     * @param string $name queue name
      * 
      * @return void
      */
-    public function purgeQueue($channel, $queueName)
+    public function purgeQueue($name)
     {
         $channel = new AMQPChannel($this->connection);
         $queue = new AMQPQueue($channel);
-        $queue->setName($queueName);
+        $queue->setName($name);
         $queue->purge();
     }
 
     /**
      * Delete a queue and its contents.
      *
-     * @param string $channel   name
-     * @param string $queueName name
+     * @param string $name queue name
      * 
      * @return void
      */
-    public function deleteQueue($channel, $queueName)
+    public function deleteQueue($name)
     {
         $channel = new AMQPChannel($this->connection);
         $queue = new AMQPQueue($channel);
-        $queue->setName($queueName);
+        $queue->setName($name);
         $queue->delete();
     }
 

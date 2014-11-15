@@ -410,12 +410,8 @@ Some times application need to send some logging data to background for heavy <b
 </thead>
 <tbody>
 <tr>
-<td>Push handler</td>
-<td>Allows copy of application log data and send them to another handler in the current page.</td>
-</tr>
-<tr>
-<td>Queue writer</td>
-<td>Allows send a new log data onto the queue. ( Uses queue service )</td>
+<td>Handler</td>
+<td>Allows clone of application log data and send them to another handler in the current page.</td>
 </tr>
 <tr>
 <td>Queue Job handler</td>
@@ -428,7 +424,7 @@ Some times application need to send some logging data to background for heavy <b
 
 ------
 
-Open your <kbd>app/Classes/Log/Env/LocalLogger.php</kbd> then update which handler you want to send log data onto the queue.
+Open your <kbd>app/Classes/Log/Env/QueueLogger/Local.php</kbd> then update which handler you want to send log data onto the queue.
 Please look at following example.
 
 ```php
@@ -563,7 +559,7 @@ Class QueueLogger implements JobInterface
 ### Listing Queues
 
 ```php
-php task queue list --channel=Logs --route=MyHostname.Logger.Email
+php task queue list --route=myHostname.Logger
 ```
 
 ```php
@@ -583,7 +579,7 @@ Route   : MyHostname.Logger.Email
 ------------------------------------------------------------------------------------------
  Job ID | Job Name             | Data 
 ------------------------------------------------------------------------------------------
- 1      | QueueLogger          |  {"type":"app","record":"[2014-08-15 19:11:50] system.notice: --> test email notice !   \n[2014-08-15 19:11:50] system.alert: --> test email alert  array (  'test' => 'example data 123',) \n"}
+ 1      | Workers\QueueLogger          |  {"type":"http","record":"[2014-08-15 19:11:50] system.notice: --> test email notice !   \n[2014-08-15 19:11:50] system.alert: --> test email alert  array (  'test' => 'example data 123',) \n"}
 
 ```
 
@@ -593,7 +589,7 @@ Route   : MyHostname.Logger.Email
 Open your console and write below the command
 
 ```php
-php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
 ```
 
 Above the command listen <b>Logs</b> channel and <b>Email</b> queue.
@@ -603,8 +599,7 @@ Above the command listen <b>Logs</b> channel and <b>Email</b> queue.
 You can listen a <b>different route</b> by changing the route name like below.
 
 ```php
-php task queue listen --channel=Logs --route=MyHostname.Logger.File --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
-php task queue listen --channel=Logs --route=MyHostname.Logger.Mongo --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
 ```
 
 ### Enabling Debbuger
@@ -612,7 +607,7 @@ php task queue listen --channel=Logs --route=MyHostname.Logger.Mongo --delay=0 -
 Put <b>--debug</b> end of your command with debug variable you can enable console debug to see errors and queues.
 
 ```php
-php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 --memory=128 --debug=1
+php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --debug=1
 ```
 
 ### Console Parameters
@@ -656,13 +651,23 @@ php task queue listen --channel=Logs --route=MyHostname.Logger.Email --delay=0 -
 <td>--debug</td>
 <td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
 </tr>
+<tr>
+<td>--project</td>
+<td>You can set your project name using this variable if you  need to change your configurations for each projects.</td>
+</tr>
+<tr>
+<td>--var</td>
+<td>Custom variable for extra arguments.</td>
+</tr>
 </tbody>
 </table>
 
 
 ### Installing Framework as a Completely Worker Application
 
-If you want to setup a completely worker application open config file and set "queue => workers => true" otherwise "AbstractHandler" class will 
+If you want to create a distributed logging structure setting up a worker application is good idea. Otherwise if you have too many requests your http servers can get tired.
+
+To setup a completely worker application open your config file and set "log => queue => workers => logging => true" otherwise "AbstractHandler" class will 
 not allow your data send to writers.
 
 ```php
@@ -673,7 +678,7 @@ not allow your data send to writers.
 )
 ```
 
-This enables logging process of workers ( background logging ) and disables http logging. It is normally disabled for normal applications which they work with http requests.
+This enables logging process of your workers ( background logging ) and disables http logging. It is normally disabled for normal applications which they work with http requests.
 
 
 ### Handlers Reference

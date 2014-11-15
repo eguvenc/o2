@@ -108,7 +108,6 @@ Class Mysql extends Adapter
                 return preg_replace('/[' . $this->escapeChar . ']+/', $this->escapeChar, $str);
             }
         }
-
         if (strpos($item, '.') !== false) {
             $str = $this->escapeChar . str_replace('.', $this->escapeChar . '.' . $this->escapeChar, $item) . $this->escapeChar;
         } else {

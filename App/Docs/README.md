@@ -42,7 +42,7 @@ Globals config saved in <b>data/globals/config.xml</b> file and it keeps applica
     </route>
     <container>
         <service>
-            <logger class="Log/Env/LocalLogger" cli="Log/Env/CliLogger"/>
+            <logger class="Log/Env/QueueLogger/Local" cli="Log/Env/QueueLogger/Cli"/>
         </service>
     </container>
 </root>
@@ -77,7 +77,7 @@ Following xml file show changes after save operation
     </route>
     <container>
         <service>
-            <logger class="Log/Env/LocalLogger" cli="Log/Env/CliLogger"/>
+            <logger class="Log/Env/QueueLogger/Local" cli="Log/Env/QueueLogger/Cli"/>
         </service>
     </container>
 </root>

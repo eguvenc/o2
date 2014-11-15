@@ -2,7 +2,7 @@
 
 namespace Obullo\Cli\Commands;
 
-use Log\Constants as LogConstants;
+use Log\Constants;
 
 /**
  * Clear Command
@@ -61,9 +61,9 @@ Class Clear implements CommandInterface
             if (strpos($file, 'data') === 0) { 
                 $file = str_replace('data', rtrim(DATA, DS), $file);
             } 
-            $exp      = explode(DS, $file);
+            $exp = explode(DS, $file);
             $filename = array_pop($exp);
-            $path     = implode(DS, $exp). DS;
+            $path= implode(DS, $exp). DS;
             if (is_file($path.$filename)) {
                 unlink($path.$filename);
             }
@@ -72,9 +72,7 @@ Class Clear implements CommandInterface
          * Clear Queue handler data
          */
         $queue = $this->c->load('service/queue');
-        $writer = $this->logger->getWriterName();
-
-        $queue->deleteQueue(LogConstants::QUEUE_CHANNEL, gethostname(). LogConstants::QUEUE_SEPARATOR .ucfirst($writer));
+        $queue->deleteQueue(gethostname(). Constants::QUEUE_SEPARATOR);
         
         echo "\33[1;36mApplication logs deleted.\33[0m\n";
 

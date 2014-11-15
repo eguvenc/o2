@@ -61,22 +61,20 @@ Abstract class Queue
     /**
      * Clear the contents of a queue
      * 
-     * @param string $channel   name
-     * @param string $queueName name
+     * @param string $name queue name
      * 
      * @return void
      */
-    abstract public function purgeQueue($channel, $queueName);
+    abstract public function purgeQueue($name);
 
     /**
      * Delete a queue and its contents.
      *
-     * @param string $channel   name
-     * @param string $queueName name
+     * @param string $name queue name
      * 
      * @return void
      */
-    abstract public function deleteQueue($channel, $queueName);
+    abstract public function deleteQueue($name);
 
 }
 
