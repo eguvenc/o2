@@ -24,13 +24,6 @@ Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
     public $c;
 
     /**
-     * Config
-     * 
-     * @var array
-     */
-    public $config;
-
-    /**
      * Service mailer
      * 
      * @var object
@@ -100,6 +93,8 @@ Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
         $this->message = $params['message'];
         $this->formatter = new LineFormatter($this->c);
 
+        parent::__construct($params);
+
         $this->mailer->from($params['from']);
         $this->mailer->to($params['to']);
         $this->mailer->cc($params['cc']); 
@@ -110,15 +105,15 @@ Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    public function format($dateFormat, $unformattedRecord)
+    public function format($timestamp, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($dateFormat),
+            'datetime' => date($this->config['log']['format']['date'], $timestamp),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -132,7 +127,6 @@ Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
         if (count($unformattedRecord['context']) > 0) {
             $str = var_export($unformattedRecord['context'], true);
             $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
-            // $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // formatted record
     }
@@ -146,16 +140,12 @@ Class JobHandlerEmail extends AbstractJobHandler implements JobHandlerInterface
      */
     public function write(array $data)
     {
-        if (isset($data['batch'])) {
-            $lines = '';
-            foreach ($data['record'] as $record) {
-                $lines.= $this->formatter->format($record);
-            }
-            $this->mailer->message(sprintf($this->message, $lines));
-            $this->mailer->send();
-            return;
+        $lines = '';
+        foreach ($data['record'] as $record) {
+            $record = $this->format($data['time'], $record);
+            $lines.= $this->formatter->format($record);
         }
-        $this->mailer->message(sprintf($this->message, $data['record']));
+        $this->mailer->message(sprintf($this->message, $lines));
         $this->mailer->send();
     }
 

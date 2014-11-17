@@ -206,7 +206,7 @@ $this->logger->alert('Something went wrong !', array('username' => $username));
 $this->logger->channel('test');
 $this->logger->info('User login attempt', array('username' => $username));  // Continue push to another handler
 
-$this->logger->push();
+$this->logger->push();  // Push log data to all handlers
 
 ```
 
@@ -478,11 +478,11 @@ Below the example setup file handler and priority.
 $log->registerHandler(4, 'file');
 ```
 
-### Workers ( Job Handler ) Setup
+### Log Worker ( Job Handler ) Setup
 
 ------
 
-QueueLogger class listen your <b>logger queue</b> data then consume them using <b>Job Handlers</b>.
+QueueLogger class listen your <b>logger queue</b> data then consume them using by <b>Job Handlers</b>.
 
 ### Available Job Process Handlers
 
@@ -490,6 +490,68 @@ QueueLogger class listen your <b>logger queue</b> data then consume them using <
 * Mongo
 * Email
 
+Logger tarafından kullanılan Queue sınıfı önemlilik bilgisi, request tipi, log kayıtları gibi verileri aşağıdaki gibi bir array içerisinde gruplar. Workerlar bu gruplanmış 
+data yı arka planda çözümleyerek ( parse işlemi ) job handler a gönderirler.
+
+```php
+/*
+Array
+(
+    [0] =&gt; Array
+        (
+            [request] =&gt; http
+            [handler] =&gt; file
+            [priority] =&gt; 5
+            [time] =&gt; 1416229343
+            [record] =&gt; Array
+                (
+                    [0] =&gt; Array
+                        (
+                            [channel] =&gt; system
+                            [level] =&gt; debug
+                            [message] =&gt; $_REQUEST_URI: /tutorials/hello_world
+                            [context] =&gt; Array
+                                (
+                                )
+
+                        )
+
+                    [1] =&gt; Array
+                        (
+                            [channel] =&gt; system
+                            [level] =&gt; debug
+                            [message] =&gt; Global POST and COOKIE data sanitized
+                            [context] =&gt; Array
+                                (
+                                )
+
+                        )
+                )   
+        )
+
+    [1] =&gt; Array
+        (
+            [request] =&gt; http
+            [handler] =&gt; mongo
+            [priority] =&gt; 4
+            [time] =&gt; 1416229343
+            [record] =&gt; Array
+                (
+                    [0] =&gt; Array
+                        (
+                            [channel] =&gt; system
+                            [level] =&gt; alert
+                            [message] =&gt; Possible hack attempt !
+                            [context] =&gt; Array
+                                (
+                                    [username] =&gt; test2
+                                )
+
+                        )
+*/
+```
+
+Aşağıdaki kodlar log kuyruğunu çözümlemek için güncel bir worker örnegidir.
 
 ```php
 <?php
@@ -575,7 +637,7 @@ php task queue list --route=myHostname.Logger
 Following queue data ...
 
 Channel : Logs
-Route   : MyHostname.Logger.Email
+Route   : myHostname.Logger
 ------------------------------------------------------------------------------------------
  Job ID | Job Name             | Data 
 ------------------------------------------------------------------------------------------
@@ -757,4 +819,3 @@ Create <b>LOG_INFO</b> level log message.
 #### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_DEBUG</b> level log message.
-

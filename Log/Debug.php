@@ -45,7 +45,7 @@ Class Debug
      * @param object $logger  logger object
      * @param object $handler current handler constant
      */
-    public function __construct($c, $logger, $handler = LOGGER_FILE)
+    public function __construct($c, $logger, $handler = 'file')
     {
         $this->c = $c;
         $this->logger = $logger;

@@ -14,7 +14,7 @@ use Obullo\Log\Formatter\LineFormatter;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class JobHandlerFile implements JobHandlerInterface
+Class JobHandlerFile extends AbstractJobHandler implements JobHandlerInterface
 {
     /**
      * Container
@@ -22,13 +22,6 @@ Class JobHandlerFile implements JobHandlerInterface
      * @var object
      */
     protected $c;
-
-    /**
-     * Config parameters
-     * 
-     * @var array
-     */
-    protected $config;
 
     /**
      * Formatter
@@ -46,22 +39,23 @@ Class JobHandlerFile implements JobHandlerInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $this->config = $params;
         $this->formatter = new LineFormatter($this->c);
+
+        parent::__construct($params);
     }
 
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    public function format($dateFormat, $unformattedRecord)
+    public function format($timestamp, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($dateFormat),
+            'datetime' => date($this->config['log']['format']['date'], $timestamp),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -75,7 +69,6 @@ Class JobHandlerFile implements JobHandlerInterface
         if (count($unformattedRecord['context']) > 0) {
             $str = var_export($unformattedRecord['context'], true);
             $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
-            // preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // formatted record
     }
@@ -89,22 +82,17 @@ Class JobHandlerFile implements JobHandlerInterface
      */
     public function write(array $data)
     {
-        if ( ! $this->isAllowed($data['type'])) {
-            return;
+        $lines = '';
+        foreach ($data['record'] as $record) {
+            $record = $this->format($data['time'], $record);
+            $lines.= $this->formatter->format($record);
         }
-        $lines = $data['record'];
-        if (isset($data['batch'])) {
-            $lines = '';
-            foreach ($data['record'] as $record) {
-                $lines.= $this->formatter->format($record);
-            }
-            $this->path = static::replace($this->config['file']['path']['http']); // Default http requests
-            if ($data['type'] == 'ajax') {
-                $this->path = static::replace($this->config['file']['path']['ajax']); // Replace with ajax request path
-            }
-            if ($data['type'] == 'cli') {
-                $this->path = static::replace($this->config['file']['path']['cli']); // Replace with cli request path
-            }
+        $this->path = static::replace($this->config['log']['file']['path']['http']); // Default http requests
+        if ($data['request'] == 'ajax') {
+            $this->path = static::replace($this->config['log']['file']['path']['ajax']); // Replace with ajax request path
+        }
+        if ($data['request'] == 'cli') {
+            $this->path = static::replace($this->config['log']['file']['path']['cli']); // Replace with cli request path
         }
         if ( ! $fop = fopen($this->path, 'ab')) {
             return false;
@@ -113,7 +101,6 @@ Class JobHandlerFile implements JobHandlerInterface
         fwrite($fop, $lines);
         flock($fop, LOCK_UN);
         fclose($fop);
-        return true;
     }
 
     /**

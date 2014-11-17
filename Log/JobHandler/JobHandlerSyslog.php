@@ -14,7 +14,7 @@ use Obullo\Log\Formatter\LineFormatter;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class JobHandlerSyslog implements JobHandlerInterface
+Class JobHandlerSyslog extends AbstractJobHandler implements JobHandlerInterface
 {
     /**
      * Container
@@ -53,8 +53,9 @@ Class JobHandlerSyslog implements JobHandlerInterface
     public function __construct($c, array $params = array())
     {
         $this->c = $c;
-        $this->config = $params;
         $this->formatter = new LineFormatter($this->c);
+
+        parent::__construct($params);
 
         if (isset($params['facility'])) {
             $this->facility = $params['facility'];  // Application facility
@@ -68,15 +69,15 @@ Class JobHandlerSyslog implements JobHandlerInterface
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    public function format($dateFormat, $unformattedRecord)
+    public function format($timestamp, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($dateFormat),
+            'datetime' => date($this->config['log']['format']['date'], $timestamp),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformatted_record['level'],
             'message'  => $unformatted_record['message'],
@@ -90,7 +91,6 @@ Class JobHandlerSyslog implements JobHandlerInterface
         if (count($unformattedRecord['context']) > 0) {
             $str = var_export($unformattedRecord['context'], true);
             $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
-            // $record['context'] = preg_replace('/[\r\n]+/', '', var_export($unformattedRecord['context'], true));
         }
         return $record; // Formatted record
     }
@@ -100,16 +100,14 @@ Class JobHandlerSyslog implements JobHandlerInterface
      *
      * @param string $data single record data
      * 
-     * @return mixed
+     * @return void
      */
     public function write(array $data)
     {
-        if (isset($data['batch'])) {
-            foreach ($data['record'] as $record) {
-                syslog($record['level'], $this->formatter->format($record));
-            }
+        foreach ($data['record'] as $record) {
+            $record = $this->format($data['time'], $record);
+            syslog($record['level'], $this->formatter->format($record));
         }
-        return true;
     }
 
     /**

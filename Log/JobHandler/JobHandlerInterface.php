@@ -14,23 +14,22 @@ namespace Obullo\Log\JobHandler;
  */
 interface JobHandlerInterface
 {
-
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    public function format($dateFormat, $unformattedRecord);
+    public function format($timestamp, $unformattedRecord);
 
     /**
      * Hanlder writer
      *
      * @param array $data data
      * 
-     * @return boolean
+     * @return void
      */
     public function write(array $data);
 

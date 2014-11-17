@@ -111,20 +111,6 @@ Class NullLogger extends AbstractLogger
     }
 
     /**
-     * Remove Writer
-     * removers handler from processors and writers
-     * 
-     * @param string $name handler name
-     * 
-     * @return object
-     */
-    public function removeWriter($name)
-    {
-        $name = null;
-        return $this;
-    }
-
-    /**
      * Returns to primary writer name.
      * 
      * @return string returns to "handler" e.g. "file"

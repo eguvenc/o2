@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Log\Handler;
+namespace Obullo\Log\JobHandler;
 
 /**
  * Logger Abstract Handler
@@ -15,18 +15,11 @@ namespace Obullo\Log\Handler;
 Abstract Class AbstractJobHandler
 {
     /**
-     * Container
+     * Config
      * 
-     * @var object
+     * @var array
      */
-    public $c;
-
-    /**
-     * Application request type
-     * 
-     * @var string
-     */
-    public $type;
+    public $config = array();
 
     /**
      * Constructor
@@ -37,23 +30,28 @@ Abstract Class AbstractJobHandler
     {
         global $c;
         $this->c = $c;
-        $params = array();
+
+        $this->config = array('log' => $this->c->load('config')['log']);
+
+        if ( ! empty($params)) {
+            $this->config = array_merge($this->config, $params);
+        }
     }
 
     /**
      * Check log writing is allowed, 
      * don't allow log writing for cli commands
      *
-     * @param string $type request type
+     * @param string $request request type
      * 
      * @return boolean
      */
-    public function isAllowed($type)
+    public function isAllowed($request)
     {
-        if ($type == 'worker') {  //  If worker logs allowed from config file.
-            return $this->c['config']['log']['queue']['workers']['logging'];
+        if ($request == 'worker') {  //  If worker logs allowed from config file.
+            return $this->config['log']['queue']['workers']['logging'];
         }
-        if (in_array($type, array(null, 'http','ajax','cli'))) {
+        if (in_array($request, array(null, 'http','ajax','cli'))) {
             return true;
         }
         return false;
@@ -62,12 +60,12 @@ Abstract Class AbstractJobHandler
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    abstract public function format($dateFormat, $unformattedRecord);
+    abstract public function format($timestamp, $unformattedRecord);
 
     /**
      * Write processor output to file

@@ -210,17 +210,17 @@ Class Logger extends AbstractLogger
             static::unregisterErrorHandler();                   // Also write errors to log file. Especially designed for "local" environment.
             static::unregisterExceptionHandler();
         }
-        $this->type = 'http';   // Default Http requests
+        $this->request = 'http';   // Default Http requests
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') { // Ajax requests
-            $this->type ='ajax';
+            $this->request ='ajax';
         }
         if (defined('STDIN')) {  // Cli requests
-            $this->type = 'cli';
+            $this->request = 'cli';
         }
         if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker') {  // Job Server
-            $this->type = 'worker';
+            $this->request = 'worker';
             if ($this->c['config']['log']['queue']['workers']['logging'] == false) {
-                $this->enabled == false;
+                $this->enabled = false;
             }
         }
         register_shutdown_function(array($this, 'close'));
@@ -628,14 +628,17 @@ Class Logger extends AbstractLogger
      */
     protected function exec()
     {
+        $i = 0;
         foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
             if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
                 return;
             }
-            $this->payload[$name]['type'] = $this->type;
-            $this->payload[$name]['priority'] = $val['priority'];
-            $this->payload[$name]['record'] = $this->extract($name);
-            $this->payload[$name]['batch'] = true;
+            $this->payload[$i]['request'] = $this->request;
+            $this->payload[$i]['handler'] = $name;
+            $this->payload[$i]['priority'] = $val['priority'];
+            $this->payload[$i]['time'] = time();
+            $this->payload[$i]['record'] = $this->extract($name);
+            ++$i;
         }
     }
 
@@ -682,10 +685,7 @@ Class Logger extends AbstractLogger
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
-        $this->exec('writer');
-
-        // print_r($this->payload);
-
+        $this->exec();
         $this->queue->channel($this->config['queue']['channel']); // Set channel at top
         $this->queue->push(
             $this->config['queue']['job'],

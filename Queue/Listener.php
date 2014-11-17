@@ -79,8 +79,8 @@ Class Listener
     \33[1;36mup         : Release the paused queue.\33[0m\33[0;36m
 
     \33[1;36mExamples :\33[0m\33[0;36m
-    \$php task queue list --channel=Logs --route=Server1.Logger.Handler
-    \$php task queue listen --channel=Logs --route=Server1.Logger.Handler --memory=128 --delay=0 --timeout=3 --debug=0\33[0m\n";
+    \$php task queue list --channel=Logs --route=ServerName.Logger
+    \$php task queue listen --channel=Logs --route=ServerName.Logger --memory=128 --delay=0 --timeout=3 --debug=0\33[0m\n";
     }
 
     /**

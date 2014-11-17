@@ -2,6 +2,9 @@
 
 namespace Obullo\Log\JobHandler;
 
+use MongoDate,
+    InvalidArgumentException;
+
 /**
  * File JobHandler Class
  * 
@@ -12,7 +15,7 @@ namespace Obullo\Log\JobHandler;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/log
  */
-Class JobHandlerMongo implements JobHandlerInterface
+Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
 {
     /**
      * Container
@@ -59,11 +62,11 @@ Class JobHandlerMongo implements JobHandlerInterface
     public function __construct($c, $mongo, array $params = array())
     {
         $this->c = $c;
-        $this->config = $params;
-
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : null;
+
+        parent::__construct($params);
 
         if (null === $collection) {
             throw new InvalidArgumentException('The collection parameter cannot be empty');
@@ -85,15 +88,15 @@ Class JobHandlerMongo implements JobHandlerInterface
     /**
     * Format log records and build lines
     *
-    * @param string $dateFormat        log date format
+    * @param string $timestamp         unix time
     * @param array  $unformattedRecord log data
     * 
     * @return array formatted record
     */
-    public function format($dateFormat, $unformattedRecord)
+    public function format($timestamp, $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($dateFormat))),
+            'datetime' => new MongoDate(strtotime(date($this->config['log']['format']['date'], $timestamp))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -101,9 +104,7 @@ Class JobHandlerMongo implements JobHandlerInterface
             'extra'    => null,
         );
         if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
-            
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
-
             if ($this->config['format']['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
@@ -115,7 +116,7 @@ Class JobHandlerMongo implements JobHandlerInterface
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
         }
-        return $record;  // Formatted record
+        return $record;
     }
 
     /**
@@ -123,14 +124,15 @@ Class JobHandlerMongo implements JobHandlerInterface
      *
      * @param array $data log record
      * 
-     * @return boolean
+     * @return void
      */
     public function write(array $data)
     {
-        if ( ! $this->isAllowed($data['type'])) {
-            return;
+        $records = array();
+        foreach ($data['record'] as $record) {
+            $records[] = $this->format($data['time'], $record);
         }
-        $this->mongoCollection->batchInsert($data['record'], array('continueOnError' => true));
+        $this->mongoCollection->batchInsert($records, array('continueOnError' => true));
     }
 
     /**
@@ -140,7 +142,7 @@ Class JobHandlerMongo implements JobHandlerInterface
      */
     public function close() 
     {
-        return $this->mongoCollection->close();
+        return $this->mongoClient->close();
     }
 }
 
