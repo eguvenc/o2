@@ -68,8 +68,8 @@ Class App
         if (self::$env != null) {
             return self::$env;
         }
-        if (in_array($hostname, $this->envArray['env']['prod']['server']['hostname'])) {
-            return self::$env = 'prod';
+        if (in_array($hostname, $this->envArray['env']['production']['server']['hostname'])) {
+            return self::$env = 'production';
         }
         if (in_array($hostname, $this->envArray['env']['test']['server']['hostname'])) {
             return self::$env = 'test';

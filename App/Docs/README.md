@@ -191,7 +191,7 @@ return array(
             'ip' => array(),
         ),
     ),
-    'prod' => array (
+    'production' => array (
         'server' => array(
             'hostname' => array(
                 'localhost.production',

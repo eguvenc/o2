@@ -90,7 +90,7 @@ Above the example load config file from local environment.
 		- local
 			config.php
 			database.php
-		- prod
+		- production
 		- test
 ```
 

@@ -512,9 +512,9 @@ Class Container implements ArrayAccess
      */
     protected function resolveServiceClass($serviceClass, $class, $service = 'service')
     {
-        if (isset($this->values['config']->xml()->container->{$service}->{$class})) {   // Check environment based services
+        if (isset($this->values['config']->xml()->env->{$service}->{$class})) {   // Check environment based services
 
-            $attributes = $this->values['config']->xml()->container->{$service}->{$class}->attributes();
+            $attributes = $this->values['config']->xml()->env->{$service}->{$class}->attributes();
             $serviceClass = '\\'.str_replace('/', '\\', $attributes->class);
 
             if (isset($attributes->cli) AND defined('STDIN')) {

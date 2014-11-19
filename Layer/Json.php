@@ -50,7 +50,7 @@ Class Json
         if (isset($r['success'])      // Show exceptional message to developers if environment not LIVE.
             AND $r['success'] == false 
             AND isset($r['e']) AND ! empty($r['e'])
-            AND ENV != 'prod'         // Don't send exceptional errors in "production" environment.
+            AND ENV != 'production'   // Don't send exceptional errors in "production" environment.
         ) { 
             $r['message'] = $r['e'];  // Replace the message with exception
         }

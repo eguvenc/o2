@@ -95,7 +95,7 @@ Class QueueMailer implements JobInterface
 
 ------
 
-#### $this->worker->init($channel = 'Logs', $route = 'myHostname.Log.Driver', $memory = 128, $delay = 0, $timeout = 3, $sleep = 0, $maxTries = 3, $debug = 0, $env = 'prod');
+#### $this->worker->init($channel = 'Logs', $route = 'myHostname.Log.Driver', $memory = 128, $delay = 0, $timeout = 3, $sleep = 0, $maxTries = 3, $debug = 0, $env = 'production');
 
 #### $this->worker->pop();
 
