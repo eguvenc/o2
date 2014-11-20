@@ -34,6 +34,14 @@ Class Smtp extends Adapter
     public function __construct($c, $config = array())
     {
         parent::__construct($c, $config);
+
+        $smtp = $config['send']['protocol']['smtp'];
+
+        $this->smtpHost = $smtp['host'];
+        $this->smtpUser = $smtp['user'];
+        $this->smtpPass = $smtp['pass'];
+        $this->smtpPort = $smtp['port'];
+        $this->smtpTimeout = $smtp['timeout'];
         $this->smtpAuth = ($this->smtpUser == '' AND $this->smtpPass == '') ? false : true;
     }
 

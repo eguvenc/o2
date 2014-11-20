@@ -18,6 +18,13 @@ use Obullo\Mail\Send\Adapter,
 Class Sendmail extends Adapter
 {
     /**
+     * Sendmail path
+     * 
+     * @var string
+     */
+    public $mailpath;
+
+    /**
      * Constructor
      * 
      * @param object $c      container
@@ -26,6 +33,8 @@ Class Sendmail extends Adapter
     public function __construct($c, $config = array())
     {
         parent::__construct($c, $config);
+
+        $this->mailpath = $config['send']['protocol']['sendmail']['mailpath'];
     }
 
     /**
