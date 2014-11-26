@@ -122,7 +122,7 @@ Class Adapter
         $this->debugMsg = array();
 
         $this->setHeader('User-Agent', $this->useragent);
-        $this->setHeader('Date', $this->setDate());
+        $this->setDate();
 
         if ($clearAttachments !== false) {
             $this->attachName = array();
@@ -294,6 +294,16 @@ Class Adapter
     }
 
     /**
+     * Returns mailt type: html / text
+     * 
+     * @return string
+     */
+    public function getMailType()
+    {
+        return $this->mailtype;
+    }
+
+    /**
      * Set Wordwrap
      * 
      * @param bool $wordwrap on off
@@ -421,16 +431,24 @@ Class Adapter
 
     /**
      * Set RFC 822 Date
+     *
+     * @param string $newDate set custom date
      * 
      * @return string
      */
-    public function setDate()
+    public function setDate($newDate = null)
     {
+        if ( ! is_null($newDate)) {
+            $this->setHeader('Date', $newDate);
+            return $newDate;
+        }
         $timezone = date("Z");
         $operator = (strncmp($timezone, '-', 1) == 0) ? '-' : '+';
         $abs = abs($timezone);
         $floorTimezone = floor($abs / 3600) * 100 + ($abs % 3600 ) / 60;
-        return sprintf("%s %s%04d", date("D, j M Y H:i:s"), $operator, $floorTimezone);
+        $date = sprintf("%s %s%04d", date("D, j M Y H:i:s"), $operator, $floorTimezone);
+        $this->setHeader('Date', $date);
+        return $date;
     }
 
     /**

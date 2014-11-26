@@ -59,7 +59,7 @@ error_reporting(0);
 |--------------------------------------------------------------------------
 | This feature is configurable from your main config.php file.
 */
-if ($c->load('config')['error']['reporting']) {
+if ($c['config']['error']['reporting']) {
     error_reporting(E_ALL | E_STRICT | E_NOTICE);
     ini_set('display_errors', 1);
 }
@@ -70,14 +70,14 @@ if ($c->load('config')['error']['reporting']) {
 | Set the default timezone identifier for date function ( Server Time ).
 |
 */
-date_default_timezone_set($c->load('config')['locale']['date']['php_date_default_timezone']);
+date_default_timezone_set($c['config']['locale']['date']['php_date_default_timezone']);
 /*
 |--------------------------------------------------------------------------
 | If Debug Enabled Register Application Error Handlers
 |--------------------------------------------------------------------------
 | If framework debug feature enabled we register error & exception handlers.
 */
-if ($c->load('config')['error']['debug'] AND $c->load('config')['error']['reporting'] == false) {
+if ($c['config']['error']['debug'] AND $c['config']['error']['reporting'] == false) {
     Obullo\Error\Debug::enable(E_ALL | E_NOTICE | E_STRICT);
 }
 

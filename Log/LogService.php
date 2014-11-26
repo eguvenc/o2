@@ -26,7 +26,7 @@ Class LogService
      * 
      * @var object
      */
-    public $params;
+    public $config;
 
     /**
      * Logger class
@@ -39,19 +39,19 @@ Class LogService
      * Constructor
      *
      * @param object $c      container
-     * @param array  $params configuration
+     * @param array  $config configuration
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $config = array())
     {
         $this->c = $c;
-        $this->params = $params;
+        $this->config = $config;
 
         if ($this->disabled()) {
             $this->logger = new NullLogger;  // Use null handler if config disabled.
             return;
         }
-        $this->logger = new Logger($this->c, $this->c->load('service/queue'), $this->params);
-        $this->logger->registerFilterPath($params['log']['service']['filters']);
+        $this->logger = new Logger($this->c, $this->c->load('service/queue'), $this->config);
+        $this->logger->registerFilterPath($config['log']['service']['filters']);
     }
 
     /**
@@ -61,7 +61,7 @@ Class LogService
      */
     public function disabled()
     {
-        return ($this->params['log']['control']['enabled']) ? false : true;
+        return ($this->config['log']['control']['enabled']) ? false : true;
     }
 }
 

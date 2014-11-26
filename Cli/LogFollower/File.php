@@ -24,14 +24,13 @@ Class File
      */
     public function follow($c, $route = 'http')
     {
-        $path = str_replace('/', DS, trim($c->load('config')['log']['file']['path'][$route], '/'));
+        $path = str_replace('/', DS, trim($c['config']['log']['file']['path'][$route], '/'));
         $file = $path;
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
             $file = str_replace('data', DS . trim(DATA, DS), $path);
         }
         echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mFile Handler ".ucfirst($route)."\33[0m\33[1;36m logs ...\33[0m\n";
 
-        static $lines = array();
         $size = 0;
         while (true) {
             clearstatcache(); // Clear the cache
@@ -53,7 +52,6 @@ Class File
             while ($line = fgets($fh)) {
                 $printer->printLine($i, $line);
                 $i++;
-                $lines[$line] = $i;
             }
             fclose($fh);
             clearstatcache();

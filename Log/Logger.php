@@ -185,21 +185,21 @@ Class Logger extends AbstractLogger
      *
      * @param object $c      container
      * @param object $queue  queue service object
-     * @param array  $params configuration
+     * @param array  $config configuration array
      */
-    public function __construct($c, $queue, $params = array())
+    public function __construct($c, $queue, $config = array())
     {
         $this->c = $c;
         $this->queue = $queue;
-        $this->config = $params;
+        $this->config = $config;
         $this->enabled = $this->config['log']['control']['enabled'];
         $this->debug = $this->config['log']['control']['output'];
         $this->channel = $this->config['log']['default']['channel'];
         $this->queries = $this->config['log']['extra']['queries'];
         $this->benchmark = $this->config['log']['extra']['benchmark'];
 
-        $errorDebug = $c->load('config')['error']['debug'];
-        $errorReporting = $c->load('config')['error']['reporting'];
+        $errorDebug = $this->config['error']['debug'];
+        $errorReporting = $this->config['error']['reporting'];
 
         if ($errorDebug == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
             static::registerExceptionHandler($this); 
@@ -686,12 +686,12 @@ Class Logger extends AbstractLogger
             return;
         }
         $this->exec();
-        $this->queue->channel($this->config['queue']['channel']); // Set channel at top
+        $this->queue->channel($this->config['log']['queue']['channel']); // Set channel at top
         $this->queue->push(
-            $this->config['queue']['job'],
-            $this->config['queue']['route'],
+            $this->config['log']['queue']['worker'],
+            $this->config['log']['queue']['route'],
             $this->payload,
-            $this->config['queue']['delay']
+            $this->config['log']['queue']['delay']
         );
     }
 

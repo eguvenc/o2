@@ -24,6 +24,13 @@ Class Clear implements CommandInterface
     public $c;
 
     /**
+     * Config array
+     * 
+     * @var array
+     */
+    public $config;
+
+    /**
      * Logger
      * 
      * @var object
@@ -38,6 +45,7 @@ Class Clear implements CommandInterface
     public function __construct($c)
     {
         $this->c = $c;
+        $this->config = $this->c->load('config');
         $this->logger = $c->load('service/logger');
     }
 
@@ -52,9 +60,9 @@ Class Clear implements CommandInterface
          * Clear File handler data
          */
         $files = array(
-            trim($this->c->load('config')['log']['file']['path']['http'], '/'),
-            trim($this->c->load('config')['log']['file']['path']['ajax'], '/'),
-            trim($this->c->load('config')['log']['file']['path']['cli'], '/'),
+            trim($this->config['log']['file']['path']['http'], '/'),
+            trim($this->config['log']['file']['path']['ajax'], '/'),
+            trim($this->config['log']['file']['path']['cli'], '/'),
         );
         foreach ($files as $file) {
             $file = str_replace('/', DS, $file);
@@ -72,7 +80,7 @@ Class Clear implements CommandInterface
          * Clear Queue handler data
          */
         $queue = $this->c->load('service/queue');
-        $queue->deleteQueue(gethostname(). Constants::QUEUE_SEPARATOR);
+        $queue->deleteQueue($this->config['log']['queue']['route']);
         
         echo "\33[1;36mApplication logs deleted.\33[0m\n";
 

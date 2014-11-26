@@ -17,22 +17,69 @@ $this->mailer->method();
 
 #### Mail Class supports the following features:
 
-* Multiple Protocols: Mail, Sendmail, and SMTP
+* Multiple Protocols: Mail, Sendmail, SMTP
 * Multiple recipients
+* Transactional Email Api Calls
 * CC and BCCs
 * HTML or Plaintext email
 * Attachments
 * Word wrapping
 * Priorities
 * BCC Batch Mode, enabling large email lists to be broken into small BCC batches.
-* Email Debugging tools
+* Email debugging tools
 * Sending Email
+* Sending Emails to Queue Service
 
 Sending email is not only simple, but you can configure it on the fly or set your preferences in a config file.
 
 Here is a basic example demonstrating how you might send email. 
 
 **Note:** This example assumes you are sending the email from one of your controllers.
+
+#### Service Configuration
+
+```php
+<?php
+
+namespace Service;
+
+use Obullo\Mail\Transport\Mandrill;
+
+/**
+ * Mailer Service
+ *
+ * @category  Service
+ * @package   Mail
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/services
+ */
+Class Mailer implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        $c['mailer'] = function () use ($c) {
+            return new Mandrill($c, $c->load('config')['mail']);
+        };
+    }
+}
+
+// END Mailer class
+
+/* End of file Mailer.php */
+/* Location: .classes/Service/Mailer.php */
+
+```
+
+Example code
 
 ```
 <?php
@@ -51,13 +98,12 @@ echo $this->mailer->printDebugger();
 
 ### Setting Email Preferences
 
-There are 17 different preferences available to tailor how your email messages are sent.
-
-You can either set them manually as described here, or automatically via preferences stored in your config file, described below:
+You can either set preferences manually as described here, or automatically via preferences stored in your config file, described below:
 
 Preferences are set by passing an array of preference values to the email initialize function. Here is an example of how you might set some preferences:
 
 ```
+<?php
 <?php
 /*
 |--------------------------------------------------------------------------
@@ -67,26 +113,53 @@ Preferences are set by passing an array of preference values to the email initia
 |
 */
 return array(
-    'useragent' => 'Obullo', //  The "user agent".
-    'mailpath'  => '/usr/sbin/sendmail',  //  The server path to Sendmail.
-    
-    'smtpHost' =>  'smtp.mandrillapp.com',  // SMTP Server Address.
-    'smtpUser' => 'example@example.com',   // SMTP Username.
-    'smtpPass' => '123456',   // SMTP Password.
-    'smtpPort' => '587', // SMTP Port.
-    'smtpTimeout' => '5' , // SMTP Timeout (in seconds).
+    'send' => array(
+        'settings' => array(
+            'useragent' => 'Framework Mailer',  //  The "user agent".
+            'wordwrap' => true,       // "true" or "false" (boolean) Enable word-wrap.
+            'wrapchars' => 76,        // Character count to wrap at.
+            'mailtype' => 'html',     // text or html Type of mail. If you send HTML email you must send it as a complete web page. 
+                                      // Make sure you don't have any relative links or relative image paths otherwise they will not work.
+            'charset' => 'utf-8',     // Character set (utf-8, iso-8859-1, etc.).
+            'validate' => false,      // "true" or "false" (boolean) Whether to validate the email address.
+            'priority' =>  3,         // 1, 2, 3, 4, 5   Email Priority. 1 = highest. 5 = lowest. 3 = normal.
+            'crlf'  => "\n",          //  "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
+            'newline' =>  "\n",       // "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
+            'bccBatchMode' =>  false,   // true or false (boolean) Enable BCC Batch Mode.
+            'bccBatchSize' => 200,     // None  Number of emails in each BCC batch.
+        ),
+        'protocol' => array(
+            'mail' => array(
 
-    'wordwrap' => true, // "true" or "false" (boolean) Enable word-wrap.
-    'wrapchars' => 76,   // Character count to wrap at.
-    'mailtype' => 'html', // text
-                             .
-    'charset' => 'utf-8',
-    'validate' => false,  
-    'priority' =>  3,
-    'crlf'  => "\n",
-    'newline' =>  "\n",
-    'bccBatchMode' =>  false,
-    'bccBatchSize' => 200
+            ),
+            'sendmail' => array(
+                'mailpath'  => '/usr/sbin/sendmail',  //  The server path to Sendmail.
+            ),
+            'smtp' => array(
+                'host' => 'smtp.mandrillapp.com',     // SMTP Server Address.
+                'user' => 'obulloframework@gmail.com', // SMTP Username.
+                'pass' => 'BIK8O7xt1Kp7aZyyQ55uOQ',    // SMTP Password.
+                'port' => '587',    // SMTP Port.
+                'timeout' => '5' ,  // SMTP Timeout (in seconds).
+            ),
+        ),
+        'transport' => array(
+            'mandrill' => array(
+                'key' => 'BIK8O7xt1Kp7aZyyQ55uOQ',  // Mandrill api key
+                'ip_pool' => 'Main Pool',           // The name of the dedicated ip pool that should be used to send the message.
+            ),
+            'mailgun' => array(
+
+            )
+        ),
+        'queue' => array(
+            'mailer' => 'mandrill',             // Default mailer   // mandrill, mailgun, smtp, sendmail, mail ..
+            'channel' => 'Mail',                // QueueMailer channel name
+            'route' => gethostname().'.Mailer', // QueueMailer route name
+            'worker' => 'Workers\Mailer',
+        )
+
+    ),
 );
 
 /* End of file mail.php */
@@ -97,11 +170,16 @@ return array(
 
 ```php
 <?php
-$config['protocol'] = 'sendmail';
-$config['mailpath'] = '/usr/sbin/sendmail';
-$config['charset'] = 'iso-8859-1';
-$config['wordwrap'] = true;
-
+$config = array(
+    'send' => array(
+        'settings' => array(
+            'protocol' => 'sendmail',
+            'mailpath' => '/usr/sbin/sendmail',
+            'charset' => 'iso-8859-1',
+            'wordwrap' => true,
+        )
+    )
+);
 $this->mailer->init($config);
 ```
 
@@ -110,7 +188,6 @@ $this->mailer->init($config);
 ### Email Preferences
 
 The following is a list of all the preferences that can be set when sending email.
-
 
 <table>
     <thead>
@@ -236,6 +313,41 @@ The following is a list of all the preferences that can be set when sending emai
 </table>
 
 
+### Getting Transactional Email Api Call Results
+
+```php
+<?php
+$this->mailer->from('test@example.com', 'Your Name');
+$this->mailer->to('example@example.com'); 
+$this->mailer->cc('obulloframework@gmail.com');
+$this->mailer->subject('Email Test');
+$this->mailer->message('Testing the email class.'); 
+$this->mailer->send();
+
+$r = $this->mailer->response()->getArray();
+
+print_r($r); // gives
+
+/*
+Array ( 
+        [0] => Array ( [email] => example@example.com [status] => sent [_id] => a775e412a29f4c4587a7d5242c951dd8 [reject_reason] => ) 
+        [1] => Array ( [email] => obulloframework@gmail.com [status] => sent [_id] => 015b1e527ae84c2090ae9feb9d573d8d [reject_reason] => )
+) 
+*/
+
+echo $this->mailer->printDebugger();  // gives debug output
+
+/*
+Framework Mailer
+Fri, 21 Nov 2014 13:31:30 +0000
+example@example.com
+obulloframework@gmail.com
+Email Test
+"Your Name" 
+=?utf-8?Q?Email_Test?=
+*/
+```
+
 ### Function Reference
 
 ------
@@ -249,7 +361,7 @@ Sets the email address and name of the person sending the email:
 $this->mailer->from('you@example.com', 'Your Name');
 ```
 
-#### $this->mailer->replyTo()
+#### $this->mailer->replyTo(string $email, string $name)
 
 Sets the reply-to address. If the information is not provided the information in the "from" function is used. Example:
 
@@ -307,17 +419,6 @@ This is an optional message string which can be used if you send HTML formatted 
 
 Initializes all the email variables to an empty state. This function is intended for use if you run the email sending function in a loop, permitting the data to be reset between cycles.
 
-```php
-<?php
-foreach ($list as $name => $address) {
-    $this->mailer->clear();
-    $this->mailer->to($address);
-    $this->mailer->from('your@example.com');
-    $this->mailer->subject('Here is your info '.$name);
-    $this->mailer->message('Hi '.$name.' Here is the info you requested.');
-    $this->mailer->send();
-}
-```
 
 If you set the parameter to true any attachments will be cleared as well:
 
@@ -349,7 +450,22 @@ $this->mailer->send();
 $this->mailer->printDebugger();
 ```
 
+#### $this->mailer->printDebugger();
+
 Returns a string containing any server messages, the email headers, and the email messsage. Useful for debugging.
+
+#### $this->mailer->response()->getArray();
+
+Returns to array response if your email provider support.
+
+#### $this->mailer->response()->getRaw();
+
+Returns to raw data output of http request.
+
+#### $this->mailer->response()->getXml();
+
+Returns to xml response if your email provider support.
+
 
 #### Overriding Word Wrapping
 
@@ -366,3 +482,288 @@ More text that will be
 wrapped normally.
 
 Place the item you do not want word-wrapped between: {unwrap} {/unwrap}
+
+
+### QueueMailer ( Recommended )
+
+------
+
+QueueMailer class allows to you send your emails in the background using Queue service.
+
+If you prefer to use QueueMailer class you will get better performance, but you need to change service configuration and configure a worker to consume queue data.
+
+#### QueueMailer Service
+
+Update your service like below the example.
+
+```php
+<?php
+
+namespace Service;
+
+use Obullo\Mail\QueueMailer;
+
+/**
+ * Mailer Service
+ *
+ * @category  Service
+ * @package   Mail
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/services
+ */
+Class Mailer implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        $c['mailer'] = function () use ($c) {
+            return new QueueMailer($c, $c->load('config')['mail']);
+        };
+    }
+}
+
+// END Mailer class
+
+/* End of file Mailer.php */
+/* Location: .classes/Service/Mailer.php */
+```
+
+#### QueueMailer Worker
+
+You can configure your worker like below.
+
+```php
+<?php
+
+namespace Workers;
+
+use Obullo\Queue\Job,
+    Obullo\Queue\JobInterface,
+    Obullo\Mail\Send\Smtp,
+    Obullo\Mail\Transport\Mandrill;
+
+ /**
+ * Mail Worker
+ *
+ * @category  Workers
+ * @package   Mailer
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/queue
+ */
+Class Mailer implements JobInterface
+{
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Config parameters
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Constructor
+     * 
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->c = $c;
+        $this->config = $c['config']->load('mail');
+    }
+
+    /**
+     * Fire the job
+     * 
+     * @param Job   $job  object
+     * @param array $data data array
+     * 
+     * @return void
+     */
+    public function fire(Job $job, $data)
+    {
+        $data = $data['message'];
+
+        switch ($data['mailer']) {
+
+        case 'mandrill':
+            $mail = new Mandrill($this->c, $this->config);
+
+            $mail->setMailType($data['mailtype']);
+            $mail->from($data['from_email'], $data['from_name']);
+
+            foreach ($data['to'] as $to) {
+                $method = $to['type'];
+                $mail->$method($to['name'].' <'.$to['email'].'>');
+            }
+            $mail->subject($data['subject']);
+            $mail->message($data[$mail->getMailType()]);
+
+            if (isset($data['attachments'])) {
+                foreach ($data['attachments'] as $attachments) {
+                    $mail->attach($attachments['fileurl'], 'attachment');
+                }
+            }
+            if (isset($data['images'])) {
+                foreach ($data['images'] as $attachments) {
+                    $mail->attach($attachments['fileurl'], 'inline');
+                }
+            }
+            $mail->addMessage('send_at', $mail->setDate($data['send_at']));
+            $mail->send();
+
+            // print_r($mail->response()->getArray());
+            // echo $mail->printDebugger();
+            break;
+
+        case 'smtp':
+
+            break;
+        }
+        /**
+         * Delete job from queue after successfull operation.
+         */
+        $job->delete(); 
+            
+    }
+}
+
+/* End of file Mailer.php */
+/* Location: .app/classes/Mailer.php */
+```
+
+#### QueueMailer Push Data Format
+
+QueueMailer class send mail data to queue service using following the format.
+
+```php
+<?php
+    /* PUSH DATA
+    {
+        "message": {
+            "mailer": "mandrill",  // smtp
+            "mailtype" "html"      // text
+            "html": "<p>Example HTML content</p>",
+            "text": "Example text content",
+            "subject": "example subject",
+            "from_email": "message.from_email@example.com",
+            "from_name": "Example Name",
+            "to": [
+                {
+                    "email": "recipient.email@example.com",
+                    "name": "Recipient Name",
+                    "type": "to"
+                }
+            ],
+            "headers": {
+                "Reply-To": "message.reply@example.com"
+            },
+            "important": false,
+            "auto_text": null,
+            "auto_html": null,
+            "inline_css": null,
+            "tags": [
+                "password-resets"
+            ],
+            "attachments": [
+                {
+                    "type": "text/plain",
+                    "name": "myfile.txt",
+                    "fileurl": "/var/www/myfile.text"
+                }
+            ],
+            "images": [
+                {
+                    "type": "image/png",
+                    "name": "file.png",
+                    "fileurl": "http://www.example.com/images/file.png",
+                }
+            ]
+        },
+        "send_at": "example send_at"
+    }
+    */
+```
+
+<kbd>app/Workers/Mailer.php</kbd> parse this format and send your emails in the background.
+
+
+#### Following Workers/Mailer Output
+
+Uncomments below the lines from your <kbd>app/Workers/Mailer.php</kbd> file.
+
+```php
+<?php
+print_r($mail->response()->getArray());
+echo $mail->printDebugger();
+```
+
+Then type to your console and run:
+
+```php
+php task queue listen --channel=Mail --route=localhost.Mailer --debug=1
+```
+
+If you set parameter <b>--debug=1</b> this means you can see all outputs of the worker. In production configuration you need to use parameter <b>--debug=0</b> or default is always "0".
+
+
+When you send an email in the application you will get below the output on your console:
+
+```php
+            ______  _            _  _
+           |  __  || |__  _   _ | || | ____
+           | |  | ||  _ || | | || || ||  _ |
+           | |__| || |_||| |_| || || || |_||
+           |______||____||_____||_||_||____|
+
+            Welcome to Task Manager (c) 2014
+    You are running $php task queue command which is located in app / tasks folder.
+
+Array
+(
+    [] => Array
+        (
+            [email] => me@example.com
+            [status] => queued
+            [_id] => 3e537bd42820445da198d64a4f1b99ab
+        )
+
+    [1] => Array
+        (
+            [email] => test@example.com
+            [status] => queued
+            [_id] => 7c882ac765c74db193900a000f3b19e3
+        )
+
+)
+<pre>Headers: 
+Framework Mailer Transport
+Wed, 26 Nov 2014 09:54:43 +0000
+<me@example.com>
+<test@example.com>
+=?utf-8?Q?Email_Test?=
+"\"Your Name\"" <admin@example.com>
+
+Subject:  
+=?utf-8?Q?Email_Test?=
+
+Message: 
+Testing the email class.</pre>Output : 
+{"job":"Workers\\Mailer","data":{"message":{"html":"Testing the email class.","mailer":"mandrill","mailtype":"html","subject":"=?utf-8?Q?Email_Test?=","from_email":"test@example.com","from_name":"\"Your Name\"","to":[{"type":"to","email":"me@example.com","name":null},{"type":"cc","email":"test@example.com","name":null}],"headers":{"User-Agent":"Framework Mailer Transport","Date":"Wed, 26 Nov 2014 09:54:43 +0000","To":"eguvenc@gmail.com","Subject":"Email Test","Reply-To":"\"Your Name\" <test@example.com>"},"send_at":"Wed, 26 Nov 2014 09:54:43 +0000","attachments":[{"type":"image\/png","name":"buttons.png","fileurl":"\/var\/www\/framework\/assets\/images\/buttons.png"},{"type":"image\/png","name":"logo.png","fileurl":"\/var\/www\/framework\/assets\/images\/logo.png"}]}}}
+
+```

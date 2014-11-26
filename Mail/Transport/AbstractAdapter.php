@@ -1,16 +1,17 @@
 <?php
 
-namespace Obullo\Log;
+namespace Obullo\Mail\Transport;
 
 use Obullo\Mail\Text,
     Obullo\Mail\Validator,
-    Obullo\Mail\File;
+    Obullo\Mail\File,
+    RuntimeException;
 
 /**
  * AbstractAdapter
  * 
  * @category  Mail
- * @package   Transactional
+ * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
@@ -18,7 +19,7 @@ use Obullo\Mail\Text,
  */
 Abstract Class AbstractAdapter
 {
-    public $useragent = 'Framework';
+    public $useragent = 'Framework Mailer';
     public $wordwrap = true;        // true/false  Turns word-wrap on/off
     public $wrapchars = 76;
     public $mailtype = 'text';      // text/html  Defines email formatting
@@ -31,24 +32,18 @@ Abstract Class AbstractAdapter
     public $validator;
     public $subject = '';
     public $body = '';
-    public $finalbody = '';
-    public $altBoundary = '';
-    public $atcBoundary = '';
     public $altMessage = '';        // Alternative message for HTML emails
-    public $headerStr = '';
     public $replytoFlag = false;
     public $debugMsg = array();
     public $recipients = array();
     public $ccArray = array();
     public $bccArray = array();
     public $headers = array();
-    public $attachName = array();
-    public $attachType = array();
-    public $attachDisp = array();
-    public $attachContent = array();
-    // public $baseCharsets = array('us-ascii', 'iso-2022-');    // 7-bit charsets (excluding language suffix)
-    // public $priorities = array('1 (Highest)', '2 (High)', '3 (Normal)', '4 (Low)', '5 (Lowest)');
+    public $attachments = array();
     public $logger;
+    public $date;
+
+    protected $attachCount = 0;
 
     /**
      * Constructor
@@ -59,10 +54,7 @@ Abstract Class AbstractAdapter
     public function __construct($c, $config = array())
     {
         $this->c = $c;
-        $this->init($config['settings']);
-
-        $this->logger = $c->load('service/logger');
-        $this->logger->debug('Mail Class Initialized');
+        $this->init($config['send']['settings']);
     }
 
     /**
@@ -97,56 +89,44 @@ Abstract Class AbstractAdapter
     {
         $this->subject = "";
         $this->body = "";
-        $this->finalbody = "";
         $this->headerStr = "";
         $this->replytoFlag = false;
         $this->recipients = array();
         $this->headers = array();
         $this->debugMsg = array();
+        $this->attachCount = 0;
 
         $this->setHeader('User-Agent', $this->useragent);
-        $this->setHeader('Date', $this->setDate());
+        $this->setDate();
 
         if ($clearAttachments !== false) {
-            $this->attachName = array();
-            $this->attachType = array();
-            $this->attachDisp = array();
-            $this->attachContent = array();
+            $this->attachmentsName = array();
+            $this->attachmentsType = array();
+            $this->attachmentsDisp = array();
+            $this->attachmentsContent = array();
         }
     }
 
     /**
-     * Send new http post request
-     *
-     * @param string $url  post url
-     * @param array  $post post data
-     * 
-     * @return string $result
-     */
-    protected function post($url, array $post)
-    {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");  
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
-        $result = curl_exec($ch);
-        curl_close($ch);
-        return $result;
-    }
-
-    /**
      * Set RFC 822 Date
+     *
+     * @param string $newDate set custom date
      * 
      * @return string
      */
-    public function setDate()
+    public function setDate($newDate = null)
     {
+        if ( ! is_null($newDate)) {
+            $this->setHeader('Date', $newDate);
+            return $newDate;
+        }
         $timezone = date("Z");
         $operator = (strncmp($timezone, '-', 1) == 0) ? '-' : '+';
         $abs = abs($timezone);
         $floorTimezone = floor($abs / 3600) * 100 + ($abs % 3600 ) / 60;
-        return sprintf("%s %s%04d", date("D, j M Y H:i:s"), $operator, $floorTimezone);
+        $date = sprintf("%s %s%04d", date("D, j M Y H:i:s"), $operator, $floorTimezone);
+        $this->setHeader('Date', $date);
+        return $date;
     }
 
     /**
@@ -165,7 +145,7 @@ Abstract Class AbstractAdapter
         if ($this->validate) {
             $this->validator->validateEmail($this->strToArray($from));
             if ($this->validator->isError()) {
-                $this->setErrorMessage($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
             }
         }
         if ($name != '') {  // Prepare the display name
@@ -179,9 +159,6 @@ Abstract Class AbstractAdapter
         }
         $this->fromName = $name;
         $this->fromEmail = $from;
-
-        // $this->setHeader('From', $name . ' <' . $from . '>');
-        // $this->setHeader('Return-Path', '<' . $from . '>');
     }
 
     /**
@@ -213,7 +190,7 @@ Abstract Class AbstractAdapter
         if ($this->validate) {
             $this->validator->validateEmail($this->strToArray($replyto));
             if ($this->validator->isError()) {
-                $this->setErrorMessage($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
             }
         }
         if ($name == '') {
@@ -227,6 +204,28 @@ Abstract Class AbstractAdapter
     }
 
     /**
+     * Set Mailtype
+     *
+     * @param string $type default text
+     * 
+     * @return void
+     */
+    public function setMailtype($type = 'text')
+    {
+        $this->mailtype = ($type == 'html') ? 'html' : 'text';
+    }
+
+    /**
+     * Returns mailt type: html / text
+     * 
+     * @return string
+     */
+    public function getMailType()
+    {
+        return $this->mailtype;
+    }
+
+    /**
      * Set Email Subject
      * 
      * @param string $subject email subject
@@ -236,6 +235,7 @@ Abstract Class AbstractAdapter
     public function subject($subject)
     {
         $this->subject = $this->prepQencoding($subject);
+        $this->setHeader('Subject', $subject);
     }
 
     /**
@@ -254,21 +254,22 @@ Abstract Class AbstractAdapter
      * Assign file attachments
      * 
      * @param string $filename    attachment name
-     * @param string $disposition default attachment
+     * @param string $disposition default attachment or inline
      * 
      * @return void
      */
     public function attach($filename, $disposition = 'attachment')
     {
-        $this->attachName[] = $filename;
-        $file = basename($filename);
-        $mimes = explode('.', $file);
+        $name = basename($filename);
+        $mimes = explode('.', $name);
         $mimes = next($mimes);
-
         $file = new File;
-        $this->attachType[] = $file->mimeTypes($mimes);
-        $this->attachDisp[] = $disposition; // Can also be 'inline'  Not sure if it matters
-        $this->attachContent[] = file_get_contents($filename);
+
+        $this->attachments[$this->attachCount]['disposition'] = $disposition;
+        $this->attachments[$this->attachCount]['type'] = $file->mimeTypes($mimes);
+        $this->attachments[$this->attachCount]['name'] = $name;
+        $this->attachments[$this->attachCount]['fileurl'] = $filename;
+        ++$this->attachCount;
     }
 
     /**
@@ -279,13 +280,13 @@ Abstract Class AbstractAdapter
     public function send()
     {
         if ($this->replytoFlag == false) {
-            $this->replyTo($this->headers['From']);
+            $this->replyTo($this->fromEmail, $this->fromName);
         }
         if (( ! isset($this->recipients) AND ! isset($this->headers['To']) ) 
             AND ( ! isset($this->bccArray) AND ! isset($this->headers['Bcc'])) 
             AND ( ! isset($this->headers['Cc']))
         ) {
-            $this->setErrorMessage('OBULLO:MAIL:NO_RECIPIENTS');
+            $this->debugMsg[] = $this->c['translator']['OBULLO:MAIL:NO_RECIPIENTS'];
             return false;
         }
         $this->buildMessage();
@@ -375,16 +376,16 @@ Abstract Class AbstractAdapter
     public function formatEmail($email)
     {
         if ( ! is_array($email)) {
-            if (strpos($email, '<') > 0 AND preg_match('/(.*?)\<(.*)\>/', $email, $match)) {
-                return array('email' => $match['1'], 'name' => $match[2]);
+            if (strpos($email, '>') > 0 AND preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $email, $match)) {
+                return array('email' => $match['email'], 'name' => $match['name']);
             } else {
                 return array('email' => $email, 'name' => null);
             }
         }
         $formatted = array();
         foreach ($email as $address) {
-            if (strpos($address, '<') > 0 AND preg_match('/(.*?)\<(.*)\>/', $address, $match)) {
-                $formatted[] = array('email' => $match['1'], 'name' => $match[2]);
+            if (strpos($address, '>') > 0 AND preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $address, $match)) {
+                $formatted[] = array('email' => $match['email'], 'name' => $match['name']);
             } else {
                 $formatted[] = array('email' => $address, 'name' => null);
             }
@@ -399,33 +400,23 @@ Abstract Class AbstractAdapter
      */
     public function printDebugger()
     {
+        $this->c['translator']->load('mail');
         $msg = '';
         if (count($this->debugMsg) > 0) {
             foreach ($this->debugMsg as $val) {
-                $msg .= $val;
+                if ( ! is_array($val)) {
+                    $val = array($val);
+                }
+                $msg .= '<pre>'.var_export($val, true).'</pre>';
             }
         }
-        $msg .= "<pre>" . $this->headerStr . "\n" . htmlspecialchars($this->subject) . "\n" . htmlspecialchars($this->finalbody) . '</pre>';
+        $msg .= "<pre>Headers: \n" . implode("\n", $this->headers) . "\n\nSubject:  \n" . htmlspecialchars($this->subject) . "\n\nMessage: \n" . htmlspecialchars($this->body) . '</pre>';
         return $msg;
-    }
-
-    /**
-     * Set Message
-     *
-     * @param string $msg message
-     * @param string $val value
-     *
-     * @return void
-     */
-    public function setErrorMessage($msg, $val = '')
-    {
-        $this->c['translator']->load('mail');
-        $this->debugMsg[] = $this->c['translator']->sprintf($msg, $val) . "<br />";
     }
 
 }
 
-// END AbstractLogger class
-/* End of file AbstractLogger.php */
+// END AbstractAdapter class
+/* End of file AbstractAdapter.php */
 
-/* Location: .Obullo/Log/AbstractLogger.php */
+/* Location: .Obullo/Mail/Transport/AbstractAdapter.php */

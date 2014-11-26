@@ -99,7 +99,7 @@ if (array_key_exists('_remap', $app->controllerMethods)) {  // Is there a "remap
 
     // Call the requested method. Any URI segments present (besides the directory / class / method) 
     // will be passed to the method for convenience
-    // directory = 0, class = 1,  ( arguments = 2) ( @deprecated  method = 2 method always = index )
+    // directory = 0, class = 1,  ( arguments = 2) ( @deprecated  method = 2 always = index )
     call_user_func_array(array($app, 'index'), $arguments);
 }
 /*

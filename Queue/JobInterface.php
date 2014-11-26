@@ -17,10 +17,9 @@ interface JobInterface
     /**
      * Constructor
      * 
-     * @param object $c   container
-     * @param string $env environment
+     * @param object $c container
      */
-    public function __construct($c, $env);
+    public function __construct($c);
 
     /**
      * Fire the job

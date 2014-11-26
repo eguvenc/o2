@@ -64,20 +64,23 @@ Class Config implements ArrayAccess
     public function __construct()
     {
         $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
+        $this->xmlFile = $this->envPath .'config.xml';
 
-        $config = include $this->envPath .'config'. EXT;
+        $this->xml = simplexml_load_file($this->xmlFile);   // Load xml file
+        if ($this->xml == false) {
+            $error = error_get_last();
+            die('Config.xml file parse error: '.$error['message']. ' line: '.$error['line']);
+        }
+        if (isset($this->xml->env->attributes()->file)) {   // Load environment variables if exists
+            $this->loadEnv($this->xml->env->attributes()->file);
+        }
+        $config = include $this->envPath .'config'. EXT;     // Load config variables
         foreach ($config as $k => $v) {
             if (is_string($v) AND strpos($v, '@include.') === 0) {
                 $config[$k] = include $this->envPath .substr($v, 9);
             }
         }
-        $this->xmlFile = $this->envPath .'config.xml';
-        $this->xml = simplexml_load_file($this->xmlFile);
-        if ($this->xml == false) {
-            $error = error_get_last();
-            die('Config.xml file parse error: '.$error['message']. ' line: '.$error['line']);
-        }
-        $this->array = $config;  //  load current environment config file
+        $this->array = $config;  // Bind current environment config variables 
     }
 
     /**
@@ -111,6 +114,25 @@ Class Config implements ArrayAccess
         $this->loaded[] = $file;
         unset($config);
         return $this->array[$file];
+    }
+
+    /**
+     * Load env config variables file
+     * 
+     * @param string $file filename
+     * 
+     * @return void
+     */
+    public function loadEnv($file)
+    {
+        $filename = (substr($file, -4) == '.php') ? $file : $file. EXT;
+        $envVariables = include ROOT .$filename;
+
+        foreach ($envVariables as $key => $value) {
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+            putenv("{$key}={$value}");   
+        }
     }
 
     /**
