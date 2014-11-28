@@ -61,11 +61,9 @@ $this->config['itemname'];
 
 Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retrieve. For example, to fetch your language choice you'll do this:
 
-### Relationships 
+### File Relationships 
 
-If you want, you can give relationship to main config file using <b>@include.filename.php</b> string.
-
-When you use <b>@include.filename.php</b> in your main config file this will load your <b>file</b> from your <b>env/$env/filename.php</b>
+If you want, you can give relationship to main config file using <b>@include.filename.php</b> string. When you use <b>@include.filename.php</b> in your main config file this will load your <b>file</b> from your <b>env/$env/filename.php</b>
 
 ```php
 <?php
@@ -80,19 +78,104 @@ When you use <b>@include.filename.php</b> in your main config file this will loa
 /* Location: .app/env/local/config.php */
 ```
 
-Above the example load config file from local environment.
 
+### Environment folders
+
+If you want to create new environment first create a new folder under the config directory then copy your config files to there.
 
 ```php
 - app
 - config
-	- env
-		- local
-			config.php
-			database.php
-		- production
-		- test
+    - env
+        - local
+            config.php
+            config.xml
+            database.php
+        - production
+            config.php
+            config.xml
+            database.php
+            .
+            .
+        - test
 ```
+
+## Xml Config File
+
+Xml config file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
+
+```php
+<?php
+<?xml version="1.0"?>
+<root>
+    <route>
+        <all maintenance="up" label="All Application" regex=".*.example.com"/>
+        <site maintenance="up" label="Web Server" regex="^example.com$|^www.example.com$"/>
+        <test maintenance="up" label="Sports" regex="sports\d+.example.com"/>
+        <support maintenance="up" label="Support" regex="support.example.com"/>
+    </route>
+    <service>
+        <all maintenance="down" label="All Services"/>
+        <queue maintenance="up" label="Queue Service"/>
+    </service>
+    <env file=".env.local.php">
+        <service>
+            <logger class="Log/Env/Local" cli="Log/Env/Cli" />
+        </service>
+        <provider></provider>
+    </env>
+</root>
+<!--
+END xml config File
+End of file config.xml
+
+Location: .app/config/env/local/config.xml
+-->
+```
+
+Config xml file load <b>.env.local.php</b> variables from your project root.
+
+```php
++ app
++ assets
++ o2
+.
+.
+.env.local.php
+
+```
+
+### Contents of the .env.local.php
+
+```php
+<?php
+
+return array(
+    'DATABASE_USERNAME' => 'root',
+    'DATABASE_PASSWORD' => '123456',
+    'MONGO_USERNAME' => 'root',
+    'MONGO_PASSWORD' => '123456',
+    'REDIS_AUTH' => 'aZX0bjL',
+    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
+    'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
+    'AMQP_USERNAME' => 'root',
+    'AMQP_PASSWORD' => '123456',
+);
+
+/* End of file .env.local.php */
+/* Location: .env.local.php */
+```
+
+If you use test environment you need create your <b>.env.test.php</b> file and update config.xml as <kbd>env file=".env.test.php"</kbd>
+
+Above the example load config file from local environment. When config class initalized first time it loads your environnents variables from your <b>.env.$env.php</b>.
+
+After that you can fetch variable values using any of these methods
+
+* <b>$_ENV['key']</b>
+* <b>$_SERVER['key']</b>
+* <b>getenv('key')</b>
+
 
 Database config example
 
@@ -107,24 +190,30 @@ Database config example
 */
 return array(
     'db' => array(
-        'host' => 'demo_blog',
-        'username' => 'root',
-        'password' => '123456',
-        'database' => 'demo_blog',
+        'host' => 'localhost',
+        'username' => $_ENV['DATABASE_USERNAME'],
+        'password' => $_ENV['DATABASE_PASSWORD'],
+        'database' => 'test',
         'port'     => '',
         'charset'  => 'utf8',
+        'autoinit' => array('charset' => true, 'bufferedQuery' => true),
         'dsn'      => '',
-        'options'  => array()
+        'pdo'      => array(
+            'options'  => array()
+        ),
     ),
-    'yourSecondDatabaseName' => array(
-        'host' => '',
-        'username' => 'root',
-        'password' => '123456',
-        'database' => '',
+    'q_jobs' => array(
+        'host' => 'localhost',
+        'username' => $_ENV['DATABASE_USERNAME'],
+        'password' => $_ENV['DATABASE_PASSWORD'],
+        'database' => 'q_jobs',
         'port'     => '',
         'charset'  => 'utf8',
+        'autoinit' => array('charset' => true, 'bufferedQuery' => true),
         'dsn'      => '',
-        'options'  => array()
+        'pdo'      => array(
+            'options'  => array()
+        ),
     ),
 );
 
@@ -156,45 +245,6 @@ $this->config->array['item']['subitem'] = 'value';
 
 Where <var>item</var> is the $config array index you want to change, and <var>value</var> is its value.
 
-### Loading Files From Your Environment folder
-
-```php
-<?php
-$this->config->load('filename', true);
-```
-
-## Xml Config File
-
-Xml config file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
-
-```php
-<?php
-<?xml version="1.0"?>
-<root>
-    <route>
-        <all maintenance="up" label="All Application" regex=".*.example.com"/>
-        <site maintenance="up" label="Web Server" regex="^example.com$|^www.example.com$"/>
-        <test maintenance="up" label="Sports" regex="sports\d+.example.com"/>
-        <support maintenance="up" label="Support" regex="support.example.com"/>
-    </route>
-    <service>
-        <all maintenance="down" label="All Services"/>
-        <queue maintenance="up" label="Queue Service"/>
-    </service>
-    <container>
-        <service>
-            <logger class="Log/Env/LocalLogger" cli="Log/Env/CliLogger"/>
-        </service>
-        <provider></provider>
-    </container>
-</root>
-<!--
-END xml config File
-End of file config.xml
-
-Location: .app/config/env/local/config.xml
--->
-```
 
 ### Initializing the Xml Data ( Object Access )
 
@@ -291,7 +341,22 @@ return array(
 /* Location: .app/config/env/environments.php */
 ```
 
-When the application run $app->detectEnvironment(); method detect your current environment using your configuration array.
+When the application run <b>$app->detectEnvironment();</b> method detect your current environment using your configuration array then it assign environment to <b>ENV</b> constant.
+
+```php
+<?php
+/*
+|--------------------------------------------------------------------------
+| Detect current environment
+|--------------------------------------------------------------------------
+*/
+define('ENV', $c['app']->detectEnvironment());
+
+// END Core.php File
+/* End of file Core.php
+
+/* Location: .Obullo/Obullo/Core.php */
+```
 
 
 ### Function Reference

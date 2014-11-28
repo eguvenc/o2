@@ -81,7 +81,7 @@ Class Mailer implements ServiceInterface
 
 Example code
 
-```
+```php
 <?php
 $c->load('service/mailer');
 
@@ -102,8 +102,7 @@ You can either set preferences manually as described here, or automatically via 
 
 Preferences are set by passing an array of preference values to the email initialize function. Here is an example of how you might set some preferences:
 
-```
-<?php
+```php
 <?php
 /*
 |--------------------------------------------------------------------------
@@ -326,7 +325,7 @@ $this->mailer->send();
 
 $r = $this->mailer->response()->getArray();
 
-print_r($r); // gives
+print_r($r); // see example results for Mandrill
 
 /*
 Array ( 
@@ -474,7 +473,7 @@ If you have word wrapping enabled (recommended to comply with RFC 822) and you h
 The text of your email that
 gets wrapped normally.
 
-```
+```php
 {unwrap}http://example.com/a_long_link_that_should_not_be_wrapped.html{/unwrap}
 ```
 
