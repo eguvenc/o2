@@ -20,82 +20,9 @@ To install the AMQP PHP extension you should first choose your AMQP handler. We 
 
 ## Example Installation of RabbitMQ
 
-You must first install the <a href="https://github.com/alanxz/rabbitmq-c">librabbitmq</a> library. You will need the 0-9-1 version of the rabbitmq-c client library, linked to the rabbitmq-codegen version that corresponds to the version of the broker you are using. Use the following steps to download and install the library:
+Use the following steps to download and install the library: <a href="https://github.com/obullo/warmup/tree/master/AMQP/RabbitMQ">https://github.com/obullo/warmup/tree/master/AMQP/RabbitMQ</a>
 
 There are a lot of queue handlers which they use AMQP interface below the example we install and test RabbitMQ.
-
-### Download the rabbitmq-c library
-
-```php
-git clone git://github.com/alanxz/rabbitmq-c.git
-cd rabbitmq-c
-```
-
-### Enable and update the codegen git submodule
-
-```php
-git submodule init
-git submodule update
-```
-
-### Configure, compile and install
-
-```php
-autoreconf -i && ./configure && make && sudo make install
-```
-
-```php
-sudo apt-get install librabbitmq-dev
-```
-
-```php
-pecl install amqp
-```
-
-You should add "extension=amqp.so" to your php.ini extension
-
-```php
-cd /etc/php5/mods-available
-```
-
-Create ini file using your text editor
-
-```php
-vim amqp.ini
-```
-
-Paste below the lines
-
-```php
-; configuration for php AMQP module
-; priority=20
-extension=amqp.so
-```
-
-Enable amqp extension
-
-```php
-php5enmod amqp
-```
-
-```php
-sudo service apache2 restart
-```
-
-### Installing RabitMQ and Management Plugin
-
-```php
-sudo apt-get remove rabbitmq-server
-sudo apt-get install python-software-properties
-sudo add-apt-repository "deb http://www.rabbitmq.com/debian/ testing main"
-wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
-sudo apt-key add rabbitmq-signing-key-public.asc
-sudo apt-get update
-sudo apt-get install rabbitmq-server
-sudo service rabbitmq-server start
-sudo rabbitmq-plugins enable rabbitmq_management
-sudo service rabbitmq-server restart
-```
 
 ## Console Tips
 

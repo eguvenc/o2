@@ -1,9 +1,21 @@
 <?php
 
+namespace Obullo\Event;
+
+use RuntimeException;
+
 /**
- * Event libray
+ * Event Class
+ * Modeled after Laravel event package.
+ * 
+ * @category  Event
+ * @package   Event
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/package/event
  */
-class Event
+Class Event
 {
     /**
      * The event firing stack.
@@ -40,11 +52,13 @@ class Event
      */
     public function listen($events, $listener, $priority = 0)
     {
+        if (is_string($listener) OR ! is_callable($listener)) {
+            throw new RuntimeException('Listen method second parameter must be class name or closure function.');
+        }
         foreach ((array) $events as $event) {
             $this->listeners[$event][$priority][] = (is_string($listener)) ?  $this->createClassListener($listener) : $listener;
 
             unset($this->sorted[$event]);
-            
         }
     }
 
@@ -238,6 +252,10 @@ $event->listen(
     },
     10
 );
-
 $event->fire('user.login', array(new stdClass));
 */
+
+// END Event class
+
+/* End of file Event.php */
+/* Location: .Obullo/Event/Event.php */

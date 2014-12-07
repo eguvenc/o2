@@ -2,8 +2,8 @@
 
 namespace Obullo\Error;
 
-use Obullo\Error\ErrorHandler;
-use Obullo\Error\ExceptionHandler;
+use Obullo\Error\ErrorHandler,
+    Obullo\Error\ExceptionHandler;
 
 /**
  * Error Debug Cass
