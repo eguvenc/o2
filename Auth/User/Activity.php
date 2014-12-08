@@ -191,7 +191,7 @@ Class Activity
             return false;
         }
         if ($this->config['singleSignOff'] AND $this->isSignedIn()) {  // Single sign-off is the property whereby a single action of signing out 
-                                                                       // terminates access to multiple agents.
+                                                                       // terminates access to multiple login sessions.
             $sessions = $this->getAuthSessions();
             if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
                 return;

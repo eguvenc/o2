@@ -144,6 +144,30 @@ class AuthResult
     }
 
     /**
+     * Set custom error code
+     * 
+     * @param int $code error code
+     *
+     * @return void
+     */
+    public function setCode($code)
+    {
+        $this->code = $code;
+    }
+
+    /**
+     * Set custom error messages
+     * 
+     * @param string $message message
+     *
+     * @return void
+     */
+    public function setMessage($message)
+    {
+        $this->messages[] = $message;
+    }
+
+    /**
      * Gets all messages
      * 
      * @return array

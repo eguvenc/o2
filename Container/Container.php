@@ -130,7 +130,6 @@ Class Container implements ArrayAccess
             if ( ! empty($matches['new'])) {  //  If we have new class request ?
                 return $this->runClosure($this->raw[$cid], $params);
             }
-
             if ($noReturn AND $controllerExists AND $keyExists == false AND Controller::$instance != null) {
                 return Controller::$instance->{$key} = $this->values[$cid];
             }

@@ -93,13 +93,16 @@ Class Login
             return new AuthResult(
                 array(
                     'code' => AuthResult::FAILURE,
-                    'identity' => $this->storage->getIdentifier(),
+                    'identifier' => $this->storage->getIdentifier(),
                     'messages' => array($message)
                 )
             );
         }
         $authResult = $this->c['o2.auth.service.adapter']->login(new GenericIdentity($credentials));
-        return $authResult;
+
+        $result = $this->c['event']->fire('login.attempt', array($authResult));
+
+        return isset($result[0]) ? $result[0] : $authResult;
     }
  
     /**

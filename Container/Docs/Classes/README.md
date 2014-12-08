@@ -10,7 +10,7 @@ If you are new to service containers or Dependency Injection, it would be a good
 **Note:** <kbd>$c</kbd> variable is declared by the system as default. ( At top of Obullo/Core.php ).
 
 
-#### Loading Obullo Classes
+#### Loading Framework Libraries
 
 Below the example shows a not defined service. Using namespaces framework do auto bind and load it as a service.
 
@@ -26,8 +26,8 @@ If folder name and class name is same you can call it directly.
 
 ```php
 <?php
-$c->load('html');   // load  Obullo/Html/Html.php
-echo $this->htm->css('test.css');
+$c->load('cookie');   // load  Obullo/Cookie/Cookie.php
+echo $this->cookie->get('test');
 ```
 
 In syntax the first word means the folder name, the second word is the class name. Above the example load <b>Obullo/Tree/Db</b> class from Obullo folder.
@@ -92,3 +92,33 @@ Put your classes into <b>app/classes</b> folder then you can call them using nat
 $class = new MyNamespace\MyClass;
 $class->method();
 ```
+
+### Function Reference
+
+------
+
+#### $c->load('servicename');
+
+Returns to service instance if service defined otherwise it creates new instance using Obullo classes.
+
+#### $c->load('name/space/class');
+
+In syntax the first word means the folder name, the second word is the class name.
+
+#### $c->exists(string $classname);
+
+Returns true if service exists otherwise false.
+
+#### $c->extend(string $classname, closure $callable);
+
+Extends your class and override methods or variables using current instance of the object.
+
+Get same instance of provider before you created.
+
+#### $c->raw(string $classname);
+
+Returns closure data of the class.
+
+#### $c->keys();
+
+Returns to all stored keys ( class names ) in the container.

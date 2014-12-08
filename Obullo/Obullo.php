@@ -17,7 +17,7 @@ $start = microtime(true);  // Run Timer
  *  Before request event
  * ------------------------------------------------------
  */
-$c['event']->fire('before.request', array($c));
+$c['event']->fire('before.request');
 
 /*
  * ------------------------------------------------------
@@ -35,7 +35,7 @@ if ( ! file_exists($controller)) {
  *  Before controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('before.controller', array($c));
+$c['event']->fire('before.controller');
 
 
 require $controller;  // call the controller.  $app variable now Available in HERE !!
@@ -61,7 +61,7 @@ if (array_key_exists('_remap', $app->controllerMethods)) {  // Is there a "remap
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.controller', array($c));
+$c['event']->fire('after.controller');
 
 /*
  * ------------------------------------------------------
@@ -75,7 +75,7 @@ $c->load('response')->sendOutput();    // Send the final rendered output to the 
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.response', array($c, $start));
+$c['event']->fire('after.response', array($start));
 
 
 // END Obullo.php File

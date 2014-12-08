@@ -18,6 +18,13 @@ use RuntimeException;
 Class Event
 {
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * The event firing stack.
      *
      * @var array
@@ -32,27 +39,36 @@ Class Event
     protected $listeners = array();
 
     /**
+     * Subscribers
+     * 
+     * @var array
+     */
+    protected $subscribers = array();
+
+    /**
      * Create a new event dispatcher instance.
      *
+     * @param object $c container
+     * 
      * @return void
      */
-    public function __construct()
+    public function __construct($c)
     {
-
+        $this->c = $c;
     }
 
     /**
      * Register an event listener with the dispatcher.
      *
-     * @param string|array $events
-     * @param mixed        $listener
-     * @param int          $priority
+     * @param string|array $events   events
+     * @param mixed        $listener $listener string classname or closure object
+     * @param int          $priority priority of events
      * 
      * @return void
      */
     public function listen($events, $listener, $priority = 0)
     {
-        if (is_string($listener) OR ! is_callable($listener)) {
+        if ( ! is_string($listener) AND ! is_callable($listener)) {
             throw new RuntimeException('Listen method second parameter must be class name or closure function.');
         }
         foreach ((array) $events as $event) {
@@ -77,36 +93,21 @@ Class Event
     /**
      * Register an event subscriber with the dispatcher.
      *
-     * @param  string  $subscriber
+     * @param string $subscriber classname
      * 
      * @return void
      */
     public function subscribe($subscriber)
     {
-        $subscriber = $this->resolveSubscriber($subscriber);
-
         $subscriber->subscribe($this);
-    }
-
-    /**
-     * Resolve the subscriber instance.
-     *
-     * @param  mixed  $subscriber
-     * @return mixed
-     */
-    protected function resolveSubscriber($subscriber)
-    {
-        if (is_string($subscriber)) {
-            return new $subscriber();
-        }
-        return $subscriber;
     }
 
     /**
      * Fire an event until the first non-null response is returned.
      *
-     * @param  string  $event
-     * @param  array   $payload
+     * @param string $event   name
+     * @param array  $payload payload
+     * 
      * @return mixed
      */
     public function until($event, $payload = array())
@@ -117,21 +118,18 @@ Class Event
     /**
      * Fire an event and call the listeners.
      *
-     * @param  string  $event
-     * @param  mixed   $payload
-     * @param  bool    $halt
+     * @param string $event   name
+     * @param mixed  $payload event payload
+     * @param bool   $halt    disable event response
+     * 
      * @return array|null
      */
     public function fire($event, $payload = array(), $halt = false)
     {
         $responses = array();
-
-        // If an array is not given to us as the payload, we will turn it into one so
-        // we can easily use call_user_func_array on the listeners, passing in the
-        // payload to each of them so that they receive each of these arguments.
-        if ( ! is_array($payload)) {
-            $payload = array($payload);
-        }
+        if ( ! is_array($payload)) {      // If an array is not given to us as the payload, we will turn it into one so
+            $payload = array($payload);   // we can easily use call_user_func_array on the listeners, passing in the
+        }                                 // payload to each of them so that they receive each of these arguments.
         $this->firing[] = $event;
 
         $listeners = $this->getListeners($event);
@@ -139,23 +137,15 @@ Class Event
         foreach ($listeners as $listener) {
             $response = call_user_func_array($listener, $payload);
 
-            // If a response is returned from the listener and event halting is enabled
-            // we will just return this response, and not call the rest of the event
-            // listeners. Otherwise we will add the response on the response list.
-            if ( ! is_null($response) AND $halt) {
-                array_pop($this->firing);
-                return $response;
+            if ( ! is_null($response) AND $halt) {   // If a response is returned from the listener and event halting is enabled
+                array_pop($this->firing);            // we will just return this response, and not call the rest of the event
+                return $response;                    // listeners. Otherwise we will add the response on the response list.
             }
-
-            // If a boolean false is returned from a listener, we will stop propagating
-            // the event to any further listeners down in the chain, else we keep on
-            // looping through the listeners and firing every one in our sequence.
-            if ($response === false) {
-                break;
-            }
+            if ($response === false) {    // If a boolean false is returned from a listener, we will stop propagating
+                break;                    // the event to any further listeners down in the chain, else we keep on
+            }                             // looping through the listeners and firing every one in our sequence.
             $responses[] = $response;
         }
-
         array_pop($this->firing);
 
         return $halt ? null : $responses;
@@ -199,32 +189,38 @@ Class Event
     /**
      * Create a class based listener using the IoC container.
      *
-     * @param mixed $listener
+     * @param string $listener class name
      * 
-     * @return \Closure
+     * @return closure
      */
     public function createClassListener($listener)
     {
-        return function() use ($listener) {
+        return function () use ($listener) {
+
             // If the listener has an "." sign, we will assume it is being used to delimit
             // the class name from the handle method name. This allows for handlers
             // to run multiple handler methods in a single class for convenience.
             $segments = explode('.', $listener);
             $method = count($segments) == 2 ? $segments[1] : 'handle';
+            $handler = $segments[0];
 
             // We will make a callable of the listener instance and a method that should
             // be called on that instance, then we will pass in the arguments that we
             // received in this method into this listener class instance's methods.
             $data = func_get_args();
 
-            return call_user_func_array(array(new $segments[0], $method), $data);
+            if ( ! isset($this->subscribers[$handler])) {  // Lazy loading
+                $this->subscribers[$handler] = new $handler($this->c);
+            }
+            return call_user_func_array(array($this->subscribers[$handler], $method), $data);  // Container make
         };
     }
 
     /**
      * Remove a set of listeners from the dispatcher.
      *
-     * @param  string  $event
+     * @param string $event name
+     * 
      * @return void
      */
     public function forget($event)
@@ -233,27 +229,6 @@ Class Event
     }
 
 }
-
-/*
-$event = new Event;
-
-$event->listen(
-    'user.login', 
-    function () {
-        echo 'Auth login succesfully works !!!';
-    },
-    30
-);
-$event->listen(
-    'user.login', 
-    function ($user) {
-        print_r($user);
-        echo 'Auth2  works !!!';
-    },
-    10
-);
-$event->fire('user.login', array(new stdClass));
-*/
 
 // END Event class
 
