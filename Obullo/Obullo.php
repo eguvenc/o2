@@ -10,8 +10,8 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/obullo
  */
-$start = microtime(true);  // Run Timer
 
+$start = microtime(true);  // Run Timer
 /*
  * ------------------------------------------------------
  *  Before request event
@@ -24,11 +24,13 @@ $c['event']->fire('before.request');
  *  Load core components
  * ------------------------------------------------------
  */
-$pageUri    = "{$c->load('router')->fetchDirectory()} / {$c->load('router')->fetchClass()} / index";
-$controller = PUBLIC_DIR . $c->load('router')->fetchTopDirectory(DS). $c->load('router')->fetchDirectory() . DS .'controller'. DS . $c->load('router')->fetchClass() . EXT;
+$router 	= $c->load('router');
+$response 	= $c->load('response');
+$pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
+$controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'controller'. DS . $router->fetchClass() . EXT;
 
 if ( ! file_exists($controller)) {
-    $c->load('response')->show404($pageUri);
+    $response->show404($pageUri);
 }
 /*
  * ------------------------------------------------------
@@ -42,7 +44,7 @@ require $controller;  // call the controller.  $app variable now Available in HE
 
 
 if ( ! in_array('index', array_keys($app->publicMethods))) {  // Check method exist or not
-    $c->load('response')->show404($pageUri);
+    $response->show404($pageUri);
 }
 $arguments = array_slice($c->load('uri')->rsegments, 2);
 
@@ -68,7 +70,7 @@ $c['event']->fire('after.controller');
  *  Send the final rendered output to the browser
  * ------------------------------------------------------
  */
-$c->load('response')->sendOutput();    // Send the final rendered output to the browser
+$response->sendOutput();    // Send the final rendered output to the browser
 
 /*
  * ------------------------------------------------------

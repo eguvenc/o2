@@ -295,7 +295,7 @@ In order to understand how a filter works, let’s break one down by look at one
 $c['router']->createFilter(
     'auth',
     function () use ($c) {
-      if ($this->auth->isGuest()) {
+      if ($this->user->identity->isGuest()) {
         $c->load('url')->redirect('/login');
       }
     }
@@ -310,7 +310,7 @@ To attach a filter, simply pass it as an argument in the array of the second arg
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world', array('filters' => array('before.auth')));
+$c['router']->attach('tutorials/hello_world', 'before.filters' => array('auth'));
 ```
 
 #### Group Filters
@@ -322,7 +322,7 @@ A better solution is to use Group Filters:
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'test', 'filters' => array('before.auth')) 
+    array('name' => 'test', 'before.filters' => array('auth')) 
     function ($group) {
         $this->attach('tutorials/hello_form', $group);
         $this->attach('tutorials/hello_world', $group);
@@ -336,7 +336,7 @@ $c['router']->group(
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'shop', 'domain' => 'shop.example.com'), 
+    array('name' => 'shop', 'domain' => 'shop.example.com', 'before.filters' => array('auth')), 
     function ($group) {
         $this->route('get', 'welcome/.+', 'tutorials/hello_world', null, $group);
         $this->route('*', 'product/{id}', 'product/list/$1', null, $group);
@@ -504,7 +504,7 @@ Open your routes.php file then put below the content.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->host->all, array('before.filters' => array('maintenance'))), 
+    array('name' => 'general', 'domain' => $c['config']->xml->host->all, 'before.filters' => array('maintenance')), 
     function ($group) {
 
         $this->defaultPage('welcome/index');
@@ -518,7 +518,7 @@ Configure example for <b>All Website</b> and <b>all</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->host->all, array('before.filters' => array('maintenance'))), 
+    array('name' => 'general', 'domain' => $c['config']->xml->host->all, 'before.filters' => array('maintenance')), 
     function ($group) {
 
         $this->defaultPage('welcome/index');
@@ -533,7 +533,7 @@ $c['router']->group(
 Then go to your console and type:
 
 ```php
-php task host all down
+php task route all down
 ```
 
 Now your application show maintenance view for all pages.
@@ -543,7 +543,7 @@ Configure example for <b>reverse</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('domain' => $c['config']->xml->host->sports, array('before.filters' => array('maintenance', 'auth'))), 
+    array('domain' => $c['config']->xml->host->sports, 'before.filters' => array('maintenance', 'auth')), 
     function ($group) {
         $this->attach('((?!tutorials/hello_world).)*$', $group);  // all urls which not contains "tutorials/hello_world"
     }
@@ -553,13 +553,13 @@ $c['router']->group(
 Then go to your console and type:
 
 ```php
-php task host all down
+php task route all down
 ```
 
 Now go to your console and type:
 
 ```php
-php task host all up
+php task route all up
 ```
 
 Now your application "all" is up for your visitors.

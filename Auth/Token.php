@@ -29,6 +29,13 @@ Class Token
     protected $token = null;
 
     /**
+     * Auth config
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
      * Constructor
      * 
      * @param object $c container
@@ -36,6 +43,7 @@ Class Token
     public function __construct($c)
     {
         $this->c = $c;
+        $this->config = $this->c['config']->load('auth');
     }
 
     /**
@@ -45,12 +53,16 @@ Class Token
      */
     public function generate()
     {
-        $request = $this->c->load('return request');
+        $userAgentMatch = null;
+        if ($this->config['security']['userAgentMatch']) {
+            $request = $this->c->load('return request');
+            $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
+            $userAgentMatch = '.' . hash('adler32', trim($userAgent));
+        }
         $utils = $this->c->load('return utils/random');
         $token = $utils->generate('alnum', 16);
-        $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
 
-        return $this->token = $token .'.'. hash('adler32', trim($userAgent));  // Creates smaller token
+        return $this->token = $token.$userAgentMatch;  // Creates smaller token
     }
 
     /**
@@ -73,7 +85,7 @@ Class Token
      */
     public function getCookie()
     {
-        $cookie = $this->c['config']->load('auth')['security']['cookie'];
+        $cookie = $this->config['security']['cookie'];
         return $this->c->load('cookie')->get($cookie['name']);
     }
 
@@ -85,13 +97,13 @@ Class Token
     public function refresh()
     {
         $token = $this->generate();
-        $cookie = $this->c['config']->load('auth')['security']['cookie'];
+        $cookie = $this->config['security']['cookie'];
 
         $this->c->load('cookie')->set(
             $cookie['name'],
             $token,
             $cookie['expire'],
-            $this->c['config']['cookie']['domain'],        //  Get domain from global config
+            $this->c['config']['cookie']['domain'],  //  Get domain from global config
             $cookie['path'],
             $cookie['prefix'],
             $cookie['secure'],

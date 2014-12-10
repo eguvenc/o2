@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Rate\Listener;
+namespace Obullo\Rate;
 
 /**
- * Http_Request_Listener_Adapter
+ * Rate Limiter Config
  * 
- * @category  Listener
- * @package   Adapter
- * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
+ * @category  Rate
+ * @package   Config
+ * @author    Ali İhsan Çağlayan <ihsancaglayan@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs
  */
-Class Adapter
+Class Config
 {
     /**
      * Interval amount.
@@ -64,27 +64,6 @@ Class Adapter
     protected $totalRequest = -1;
 
     /**
-     * Ban expiration time
-     * 
-     * @var integer
-     */
-    public $banExpiration = 100;
-
-    /**
-     * Is ban active
-     * 
-     * @var boolean
-     */
-    public $isBanActive = false;
-
-    /**
-     * Identifier
-     * 
-     * @var mixed
-     */
-    protected $identifier;
-
-    /**
      * Enabled to service
      * 
      * @var boolean
@@ -92,84 +71,183 @@ Class Adapter
     protected $isEnable = true;
 
     /**
+     * Ban expiration time
+     * 
+     * @var integer
+     */
+    protected $banExpiration = 100;
+
+    /**
+     * Is ban active
+     * 
+     * @var boolean
+     */
+    protected $isBanActive = false;
+
+    /**
+     * Limiter name (ip, username, email)
+     * 
+     * @var string
+     */
+    protected $limiter;
+
+    /**
+     * Cache service 
+     * 
+     * @var object
+     */
+    protected $cache;
+
+    /**
      * Constructor
      * 
-     * @param object $c          container
-     * @param string $identifier identifier
-     * @param string $channel    channel
-     * @param array  $params     parameters
+     * @param object $c container
      */
-    public function __construct($c, $identifier, $channel, array $params = array())
+    public function __construct($c)
     {
-        $this->setID($identifier);
-        $this->setChannel($channel);
-        
-        if (count($params) > 0) {
-            $this->setIntervalLimit(
-                $params['INTERVAL_LIMIT']['AMOUNT'],
-                $params['INTERVAL_LIMIT']['LIMIT']
-            );
-            $this->setHourlyLimit(
-                $params['HOURLY_LIMIT']['AMOUNT'],
-                $params['HOURLY_LIMIT']['LIMIT']
-            );
-            $this->setDailyLimit(
-                $params['DAILY_LIMIT']['AMOUNT'],
-                $params['DAILY_LIMIT']['LIMIT']
-            );
-            $this->setBanStatus($params['BAN']['STATUS']);
-            $this->setBanExpiration($params['BAN']['EXPIRATION']);
+        $this->cache = $c->load('return service/cache');
+    }
+
+    /**
+     * Initialize to config parameters
+     * 
+     * @param array $params parameters
+     * 
+     * @return void
+     */
+    public function init(array $params = array())
+    {
+        $ban = $params['ban'];
+        $limit = $params['limit'];
+
+        $this->setIntervalLimit($limit['interval']['amount'], $limit['interval']['maxRequest']);
+        $this->setHourlyLimit($limit['hourly']['amount'], $limit['hourly']['maxRequest']);
+        $this->setDailyLimit($limit['daily']['amount'], $limit['daily']['maxRequest']);
+
+        $this->setBanStatus($ban['status']);
+        $this->setBanExpiration($ban['expiration']);
+    }
+
+    /**
+     * Set identifier name
+     * 
+     * @param string $identifier name
+     *
+     * @return void
+     */
+    public function setIdentifier($identifier = 'ip')
+    {
+        $this->identifier = $identifier;
+    }
+
+    /**
+     * Get current identifier name
+     * 
+     * @return string
+     */
+    public function getIdentifier()
+    {
+        return $this->identifier;
+    }
+
+    /**
+     * Read config from cache
+     *
+     * @param string $channel name
+     * 
+     * @return If data empty return null
+     */
+    public function read($channel)
+    {
+        $config = $this->cache->get(Rate::RATE_LIMITER_CONFIG .':'. $channel .':'. $this->getIdentifier());
+
+        if ($config == false) { // If not exist in the cache
+            $config = $this->save($channel);
         }
+        $limit = $config['limit'];
+
+        $this->resetLimits();
+        $this->setIntervalLimit($limit['interval']['amount'], $limit['interval']['maxRequest']);
+        $this->setHourlyLimit($limit['hourly']['amount'], $limit['hourly']['maxRequest'], true);
+        $this->setDailyLimit($limit['daily']['amount'], $limit['daily']['maxRequest'], true);
+
+        return $config;
+    }
+
+    /**
+     * Save config to cache
+     *
+     * @param string $channel name
+     * 
+     * @return void
+     */
+    public function save($channel)
+    {
+        $config = array(
+            'limit' => array(
+                'interval' => array('amount' => $this->getIntervalLimit(), 'maxRequest' => $this->getIntervalMaxRequest()),  // 300 seconds / 7 times
+                'hourly' => array('amount' => $this->getHourlyLimit(), 'maxRequest' => $this->getHourlyMaxRequest()),     // 1 hour / 15 times
+                'daily' => array('amount' => $this->getDailyLimit(), 'maxRequest' => $this->getDailyMaxRequest()),      // 1 day / 50 times
+            ),
+            'ban' => array(
+                'status' => $this->getBanStatus(),          // If ban status disabled don't do ban
+                'expiration' => $this->getBanExpiration(),  // If ban status enablead wait for this time
+            ),
+            'enabled' => $this->isEnabled()
+        );
+        $this->cache->set(Rate::RATE_LIMITER_CONFIG .':'. $channel .':'. $this->getIdentifier(), $config, Rate::CACHE_CONFIG_EXPIRATION);
+
+        return $config;
     }
 
     /**
      * Set interval limit.
      * 
-     * @param int $seconds      interval limit
-     * @param int $requestCount request count
+     * @param int $seconds    interval limit
+     * @param int $maxRequest request count
      * 
      * @return void
      */
-    public function setIntervalLimit($seconds = 180, $requestCount = 2)
+    public function setIntervalLimit($seconds = 180, $maxRequest = 2)
     {
         $this->intervalAmount     = (int)$seconds;
-        $this->intervalMaxRequest = (int)$requestCount;
+        $this->intervalMaxRequest = (int)$maxRequest;
     }
 
     /**
      * Set hourly limit.
      * 
      * @param int  $hourlyAmount hourly limit
-     * @param int  $requestCount request count
+     * @param int  $maxRequest   request count
      * @param bool $min          minutes
      * 
      * @return void
      */
-    public function setHourlyLimit($hourlyAmount = 1, $requestCount = 10, $min = false)
+    public function setHourlyLimit($hourlyAmount = 1, $maxRequest = 10, $min = false)
     {
         $this->hourlyAmount = (60 * 60) * $hourlyAmount; // 60 * 60 * 1 = 3600 second (1 hour)
         if ($min === true) {
             $this->hourlyAmount = (int)$hourlyAmount;
         }
-        $this->hourlyMaxRequest = (int)$requestCount;
+        $this->hourlyMaxRequest = (int)$maxRequest;
     }
 
     /**
      * Set daily limit.
      * 
-     * @param int  $dailyAmount  daily amount limit
-     * @param int  $requestCount request count
-     * @param bool $min          minutes
+     * @param int  $dailyAmount daily amount limit
+     * @param int  $maxRequest  request count
+     * @param bool $min         minutes
      * 
      * @return void
      */
-    public function setDailyLimit($dailyAmount = 1, $requestCount = 30, $min = false)
+    public function setDailyLimit($dailyAmount = 1, $maxRequest = 30, $min = false)
     {
         $this->dailyAmount = ((60 * 60) * 24) * $dailyAmount; // 60 * 60 * 24 * 1 = 86400 second (1 day)
         if ($min === true) {
             $this->dailyAmount = (int)$dailyAmount;
         }
-        $this->dailyMaxRequest = (int)$requestCount;
+        $this->dailyMaxRequest = (int)$maxRequest;
     }
 
     /**
@@ -212,18 +290,6 @@ Class Adapter
     }
 
     /**
-     * Set channel
-     * 
-     * @param string $channel channel
-     * 
-     * @return void
-     */
-    public function setChannel($channel)
-    {
-        $this->channel = (string)$channel;
-    }
-
-    /**
      * Set total request count
      * 
      * @param int $totalRequest total request count
@@ -233,18 +299,6 @@ Class Adapter
     public function setTotalRequest($totalRequest)
     {
         return $this->totalRequest = (int)$totalRequest;
-    }
-
-    /**
-     * Set identifier
-     * 
-     * @param mix $identifier identifier
-     * 
-     * @return void
-     */
-    public function setID($identifier)
-    {
-        $this->identifier = $identifier;
     }
 
     /**
@@ -270,17 +324,6 @@ Class Adapter
     }
 
     /**
-     * Get unique identifier
-     * (ip, username, mobile phone)
-     * 
-     * @return string
-     */
-    public function getID()
-    {
-        return $this->identifier;
-    }
-
-    /**
      * Get ban status
      * 
      * @return integer
@@ -288,26 +331,6 @@ Class Adapter
     public function getBanStatus()
     {
         return $this->isBanActive;
-    }
-
-    /**
-     * Get ban limit
-     * 
-     * @return integer
-     */
-    public function getBanLimit()
-    {
-        return $this->banExpiration;
-    }
-
-    /**
-     * Get channel
-     * 
-     * @return string
-     */
-    public function getChannel()
-    {
-        return $this->channel;
     }
 
     /**
@@ -371,6 +394,16 @@ Class Adapter
     }
 
     /**
+     * Get ban expiration time
+     * 
+     * @return int
+     */
+    public function getBanExpiration()
+    {
+        return $this->banExpiration;
+    }
+
+    /**
      * Get total request count
      * 
      * @return int
@@ -379,10 +412,11 @@ Class Adapter
     {
         return $this->totalRequest;
     }
+
 }
 
 
-// END Adapter Class
+// END Config Class
 
-/* End of file Adapter.php */
-/* Location: .Obullo/Rate/Listener/Adapter.php */
+/* End of file Config.php */
+/* Location: .Obullo/Rate/Config.php */

@@ -230,12 +230,30 @@ Once the subscriber has been defined, it may be registered with the Event class.
 
 ```php
 <?php
-
 $subscriber = new Event\UserEventHandler;
 
 $c['event']->subscribe($subscriber);
 ```
 
+
+### Subscribe Events Using Routes
+
+If your event not global you may want to attach it to a site route to get better performance. Forexample we want to load user event handler just at login requests.
+
+Open your <b>routes.php</b> and add below the lines.
+
+```php
+<?php
+$c['router']->route(
+    'get|post', 'examples/login(.*)', null, 
+    function () use ($c) {
+        $c['event']->subscribe(new Event\UserEventHandler($c));
+    }
+);
+
+/* End of file routes.php */
+/* Location: .routes.php */
+```
 
 ### Function Reference
 

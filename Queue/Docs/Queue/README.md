@@ -31,7 +31,7 @@ Php <b>task</b> file which is located in your project root that helps you to run
 ```php
 + app
 + assets
-+ obullo
++ o2
 + public
   components.php
   .

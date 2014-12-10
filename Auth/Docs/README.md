@@ -9,7 +9,7 @@ Auth package provides an API for authentication and includes concrete authentica
 
 Below the flow chart shows authentication process of users:
 
-* [Click to see flowchart](/Auth/Docs/Auth/images/flowchart.png?raw=true)
+* [Click to see flowchart](/Auth/Docs/images/flowchart.png?raw=true)
 
 ## Adapters
 
@@ -19,7 +19,7 @@ Auth adapter is used to authenticate against a particular type of authentication
 
 Auth class uses redis storage like database. The following picture shown an example authentication data stored in redis.
 
-![PhpRedisAdmin](/Auth/Docs/Auth/images/redis.png?raw=true "PhpRedisAdmin")
+![PhpRedisAdmin](/Auth/Docs/images/redis.png?raw=true "PhpRedisAdmin")
 
 ### Predefined keys:
 
@@ -128,8 +128,9 @@ return array(
     ),
     'security' => array(
         'cookie' => array(
-            'name' => '__ot',  // Cookie name, change it if you want
+            'name' => '__token',  // Cookie name, change it if you want
             'refresh' => 60,   // Every 1 minutes do the cookie validation
+            'userAgentMatch' => false,  // Whether to match user agent when reading token
             'path' => '/',
             'secure' => false,
             'httpOnly' => false,
