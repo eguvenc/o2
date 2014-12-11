@@ -1,5 +1,5 @@
 
-## Rbac User Class
+## User Class
 
 ------
 
@@ -180,7 +180,7 @@ Array
 
 ```php
 <?php
-$this->rbac->permissions->isPermitted($permName = 'foo', $permissions = array('foo', 'bar')); // true
+$this->rbac->user->isPermitted($permName = 'foo', $permissions = array('foo', 'bar')); // true
 ```
 
 #### $this->rbac->user->hasPagePermission(string $permResource, $expiration = 7200);
@@ -192,7 +192,10 @@ Returns true if has page permission allowed for given resource id otherwise fals
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 
-var_dump($this->rbac->user->hasPagePermission('admin/marketing')); // true
+if ($this->rbac->user->hasPagePermission('admin/marketing'))) {
+
+    // .. go
+} 
 ```
 
 Returns to true or false.
@@ -206,14 +209,19 @@ Returns array if has object permission allowed for given operation name otherwis
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->hasPagePermission('admin/marketing');
+
 // or
+
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->setResourceId('admin/marketing/index');
 
 $permissions = $this->rbac->user->hasObjectPermission('foo', 'view');
 
-var_dump($this->rbac->user->isPermitted('foo', $permissions)); // true
+if ($this->rbac->user->isPermitted('foo', $permissions)) {
+
+    // .. go
+}
 ```
 
 Returns to true or false.
@@ -227,14 +235,19 @@ Returns array if has object permission allowed for given operation name otherwis
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->hasPagePermission('admin/marketing');
+
 // or
+
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->setResourceId('admin/marketing/index');
 
-$permissions = $this->rbac->user->hasChildPermission($objectName = 'foo', $permName = 'bar', 'view');
+$permissions = $this->rbac->user->hasChildPermission($objectName = 'foo', $permName = 'bar', $operationName = 'view');
 
-var_dump($this->rbac->user->isPermitted('bar', $permissions)); // true
+if ($this->rbac->user->isPermitted('bar', $permissions)) {
+
+    // go ..
+}
 ```
 
 Returns to true or false.
@@ -288,17 +301,21 @@ Set role ids for user class.
 
 Get all roles of given user id.
 
-#### $this->setUserId(int $userId);
+#### $this->rbac->user->setUserId(int $userId);
 
 Sets id of user to comfortable permission check operations.
 
-#### $this->setRoleId(int $roleId);
+#### $this->rbac->user->setRoleId(int $roleId);
 
 Sets role id of user to comfortable permission check operations.
 
 #### $this->rbac->user->getPermissions(string $permName);
 
 Get all permissions of given permission name.
+
+#### $this->rbac->user->isPermitted(string $permName, array $permissions);
+
+Checks permission name is allowed in your permission list.
 
 #### $this->rbac->user->hasPagePermission(string $permResource, int $expiration = 7200);
 

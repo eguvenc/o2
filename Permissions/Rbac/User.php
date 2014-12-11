@@ -173,7 +173,7 @@ Class User
     }
 
     /**
-     * Is permitted
+     * Checks permission name is allowed in your permission list
      * 
      * @param string $permName    permission name
      * @param array  $permissions permissions

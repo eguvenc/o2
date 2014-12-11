@@ -645,7 +645,7 @@ Get PDO Statement Object
 
 ```php
 <?php
-print_r($this->treeDb->getStatement());
+print_r($this->rbac->permissions->getStatement());
 ```
 Gives
 
