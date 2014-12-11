@@ -142,14 +142,16 @@ Class Roles
      * Constructor
      *
      * @param object $c      container
+     * @param object $db     database object
      * @param array  $params parameter
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $db, $params = array())
     {
         $this->c = $c;
-        $this->db = $c->load('return db');
-        $this->treeDb = new Db($c);
+        $this->db = $db;
         $this->cache  = $c->load('service/cache');
+        $this->treeDb = new Db($c);
+
         if (count($params) > 0) {
             $this->tableName  = $params['roles'][static::TABLENAME];
             $this->primaryKey = $params['roles'][static::PRIMARY_KEY];
@@ -170,6 +172,7 @@ Class Roles
             $this->opPermsTableName         = $params['op_permissions'][static::TABLENAME];
             $this->opPermsRolePrimaryKey    = $params['op_permissions'][static::OP_PERMS_ROLE_PRIMARY_KEY];
         }
+        
         $this->treeDb->setTablename($this->tableName);
         $this->treeDb->setPrimaryKey($this->primaryKey);
         $this->treeDb->setParentId($this->parentId);

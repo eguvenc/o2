@@ -19,7 +19,7 @@ Class UserService
      * 
      * @var array
      */
-    public $params = array();
+    protected $config = array();
 
     /**
      * Constructor
@@ -30,12 +30,12 @@ Class UserService
      */
     public function __construct($c)
     {
-        $config = $c->load('config')->load('auth');
+        $config = $c['config']->load('auth');
 
         $Adapter = '\Obullo\Auth\Adapter\\'.$config['adapter'];
         $Storage = '\Obullo\Auth\Storage\\'.ucfirst($config['memory']['storage']);
 
-        $this->params = array(
+        $this->config = array(
             'c' => $c,
             'config' => $config,
             'user' => $this,
@@ -47,7 +47,7 @@ Class UserService
     }
 
     /**
-     * Service class loader magic method
+     * Service class loader
      * 
      * @param string $class name
      * 
@@ -61,7 +61,7 @@ Class UserService
             return $this->{$key};
         }
         $Class = '\Obullo\Auth\User\\'.ucfirst($key);
-        return $this->{$key} = new $Class($this->params);
+        return $this->{$key} = new $Class($this->config);
     }
 
 }

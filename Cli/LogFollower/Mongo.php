@@ -24,7 +24,7 @@ Class Mongo
      */
     public function follow($c, $collection = 'logs')
     {
-        echo "\n\33[1;36mFollowing \33[1;37m\33[1;46mMongo Handler ".ucfirst($collection)."\33[0m\33[1;36m database ...\33[0m\n";
+        echo "\n\33[1;36mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
 
         $mongo = $c->load('return service/provider/mongo');
         $mongoCollection = $mongo->{$collection};

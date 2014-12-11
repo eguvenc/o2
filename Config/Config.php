@@ -75,6 +75,7 @@ Class Config implements ArrayAccess
             $this->loadEnv($this->xml->env->attributes()->file);
         }
         $config = include $this->envPath .'config'. EXT;     // Load config variables
+
         foreach ($config as $k => $v) {
             if (is_string($v) AND strpos($v, '@include.') === 0) {
                 $config[$k] = include $this->envPath .substr($v, 9);

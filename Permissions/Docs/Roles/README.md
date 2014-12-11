@@ -1,5 +1,5 @@
 
-## Rbac Role Class
+## Role Class
 
 ------
 
@@ -7,35 +7,14 @@ RBAC is a secure method of restricting account access to authorized users. This 
 
 <a href="https://www.sans.org/reading-room/whitepapers/sysadmin/role-based-access-control-nist-solution-1270">https://www.sans.org/reading-room/whitepapers/sysadmin/role-based-access-control-nist-solution-1270</a>
 
-### Initializing the Class
+### Initializing the Rbac Service
 
 ------
 
-First you need to define <kbd>Permission/rbac/roles</kbd> class as services. Update your service.php
-
 ```php
-/*
-|--------------------------------------------------------------------------
-| Roles
-|--------------------------------------------------------------------------
-*/
-$c['roles'] = function () use ($c) {
-    return new Obullo\Permissions\Rbac\Roles(
-    	array(
-			'db.tablename'   => 'rbac_roles',
-			'db.primary_key' => 'role_id',
-			'db.parent_id'   => 'parent_id',
-			'db.text'        => 'role_name',
-			'db.left'        => 'lft',
-			'db.right'       => 'rgt',
-    	)
-    );
-};
-```
-
-```php
-$c->load('roles');
-$this->roles->method();
+<?php
+$c->load('service/rbac');
+$this->rbac->roles->method();
 ```
 
 ### Adding Operations.
@@ -44,10 +23,11 @@ $this->roles->method();
 
 #### Add Root
 
-#### $this->roles->addRoot($roleName, $extra = array());
+#### $this->rbac->roles->addRoot($roleName, $extra = array());
 
 ```php
-$this->roles->addRoot($roleName = 'root');
+<?php
+$this->rbac->roles->addRoot($roleName = 'root');
 ```
 Gives
 ```php
@@ -60,12 +40,14 @@ Gives
 
 #### Add Nodes
 
-#### $this->roles->add($roleId, $roleName, $extra = array());
+#### $this->rbac->roles->add($roleId, $roleName, $extra = array());
 
 ```php
-$this->roles->add($roleId = 1, $roleName = 'CEO');
+<?php
+$this->rbac->roles->add($roleId = 1, $roleName = 'CEO');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -78,9 +60,11 @@ Gives
 Let's add an "Operations" node under the "CEO".
 
 ```php
-$this->roles->add($roleId = 2, $roleName = 'Operations');
+<?php
+$this->rbac->roles->add($roleId = 2, $roleName = 'Operations');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -91,12 +75,14 @@ Gives
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->append($roleId, $roleName, $extra = array());
+#### $this->rbac->roles->append($roleId, $roleName, $extra = array());
 
 ```php
-$this->roles->append($roleId = 2, $roleName = 'Financial');
+<?php
+$this->rbac->roles->append($roleId = 2, $roleName = 'Financial');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -111,9 +97,11 @@ Gives
 Let's add an "Financial" node under the "CEO".
 
 ```php
-$this->roles->append($roleId = 2, $roleName = 'IT');
+<?php
+$this->rbac->roles->append($roleId = 2, $roleName = 'IT');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -129,11 +117,13 @@ Gives
 #### We define new roles under "Financial".
 
 ```php
-$this->roles->add($roleId = 4, $roleName = 'Sales');
-$this->roles->append($roleId = 4, $roleName = 'Marketing');
-$this->roles->append($roleId = 4, $roleName = 'Payroll');
+<?php
+$this->rbac->roles->add($roleId = 4, $roleName = 'Sales');
+$this->rbac->roles->append($roleId = 4, $roleName = 'Marketing');
+$this->rbac->roles->append($roleId = 4, $roleName = 'Payroll');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -152,11 +142,13 @@ Gives
 #### We define new roles under "IT".
 
 ```php
-$this->roles->add($roleId = 5, $roleName = 'Network');
-$this->roles->append($roleId = 5, $roleName = 'Security');
-$this->roles->append($roleId = 5, $roleName = 'Admin');
+<?php
+$this->rbac->roles->add($roleId = 5, $roleName = 'Network');
+$this->rbac->roles->append($roleId = 5, $roleName = 'Security');
+$this->rbac->roles->append($roleId = 5, $roleName = 'Admin');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -178,7 +170,8 @@ Gives
 ### Moving Operations.
 
 ------
-#### $this->roles->moveAsFirst($sourceId, $targetId);
+
+#### $this->rbac->roles->moveAsFirst($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -203,11 +196,13 @@ Before move operation our current table.
 We want to move "Admin" under the "IT" to be the first node.
 
 ```php
-$this->roles->moveAsFirst($sourceId = 11, $targetId = 5);
+<?php
+$this->rbac->roles->moveAsFirst($sourceId = 11, $targetId = 5);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -226,7 +221,7 @@ Gives
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->moveAsLast($sourceId, $targetId);
+#### $this->rbac->roles->moveAsLast($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -251,11 +246,14 @@ Before move operation our current table.
 We want to move "Admin" under the "IT" to be the last node.
 
 ```php
-$this->roles->moveAsLast($sourceId = 11, $targetId = 5);
+<?php
+$this->rbac->roles->moveAsLast($sourceId = 11, $targetId = 5);
 ```
+
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -274,7 +272,7 @@ Gives
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->moveAsPrevSibling($sourceId, $targetId);
+#### $this->rbac->roles->moveAsPrevSibling($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -299,11 +297,13 @@ Before move operation our current table.
 We want to move "IT" as a previous sibling of "Financial"
 
 ```php
-$this->roles->moveAsPrevSibling($sourceId = 5, $targetId = 4);
+<?php
+$this->rbac->roles->moveAsPrevSibling($sourceId = 5, $targetId = 4);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -322,7 +322,7 @@ Gives
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->moveAsNextSibling($sourceId, $targetId);
+#### $this->rbac->roles->moveAsNextSibling($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -347,11 +347,13 @@ Before move operation our current table.
 We want to move "IT" as a previous sibling of "Financial"
 
 ```php
-$this->roles->moveAsNextSibling($sourceId = 5, $targetId = 4);
+<?php
+$this->rbac->roles->moveAsNextSibling($sourceId = 5, $targetId = 4);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -370,64 +372,83 @@ Gives
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->deleteRolePermissions(int $roleId);
+#### $this->rbac->roles->deleteRolePermissions(int $roleId);
 
 Delete role from permissions.
 
 ```php
-$this->roles->deleteRolePermissions($roleId = 1);
+<?php
+$this->rbac->roles->deleteRolePermissions($roleId = 1);
 ```
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_role_permissions` WHERE `roleId` = ?
 )
+*/
 ```
 
-#### $this->roles->deleteRoleFromUsers(int $roleId);
+#### $this->rbac->roles->deleteRoleFromUsers(int $roleId);
 
 Delete role from users.
 
 ```php
-$this->roles->deleteRoleFromUsers($roleId = 1);
+<?php
+$this->rbac->roles->deleteRoleFromUsers($roleId = 1);
 ```
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_user_roles` WHERE `roleId` = ?
 )
+*/
 ```
 
-#### $this->roles->deleteOperationsByRoleId(int $roleId);
+#### $this->rbac->roles->deleteOperationsByRoleId(int $roleId);
 
 Delete operations by role id.
 
 ```php
-$this->roles->deleteOperationsByRoleId($roleId = 1);
+<?php
+$this->rbac->roles->deleteOperationsByRoleId($roleId = 1);
 ```
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_op_permissions` WHERE `roleId` = ?
 )
+*/
 ```
 
 ### Querying Operations.
 
 ------
 
-#### $this->roles->getRoles($select = 'role_id,role_name');
+#### $this->rbac->roles->getRoles($select = 'role_id,role_name');
 
 Retrieving a Full Roles
 
 ```php
-print_r($this->roles->getRoles($select = 'role_id,role_name'));
+<?php
+print_r($this->rbac->roles->getRoles($select = 'role_id,role_name'));
 ```
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -455,17 +476,21 @@ Array
             [depth] => 2
         )
 )
+*/
 ```
 
-#### $this->roles->getRoot($select = 'role_id,role_name');
+#### $this->rbac->roles->getRoot($select = 'role_id,role_name');
 
 ```php
-print_r($this->roles->getRoot($select = 'role_id,role_name'));
+<?php
+print_r($this->rbac->roles->getRoot($select = 'role_id,role_name'));
 ```
 
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -474,17 +499,21 @@ Array
             [role_name] => root
         )
 )
+*/
 ```
 
-#### $this->roles->getSiblings($roleId, $select = 'role_id,role_name');
+#### $this->rbac->roles->getSiblings($roleId, $select = 'role_id,role_name');
 
 ```php
-print_r($this->roles->getSiblings(3, $select = 'role_id,role_name'));
+<?php
+print_r($this->rbac->roles->getSiblings(3, $select = 'role_id,role_name'));
 ```
 
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -503,17 +532,21 @@ Array
             [role_name] => IT
         )
 )
+*/
 ```
 
-#### $this->roles->getUsers($roleId, $select = null, $expiration = 7200);
+#### $this->rbac->roles->getUsers($roleId, $select = null, $expiration = 7200);
 
 ```php
-print_r($this->roles->getUsers(1));
+<?php
+print_r($this->rbac->roles->getUsers(1));
 ```
 
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -529,18 +562,22 @@ Array
             [user_id] => 47
         )
 )
+*/
 ```
 
-#### $this->roles->getPermissions($roleId, $select = null, $expiration = 7200);
+#### $this->rbac->roles->getPermissions($roleId, $select = null, $expiration = 7200);
 
 Get permissions from role id.
 
 ```php
-print_r($this->roles->getPermissions($roleId = 1));
+<?php
+print_r($this->rbac->roles->getPermissions($roleId = 1));
 ```
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -556,9 +593,10 @@ Array
             [permission_id] => 5
         )
 )  
+*/
 ```
 
-#### $this->roles->update($roleId, $data = array());
+#### $this->rbac->roles->update($roleId, $data = array());
 
 Updates your table row data using the primary key ( role_id ).
 
@@ -575,7 +613,8 @@ Before update operation our current table looks like below the example.
 We want to update "root" name.
 
 ```php
-$this->roles->update($roleId = 1, $data = array('role_name' => 'Root'));
+<?php
+$this->rbac->roles->update($roleId = 1, $data = array('role_name' => 'Root'));
 ```
 
 After the update operation.
@@ -588,7 +627,7 @@ After the update operation.
 +-------------+-----------+----------------------+-----+-----+
 ```
 
-#### $this->roles->delete($roleId);
+#### $this->rbac->roles->delete($roleId);
 
 Before delete operation our current table.
 
@@ -615,12 +654,14 @@ Deletes the given node (and any node) from the roles table.
 We delete "IT" department. This operation also delete all nodes under the IT department.
 
 ```php
-$this->roles->delete($roleId);
+<?php
+$this->rbac->roles->delete($roleId);
 ```
 
 After the delete operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+-----+-----+
 | role_id     | parent_id | role_name            | lft | rgt |
@@ -640,68 +681,73 @@ Gives
 Get PDO Statement Object
 
 ```php
+<?php
 print_r($this->treeDb->getStatement());
 ```
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => INSERT INTO foo (`parent_id`,`name`,`lft`,`rgt`) VALUES (?,?,?,?);
 )
+*/
 ```
 
 ### Function Reference
 
 -----
 
-#### $this->roles->addRoot($roleName, $extra = array());
+#### $this->rbac->roles->addRoot($roleName, $extra = array());
 
 Add root.
 
-#### $this->roles->add($roleId, $roleName, $extra = array());
+#### $this->rbac->roles->add($roleId, $roleName, $extra = array());
 
 Add node.
 
-#### $this->roles->append($roleId, $roleName, $extra = array());
+#### $this->rbac->roles->append($roleId, $roleName, $extra = array());
 
 Append node.
 
-#### $this->roles->moveAsFirst($sourceId, $targetId);
+#### $this->rbac->roles->moveAsFirst($sourceId, $targetId);
 
 Move as first node.
 
-#### $this->roles->moveAsLast($sourceId, $targetId);
+#### $this->rbac->roles->moveAsLast($sourceId, $targetId);
 
 Move as last node.
 
-#### $this->roles->moveAsPrevSibling($sourceId, $targetId);
+#### $this->rbac->roles->moveAsPrevSibling($sourceId, $targetId);
 
 Move as prev sibling
 
-#### $this->roles->moveAsNextSibling($sourceId, $targetId);
+#### $this->rbac->roles->moveAsNextSibling($sourceId, $targetId);
 
 Move as next sibling.
 
-#### $this->roles->getRoles($select = 'role_id,role_name');
+#### $this->rbac->roles->getRoles($select = 'role_id,role_name');
 
 Get all roles.
 
-#### $this->roles->getRoot($select = 'role_id,role_name');
+#### $this->rbac->roles->getRoot($select = 'role_id,role_name');
 
 Get root.
 
-#### $this->roles->getSiblings($roleId, $select = 'role_id,role_name');
+#### $this->rbac->roles->getSiblings($roleId, $select = 'role_id,role_name');
 
 Get siblings.
 
-#### $this->roles->update($roleId, $data = array());
+#### $this->rbac->roles->update($roleId, $data = array());
 
 Update node.
 
-#### $this->roles->delete($roleId);
+#### $this->rbac->roles->delete($roleId);
 
 Delete node.
 
-#### $this->roles->getStatement();
+#### $this->rbac->roles->getStatement();
 
 Returns to PDO Statement Object

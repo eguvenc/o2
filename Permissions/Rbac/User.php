@@ -135,12 +135,14 @@ Class User
      * Constructor
      * 
      * @param object $c      container
+     * @param object $db     database object
      * @param array  $params parameter
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $db, $params = array())
     {
-        $this->db = $c->load('return db');
+        $this->db = $db;
         $this->cache = $c->load('service/cache');
+        
         if (count($params) > 0) {
             $this->userRolesTableName           = $params['user_roles'][static::TABLENAME];
             $this->columnUserPrimaryKey         = $params['user_roles'][static::USER_PRIMARY_KEY];

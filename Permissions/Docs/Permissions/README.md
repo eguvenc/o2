@@ -1,44 +1,18 @@
 
-## Rbac Permissions Class
+## Permissions Class
 
 ------
 
 The Rbac Permissions class execute add, update, delete, move methods on permission tree. Also assign / de-assign given permission and role ids to permission table.
 
-### Initializing the Class
+### Initializing the Rbac Service
 
 ------
 
-First you need to define <kbd>Permission/rbac/permissions</kbd> class as services. Update your <b>app/class/services/rbac/perms.php</b>
-
 ```php
-/*
-|--------------------------------------------------------------------------
-| Permissions
-|--------------------------------------------------------------------------
-*/
-$c['permissions'] = function () use ($c) {
-    return new Obullo\Permissions\Rbac\Permissions(
-        array(
-            'db.perm_tablename'      => 'rbac_permissions',
-            'db.role_perm_tablename' => 'rbac_role_permissions',
-            'db.primary_key'         => 'perm_id',
-            'db.role_id'             => 'role_id',
-            'db.perm_type'           => 'perm_type',
-            'db.parent_id'           => 'parent_id',
-            'db.text'                => 'perm_name',
-            'db.resource'            => 'perm_resource',
-            'db.assignment_date'     => 'assignment_date',
-            'db.left'                => 'lft',
-            'db.right'               => 'rgt',
-        )
-    );
-};
-```
-
-```php
-$c->load('permissions');
-$this->permissions->method();
+<?php
+$c->load('service/rbac');
+$this->rbac->permissions->method();
 ```
 
 ### Adding Operations.
@@ -47,12 +21,14 @@ $this->permissions->method();
 
 #### Add Root
 
-#### $this->permissions->addRoot(string $permName, $extra = array());
+#### $this->rbac->permissions->addRoot(string $permName, $extra = array());
 
 ```php
-$this->permissions->addRoot($permName = 'marketing' => array('perm_resource' => 'admin/marketing', 'perm_type' => 'page'));
+<?php
+$this->rbac->permissions->addRoot($permName = 'marketing' => array('perm_resource' => 'admin/marketing', 'perm_type' => 'page');
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -61,16 +37,18 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->append($permId, $permName, $extra = array());
+#### $this->rbac->permissions->append($permId, $permName, $extra = array());
 
 ##### We define new permissions under "marketing".
 
 ```php
-$this->permissions->append($permId = 1, $permName = 'marketing_view', array('perm_resource' => 'admin/marketing/view', 'perm_type' => 'page'));
-$this->permissions->append($permId = 1, $permName = 'marketing_edit', array('perm_resource' => 'admin/marketing/edit', 'perm_type' => 'page'));
-$this->permissions->append($permId = 1, $permName = 'marketing_delete', array('perm_resource' => 'admin/marketing/delete', 'perm_type' => 'page'));
+<?php
+$this->rbac->permissions->append($permId = 1, $permName = 'marketing_view', array('perm_resource' => 'admin/marketing/view', 'perm_type' => 'page'));
+$this->rbac->permissions->append($permId = 1, $permName = 'marketing_edit', array('perm_resource' => 'admin/marketing/edit', 'perm_type' => 'page'));
+$this->rbac->permissions->append($permId = 1, $permName = 'marketing_delete', array('perm_resource' => 'admin/marketing/delete', 'perm_type' => 'page'));
 ```
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -85,15 +63,20 @@ Gives
 ##### We define new permissions for "form" under "marketing".
 
 ```php
-$this->permissions->append($permId = 1, $permName = 'form_1', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
+<?php
+$this->rbac->permissions->append($permId = 1, $permName = 'form_1', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
 ```
 Let's add an "Operations" node under the "form_1".
+
 ```php
-$this->permissions->append($permId = 5, $permName = 'username', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
-$this->permissions->append($permId = 5, $permName = 'password', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
-$this->permissions->append($permId = 5, $permName = 'email, array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
+<?php
+$this->rbac->permissions->append($permId = 5, $permName = 'username', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
+$this->rbac->permissions->append($permId = 5, $permName = 'password', array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
+$this->rbac->permissions->append($permId = 5, $permName = 'email, array('perm_resource' => 'admin/marketing/index', 'perm_type' => 'object'));
 ```
+
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -109,114 +92,159 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->assignRole(int $roleId, int $permId);
+#### $this->rbac->permissions->assignRole(int $roleId, int $permId);
 
 Assign a permission to a role.
 
 ```php
-print_r($this->permissions->assignRole($roleId = 1, $permId = 1));
+<?php
+print_r($this->rbac->permissions->assignRole($roleId = 1, $permId = 1));
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => INSERT INTO rbac_role_permissions (`role_id`,`perm_id`) VALUES (?,?)
 )
+*/
+```
 
-#### $this->permissions->assignOperation(int $roleId, int $permId, int $opId);
+#### $this->rbac->permissions->assignOperation(int $roleId, int $permId, int $opId);
 
 Assign a permission to a operation.
 
 ```php
-print_r($this->permissions->assignOperation($roleId = 1, $permId = 1, $opId = 1));
+<?php
+print_r($this->rbac->permissions->assignOperation($roleId = 1, $permId = 1, $opId = 1));
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => INSERT INTO rbac_op_permissions (`role_id`,`perm_id`, 'op_id') VALUES (?,?,?)
 )
+*/
 ```
 
-#### $this->permissions->deAssignRole(int $roleId, int $permId);
+#### $this->rbac->permissions->deAssignRole(int $roleId, int $permId);
 
 De-assign a permission from a role.
 
 ```php
-$this->permissions->deAssign($roleId = 1, $permId = 1);
+<?php
+$this->rbac->permissions->deAssign($roleId = 1, $permId = 1);
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_role_permissions` WHERE `roleId` = ? AND `permId` = ?
 )
+*/
 ```
 
-#### $this->permissions->deAssignRoles(int $permId);
+#### $this->rbac->permissions->deAssignRoles(int $permId);
 
 De-assign permission to all roles.
 
 ```php
-$this->permissions->deAssignRoles($permId = 1);
+<?php
+$this->rbac->permissions->deAssignRoles($permId = 1);
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_role_permissions` WHERE `permId` = ?
 )
+*/
 ```
 
-#### $this->permissions->deAssignOperation($roleId = 1, $permId = 1, $opId = 1);
+#### $this->rbac->permissions->deAssignOperation($roleId = 1, $permId = 1, $opId = 1);
 
 De-assign operation to from permission.
 
 ```php
-$this->permissions->deAssignOperation($roleId = 1, $permId = 1, $opId = 1);
+<?php
+$this->rbac->permissions->deAssignOperation($roleId = 1, $permId = 1, $opId = 1);
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_op_permissions` WHERE `roleId` = ? AND `permId` = ? AND `opId` = ?
 )
+*/
 ```
 
-#### $this->permissions->deAssignOperations($roleId = 1, $permId = 1);
+#### $this->rbac->permissions->deAssignOperations($roleId = 1, $permId = 1);
 
 De-assign role, permission to all operation.
 
 ```php
-$this->permissions->deAssignOperations($roleId = 1, $permId = 1);
+<?php
+$this->rbac->permissions->deAssignOperations($roleId = 1, $permId = 1);
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_op_permissions` WHERE `roleId` = ? AND `permId` = ? AND `opId` = ?
 )
+*/
 ```
 
-#### $this->permissions->deAssignAllOperations($permId = 1);
+#### $this->rbac->permissions->deAssignAllOperations($permId = 1);
 
 De-assign permission to all operation.
 
 ```php
-$this->permissions->deAssignOperations($permId = 1);
+<?php
+$this->rbac->permissions->deAssignOperations($permId = 1);
 ```
+
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => DELETE FROM `rbac_op_permissions` WHERE `permId` = ?
 )
+*/
 ```
 
 ### Moving Operations.
 
 ------
-#### $this->permissions->moveAsFirst($sourceId, $targetId);
+
+#### $this->rbac->permissions->moveAsFirst($sourceId, $targetId);
+
 
 Before move operation our current table.
 
@@ -238,11 +266,13 @@ Before move operation our current table.
 We want to move "form_1" under the "marketing_view" to be the first node.
 
 ```php
-$this->permissions->moveAsFirst($sourceId = 5, $targetId = 2);
+<?php
+$this->rbac->permissions->moveAsFirst($sourceId = 5, $targetId = 2);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -258,7 +288,7 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->moveAsLast($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsLast($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -280,11 +310,13 @@ Before move operation our current table.
 We want to move "form_1" under the "marketing" to be the last node.
 
 ```php
-$this->permissions->moveAsLast($sourceId = 5, $targetId = 1);
+<?php
+$this->rbac->permissions->moveAsLast($sourceId = 5, $targetId = 1);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -300,7 +332,7 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->moveAsPrevSibling($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsPrevSibling($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -322,11 +354,13 @@ Before move operation our current table.
 We want to move "marketing_delete" as a previous sibling of "marketing_view"
 
 ```php
-$this->permissions->moveAsPrevSibling($sourceId = 4, $targetId = 2);
+<?php
+$this->rbac->permissions->moveAsPrevSibling($sourceId = 4, $targetId = 2);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -342,7 +376,7 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->moveAsNextSibling($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsNextSibling($sourceId, $targetId);
 
 Before move operation our current table.
 
@@ -364,11 +398,13 @@ Before move operation our current table.
 We want to move "marketing_delete" as a previous sibling of "marketing_edit"
 
 ```php
-$this->permissions->moveAsNextSibling($sourceId = 4, $targetId = 3);
+<?php
+$this->rbac->permissions->moveAsNextSibling($sourceId = 4, $targetId = 3);
 ```
 After the move operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -388,15 +424,20 @@ Gives
 
 ------
 
-#### $this->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource');
 
 Retrieving a Full Permissions
 
 ```php
-print_r($this->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource'));
+<?php
+print_r($this->rbac->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource'));
 ```
+
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -428,17 +469,23 @@ Array
             [depth] => 1
         )
 )
+*/
 ```
 
-#### $this->permissions->getRoles(int $permId, $select = null);
+#### $this->rbac->permissions->getRoles(int $permId, $select = null);
 
 Retrieving a Full Permissions
 
 ```php
-print_r($this->permissions->getRoles($permId = 1));
+<?php
+print_r($this->rbac->permissions->getRoles($permId = 1));
 ```
+
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -454,17 +501,21 @@ Array
             [role_id] => 5
         )
 )
+*/
 ```
 
-#### $this->permissions->getRoot($select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getRoot($select = 'perm_id,perm_name,perm_resource');
 
 ```php
-print_r($this->permissions->getRoot($select = 'perm_id,perm_name,perm_resource'));
+<?php
+print_r($this->rbac->permissions->getRoot($select = 'perm_id,perm_name,perm_resource'));
 ```
 
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -474,18 +525,22 @@ Array
             [perm_resource] => admin/marketing/index
         )
 )
+*/
 ```
 
-#### $this->permissions->getSiblings($permId, $select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getSiblings($permId, $select = 'perm_id,perm_name,perm_resource');
 
 
 ```php
-print_r($this->permissions->getSiblings(2, $select = 'perm_id,perm_name,perm_resource'));
+<?php
+print_r($this->rbac->permissions->getSiblings(2, $select = 'perm_id,perm_name,perm_resource'));
 ```
 
 Gives
 
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -507,9 +562,10 @@ Array
             [perm_resource] => admin/marketing/delete
         )
 )
+*/
 ```
 
-#### $this->permissions->update($permId, $data = array());
+#### $this->rbac->permissions->update($permId, $data = array());
 
 Updates your table row data using the primary key ( perm_id ).
 
@@ -526,7 +582,8 @@ Before update operation our current table looks like below the example.
 We want to update "marketing" name and perm_resource column value.
 
 ```php
-$this->permissions->update($permId = 1, $data = array('perm_name' => 'sales', 'perm_resource' => 'admin/sales'));
+<?php
+$this->rbac->permissions->update($permId = 1, $data = array('perm_name' => 'sales', 'perm_resource' => 'admin/sales'));
 ```
 
 After the update operation.
@@ -539,7 +596,7 @@ After the update operation.
 +-------------+-----------+----------------------+----------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->delete($permId);
+#### $this->rbac->permissions->delete($permId);
 
 Before delete operation our current table.
 
@@ -563,12 +620,14 @@ Deletes the given node (and any node) from the permissions table.
 We delete "form_1" form. This operation also delete all nodes under the "form_1" form.
 
 ```php
-$this->permissions->delete($permId = 5);
+<?php
+$this->rbac->permissions->delete($permId = 5);
 ```
 
 After the delete operation.
 
 Gives
+
 ```php
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 | perm_id     | parent_id | perm_name            | perm_resource          | perm_type | lft | rgt |
@@ -580,15 +639,18 @@ Gives
 +-------------+-----------+----------------------+------------------------+-----------+-----+-----+
 ```
 
-#### $this->permissions->getStatement();
+#### $this->rbac->permissions->getStatement();
 
 Get PDO Statement Object
 
 ```php
+<?php
 print_r($this->treeDb->getStatement());
 ```
 Gives
+
 ```php
+<?php
 PDOStatement Object
 (
     [queryString] => INSERT INTO foo (`parent_id`,`name`,`lft`,`rgt`) VALUES (?,?,?,?);
@@ -599,62 +661,62 @@ PDOStatement Object
 
 -----
 
-#### $this->permissions->addRoot($permName, $extra = array());
+#### $this->rbac->permissions->addRoot($permName, $extra = array());
 
 Add root.
 
-#### $this->permissions->add($permId, $permName, $extra = array());
+#### $this->rbac->permissions->add($permId, $permName, $extra = array());
 
 Add node.
 
-#### $this->permissions->append($permId, $permName, $extra = array());
+#### $this->rbac->permissions->append($permId, $permName, $extra = array());
 
 Append node.
 
-#### $this->permissions->assign(int $roleId, int $permId);
+#### $this->rbac->permissions->assign(int $roleId, int $permId);
 
 Assign a permission to a role.
 
-#### $this->permissions->deAssign(int $roleId, int $permId);
+#### $this->rbac->permissions->deAssign(int $roleId, int $permId);
 
 De-assign a permission from a role.
 
-#### $this->permissions->moveAsFirst($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsFirst($sourceId, $targetId);
 
 Move as first node.
 
-#### $this->permissions->moveAsLast($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsLast($sourceId, $targetId);
 
 Move as last node.
 
-#### $this->permissions->moveAsPrevSibling($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsPrevSibling($sourceId, $targetId);
 
 Move as prev sibling
 
-#### $this->permissions->moveAsNextSibling($sourceId, $targetId);
+#### $this->rbac->permissions->moveAsNextSibling($sourceId, $targetId);
 
 Move as next sibling.
 
-#### $this->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getPermissions($select = 'perm_id,perm_name,perm_resource');
 
 Get all permissions.
 
-#### $this->permissions->getRoot($select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getRoot($select = 'perm_id,perm_name,perm_resource');
 
 Get root.
 
-#### $this->permissions->getSiblings($roleId, $select = 'perm_id,perm_name,perm_resource');
+#### $this->rbac->permissions->getSiblings($roleId, $select = 'perm_id,perm_name,perm_resource');
 
 Get siblings.
 
-#### $this->permissions->update($roleId, $data = array());
+#### $this->rbac->permissions->update($roleId, $data = array());
 
 Update node.
 
-#### $this->permissions->delete($roleId);
+#### $this->rbac->permissions->delete($roleId);
 
 Delete node.
 
-#### $this->permissions->getStatement();
+#### $this->rbac->permissions->getStatement();
 
 Returns to PDO Statement Object.
