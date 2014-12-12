@@ -99,6 +99,13 @@ Class Config
     protected $cache;
 
     /**
+     * Channel name
+     * 
+     * @var string
+     */
+    protected $channel;
+
+    /**
      * Constructor
      * 
      * @param object $c container
@@ -135,7 +142,7 @@ Class Config
      *
      * @return void
      */
-    public function setIdentifier($identifier = 'ip')
+    public function identifier($identifier = 'ip')
     {
         $this->identifier = $identifier;
     }
@@ -151,18 +158,28 @@ Class Config
     }
 
     /**
-     * Read config from cache
-     *
+     * Sets channel for config
+     * 
      * @param string $channel name
+     * 
+     * @return void
+     */
+    public function channel($channel)
+    {
+        $this->channel = $channel;
+    }
+
+    /**
+     * Read config from cache
      * 
      * @return If data empty return null
      */
-    public function read($channel)
+    public function read()
     {
-        $config = $this->cache->get(Rate::RATE_LIMITER_CONFIG .':'. $channel .':'. $this->getIdentifier());
+        $config = $this->cache->get(Rate::RATE_LIMITER_CONFIG .':'. $this->channel .':'. $this->getIdentifier());
 
         if ($config == false) { // If not exist in the cache
-            $config = $this->save($channel);
+            $config = $this->save();
         }
         $limit = $config['limit'];
 
@@ -176,12 +193,10 @@ Class Config
 
     /**
      * Save config to cache
-     *
-     * @param string $channel name
      * 
      * @return void
      */
-    public function save($channel)
+    public function save()
     {
         $config = array(
             'limit' => array(
@@ -195,7 +210,7 @@ Class Config
             ),
             'enabled' => $this->isEnabled()
         );
-        $this->cache->set(Rate::RATE_LIMITER_CONFIG .':'. $channel .':'. $this->getIdentifier(), $config, Rate::CACHE_CONFIG_EXPIRATION);
+        $this->cache->set(Rate::RATE_LIMITER_CONFIG .':'. $this->channel .':'. $this->getIdentifier(), $config, Rate::CACHE_CONFIG_EXPIRATION);
 
         return $config;
     }

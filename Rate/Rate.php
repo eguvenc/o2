@@ -131,7 +131,7 @@ Class Rate
         $this->logger = $c->load('service/logger');
 
         $this->config = new Config($c);
-        $this->config->setIdentifier($identifier);
+        $this->config->identifier($identifier);
         $this->config->init($params[$identifier]);
     }
 
@@ -148,10 +148,11 @@ Class Rate
         if (empty($channel) OR empty($identifier)) {
             throw new RuntimeException("Identifier or channel can't be empty.");
         }
+        $this->config->channel($channel);
         /**
          * Read the configuration of current channel
          */
-        $this->settings = $this->config->read($channel);
+        $this->settings = $this->config->read();
 
         /**
          * Read request data of current identifier

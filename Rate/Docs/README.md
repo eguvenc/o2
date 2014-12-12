@@ -168,8 +168,8 @@ Bazen bası konfigurasyonları dinamik olarak değiştirmek isteyebiliriz. Aşa�
 
 ```php
 <?php
-$this->limiter->username->setBanStatus(0);        // Disable ban
-$this->limiter->username->setBanExpiration(100);  // Update ban expiration time
+$this->limiter->username->config->setBanStatus(0);        // Disable ban
+$this->limiter->username->config->setBanExpiration(100);  // Update ban expiration time
 ```
 
 ### Sending Dynamic Parameters
@@ -223,12 +223,17 @@ if ($this->limiter->ip->isAllowed()) {
 
 -----
 
-Eğer kullanıcı banlama özelliği kapatılmak isteniyorsa bu değer false olarak set edilmelidir. Ban özelliği varsayılan olarak true (açık) konumundadır.
+Eğer kullanıcı banlama özelliği kapatılmak isteniyorsa bu değer false olarak set edilmelidir. Bu özellik varsayılan olarak true (açık) konumdadır.
 
 ```php
 <?php
-$this->limiter->identifier->setBanStatus(false);
-$this->limiter->identifier->setBanExpiration(300); // sec
+$this->limiter->load('username');        
+$this->limiter->username->channel('login');
+$this->limiter->username->identifier('user@example.com');
+
+$this->limiter->username->config->setBanStatus(false);
+$this->limiter->username->config->setBanExpiration(300); // sec
+$this->limiter->username->config->save();
 ```
 
 #### Removing Ban
@@ -267,22 +272,6 @@ Increase user max request limit.
 
 Reduce user max request limit.
 
-#### $this->limiter->identifier->setBanStatus(true);
-
-Enable / Disabled ban feature. Default is true.
-
-#### $this->limiter->identifier->setBanExpiration();
-
-Sets ban expiration time into cache.
-
-#### $this->limiter->identifier->getBanStatus();
-
-Returns to current ban status.
-
-#### $this->limiter->identifier->getBanExpiration();
-
-Returns to current ban expiration time.
-
 #### $this->limiter->identifier->getLabel();
 
 Returns to request label.
@@ -298,3 +287,24 @@ Removes ban data from cache.
 #### $this->limiter->identifier->addBan();
 
 If you want to additionaly ban operation you can use it by manually.
+
+
+### Configuration Reference
+
+-----
+
+#### $this->limiter->identifier->config->setBanStatus(true);
+
+Enable / Disabled ban feature. Default is true.
+
+#### $this->limiter->identifier->config->setBanExpiration();
+
+Sets ban expiration time into cache.
+
+#### $this->limiter->identifier->config->getBanStatus();
+
+Returns to current ban status.
+
+#### $this->limiter->identifier->config->getBanExpiration();
+
+Returns to current ban expiration time.
