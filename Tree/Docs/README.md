@@ -12,14 +12,23 @@ Tree class use nested set model. It is a particular technique for representing n
 ------
 
 ```php
-$c->load('treeDb');
-
+<?php
+$c->load('tree/db');
 $this->treeDb->setTablename('categories');
 ```
 
-### Run SQL Code
+### Using different database Object
 
-Run below the sql query this will create the nested tree. 
+Using second parameter you can choose a different database object.
+
+```php
+<?php
+$c->load('tree/db', $c->load('service/provider/db'));
+```
+
+### Running SQL Code
+
+First of all run below the sql query this will create the nested tree. 
 
 ```php
 CREATE TABLE categories (
@@ -30,20 +39,21 @@ CREATE TABLE categories (
 );
 ```
 
-Donâ€™t forget to add some indexes on your tables to speed up the â€œreadingâ€ process. You should add indexes for parent_id, lft and rght:
+Don't forget to add some indexes on your tables to speed up the read process. You should add indexes for parent_id, lft and rgt columns:
 
 ```php
 ALTER TABLE  `categories` ADD INDEX  `lft` (  `lft` );
 ALTER TABLE  `categories` ADD INDEX  `rgt` (  `rgt` );
 ```
 
-### Add root category
+### Add (first) root category
 
 #### $this->treeDb->addTree(string $text);
 
 Adds the main category to the table.
 
 ```php
+<?php
 $this->treeDb->addTree('Electronics');
 ```
 Gives
@@ -61,6 +71,7 @@ Gives
 Adds to extra column data to table.
 
 ```php
+<?php
 $this->treeDb->addTree('Electronics', $extra = array('column' => 'value'));
 ```
 Gives
@@ -80,6 +91,7 @@ Gives
 Inserts a new node as the first child of the supplied parent node.
 
 ```php
+<?php
 $this->treeDb->addChild($category_id = 1, 'Televisions');
 ```
 Gives
@@ -96,6 +108,7 @@ Gives
 Let's add a Portable Electronics node as child of 
 
 ```php
+<?php
 $this->treeDb->addChild($category_id = 1, 'Portable Electronics');
 ```
 
@@ -116,6 +129,7 @@ Gives
 Same as addChild except the new node is added as the last child.
 
 ```php
+<?php
 $this->treeDb->appendChild($category_id = 2, 'Lcd');
 ```
 Gives
@@ -136,6 +150,7 @@ Gives
 Inserts a new node as the first sibling of the supplied parent node.
 
 ```php
+<?php
 $this->treeDb->addSibling($category_id = 4, 'Tube');
 ```
 Gives
@@ -157,6 +172,7 @@ Gives
 Inserts a new node as the last sibling of the supplied parent node.
 
 ```php
+<?php
 $this->treeDb->appendSibling($category_id = 4, 'Plasma');
 ```
 Gives
@@ -182,6 +198,7 @@ This function added "Plasma" as sibling to "Lcd". If we wanted to add "Plasma" a
 Deletes the given node (and any children) from the tree table.
 
 ```php
+<?php
 $this->treeDb->deleteNode($category_id = 5); // deletes "Tube"
 ```
 Gives
@@ -203,6 +220,7 @@ Gives
 Updates your table row data using the primary key ( category_id ).
 
 ```php
+<?php
 $this->treeDb->updateNode($id = 2, array('name' => 'TV', 'column' => 'test'));
 ```
 Gives
@@ -243,6 +261,7 @@ Before move operation our current table.
 We want to move "Portable Electronics" under the "Televisions" to be the first child.
 
 ```php
+<?php
 $sourceId = 2; // Portable Electronics primary key (category_id)
 $targetId = 5; // Televisions primary key (category_id)
 
@@ -292,6 +311,7 @@ Before move operation our current table.
 We want to move "Portable Electronics" as a previous sibling of "Televisions"
 
 ```php
+<?php
 $sourceId = 2; // Portable Electronics primary key (category_id)
 $targetId = 5; // Televisions primary key (category_id)
 
@@ -341,6 +361,7 @@ Before move operation our current table.
 We want to move "Portable Electronics" under the "Televisions" as a last child.
 
 ```php
+<?php
 $sourceId = 2; // Portable Electronics primary key (category_id)
 $targetId = 5; // Televisions primary key (category_id)
 
@@ -390,6 +411,7 @@ Before move operation our current table.
 We want to move "Portable Electronics" as a next sibling of "Televisions" 
 
 ```php
+<?php
 $sourceId = 2; // Portable Electronics primary key (category_id)
 $targetId = 5; // Televisions primary key (category_id)
 
@@ -432,10 +454,14 @@ Retrieving a Full Tree
 We do not send anything. All the tree depth, is back with the parent id and name.
 
 ```php
+<?php
 print_r($this->treeDb->getAllTree());
 ```
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -462,6 +488,7 @@ Array
             [depth] => 2
         )
 )
+*/
 ```
 
 #### $this->treeDb->getTree($nodeId = 1, $select = 'category_id,name');
@@ -471,12 +498,18 @@ Retrieving a Full Tree
 We want to get the tree of "Electronics".
 
 ```php
+<?php
 print_r($this->treeDb->getTree($nodeId = 1, $select = 'category_id,name'));
+
 // primary key value or text column value
+
 print_r($this->treeDb->getTree($nodeId = 'Electronics'));
 ```
 Gives (Same result)
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -490,6 +523,7 @@ Array
             [name] => Portable Electronics
         )
 )
+*/
 ```
 
 #### $this->treeDb->getDepthOfSubTree($nodeId = 1, $select = 'category_id,name');
@@ -497,12 +531,18 @@ Array
 Retrieves depth of sub categories.
 
 ```php
+<?php
 print_r($this->treeDb->getDepthOfSubTree($nodeId = 1, $select = 'category_id,name'));
+
 // primary key value or text column value
+
 print_r($this->treeDb->getDepthOfSubTree($nodeId = 'Electronics'));
 ```
 Gives (Same result)
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -530,6 +570,7 @@ Array
             [depth] => 2
         )
 )
+*/
 ```
 
 #### $this->treeDb->getSiblings($category_id = 2, $select = 'category_id,name');
@@ -537,12 +578,18 @@ Array
 We want to get "Portable Electronics" siblings.
 
 ```php
+<?php
 print_r($this->treeDb->getSiblings($nodeId = 2, $select = 'category_id,name'));
+
 // primary key value or text column value
+
 print_r($this->treeDb->getSiblings($nodeId = 'Portable Electronics'));
 ```
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -558,6 +605,7 @@ Array
         )
 
 )
+*/
 ```
 
 #### $this->treeDb->getRoot();
@@ -565,10 +613,14 @@ Array
 We're just getting the all main tree.
 
 ```php
+<?php
 print_r($this->treeDb->getRoot());
 ```
 Gives
+
 ```php
+<?php
+/*
 Array
 (
     [0] => Array
@@ -577,6 +629,7 @@ Array
             [name] => Electronics
         )
 )
+*/
 ```
 
 #### $this->treeDb->getStatement();
@@ -584,14 +637,19 @@ Array
 Get PDO Statement Object
 
 ```php
+<?php
 print_r($this->treeDb->getStatement());
 ```
 Gives
+
 ```php
+<?php
+/*
 PDOStatement Object
 (
     [queryString] => INSERT INTO foo (`parent_id`,`name`,`lft`,`rgt`) VALUES (?,?,?,?);
 )
+*/
 ```
 
 ### Function Reference

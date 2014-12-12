@@ -111,9 +111,9 @@ Class Db
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct($c, $db = null)
     {
-        $this->db = $c->load('return db'); // set database object.
+        $this->db = (is_null($db)) ? $c->load('return service/provider/db') : $db; // set database object.
         $this->tableName  = static::TABLE_NAME; // set default values
         $this->primaryKey = static::PRIMARY_KEY;
         $this->parentId   = static::PARENT_ID;

@@ -157,14 +157,15 @@ Class Permissions
      * Constructor
      *
      * @param object $c      container
+     * @param object $db     database object
      * @param array  $params parameter
      */
-    public function __construct($c, $params = array())
+    public function __construct($c, $db, $params = array())
     {
         $this->c = $c;
-        $this->treeDb = new Db($c);
+        $this->db = $db;
         $this->cache = $c->load('service/cache');
-        $this->db = $c->load('return db');
+        $this->treeDb = new Db($c);
 
         if (count($params) > 0) {
             $this->permTableName          = $params['permissions'][static::TABLENAME];

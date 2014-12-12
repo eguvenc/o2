@@ -15,25 +15,25 @@ namespace Obullo\Log;
 Class LogService
 {
     /**
+     * Logger class
+     * 
+     * @var object
+     */
+    public $logger;
+    
+    /**
      * Container class
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Config parameters
      * 
      * @var object
      */
-    public $config;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger;
+    protected $config;
 
     /**
      * Constructor
@@ -45,7 +45,6 @@ Class LogService
     {
         $this->c = $c;
         $this->config = $config;
-
         if ($this->disabled()) {
             $this->logger = new NullLogger;  // Use null handler if config disabled.
             return;
