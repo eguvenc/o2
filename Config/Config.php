@@ -74,14 +74,7 @@ Class Config implements ArrayAccess
         if (isset($this->xml->env->attributes()->file)) {   // Load environment variables if exists
             $this->loadEnv($this->xml->env->attributes()->file);
         }
-        $config = include $this->envPath .'config'. EXT;     // Load config variables
-
-        foreach ($config as $k => $v) {
-            if (is_string($v) AND strpos($v, '@include.') === 0) {
-                $config[$k] = include $this->envPath .substr($v, 9);
-            }
-        }
-        $this->array = $config;  // Bind current environment config variables 
+        $this->array = include $this->envPath .'config.php';  // Bind current environment config variables 
     }
 
     /**
@@ -93,8 +86,8 @@ Class Config implements ArrayAccess
      */
     public function load($filename = '')
     {
-        $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . EXT;
-        $envFile = $this->envPath . str_replace('/', DS, $filename) . EXT;
+        $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . '.php';
+        $envFile = $this->envPath . str_replace('/', DS, $filename) . '.php';
 
         if (file_exists($envFile)) {
             $file = $envFile;
@@ -126,7 +119,7 @@ Class Config implements ArrayAccess
      */
     public function loadEnv($file)
     {
-        $filename = (substr($file, -4) == '.php') ? $file : $file. EXT;
+        $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
         $envVariables = include ROOT .$filename;
 
         foreach ($envVariables as $key => $value) {

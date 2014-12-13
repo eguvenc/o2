@@ -82,15 +82,17 @@ To create view static variables shown as below:
 
 ```php
 <?php
-$this->view->assign('@myVariable', 'my replace value');
+$this->view->assign('@VARIABLE', 'value');
 ```
 
-Getting variable values
+Getting static variable values
 
 ```php
 <?php
-echo '@myVariable' // gives my replace value
+echo '@VARIABLE' // gives my "value"
 ```
+
+**Note:** All static variables must be UPPERCASE LETTERS. e.g. ( @VARIABLE, @FOO, @BAR )
 
 ### Layouts
 
@@ -124,13 +126,16 @@ $this->view->load(
   'hello_world',
     function () {
       $this->assign('title', 'Hello World !');
-      $this->assign('@var@', 'My static variable !');
+      $this->assign('@VAR', 'My static variable !');  // it "@" means assign variable as static
       $this->layout();
     }
 );
 ```
 
 If you are not provide layout name in $this->layout(); function it will fetch default configured layout otherwise you need to provide a name.
+
+
+**Note:** All static variables must be UPPERCASE LETTERS. e.g. ( @VARIABLE, @FOO, @BAR )
 
 
 ```php
@@ -152,7 +157,7 @@ Example view file
             <p><?php echo $header ?></p>
         </section>
 
-        @var@;
+        @VAR;
 
         <?php echo $content ?>
 
@@ -352,7 +357,7 @@ $this->view->load(
   'hello_world',
   function () {
       $this->assign('title', 'Hello World !');
-      $this->getScheme()
+      $this->layout()
   }
 );
 ```
@@ -496,12 +501,12 @@ Gets the file from templates directory e.g. <kbd>app/templates</kbd>
 
 #### $this->view->assign('key', $val = '');
 
-Sets a view variable ( Variable types can be String, Array or Object ), this method <kbd>automatically detects</kbd> the variable types.
+Assign a view variable ( Variable types can be String, Array or Object ), this method <kbd>automatically detects</kbd> the variable types.
+
+#### $this->view->assign('@VARIABLE', 'value');
+
+Assign static variables to available them in your views.
 
 #### $this->view->layout('name');
 
-Uses the layout configuration that is defined in your <kbd>app/config/env/local/config.php</kbd>.
-
-#### $this->view->setVar('@myVariable@', 'replace value');
-
-Adds static variables to available them in your views like.
+Uses the layout configuration that is defined in your <kbd>app/config/env/shared/view.php</kbd>.

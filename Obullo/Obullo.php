@@ -27,7 +27,7 @@ $c['event']->fire('before.request');
 $router 	= $c->load('router');
 $response 	= $c->load('response');
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
-$controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'controller'. DS . $router->fetchClass() . EXT;
+$controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'controller'. DS . $router->fetchClass() . '.php';
 
 if ( ! file_exists($controller)) {
     $response->show404($pageUri);

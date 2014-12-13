@@ -398,11 +398,11 @@ Class Router
             array_shift($segments);
         }
         // if segments[1] exists set first segment as a directory 
-        if ( ! empty($segments[1]) AND file_exists(PUBLIC_DIR . $this->fetchTopDirectory(DS). $this->fetchDirectory() . DS . 'controller' . DS . $segments[1] . EXT)) {
+        if ( ! empty($segments[1]) AND file_exists(PUBLIC_DIR . $this->fetchTopDirectory(DS). $this->fetchDirectory() . DS . 'controller' . DS . $segments[1] . '.php')) {
             return $segments;
         }
         // if segments[1] not exists. forexamle http://example.com/welcome
-        if (file_exists(PUBLIC_DIR. $this->fetchDirectory() . DS . 'controller' . DS . $this->fetchDirectory() . EXT)) {
+        if (file_exists(PUBLIC_DIR. $this->fetchDirectory() . DS . 'controller' . DS . $this->fetchDirectory() . '.php')) {
             array_unshift($segments, $this->fetchDirectory());
             return $segments;
         }

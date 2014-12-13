@@ -202,10 +202,10 @@ Class Translator implements ArrayAccess
         if ( ! is_dir(APP .'translations'. DS .$locale)) {
             throw new LogicException(sprintf('The translator %s path is not a folder.', APP .'translations'. DS .$locale));
         }
-        $fileUrl = APP .'translations'. DS .$locale. DS .$filename. EXT;
+        $fileUrl = APP .'translations'. DS .$locale. DS .$filename. '.php';
         $translateArray = include $fileUrl;
         if ( ! isset($translateArray)) {
-            $this->logger->error('Translation file does not contain $translate variable: ' . APP .'translations'. DS .$locale. DS .$filename. EXT);
+            $this->logger->error('Translation file does not contain $translate variable: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
             return;
         }
         if ($return) {
@@ -215,7 +215,7 @@ Class Translator implements ArrayAccess
         $this->translateArray = array_merge($this->translateArray, $translateArray);
         unset($translateArray);
 
-        $this->logger->debug('Translation file loaded: ' . APP .'translations'. DS .$locale. DS .$filename. EXT);
+        $this->logger->debug('Translation file loaded: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
         return $this;
     }
 

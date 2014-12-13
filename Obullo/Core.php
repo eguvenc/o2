@@ -36,6 +36,7 @@ $c['app'] = function () use ($c) {
 |--------------------------------------------------------------------------
 */
 define('ENV', $c['app']->detectEnvironment());
+define('ENV_CONFIG', APP .'config'. DS . 'env'. DS . ENV . DS);
 /*
 |--------------------------------------------------------------------------
 | Config Component

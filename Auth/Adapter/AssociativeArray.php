@@ -104,7 +104,7 @@ class AssociativeArray extends AbstractAdapter
     public function __construct($c, UserService $userService)
     {
         $this->user = $userService;
-        $this->storage = $this->user->params['storage'];
+        $this->storage = $this->user->config['storage'];
         $this->session = $c->load('session');
         $this->logger = $c->load('service/logger');
         $this->token = new Token($c);
@@ -221,7 +221,7 @@ class AssociativeArray extends AbstractAdapter
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
             '__token' => $this->token->get(),
-            '__time' => microtime(true),
+            '__time' => ceil(microtime(true)),
         );
         $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
 

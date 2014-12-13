@@ -61,16 +61,16 @@ Class Activity
     public function __construct(array $params)
     {
         $this->c = $params['c'];
-        $this->config = $params['config']['activity'];
+        $this->config = $params['config'];
         $this->user = $params['user'];
-        $this->storage = $this->user->params['storage'];
+        $this->storage = $this->user->config['storage'];
         $this->cache = $this->c->load('return service/cache');
         $this->session = $this->c->load('return session');
         $this->request = $this->c->load('return request');
 
-        $this->attributes = array(
-            'date' => time()
-        );
+        // $this->attributes = array(
+        //     'date' => time()
+        // );
         $this->identifier = $this->user->identity->getIdentifier();
     }
 
@@ -155,32 +155,6 @@ Class Activity
     }
 
     /**
-     * Check whether to user is online 
-     * 
-     * @return boolean
-     */
-    public function isSignedIn()
-    {
-        if ($this->user->identity->isAuthenticated()) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check whether to user is "not" online 
-     * 
-     * @return boolean
-     */
-    public function isSignedOut()
-    {
-        if ($this->user->identity->isGuest()) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Update user activity
      * 
      * @return void
@@ -190,25 +164,29 @@ Class Activity
         if (empty($this->identifier)) {
             return false;
         }
-        if ($this->config['singleSignOff'] AND $this->isSignedIn()) {  // Single sign-off is the property whereby a single action of signing out 
-                                                                       // terminates access to multiple login sessions.
+        if ($this->config['activity']['singleSignOff'] AND $this->user->identity->isAuthenticated()) {  // Single sign-off is the property whereby a single action of signing out 
+                                                                                                        // terminates access to multiple login sessions.
             $sessions = $this->getAuthSessions();
+
             if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
                 return;
             }
             $sessionKeys = array();  // Keep the last session
-            foreach (array_keys($sessions) as $key) {
-                $sessionKeys[] = $this->cache->hGet($key, '__mtime');
+            foreach ($sessions as $key => $val) {
+                $time = $this->cache->hGet($val['key'], '__time');
+                $sessionKeys[$time] = $key;
             }
-            $lastSession = max($sessionKeys);      // Get the highest integer
-            unset($sessions[$lastSession]);  // Don't touch the current session
-
-            // Array ( [ 1413449703.5931] => Array ( 
-            //     [id] => user@example.com 
-            //     [key] => Auth:__permanent:Authorized:user@example.com:1413449703.5931 
-            //     [prefix] => Auth:__permanent:Authorized:user@example.com ) 
-            // )
-
+            $lastSession = max(array_keys($sessionKeys));      // Get the highest integer
+            $removalSession = $sessionKeys[$lastSession];
+            unset($sessions[$removalSession]);  // Don't touch the current session
+            /*
+            Array ( 
+                [ojj4ihn4m5] => Array ( 
+                        [id] => user@example.com 
+                        [key] => Auth:__permanent:Authorized:user@example.com:ojj4ihn4m5 
+                        [prefix] => Auth:__permanent:Authorized:user@example.com ) 
+                ) 
+            */
             foreach (array_keys($sessions) as $aid) { // Destroy all other sessions
                 $this->killAuthSession($aid);
             }

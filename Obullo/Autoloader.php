@@ -36,10 +36,10 @@ function Obullo_autoloader($realname)
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className);
 
     if (strpos($fileName, 'Obullo') === 0) {     // Check is it Obullo Package ?
-        include_once OBULLO .substr($fileName, 7). EXT;
+        include_once OBULLO .substr($fileName, 7). '.php';
         return;
     }
-    include_once CLASSES .$fileName. EXT; // Otherwise load it from user directory
+    include_once CLASSES .$fileName. '.php'; // Otherwise load it from user directory
 }
 spl_autoload_register('Obullo_autoloader', true);
 

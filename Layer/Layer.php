@@ -263,7 +263,7 @@ Class Layer
         $class = $this->c['router']->fetchClass();
 
         $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$class;
-        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$class. EXT;
+        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$class. '.php';
                                                  // Check class is exists in the storage
         if (isset($storage[$this->layerUri])) {    // Don't allow multiple include.
             $app = $storage[$this->layerUri];      // Get stored class.

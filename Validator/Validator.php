@@ -348,7 +348,7 @@ Class Validator
 
                 $ruleClass = ucfirst($rule);
                 $className = 'Obullo\\Validator\\'.ucfirst($rule);
-                if ( ! file_exists(OBULLO .'Validator'. DS .$ruleClass. EXT)) {  // If our own wrapper function doesn't exist we see if a native PHP function does. 
+                if ( ! file_exists(OBULLO .'Validator'. DS .$ruleClass. '.php')) {  // If our own wrapper function doesn't exist we see if a native PHP function does. 
                                                                                  // Users can use any native PHP function call that has one param.
                     if (function_exists($rule)) { // Native php func.
                         $result = $rule($postdata);
@@ -364,7 +364,7 @@ Class Validator
                     continue;
                 }
                 if ( ! class_exists($className)) {
-                    include OBULLO .'Validator'. DS .$ruleClass. EXT;
+                    include OBULLO .'Validator'. DS .$ruleClass. '.php';
                 }
                 $result = call_user_func_array(array(new $className($this->c), 'isValid'), array($postdata, $param));
                 if ($inArray == true) {

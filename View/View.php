@@ -29,7 +29,7 @@ Class View
     public $object = array(); // Object type view variables
 
     /**
-     * Static variables ( @base, @host , @assets )
+     * Static variables ( @BASE, @HOST , @ASSETS )
      * 
      * @var array
      */
@@ -79,9 +79,9 @@ Class View
     public function __construct($c, $params = array())
     {
         $this->variables = array(
-            '@base@' => $c['config']['url']['base'],
-            '@host@' => $c['config']['url']['host'],
-            '@assets@' => $c['config']['url']['assets']
+            '@BASE' => $c['config']['url']['base'],
+            '@HOST' => $c['config']['url']['host'],
+            '@ASSETS' => $c['config']['url']['assets']
         );
         $this->c = $c;
         $this->layouts = $params;
@@ -105,7 +105,7 @@ Class View
     {
         $obulloViewInclude = ($obulloViewData === false) ? false : $obulloViewInclude;
         $fileExtension = substr($obulloViewFilename, strrpos($obulloViewFilename, '.')); 	// Detect the file extension ( e.g. '.tpl' )
-        $ext = (strpos($fileExtension, '.') === 0) ? '' : EXT;
+        $ext = (strpos($fileExtension, '.') === 0) ? '' : '.php';
 
         if (class_exists('Controller', false) AND is_object(Controller::$instance)) {
             foreach (array_keys(get_object_vars(Controller::$instance)) as $key) {	 // This allows to using "$this" variable in all views files.
@@ -292,8 +292,9 @@ Class View
      */
     protected function setVar($name, $replace)
     {
+        $name = strtoupper($name);
         $name = str_replace('@', '', $name);
-        $this->variables['@'.$name.'@'] = $replace;
+        $this->variables['@'.$name] = $replace;
     }
 
 }

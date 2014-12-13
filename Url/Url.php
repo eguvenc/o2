@@ -42,8 +42,8 @@ Class Url
      */
     public function anchor($uri = '', $title = '', $attributes = '', $suffix = true)
     {
-        if (strpos($uri, '@host') !== false) {
-            $uri = str_replace('@host', $this->c->load('config')['url']['host'], $uri);
+        if (strpos($uri, '@HOST') !== false) {
+            $uri = str_replace('@HOST', $this->c['config']['url']['host'], $uri);
         }
         $siteUri = $this->uri->getSiteUrl($uri, $suffix);
 

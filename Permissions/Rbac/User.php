@@ -55,6 +55,13 @@ Class User
     const CACHE_HAS_ROLE              = 'Permissions:Rbac:User:hasRole:';
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Tablename
      * 
      * @var string
@@ -140,6 +147,7 @@ Class User
      */
     public function __construct($c, $db, $params = array())
     {
+        $this->c = $c;
         $this->db = $db;
         $this->cache = $c->load('service/cache');
         
@@ -185,8 +193,12 @@ Class User
         if ( ! is_array($permissions)) {
             return false;
         }
+        $element = $this->c->load('return utils/element');
+        $isAssoc = $element->isAssoc($permissions);
+
         foreach ($permissions as $val) {
-            if ($permName == $val[$this->columnPermText]) {
+            $permValue = ($isAssoc) ? $val[$this->columnPermText] : $val;
+            if ($permName == $permValue) {
                 return true;
             }
         }
@@ -407,8 +419,9 @@ Class User
     /**
      * Has page permission
      * 
-     * @param string $permResource permission page resource ('admin/advertising'),
-     * @param int    $expiration   expiration time
+     * @param string $permResource  permission page resource ('admin/advertising'),
+     * @param string $operationName operations ( edit, update, delete, view )
+     * @param int    $expiration    expiration time
      * 
      * @return boolean
      */
@@ -433,7 +446,7 @@ Class User
      * Has operation
      * 
      * @param string $permName      perm name
-     * @param string $operationName operation type
+     * @param string $operationName operations ( edit, update, delete, view )
      * @param int    $expiration    expiration time
      * 
      * @return boolean
@@ -463,7 +476,7 @@ Class User
      * 
      * @param string $objectName    object name
      * @param string $permName      permission name
-     * @param string $operationName operation type
+     * @param string $operationName operations ( edit, update, delete, view )
      * @param int    $expiration    expiration time
      * 
      * @return boolean

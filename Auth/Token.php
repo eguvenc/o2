@@ -54,7 +54,7 @@ Class Token
     public function generate()
     {
         $userAgentMatch = null;
-        if ($this->config['security']['userAgentMatch']) {
+        if ($this->config['security']['cookie']['userAgentMatch']) {
             $request = $this->c->load('return request');
             $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
             $userAgentMatch = '.' . hash('adler32', trim($userAgent));

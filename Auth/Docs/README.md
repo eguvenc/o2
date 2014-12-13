@@ -606,18 +606,10 @@ Add activity data to user.
 
 Get activity data item of user.
 
-### $this->user->activity->remove();
-
-Remove activity key from container.
-
-### $this->user->activity->isSignedIn();
-
-Returns <b>true</b> if user online.
-
-### $this->user->activity->isSignedOut();
-
-Returns <b>false</b> if user not online.
-
 ### $this->user->activity->update();
 
 Updates all activity data of the user which we set them before using $this->user->activity->set(); method.
+
+### $this->user->activity->remove();
+
+Remove activity key from container.

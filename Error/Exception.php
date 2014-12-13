@@ -97,7 +97,7 @@ Class Exception
     public function loadView($file, $e)
     {
         ob_start();
-        include OBULLO . 'Error' . DS . 'View'. DS .$file . EXT;
+        include OBULLO . 'Error' . DS . 'View'. DS .$file . '.php';
         return ob_get_clean();
     }
 

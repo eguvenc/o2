@@ -18,10 +18,15 @@ $this->event->method();
 
 ## Getting Started
 
-Programlamada event lar belirli bir zaman dilimi içerisinde bir anda gerçekleşen olaylardır. Event yapısı uygulama içerisindeki olayların gerçekleşeği an için tetikleyici fonksiyonlar ve bu fonksiyonlara bağlı çalışacak programları çalıştırmamızı sağlar. Bir örnek vermek gerekirse mesela uygulamamız içerisiden bir login modülü olsun. Event fire methodu ile login nesnemiz içerisinde bir an belirleriz daha sonra listen komutu ile de bu an gerçekleştiğinde yapılacak işleri tanımlayabiliriz. Ne kadar çok listener yada subscriber ımız olursa olsun belirlediğimiz olay gerçekleştiğinde listener lar önemlilik derecelerine göre parse edilip çalıştırılırlar.
+Programlamada event lar belirli bir zaman dilimi içerisinde bir anda gerçekleşen olaylardır. Event yapısı uygulama içerisindeki olayların gerçekleşeği an için tetikleyici fonksiyonlar ve bu fonksiyonlara bağlı çalışacak programları çalıştırmamızı sağlar. 
 
-Listener lar anonymous bir fonksiyon olabilecekleri gibi subscribe metodu ile abone edilmiş birer sınıf ta olabilirler.
+<b>Bir örnek</b> vermek gerekirse mesela uygulamamız içerisiden bir login modülü olsun. 
 
+Event <b>fire</b> methodu ile login nesnemiz içerisinde bir an belirleriz ve daha sonra listen komutu ile de bu an gerçekleştiğinde yapılacak işleri tanımlayabiliriz. Kaydedilen olay anını <b>listen</b> yada <b>subscribe</b> komutu ile fonksiyonlara atarız. Subscribe komutunu listen komutunundan ayıran en önemli özellik bu metodun dinleyicileri bir sınıf içerisinde gruplayarak kodlarınızın sürdürülebilirliğini attırmasıdır. Bu durumda subscribe komutu listen komutuna genişlemektedir. 
+
+Son olarak olay anını ne kadar çok dinleyicimiz  ( <b>listeners / subscribers</b> ) dinlerse dinlesin olay gerçekleştiğinde dinleyicilere ( aboneler ) tanımlanan fonksiyonlar önemlilik derecelerine göre parse edilip çalıştırılırlar.
+
+Dinleyiciler <b>anonymous</b> bir fonksiyon olabilecekleri gibi <b>subscribe</b> metodu ile abone edilmiş birer <b>sınıf</b> ta olabilirler.
 
 Following the example shows basic usage of the events.
 
@@ -55,8 +60,8 @@ You may also specify a priority when subscribing to events. Listeners with highe
 
 ```php
 <?php
-$this->event->listen('user.login', 'LoginHandler', 10);
-$this->event->listen('user.login', 'OtherHandler', 5);
+$this->event->listen('user.login', 'Event\LoginHandler', 10);
+$this->event->listen('user.login', 'Event\OtherHandler', 5);
 ```
 
 ### Stopping The Propagation Of An Event
@@ -95,7 +100,7 @@ Uygulamaya ait global event lar <b>app/events.php</b> içerisinde tanımlanmşt�
 |--------------------------------------------------------------------------
 */
 
-$c['event']->subscribe(new Event\UserRequestHandler);
+$c['event']->subscribe(new Event\Request);
 
 
 /* End of file events.php */
@@ -119,7 +124,7 @@ By default, the handle method on the LoginHandler class will be called:
 
 namespace Event;
 
-class LoginHandler {
+class Login {
 
     public function handle($data)
     {
@@ -137,11 +142,12 @@ If you do not wish to use the default handle method, you may specify the method 
 
 ```php
 <?php
-$this->event->listen('user.login', 'Event\LoginHandler.onLogin');
+$this->event->listen('user.login', 'Event\Login.onLogin');
 ```
 
 ## Event Subscribers
 
+Subscribe komutunu listen komutunundan ayıran en önemli özellik bu metodun dinleyicileri bir sınıf içerisinde gruplayarak kodlarınızın sürdürülebilirliğini attırmasıdır. Bu durumda subscribe komutu listen komutuna genişlemektedir.
 
 ### Defining An Event Subscriber
 
@@ -156,13 +162,13 @@ namespace Event;
  * User event handler
  * 
  * @category  Event
- * @package   UserEventHandler
+ * @package   User
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/event
  */
-Class UserEventHandler
+Class User
 {
     /**
      * Container
@@ -181,6 +187,23 @@ Class UserEventHandler
     public function __construct($c)
     {
         $this->c = $c;
+    }
+
+    /**
+     * Handle user login attempts
+     *
+     * @param object $authResult AuthResult object
+     * 
+     * @return void
+     */
+    public function onLoginAttempt(AuthResult $authResult)
+    {
+        if ( ! $authResult->isValid()) {
+
+            echo 'Hello Events: Login Invalid !';
+
+        }
+        return $authResult;
     }
 
     /**
@@ -212,16 +235,16 @@ Class UserEventHandler
      */
     public function subscribe($event)
     {
-        $event->listen('user.login', 'Event\UserEventHandler.onUserLogin');
-        $event->listen('user.logout', 'Event\UserEventHandler.onUserLogout');
+        $event->listen('user.login', 'Event\User.onUserLogin');
+        $event->listen('user.logout', 'Event\User.onUserLogout');
     }
 
 }
 
-// END UserEventHandler class
+// END User class
 
-/* End of file UserEventHandler.php */
-/* Location: .Event/UserEventHandler.php */
+/* End of file User.php */
+/* Location: .Event/User.php */
 ```
 
 ### Registering An Event Subscriber
@@ -230,15 +253,77 @@ Once the subscriber has been defined, it may be registered with the Event class.
 
 ```php
 <?php
-$subscriber = new Event\UserEventHandler;
-
-$c['event']->subscribe($subscriber);
+$c['event']->subscribe(new Event\User($c));
 ```
 
+### Subscribing to Events in Controllers
 
-### Subscribe Events Using Routes
+Below the example we have login controller and we listen login attempts by subscribing to <b>Event\User</b> class.
 
-If your event not global you may want to attach it to a site route to get better performance. Forexample we want to load user event handler just at login requests.
+```php
+<?php
+
+/**
+ * $app login
+ * 
+ * @var Controller
+ */ 
+$app = new Controller(
+    function ($c) {
+        $c->load('url');
+        $c->load('form');
+        $c->load('view');
+        $c->load('post');
+        $c->load('service/user');
+        $c->load('event')->subscribe(new Event\User($c));        
+    }
+);
+
+$app->func(
+    'index',
+    function () use ($c) {
+
+        if ($this->post['dopost']) {
+
+            $c->load('validator');
+
+            $this->validator->setRules('email', 'Email', 'required|email|trim');
+            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
+
+            if ($this->validator->isValid()) {
+
+                $result = $this->user->login->attempt(
+                    array(
+                        Auth\Credentials::IDENTIFIER => $this->validator->value('email'), 
+                        Auth\Credentials::PASSWORD => $this->validator->value('password')
+                    ),
+                    $this->post['rememberMe']
+                );
+
+                if ($result->isValid()) {
+                    $this->flash->success('You have authenticated successfully.');
+                    $this->url->redirect('examples/login');
+                } else {
+                    $this->validator->setErrors($result->getArray());
+                }
+            }
+            $this->form->setErrors($this->validator);
+        }
+
+        $this->view->load(
+            'login',
+            function () {
+                $this->assign('footer', $this->template('footer'));
+            }
+        );
+
+    }
+);
+```
+
+### Subscribing Events Using Routes
+
+If your event realized in more controllers you may want to attach it to a site routes. Forexample we want to load user event handler just at login direcyory requests.
 
 Open your <b>routes.php</b> and add below the lines.
 
@@ -247,7 +332,7 @@ Open your <b>routes.php</b> and add below the lines.
 $c['router']->route(
     'get|post', 'examples/login(.*)', null, 
     function () use ($c) {
-        $c['event']->subscribe(new Event\UserEventHandler($c));
+        $c['event']->subscribe(new Event\User($c));
     }
 );
 

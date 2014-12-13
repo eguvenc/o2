@@ -1,9 +1,7 @@
 
 ## Session Class
 
-The Session Class permits you to maintain a user's "state" and track their activity while they browse your site. The Sess Class stores session meta data information for each user as json encoded data in your storage. 
-
-**Note:** Session class defined as <b>sess</b> in your services.php
+The Session Class permits you to maintain a user's "state" and track their activity while they browse your site. The Sess Class stores session meta data information for each user as json encoded data in your storage.
 
 ### Initializing the Class
 
@@ -14,10 +12,11 @@ For the most part the session class will run unattended in the background, so si
 
 ```php
 <?php
-$c->load('session as sess');
-$this->sess->method();
+$c->load('session');
+$this->sessionion->method();
 ```
-Once loaded, the Sess object will be available using: <dfn>$this->sess->method()</dfn>
+
+Once loaded, the Session object will be available using: <dfn>$this->sessionion->method()</dfn>
 
 #### Sesssion class has three type of handlers
 
@@ -72,11 +71,11 @@ Metadata is simply an array containing the following information:
         </tr>
         <tr>
             <td>uid</td>
-            <td>The user's "user_id" if its available in session data it read your $_SESSION['user_id'] and copy it into meta data.</td>
+            <td>If user's "user_id" key available in session data we read your $_SESSION['user_id'] and copy it into meta data.</td>
         </tr>
         <tr>
             <td>uname</td>
-            <td>The user's "username" if its available in session data it read your $_SESSION['username'] and copy it into meta data.</td>
+            <td>If user's "username" key available in session data we read your $_SESSION['username'] and copy it into meta data.</td>
         </tr> 
         <tr>
             <td>la</td>
@@ -264,14 +263,14 @@ Any piece of information from the session array is available using the following
 
 ```php
 <?php
-$this->sess->get('item');
+$this->session->get('item');
 ```
 
 Where <kbd>item</kbd> is the array index corresponding to the item you wish to fetch. For example, to fetch the session ID you will do this:
 
 ```php
 <?php
-$sessionID = $this->sess->get('session_id');
+$sessionID = $this->session->get('session_id');
 ```
 
 **Note:** The function returns false (boolean) if the item you are trying to access does not exist.
@@ -296,23 +295,23 @@ $data = array(
                 'logged_in' => true
             );
 
-$this->sess->set($data);
+$this->session->set($data);
 ```
 
 ```php
 <?php
-$this->sess->set('some_name', 'some_value');
+$this->session->set('some_name', 'some_value');
 ```
 
 ### Removing Session Data
 
 ------
 
-Just as $this->sess->set() can be used to add information into a session, $this->sess->remove() can be used to remove it, by passing the session key. For example, if you want to remove 'some_name' from your session information:
+Just as $this->session->set() can be used to add information into a session, $this->session->remove() can be used to remove it, by passing the session key. For example, if you want to remove 'some_name' from your session information:
 
 ```php
 <?php
-$this->sess->remove('some_name');
+$this->session->remove('some_name');
 ```
 
 This function can also be passed an associative array of items to unset.
@@ -321,7 +320,7 @@ This function can also be passed an associative array of items to unset.
 <?php
 $array = array('username' => '', 'email' => '');
 
-$this->sess->remove($array);
+$this->session->remove($array);
 ```
 
 ### Destroying a Session
@@ -332,10 +331,10 @@ To clear the current session:
 
 ```php
 <?php
-$this->sess->destroy();
+$this->session->destroy();
 ```
 
-**Note:** This function should be the last one called, and even flash variables will no longer be available. If you want only some items to be destroyed and instead of all, use <kbd>$this->sess->remove()</kbd>.
+**Note:** This function should be the last one called, and even flash variables will no longer be available. If you want only some items to be destroyed and instead of all, use <kbd>$this->session->remove()</kbd>.
 
 
 **Note:** Session meta data are only updated every "5" seconds by default to reduce processor load. If you repeatedly reload a page you'll notice that the "last activity" time only updates if "5" seconds or more has passed since the last time the cookie was written. This time is configurable by changing the <kbd>timeToUpdate</kbd> line in your <kbd>config.php</kbd> file.
@@ -347,9 +346,9 @@ Regenerate the session ID and renew current session meta data, generation can sa
 
 ```php
 <?php
-$this->sess->reqenerateId(true);          // Regenerates session id and "deletes" old session
-$this->sess->reqenerateId(false);         // Regenerates session id and "migrates" old session data to new session_id.
-$this->sess->reqenerateId(false, 86400);  // Sets current session lifetime to 1 day.
+$this->session->reqenerateId(true);          // Regenerates session id and "deletes" old session
+$this->session->reqenerateId(false);         // Regenerates session id and "migrates" old session data to new session_id.
+$this->session->reqenerateId(false, 86400);  // Sets current session lifetime to 1 day.
 ```
 
 Second parameter is max lifetime of current session.
@@ -358,34 +357,34 @@ Second parameter is max lifetime of current session.
 
 ------
 
-#### $this->sess->set(mixed $data, $val = '', $prefix = '')
+#### $this->session->set(mixed $data, $val = '', $prefix = '')
 
 Stores a new session data to session container. You can send array data for first parameter.
 
-#### $this->sess->get(string $key)
+#### $this->session->get(string $key)
 
 Gets stored session from session container.
 
-#### $this->sess->get('session_id');
+#### $this->session->get('session_id');
 
 Returns to current session id.
 
-#### $this->sess->getName(string $key)
+#### $this->session->getName(string $key)
 
 Returns to session name.
 
-#### $this->sess->exists()
+#### $this->session->exists()
 
 Returns to "true" if session exist, session id not empty and its currently active otherwise "false".
 
-#### $this->sess->remove($data = mixed, $prefix = '')
+#### $this->session->remove($data = mixed, $prefix = '')
 
 Unsets a stored session data from session container. You can send array data for first parameter.
 
-#### $this->sess->regenerateId(boolean $deleteOldSession = true, int $lifetime)
+#### $this->session->regenerateId(boolean $deleteOldSession = true, int $lifetime)
 
 Regenerate the session ID and renew current session meta data, generation can safely be called in the middle of a session.
 
-#### $this->sess->destroy()
+#### $this->session->destroy()
 
 Destroys the current session.
