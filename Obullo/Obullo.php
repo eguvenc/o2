@@ -12,18 +12,18 @@
  */
 
 $start = microtime(true);  // Run Timer
-/*
- * ------------------------------------------------------
- *  Before request event
- * ------------------------------------------------------
- */
-$c['event']->fire('before.request');
+// /*
+//  * ------------------------------------------------------
+//  *  Before request event
+//  * ------------------------------------------------------
+//  */
+// $c['event']->fire('before.request');
 
-/*
- * ------------------------------------------------------
- *  Load core components
- * ------------------------------------------------------
- */
+// /*
+//  * ------------------------------------------------------
+//  *  Load core components
+//  * ------------------------------------------------------
+//  */
 $router 	= $c->load('router');
 $response 	= $c->load('response');
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
@@ -39,23 +39,41 @@ if ( ! file_exists($controller)) {
  */
 $c['event']->fire('before.controller');
 
+require $controller;  // Include the controller file.
 
-require $controller;  // call the controller.  $app variable now Available in HERE !!
+$className = $router->fetchClass();
 
-
-if ( ! in_array('index', array_keys($app->publicMethods))) {  // Check method exist or not
+if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);
 }
+
+$class = new $className;  // Call the controller
+
+var_dump(get_class_methods($class));
+
+if ( ! method_exists($class, 'index')) {  // Check method exist or not
+    $response->show404($pageUri);
+}
+
+
+    //         if (sizeof($this->publicMethods) > 1) {
+    //             throw new RunTimeException(
+    //                 'Just one public method allowed because of framework has a principle "One Public Method Per Controller".
+    //                 If you want to add private methods use underscore ( _methodname ). <pre>$app->func(\'_methodname\', function(){});</pre>'
+    //             );
+    //         }
+
+
 $arguments = array_slice($c->load('uri')->rsegments, 2);
 
-if (array_key_exists('_remap', $app->controllerMethods)) {  // Is there a "remap" function? If so, we call it instead
-    $app->_remap('index', $arguments);
+if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so, we call it instead
+    $class->_remap('index', $arguments);
 } else {
 
     // Call the requested method. Any URI segments present (besides the directory / class / method) 
     // will be passed to the method for convenience
-    // directory = 0, class = 1,  ( arguments = 2) ( @deprecated  method = 2 always = index )
-    call_user_func_array(array($app, 'index'), $arguments);
+    // directory = 0, class = 1,  ( arguments = 2) ( method = 2 always = index )
+    call_user_func_array(array($class, 'index'), $arguments);
 }
 
 /*
@@ -83,4 +101,4 @@ $c['event']->fire('after.response', array($start));
 // END Obullo.php File
 /* End of file Obullo.php
 
-/* Location: .Obullo/Obullo/Obullo.php */
+/* Location: .Obullo/Obullo.php */

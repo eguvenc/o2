@@ -15,7 +15,7 @@ Class Controller
     public static $instance;                // Controller instance
     public $publicMethods     = array();    // Controller user defined methods. ( @public )
     public $controllerMethods = array();    // Controller user defined methods starts wiht "_" underscore. ( @private )
-    public $config, $uri, $router, $logger; // Default packages
+    public $c, $config, $uri, $router, $logger; // Default packages
 
     /**
      * Closure function for 
@@ -25,8 +25,9 @@ Class Controller
      */
     public function __construct($closure = null)
     {
-        
         global $c;
+        $this->c = $c;
+
         self::$instance = &$this;
         $logger = $c->load('service/logger');  // Assign Default Loaded Packages
                                                // NOTICE:
@@ -39,10 +40,10 @@ Class Controller
 
                                                // Keep in your mind we need use pass by reference in some situations.
                                                // @see http://www.php.net/manual/en/language.references.whatdo.php
-        if ($closure != null) {  // Run Construct Method
-            $closure = Closure::bind($closure, $this, get_class());
-            $closure($c);
-        }
+        // if ($closure != null) {  // Run Construct Method
+        //     $closure = Closure::bind($closure, $this, get_class());
+        //     $closure($c);
+        // }
         foreach ($c->unRegisteredKeys() as $key) {  // On router level some classes does not assigned into controller instance
             if ( ! isset($this->{$key})) {          // forexample view and session class, we need to assign them if they not registered.
                 $this->{$key} = &$c[$key];          // Register to controller instance
@@ -63,7 +64,7 @@ Class Controller
      */
     public function __set($key, $val)  // Custom variables is not allowed !!! 
     {
-        if ( ! is_object($val) AND $key != 'controllerAppMethods' AND $key != 'publicMethods') {
+        if ( ! is_object($val)) {
             throw new RunTimeException('Just object type variables allowed in controller.');
         }
         $this->{$key} = $val; // store only app classes & packages 
@@ -78,22 +79,22 @@ Class Controller
      * 
      * @return void
      */
-    public function func($methodName, $methodCallable)
-    {
-        if (strncmp($methodName, '_', 1) !== 0 AND strpos($methodName, 'callback_') !== 0) {  // ** "One Public Method Per Controller" Rule **
-            $this->publicMethods[$methodName] = $methodName;
-            if (sizeof($this->publicMethods) > 1) {
-                throw new RunTimeException(
-                    'Just one public method allowed because of framework has a principle "One Public Method Per Controller".
-                    If you want to add private methods use underscore ( _methodname ). <pre>$app->func(\'_methodname\', function(){});</pre>'
-                );
-            }
-        }
-        if ( ! is_callable($methodCallable)) {
-            throw new InvalidArgumentException('Controller error: Second parameter must be callable.');
-        }
-        $this->controllerMethods[$methodName] = Closure::bind($methodCallable, $this, get_class());
-    }
+    // public function func($methodName, $methodCallable)
+    // {
+    //     if (strncmp($methodName, '_', 1) !== 0 AND strpos($methodName, 'callback_') !== 0) {  // ** "One Public Method Per Controller" Rule **
+    //         $this->publicMethods[$methodName] = $methodName;
+    //         if (sizeof($this->publicMethods) > 1) {
+    //             throw new RunTimeException(
+    //                 'Just one public method allowed because of framework has a principle "One Public Method Per Controller".
+    //                 If you want to add private methods use underscore ( _methodname ). <pre>$app->func(\'_methodname\', function(){});</pre>'
+    //             );
+    //         }
+    //     }
+    //     if ( ! is_callable($methodCallable)) {
+    //         throw new InvalidArgumentException('Controller error: Second parameter must be callable.');
+    //     }
+    //     $this->controllerMethods[$methodName] = Closure::bind($methodCallable, $this, get_class());
+    // }
 
     /**
      * Call the controller method
@@ -103,21 +104,21 @@ Class Controller
      * 
      * @return void
      */
-    public function __call($method, $args)
-    {
-        if (isset($this->controllerMethods[$method])) {
-            $return = call_user_func_array($this->controllerMethods[$method], $args);
-            $this->router->initFilters('after');    // Run router after filters
-            return $return;
-        }
-        throw new RunTimeException(
-            sprintf(
-                '%s error: There is no method "%s()" to call in the Controller.',
-                __CLASS__,
-                $method
-            )
-        );
-    }
+    // public function __call($method, $args)
+    // {
+    //     if (isset($this->controllerMethods[$method])) {
+    //         $return = call_user_func_array($this->controllerMethods[$method], $args);
+    //         $this->router->initFilters('after');    // Run router after filters
+    //         return $return;
+    //     }
+    //     throw new RunTimeException(
+    //         sprintf(
+    //             '%s error: There is no method "%s()" to call in the Controller.',
+    //             __CLASS__,
+    //             $method
+    //         )
+    //     );
+    // }
 
 }
 
