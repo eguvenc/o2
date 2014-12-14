@@ -446,7 +446,7 @@ use Service\ServiceInterface,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/services
  */
-Class LocalLogger implements ServiceInterface
+Class Local implements ServiceInterface
 {
     /**
      * Registry
@@ -461,10 +461,10 @@ Class LocalLogger implements ServiceInterface
     }
 }
 
-// END LocalLogger class
+// END Local class
 
-/* End of file LocalLogger.php */
-/* Location: .classes/Log/Env/LocalLogger.php */
+/* End of file Local.php */
+/* Location: .classes/Log/Env/Local.php */
 ```
 
 ### Handler Setup
@@ -562,16 +562,16 @@ use Obullo\Queue\Job,
     Obullo\Queue\JobInterface;
 
 /**
- * Queue Logger
+ * Worker Logger
  *
- * @category  Queue
- * @package   QueueLogger
+ * @category  Worker
+ * @package   Logger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs/queue
  */
-Class QueueLogger implements JobInterface
+Class Logger implements JobInterface
 {
     /**
      * Container
@@ -614,15 +614,17 @@ Class QueueLogger implements JobInterface
 
 }
 
-/* End of file QueueLogger.php */
-/* Location: .app/classes/Workers/QueueLogger.php */
+/* End of file Logger.php */
+/* Location: .app/classes/Workers/Logger.php */
 ```
 
 ### Listing Queues
 
 ```php
-php task queue list --route=myHostname.Logger
+php task queue list --channel=Logs --route=myHostname.Logger --debug=1
 ```
+
+**Note:** Debug parameter must be "--debug=0" in production environment.
 
 ```php
             ______  _            _  _

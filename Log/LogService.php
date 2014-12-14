@@ -49,8 +49,7 @@ Class LogService
             $this->logger = new NullLogger;  // Use null handler if config disabled.
             return;
         }
-        $this->logger = new Logger($this->c, $this->c->load('service/queue'), $this->config);
-        $this->logger->registerFilterPath($config['log']['service']['filters']);
+        $this->logger = new Logger($this->c, $this->c->load('return service/queue'), $this->config);
     }
 
     /**

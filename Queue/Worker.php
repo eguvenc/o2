@@ -178,8 +178,6 @@ Class Worker
      * Create a new queue worker.
      *
      * @param object $c container
-     * 
-     * @return void
      */
     public function __construct($c)
     {
@@ -315,11 +313,10 @@ Class Worker
                         $priority = $errorPriorities[$level];
                     } 
                     global $c;
-                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
-                    $storage = new $storageClassName($c);
+                    $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
                     $data = array(
                         'error_level' => $level,
-                        'error_message' => $message, 
+                        'error_message' => $message,
                         'error_file' => $file,
                         'error_line' => $line,
                         'error_trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
@@ -330,7 +327,10 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    $storage->save($data);
+                    if ($c['config']['queue']['failed']['enabled']) {
+                        $storage = new $storageClassName($c);
+                        $storage->save($data);
+                    }
                 }
                 return ! $continueNativeHandler;
             }
@@ -373,12 +373,9 @@ Class Worker
                 } while ($exception);
 
                 global $c;
-                $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
-                $storage = new $storageClassName($c);
+                $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
                 foreach (array_reverse($messages) as $message) {
                     global $c;
-                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
-                    $storage = new $storageClassName($c);
                     $data = array(
                         'error_level' => $message['level'],
                         'error_message' => $message['message'], 
@@ -392,7 +389,10 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    $storage->save($data);
+                    if ($c['config']['queue']['failed']['enabled']) {
+                        $storage = new $storageClassName($c);
+                        $storage->save($data);
+                    }
                 }
                 if ( ! is_null($this->job) AND ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
                     $this->job->release($this->delay);  // the queue so it is not lost. This will let is be retried at a later time by another worker.
@@ -417,8 +417,7 @@ Class Worker
             function () {
                 if (null != $error = error_get_last()) {
                     global $c;
-                    $storageClassName = '\\'.$c->load('config')['queue']['failed']['storage'];
-                    $storage = new $storageClassName($c);
+                    $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
                     $data = array(
                         'error_level' => $error['type'],
                         'error_message' => $error['message'], 
@@ -432,7 +431,10 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    $storage->save($data);
+                    if ($c['config']['queue']['failed']['enabled']) {
+                        $storage = new $storageClassName($c);
+                        $storage->save($data);
+                    }
                 }
             }
         );

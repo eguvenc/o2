@@ -1,5 +1,5 @@
 
-## Using Cli Commands
+## Using Cli Controllers
 
 ------
 

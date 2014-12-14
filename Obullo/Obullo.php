@@ -12,18 +12,18 @@
  */
 
 $start = microtime(true);  // Run Timer
-// /*
-//  * ------------------------------------------------------
-//  *  Before request event
-//  * ------------------------------------------------------
-//  */
-// $c['event']->fire('before.request');
+/*
+ * ------------------------------------------------------
+ *  Before request event
+ * ------------------------------------------------------
+ */
+$c['event']->fire('before.request');
 
-// /*
-//  * ------------------------------------------------------
-//  *  Load core components
-//  * ------------------------------------------------------
-//  */
+/*
+ * ------------------------------------------------------
+ *  Load core components
+ * ------------------------------------------------------
+ */
 $router 	= $c->load('router');
 $response 	= $c->load('response');
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
@@ -49,21 +49,20 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 
 $class = new $className;  // Call the controller
 
-var_dump(get_class_methods($class));
-
+if (method_exists($class, 'load')) {
+    $class->load();
+}
+foreach (get_class_methods($class) as $method) {
+    if ($method != 'index' AND $method != 'load' AND strpos($method, '_') !== 0) {
+        throw new RunTimeException(
+            'Just one public method allowed because of Obullo has a principle "One Index Method Per Controller".
+            If you want to add private methods use underscore ( _methodname ). <pre>private function _methodname() {}</pre>'
+        );
+    }
+}
 if ( ! method_exists($class, 'index')) {  // Check method exist or not
     $response->show404($pageUri);
 }
-
-
-    //         if (sizeof($this->publicMethods) > 1) {
-    //             throw new RunTimeException(
-    //                 'Just one public method allowed because of framework has a principle "One Public Method Per Controller".
-    //                 If you want to add private methods use underscore ( _methodname ). <pre>$app->func(\'_methodname\', function(){});</pre>'
-    //             );
-    //         }
-
-
 $arguments = array_slice($c->load('uri')->rsegments, 2);
 
 if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so, we call it instead
@@ -74,6 +73,8 @@ if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so,
     // will be passed to the method for convenience
     // directory = 0, class = 1,  ( arguments = 2) ( method = 2 always = index )
     call_user_func_array(array($class, 'index'), $arguments);
+
+    $router->initFilters('after');   // Initialize ( exec ) registered router ( after ) filters
 }
 
 /*

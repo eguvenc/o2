@@ -220,14 +220,14 @@ Abstract Class AbstractLogger
     /**
      * Register filter alias
      * 
-     * @param string $name     name of filter
-     * @param string $filename filename of filter
+     * @param string $name      name of filter
+     * @param string $namespace filename and path of filter
      *
      * @return object
      */
-    public function registerFilter($name, $filename)
+    public function registerFilter($name, $namespace)
     {
-        $this->filterNames[$name] = trim($this->filterPath, '\\').'\\'.$filename;
+        $this->filterNames[$name] = ltrim($namespace, '\\');
         return $this;
     }
 

@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Cli\Commands;
+namespace Obullo\Cli\Controller;
 
 use Log\Constants;
 
 /**
- * Clear Command
+ * Clear Controller
  * 
  * @category  Cli
- * @package   Commands
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/Cli
  */
-Class Clear implements CommandInterface
+Class ClearController implements CliInterface
 {
     /**
      * Container
@@ -89,7 +89,7 @@ Class Clear implements CommandInterface
 
 }
 
-// END Clear class
+// END ClearController class
 
-/* End of file Clear.php */
-/* Location: .Obullo/Cli/Commands/Clear.php */
+/* End of file ClearController.php */
+/* Location: .Obullo/Cli/Controller/ClearController.php */

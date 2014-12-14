@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Cli\Commands;
+namespace Obullo\Cli\Controller;
 
 /**
- * Help Command
+ * Help Controller
  * 
  * @category  Cli
- * @package   Commands
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/Cli
  */
-Class Help implements CommandInterface
+Class HelpController implements CliInterface
 {
     /**
      * Container
@@ -63,7 +63,7 @@ php task [command] [arguments]\n\33[0m\n";
 
 }
 
-// END Help class
+// END HelpController class
 
-/* End of file Help.php */
-/* Location: .Obullo/Cli/Commands/Help.php */
+/* End of file HelpController.php */
+/* Location: .Obullo/Cli/Controller/HelpController.php */

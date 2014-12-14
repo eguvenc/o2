@@ -121,14 +121,7 @@ Class Logger extends AbstractLogger
      * @var string
      */
     public $channel = 'system';
-
-    /**
-     * Filter classes folder
-     * 
-     * @var string
-     */
-    protected $filterPath;
-
+    
     /**
      * Registered log handlers
      * 
@@ -179,7 +172,7 @@ Class Logger extends AbstractLogger
     protected static $registeredErrorHandler = false;
     protected static $registeredExceptionHandler = false;
     protected static $registeredFatalErrorShutdownFunction = false;
-
+    
     /**
      * Constructor
      *
@@ -224,19 +217,6 @@ Class Logger extends AbstractLogger
             }
         }
         register_shutdown_function(array($this, 'close'));
-    }
-
-    /**
-     * Handlers full path
-     * 
-     * @param string $path path
-     * 
-     * @return void
-     */
-    public function registerFilterPath($path)
-    {
-        $this->filterPath = $path;
-        return $this;
     }
 
     /**

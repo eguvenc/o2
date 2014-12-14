@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Cli\Commands;
+namespace Obullo\Cli\Controller;
 
 /**
- * Route Command
+ * Route Controller
  * 
  * @category  Cli
- * @package   Commands
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/cli
  */
-Class Route implements CommandInterface
+Class RouteController implements CliInterface
 {
     /**
      * Container
@@ -146,7 +146,7 @@ Class Route implements CommandInterface
     }
 }
 
-// END Route class
+// END RouteController class
 
-/* End of file Route.php */
-/* Location: .Obullo/Cli/Commands/Route.php */
+/* End of file RouteController.php */
+/* Location: .Obullo/Cli/Controller/RouteController.php */

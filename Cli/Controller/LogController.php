@@ -1,22 +1,22 @@
 <?php
 
-namespace Obullo\Cli\Commands;
+namespace Obullo\Cli\Controller;
 
 use Obullo\Cli\LogFollower;
 
 /**
- * Log Command
+ * Log Controller
  *
  * Follow log data
  * 
  * @category  Cli
- * @package   Commands
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/cli
  */
-Class Log implements CommandInterface
+Class LogController implements CliInterface
 {
     /**
      * Container
@@ -88,7 +88,7 @@ You are displaying the "http" request logs. To change direction use $php task lo
 
 }
 
-// END Log class
+// END LogController class
 
-/* End of file Log.php */
-/* Location: .Obullo/Cli/Commands/Log.php */
+/* End of file LogController.php */
+/* Location: .Obullo/Cli/Controller/LogController.php */

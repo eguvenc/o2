@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Cli\Commands;
+namespace Obullo\Cli\Controller;
 
 /**
- * Service Command
+ * Service Controller
  * 
  * @category  Cli
- * @package   Commands
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/cli
  */
-Class Service extends Route implements CommandInterface
+Class ServiceController extends RouteController implements CliInterface
 {
     /**
      * Execute command
@@ -55,7 +55,7 @@ Class Service extends Route implements CommandInterface
     }
 }
 
-// END Service class
+// END ServiceController class
 
-/* End of file Service.php */
-/* Location: .Obullo/Cli/Commands/Service.php */
+/* End of file ServiceController.php */
+/* Location: .Obullo/Cli/Controller/ServiceController.php */

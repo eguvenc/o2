@@ -16,7 +16,18 @@ use Obullo\Logger\Logger;
  */
 Class DebugOutput
 {
+    /**
+     * Config
+     * 
+     * @var object
+     */
     public $config;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
     public $logger;
 
     /**

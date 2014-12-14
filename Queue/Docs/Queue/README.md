@@ -114,10 +114,9 @@ This tutorial simply demonstrate <b>pushing your data</b> to queue using your qu
 $app = new Controller(
     function ($c) {
         $c->load('service/queue');
+        
         $this->queue->channel('Log');
-        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('log' => array('debug' => 'Test')));
-        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('message' => 'This is my message'));
-        $this->queue->push('Workers/QueueLogger', 'Server1.logger', array('log' => array('debug' => 'Test')));
+        $this->queue->push('Workers/Logger', 'Server1.logger', array('log' => array('debug' => 'Test')));
     }
 );
 

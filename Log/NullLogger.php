@@ -72,13 +72,10 @@ Class NullLogger extends AbstractLogger
     /**
      * Push to another handler
      * 
-     * @param string $handler set log handler
-     * 
      * @return void
      */
-    public function push($handler)
+    public function push()
     {
-        $handler = null;
         return $this;
     }
 
