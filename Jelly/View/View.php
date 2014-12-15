@@ -148,6 +148,13 @@ Class View
     public $close = '';
 
     /**
+     * Is group description
+     * 
+     * @var boolean
+     */
+    public $isGroupDescription = false;
+
+    /**
      * Constructor
      * 
      * @param array $c container
@@ -199,6 +206,28 @@ Class View
     public function isGrouped()
     {
         return (boolean)$this->isGrouped;
+    }
+
+    /**
+     * Set elements group description.
+     * 
+     * @param boolean $isGroupDescription is group desc?
+     * 
+     * @return boolean
+     */
+    public function setGroupDescription($isGroupDescription)
+    {
+        $this->isGroupDescription = (boolean)$isGroupDescription;
+    }
+
+    /**
+     * Elements is group description?
+     * 
+     * @return boolean
+     */
+    public function isGroupDescription()
+    {
+        return (boolean)$this->isGroupDescription;
     }
 
     /**
@@ -280,6 +309,26 @@ Class View
     }
 
     /**
+     * Get form values
+     * 
+     * @return array form data
+     */
+    public function getFormValues()
+    {
+        return $this->c->load('service/jelly/form')->getRawValues();
+    }
+
+    /**
+     * Get after special group data.
+     * 
+     * @return array
+     */
+    public function getAfterGroup()
+    {
+        return $this->c->load('service/jelly/form')->getAfterGroup();
+    }
+
+    /**
      * Form close tag
      * 
      * @return html
@@ -292,13 +341,14 @@ Class View
     /**
      * Render
      * 
-     * @param array $data form data
+     * @param array   $data      form data
+     * @param boolean $isAllowed is allowed
      * 
      * @return string
      */
-    public function render($data = array())
+    public function render($data = array(), $isAllowed)
     {
-        if ($this->c->load('service/jelly/form')->isAllowed() === false) {
+        if ($isAllowed === false) {
             echo 'No permission or no data.';
             return;
         }
@@ -330,6 +380,8 @@ Class View
              * @var integer
              */
             $numberOfElements = isset($this->fieldExtraData[Form::GROUP_NUMBER_OF_ELEMENTS]) ? (int)$this->fieldExtraData[Form::GROUP_NUMBER_OF_ELEMENTS] : 0;
+            $groupID          = isset($this->fieldExtraData[Form::GROUP_PRIMARY_KEY]) ? (int)$this->fieldExtraData[Form::GROUP_PRIMARY_KEY] : 0;
+
             // resets
             $i = 0;
             $this->fieldData = array();
@@ -339,12 +391,13 @@ Class View
             foreach ($val['input'] as $v) {
                 $i++;
                 if (isset($v[Form::ELEMENT_TYPE]) AND ! empty($v[Form::ELEMENT_TYPE])) {
-                    $attr = isset($v[Form::ELEMENT_ATTRIBUTE]) ? $v[Form::ELEMENT_ATTRIBUTE] : '';
 
+                    $attr = isset($v[Form::ELEMENT_ATTRIBUTE]) ? $v[Form::ELEMENT_ATTRIBUTE] : '';
                     $this->fieldData = $v;
                     $this->fieldData[Form::ELEMENT_ATTRIBUTE] = $attr;
-                    $Element = 'Obullo\Jelly\View\Elements\\'. ucfirst($v[Form::ELEMENT_TYPE]); // E.g. Obullo\Jelly\View\Elements\Input
-                    $this->element = new $Element($this->c, $v[Form::ELEMENT_NAME]);            // Initialized element class
+
+                    $ElementClassName = 'Obullo\Jelly\View\Elements\\'. ucfirst($v[Form::ELEMENT_TYPE]); // E.g. Obullo\Jelly\View\Elements\Input
+                    $this->element    = new $ElementClassName($this->c, $v[Form::ELEMENT_NAME]);         // Initialized element class
 
                     if ($numberOfElements > 0) {        // If the input group
                         $this->isGroup = true;          // Set is group true
@@ -354,11 +407,18 @@ Class View
                         }
                         $this->groupElementsTemp .= $this->element->render($this, $this->colSm);
 
+                        $afterGroupData = $this->getAfterGroup();
+
                         if ($numberOfElements === $i) {  // $numberOfElements ve anahtar birbirine eşit ise
                                                          // biz bu inputların gruplama işleminin tamamladığını anlıyoruz.
                             $this->isGrouped = true;     // isGroup değişkenini "true" olarak set ederek render() 'ın
                                                          // ['tpl.groupedElementDiv']['groupedDiv'] kullanarak ana div içine almasını sağlıyoruz.
+
                             $this->form .= $this->element->render($this);
+
+                            if (isset($afterGroupData[$groupID])) {
+                                $this->form .= $afterGroupData[$groupID];
+                            }
                         }
 
                     } else {

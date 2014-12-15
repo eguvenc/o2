@@ -42,31 +42,51 @@ Class Textarea implements ElementsInterface
     {
         $data  = $view->getFieldData();
         $extra = $view->getFieldExtraData();
-        
+
+        if (strpos($data[Form::ELEMENT_ATTRIBUTE], '{') !== false) {
+            if (preg_match('#(?<key>{.*?})#', $data[Form::ELEMENT_ATTRIBUTE], $match)) {
+                $callBack = preg_replace_callback(
+                    $match['key'],
+                    function ($val) use ($data, $view) {
+                        $values = $view->getFormValues();
+                        return isset($values[$val[0]]) ? $values[$val[0]] : $data[Form::ELEMENT_ATTRIBUTE];
+                    },
+                    $data[Form::ELEMENT_ATTRIBUTE]
+                );
+                $data[Form::ELEMENT_ATTRIBUTE] = str_replace(array('{', '}'), '', $callBack);
+            }
+        }
         $element = $this->validator->getError($data[Form::ELEMENT_NAME]);
         $element.= $this->formElement->textarea($data[Form::ELEMENT_NAME], $data[Form::ELEMENT_VALUE], $data[Form::ELEMENT_ATTRIBUTE]);
         
         if ($view->isTranslatorEnabled() === true) {
             $this->c->load('return translator');
-            $data[Form::ELEMENT_LABEL] = $this->c['translator'][$data[Form::ELEMENT_LABEL]];
-            $extra[Form::ELEMENT_LABEL] = $this->c['translator'][$extra[Form::ELEMENT_LABEL]];
-            $extra[Form::ELEMENT_DESCRIPTION] = $this->c['translator'][$extra[Form::ELEMENT_DESCRIPTION]];
+            $data[Form::ELEMENT_LABEL]       = $this->c['translator'][$data[Form::ELEMENT_LABEL]];
+            $extra[Form::ELEMENT_LABEL]      = $this->c['translator'][$extra[Form::ELEMENT_LABEL]];
+            $data[Form::ELEMENT_DESCRIPTION] = $this->c['translator'][$data[Form::ELEMENT_DESCRIPTION]];
         }
         if ($view->isGroup() === true) {
+
             if ($view->isGrouped() === true) {
 
                 $elementTemp = $view->createHiddenInput($extra[Form::ELEMENT_NAME]) . $view->getGroupElementsTemp();
                 
                 return $this->jellyForm->getGroupDiv(
                     $elementTemp,
-                    $extra[Form::ELEMENT_NAME],
-                    $extra[Form::ELEMENT_LABEL]
+                    $extra[Form::GROUP_NAME],
+                    $extra[Form::GROUP_LABEL],
+                    $extra[Form::GROUP_CLASS]
                 );
             }
-            return $this->jellyForm->getGroupParentDiv($element, $view->getColSm(), $data[Form::ELEMENT_LABEL]);
+            $element = $this->jellyForm->getGroupParentDiv($element, $view->getColSm(), $data[Form::ELEMENT_LABEL]);
+
+            if ($view->isGroupDescription()) {
+                $element.= $this->jellyForm->getGroupDescriptionDiv($data[Form::ELEMENT_DESCRIPTION], '');
+            }
+            return $element;
         }
         $element = $this->jellyForm->getElementDiv($element, $extra[Form::ELEMENT_LABEL]);
-        $element.= $this->jellyForm->getDescriptionDiv($extra[Form::ELEMENT_DESCRIPTION], '');
+        $element.= $this->jellyForm->getDescriptionDiv($data[Form::ELEMENT_DESCRIPTION], '');
         return $element;
     }
 }
