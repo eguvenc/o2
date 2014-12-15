@@ -22,7 +22,7 @@ Class CaptchaService
     public $wave_image;              // Font wave switch (bool)
     public $default_fonts;           // Actual keys of the fonts
     public $fonts;                   // Actual fonts
-    public $debugFlag = 'random';   // Font debug flag
+    public $debugFlag = 'random';    // Font debug flag
     public $img_url;                 // URL for accessing images
     public $set_pool;                // Pool
     public $char_pools;              // Letters & numbers pool
@@ -31,20 +31,21 @@ Class CaptchaService
     public $width;                   // Image width
     public $height;                  // Image height
     public $font_size;               // Font size
-    public $char;                   // Number of lines on image
-    public $del_rand = 10;          // Random delete number frequency
+    public $char;                    // Number of lines on image
+    public $del_rand = 10;           // Random delete number frequency
     public $expiration;              // How long to keep generated images
     public $sessionKey;              // Random session key for saving captcha code.
     public $imageUrl;                // Captcha image display url with base url
     public $send_output_header = false; // Whether to create captcha at browser header
 
-    protected $Yperiod    = 12;         // Wave Y axis
-    protected $Yamplitude = 14;         // Wave Y amplitude
-    protected $Xperiod    = 11;         // Wave X axis
-    protected $Xamplitude = 5;          // Wave Y amplitude
-    protected $scale      = 2;          // Wave default scale
-    protected $image;                     // Gd image content
-    protected $code;                      // Generated image code
+    protected $Yperiod    = 12;      // Wave Y axis
+    protected $Yamplitude = 14;      // Wave Y amplitude
+    protected $Xperiod    = 11;      // Wave X axis
+    protected $Xamplitude = 5;       // Wave Y amplitude
+    protected $scale      = 2;       // Wave default scale
+    protected $image;                // Gd image content
+    protected $code;                 // Generated image code
+    protected $c;                    // Container
 
     /**
      * Constructor
@@ -55,15 +56,17 @@ Class CaptchaService
     public function __construct($c, $config = array())
     {
         $config = null;
-        $this->sess = $c->load('return session');
-        $this->logger = $c->load('service/logger');
-        $this->captcha = $c->load('config')->load('captcha');
+        $this->c = $c;
+        $this->session = $c->load('return session');
+        $this->logger = $c->load('return service/logger');
+        $this->captcha = $c['config']->load('captcha');
 
         $this->init();
         $this->img_path = ROOT . str_replace('/', DS, trim($this->captcha['img_path'], '/')) . DS;  // replace with DS
-        $this->img_url = $c->load('uri')->getBaseUrl($this->captcha['img_path'] . DS); // add Directory Seperator ( DS )
+        $this->img_url = $c['uri']->getBaseUrl($this->captcha['img_path'] . DS); // add Directory Seperator ( DS )
         $this->user_font_path= ROOT . $this->captcha['user_font_path'] . DS;
         $this->default_font_path = OBULLO . 'Captcha' . DS . 'fonts' . DS;
+
         $this->gc(); // Run garbage collection
 
         $this->logger->debug('Captcha Class Initialized');
@@ -287,7 +290,6 @@ Class CaptchaService
                 $i++;
             }
         } elseif ($this->debugFlag == 'all') {
-
             $this->code = $this->char_pool['random'];
         }
     }
@@ -333,7 +335,7 @@ Class CaptchaService
         $x = ($this->width - $textbox[4]) / 2;
         $y = ($this->height - $textbox[5]) / 2;
 
-        $this->sessionKey = md5($this->sess->get('session_id') . uniqid(time()));
+        $this->sessionKey = md5($this->session->get('session_id') . uniqid(time()));
 
         $imgName = $this->sessionKey . '.' . $this->image_type;
         $this->imageUrl = $this->img_url . $imgName;
@@ -350,7 +352,6 @@ Class CaptchaService
                 imageline($this->image, mt_rand(0, $this->width), mt_rand(0, $this->height), mt_rand(0, $this->width), mt_rand(0, $this->height), $noise_color);
             }
         }
-
         if ($this->send_output_header) {
             header('Content-Type: image/png');
             imagepng($this->image);
@@ -359,7 +360,7 @@ Class CaptchaService
             imagepng($this->image, $this->img_path . $imgName);
             imagedestroy($this->image);
         }
-        $this->sess->set($this->captcha_id, array('image_name' => $this->sessionKey, 'code' => $this->code));
+        $this->session->set($this->captcha_id, array('image_name' => $this->sessionKey, 'code' => $this->code));
     }
 
     /**
@@ -416,10 +417,9 @@ Class CaptchaService
         if (mt_rand(1, $this->del_rand) !== 1) {  // don't do delete operation every time 
             return;
         }
-        global $config;
         $expire = time() - $this->expiration;
 
-        if ( ! $this->img_path OR mb_strlen($this->img_path, $config['charset']) < 2) {  // safety guard
+        if ( ! $this->img_path OR mb_strlen($this->img_path, $this->c->config['locale']['charset']) < 2) {  // safety guard
             return; 
         }
         foreach (new DirectoryIterator($this->img_path) as $file) {
@@ -440,13 +440,13 @@ Class CaptchaService
      */
     public function check($code)
     {
-        if ($this->sess->get($this->captcha_id)) {
-            $captcha_value = $this->sess->get($this->captcha_id);
+        if ($this->session->get($this->captcha_id)) {
+            $captcha_value = $this->session->get($this->captcha_id);
             if ($code == $captcha_value['code']) {
                 if ($this->send_output_header == false) {
                     unlink($this->img_path . $captcha_value['image_name'] . '.' . $this->image_type);
                 }
-                $this->sess->remove($this->captcha_id);
+                $this->session->remove($this->captcha_id);
                 return true;
             }
             return false;

@@ -36,7 +36,58 @@ $c['app'] = function () use ($c) {
 |--------------------------------------------------------------------------
 */
 define('ENV', $c['app']->detectEnvironment());
-define('ENV_CONFIG', APP .'config'. DS . 'env'. DS . ENV . DS);
+define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
+
+/*
+|--------------------------------------------------------------------------
+| Core Functions
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * Gets environment variable from $_ENV global
+ * 
+ * @param string $var key
+ * 
+ * @return string value
+ */
+function envget($var)
+{
+    if (empty($_ENV[$var])) {
+        die('<b>Configuration error: </b>'.$var.' key not found or value is empty in .env.'.ENV.'.php file array.');
+    }
+    return $_ENV[$var];
+}
+
+/**
+ * Include environment config file
+ * 
+ * @param string $file name
+ * 
+ * @return array
+ */
+function envfile($file)
+{
+    $return = include ENV_PATH .$file;
+    if ($return == false) {
+        configurationError();
+    }
+    return $return;
+}
+
+/**
+ * Startup Configuration Error
+ * 
+ * @param string $errorStr optional message
+ * 
+ * @return void exit
+ */
+function configurationError($errorStr = null)
+{
+    $error = error_get_last();
+    $message = (is_null($errorStr)) ? $error['message'] : $errorStr;
+    die('<b>Configuration error:</b> '.$message. ' line: '.$error['line']);
+}
 /*
 |--------------------------------------------------------------------------
 | Config Component

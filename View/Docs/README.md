@@ -3,7 +3,7 @@
 
 A view is simply a web page, or a page fragment, like a header, footer, sidebar, etc.
 
-Views can flexibly be embedded within other views using <b>Nested Layers</b>. ( See Obullo Layers docs. ). if you need this type of hierarchy you need create a <b>View Controller</b> in your <kbd>public/views</kbd> folder.
+Views can flexibly be embedded within other views using <b>Nested Layers</b>. ( See Obullo Layer package docs. ). if you need this type of hierarchy you need create a <b>View Controller</b> in your <kbd>public/views</kbd> folder.
 
 ### Initializing the Class
 
@@ -11,7 +11,7 @@ Views can flexibly be embedded within other views using <b>Nested Layers</b>. ( 
 
 ```php
 <?php
-$c->load('view');
+$this->c->load('view');
 $this->view->method();
 ```
 Once loaded, the view object will be available using: <dfn>$this->view->method()</dfn>
@@ -93,6 +93,46 @@ echo '@VARIABLE' // gives my "value"
 ```
 
 **Note:** All static variables must be UPPERCASE LETTERS. e.g. ( @VARIABLE, @FOO, @BAR )
+
+
+### Predefined Static Variables
+
+Some variables pre defined in view file and automatically replaced when you use them in your views files.
+
+
+<table class="span9">
+
+<thead>
+<tr>
+<th>Variable</th>
+<th>Code Provision</th>
+<th>Value</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td>@BASE</td>
+<td><b>echo $this->config['url']['base'];</b></td>
+<td>Generally "/" a trailing slash</td>
+</tr>
+
+<tr>
+<td>@HOST</td>
+<td><b>echo $this->config['url']['host'];</b></td>
+<td>Root domain "example.com" ( without http://www. ) or "localhost"</td>
+</tr>
+
+<tr>
+<td>@ASSETS</td>
+<td><b>echo $this->config['url']['assets'];</b></td>
+<td>Resource url default value "/assets"</td>
+</tr>
+
+</tbody>
+</table>
+
 
 ### Layouts
 

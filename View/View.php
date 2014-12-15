@@ -79,9 +79,9 @@ Class View
     public function __construct($c, $params = array())
     {
         $this->variables = array(
-            '@BASE' => $c['config']['url']['base'],
-            '@HOST' => $c['config']['url']['host'],
-            '@ASSETS' => $c['config']['url']['assets']
+            '@BASE' => rtrim($c['config']['url']['base'], '/'),
+            '@HOST' => rtrim($c['config']['url']['host'], '/'),
+            '@ASSETS' => rtrim($c['config']['url']['assets'], '/')
         );
         $this->c = $c;
         $this->layouts = $params;

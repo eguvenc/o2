@@ -68,8 +68,7 @@ Class Config implements ArrayAccess
 
         $this->xml = simplexml_load_file($this->xmlFile);   // Load xml file
         if ($this->xml == false) {
-            $error = error_get_last();
-            die('Config.xml file parse error: '.$error['message']. ' line: '.$error['line']);
+            configurationError();
         }
         if (isset($this->xml->env->attributes()->file)) {   // Load environment variables if exists
             $this->loadEnv($this->xml->env->attributes()->file);
@@ -120,8 +119,9 @@ Class Config implements ArrayAccess
     public function loadEnv($file)
     {
         $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
-        $envVariables = include ROOT .$filename;
-
+        if ( ! $envVariables = include ROOT .$filename) {
+            configurationError();
+        }
         foreach ($envVariables as $key => $value) {
             $_ENV[$key] = $value;
             $_SERVER[$key] = $value;

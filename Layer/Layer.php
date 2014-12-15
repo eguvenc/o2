@@ -248,7 +248,7 @@ Class Layer
         if ($this->params['cache']) {
             $response = $c->load('service/cache')->get($KEY);     // This type cache use cache package
             if ( ! empty($response)) {              // If cache exists return to cached string.
-                $this->log('$_LAYER_CACHED:', $this->c->load('uri')->getUriString(), $start, $KEY, $response);
+                $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
                 $this->reset();
                 return base64_decode($response);    // Encode specialchars
             }
@@ -260,28 +260,37 @@ Class Layer
         //  Create an uniq Layer Uri it must be unique otherwise may cause collission with standart uri
         $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Lvc Uri String with Layer ID
         $directory = $this->c['router']->fetchDirectory();
-        $class = $this->c['router']->fetchClass();
+        $className = $this->c['router']->fetchClass();
 
-        $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$class;
-        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$class. '.php';
-                                                 // Check class is exists in the storage
-        if (isset($storage[$this->layerUri])) {    // Don't allow multiple include.
-            $app = $storage[$this->layerUri];      // Get stored class.
+        $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$className;
+        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$className. '.php';
+                                                    
+                                                  // Check class is exists in the storage
+        if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
+            $class = $storage[$this->layerUri];     // Get stored class.
         } else {
             include $controller;        // Load the controller file.
         }
-        if ( ! in_array('index', array_keys($app->controllerMethods))) {
+
+        $class = new $className;  // Call the controller
+
+        if (method_exists($class, 'load')) {
+            $class->load();
+        }
+
+        if ( ! method_exists($class, 'index')) {  // Check method exist or not
             $this->reset();
             return $this->c['response']->show404($this->layerUri, false);
         }
+
         $this->makeGlobal();
-        $this->assignObjects($app); // Assign main controller objects to sub layers.
+        $this->assignObjects($class); // Assign main controller objects to sub layers.
 
         ob_start();
-        call_user_func_array(array($app, 'index'), array_slice($this->c['uri']->rsegments, 2));
+        call_user_func_array(array($class, 'index'), array_slice($this->c['uri']->rsegments, 2));
         $response = ob_get_clean();
                                           // Store classes to $storage container
-        $storage[$this->layerUri] = $app; // Store class names to storage. We fetch it if its available in storage.
+        $storage[$this->layerUri] = $class; // Store class names to storage. We fetch it if its available in storage.
         
         if (is_numeric($expiration)) {
             $c->load('service/cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
@@ -293,11 +302,11 @@ Class Layer
     /**
      * Assign libraries to all Layers
      * 
-     * @param object $app called controller
+     * @param object $class called controller
      * 
      * @return void
      */
-    protected function assignObjects($app)
+    protected function assignObjects($class)
     {
         $instance = $this->c['request']->globals->global;  // Assign loaded libraries to called controller.
         unset(
@@ -305,12 +314,10 @@ Class Layer
             $instance->router,
             $instance->config,
             $instance->logger,
-            $instance->response,
-            $instance->publicMethods,
-            $instance->controllerMethods  // Don't reset uri and router objects
+            $instance->response
         );
         foreach ($this->c['request']->globals->global as $key => $value) {
-            $app->{$key} = $value;
+            $class->{$key} = $value;
         }
     }
 
@@ -451,7 +458,7 @@ Class Layer
 
 }
 
-// END Request class
+// END Layer class
 
 /* End of file Request.php */
-/* Location: .Obullo/Layer/Request.php */
+/* Location: .Obullo/Layer/Layer.php */

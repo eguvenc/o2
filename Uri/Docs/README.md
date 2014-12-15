@@ -9,7 +9,7 @@ The URI Class provides functions that help you retrieve information from your UR
 ------
 
 ```php
-$c->load('uri');
+$this->c->load('uri');
 $this->uri->method();
 ```
 

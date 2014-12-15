@@ -26,17 +26,17 @@ Class Controller
         self::$instance = &$this;
         $logger = $c->load('service/logger');  // Assign Default Loaded Packages
                                                // NOTICE:
-        $this->config = &$c['config'];         // If we don't use assign by reference this will cause some errors in "Lvc Pattern".
+        $this->config = &$c['config'];         // If we don't use assign by reference this will cause some errors in "Layers".
         $this->uri    = &$c['uri'];            // The bug is insteresting, when we work with multiple page not found requests
         $this->router = &$c['router'];         // The objects of Controller keep the last instances of the last request.
-        $this->logger = &$logger;              // that means the instance don't do the reset.
+        $this->logger = &$logger;              // that means the controller instance don't be the reset.
 
         $this->router->initFilters('before');  // Initialize ( exec ) registered router ( before ) filters
 
                                                // Keep in your mind we need use pass by reference in some situations.
                                                // @see http://www.php.net/manual/en/language.references.whatdo.php
 
-        foreach ($c->unRegisteredKeys() as $key) {  // On router level some classes does not assigned into controller instance
+        foreach ($c->unRegisteredKeys() as $key) {  // On router level ( routes.php ) some classes does not assigned into controller instance
             if ( ! isset($this->{$key})) {          // forexample view and session class, we need to assign them if they not registered.
                 $this->{$key} = &$c[$key];          // Register to controller instance
             }
@@ -57,7 +57,7 @@ Class Controller
     public function __set($key, $val)  // Custom variables is not allowed !!! 
     {
         if ( ! is_object($val)) {
-            throw new RunTimeException('Just object type variables allowed in controller.');
+            throw new RunTimeException('Just object type variable allowed in controllers.');
         }
         $this->{$key} = $val; // store only app classes & packages 
                               // and object types

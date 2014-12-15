@@ -9,7 +9,7 @@ use RuntimeException;
  * 
  * @category  Security
  * @package   Limiter
- * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
+ * @author    Ali İhsan Çağlayan <ihsancaglayan@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/docs
