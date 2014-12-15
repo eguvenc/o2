@@ -2,7 +2,6 @@
 ## User Agent Class
 
 The User Agent Class provides functions that help identify information about the browser, mobile device, or robot visiting your site. In addition you can get referrer information as well as language and supported character-set information.
-Initializing the Class
 
 ### Initializing an User Agent Class
 
