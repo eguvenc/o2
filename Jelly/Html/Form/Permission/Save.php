@@ -23,7 +23,7 @@ Class Save
     public function __construct($c)
     {
         $this->perms = $c->load('service/rbac/perms');
-        $this->db    = $c->load('return db');
+        $this->db    = $c->load('return service/provider/db', 'betforyousystem');
     }
 
     /**

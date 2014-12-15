@@ -14,88 +14,196 @@ namespace Obullo\User;
  */
 Class Agent
 {
-    public $agent      = null;
-    public $is_browser = false;
-    public $is_robot   = false;
-    public $is_mobile  = false;
-    public $languages  = array();
-    public $charsets   = array();
-    public $platforms  = array();
-    public $browsers   = array();
-    public $mobiles    = array();
-    public $robots     = array();
-    public $platform   = array();
-    public $browser    = array();
-    public $version    = '';
-    public $mobile     = array();
-    public $robot      = array();
+    /**
+     * Current user-agent
+     *
+     * @var string
+     */
+    public $agent = null;
+
+    /**
+     * Flag for if the user-agent belongs to a browser
+     *
+     * @var bool
+     */
+    public $isBrowser = false;
+
+    /**
+     * Flag for if the user-agent is a robot
+     *
+     * @var bool
+     */
+    public $isRobot = false;
+
+    /**
+     * Flag for if the user-agent is a mobile browser
+     *
+     * @var bool
+     */
+    public $isMobile = false;
+
+    /**
+     * Languages accepted by the current user agent
+     *
+     * @var array
+     */
+    public $languages = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Character sets accepted by the current user agent
+     *
+     * @var array
+     */
+    public $charsets = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * List of platforms to compare against current user agent
+     *
+     * @var array
+     */
+    public $platforms = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * List of browsers to compare against current user agent
+     *
+     * @var array
+     */
+    public $browsers = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * List of mobile browsers to compare against current user agent
+     *
+     * @var array
+     */
+    public $mobiles = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * List of robots to compare against current user agent
+     *
+     * @var array
+     */
+    public $robots = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Current user-agent platform
+     *
+     * @var string
+     */
+    public $platform = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Current user-agent browser
+     *
+     * @var string
+     */
+    public $browser = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Current user-agent mobile data
+     *
+     * @var string
+     */
+    public $mobile = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Current user-agent robot data
+     *
+     * @var string
+     */
+    public $robot = array(
+        'key' => '',
+        'val' => ''
+    );
+
+    /**
+     * Current user-agent version
+     *
+     * @var string
+     */
+    public $version = '';
 
     /**
      * Constructor
      *
      * Sets the User Agent and runs the compilation routine
+     * 
+     * @param object $c container
      *
-     * @access    public
-     * @return    void
+     * @return void
      */
-    public function __construct()
+    public function __construct($c)
     {
-        global $c;
+        $this->c = $c;
+
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $this->agent = trim($_SERVER['HTTP_USER_AGENT']);
         }
         if ( ! is_null($this->agent)) {
-            if ($this->_loadAgentFile()) {
-                $this->_compileData();
+            if ($this->loadAgentFile()) {
+                $this->compileData();
             }
         }
         $c->load('service/logger')->debug('Agent Class Initialized');
     }
 
     /**
-     * Initialize to Class.
-     * 
-     * @return object
-     */
-    public function init()
-    {
-        return ($this);
-    }
-
-    /**
      * Compile the User Agent Data
      *
-     * @access    private
-     * @return    bool
+     * @return bool
      */
-    private function _loadAgentFile()
+    protected function loadAgentFile()
     {
-        global $c;
-        $user_agents = $c->load('config')->load('agents');
-
         $return = false;
+        $userAgents = $this->c->load('config')->load('agents');
 
-        if (isset($user_agents['platforms'])) {
-            $this->platforms = &$user_agents['platforms'];
-            unset($user_agents['platforms']);
+        if (isset($userAgents['platforms'])) {
+            $this->platforms = &$userAgents['platforms'];
+            unset($userAgents['platforms']);
             $return = true;
         }
 
-        if (isset($user_agents['browsers'])) {
-            $this->browsers = &$user_agents['browsers'];
-            unset($user_agents['browsers']);
+        if (isset($userAgents['browsers'])) {
+            $this->browsers = &$userAgents['browsers'];
+            unset($userAgents['browsers']);
             $return = true;
         }
 
-        if (isset($user_agents['mobiles'])) {
-            $this->mobiles = &$user_agents['mobiles'];
-            unset($user_agents['mobiles']);
+        if (isset($userAgents['mobiles'])) {
+            $this->mobiles = &$userAgents['mobiles'];
+            unset($userAgents['mobiles']);
             $return = true;
         }
 
-        if (isset($user_agents['robots'])) {
-            $this->robots = &$user_agents['robots'];
-            unset($robots);
+        if (isset($userAgents['robots'])) {
+            $this->robots = &$userAgents['robots'];
+            unset($userAgents['robots']);
             $return = true;
         }
 
@@ -105,30 +213,30 @@ Class Agent
     /**
      * Compile the User Agent Data
      *
-     * @access    private
-     * @return    bool
+     * @return bool
      */
-    private function _compileData()
+    protected function compileData()
     {
-        $this->_setPlatform();
-
-        foreach (array('_setBrowser', '_setRobot', '_setMobile') as $function) {
+        foreach (array('setBrowser', 'setRobot', 'setMobile') as $function) {
             if ($this->$function() === true) {
                 break;
             }
         }
+
+        $this->setPlatform();
     }
 
     /**
      * Set the Platform
      *
-     * @access    private
-     * @return    mixed
+     * @return mixed
      */
-    private function _setPlatform()
+    protected function setPlatform()
     {
-        if (is_array($this->platforms) AND count($this->platforms) > 0) {
-            foreach ($this->platforms as $key => $val) {
+        $platform = ($this->isMobile()) ? 'mobile' : 'pc';
+
+        if (is_array($this->platforms[$platform]) AND count($this->platforms[$platform]) > 0) {
+            foreach ($this->platforms[$platform] as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . "|i", $this->agent)) {
                     $this->platform['key'] = $key;
                     $this->platform['val'] = $val;
@@ -137,27 +245,26 @@ Class Agent
                 }
             }
         }
-        $this->platform = 'Unknown Platform';
+        $this->platform['val'] = 'Unknown Platform';
     }
 
     /**
      * Set the Browser
      *
-     * @access    private
-     * @return    bool
+     * @return bool
      */
-    private function _setBrowser()
+    protected function setBrowser()
     {
         if (is_array($this->browsers) AND count($this->browsers) > 0) {
             foreach ($this->browsers as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . ".*?([0-9\.]+)|i", $this->agent, $match)) {
-                    $this->is_browser = true;
-                    $this->version = $match[1];
+                    $this->isBrowser = true;
+                    $this->version   = $match[1];
 
                     $this->browser['key'] = $key;
                     $this->browser['val'] = $val;
 
-                    $this->_setMobile();
+                    $this->setMobile();
                     return true;
                 }
             }
@@ -168,15 +275,14 @@ Class Agent
     /**
      * Set the Robot
      *
-     * @access    private
-     * @return    bool
+     * @return bool
      */
-    private function _setRobot()
+    protected function setRobot()
     {
         if (is_array($this->robots) AND count($this->robots) > 0) {
             foreach ($this->robots as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . "|i", $this->agent)) {
-                    $this->is_robot = true;
+                    $this->isRobot = true;
                     $this->robot['key'] = $key;
                     $this->robot['val'] = $val;
 
@@ -190,17 +296,14 @@ Class Agent
     /**
      * Set the Mobile Device
      *
-     * @access    private
-     * @return    bool
+     * @return bool
      */
-    private function _setMobile()
+    protected function setMobile()
     {
-        global $c;
-
         if (is_array($this->mobiles) AND count($this->mobiles) > 0) {
             foreach ($this->mobiles as $key => $val) {
-                if (false !== (strpos(mb_strtolower($this->agent, $c->load('config')['locale']['charset']), $key))) {
-                    $this->is_mobile = true;
+                if (false !== (stripos($this->agent, $key))) {
+                    $this->isMobile = true;
                     $this->mobile['key'] = $key;
                     $this->mobile['val'] = $val;
 
@@ -215,15 +318,12 @@ Class Agent
     /**
      * Set the accepted languages
      *
-     * @access    private
-     * @return    void
+     * @return void
      */
-    private function _setLanguages()
+    protected function setLanguages()
     {
         if ((count($this->languages) == 0) AND isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $_SERVER['HTTP_ACCEPT_LANGUAGE'] != '' AND is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            $languages = preg_replace('/(;q=[0-9\.]+)/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_LANGUAGE'])));
-
-            $this->languages = explode(',', $languages);
+            $this->languages = explode(',', preg_replace('/(;\s?q=[0-9\.]+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_LANGUAGE']))));
         }
 
         if (count($this->languages) == 0) {
@@ -234,14 +334,12 @@ Class Agent
     /**
      * Set the accepted character sets
      *
-     * @access    private
-     * @return    void
+     * @return void
      */
-    private function _setCharsets()
+    protected function setCharsets()
     {
-        if ((count($this->charsets) == 0) AND isset($_SERVER['HTTP_ACCEPT_CHARSET']) AND $_SERVER['HTTP_ACCEPT_CHARSET'] != '' AND is_string($_SERVER['HTTP_ACCEPT_CHARSET'])) {
-            $charsets = preg_replace('/(;q=.+)/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_CHARSET'])));
-            $this->charsets = explode(',', $charsets);
+        if ((count($this->charsets) == 0) AND isset($_SERVER['HTTP_ACCEPT_CHARSET']) AND ! empty($_SERVER['HTTP_ACCEPT_CHARSET'])) {
+            $this->charsets = explode(',', preg_replace('/(;\s?q=.+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_CHARSET']))));
         }
         if (count($this->charsets) == 0) {
             $this->charsets = array('Undefined');
@@ -251,41 +349,37 @@ Class Agent
     /**
      * Is Browser
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function isBrowser()
     {
-        return $this->is_browser;
+        return $this->isBrowser;
     }
 
     /**
      * Is Robot
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function isRobot()
     {
-        return $this->is_robot;
+        return $this->isRobot;
     }
 
     /**
      * Is Mobile
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function isMobile()
     {
-        return $this->is_mobile;
+        return $this->isMobile;
     }
 
     /**
      * Is this a referral from another site ?
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function isReferral()
     {
@@ -295,8 +389,7 @@ Class Agent
     /**
      * Agent String
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getAgent()
     {
@@ -306,8 +399,7 @@ Class Agent
     /**
      * Get Platform
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getPlatform()
     {
@@ -317,8 +409,7 @@ Class Agent
     /**
      * Get Browser Name
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getBrowser()
     {
@@ -328,8 +419,7 @@ Class Agent
     /**
      * Get the Browser Version
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getBrowserVersion()
     {
@@ -339,8 +429,7 @@ Class Agent
     /**
      * Get The Robot Name
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getRobotName()
     {
@@ -350,8 +439,7 @@ Class Agent
     /**
      * Get the Mobile Device
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getMobileDevice()
     {
@@ -361,24 +449,22 @@ Class Agent
     /**
      * Get the referrer
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function getReferrer()
     {
-        return ( ! isset($_SERVER['HTTP_REFERER']) OR $_SERVER['HTTP_REFERER'] == '') ? '' : trim($_SERVER['HTTP_REFERER']);
+        return ( ! isset($_SERVER['HTTP_REFERER']) OR empty($_SERVER['HTTP_REFERER'])) ? '' : trim($_SERVER['HTTP_REFERER']);
     }
 
     /**
      * Get the accepted languages
      *
-     * @access    public
-     * @return    array
+     * @return array
      */
     public function getLanguages()
     {
         if (count($this->languages) == 0) {
-            $this->_setLanguages();
+            $this->setLanguages();
         }
 
         return $this->languages;
@@ -387,13 +473,12 @@ Class Agent
     /**
      * Get the accepted Character Sets
      *
-     * @access    public
-     * @return    array
+     * @return array
      */
     public function getCharsets()
     {
         if (count($this->charsets) == 0) {
-            $this->_setCharsets();
+            $this->setCharsets();
         }
 
         return $this->charsets;
@@ -404,8 +489,7 @@ Class Agent
      * 
      * @param string $lang language
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function getAcceptLang($lang = 'en')
     {
@@ -417,8 +501,7 @@ Class Agent
      * 
      * @param string $charset charset
      *
-     * @access    public
-     * @return    bool
+     * @return bool
      */
     public function getAcceptCharset($charset = 'utf-8')
     {
@@ -430,8 +513,7 @@ Class Agent
      * 
      * @param string $keyName key name
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getKey($keyName = null)
     {

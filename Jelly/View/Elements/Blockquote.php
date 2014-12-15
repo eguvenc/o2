@@ -6,7 +6,7 @@ use Obullo\Jelly\Form,
     Obullo\Jelly\View\View;
 
 /**
- * Jelly Radio
+ * Jelly Blockquote
  * 
  * @category  Jelly
  * @package   Elements
@@ -16,7 +16,7 @@ use Obullo\Jelly\Form,
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/jelly
  */
-Class Radio implements ElementsInterface
+Class Blockquote implements ElementsInterface
 {
     /**
      * Constructor
@@ -56,9 +56,15 @@ Class Radio implements ElementsInterface
                 $data[Form::ELEMENT_ATTRIBUTE] = str_replace(array('{', '}'), '', $callBack);
             }
         }
-        $element = $this->validator->getError($data[Form::ELEMENT_NAME]);
-        $element.= $this->formElement->radio($data[Form::ELEMENT_NAME], $data[Form::ELEMENT_VALUE], $data['checked'], $data[Form::ELEMENT_ATTRIBUTE]);
         
+        $element = $this->validator->getError($data[Form::ELEMENT_NAME]);
+        $element.= vsprintf(
+            '<blockquote %s>%s</blockquote>',
+            array(
+                $data[Form::ELEMENT_ATTRIBUTE],
+                $data[Form::ELEMENT_VALUE]
+            )
+        );
         if ($view->isTranslatorEnabled() === true) {
             $this->c->load('return translator');
             $data[Form::ELEMENT_LABEL]       = $this->c['translator'][$data[Form::ELEMENT_LABEL]];
@@ -66,11 +72,11 @@ Class Radio implements ElementsInterface
             $data[Form::ELEMENT_DESCRIPTION] = $this->c['translator'][$data[Form::ELEMENT_DESCRIPTION]];
         }
         if ($view->isGroup() === true) {
-            
+
             if ($view->isGrouped() === true) {
 
                 $elementTemp = $view->createHiddenInput($extra[Form::ELEMENT_NAME]) . $view->getGroupElementsTemp();
-                
+               
                 return $this->jellyForm->getGroupDiv(
                     $elementTemp,
                     $extra[Form::GROUP_NAME],
@@ -88,10 +94,11 @@ Class Radio implements ElementsInterface
         $element = $this->jellyForm->getElementDiv($element, $extra[Form::ELEMENT_LABEL]);
         $element.= $this->jellyForm->getDescriptionDiv($data[Form::ELEMENT_DESCRIPTION], '');
         return $element;
+        // return $this->jellyForm->getElementDiv($element, $extra[Form::ELEMENT_LABEL]);
     }
 }
 
-// END Radio Class
-/* End of file Radio.php */
+// END Input Class
+/* End of file Input.php */
 
-/* Location: .Obullo/Jelly/Radio.php */
+/* Location: .Obullo/Jelly/Input.php */

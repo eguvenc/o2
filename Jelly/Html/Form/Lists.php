@@ -103,7 +103,7 @@ Class Lists
         $table     = '<table '. $attr .'>';
         $tableAttr = $this->jellyForm->getDefaultElementAttributes();
         array_unshift($tableAttr, 'type');
-        array_push($tableAttr, 'Group ID', 'Role', 'Action');
+        array_push($tableAttr, 'GroupID', 'Role', 'Action');
         $table    .= $this->createTableHeader($tableAttr);
         $data      = $this->jellyForm->getFormElements(
             $this->jellyForm->formId,
@@ -211,9 +211,9 @@ Class Lists
                 $attr .= $key .'="'. $val .'"';
             }
         }
-        $table     = '<table '. $attr .'>';
-        $table    .= $this->createTableHeader(array('Name', 'Value', 'Action'));
-        $data      = $this->jellyForm->getFormOptions(
+        $table  = '<table '. $attr .'>';
+        $table .= $this->createTableHeader(array('Name', 'Value', 'Action'));
+        $data   = $this->jellyForm->getFormOptions(
             $this->jellyForm->formId,
             array(
                 Form::OPTION_PRIMARY_KEY,
@@ -247,16 +247,18 @@ Class Lists
      */
     public function createTableHeader($data)
     {
-        $table = '
-                <thead>
-                <tr>';
+        $setClass = array('type','Order','GroupID', 'Role', 'Action');
+        $table = '<thead>
+                    <tr>';
         foreach ($data as $val) {
-            $table .= '<th>' . ucfirst($val) . '</th>';
+            $temp = '<th>' . ucfirst($val) . '</th>';
+            if (in_array($val, $setClass)) {
+                $temp = '<th class="table-columns">' . ucfirst($val) . '</th>';
+            } 
+            $table .= $temp;
         }
-        $table .= '
-                </tr>
-                </thead>';
-                
+        $table .= '</tr>
+                   </thead>';
         return $table;
     }
 
@@ -275,10 +277,8 @@ Class Lists
             foreach ($val as $v) {
                 $table.= '<td>' . $v . '</td>';
             }
-            $table.= '<td>
-                        %s
-                       </td>
-                      </tr></tbody>';
+            $table.= '<td>%s</td>
+                    </tr></tbody>';
         }
         return $table;
     }

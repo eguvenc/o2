@@ -42,7 +42,6 @@ Class Hidden implements ElementsInterface
     {
         $data  = $view->getFieldData();
         return $this->formElement->hidden($data[Form::ELEMENT_NAME], $data[Form::ELEMENT_VALUE], $data[Form::ELEMENT_ATTRIBUTE]);
-        // return $this->jellyForm->getElementDiv($element, '', '');
     }
 }
 

@@ -77,7 +77,7 @@ Class Form extends Adapter
      */
     public function __construct($c, $params = array())
     {
-        $this->db = $c->load('return service/crud');
+        $this->db = $c->load('return new service/provider/crud');
         $this->cache = $c->load('service/cache');
 
         parent::__construct($c, $params);
