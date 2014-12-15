@@ -37,11 +37,26 @@ Class Submit implements ElementsInterface
      * @param object $view View object
      * 
      * @return string
+     * @todo line 71 change to Form\Element\Button
      */
     public function render(View $view)
     {
         $data  = $view->getFieldData();
         $extra = $view->getFieldExtraData();
+
+        if (strpos($data[Form::ELEMENT_ATTRIBUTE], '{') !== false) {
+            if (preg_match('#(?<key>{.*?})#', $data[Form::ELEMENT_ATTRIBUTE], $match)) {
+                $callBack = preg_replace_callback(
+                    $match['key'],
+                    function ($val) use ($data, $view) {
+                        $values = $view->getFormValues();
+                        return isset($values[$val[0]]) ? $values[$val[0]] : $data[Form::ELEMENT_ATTRIBUTE];
+                    },
+                    $data[Form::ELEMENT_ATTRIBUTE]
+                );
+                $data[Form::ELEMENT_ATTRIBUTE] = str_replace(array('{', '}'), '', $callBack);
+            }
+        }
 
         if ($view->isAjax() === true) {
             $formId = "'". (string)$view->formData[Form::FORM_ID] ."'";
@@ -53,20 +68,29 @@ Class Submit implements ElementsInterface
         }
         
         $element = $this->validator->getError($data[Form::ELEMENT_NAME]);
-        $element.= $this->formElement->submit($data[Form::ELEMENT_NAME], $value, $data[Form::ELEMENT_ATTRIBUTE]);
+        $element.= $this->formElement->button(array('type' => 'submit'), $data[Form::ELEMENT_VALUE], $data[Form::ELEMENT_ATTRIBUTE]);
+        // $element.= '<button name="'. $data[Form::ELEMENT_NAME] .'" type="submit"'. $data[Form::ELEMENT_ATTRIBUTE] .'>'. $value .'</button>';
+        // $element.= $this->formElement->submit($data[Form::ELEMENT_NAME], $value, $data[Form::ELEMENT_ATTRIBUTE]);
 
         if ($view->isGroup() === true) {
+            
             if ($view->isGrouped() === true) {
 
                 $elementTemp = $view->createHiddenInput($extra[Form::ELEMENT_NAME]) . $view->getGroupElementsTemp();
                 
                 return $this->jellyForm->getGroupDiv(
                     $elementTemp,
-                    $extra[Form::ELEMENT_NAME],
-                    $extra[Form::ELEMENT_LABEL]
+                    $extra[Form::GROUP_NAME],
+                    $extra[Form::GROUP_LABEL],
+                    $extra[Form::GROUP_CLASS]
                 );
             }
-            return $this->jellyForm->getGroupParentDiv($element, $view->getColSm(), $data[Form::ELEMENT_LABEL]);
+            $element = $this->jellyForm->getGroupParentDiv($element, $view->getColSm(), $data[Form::ELEMENT_LABEL]);
+
+            if ($view->isGroupDescription()) {
+                $element.= $this->jellyForm->getGroupDescriptionDiv($data[Form::ELEMENT_DESCRIPTION], '');
+            }
+            return $element;
         }
         $view->setSubmit($element);
         return;

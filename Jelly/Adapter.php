@@ -190,6 +190,14 @@ Class Adapter
     public $groupParentLabel = '';
 
     /**
+     * Add after group
+     * special value
+     * 
+     * @var array
+     */
+    public $afterGroup = array();
+
+    /**
      * Operation name
      * 
      * Operations:
@@ -263,20 +271,21 @@ Class Adapter
      * @var array
      */
     protected $inputTypes = array(
-        'input'    => 'Text',
-        'checkbox' => 'Checkbox',
-        'email'    => 'Email',
-        'upload'   => 'File',
-        'hidden'   => 'Hidden',
-        'image'    => 'Image',
-        'password' => 'Password',
-        'radio'    => 'Radio',
-        'reset'    => 'Reset',
-        'submit'   => 'Submit',
-        'button'   => 'Button',
-        'textarea' => 'Textarea',
-        'dropdown' => 'Dropdown',
-        'captcha'  => 'Captcha'
+        'input'      => 'Text',
+        'checkbox'   => 'Checkbox',
+        'email'      => 'Email',
+        'upload'     => 'File',
+        'hidden'     => 'Hidden',
+        'image'      => 'Image',
+        'password'   => 'Password',
+        'radio'      => 'Radio',
+        'reset'      => 'Reset',
+        'submit'     => 'Submit',
+        'button'     => 'Button',
+        'textarea'   => 'Textarea',
+        'dropdown'   => 'Dropdown',
+        'captcha'    => 'Captcha',
+        'blockquote' => 'Blockquote'
     );
 
     /**
@@ -420,6 +429,28 @@ Class Adapter
     public $isGroupHidden = true;
 
     /**
+     * Is in group hidden input
+     * 
+     * @var boolean
+     */
+    public $isInGroupHidden = true;
+
+    /**
+     * Reset element extra array
+     * 
+     * @var array
+     */
+    protected $elementExtraArray = array(
+        self::GROUP_FORM_TO_DATABASE   => '',
+        self::GROUP_DATABASE_TO_FORM   => '',
+        self::ELEMENT_CLASS            => '',
+        self::ELEMENT_NAME             => '',
+        self::ELEMENT_LABEL            => '',
+        self::GROUP_NUMBER_OF_ELEMENTS => '',
+        self::ELEMENT_DESCRIPTION      => '',
+    );
+
+    /**
      * Constructor
      * 
      * @param array $c      container
@@ -434,14 +465,15 @@ Class Adapter
         $this->params = $params;
         
         $this->setElementDiv($params['tpl.elementDiv']);
-        $this->setDescriptionDiv($params['tpl.descriptionDiv']);
         $this->setGroupDiv($params['tpl.groupElementDiv']['groupedDiv']);
         $this->setGroupParentDiv($params['tpl.groupElementDiv']['parentDiv']);
         $this->setGroupParentLabel($params['tpl.groupElementDiv']['parentLabel']);
+        $this->setDescriptionDiv($params['tpl.descriptionDiv']);
+        $this->setGroupDescriptionDiv($params['tpl.groupDescriptionDiv']);
     }
 
     /**
-     * Set form
+     * Set form values
      * 
      * @param array $values form values
      * 
@@ -450,6 +482,16 @@ Class Adapter
     public function setValues($values = array())
     {
         $this->formValues = $values;
+    }
+
+    /**
+     * Get form raw values
+     * 
+     * @return array form data.
+     */
+    public function getRawValues()
+    {
+        return $this->formValues;
     }
 
     /**
@@ -518,6 +560,18 @@ Class Adapter
     }
 
     /**
+     * Set group description div
+     * 
+     * @param string $groupDesc group description div
+     * 
+     * @return void
+     */
+    public function setGroupDescriptionDiv($groupDesc)
+    {
+        $this->groupDescriptionDiv = $groupDesc;
+    }
+
+    /**
      * Set group div
      * 
      * @param string $groupDiv group div
@@ -554,6 +608,29 @@ Class Adapter
     }
 
     /**
+     * Add after group special value
+     * 
+     * @param int    $order group order
+     * @param string $data  special value
+     * 
+     * @return void
+     */
+    public function addAfterGroup($order, $data)
+    {
+        $this->afterGroup[$order] = $data;
+    }
+
+    /**
+     * Get after group special value.
+     * 
+     * @return array after group data.
+     */
+    public function getAfterGroup()
+    {
+        return $this->afterGroup;
+    }
+
+    /**
      * Get form identifier
      * 
      * @return string
@@ -572,7 +649,31 @@ Class Adapter
      */
     public function isGroupHidden($groupHidden = true)
     {
-        return $this->isGroupHidden = (boolean)$groupHidden;
+        $this->isGroupHidden = (boolean)$groupHidden;
+    }
+
+    /**
+     * Is in group hidden
+     * 
+     * @param boolean $inGroupHidden group hidden
+     * 
+     * @return boolean
+     */
+    public function isInGroupHidden($inGroupHidden = true)
+    {
+        $this->isInGroupHidden = (boolean)$inGroupHidden;
+    }
+
+    /**
+     * Is group description
+     * 
+     * @param boolean $isGroupDesc group desc
+     * 
+     * @return boolean
+     */
+    public function isGroupDescription($isGroupDesc = true)
+    {
+        $this->view->setGroupDescription((boolean)$isGroupDesc);
     }
 
     /**
@@ -618,6 +719,18 @@ Class Adapter
     }
 
     /**
+     * Group description template
+     * 
+     * @param string $groupDesc description temp
+     * 
+     * @return string template
+     */
+    public function getGroupDescriptionDiv($groupDesc)
+    {
+        return sprintf($this->groupDescriptionDiv, $groupDesc);
+    }
+
+    /**
      * Input template
      * 
      * @param string $element   element data
@@ -637,12 +750,13 @@ Class Adapter
      * @param string $element   element data
      * @param string $name      element name
      * @param string $labelName label name
+     * @param string $attribute attribute
      * 
      * @return string template
      */
-    public function getGroupDiv($element, $name, $labelName = '')
+    public function getGroupDiv($element, $name, $labelName = '', $attribute = '')
     {
-        return sprintf($this->groupDiv, $name, $labelName, $element);
+        return sprintf($this->groupDiv, $attribute, $name, $labelName, $element);
     }
 
     /**
@@ -837,9 +951,10 @@ Class Adapter
             return array('no permission');
         }
         $groupData = $this->getFormGroups($source['form'][static::FORM_PRIMARY_KEY], '*');
-        foreach ($target as $val) {
 
+        foreach ($target as $val) {
             $order = $val[static::ELEMENT_ORDER];
+            
             if (isset($this->data['override'][$val[static::ELEMENT_NAME]])) {
                 foreach ($this->data['override'][$val[static::ELEMENT_NAME]] as $key => $override) {
                     $val[$key] = $override;
@@ -849,13 +964,19 @@ Class Adapter
                 $elementsOfGroup = $this->getElementsOfGroup($groupData, $val[static::ELEMENT_GROUP_ID]);
                 $order = $elementsOfGroup[static::GROUP_ORDER];
                 $increasedOrder = $this->increaseAppendOrder($val[static::ELEMENT_NAME], $order);
-                $values[$increasedOrder][] = $val;
+                $values[$increasedOrder][$val[static::ELEMENT_ORDER]] = $val;
+                // if (isset($groupData[$elementsOfGroup[static::GROUP_ORDER]]) AND $groupData[$elementsOfGroup[static::GROUP_ORDER]][static::GROUP_NUMBER_OF_ELEMENTS] == $a) {
+                //     $a=0;
+                ksort($values[$increasedOrder]);
+                // }
             } else {
+                $order = $val[static::ELEMENT_ORDER];
                 $increasedOrder = $this->increaseAppendOrder($val[static::ELEMENT_NAME], $order);
                 $values[$increasedOrder] = $val;
             }
         }
         $i = 0;
+
         ksort($values);
         foreach ($values as $elements) {
             if ( ! isset($elements[static::ELEMENT_ORDER])) {
@@ -1113,9 +1234,10 @@ Class Adapter
      */
     public function buildArray($data)
     {
-        $formData = $data['form'];
-        $groupData = $data['groups'];
+        $formData    = $data['form'];
+        $groupData   = $data['groups'];
         $elementData = $data['elements'];
+
         $formViewPermission = $this->user->hasObjectPermission($formData[static::FORM_NAME], 'view');
         $formOpPermission   = $this->user->hasObjectPermission($formData[static::FORM_NAME], $this->operationName);
         $formPermission     = $this->user->isPermitted($formData[static::FORM_NAME], $formViewPermission);
@@ -1145,27 +1267,23 @@ Class Adapter
                 $elementsOfGroup = $this->getElementsOfGroup($groupData, $val[static::ELEMENT_GROUP_ID]);
                 $order = (int)$elementsOfGroup[static::GROUP_ORDER];
 
-                // if (($this->user->isPermitted($formData[static::FORM_NAME], $formOpPermission) === true
-                //     OR $this->user->isPermitted($elementsOfGroup[static::GROUP_NAME], $groupOpPermissions) === true)
-                //     AND $this->numberOfElements == (int)$elementsOfGroup[static::GROUP_NUMBER_OF_ELEMENTS] - (int)$elementsOfGroup[static::GROUP_NUMBER_OF_ELEMENTS]
-                // ) {
-                //     $appendOrder = $this->increaseAppendOrder($val[static::ELEMENT_NAME], $order);
-                //     $increasedGroupOrder = $appendOrder + $this->increaseOrder;
-                //     $this->increaseOrder++;
-                //     if ($this->isGroupHidden === true) {
-                //         $this->setElements($this->createGroupHiddenInputs($elementsOfGroup), $elementsOfGroup, $postValues, $increasedGroupOrder);
-                //     }
-                // }
                 $this->numberOfElements++;
                 $this->isGroup = true;
+            } else {
+                $elementsOfGroup = array();
             }
             // Append data
             // If we have append request to order (5) it goes to (6) and other orders increased by 1.
             // We increase order numbers by one by.
             $increasedOrder = $this->increaseAppendOrder($val[static::ELEMENT_NAME], $order);
-            // if ($this->isGroup === true AND $this->isGroupHidden === true) {
+            if ($this->isGroup === true AND $this->isGroupHidden === true) {
+                $increasedOrder = $increasedOrder + $this->increaseOrder;
+            }
+
+            // if ($this->isInGroupHidden === true) {
             //     $increasedOrder = $increasedOrder + $this->increaseOrder;
             // }
+
             if ($formPermission === true) {
                 // If user doesn't have form or the input permission
                 // and type "submit" is not,
@@ -1180,7 +1298,9 @@ Class Adapter
                         $val[static::ELEMENT_ATTRIBUTE] = $val[static::ELEMENT_ATTRIBUTE] . ' disabled="disabled"';
                     }
                 }
-                $this->setElements($val, $elementsOfGroup, $postValues, $increasedOrder);
+                if ($val[static::ELEMENT_TYPE] !== 'submit') {
+                    $this->setElements($val, $elementsOfGroup, $postValues, $increasedOrder);
+                }
 
             } elseif (isset($this->data['append'][$val[static::ELEMENT_NAME]]) OR $this->user->isPermitted($val[static::ELEMENT_NAME], $elementViewPermissions) === true) {
             
@@ -1195,7 +1315,10 @@ Class Adapter
                         $val[static::ELEMENT_ATTRIBUTE] = $val[static::ELEMENT_ATTRIBUTE] . ' disabled="disabled"';
                     }
                 }
-                $this->setElements($val, $elementsOfGroup, $postValues, $increasedOrder);
+                if ($val[static::ELEMENT_TYPE] !== 'submit') {
+                    $this->setElements($val, $elementsOfGroup, $postValues, $increasedOrder);
+                }
+                // $this->setElements($val, $elementsOfGroup, $postValues, $increasedOrder);
             }
             if ($val[static::ELEMENT_TYPE] === 'submit') {  // Set temporary submit data.
                 $submitTemp = $val;
@@ -1217,7 +1340,7 @@ Class Adapter
             unset($submitTempOrder);
         }
         $this->appendFormData($formData);
-
+        // print_r($this->values);
         return $this->values;
     }
 
@@ -1228,9 +1351,6 @@ Class Adapter
      * @param array $groupData  group data
      * @param array $postValues post values
      * @param int   $order      order
-     * 
-     * @todo Oluşturulan array bir fonksiyona dönüştürülecek.
-     * @todo Switch fonksiyona dönüştürülecek.
      * 
      * @return void
      */
@@ -1255,28 +1375,17 @@ Class Adapter
                 $this->groupAttributeNames = array();
                 $groupDescription = (isset($groupData[static::GROUP_DESCRIPTION])) ? $groupData[static::GROUP_DESCRIPTION] : '';
             }
-            $extraArray = array(
-                static::GROUP_FORM_TO_DATABASE   => $groupData[static::GROUP_FORM_TO_DATABASE],
-                static::GROUP_DATABASE_TO_FORM   => $groupData[static::GROUP_DATABASE_TO_FORM],
-                static::ELEMENT_NAME             => $groupData[static::GROUP_NAME],
-                static::ELEMENT_LABEL            => $groupData[static::GROUP_LABEL],
-                static::ELEMENT_CLASS            => $groupData[static::GROUP_CLASS],
-                static::GROUP_NUMBER_OF_ELEMENTS => $groupData[static::GROUP_NUMBER_OF_ELEMENTS],
-                static::ELEMENT_DESCRIPTION      => $data[static::ELEMENT_DESCRIPTION],
-            );
+            $extraArray = $this->elementExtraArray;
+            $extraArray = array_merge($extraArray, $groupData);
+            $extraArray[static::ELEMENT_DESCRIPTION] = $data[static::ELEMENT_DESCRIPTION];
         } else {
-            $extraArray = array(
-                static::GROUP_FORM_TO_DATABASE   => '',
-                static::GROUP_DATABASE_TO_FORM   => '',
-                static::ELEMENT_CLASS            => '',
-                static::ELEMENT_NAME             => $data[static::ELEMENT_NAME],
-                static::ELEMENT_LABEL            => $data[static::ELEMENT_LABEL],
-                static::GROUP_NUMBER_OF_ELEMENTS => 0,
-                static::ELEMENT_DESCRIPTION      => $data[static::ELEMENT_DESCRIPTION],
-            );
+            $extraArray = $this->elementExtraArray;
+            $extraArray[static::ELEMENT_NAME] = $data[static::ELEMENT_NAME];
+            $extraArray[static::ELEMENT_LABEL] = $data[static::ELEMENT_LABEL];
+            // $extraArray[static::ELEMENT_DESCRIPTION] = $data[static::ELEMENT_DESCRIPTION];
         }
         if (isset($groupDescription)) {
-            $extraArray[static::ELEMENT_DESCRIPTION] =  $groupDescription;
+            $extraArray[static::ELEMENT_DESCRIPTION] = $groupDescription;
         }
         $this->elementExtraArray($extraArray, $order);
         foreach (
@@ -1287,7 +1396,8 @@ Class Adapter
                 static::ELEMENT_ATTRIBUTE,
                 static::ELEMENT_TYPE,
                 static::ELEMENT_LABEL,
-                static::ELEMENT_ROLE
+                static::ELEMENT_ROLE,
+                static::ELEMENT_DESCRIPTION
             ) as $val
         ) {
             $this->values['elements'][$order]['input'][$this->order][$val] = $data[$val];
@@ -1358,9 +1468,9 @@ Class Adapter
     public function appendValuesToString($name, $data, $elementValue, $order)
     {
         if ( ! empty($data[static::ELEMENT_VALUE]) OR is_numeric($data[static::ELEMENT_VALUE])) {
-            $defaultValue = $data[static::ELEMENT_VALUE];
+            $elementValue = $data[static::ELEMENT_VALUE];
         }
-        $this->values['elements'][$order]['input'][$this->order][static::ELEMENT_VALUE] = (isset($defaultValue)) ? $defaultValue : $elementValue;
+        $this->values['elements'][$order]['input'][$this->order][static::ELEMENT_VALUE] = $elementValue;
     }
 
     /**
@@ -1374,14 +1484,13 @@ Class Adapter
     {
         $this->post      = $this->c->load('return post');
         $this->validator = $this->c->load('return validator');
-        $this->jellyForm = $this->c->load('return jelly/form');
 
-        $postData = $this->post[true];
+        $postData = $this->post[false];
         if ( ! isset($postData['form_data'])) {
             return false;
         }
         $formData = $this->toArray($postData['form_data']); // Get form attributes.
-        $elementsData = $this->jellyForm->getFormElements(
+        $elementsData = $this->getFormElements(
             $formData[static::FORM_PRIMARY_KEY],
             array(
                 static::ELEMENT_PRIMARY_KEY,
@@ -1397,8 +1506,8 @@ Class Adapter
         );
         $i = 0;
         $groupId = 0;
-        $newValues = array();
-        $groupData = array();
+        $newValues   = array();
+        $groupData   = array();
         $groupInputs = array();
         foreach ($elementsData as $v) {
             $groupId = ($groupId == $v[static::ELEMENT_GROUP_ID]) ? $groupId : $v[static::ELEMENT_GROUP_ID];
@@ -1473,10 +1582,6 @@ Class Adapter
             }
             // Set rules for all form elements.
             if (isset($this->rules[$v[static::ELEMENT_NAME]])) {
-                // if ($this->view->isTranslatorEnabled() === true) {
-                //     $v[static::ELEMENT_LABEL] = $this->c->load('translator')[$v[static::ELEMENT_LABEL]];
-                // }
-                // var_dump($v[static::ELEMENT_NAME]);
                 $this->setRules($this->rules[$v[static::ELEMENT_NAME]]['field'], $this->rules[$v[static::ELEMENT_NAME]]['label'], $this->rules[$v[static::ELEMENT_NAME]]['rules']);
             }
         }
@@ -1560,7 +1665,7 @@ Class Adapter
         if (count($this->builtArray) == 0) {
             return 'Sorry, but there is no data to show for this query.';
         }
-        $this->view->render($this->builtArray);
+        $this->view->render($this->builtArray, $this->isAllowed());
 
         return $this->view->open();
     }
@@ -1586,6 +1691,16 @@ Class Adapter
             throw new RunTimeException('First you must call this function "printOpen()".');
         }
         return $this->view->form();
+    }
+
+    /**
+     * Get array form
+     * 
+     * @return array form data.
+     */
+    public function getFormArray()
+    {
+        return $this->values;
     }
 
     /**
