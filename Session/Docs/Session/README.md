@@ -7,16 +7,16 @@ The Session Class permits you to maintain a user's "state" and track their activ
 
 ------
 
-Sessions will typically run each page load, **so you need to call Sess class** for each page load if you need.
+Sessions will typically run each page load, **so you need to call session class** for each page load if you need.
 For the most part the session class will run unattended in the background, so simply initializing the sess class will cause it to read & update sessions.
 
 ```php
 <?php
-$c->load('session');
-$this->sessionion->method();
+$this->c->load('session');
+$this->session->method();
 ```
 
-Once loaded, the Session object will be available using: <dfn>$this->sessionion->method()</dfn>
+Once loaded, the Session object will be available using: <dfn>$this->session->method()</dfn>
 
 #### Sesssion class has three type of handlers
 
@@ -45,7 +45,7 @@ Once loaded, the Session object will be available using: <dfn>$this->sessionion-
 
 Mostly recommended <b>cache handler</b> which has many type of drivers. Local Memory Storage defined as a default handler.
 
-#### Sesssion Meta Data
+#### Session Meta Data
 
 Metadata is simply an array containing the following information:
 

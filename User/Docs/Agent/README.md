@@ -8,44 +8,48 @@ The User Agent Class provides functions that help identify information about the
 ------
 
 ```php
-$c->load('user/agent');
-$this->userAgent->method();
+<?php
+$this->c->load('user/agent as agent');
+$this->agent->method();
 ```
 <blockquote>When the User Agent class is initialized it will attempt to determine whether the user agent browsing your site is a web browser, a mobile device, or a robot. It will also gather the platform information if it is available.</blockquote>
 
 The following functions are available:
 
-#### $this->userAgent->isBrowser();
+#### $this->agent->isBrowser();
 
 Returns true or false (boolean) if the user agent is a known web browser.
 
 ```php
-if ($this->userAgent->isBrowser()) {
-    $browser = $this->userAgent->getBrowser();
-    $browserVersion = $this->userAgent->getBrowserVersion();
+<?php
+if ($this->agent->isBrowser()) {
+    $browser = $this->agent->getBrowser();
+    $browserVersion = $this->agent->getBrowserVersion();
 }
 ```
 
 <blockquote>The string "Safari" in this example is an array key in the list of browser definitions. You can find this list in .app/config/shared/agents.php if you want to add new browsers or change the stings.</blockquote>
 
-#### $this->userAgent->isRobot();
+#### $this->agent->isRobot();
 
 Returns true or false (boolean) if the user agent is a known robot.
 
 ```php
-if ($this->userAgent->isRobot()) {
-    echo 'This is a '. $this->userAgent->getRobotName() .' robot.';
+<?php
+if ($this->agent->isRobot()) {
+    echo 'This is a '. $this->agent->getRobotName() .' robot.';
 }
 ```
 
 <blockquote>The user agent library only contains the most common robot definitions. It is not a complete list of bots. There are hundreds of them so searching for each one would not be very efficient. If you find that some bots that commonly visit your site are missing from the list you can add them to your .app/config/shared/agents.php file.</blockquote>
 
-#### $this->userAgent->isMobile();
+#### $this->agent->isMobile();
 
 Returns true or false (boolean) if the user agent is a known mobile device.
 
 ```php
-if ($this->userAgent->isMobile()) {
+<?php
+if ($this->agent->isMobile()) {
     $this->view->load(
         'mobile/home',
         function () {
@@ -56,29 +60,31 @@ if ($this->userAgent->isMobile()) {
 }
 ```
 
-#### $this->userAgent->isReferral();
+#### $this->agent->isReferral();
 
 Returns true or false (boolean) if the user agent was referred from another site.
 
 ```php
-if ($this->userAgent->isReferral()) {
-    $referrer = $this->userAgent->getReferrer();
+<?php
+if ($this->agent->isReferral()) {
+    $referrer = $this->agent->getReferrer();
 }
 ```
 
-#### $this->userAgent->getAcceptLang($lang = 'en');
+#### $this->agent->getAcceptLang($lang = 'en');
 
 Lets you determine if the user agent accepts a particular language. Example:
 
 ```php
-if ($this->userAgent->getAcceptLang('en')) {
+<?php
+if ($this->agent->getAcceptLang('en')) {
     echo 'Yes! Accept english!';
 }
 ```
 <blockquote>This function is not typically very reliable since some browsers do not provide language info, and even among those that do, it is not always accurate.</blockquote>
 
 
-#### $this->userAgent->getAgent();
+#### $this->agent->getAgent();
 
 Returns a string containing the full user agent string. Typically it will be something like this:
 
@@ -89,7 +95,7 @@ Returns a string containing the full user agent string. Typically it will be som
 * The Mobile Phone:
     * Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36
 
-#### $this->userAgent->getBrowser();
+#### $this->agent->getBrowser();
 
 Returns a string containing the name of the web browser viewing your site.
 
@@ -100,7 +106,7 @@ Returns a string containing the name of the web browser viewing your site.
 * The Mobile Phone:
     * Chrome
 
-#### $this->userAgent->getBrowserVersion();
+#### $this->agent->getBrowserVersion();
 
 Returns a string containing the version number of the web browser viewing your site.
 
@@ -111,17 +117,17 @@ Returns a string containing the version number of the web browser viewing your s
 * The Mobile Phone:
     * 34.0
 
-#### $this->userAgent->getMobileDevice();
+#### $this->agent->getMobileDevice();
 
 Returns a string containing the name of the mobile device viewing your site.
 
 * Android
 
-#### $this->userAgent->getRobotName();
+#### $this->agent->getRobotName();
 
 Returns a string containing the name of the robot viewing your site.
 
-#### $this->userAgent->getPlatform();
+#### $this->agent->getPlatform();
 
 Returns a string containing the platform viewing your site (Linux, Windows, OS X, etc.).
 
@@ -136,66 +142,66 @@ Returns a string containing the platform viewing your site (Linux, Windows, OS X
 
 ------
 
-#### $this->userAgent->isBrowser();
+#### $this->agent->isBrowser();
 
 Returns true or false (boolean) if the user agent is a known web browser.
 
-#### $this->userAgent->isRobot();
+#### $this->agent->isRobot();
 
 Returns true or false (boolean) if the user agent is a known robot.
 
-#### $this->userAgent->isMobile();
+#### $this->agent->isMobile();
 
 Returns true or false (boolean) if the user agent is a known mobile device.
 
-#### $this->userAgent->isReferral();
+#### $this->agent->isReferral();
 
 Returns true or false (boolean) if the user agent was referred from another site.
 
-#### $this->userAgent->getAgent();
+#### $this->agent->getAgent();
 
 Get user agent
 
-#### $this->userAgent->getPlatform();
+#### $this->agent->getPlatform();
 
 Get platform
 
-#### $this->userAgent->getBrowser();
+#### $this->agent->getBrowser();
 
 Get browser name
 
-#### $this->userAgent->getBrowserVersion();
+#### $this->agent->getBrowserVersion();
 
 Get the browser version
 
-#### $this->userAgent->getRobotName();
+#### $this->agent->getRobotName();
 
 Get The robot name
 
-#### $this->userAgent->getMobileDevice();
+#### $this->agent->getMobileDevice();
 
 Get the mobile device
 
-#### $this->userAgent->getReferrer();
+#### $this->agent->getReferrer();
 
 Get the referrer
 
-#### $this->userAgent->getLanguages();
+#### $this->agent->getLanguages();
 
 Get the accepted languages
 
-#### $this->userAgent->getCharsets();
+#### $this->agent->getCharsets();
 
 Get the accepted character sets
 
-#### $this->userAgent->getAcceptLang($lang = 'en');
+#### $this->agent->getAcceptLang($lang = 'en');
 
 Test for a particular language
 
-#### $this->userAgent->getAcceptCharset($charset = 'utf-8');
+#### $this->agent->getAcceptCharset($charset = 'utf-8');
 
 Test for a particular character set
 
-#### $this->userAgent->getKey($keyName = null);
+#### $this->agent->getKey($keyName = null);
 
 Get key
