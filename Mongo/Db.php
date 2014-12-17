@@ -192,11 +192,6 @@ Class Db
         if ( ! class_exists('MongoClient', false)) {
             throw new RuntTimeException('The MongoDB PECL extension has not been installed or enabled.');
         }
-
-        echo '<pre>';
-        var_dump($db);
-        var_dump($c->load('config')['nosql']['mongo'][$db]);
-        die('die');
         $this->host          = $c->load('config')['nosql']['mongo'][$db]['host'];
         $this->username      = $c->load('config')['nosql']['mongo'][$db]['username'];
         $this->password      = $c->load('config')['nosql']['mongo'][$db]['password'];
