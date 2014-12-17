@@ -594,18 +594,19 @@ Class Router
     }
 
     /**
-     * Detect static domain
-     * 
-     * @param array $options subdomain array
-     * 
-     * @return void
-     */
+    * Detect static domain
+    * 
+    * @param array $options subdomain array
+    * 
+    * @return void
+    */
     public function detectDomain(array $options = array())
     {
-        $routedDomain = (isset($options['domain'])) ? $options['domain'] : '*'; 
-        $routedDomain = is_object($routedDomain) ? $routedDomain->domain->regex : $routedDomain;
+        $domain = (isset($options['domain'])) ? $options['domain'] : '*'; 
+        $domain = is_object($domain) ? $domain->attributes()->regex : $domain;
         $match = false;
-        if ($routedDomain != '*' AND $match = $this->matchDomain($routedDomain)) { // If host matched with option['domain'] assign domain as $option['domain']
+
+        if ($domain != '*' AND $match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true; // Regex match.
         }
