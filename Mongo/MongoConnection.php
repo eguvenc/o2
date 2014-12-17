@@ -21,24 +21,26 @@ Class MongoConnection
      * 
      * @var string
      */
-    public $dsn;
+    public $dsn = '';
 
     /**
      * Db object
      * 
      * @var object
      */
-    public $db = null;
+    public $connection = null;
 
     /**
      * Constructor
+     * 
+     * Automatically check if the Mongo PECL extension has been installed/enabled.
      * 
      * @param string $dsn connection string
      */
     public function __construct($dsn)
     {
         if ( ! class_exists('MongoClient', false)) {
-            throw new RuntTimeException('The MongoClient extension has not been installed or enabled.');
+            throw new RuntimeException('The MongoClient extension has not been installed or enabled.');
         }
         $this->dsn = $dsn;
     }
@@ -50,7 +52,12 @@ Class MongoConnection
      */
     public function connect()
     {
-        return $this->db = new MongoClient($this->dsn);
+        $this->connection = new MongoClient($this->dsn);
+
+        if ( ! $this->connection->connect()) {
+            throw new RuntimeException('Mongo connection error.');
+        }
+        return $this->connection;
     }
 
     /**
@@ -60,8 +67,14 @@ Class MongoConnection
      */
     public function __destruct()
     {
-        if (is_object($this->db)) {
-            $this->db->close();
+        if (is_object($this->connection)) {
+
+            $connections = $this->connection->getConnections();
+
+            // We close all the connections.
+            foreach ($connections as $con) {
+                $this->connection->close($con['hash']);
+            }
         }
     }
 }

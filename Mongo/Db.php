@@ -83,13 +83,6 @@ Class Db
     public $dbname = '';
 
     /**
-     * Config options
-     * 
-     * @var array
-     */
-    public $configOptions = array();
-
-    /**
      * Selects
      * 
      * @var array
@@ -179,28 +172,16 @@ Class Db
     /**
     * Constructor
     * 
-    * Automatically check if the Mongo PECL extension has been installed/enabled.
-    * Generate the connection string and establish a connection to the MongoDB.
-    *
-    * @param array $params overrides to default mongo configuration
-    * @param string $db overrides to default mongo configuration
+    * @param object $c      container
+    * @param object $db     mongo connection instance
+    * @param object $dbName database name
     * 
     * @throws Exception 
     */
-    public function __construct($c, $db)
+    public function __construct($c, $db, $dbName)
     {
-        if ( ! class_exists('MongoClient', false)) {
-            throw new RuntTimeException('The MongoDB PECL extension has not been installed or enabled.');
-        }
-        $this->host           = $c['config']['nosql']['mongo'][$db]['host'];
-        $this->username       = $c['config']['nosql']['mongo'][$db]['username'];
-        $this->password       = $c['config']['nosql']['mongo'][$db]['password'];
-        $this->port           = $c['config']['nosql']['mongo'][$db]['port'];
-        $this->dbname         = $db;
-        $this->config_options = isset($c['config']['nosql']['mongo'][$db]['options']) ? $c->load('config')['nosql']['mongo'][$db]['options'] : array();
-
-        $this->setConnectionString(); // Build the connection string from the config file
-        $this->connect();
+        $this->c  = $c;
+        $this->db = $db->{$dbName};
     }
     
     /**
@@ -690,7 +671,7 @@ Class Db
         if (count($data) == 0 OR ! is_array($data)) {
             throw new LogicException('Nothing to insert into Mongo collection or insert data is not an array.');
         }
-        $this->db->{$collection}->insert($data, array_merge($this->configOptions, $options));
+        $this->db->{$collection}->insert($data, $options);
 
         $this->resetSelect();
         if (isset($data['_id'])) {
@@ -726,7 +707,7 @@ Class Db
         }
         $this->resetSelect();
 
-        return $this->db->{$collection}->batchInsert($data, array_merge($this->configOptions, $options));
+        return $this->db->{$collection}->batchInsert($data, $options);
     }
 
     /**
@@ -766,11 +747,11 @@ Class Db
             '$bit'      => ''
         );
         
-        $defaultOptions = array_merge(array('multiple' => true), $this->configOptions);  // Multiple update behavior like MYSQL.
+        $defaultOptions = array('multiple' => true); // Multiple update behavior like MYSQL.
         
         // If any modifier used remove the default modifier ( $set ).
         $usedModifier = array_keys($this->updates);
-        $modifier      = (isset($usedModifier[0])) ? $usedModifier[0] : null;
+        $modifier     = (isset($usedModifier[0])) ? $usedModifier[0] : null;
         
         if ($modifier != null AND isset($mods[$modifier])) {
             $updates = $this->updates;
@@ -974,7 +955,7 @@ Class Db
         $this->operation  = 'delete';  // Set operation for lastQuery output
         $this->collection = $collection;
 
-        $defaultOptions = array_merge(array('justOne' => false), $this->configOptions);
+        $defaultOptions = array('justOne' => false);
 
         if (empty($collection)) {
             throw new LogicException('No Mongo collection selected to delete.');
@@ -989,26 +970,6 @@ Class Db
     }
 
     /**
-     * Establish a connection to MongoDB using the connection string generated in
-     * the setConnectionString() method.  If 'mongo_persist_key' was set to true in the
-     * config file, establish a persistent connection.
-     * 
-     * We allow for only the 'persist'
-     * option to be set because we want to establish a connection immediately.
-     * 
-     * @return type
-     * @throws Exception 
-     */
-    public function connect()
-    {
-        if ($this->db == null) {
-            $this->connection = new \MongoClient($this->connectionString);
-            $this->db = $this->connection->{$this->dbname};
-        }
-        return ($this);
-    }
-
-    /**
      * Returns to Mongodb instance of object.
      * 
      * @return object
@@ -1016,36 +977,6 @@ Class Db
     public function getInstance()
     {
         return $this->db;
-    }
-    
-    /**
-     * Build the connection string from the config file.
-     * 
-     * @return void
-     * @throws Exception
-     */
-    public function setConnectionString() 
-    {
-        if ($this->dbname == '') {
-            throw new LogicException('Please set a $mongo[\'database\'] from app/config/mongo.php.');
-        }
-        $connectionString = "mongodb://";
-
-        if (empty($this->host)) {
-            throw new LogicException('You need to specify a hostname connect to MongoDB.');
-        }
-        if (empty($this->dbname)) {
-            throw new LogicException('You need to specify a database name connect to MongoDB.');
-        }
-        if ( ! empty($this->user) AND ! empty($this->pass)) {
-            $connectionString .= "{$this->user}:{$this->pass}@";
-        }
-        if (isset($this->port) AND ! empty($this->port)) {
-            $connectionString .= "{$this->host}:{$this->port}";
-        } else {
-            $connectionString .= "{$this->host}";
-        }
-        $this->connectionString = trim($connectionString).'/'.$this->dbname;
     }
 
     /**

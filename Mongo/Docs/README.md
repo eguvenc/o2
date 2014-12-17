@@ -9,7 +9,7 @@ Mongo Class is a lightweight <kbd>( CRUD based )</kbd> database management libra
 
 ```php
 <?php
-$this->c->load('service/mongo');
+$this->c->load('service/mongo', 'db');
 $this->mongo->method();
 ```
 
@@ -37,10 +37,10 @@ return array(
 
 ```php
 <?php
-$c->load('mongo/db');
+$this->c->load('mongo/db', 'db');
 
 $this->mongo->get('users');
-$row = $this->db->getRowArray();
+$row = $this->db->rowArray();
 
 if($row) {
     foreach($docs as $row) {
@@ -56,7 +56,7 @@ if($row) {
 $this->mongo->select();
 $this->mongo->where('username', 'bob');
 
-$row = $this->db->getRow();
+$row = $this->db->row();
 
 if ($row) {
     foreach($docs as $row) {
@@ -106,10 +106,9 @@ $this->db->delete('users')
 <?php
 $this->db->get('users');
 
-echo 'found '.$this->db->getCount().' row(s)';
+echo 'found '.$this->db->count().' row(s)';
 
-foreach($this->db->getResultArray() as $row)
-{
+foreach($this->db->resultArray() as $row) {
    echo $row['username'].'<br />';
 }
 ```
@@ -119,7 +118,7 @@ foreach($this->db->getResultArray() as $row)
 ```php
 <?php
 $this->db->get('users');
-$row = $this->db->getRow();
+$row = $this->db->row();
 
 echo $row->username;
 ```
@@ -129,7 +128,7 @@ echo $row->username;
 $this->db->select('username,  user_firstname');
 
 $docs = $this->db->get('users');
-$row = $docs->getNext();
+$row  = $docs->nextRow();
 
 echo $row['username'];
 
@@ -145,7 +144,7 @@ Aggregate function is a easy way to doing map / reduce functions. ( especially f
 ```php
 <?php
 $this->db->agrregate('users', array('$or' => array(array('username' => 'john'), array('username' => 'bob'))));
-$this->db->getResult();
+$this->db->result();
 ```
 
 #### $this->db->where()
@@ -155,7 +154,7 @@ $this->db->getResult();
 $this->db->where('username', 'bob');
 $this->db->get('users');
 
-$row = $this->db->getRow();
+$row = $this->db->row();
 echo $row['username'];
 ```
 
@@ -288,7 +287,7 @@ $this->db->whereIn('username', array('bob', 'john', 'jenny'));
 $this->db->orderBy('username', 'ASC');
 
 $this->db->get('users');
-$this->db->getResult();
+$this->db->result();
 ```
 
 #### $this->db->groupBy()
@@ -298,7 +297,7 @@ $this->db->getResult();
 $this->db->groupBy('username', array('count' => 0) ,'function (obj, prev) {prev.count++;}');
 
 $this->db->get('users');
-$this->db->getResult();
+$this->db->result();
 ```
 
 #### $this->db->limit()
@@ -310,7 +309,7 @@ $this->db->orderBy('username', 'ASC');
 $this->db->limit(10);
 
 $this->db->get('users');
-$this->db->getResult();
+$this->db->result();
 ```
 
 #### $this->db->offset()
@@ -332,8 +331,7 @@ $docs = $this->db->get('users');
 $this->db->from('users');
 $docs = $this->db->find(array('$or' => array(array('username' => 'john'), array('username' => 'bob'))),  array('username'));
 
-foreach($docs as  $row)
-{
+foreach($docs as  $row) {
     echo $row->username. '<br />';
 }
 ```
@@ -347,8 +345,7 @@ $this->db->select('username');
 $this->db->from('users');
 $docs = $this->db->find(array('$or' => array(array('username' => 'john'), array('username' => 'bob'))));
 
-foreach($docs as  $row)
-{
+foreach($docs as  $row) {
     echo $row->username. '<br />';
 }
 ```
@@ -634,22 +631,38 @@ Get last occurence error
 
 ------
 
-#### $this->results->result();
+#### $this->mongo->result();
 
 This function returns the query result as object.
 
-#### $this->results->resultArray();
+#### $this->mongo->resultArray();
 
 This function returns the query result as a pure array, or an empty array when no result is produced.
 
-#### $this->results->row();
+#### $this->mongo->row();
 
 This function fetches one item and returns query result as object or false on failure.
 
-#### $this->results->rowArray();
+#### $this->mongo->rowArray();
 
 Identical to the above row() function, except it returns an array.
 
-#### $this->results->count();
+#### $this->mongo->firstRow();
+
+Fetch first row as object
+
+#### $this->mongo->previousRow();
+
+Fetch previous row as object
+
+#### $this->mongo->nextRow();
+
+Fetch next row as object
+
+#### $this->mongo->lastRow();
+
+Fetch last row as object
+
+#### $this->mongo->count();
 
 Get number of rows
