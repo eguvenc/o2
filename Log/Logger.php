@@ -11,6 +11,7 @@ use Closure,
 
 /**
  * Logger Class
+ * Modeled after Zend Log package.
  * 
  * @category  Log
  * @package   Logger

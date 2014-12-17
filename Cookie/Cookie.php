@@ -79,7 +79,6 @@ Class Cookie
         if ($httpOnly == false AND $this->config['cookie']['httpOnly'] != false) {
             $httpOnly = $this->config['cookie']['httpOnly'];
         }
-
         if ( ! is_numeric($expire)) {
             $expire = time() - 86500;
         } else {

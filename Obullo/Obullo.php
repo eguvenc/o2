@@ -32,12 +32,6 @@ $controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirecto
 if ( ! file_exists($controller)) {
     $response->show404($pageUri);
 }
-/*
- * ------------------------------------------------------
- *  Before controller event
- * ------------------------------------------------------
- */
-$c['event']->fire('before.controller');
 
 require $controller;  // Include the controller file.
 
@@ -49,6 +43,28 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 
 $class = new $className;  // Call the controller
 
+
+$docs = null;
+if ($c['config']['annotations']) {
+    
+    $docs = new App\Annotations\Reader($class);
+    
+    // $reflection->getDocComment();
+
+    // Read doc blocks 
+    // if we have before.filter("") run
+    // 
+    //
+}
+
+/*
+ * ------------------------------------------------------
+ *  Before controller event
+ * ------------------------------------------------------
+ */
+$c['event']->fire('before.controller', array($class, $docs));
+
+
 if (method_exists($class, 'load')) {
     $class->load();
 }
@@ -56,7 +72,7 @@ foreach (get_class_methods($class) as $method) {
     if ($method != 'index' AND $method != 'load' AND strpos($method, '_') !== 0) {
         throw new RunTimeException(
             'Just one public method allowed because of Obullo has a principle "One Index Method Per Controller".
-            If you want to add private methods use underscore ( _methodname ). <pre>private function _methodname() {}</pre>'
+            If you want to use private methods try to add underscore prefix ( _methodname ). e.g. <pre>private function _methodname() {}</pre>'
         );
     }
 }
@@ -71,10 +87,8 @@ if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so,
 
     // Call the requested method. Any URI segments present (besides the directory / class / method) 
     // will be passed to the method for convenience
-    // directory = 0, class = 1,  ( arguments = 2) ( method = 2 always = index )
+    // directory = 0, class = 1,  arguments = 2 (  method always = index )
     call_user_func_array(array($class, 'index'), $arguments);
-
-    $router->initFilters('after');   // Initialize ( exec ) registered router ( after ) filters
 }
 
 /*
@@ -82,7 +96,7 @@ if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so,
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.controller');
+$c['event']->fire('after.controller', array($class));
 
 /*
  * ------------------------------------------------------

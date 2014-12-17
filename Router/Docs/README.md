@@ -440,7 +440,7 @@ $c['router']->createFilter(
     'redirectLocale',
     function () use ($c) {
         $locale = $c->load('cookie')->get('locale');
-        $languages = $c->load('config')->load('translator')['languages'];
+        $languages = $c['config']->load('translator')['languages'];
         if ( ! isset($languages[$locale])) {
             $locale = $this->translator->getLocale();
         }

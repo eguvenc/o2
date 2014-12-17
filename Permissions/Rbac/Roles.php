@@ -150,8 +150,8 @@ Class Roles
         $this->c = $c;
         $this->db = $db;
         $this->cache  = $c->load('service/cache');
-        $this->treeDb = new Db($c);
-
+        $this->treeDb = new Db($c, array('db' => $db));
+        
         $this->c->config->load('constants/rbac');  // load rbac constants
         
         $columns = $config['database']['columns'];

@@ -768,18 +768,18 @@ Class Router
     /**
      * Run filters
      * 
-     * @param array $name   filter name
-     * @param array $params parameters
+     * @param array $name    filter name
+     * @param array $options route options array
      * 
      * @return void
      */
-    protected function runFilter($name, $params = array())
+    protected function runFilter($name, $options = array())
     {        
         if (isset($this->filters[$name]['closure'])) {
-            $this->bind($this->filters[$name]['closure'], $params);
+            $this->bind($this->filters[$name]['closure'], $options);
         } elseif (isset($this->filters[$name]['class'])) { 
             $Class = '\\'.ucfirst($this->filters[$name]['class']);
-            new $Class($this->c, $params);
+            new $Class($this->c, $options);
         }
     }
 

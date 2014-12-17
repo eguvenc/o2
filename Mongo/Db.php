@@ -50,21 +50,21 @@ Class Db {
     * Automatically check if the Mongo PECL extension has been installed/enabled.
     * Generate the connection string and establish a connection to the MongoDB.
     *
-    * @param string $db overrides to default mongo configuration
+    * @param array $params overrides to default mongo configuration
     * 
     * @throws Exception 
     */
-    public function __construct($c, $db = 'db')
+    public function __construct($c, $db)
     {
         if ( ! class_exists('MongoClient', false)) {
             throw new RuntTimeException('The MongoDB PECL extension has not been installed or enabled.');
         }
-        $this->host           = $c->load('config')['nosql']['mongo'][$db]['host'];
-        $this->username       = $c->load('config')['nosql']['mongo'][$db]['username'];
-        $this->password       = $c->load('config')['nosql']['mongo'][$db]['password'];
-        $this->port           = $c->load('config')['nosql']['mongo'][$db]['port'];
+        $this->host           = $c['config']['nosql']['mongo'][$db]['host'];
+        $this->username       = $c['config']['nosql']['mongo'][$db]['username'];
+        $this->password       = $c['config']['nosql']['mongo'][$db]['password'];
+        $this->port           = $c['config']['nosql']['mongo'][$db]['port'];
         $this->dbname         = $db;
-        $this->config_options = isset($c->load('config')['nosql']['mongo'][$db]['options']) ? $c->load('config')['nosql']['mongo'][$db]['options'] : array();
+        $this->config_options = isset($c['config']['nosql']['mongo'][$db]['options']) ? $c->load('config')['nosql']['mongo'][$db]['options'] : array();
         $this->setConnectionString(); // Build the connection string from the config file
         $this->connect();
     }

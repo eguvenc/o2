@@ -112,15 +112,15 @@ Class Container implements ArrayAccess
         ) {
             $keyExists = true;
         }
-        // If controller not available mark classes as unregistered, especially in "router" level some libraries not loaded.
+        // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
         // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
-        // We mark them as unregistered classes ( view, sess, url .. ) then we assign back into controller when they are available.
+        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they are available.
         if ($noReturn
             AND $controllerExists
             AND Controller::$instance == null
             AND $isCoreFile == false
         ) {
-            $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we assign back into controller.
+            $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
         }
 
         if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.
@@ -205,11 +205,11 @@ Class Container implements ArrayAccess
      * others arguments arg1, arg1.
      *
      * @param string $classString class command
-     * @param mixed  $params      array or object
+     * @param mixed  $params      array
      * 
      * @return void
      */
-    public function load($classString, $params = null)
+    public function load($classString, $params = array())
     {
         $matches = $this->resolveCommand(trim($classString));
         $class = $matches['class'];
@@ -338,8 +338,11 @@ Class Container implements ArrayAccess
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
                 if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and is not null
+
                     return Controller::$instance->{$key} = new $ClassName($this, $params);
+
                 }
+
                 return new $ClassName($this, $params);
             };
         }

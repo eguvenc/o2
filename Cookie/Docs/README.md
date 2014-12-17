@@ -10,7 +10,8 @@ The Cookie Class contains functions that assist in working with cookies.
 -------
 
 ```php
-$c->load('cookie');
+<?php
+$this->c->load('cookie');
 $this->cookie->method();
 ```
 
@@ -27,6 +28,7 @@ Sets a cookie containing the values you specify. There are two ways to pass info
 Using this method, an associative array is passed to the first parameter:
 
 ```php
+<?php
 $cookie = array(
                    'name'   => 'The Cookie Name',
                    'value'  => 'The Value',

@@ -12,8 +12,8 @@
  */
 Class Controller
 {
-    public static $instance;                // Controller instance
-    public $c, $config, $uri, $router, $logger; // Default packages
+    public static $instance;                    // Controller instance
+    public $c, $config, $uri, $router, $logger; // Core packages
 
     /**
      * Constructor
@@ -21,8 +21,8 @@ Class Controller
     public function __construct()
     {
         global $c;
-        $this->c = $c;
 
+        $this->c = $c;
         self::$instance = &$this;
         $logger = $c->load('service/logger');  // Assign Default Loaded Packages
                                                // NOTICE:
@@ -30,9 +30,6 @@ Class Controller
         $this->uri    = &$c['uri'];            // The bug is insteresting, when we work with multiple page not found requests
         $this->router = &$c['router'];         // The objects of Controller keep the last instances of the last request.
         $this->logger = &$logger;              // that means the controller instance don't be the reset.
-
-        $this->router->initFilters('before');  // Initialize ( exec ) registered router ( before ) filters
-
                                                // Keep in your mind we need use pass by reference in some situations.
                                                // @see http://www.php.net/manual/en/language.references.whatdo.php
 
@@ -44,10 +41,9 @@ Class Controller
     }
     
     /**
-     * We prevent to set custom variables
+     * We prevent to set none object variables
      *
-     * Forexample this is not allowed $this->user_variable = 'hello'
-     * in controller
+     * Forexample in controller this is not allowed $this->user_variable = 'hello'.
      * 
      * @param string $key string
      * @param string $val mixed
