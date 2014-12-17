@@ -8,12 +8,35 @@ namespace Obullo\Mongo;
  * A library that interfaces with Mongo_Db Package
  * through Crud functions.
  * 
+ * @category  Mongo
+ * @package   Results
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/package/mongo
  */
 Class Results
 {
-    protected $rows;    // row array data
-    protected $current_row; // current data
-    protected $count_rows;  // number of rows
+    /**
+     * Row array data
+     * 
+     * @var array
+     */
+    protected $rows;
+
+    /**
+     * Current data
+     * 
+     * @var interger
+     */
+    protected $currentRow;
+
+    /**
+     * Number of rows
+     * 
+     * @var integer
+     */
+    protected $countRows;
     
     /**
      * Constructor
@@ -22,9 +45,9 @@ Class Results
      */
     public function __construct($rows = null)
     {
-        $this->rows        = $rows;
-        $this->current_row = 0;
-        $this->count_rows  = count($rows);
+        $this->rows       = $rows;
+        $this->currentRow = 0;
+        $this->countRows  = count($rows);
     }
 
     /**
@@ -78,7 +101,7 @@ Class Results
      */
     public function firstRow()
     {
-        $result = $this->_getRow();
+        $result = $this->getRow();
         if (count($result) == 0) {
             return $result;
         }
@@ -92,14 +115,14 @@ Class Results
      */
     public function previousRow()
     {
-        $result = $this->_getRow();
+        $result = $this->getRow();
         if (count($result) == 0) {
             return $result;
         }
-        if (isset($result[$this->current_row - 1])) {
-            --$this->current_row;
+        if (isset($result[$this->currentRow - 1])) {
+            --$this->currentRow;
         }
-        return $result[$this->current_row];
+        return $result[$this->currentRow];
 
     }
 
@@ -110,14 +133,14 @@ Class Results
      */
     public function nextRow()
     {
-        $result = $this->_getRow();
+        $result = $this->getRow();
         if (count($result) == 0) {
             return $result;
         }
-        if (isset($result[$this->current_row + 1])) {
-            ++$this->current_row;
+        if (isset($result[$this->currentRow + 1])) {
+            ++$this->currentRow;
         }
-        return $result[$this->current_row];
+        return $result[$this->currentRow];
     }
 
     /**
@@ -127,7 +150,7 @@ Class Results
      */
     public function lastRow()
     {
-        $result = $this->_getRow();
+        $result = $this->getRow();
         if (count($result) == 0) {
             return $result;
         }
@@ -141,15 +164,15 @@ Class Results
      */
     public function count()
     {
-        return (int)$this->count_rows;
+        return (int)$this->countRows;
     }
 
     /**
-     * Private function
+     * Protected function
      * 
      * @return mixed
      */
-    private function _getRow()
+    protected function getRow()
     {
         return $this->rows;
     }

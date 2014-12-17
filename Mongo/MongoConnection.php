@@ -37,6 +37,9 @@ Class MongoConnection
      */
     public function __construct($dsn)
     {
+        if ( ! class_exists('MongoClient', false)) {
+            throw new RuntTimeException('The MongoClient extension has not been installed or enabled.');
+        }
         $this->dsn = $dsn;
     }
 
