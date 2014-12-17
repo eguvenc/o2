@@ -47,13 +47,14 @@ define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
 /**
  * Gets environment variable from $_ENV global
  * 
- * @param string $var key
+ * @param string $var      key
+ * @param string $required if true people know any explicit required variables that your app will not work without
  * 
  * @return string value
  */
-function envget($var)
+function envget($var, $required = true)
 {
-    if (empty($_ENV[$var])) {
+    if ($required AND empty($_ENV[$var])) {
         die('<b>Configuration error: </b>'.$var.' key not found or value is empty in .env.'.ENV.'.php file array.');
     }
     return $_ENV[$var];
@@ -67,11 +68,13 @@ function envget($var)
  * @return array
  */
 function envfile($file)
-{
+{        
+    ini_set('display_errors', 1);
     $return = include ENV_PATH .$file;
     if ($return == false) {
         configurationError();
     }
+    ini_set('display_errors', 0);
     return $return;
 }
 
@@ -98,22 +101,15 @@ $c['config'] = function () {
 };
 /*
 |--------------------------------------------------------------------------
-| Default Disable All Errors
-|--------------------------------------------------------------------------
-| Also disable console errors. If debug enabled we release the errors.
-| Error reporting only can manage from your main config.php file you
-| shouldn't use error_reporting() in your index.php file.
-*/
-error_reporting(0);
-/*
-|--------------------------------------------------------------------------
-| Allows Php Native Errors
+| Disable / Ebable Php Native Errors
 |--------------------------------------------------------------------------
 | This feature is configurable from your main config.php file.
 */
 if ($c['config']['error']['reporting']) {
-    error_reporting(E_ALL | E_STRICT | E_NOTICE);
     ini_set('display_errors', 1);
+    error_reporting(E_ALL | E_STRICT | E_NOTICE);
+} else {
+    error_reporting(0);
 }
 /*
 |--------------------------------------------------------------------------

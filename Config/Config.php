@@ -66,6 +66,7 @@ Class Config implements ArrayAccess
         $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
         $this->xmlFile = $this->envPath .'config.xml';
 
+        ini_set('display_errors', 1);
         $this->xml = simplexml_load_file($this->xmlFile);   // Load xml file
         if ($this->xml == false) {
             configurationError();
@@ -74,6 +75,7 @@ Class Config implements ArrayAccess
             $this->loadEnv($this->xml->env->attributes()->file);
         }
         $this->array = include $this->envPath .'config.php';  // Bind current environment config variables 
+        ini_set('display_errors', 0);
     }
 
     /**
@@ -94,8 +96,14 @@ Class Config implements ArrayAccess
         if (in_array($file, $this->loaded, true)) {
             return $this->array[$file];
         }
+        ini_set('display_errors', 1);
         $config = include $file;
-        if ( ! isset($config) OR ! is_array($config)) {
+        ini_set('display_errors', 0);
+
+        // Allow loading constant files
+        if (strpos($filename, 'constants/') === false 
+            AND ($config == false OR ! isset($config) OR ! is_array($config))
+        ) {
             throw new LogicException(
                 sprintf(
                     'Your %s file does not appear to contain a valid configuration array.', 

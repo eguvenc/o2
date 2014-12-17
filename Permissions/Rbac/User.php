@@ -143,40 +143,44 @@ Class User
      * 
      * @param object $c      container
      * @param object $db     database object
-     * @param array  $params parameter
+     * @param array  $config parameters
      */
-    public function __construct($c, $db, $params = array())
+    public function __construct($c, $db, $config = array())
     {
         $this->c = $c;
         $this->db = $db;
         $this->cache = $c->load('service/cache');
         
-        if (count($params) > 0) {
-            $this->userRolesTableName           = $params['user_roles'][static::TABLENAME];
-            $this->columnUserPrimaryKey         = $params['user_roles'][static::USER_PRIMARY_KEY];
-            $this->columnUserRolePrimaryKey     = $params['user_roles'][static::ROLE_PRIMARY_KEY];
-            $this->columnAssignmentDate         = $params['user_roles'][static::ASSIGNMENT_DATE];
-            $this->rolesTableName               = $params['roles'][static::TABLENAME];
-            $this->columnRolePrimaryKey         = $params['roles'][static::PRIMARY_KEY];
-            $this->columnRoleText               = $params['roles'][static::ROLE_TEXT];
-            $this->opTableName                  = $params['operations'][static::TABLENAME];
-            $this->columnOpPrimaryKey           = $params['operations'][static::PRIMARY_KEY];
-            $this->columnOpText                 = $params['operations'][static::OP_TEXT];
-            $this->opPermTableName              = $params['op_permissions'][static::TABLENAME];
-            $this->columnOpPermOpPrimaryKey     = $params['op_permissions'][static::OP_PRIMARY_KEY];
-            $this->columnOpPermPrimaryKey       = $params['op_permissions'][static::PERM_PRIMARY_KEY];
-            $this->columnOpRolePrimaryKey       = $params['op_permissions'][static::ROLE_PRIMARY_KEY];
-            $this->rolePermTableName            = $params['role_permissions'][static::TABLENAME];
-            $this->columnRolePermRolePrimaryKey = $params['role_permissions'][static::ROLE_PRIMARY_KEY];
-            $this->columnRolePermPrimaryKey     = $params['role_permissions'][static::PERM_PRIMARY_KEY];
-            $this->columnPermPrimaryKey         = $params['permissions'][static::PRIMARY_KEY];
-            $this->columnPermParentId           = $params['permissions'][static::PERM_PARENT_ID];
-            $this->permTableName                = $params['permissions'][static::TABLENAME];
-            $this->columnPermText               = $params['permissions'][static::PERM_TEXT];
-            $this->columnPermType               = $params['permissions'][static::PERM_TYPE];
-            $this->columnPermResource           = $params['permissions'][static::PERM_RESOURCE];
-            $this->isAllowed                    = $params[static::IS_ALLOWED];
-            $this->isDenied                     = $params[static::IS_DENIED];
+        $this->c->config->load('constants/rbac');  // load rbac constants
+        
+        $columns = $config['database']['columns'];
+
+        if (count($columns) > 0) {
+            $this->userRolesTableName           = $columns['user_roles'][static::TABLENAME];
+            $this->columnUserPrimaryKey         = $columns['user_roles'][static::USER_PRIMARY_KEY];
+            $this->columnUserRolePrimaryKey     = $columns['user_roles'][static::ROLE_PRIMARY_KEY];
+            $this->columnAssignmentDate         = $columns['user_roles'][static::ASSIGNMENT_DATE];
+            $this->rolesTableName               = $columns['roles'][static::TABLENAME];
+            $this->columnRolePrimaryKey         = $columns['roles'][static::PRIMARY_KEY];
+            $this->columnRoleText               = $columns['roles'][static::ROLE_TEXT];
+            $this->opTableName                  = $columns['operations'][static::TABLENAME];
+            $this->columnOpPrimaryKey           = $columns['operations'][static::PRIMARY_KEY];
+            $this->columnOpText                 = $columns['operations'][static::OP_TEXT];
+            $this->opPermTableName              = $columns['op_permissions'][static::TABLENAME];
+            $this->columnOpPermOpPrimaryKey     = $columns['op_permissions'][static::OP_PRIMARY_KEY];
+            $this->columnOpPermPrimaryKey       = $columns['op_permissions'][static::PERM_PRIMARY_KEY];
+            $this->columnOpRolePrimaryKey       = $columns['op_permissions'][static::ROLE_PRIMARY_KEY];
+            $this->rolePermTableName            = $columns['role_permissions'][static::TABLENAME];
+            $this->columnRolePermRolePrimaryKey = $columns['role_permissions'][static::ROLE_PRIMARY_KEY];
+            $this->columnRolePermPrimaryKey     = $columns['role_permissions'][static::PERM_PRIMARY_KEY];
+            $this->columnPermPrimaryKey         = $columns['permissions'][static::PRIMARY_KEY];
+            $this->columnPermParentId           = $columns['permissions'][static::PERM_PARENT_ID];
+            $this->permTableName                = $columns['permissions'][static::TABLENAME];
+            $this->columnPermText               = $columns['permissions'][static::PERM_TEXT];
+            $this->columnPermType               = $columns['permissions'][static::PERM_TYPE];
+            $this->columnPermResource           = $columns['permissions'][static::PERM_RESOURCE];
+            $this->isAllowed                    = $columns[static::IS_ALLOWED];
+            $this->isDenied                     = $columns[static::IS_DENIED];
         }
     }
 

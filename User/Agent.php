@@ -150,6 +150,13 @@ Class Agent
     public $version = '';
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Constructor
      *
      * Sets the User Agent and runs the compilation routine
@@ -170,7 +177,7 @@ Class Agent
                 $this->compileData();
             }
         }
-        $c->load('service/logger')->debug('Agent Class Initialized');
+        $this->c->load('service/logger')->debug('Agent Class Initialized');
     }
 
     /**
@@ -181,7 +188,7 @@ Class Agent
     protected function loadAgentFile()
     {
         $return = false;
-        $userAgents = $this->c->load('config')->load('agents');
+        $userAgents = $this->c['config']->load('agents');
 
         if (isset($userAgents['platforms'])) {
             $this->platforms = &$userAgents['platforms'];
@@ -222,7 +229,6 @@ Class Agent
                 break;
             }
         }
-
         $this->setPlatform();
     }
 
@@ -306,12 +312,10 @@ Class Agent
                     $this->isMobile = true;
                     $this->mobile['key'] = $key;
                     $this->mobile['val'] = $val;
-
                     return true;
                 }
             }
         }
-
         return false;
     }
 
@@ -325,7 +329,6 @@ Class Agent
         if ((count($this->languages) == 0) AND isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $_SERVER['HTTP_ACCEPT_LANGUAGE'] != '' AND is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             $this->languages = explode(',', preg_replace('/(;\s?q=[0-9\.]+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_LANGUAGE']))));
         }
-
         if (count($this->languages) == 0) {
             $this->languages = array('Undefined');
         }

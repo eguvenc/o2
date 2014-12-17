@@ -11,21 +11,13 @@ The Config class provides a means to retrieve configuration preferences. These p
 
 ```php
 <?php
-$c->load('config');
-$this->config['variable'];
-$this->config->method();
+$this->c->load('config');
+$this->config->method();    // method access
 ```
 
-### Accessing Variables
+**Note:** Controller içerisinde config sınıfı otomatik olarak yüklü gelir, controller işlemlerinde $this->config->method() çağrılarak kısayoldan bu kütüphaneye erişilebilir.
 
-------
-
-```php
-<?php
-echo $this->config['database']['db']['hostname'];  // gives  "localhost"
-```
-
-### Creating a Config File
+### Creating a Env Config File
 
 ------
 
@@ -35,7 +27,7 @@ Simply create your own file and save it in <dfn>config</dfn> folder.
 
 **Note:** If you do create your own config files use the same format as the primary one, storing your items in an array. 
 
-### Loading a Config File
+### Loading Config Files
 
 ------
 
@@ -48,7 +40,29 @@ To load one of your custom config files you will use the following function with
 $this->config->load('filename');
 ```
 
-### Getting Config Items
+### Creating a Shared Config File
+
+Simply create your own file and save it in <kbd>app/config/shared</kbd> folder.
+
+Then you can load it like below
+
+```php
+<?php
+$this->config->load('filename');
+```
+
+### Loading Constant Files
+
+Simply create your own constant file and save it in <kbd>app/config/shared/constants</kbd> folder.
+
+Then you can load it like below
+
+```php
+<?php
+$this->config->load('constants/filename');
+```
+
+### Accessing Variables
 
 ------
 
@@ -56,14 +70,15 @@ To retrieve an item from your config file, use the following function:
 
 ```php
 <?php
-$this->config['itemname'];
+echo $this->config['variable'];
+echo $this->config['database']['db']['hostname'];  // gives  "localhost"
 ```
 
 Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retrieve. For example, to fetch your language choice you'll do this:
 
 ### File Relationships 
 
-If you want, you can give relationship to main config file using <b>@include.filename.php</b> string. When you use <b>@include.filename.php</b> in your main config file this will load your <b>file</b> from your <b>env/$env/filename.php</b>
+If you want, you can give relationship to main config file using <b>envfile('filename.php')</b> function. When you use it in your main config file this will add your <b>file</b> contents to this file.
 
 ```php
 <?php
@@ -72,7 +87,7 @@ If you want, you can give relationship to main config file using <b>@include.fil
 | Database
 |--------------------------------------------------------------------------
 */
-'database' => '@include.database.php',
+'database' => envfile('database.php'),
 
 /* End of file config.php */
 /* Location: .app/env/local/config.php */
@@ -176,8 +191,9 @@ After that you can fetch variable values using any of these methods
 * <b>$_SERVER['key']</b>
 * <b>getenv('key')</b>
 
+<b>envget()</b> is a wrapper function that helps you to getting environment variables safely.
 
-Database config example
+Below the database config example we fetch environment variables from <b>.env.local.php</b> file using <b>envget();</b> function.
 
 ```php
 <?php
@@ -191,22 +207,9 @@ Database config example
 return array(
     'db' => array(
         'host' => 'localhost',
-        'username' => $_ENV['DATABASE_USERNAME'],
-        'password' => $_ENV['DATABASE_PASSWORD'],
+        'username' => envget('DATABASE_USERNAME'),
+        'password' => envget('DATABASE_PASSWORD'),
         'database' => 'test',
-        'port'     => '',
-        'charset'  => 'utf8',
-        'autoinit' => array('charset' => true, 'bufferedQuery' => true),
-        'dsn'      => '',
-        'pdo'      => array(
-            'options'  => array()
-        ),
-    ),
-    'q_jobs' => array(
-        'host' => 'localhost',
-        'username' => $_ENV['DATABASE_USERNAME'],
-        'password' => $_ENV['DATABASE_PASSWORD'],
-        'database' => 'q_jobs',
         'port'     => '',
         'charset'  => 'utf8',
         'autoinit' => array('charset' => true, 'bufferedQuery' => true),
@@ -390,3 +393,18 @@ Updates attributes value.
 #### $this->config->save();
 
 Save valid xml output to xml configuration file.
+
+
+### Environment Functions
+
+------
+
+This functions helps to you getting environment file and variables safely.
+
+#### envget(string $key, $required = true);
+
+Returns to env variables that is defined in .env.$environment.php file. If second parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$required = false</b>.
+
+#### envfile(string $filename);
+
+Returns to environment based file configuration array which are located in <b>app/config/erv/$environment/filename.php</b>

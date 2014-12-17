@@ -287,7 +287,7 @@ Class Request implements ArrayAccess
      * 
      * @return boolean
      */
-    public function isXmlHttp()
+    public function isAjax()
     {
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             return true;

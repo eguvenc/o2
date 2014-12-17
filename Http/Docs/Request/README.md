@@ -9,7 +9,7 @@ Request class detects the server request method, secure connection, ip address, 
 
 ```php
 <?php
-$c->load('request');
+$this->c->load('request');
 
 $this->request['variable'];
 $this->request->method();
@@ -99,7 +99,7 @@ if ( ! $this->request->isValidIp($ip)) {
 
 Returns "true" if the secure connection ( Https ) available in server header.
 
-#### $this->request->isXmlHttp();
+#### $this->request->isAjax();
 
 Returns "true" if xmlHttpRequest ( Ajax ) available in server header.
 
