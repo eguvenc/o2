@@ -2,7 +2,8 @@
 
 namespace Obullo\Cli;
 
-use InvalidArgumentException;
+use Obullo\Log\Logger,
+    InvalidArgumentException;
 
 /**
  * Parser Class
@@ -47,7 +48,7 @@ Class Parser
      */
     public function __construct($c)
     {
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('return service/logger');
         if ($this->logger instanceof Logger) {  // We need to sure logger object is available
             $this->logger->debug('Cli Parser Class Initialized');
         }

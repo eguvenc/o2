@@ -2,7 +2,7 @@
 
 namespace Obullo\Cli;
 
-use Obullo\Logger\Logger;
+use Obullo\Log\Logger;
 
 /**
  * Task Class
@@ -17,13 +17,20 @@ use Obullo\Logger\Logger;
 Class Task
 {
     /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
      * Constructor
      *
      * @param object $c container
      */
     public function __construct($c)
     {
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('return service/logger');
         if ($this->logger instanceof Logger) {  // We need to sure logger object is available
             $this->logger->debug('Task Class Initialized');
         }
