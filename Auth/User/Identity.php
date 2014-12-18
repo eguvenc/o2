@@ -94,14 +94,16 @@ Class Identity extends UserIdentity
 
     /**
      * Constructor
-     * 
-     * @param array $params object parameters
+     *
+     * @param object $c    container
+     * @param object $user user service
      */
-    public function __construct(array $params)
+    public function __construct($c, $user)
     {
-        $this->c = $params['c'];
-        $this->config = $params['config'];
-        $this->storage = $params['storage'];
+        $user = null;
+        $this->c = $c;
+        $this->config = $this->c['config']->load('auth');
+        $this->storage = $this->c['auth.storage'];
 
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists
             $this->recaller = new Recaller($this->c, $this->storage);
@@ -408,7 +410,7 @@ Class Identity extends UserIdentity
     public function refreshRememberToken(GenericIdentity $genericUser)
     {
         $modelUser = new User($this->c, $this->storage);
-        $modelUser->refreshRememberMeToken($this->c['o2.auth.service.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
+        $modelUser->refreshRememberMeToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
     }
 
     /**

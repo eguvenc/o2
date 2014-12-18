@@ -79,7 +79,7 @@ foreach (get_class_methods($class) as $method) {
 if ( ! method_exists($class, 'index')) {  // Check method exist or not
     $response->show404($pageUri);
 }
-$arguments = array_slice($c->load('uri')->rsegments, 2);
+$arguments = array_slice($c['uri']->rsegments, 2);
 
 if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so, we call it instead
     $class->_remap('index', $arguments);

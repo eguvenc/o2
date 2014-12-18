@@ -98,15 +98,15 @@ class AssociativeArray extends AbstractAdapter
     /**
      * Constructor
      * 
-     * @param object $c           container object
-     * @param object $userService user service object
+     * @param object $c    container object
+     * @param object $user user service object
      */
-    public function __construct($c, UserService $userService)
+    public function __construct($c, UserService $user)
     {
-        $this->user = $userService;
-        $this->storage = $this->user->config['storage'];
-        $this->session = $c->load('session');
-        $this->logger = $c->load('service/logger');
+        $this->user = $user;;
+        $this->storage = $c['auth.storage'];
+        $this->session = $c->load('return session');
+        $this->logger = $c->load('return service/logger');
         $this->token = new Token($c);
 
         parent::__construct($c);

@@ -206,7 +206,7 @@ Class Db
      * 
      * @return void
      */
-    public function useMongoid($bool = true)
+    public function useMongoId($bool = true)
     {
         $this->mongoId = $bool;
     }
@@ -584,7 +584,7 @@ Class Db
             }
         } else {
             if ($this->wheres) {
-                $cond   = array( 'condition' => $this->wheres );
+                $cond   = array('condition' => $this->wheres);
                 $cursor = $this->db->{$collection}->group(
                     $this->groupBy['keys'],
                     $this->groupBy['initial'],
@@ -1066,15 +1066,6 @@ Class Db
         return $this->db->lastError();
     }
 
-    /**
-     * Close the connection.
-     */
-    public function __destruct()
-    {
-        if (is_object($this->connection)) {
-            $this->connection->close();
-        } 
-    }
 }
 
 // END Db Class

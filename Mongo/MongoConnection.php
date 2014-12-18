@@ -53,7 +53,6 @@ Class MongoConnection
     public function connect()
     {
         $this->connection = new MongoClient($this->dsn);
-
         if ( ! $this->connection->connect()) {
             throw new RuntimeException('Mongo connection error.');
         }
@@ -68,11 +67,8 @@ Class MongoConnection
     public function __destruct()
     {
         if (is_object($this->connection)) {
-
-            $connections = $this->connection->getConnections();
-
-            // We close all the connections.
-            foreach ($connections as $con) {
+            $connections = $this->connection->getConnections(); // Close all the connections.
+            foreach ($connections as $con) {              
                 $this->connection->close($con['hash']);
             }
         }
