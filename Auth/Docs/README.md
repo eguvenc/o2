@@ -448,7 +448,7 @@ $this->user->activity->update();
 
 ```php
 <?php
-$c->load('service/user');
+$this->c->load('service/user as user');
 $this->user->login->method();
 ```
 
@@ -483,7 +483,7 @@ Validate a user against the given credentials.
 
 ```php
 <?php
-$c->load('service/user');
+$this->c->load('service/user as user');
 $this->user->identity->method();
 ```
 
@@ -594,7 +594,7 @@ Remove value from identity array.
 
 ```php
 <?php
-$c->load('service/user');
+$this->c->load('service/user as user');
 $this->user->activity->method();
 ```
 

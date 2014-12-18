@@ -30,8 +30,8 @@ php task queue listen --channel=Logger --route=logger --delay=0 --memory=128
 ------
 
 ```php
-$c->load('cliParser');
-$this->cliParser->method();
+$this->c->load('cli/parser as parser');
+$this->parser->method();
 ```
 
 ### Example Command
@@ -44,54 +44,103 @@ php task queue list --channel=Logger --route=logger --delay=0 --memory=128
 
 ```php
 <?php
-$app = new Controller;
-$app->func(
-    'index',
-    function () use ($c) {
-        $c->load('cliParser');
-        $this->cliParser->parse(func_get_args());  // Parse parameters
-        switch ($this->cliParser->segment(0)) {    // Grab "list" command
-        case 'list':
-            $this->_list();
-            break;
-        default:
-            $this->_help();
-            break;
-        }
-    }    
-);
-$app->func(
-    '_list',
-    function () use ($c) {
-        $c->load('cliParser');
-        echo $this->cliParser->argument('channel');      //  gives "Logger"
-        echo $this->cliParser->argument('route', null);  //  gives "logger"
-        echo $this->cliParser->argument('delay', null);  //  gives "0"
-        echo $this->cliParser->argument('delay', null);  //  gives "128"  
+
+/**
+ * Queue controller
+ */
+Class Queue extends Controller
+{
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        $this->c->load('queue/listener', func_get_args());
     }
-);
+}
 ```
 
+```php
+<?php
+
+namespace Obullo\Queue;
+
+use Obullo\Process\Process;
+
+/**
+ * Queue Listener Class
+ * 
+ * @category  Queue
+ * @package   Queue
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/package/queue
+ */
+Class Listener
+{
+    /**
+     * Listen Queue
+     *
+     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
+     * 
+     * @return void
+     */
+    public function listenQueue()
+    {
+        $channel = $this->parser->argument('channel', null); // Sets queue exchange
+        $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
+        $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
+        $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
+        $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
+        $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
+        $maxTries = $this->parser->argument('maxTries', 0);  // If job attempt failed we push and increase attempt number.
+        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
+        $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
+        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
+        $var = $this->parser->argument('var', null);         // Sets your custom variable
+        
+        $this->emptyControl($channel, $route);
+
+        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --maxTries=$maxTries --debug=$debug --env=$env --project=$project --var=$var";
+
+        $process = new Process($cmd, ROOT, null, null, $timeout);
+        while (true) {
+            $process->run();
+            if ($debug == 1) {
+                echo $process->getOutput();
+            }
+        }
+    }
+}
+
+// END Listener class
+
+/* End of file Listener.php */
+/* Location: .Obullo/Queue/Listener.php */
+```
 ### Function Reference
 
 ------
 
-#### $this->cliParser->parse(func_get_args())
+#### $this->parser->parse(func_get_args())
 
 Parse valid function parameters.
 
-#### $this->cliParser->segment($number)
+#### $this->parser->segment($number)
 
 Gets valid command line segment.
 
-#### $this->cliParser->segmentArray()
+#### $this->parser->segmentArray()
 
 Returns to all segments.
 
-#### $this->cliParser->argument($key)
+#### $this->parser->argument($key)
 
 Gets valid command line argument.
 
-#### $this->cliParser->argumentArray()
+#### $this->parser->argumentArray()
 
 Returns to all arguments.

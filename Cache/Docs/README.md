@@ -5,14 +5,129 @@
 
 Framework features wrappers around some of the most popular forms of fast and dynamic caching. All but file-based caching require specific server requirements, and a Fatal Exception will be thrown if server requirements are not met.
 
+### 
+
 ### Initializing the Class
 
 ------
 
 ```php
-$c->load('cache');
+<?php
+$this->c->load('cache');
 $this->cache->method();
+
 ```
+
+### Sürücü Ayarları
+
+Proje gereksinimlerimize göre bugün sıkça kullandığımız cache kütüphanelerine Obullo destek vermektedir.
+
+Bunlar: **APC**, **File**, **Memcache**, **Memcached**, **Redis**.
+
+
+İlk olarak yapmamız gereken Service/Cache.php dosyası içindeki register methoduna driver'ı tanımlamamız gerekiyor.
+
+Örneğimizde **Redis** cache paketini kayıt ediyoruz.
+
+
+
+```php
+<?php
+
+namespace Service;
+
+use Obullo\Cache\Handler\Redis;
+
+/**
+ * Cache Service
+ *
+ * @category  Service
+ * @package   Cache
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/container
+ */
+Class Cache implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        $c['cache'] = function () use ($c) {
+            return new Redis($c);
+        };
+    }
+}
+```
+
+Redis servisini container'a kayıt ettik.
+
+**register** methodun da varsayılan olarak gelen ve sonrasında **Redis**'e göndermiş olduğumuz parametre **Obullo**'nun container değişkenidir.
+Yapmış olduğumuz **Servis** kaydıyla da bu container'a **Redis** paketini **Inject** etmiş olduk.
+
+Servise ikinci bir parametre daha gönderebiliyoruz.
+
+Nedir bu parametre?
+
+Bazen cache tutarken bunların hangi formatta saklanması konusunda değişiklikler yapma gereği duyabiliyoruz.
+
+Burada bir kaç çeşit format tipi tanımlaya biliiriz. Fakat her servis farklı formatlar desteklerken bazıları da sadece tek bir tipte formatlıyor.
+İkinci parametre cache verilerinin nasıl depolanacağı ile ilgili olduğunu kısaca özetleyebiliriz.
+
+Nasıl yaparım?
+
+
+**Service/Provider/Cache.php** dosyası içindeki örneğimiz bize nasıl olacağı konusunda yardımcı olacaktır.
+
+> **Not:**
+Direkt **Service** klasörü altındaki servisler ile **Service/Provider** klasörü altındak Provider'lar arasındaki fark, Provider'lar tanımladığımız servisler için bir yardımcı görevi görmektedir.
+Bir servisimiz var ve servisimiz bir çok türde parametre alıyor kabul edelim. İşte burada Provider'lar bizim yardımcımz oluyor diyebiliriz. Cache örneğinde olduğu gibi formatlama tipleri için ayrı parametreler göndermemiz gerektiğinden bahsetmiştik.
+```php
+<?php
+
+namespace Service\Provider;
+
+use Obullo\Cache\Handler\Redis;
+
+/**
+ * Cache Provider
+ *
+ * @category  Provider
+ * @package   Cache
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @link      http://obullo.com/docs/providers
+ */
+Class Cache implements ProviderInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        $c['provider:cache'] = function ($params = array('serializer' => 'SERIALIZER_NONE')) use ($c) {
+            return new Redis(
+                $c,
+                $params['serializer']
+            );
+        };
+    }
+}
+```
+
+**Cache** servisi için bir **Provider** tanımladık.
+
 
 Once loaded, the Cache object will be available using: <kbd>$this->cache->method()</kbd>
 

@@ -54,26 +54,38 @@ Compress output using <b>ob_gz_handler</b> if global compression disabled from y
 
 ```php
 <?php
-/**s
- * $app welcome
- * 
- * @var Controller
- */
-$app = new Controller;
 
-$app->func(
-    'index',
-    function () {
+Class Hello_World extends Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('view');
+    }
 
-        $this->response->compressOutput();  // manually enables gzip compression using ob_gz_handler
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
         $this->view->load(
-            'test',
+            'hello_world',
             function () {
-                $this->assign('message', 'Hello World');
+                $this->assign('name', 'Obullo');
+                $this->assign('footer', $this->template('footer'));
             }
         );
     }
-);
+}
+
+/* End of file hello_world.php */
+/* Location: .public/tutorials/controller/hello_world.php */
 ```
 
 #### $this->response->setHeader();

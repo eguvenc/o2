@@ -88,8 +88,8 @@ All task controllers located in your <b>app/tasks</b> folder. $this->cliTask->ru
 ------
 
 ```php
-$c->load('cliTask');
-$this->cliTask->run('controller');
+$this->c->load('cli/task as task');
+$this->task->run('controller');
 ```
 
 #### Running Tasks
@@ -97,14 +97,14 @@ $this->cliTask->run('controller');
 The task uri works like framework uri it calls the <kbd>controller/index/arguments</kbd>
 
 ```php
-echo $this->cliTask->run('help', true);
+echo $this->task->run('help', true);
 ```
 
 ### Function Reference
 
 ------
 
-#### $this->cliTask->run('controller/arg1/arg2 ...', $debug = false);
+#### $this->task->run('controller/arg1/arg2 ...', $debug = false);
 
 Using $this->cliTask->run() function run your tasks as a using php shell_exec(); command in the background.
 
@@ -114,7 +114,7 @@ Using $this->cliTask->run() function run your tasks as a using php shell_exec();
 Using below the command your task will be done in the background without wait the http server response.
 
 ```php
-$this->cliTask->run('controller');
+$this->task->run('controller');
 ```
 
 #### Follow Log Data ( Cli Debug )
