@@ -22,6 +22,13 @@ Class UserService
     protected $config = array();
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Constructor
      * 
      * @param object $c container
@@ -30,19 +37,28 @@ Class UserService
      */
     public function __construct($c)
     {
-        $config = $c['config']->load('auth');
+        $this->c = $c;
+        $this->config = $c['config']->load('auth');
 
-        $Adapter = '\Obullo\Auth\Adapter\\'.$config['adapter'];
-        $Storage = '\Obullo\Auth\Storage\\'.ucfirst($config['memory']['storage']);
+        $this->register();
+    }
 
-        $this->config = array(
-            'c' => $c,
-            'config' => $config,
-            'user' => $this,
-            'storage' => new $Storage($c)
-        );
-        $c['o2.auth.service.adapter'] = function () use ($c, $Adapter) {
-            return new $Adapter($c, $this);
+    /**
+     * Register Services
+     * 
+     * @return void
+     */
+    protected function register()
+    {
+        $Adapter = '\Obullo\Auth\Adapter\\'.$this->config['adapter'];
+        $Storage = '\Obullo\Auth\Storage\\'.ucfirst($this->config['memory']['storage']);
+
+        $this->c['auth.storage'] = function () use ($Storage) {
+            return new $Storage($this->c);
+        };
+
+        $this->c['auth.adapter'] = function () use ($Adapter) {
+            return new $Adapter($this->c, $this);
         };
     }
 
@@ -61,7 +77,7 @@ Class UserService
             return $this->{$key};
         }
         $Class = '\Obullo\Auth\User\\'.ucfirst($key);
-        return $this->{$key} = new $Class($this->config);
+        return $this->{$key} = new $Class($this->c, $this);
     }
 
 }

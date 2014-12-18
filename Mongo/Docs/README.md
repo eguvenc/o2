@@ -1,9 +1,9 @@
 
-## MongoDb Class
+## Mongo Db Class
 
-Mongo Class is a lightweight <kbd>( CRUD based )</kbd> database management library for popular NoSQL database <b>Mongodb</b>.
+Mongo Db Class is a full featured <kbd>( CRUD based )</kbd> database management library for popular NoSQL database <b>Mongodb</b>.
 
-### Initializing MongoDb Class
+### Initializing Mongo Db Class
 
 ------
 
@@ -35,12 +35,14 @@ return array(
 );
 ```
 
+### Basic Usage
+
 ```php
 <?php
-$this->c->load('mongo/db', 'db');
+$this->c->load('service/mongo', 'db');
 
 $this->mongo->get('users');
-$row = $this->db->rowArray();
+$row = $this->mongo->rowArray();
 
 if($row) {
     foreach($docs as $row) {
@@ -49,14 +51,14 @@ if($row) {
 }
 ```
 
-### Some Crud (Active Record) Functions Are Available
+### Active Record Functions Are Available
 
 ```php
 <?php
 $this->mongo->select();
 $this->mongo->where('username', 'bob');
 
-$row = $this->db->row();
+$row = $this->mongo->row();
 
 if ($row) {
     foreach($docs as $row) {
@@ -65,50 +67,54 @@ if ($row) {
 }
 ```
 
-### Using MongoDb for CRUD ( Create, read, update and delete ) Functions
+### Using CRUD ( Create, read, update and delete ) Functions
 
 ------
 
-#### $this->db->insert($collection, $data, $options)
+#### $this->mongo->insert($collection, $data, $options)
 
 ```php
+<?php
 $options = array('query_safety' => true); // Optionally
 
-$affectedRows = $this->db->insert('users', array('username'  => 'john', 'date' => new MongoDate()), $options);
+$affectedRows = $this->mongo->insert('users', array('username'  => 'john', 'date' => new MongoDate()), $options);
 
 echo $affectedRows.' row(s) added to database !'; '  // 2 row(s) added to database !';
 ```
 
-#### $this->db->update($collection, $data)
-
-```php
-$options = array('query_safety' => true);  // Optionally
-
-$this->db->where('_id', new MongoId('50a39b5e1657ae3817000000'));
-$this->db->update('users', array('username' => 'bob'), $options) 
-```
-
-```php
-$this->db->where('username', 'john');
-$this->db->update('users', array('username' => 'bob', 'ts' => new MongoDate()))
-```
-
-#### $this->db->delete($collection)
-
-```php
-$this->db->where('_id', new MongoId('50a39b5e1657ae3817000000'));
-$this->db->delete('users')
-```
-
-#### $this->db->get()
+#### $this->mongo->update($collection, $data)
 
 ```php
 <?php
-$this->db->get('users');
+$options = array('query_safety' => true);  // Optionally
 
-echo 'found '.$this->db->count().' row(s)';
+$this->mongo->where('_id', new MongoId('50a39b5e1657ae3817000000'));
+$this->mongo->update('users', array('username' => 'bob'), $options) 
+```
 
-foreach($this->db->resultArray() as $row) {
+```php
+<?php
+$this->mongo->where('username', 'john');
+$this->mongo->update('users', array('username' => 'bob', 'ts' => new MongoDate()))
+```
+
+#### $this->mongo->delete($collection)
+
+```php
+<?php
+$this->mongo->where('_id', new MongoId('50a39b5e1657ae3817000000'));
+$this->mongo->delete('users')
+```
+
+#### $this->mongo->get()
+
+```php
+<?php
+$this->mongo->get('users');
+
+echo 'found '.$this->mongo->count().' row(s)';
+
+foreach($this->mongo->resultArray() as $row) {
    echo $row['username'].'<br />';
 }
 ```
@@ -117,130 +123,130 @@ foreach($this->db->resultArray() as $row) {
 
 ```php
 <?php
-$this->db->get('users');
-$row = $this->db->row();
+$this->mongo->get('users');
+$row = $this->mongo->row();
 
 echo $row->username;
 ```
 
 ```php
 <?php
-$this->db->select('username,  user_firstname');
+$this->mongo->select('username,  user_firstname');
 
-$docs = $this->db->get('users');
+$docs = $this->mongo->get('users');
 $row  = $docs->nextRow();
 
 echo $row['username'];
 
  // Also you can provide array.
-$this->db->select(array('username', 'user_firstname'));
-$this->db->get('users');
+$this->mongo->select(array('username', 'user_firstname'));
+$this->mongo->get('users');
 ```
 
-#### $this->db->aggregate();
+#### $this->mongo->aggregate();
 
 Aggregate function is a easy way to doing map / reduce functions. ( especially for group by and match operations )
 
 ```php
 <?php
-$this->db->agrregate('users', array('$or' => array(array('username' => 'john'), array('username' => 'bob'))));
-$this->db->result();
+$this->mongo->aggregate('users', array('$or' => array(array('username' => 'john'), array('username' => 'bob'))));
+$this->mongo->result();
 ```
 
-#### $this->db->where()
+#### $this->mongo->where()
 
 ```php
 <?php
-$this->db->where('username', 'bob');
-$this->db->get('users');
+$this->mongo->where('username', 'bob');
+$this->mongo->get('users');
 
-$row = $this->db->row();
+$row = $this->mongo->row();
 echo $row['username'];
 ```
 
 
-#### $this->db->where('field >', 'value') ( Greater than )
+#### $this->mongo->where('field >', 'value') ( Greater than )
 
 ```php
 <?php
-$this->db->where('foo >', 20);
-$this->db->get('foobar');
+$this->mongo->where('foo >', 20);
+$this->mongo->get('foobar');
 ```
 
-#### $this->db->where('field <', 'value') ( Less than )
+#### $this->mongo->where('field <', 'value') ( Less than )
 
 ```php
 <?php
-$this->db->where('foo <', 20);
-$this->db->get('foobar');
+$this->mongo->where('foo <', 20);
+$this->mongo->get('foobar');
 ```
 
-#### $this->db->where('field >=', 'value') ( Greater than or equal to )
+#### $this->mongo->where('field >=', 'value') ( Greater than or equal to )
 
 ```php
 <?php
-$this->db->where('foo >=', 20);
-$this->db->get('foobar');
+$this->mongo->where('foo >=', 20);
+$this->mongo->get('foobar');
 ```
 
-#### $this->db->where('field <=', 'value') ( Less than or equal to )
+#### $this->mongo->where('field <=', 'value') ( Less than or equal to )
 
 ```php
 <?php
-$this->db->where('foo <=', 20);
-$this->db->get('foobar');
+$this->mongo->where('foo <=', 20);
+$this->mongo->get('foobar');
 ```
 
-#### $this->db->where('field !=', 'value') ( Not equal to )
+#### $this->mongo->where('field !=', 'value') ( Not equal to )
 
 ```php
 <?php
-$this->db->where('foo !=', 20);
-$this->db->get('foobar');
+$this->mongo->where('foo !=', 20);
+$this->mongo->get('foobar');
 ```
 
-#### $this->db->orWhere()
+#### $this->mongo->orWhere()
 
 ```php
 <?php
-$this->db->orWhere('username', 'bob');
-$this->db->orWhere('username', 'john');
+$this->mongo->orWhere('username', 'bob');
+$this->mongo->orWhere('username', 'john');
 
-$docs = $this->db->get('users');
+$docs = $this->mongo->get('users');
 ```
 
-#### $this->db->whereIn()
+#### $this->mongo->whereIn()
 
 ```php
 <?php
-$this->db->whereIn('username', array('bob', 'john', 'jenny'));
+$this->mongo->whereIn('username', array('bob', 'john', 'jenny'));
 ```
 
-#### $this->db->whereIn() ( Not In )
+#### $this->mongo->whereIn() ( Not In )
 
 ```php
 <?php
-$this->db->whereIn('username !=', array('bob', 'john', 'jenny'));
+$this->mongo->whereIn('username !=', array('bob', 'john', 'jenny'));
 
-$docs = $this->db->get('users');
+$docs = $this->mongo->get('users');
 ```
 
-#### $this->db->whereInAll()
+#### $this->mongo->whereInAll()
 
 Gets all the results by querying with respect to elements in a given array. 
 
 ```php
 <?php
-$this->db->whereInAll('foo', array('bar', 'zoo', 'blah'));
+$this->mongo->whereInAll('foo', array('bar', 'zoo', 'blah'));
 
-$docs = $this->db->get('users');
+$docs = $this->mongo->get('users');
 ```
 
-#### $this->db->like($field = "", $value = "", $flags = "i", $enable_start_wildcard = true, $enable_end_wildcard = true)
+#### $this->mongo->like($field = "", $value = "", $flags = "i", $enable_start_wildcard = true, $enable_end_wildcard = true)
 
 ```php
 <?php
-$this->db->like('username', 'bob');
+$this->mongo->like('username', 'bob');
 ```
 
 ##### Flags
@@ -265,208 +271,194 @@ $this->db->like('username', 'bob');
 */
 ```
 
-#### $this->db->orLike()
+#### $this->mongo->orLike()
 
 ```php
 <?php
-$this->db->orLike('username', 'bob');
+$this->mongo->orLike('username', 'bob');
 ```
 
-#### $this->db->notLike()
+#### $this->mongo->notLike()
 
 ```php
 <?php
-$this->db->notLike('username', 'bob');
+$this->mongo->notLike('username', 'bob');
 ```
 
-#### $this->db->orderBy()
+#### $this->mongo->orderBy()
 
 ```php
 <?php
-$this->db->whereIn('username', array('bob', 'john', 'jenny'));
-$this->db->orderBy('username', 'ASC');
+$this->mongo->whereIn('username', array('bob', 'john', 'jenny'));
+$this->mongo->orderBy('username', 'ASC');
 
-$this->db->get('users');
-$this->db->result();
+$this->mongo->get('users');
+$this->mongo->result();
 ```
 
-#### $this->db->groupBy()
+#### $this->mongo->groupBy()
 
 ```php
 <?php
-$this->db->groupBy('username', array('count' => 0) ,'function (obj, prev) {prev.count++;}');
+$this->mongo->groupBy('username', array('count' => 0) ,'function (obj, prev) {prev.count++;}');
 
-$this->db->get('users');
-$this->db->result();
+$this->mongo->get('users');
+$this->mongo->result();
 ```
 
-#### $this->db->limit()
+#### $this->mongo->limit()
 
 ```php
 <?php
-$this->db->whereIn('username', array('bob', 'john', 'jenny'));
-$this->db->orderBy('username', 'ASC');
-$this->db->limit(10);
+$this->mongo->whereIn('username', array('bob', 'john', 'jenny'));
+$this->mongo->orderBy('username', 'ASC');
+$this->mongo->limit(10);
 
-$this->db->get('users');
-$this->db->result();
+$this->mongo->get('users');
+$this->mongo->result();
 ```
 
-#### $this->db->offset()
+#### $this->mongo->offset()
 
 ```php
 <?php
-$this->db->whereIn('username', array('bob', 'john', 'jenny'));
-$this->db->orderBy('username', 'ASC');
-$this->db->limit(10);
-$this->db->offset(20);
+$this->mongo->whereIn('username', array('bob', 'john', 'jenny'));
+$this->mongo->orderBy('username', 'ASC');
+$this->mongo->limit(10);
+$this->mongo->offset(20);
 
-$docs = $this->db->get('users');
+$docs = $this->mongo->get('users');
 ```
 
-#### $this->db->find($criteria, $fields)
+#### $this->mongo->find($criteria, $fields)
 
 ```php
 <?php
-$this->db->from('users');
-$docs = $this->db->find(array('$or' => array(array('username' => 'john'), array('username' => 'bob'))),  array('username'));
+$this->mongo->from('users');
+$docs = $this->mongo->find(array('$or' => array(array('username' => 'john'), array('username' => 'bob'))),  array('username'));
 
 foreach($docs as  $row) {
     echo $row->username. '<br />';
 }
 ```
 
-#### $this->db->findOne($criteria, $fields)
+#### $this->mongo->insertId()
 
 ```php
 <?php
 
-$this->db->select('username');
-$this->db->from('users');
-$docs = $this->db->find(array('$or' => array(array('username' => 'john'), array('username' => 'bob'))));
+$this->mongo->insert('users', array('username' => 'john28', 'ts' => new MongoDate()));
 
-foreach($docs as  $row) {
-    echo $row->username. '<br />';
-}
+echo $this->mongo->insertId();   // last inserted Mongo ID.
 ```
 
-#### $this->db->insertId()
-
-```php
-<?php
-
-$this->db->insert('users', array('username' => 'john28', 'ts' => new MongoDate()));
-
-echo $this->db->insertId();   // last inserted Mongo ID.
-```
-
-#### $this->db->inc()
+#### $this->mongo->inc()
 
 Increments the value of a field.
 
 ```php
 <?php
-$this->db->where('blog_id', 123);
-$this->db->inc(array('num_comments' => 1));
-$this->db->update('blog_posts');
+$this->mongo->where('blog_id', 123);
+$this->mongo->inc(array('num_comments' => 1));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->dec()
+#### $this->mongo->dec()
 
 Decrements the value of a field.
 
 ```php
 <?php
-$this->db->where('blog_id', 123);
-$this->db->dec(array('num_comments' => 1));
-$this->db->update('blog_posts');
+$this->mongo->where('blog_id', 123);
+$this->mongo->dec(array('num_comments' => 1));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->set()
+#### $this->mongo->set()
 
 Sets a field to a value.
 
 ```php
 <?php
-$this->db->where(array('blog_id'=>123))
-$this->db->set('posted', 1);
-$this->db->update('blog_posts');
+$this->mongo->where(array('blog_id'=>123))
+$this->mongo->set('posted', 1);
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->unsetField()
+#### $this->mongo->unsetField()
 
 Unsets a field (or fields).
 
 ```php
 <?php
-$this->db->where(array('blog_id'=>123))
-$this->db->unset('posted');
-$this->db->update('blog_posts');
+$this->mongo->where(array('blog_id'=>123))
+$this->mongo->unset('posted');
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->addToSet()
+#### $this->mongo->addToSet()
 
 Adds value to the array only if it is not already in the array.
 
 ```php
 <?php
-$this->db->where('blog_id', 123);
-$this->db->addToSet('tags', 'php');
-$this->db->update('blog_posts'); 
+$this->mongo->where('blog_id', 123);
+$this->mongo->addToSet('tags', 'php');
+$this->mongo->update('blog_posts'); 
 
-$this->db->where('blog_id', 123);
-$this->db->addToSet('tags', array('php', 'test', 'mongodb'));
-$this->db->update('blog_posts');
+$this->mongo->where('blog_id', 123);
+$this->mongo->addToSet('tags', array('php', 'test', 'mongodb'));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->pull()
+#### $this->mongo->pull()
 
 Removes an array by the value of a field.
 
 ```php
 <?php
-$this->db->pull('comments', array('comment_id', 123));
-$this->db->update('blog_posts');
+$this->mongo->pull('comments', array('comment_id', 123));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->push()
+#### $this->mongo->push()
 
 Pushes values into a field (field must be an array).
 
 ```php
 <?php
-$this->db->where('blog_id', 123);
-$this->db->push(array('comments' => array('text'=>'Hello world')), 'viewed_by' => array('Alex'));
-$this->db->update('blog_posts');
+$this->mongo->where('blog_id', 123);
+$this->mongo->push(array('comments' => array('text'=>'Hello world')), 'viewed_by' => array('Alex'));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->pop()
+#### $this->mongo->pop()
 
 Pops the last value from a field (field must be an array).
 
 ```php
 <?php
-$this->db->where('blog_id', 123);
-$this->db->pop(array('comments', 'viewed_by'));
-$this->db->update('blog_posts');
+$this->mongo->where('blog_id', 123);
+$this->mongo->pop(array('comments', 'viewed_by'));
+$this->mongo->update('blog_posts');
 ```
 
-#### $this->db->batchInsert()
+#### $this->mongo->batchInsert()
 
 Insert a new multiple document into the passed collection. For instance, you need to insert over the one million record to database at once.
 
 ```php
 <?php
-$this->db->batchInsert('foo',  $data = array());
+$this->mongo->batchInsert('foo',  $data = array());
 ```
 
-#### $this->db->getInstance()
+#### $this->mongo->getInstance()
 
 Returns to Mongodb instance of object. For example, you can store a file using mongo instance <kbd>gridfs</kbd> method. The gridfs functionality allows you to store media files to mongo db.
 
 ```php
 <?php
-$gridFS = $this->db->getInstance()->getGridFS();  // get a MongoGridFS instance
+$gridFS = $this->mongo->getInstance()->getGridFS();  // get a MongoGridFS instance
 $id     = $gridFS->storeFile(
     $filepath,
     array(
@@ -482,7 +474,7 @@ Removes a gridfs file using mongo instance.
 
 ```php
 <?php
-$gridFS = $this->db->getInstance()->getGridFS();
+$gridFS = $this->mongo->getInstance()->getGridFS();
 $gridFS->remove(array('user_id' => new MongoId($this->auth->getIdentity('_id')), 'filegroup' => 'profile-picture'));
 ?>
 ```
@@ -491,115 +483,119 @@ $gridFS->remove(array('user_id' => new MongoId($this->auth->getIdentity('_id')),
 
 -----
 
-#### $this->mongo->useMongoid($bool = true);
+#### $this->mongo->useMongoId(bool $bool = true);
 
 Mongo id switch
 
-#### $this->mongo->select($includes = '');
+#### $this->mongo->select(mixed $includes = '');
 
 Determine which fields to include OR which to exclude during the query process.
 
-#### $this->mongo->from($collection = '');
+#### $this->mongo->from(string $collection = '');
 
 Set a collection.
 
-#### $this->mongo->where($wheres, $value = null);
+#### $this->mongo->where(mixed $wheres, $value = null);
 
 Get the documents based on these search parameters.
 
-#### $this->mongo->orWhere($wheres, $value = null);
+#### $this->mongo->orWhere(mixed $wheres, $value = null);
 
 Get the documents where the value of a $field may be something else
 
-#### $this->mongo->whereIn($field = '', $in = array());
+#### $this->mongo->whereIn(string $field = '', $in = array());
 
 Get the documents where the value of a $field is in a given $in array().
 
-#### $this->mongo->whereInAll($field = '', $in = array());
+#### $this->mongo->whereInAll(string $field = '', $in = array());
 
 Get the documents where the value of a $field is in all of a given $in array().
 
-#### $this->mongo->like($field = "", $value = "", $flags = "i", $enableStartWildcard = true, $enableEndWildCard = true);
+#### $this->mongo->like(string $field = "", $value = "", $flags = "i", $enableStartWildcard = true, $enableEndWildCard = true);
 
 Get the documents where the (string) value of a $field is like a value. The defaults allow for a case-insensitive search.
 
-#### $this->mongo->orLike($field, $like = array());
+#### $this->mongo->orLike(string $field, $like = array());
 
 The same as the aboce but multiple instances are joined by OR:
 
-#### $this->mongo->notLike($field, $like = array());
+#### $this->mongo->notLike(string $field, $like = array());
 
 The same as the above but multiple instances are joined by NOT LIKE:
 
-#### $this->mongo->orderBy($col, $direction  = 'ASC');
+#### $this->mongo->orderBy(string $col, $direction  = 'ASC');
 
 Order by column name
 
-#### $this->mongo->groupBy($key = null , $initial = array('count' => 0) ,$reduce ='$this->mongo->(obj, prev) { prev.count++;}' );
+#### $this->mongo->groupBy(string $key = null , $initial = array('count' => 0) ,$reduce ='$this->mongo->(obj, prev) { prev.count++;}' );
 
 Group by
 
-#### $this->mongo->limit($x = 99999);
+#### $this->mongo->limit(int $x = 99999);
 
 Limit the result set to $x number of documents.
 
-#### $this->mongo->offset($x = 0);
+#### $this->mongo->offset(int $x = 0);
 
 Offset the result set to skip $x number of documents.
 
-#### $this->mongo->get($collection = '');
+#### $this->mongo->get(string $collection = '');
 
 Get the documents based upon the passed parameters.
 
-#### $this->mongo->aggregate($collection, $pipeline, $options = null);
+#### $this->mongo->find(array $criteria, array $fields);
+
+Perform a search query based upon the passed criterias. Using second parameter you can pass select fields.
+
+#### $this->mongo->aggregate(string $collection, array $pipeline, $options = null);
 
 Perform an aggregation using the aggregation framework
 
-#### $this->mongo->insert($collection = '', $data = array(), $options = array());
+#### $this->mongo->insert(string $collection = '', array $data = array(), $options = array());
 
 Insert a new document into the passed collection
 
-#### $this->mongo->batchInsert($collection = '', $data = array(), $options = array());
+#### $this->mongo->batchInsert(string $collection = '', array $data = array(), $options = array());
 
 Insert a multiple new document into the passed collection.
 
-#### $this->mongo->update($collection = '', $data = array(), $options = array());
+#### $this->mongo->update(string $collection = '', array $data = array(), $options = array());
 
 Updates multiple document
 
-#### $this->mongo->inc($fields = '', $value = 0);
+#### $this->mongo->inc(mixed $fields = '', $value = 0);
 
 Increments the value of a field.
 
-#### $this->mongo->dec($fields = '', $value = 0);
+#### $this->mongo->dec(mixed $fields = '', $value = 0);
 
 Decrements the value of a field.
 
-#### $this->mongo->set($fields, $value = null);
+#### $this->mongo->set(mixed $fields, $value = null);
 
 Sets a field to a value.
 
-#### $this->mongo->unsetField($fields);
+#### $this->mongo->unsetField(mixed $fields);
 
 Unsets a field (or fields).
 
-#### $this->mongo->addToSet($field, $values);
+#### $this->mongo->addToSet(string $field, $values);
 
 Adds value to the array only if its not in the array already.
 
-#### $this->mongo->push($fields, $value = '');
+#### $this->mongo->push(array $fields, $value = '');
 
 Pushes values into a field (field must be an array).
 
-#### $this->mongo->pop($field);
+#### $this->mongo->pop(array $field);
 
 Pops the last value from a field (field must be an array).
 
-#### $this->mongo->pull($field = '', $value = array());
+#### $this->mongo->pull(string $field = '', $value = array());
 
 Removes by an array by the value of a field.
 
-#### $this->mongo->delete($collection = '', $options = array());
+#### $this->mongo->delete(string $collection = '', $options = array());
 
 Delete all documents from the passed collection based upon certain criteria.
 
@@ -619,7 +615,7 @@ Build the connection string from the config file.
 
 Get last inserted Mongo id.
 
-#### $this->mongo->isMongoId($string = '', $value = '');
+#### $this->mongo->isMongoId(mixed $string = '', $value = '');
 
 Auto add mongo id if "_id" used  .
 

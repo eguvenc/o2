@@ -55,15 +55,16 @@ Class Activity
 
     /**
      * Constructor
-     * 
-     * @param array $params object parameters
+     *
+     * @param object $c    container
+     * @param object $user user service
      */
-    public function __construct(array $params)
+    public function __construct($c, $user)
     {
-        $this->c = $params['c'];
-        $this->config = $params['config'];
-        $this->user = $params['user'];
-        $this->storage = $this->user->config['storage'];
+        $this->c = $c;
+        $this->user = $user;
+        $this->storage = $this->c['auth.storage'];
+        $this->config = $this->c['config']->load('auth');
         $this->cache = $this->c->load('return service/cache');
         $this->session = $this->c->load('return session');
         $this->request = $this->c->load('return request');

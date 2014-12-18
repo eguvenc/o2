@@ -193,7 +193,7 @@ abstract class AbstractAdapter
      */
     public function getStorage()
     {
-        return $this->storage;
+        return $this->c['auth.storage'];
     }
 
     /**

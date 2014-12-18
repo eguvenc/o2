@@ -256,6 +256,7 @@ Class Router
     public function route($method, $match, $rewrite, $closure = null, $group = array('domain' => null, 'name' => '*'))
     {
         $domainMatch = $this->detectDomain($group);
+        
         if ( ! isset($group['domain'])) {
             $group['domain'] = null;
         }
@@ -662,9 +663,9 @@ Class Router
         if ($this->DOMAIN != $host) {
             return;
         }
-        if ( ! isset($options['before.filters']) AND ! isset($options['after.filters'])) {
-            throw new LogicException('You need to create "before.filters" or "after.filters" key in options to intialize the filters.');
-        }
+        // if ( ! isset($options['before.filters']) AND ! isset($options['after.filters'])) {
+        //     throw new LogicException('You need to create "before.filters" or "after.filters" key in options to intialize the filters.');
+        // }
         if ( ! isset($options['domain'])) {
             $options['domain'] = '*';
         }

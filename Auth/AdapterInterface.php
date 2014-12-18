@@ -20,11 +20,10 @@ interface AdapterInterface
     /**
      * Constructor
      * 
-     * @param object $c           container object
-     * @param object $storage     object
-     * @param array  $userService user service object
+     * @param object $c    container object
+     * @param array  $user user service object
      */
-    public function __construct($c, $storage, UserService $userService);
+    public function __construct($c, UserService $user);
 
     /**
      * Performs an authentication attempt

@@ -66,7 +66,7 @@ Class Recaller
         
         $genericUser = new GenericIdentity(array(Credentials::IDENTIFIER => $id));
 
-        $adapter = $this->c['o2.auth.service.adapter'];
+        $adapter = $this->c['auth.adapter'];
         $adapter->generateUser($genericUser, $resultRowArray, $modelUser, true);
         $modelUser->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
     }
