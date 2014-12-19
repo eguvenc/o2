@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Model\User,
+use Auth\Provider\DatabaseProvider,
     Auth\Credentials,
     Auth\Identities\GenericIdentity;
 
@@ -13,7 +13,7 @@ use Auth\Model\User,
  * @package   Token
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
 Class Recaller
@@ -53,8 +53,8 @@ Class Recaller
      */
     public function recallUser($token)
     {
-        $modelUser = new User($this->c, $this->storage);
-        $resultRowArray = $modelUser->execRecallerQuery($token);
+        $database = new DatabaseProvider($this->c, $this->storage);
+        $resultRowArray = $database->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
@@ -67,8 +67,9 @@ Class Recaller
         $genericUser = new GenericIdentity(array(Credentials::IDENTIFIER => $id));
 
         $adapter = $this->c['auth.adapter'];
-        $adapter->generateUser($genericUser, $resultRowArray, $modelUser, true);
-        $modelUser->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
+        $adapter->generateUser($genericUser, $resultRowArray, $database, true);
+
+        $database->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
     }
 
     /**

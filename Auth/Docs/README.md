@@ -274,7 +274,7 @@ $this->user->login->attempt(
 
 ## Auth Results
 
-AuthResult class ile sonuç doğrulama filtersinden geçer oluşan hata kodları ve mesajlar array içerisine kaydedilir.
+AuthResult class ile sonuç doğrulama filtresinden geçer oluşan hata kodları ve mesajlar array içerisine kaydedilir.
 
 ```php
 <?php
@@ -377,8 +377,8 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
             Identities
                 - GenericIdentity
                 - UserIdentity
-        - Model
-            User.php
+        - Provider
+            DatabaseProvider.php
         Credentials.php
 ```
 
@@ -448,7 +448,7 @@ $this->user->activity->update();
 
 ```php
 <?php
-$this->c->load('service/user as user');
+$this->c->load('service/user');
 $this->user->login->method();
 ```
 
@@ -483,7 +483,7 @@ Validate a user against the given credentials.
 
 ```php
 <?php
-$this->c->load('service/user as user');
+$this->c->load('service/user');
 $this->user->identity->method();
 ```
 
@@ -594,7 +594,7 @@ Remove value from identity array.
 
 ```php
 <?php
-$this->c->load('service/user as user');
+$this->c->load('service/user');
 $this->user->activity->method();
 ```
 

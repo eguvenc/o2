@@ -661,3 +661,7 @@ Gets the currently working directory name.
 #### $this->router->fetchClass();
 
 Gets the currently working directory name.
+
+#### $this->router->getFilters();
+
+Returns to registered filters.

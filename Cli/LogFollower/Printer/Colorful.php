@@ -9,7 +9,7 @@ namespace Obullo\Cli\LogFollower\Printer;
  * @package   LogFollower
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
  * @link      http://obullo.com/package/Cli
  */

@@ -14,7 +14,7 @@ use Controller;
  * @package   Response
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http/response
  */
 Class Response
@@ -177,7 +177,7 @@ Class Response
     * 404 Page Not Found Handler
     *
     * @param string  $page    page name
-    * @param boolean $http404 http 404 or lvc 404
+    * @param boolean $http404 http 404 or layer 404
     * 
     * @return string
     */
@@ -199,7 +199,7 @@ Class Response
     public function showError($message, $statusCode = 500, $heading = 'An Error Was Encountered')
     {
         $error = new Error($this->c, $this);
-        $error->show404($message, $statusCode, $heading);
+        $error->showError($message, $statusCode, $heading);
     }
 
     /**
