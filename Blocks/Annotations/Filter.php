@@ -22,12 +22,24 @@ Class Filter
     protected $c;
 
     /**
-     * Filters data
+     * Before filters data
      * 
      * @var array
      */
     protected $before = array();
+
+    /**
+     * After filters data
+     * 
+     * @var array
+     */
     protected $after = array();
+
+    /**
+     * Track of filter names
+     * 
+     * @var array
+     */
     protected $track = array();
 
     /**
@@ -105,7 +117,7 @@ Class Filter
         }
         $count = $this->count - 1;
         $last = end($this->track);
-        $this->{$last}[$count]['when'] = $params;
+        $this->{$last}[$count]['when'] = $params;  // push when parameters
         return $this;
     }
 
@@ -161,6 +173,7 @@ Class Filter
         if (isset($registeredFilters[$name]['class'])) { // run filter
             $Class = '\\'.ucfirst($registeredFilters[$name]['class']);
             new $Class($this->c);
+            
             echo $Class;
         }
     }
