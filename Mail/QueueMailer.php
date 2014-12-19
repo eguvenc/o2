@@ -12,7 +12,7 @@ use Obullo\Mail\Transport\AbstractAdapter,
  * @package   Transactional
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */

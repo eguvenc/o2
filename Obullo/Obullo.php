@@ -7,7 +7,7 @@
  * @package   Obullo
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/obullo
  */
 
@@ -44,7 +44,7 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class = new $className;  // Call the controller
 
 
-$docs = null;
+$filter = null;
 if ($c['config']['annotations']) {
     
     $docs = new App\Annotations\Reader($class);
@@ -62,7 +62,7 @@ if ($c['config']['annotations']) {
  *  Before controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('before.controller', array($class, $docs));
+$c['event']->fire('before.controller', array($class, $filter));
 
 
 if (method_exists($class, 'load')) {
@@ -96,7 +96,7 @@ if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so,
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.controller', array($class));
+$c['event']->fire('after.controller', array($class, $filter));
 
 /*
  * ------------------------------------------------------

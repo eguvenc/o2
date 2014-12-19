@@ -9,7 +9,7 @@ namespace Obullo\Http;
  * @package   Error
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
 Class Error
@@ -33,7 +33,7 @@ Class Error
     * 404 Page Not Found Handler
     *
     * @param string  $page    page name
-    * @param boolean $http404 http 404 or lvc 404
+    * @param boolean $http404 http 404 or layer 404
     * 
     * @return string
     */

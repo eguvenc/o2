@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth\Adapter;
 
-use Auth\Model\User,
+use Auth\Provider\DatabaseProvider,
     Auth\Credentials,
     Auth\Identities\GenericIdentity,
     Auth\Identities\UserIdentity,
@@ -20,7 +20,7 @@ use Auth\Model\User,
  * @package   AssociativeArray
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
 class AssociativeArray extends AbstractAdapter
@@ -173,10 +173,10 @@ class AssociativeArray extends AbstractAdapter
     public function authenticate(GenericIdentity $genericUser, $login = true)
     {                
         $this->resultRowArray = $storageResult = $this->storage->query($this->token);  // First do query to memory storage if user exists in memory
-        $modelUser = new User($this->c, $this->storage);
+        $database = new DatabaseProvider($this->c, $this->storage);
         
         if ($storageResult == false) {
-            $this->resultRowArray = $modelUser->execQuery($genericUser);  // If user does not exists in memory do sql query
+            $this->resultRowArray = $database->execQuery($genericUser);  // If user does not exists in memory do sql query
         }
         if (is_array($this->resultRowArray)) {
 
@@ -194,7 +194,7 @@ class AssociativeArray extends AbstractAdapter
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
 
                 if ($login) {  // If login process allowed.
-                    $this->generateUser($genericUser, $this->resultRowArray, $modelUser, ($storageResult) ? false : true, $passwordNeedsRehash);
+                    $this->generateUser($genericUser, $this->resultRowArray, $database, ($storageResult) ? false : true, $passwordNeedsRehash);
                 }
                 return true;
             }
@@ -207,13 +207,13 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @param array $genericUser         generic identity array
      * @param array $resultRowArray      success auth query user data
-     * @param array $modelUser           model user object
+     * @param array $database            database provider
      * @param array $write2Storage       creates identity on memory storage
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    public function generateUser(GenericIdentity $genericUser, $resultRowArray, $modelUser, $write2Storage = false, $passwordNeedsRehash = array())
+    public function generateUser(GenericIdentity $genericUser, $resultRowArray, DatabaseProvider $database, $write2Storage = false, $passwordNeedsRehash = array())
     {
         $attributes = array(
             Credentials::IDENTIFIER => $genericUser->getIdentifier(),
@@ -235,7 +235,7 @@ class AssociativeArray extends AbstractAdapter
             }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $modelUser->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
+            $database->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
         if ($write2Storage || $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  

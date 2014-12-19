@@ -2,8 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Model\User,
-    Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericIdentity;
 
 /**
  * Abstract Adapter
@@ -12,7 +11,7 @@ use Auth\Model\User,
  * @package   Adapter
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
 abstract class AbstractAdapter
@@ -159,9 +158,12 @@ abstract class AbstractAdapter
     public function verifyPassword($plain, $hash)
     {
         $passwordHash = array();
-        if ($this->c->load('service/password')->verify($plain, $hash)) {
-            if ($this->c->load('service/password')->needsRehash($hash, array('cost' => $this->config['security']['passwordNeedsRehash']['cost']))) {
-                $value = $this->password->hash($plain, array('cost' => $this->config['security']['passwordNeedsRehash']['cost']));
+        $cost = $this->config['security']['passwordNeedsRehash']['cost'];
+        $password = $this->c->load('service/password');
+
+        if ($password->verify($plain, $hash)) {
+            if ($password->needsRehash($hash, array('cost' => $cost))) {
+                $value = $password->hash($plain, array('cost' => $cost));
                 return $passwordHash = array('hash' => $value);
             }
             return true;

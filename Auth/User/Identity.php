@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Model\User,
+use Auth\Provider\DatabaseProvider,
     Auth\Credentials,
     Obullo\Auth\Token,
     Obullo\Auth\Recaller,
@@ -17,7 +17,7 @@ use Auth\Model\User,
  * @package   Identity
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
 Class Identity extends UserIdentity
@@ -409,8 +409,8 @@ Class Identity extends UserIdentity
      */
     public function refreshRememberToken(GenericIdentity $genericUser)
     {
-        $modelUser = new User($this->c, $this->storage);
-        $modelUser->refreshRememberMeToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
+        $database = new DatabaseProvider($this->c, $this->storage);
+        $database->refreshRememberMeToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
     }
 
     /**

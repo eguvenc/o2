@@ -39,7 +39,7 @@ use stdClass,
  * @package   Layer
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layer
  */
 Class Layer
@@ -156,7 +156,7 @@ Class Layer
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('return service/logger');
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 

@@ -9,7 +9,7 @@ namespace Obullo\Security;
  * @package   Csrf
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/security
  */
 Class Csrf 
@@ -46,14 +46,16 @@ Class Csrf
     /**
      * Constructor
      *
+     * @param object $c container 
+     * 
      * @return  void
      */
-    public function __construct()
+    public function __construct($c)
     {
-        global $c;
-        $this->config   = $c->load('config');
-        $this->logger   = $c->load('loggger');
-        $this->response = $c->load('response');
+        $this->c = $c;
+        $this->config = $c['config']['security'];
+        $this->logger = $c->load('return service/logger');
+        $this->response = $c['response'];
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf Class Initialized');
@@ -72,8 +74,8 @@ Class Csrf
             $this->tokenName  = $this->config['csrf']['token_name'];
             $this->cookieName = $this->config['csrf']['cookie_name'];
 
-            if ($this->config['cookie']['prefix']) { // Append application specific cookie prefix
-                $this->cookieName = $this->config['cookie']['prefix'].$this->cookieName;
+            if ($this->c['config']['cookie']['prefix'] != '') { // Append application specific cookie prefix
+                $this->cookieName = $this->c['config']['cookie']['prefix'].$this->cookieName;
             }
             $this->setHash();  // Set the CSRF hash
         }
@@ -117,15 +119,14 @@ Class Csrf
     public function setCookie()
     {
         $expire = time() + $this->expire;
-        $secureCookie = ($this->config['cookie_secure'] === true) ? 1 : 0;
+        $secureCookie = ($this->c['config']['cookie']['secure'] === true) ? 1 : 0;
 
         if ($secureCookie) {
-            global $c;
-            if ( ! $c->load('request')->isSecure()) {
+            if ( ! $this->c->load('request')->isSecure()) {
                 return false;
             }
         }
-        setcookie($this->cookieName, $this->hash, $expire, $this->config['cookie_path'], $this->config['cookie_domain'], $secureCookie);
+        setcookie($this->cookieName, $this->hash, $expire, $this->c['config']['cookie']['path'], $this->c['config']['cookie']['domain'], $secureCookie);
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf cookie Set');

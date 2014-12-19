@@ -16,7 +16,7 @@ use Controller,
  * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT
+ * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/router
  */
 Class Router
@@ -793,6 +793,16 @@ Class Router
     public function getDomain()
     {
         return $this->DOMAIN;
+    }
+
+    /**
+     * Retutns registered filters
+     * 
+     * @return array
+     */
+    public function getFilters()
+    {
+        return $this->filters;
     }
 
 }
