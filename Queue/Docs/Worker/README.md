@@ -29,7 +29,7 @@ use Obullo\Queue\Job,
  * @package   QueueMailer
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @license   http://opensource.org/licenses/MIT
  * @link      http://obullo.com/docs/queue
  */
 Class QueueMailer implements JobInterface

@@ -5,16 +5,16 @@ namespace Obullo\Auth;
 use Auth\Identities\GenericIdentity;
 
 /**
- * User Database Model Interface
+ * User Database Provider Interface
  * 
  * @category  Auth
  * @package   ModelUserInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
+ * @license   http://opensource.org/licenses/MIT
  * @link      http://obullo.com/package/auth
  */
-interface ModelUserInterface
+interface DatabaseProviderInterface
 {
     /**
      * Constructor
@@ -54,7 +54,7 @@ interface ModelUserInterface
 
 }
 
-// END ModelUserInterface File
-/* End of file ModelUserInterface.php
+// END DatabaseProviderInterface File
+/* End of file DatabaseProviderInterface.php
 
-/* Location: .Obullo/Auth/ModelUserInterface.php */
+/* Location: .Obullo/Auth/DatabaseProviderInterface.php */
