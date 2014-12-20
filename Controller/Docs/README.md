@@ -44,31 +44,38 @@ Using your text editor, create folder <kbd>welcome/controller</kbd> then create 
 ```php
 <?php
 
-/**
- * $c hello_world
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('view');
+Class Welcome extends Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('url');
+        $this->c->load('view');
     }
-);
 
-$app->func(
-    'index',
-    function () {
-
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
         $this->view->load(
-            'hello_world', 
+            'welcome',
             function () {
-                $this->assign('title', 'Hello World !');
+                $this->assign('name', 'Obullo');
+                $this->assign('footer', $this->template('footer', false));
             }
-        );      
+        );
     }
-);
+}
 
-/* End of file hello_world.php */
+
+/* End of file welcome.php */
 /* Location: .public/welcome/controller/welcome.php */
 ```
 
@@ -112,29 +119,35 @@ Your function will be passed URI segments number 3 and 4 ("classic" and "123"):
 ```php
 <?php
 
-/**
- * $c cars
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('view');
+Class Welcome extends Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('view');
     }
-);
 
-$app->func(
-    'index',
-    function ($type, $id) {
-
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index($type, $id)
+    {
         echo $type;           // Output  classic 
         echo $id;             // Output  123 
         echo $this->uri->segment(3);    // Output  123 
     }
-);
+}
 
 /* End of file hello_world.php */
 /* Location: .public/products/controller/cars.php */
+
+
 ```
 
 **Important:** If you are using the URI Routing feature, the segments passed to your function will be the re-routed ones.
@@ -170,6 +183,8 @@ Where <var>welcome</var> is the name of the <kbd>directory</kbd> and <var>welcom
 As noted above, the second segment of the URI typically determines which function in the controller gets called. Framework permits you to override this behavior through the use of the <kbd>_remap()</kbd> function:
 
 ```php
+<?php
+
 $app->func(
     '_remap',
     function () {
@@ -183,6 +198,8 @@ $app->func(
 The overridden function call (typically the second segment of the URI) will be passed as a parameter the <kbd>_remap()</kbd> function:
 
 ```php
+<?php
+
 $app->func(
     '_remap',
     function () {
@@ -207,6 +224,8 @@ Framework has an output class that takes care of sending your final rendered dat
 Here is an example:
 
 ```php
+<?php
+
 $app->func(
     '_output',
     function ($output) {
@@ -224,6 +243,8 @@ Please note that your <kbd>_output()</kbd> function will receive the data in its
 In some cases you may want certain functions hidden from public access. To make a function private, simply add <kbd>underscore</kbd> then it will not be served via a URL request. For example, if you were to have a function like this:
 
 ```php
+<?php
+
 $app->func(
     '_test',
     function ($output) {

@@ -23,13 +23,15 @@ Example commmand line parameters and arguments
 php task queue listen --channel=Logger --route=logger --delay=0 --memory=128
 ```
 
-**Note:** Framework only accepts dashes <b>(--)</b> to parse arguments.
+> **Note:** Framework only accepts dashes **(--)** to parse arguments.
 
 ### Initializing the Class
 
 ------
 
 ```php
+<?php
+
 $this->c->load('cli/parser as parser');
 $this->parser->method();
 ```
@@ -125,22 +127,22 @@ Class Listener
 
 ------
 
-#### $this->parser->parse(func_get_args())
+#### $this->parser->parse(func_get_args());
 
 Parse valid function parameters.
 
-#### $this->parser->segment($number)
+#### $this->parser->segment($number);
 
 Gets valid command line segment.
 
-#### $this->parser->segmentArray()
+#### $this->parser->segmentArray();
 
 Returns to all segments.
 
-#### $this->parser->argument($key)
+#### $this->parser->argument($key);
 
 Gets valid command line argument.
 
-#### $this->parser->argumentArray()
+#### $this->parser->argumentArray();
 
 Returns to all arguments.

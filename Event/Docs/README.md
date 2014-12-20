@@ -11,7 +11,8 @@ The Event class provides a simple observer implementation, allowing you to subsc
 
 ```php
 <?php
-$c->load('event');
+
+$this->c->load('event');
 $this->event->method();
 ```
 
@@ -36,6 +37,7 @@ Following the example shows basic usage of the events.
 
 ```php
 <?php
+
 $this->event->listen(
     'user.login',
     function ($db, $user_id) {
@@ -50,6 +52,7 @@ $this->event->listen(
 
 ```php
 <?php
+
 $this->event->fire('user.login', array($db, $user_id));
 ```
 
@@ -60,6 +63,7 @@ You may also specify a priority when subscribing to events. Listeners with highe
 
 ```php
 <?php
+
 $this->event->listen('user.login', 'Event\LoginHandler', 10);
 $this->event->listen('user.login', 'Event\OtherHandler', 5);
 ```
@@ -70,6 +74,7 @@ Sometimes, you may wish to stop the propagation of an event to other listeners. 
 
 ```php
 <?php
+
 $this->event->listen(
     'user.login', 
     function ($event) {
@@ -88,6 +93,7 @@ Uygulamaya ait global event lar <b>app/events.php</b> içerisinde tanımlanmşt�
 
 ```php
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | Events
@@ -114,6 +120,7 @@ In some cases, you may wish to use a class to handle an event rather than a Clos
 
 ```php
 <?php
+
 $this->event->listen('event.name', 'Event\LoginHandler');
 ```
 
@@ -142,6 +149,7 @@ If you do not wish to use the default handle method, you may specify the method 
 
 ```php
 <?php
+
 $this->event->listen('user.login', 'Event\Login.onLogin');
 ```
 
@@ -253,6 +261,7 @@ Once the subscriber has been defined, it may be registered with the Event class.
 
 ```php
 <?php
+
 $c['event']->subscribe(new Event\User($c));
 ```
 
@@ -263,62 +272,75 @@ Below the example we have login controller and we listen login attempts by subsc
 ```php
 <?php
 
-/**
- * $app login
- * 
- * @var Controller
- */ 
-$app = new Controller(
-    function ($c) {
-        $c->load('url');
-        $c->load('form');
-        $c->load('view');
-        $c->load('post');
-        $c->load('service/user');
-        $c->load('event')->subscribe(new Event\User($c));        
+Class Welcome extends Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('url');
+        $this->c->load('form');
+        $this->c->load('view');
+        $this->c->load('post');
+        $this->c->load('service/user');
+        $this->c->load('event')->subscribe(new Event\User($this->c));        
     }
-);
 
-$app->func(
-    'index',
-    function () use ($c) {
-
-        if ($this->post['dopost']) {
-
-            $c->load('validator');
-
-            $this->validator->setRules('email', 'Email', 'required|email|trim');
-            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
-
-            if ($this->validator->isValid()) {
-
-                $result = $this->user->login->attempt(
-                    array(
-                        Auth\Credentials::IDENTIFIER => $this->validator->value('email'), 
-                        Auth\Credentials::PASSWORD => $this->validator->value('password')
-                    ),
-                    $this->post['rememberMe']
-                );
-
-                if ($result->isValid()) {
-                    $this->flash->success('You have authenticated successfully.');
-                    $this->url->redirect('examples/login');
-                } else {
-                    $this->validator->setErrors($result->getArray());
-                }
-            }
-            $this->form->setErrors($this->validator);
-        }
-
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
         $this->view->load(
-            'login',
+            'welcome',
             function () {
-                $this->assign('footer', $this->template('footer'));
+                $this->assign('name', 'Obullo');
+                $this->assign('footer', $this->template('footer', false));
+
+                if ($this->post['dopost']) {
+
+                    $this->c->load('validator');
+
+                    $this->validator->setRules('email', 'Email', 'required|email|trim');
+                    $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
+
+                    if ($this->validator->isValid()) {
+
+                        $result = $this->user->login->attempt(
+                            array(
+                                Auth\Credentials::IDENTIFIER => $this->validator->value('email'), 
+                                Auth\Credentials::PASSWORD => $this->validator->value('password')
+                            ),
+                            $this->post['rememberMe']
+                        );
+
+                        if ($result->isValid()) {
+                            $this->flash->success('You have authenticated successfully.');
+                            $this->url->redirect('examples/login');
+                        } else {
+                            $this->validator->setErrors($result->getArray());
+                        }
+                    }
+
+                    $this->form->setErrors($this->validator);
+                }
+
+                $this->view->load(
+                    'login',
+                    function () {
+                        $this->assign('footer', $this->template('footer'));
+                    }
+                );
             }
         );
-
     }
-);
+}
+
 ```
 
 ### Subscribing Events Using Routes
@@ -329,6 +351,7 @@ Open your <b>routes.php</b> and add below the lines.
 
 ```php
 <?php
+
 $c['router']->route(
     'get|post', 'examples/login(.*)', null, 
     function () use ($c) {

@@ -10,7 +10,9 @@ The Captcha class file contains functions that assist in creating CAPTCHA securi
 ------
 
 ```php
-$c->load('captcha');
+<?php
+
+$this->c->load('service/captcha');
 $this->captcha->method();
 ```
 
@@ -24,7 +26,7 @@ Creates captcha on the fly with default settings.
 
 ```php
 <?php
-$c->load('captcha');
+$this->c->load('service/captcha');
 $this->captcha->create();
 ```
 ### Config File
@@ -44,6 +46,8 @@ You can set captcha configuration file from <kbd>app/config</kbd> folder.
 The Captcha Class garbage collection function deletes images when expiration time is end.
 
 ```php
+<?php
+
 $captcha['expiration'] = 180; // seconds
 ```
 
@@ -52,6 +56,8 @@ $captcha['expiration'] = 180; // seconds
 Before creating your captcha you can test all fonts and methods with the functions below.
 
 ```php
+<?php
+
 $this->captcha->fontTest();
 ```
 
@@ -59,6 +65,8 @@ This function quickly tests and produces html output using all <b>methods</b> fo
 
 
 ```php
+<?php
+
 $this->captcha->varTest();
 ```
 
@@ -71,17 +79,23 @@ Captcha class has two types of driver : <kbd>secure</kbd> and <kbd>cool</kbd>. D
 <b>Secure driver</b> produces images with random backgrounds. <b>Cool driver</b> is simple and it comes with white background.
 
 ```php
+<?php
+
 $this->captcha->setDriver('secure');
 ```
 
 ### Setting Font
 
 ```php
+<?php
+
 $this->captcha->setFont('Arial');
 ```
 Multiple
 
 ```php
+<?php
+
 $this->captcha->setFont(array('Arial', 'Tahoma', 'Verdana'));
 ```
 
@@ -100,6 +114,8 @@ All captcha fonts are located in captcha package. But you can use your own fonts
 ###### Custom Font Example
 
 ```php
+<?php
+
 $myFonts = array(
                   'AlphaSmoke',         // Default captcha font
                   'Almontew',        
@@ -116,12 +132,16 @@ $this->captcha->setFont($myFonts);
 If you want to remove unnecessary fonts from default configuration you can use exclude method.
 
 ```php
+<?php
+
 $this->captcha->excludeFont('AlphaSmoke');
 ```
 
 Multiple:
 
 ```php
+<?php
+
 $this->captcha->excludeFont(array('AlphaSmoke','Anglican','Bknuckss'));
 ```
 
@@ -149,6 +169,8 @@ You can set more colors from <b>app/config/captcha.php</b>.
 <kbd>red</kbd> - <kbd>blue</kbd> - <kbd>green</kbd> - <kbd>black</kbd> - <kbd>yellow</kbd> 
 
 ```php
+<?php
+
 $this->captcha->setColor(array('red','black','cyan'));
 ```
 
@@ -161,6 +183,8 @@ You can set more colors from <b>app/config/captcha.php</b>.
 <kbd>red</kbd> - <kbd>blue</kbd> - <kbd>green</kbd> - <kbd>black</kbd> - <kbd>yellow</kbd> 
 
 ```php
+<?php
+
 $this->captcha->setNoiseColor(array('black','cyan'));
 ```
 
@@ -171,6 +195,8 @@ When you set your <b>height</b> of image, image width is calculated <b>automatic
 Default <kbd>40</kbd> px.
 
 ```php
+<?php
+
 $this->captcha->setHeight(40);
 ```
 
@@ -181,6 +207,8 @@ Sets your font size of captcha code.
 Default is <kbd>20</kbd> px.
 
 ```php
+<?php
+
 $this->captcha->setFontSize(20);
 ```
 
@@ -191,6 +219,8 @@ Sets a wave to your image for more strong captcha images.
 Default is <kbd>true</kbd>
 
 ```php
+<?php
+
 $this->captcha->setWave(false);
 ```
 
@@ -229,6 +259,8 @@ Default value is <kbd>random</kbd>.
 Example:
 
 ```php
+<?php
+
 $this->captcha->setPool('numbers');
 ```
 
@@ -237,6 +269,8 @@ $this->captcha->setPool('numbers');
 Sets the captcha code character length.
 
 ```php
+<?php
+
 $this->captcha->setChar(10);
 ```
 
@@ -245,6 +279,8 @@ $this->captcha->setChar(10);
 Resets all class variables to defaults.
 
 ```php
+<?php
+
 $this->captcha->clear();
 ```
 ### Geting Image Url
@@ -252,6 +288,8 @@ $this->captcha->clear();
 Produces image url for <b>img</b> tag.
 
 ```php
+<?php
+
 echo $this->captcha->getImageUrl();  // gives /data/temp/captcha/a6ef8fc84ed0eb687c8bd1558cc72a8e.gif
 ```
 ### Getting Image Id
@@ -259,6 +297,8 @@ echo $this->captcha->getImageUrl();  // gives /data/temp/captcha/a6ef8fc84ed0eb6
 Produces image id, it is necessary for validating the captcha answer.
 
 ```php
+<?php
+
 $this->captcha->getImageId();  // gives d9f0c551df608146444e5d514bc56777
 ```
 
@@ -266,7 +306,8 @@ $this->captcha->getImageId();  // gives d9f0c551df608146444e5d514bc56777
 
 ```
 <?php
-$c->load('captcha');
+
+$this->c->load('captcha');
 
 $this->captcha->setDriver('secure');  // or set to "cool" with no background
 $this->captcha->setPool('alpha');
@@ -296,7 +337,8 @@ In your controller you need to use the code below for checking the captcha answe
 
 ```php
 <?php
-$c->load('post');
+
+$this->c->load('post');
 
 $image_id = $this->post['image_id'];
 $code 	  = $this->sess->get($image_id);

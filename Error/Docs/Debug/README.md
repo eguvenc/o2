@@ -12,6 +12,8 @@ Framework lets you build error reporting into your applications using the functi
 In your <dfn>app/config/$env/config.php</dfn> file you can enable application errors.
 
 ```php
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | Debug
@@ -39,12 +41,16 @@ You can <b>customize</b> this template which is located at <dfn>app/templates/er
 The optional parameter <dfn>$status_code</dfn> determines what HTTP status code should be sent with the error.
 
 ```php
+<?php
+
 $this->response->showError('There is an error occured');
 ```
 
 This function will display the 404 error message supplied to it using the following error template:
 
 ```php
+<?php
+
 $this->response->show404('page')
 ```
 
@@ -57,6 +63,8 @@ The function expects the string passed to it to be the file path to the page tha
 This function lets you write messages to your log files. You must supply one of three "levels" in the first parameter, indicating what type of message it is (debug, error, info), with the message itself in the second parameter. Example:
 
 ```php
+<?php
+
 if ( ! $variable) {
     $this->logger->error('Some variable did not contain a value.');
 }
@@ -73,6 +81,8 @@ We catch all exceptions with php <dfn>set_exception_handler()</dfn> function. Yo
 
 
 ```php
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | Exception
@@ -86,6 +96,8 @@ $c['exception'] = function () {
 **Note:** You can manually catch exceptions in try {} catch {} blocks.
 
 ```php
+<?php
+
 try
 {
     throw new Exception('blabla');
@@ -101,19 +113,27 @@ try
 When your application works you may want see all log files from console. To activate you need to run below the command.
 
 ```php
+<?php
+
 $cd /var/www/myproject
 ```
 
 ```php
+<?php
+
 $php task log
 ```
 You can set filter for log level
 
 ```php
+<?php
+
 $php task log level info
 ```
 
 ```php
+<?php
+
 $php task log level debug
 ```
 
@@ -126,6 +146,8 @@ $php task log level debug
 Framework lets you build user friendly html debugging into your applications using the configurations described below.
 
 ```php
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | Log

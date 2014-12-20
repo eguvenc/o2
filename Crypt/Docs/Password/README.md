@@ -9,7 +9,8 @@ Password class produces secure password hash using Bcrypt algorithm.
 
 ```php
 <?php
-$c->load('password/bcrypt as password');
+
+$this->c->load('password/bcrypt as password');
 $this->password->method();
 ```
 
@@ -19,6 +20,7 @@ Creates a password hash.
 
 ```php
 <?php
+
 $value   = 'obulloFramework';
 $options = array('cost' => 12); // Default cost 10.
 echo $this->password->hash($value, $options)
@@ -33,8 +35,10 @@ Verifying passwords is just as easy;
 
 ```php
 <?php
+
 $hash  = '$2y$10$g6KqDmd.qZPQMaBnzhOeW.tYq03iqBe/.f3flea2zlzwyHWKBJVnm';
 $value = 'obulloFramework'
+
 if ($this->password->verify($value, $hash)) { // bool(true)
     echo 'Password is valid!';
 } else {
@@ -50,6 +54,7 @@ Checks if the given hash matches the given options
 
 ```php
 <?php
+
 $hash    = '$2y$10$g6KqDmd.qZPQMaBnzhOeW.tYq03iqBe/.f3flea2zlzwyHWKBJVnm';
 $options = array('cost' => 12); // Default cost 10.
 $value   = 'obulloFramework'
@@ -71,6 +76,7 @@ Getting information about the given hash.
 
 ```php
 <?php
+
 $hash = '$2y$10$g6KqDmd.qZPQMaBnzhOeW.tYq03iqBe/.f3flea2zlzwyHWKBJVnm';
 var_dump($this->password->getInfo($hash));
 
