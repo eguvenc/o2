@@ -190,8 +190,8 @@ If you want to create new environment first create a new folder under the config
 
 Xml config file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
 
-```php
-<?php
+```xml
+
 <?xml version="1.0"?>
 <root>
     <route>
@@ -348,7 +348,7 @@ $this->config->save();
 
 Now your xml config file updated as following example.
 
-```php
+```xml
 <?xml version="1.0"?>
 <root>
     <route>

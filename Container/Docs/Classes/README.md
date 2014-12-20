@@ -18,7 +18,8 @@ Below the example shows a not defined service. Using namespaces framework do aut
 
 ```php
 <?php
-$c->load('tree/db'); // load Obullo/Tree/Db.php class
+
+$this->c->load('tree/db'); // load Obullo/Tree/Db.php class
 echo $this->treeDb->addTree(string $text);
 ```
 
@@ -26,7 +27,8 @@ If folder name and class name is same you can call it directly.
 
 ```php
 <?php
-$c->load('cookie');   // load  Obullo/Cookie/Cookie.php
+
+$this->c->load('cookie');   // load  Obullo/Cookie/Cookie.php
 echo $this->cookie->get('test');
 ```
 
@@ -43,6 +45,7 @@ You don't need to load again in Controller and you can use them like below.
 
 ```php
 <?php
+
 $app = new Controller(
     function ($c) {
         $this->uri->getUriString();
@@ -57,9 +60,10 @@ $app = new Controller(
 
 ```php
 <?php
-$c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
-$c->load('new tree/db');   // creates new instance of Obullo/Tree/Db class.
-$c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
+
+$this->c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
+$this->c->load('new tree/db');   // creates new instance of Obullo/Tree/Db class.
+$this->c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
 ```
 
 #### Return Keyword
@@ -68,7 +72,8 @@ Returns class instance otherwise it stores the instance into controller.
 
 ```php
 <?php
-$agent = $c->load('return user/agent');
+
+$agent = $this->c->load('return user/agent');
 $agent->getReferer();
 ```
 
@@ -78,7 +83,8 @@ Stores object instance into contoller object using your alias.
 
 ```php
 <?php
-$c->load('new user/uid as uid');
+
+$this->c->load('new user/uid as uid');
 
 echo $this->uid->addHostname()->addIp()->addMacAddress()->generateString().'<br>';  // gives  2130706433-bc:ae:c5:39:10:44-obullo-desktop-4213360135
 ```
@@ -89,6 +95,7 @@ Put your classes into <b>app/classes</b> folder then you can call them using nat
 
 ```php
 <?php
+
 $class = new MyNamespace\MyClass;
 $class->method();
 ```
@@ -97,28 +104,28 @@ $class->method();
 
 ------
 
-#### $c->load('servicename');
+#### $this->c->load('servicename');
 
 Returns to service instance if service defined otherwise it creates new instance using Obullo classes.
 
-#### $c->load('name/space/class');
+#### $this->c->load('name/space/class');
 
 In syntax the first word means the folder name, the second word is the class name.
 
-#### $c->exists(string $classname);
+#### $this->c->exists(string $classname);
 
 Returns true if service exists otherwise false.
 
-#### $c->extend(string $classname, closure $callable);
+#### $this->c->extend(string $classname, closure $callable);
 
 Extends your class and override methods or variables using current instance of the object.
 
 Get same instance of provider before you created.
 
-#### $c->raw(string $classname);
+#### $this->c->raw(string $classname);
 
 Returns closure data of the class.
 
-#### $c->keys();
+#### $this->c->keys();
 
 Returns to all stored keys ( class names ) in the container.

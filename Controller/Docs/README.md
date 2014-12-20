@@ -153,9 +153,10 @@ Class Cars extends Controller
     }
 }
 
-
-/* End of file hello_world.php */
+/* End of file cars.php */
 /* Location: .public/products/controller/cars.php */
+
+
 ```
 
 **Important:** If you are using the URI Routing feature, the segments passed to your function will be the re-routed ones.
@@ -210,12 +211,9 @@ Trying to access it via the URL, like this, will not work and framework will sho
 example.com/index.php/welcome/_test
 ```
 
-
 ### Annotations
 
 ------
-
-
 
 
 

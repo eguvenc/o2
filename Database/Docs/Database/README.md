@@ -155,6 +155,7 @@ If you want to add a second or third database connection <strong>copy/paste</str
 
 ```php
 <?php
+
 'database' => array(
     'host'     => 'localhost',
     'username' => 'root',
@@ -180,6 +181,7 @@ Then you need add it to <kbd>services.php</kbd>.
 
 ```php
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | Db2
@@ -194,6 +196,7 @@ Finally you can run it in the controller like below.
 
 ```php
 <?php
+
 $this->dbAny->query('...');
 ```
 
@@ -201,6 +204,7 @@ If you want to add <strong>dsn</strong> connection you don't need to provide som
 
 ```php
 <?php
+
 'db' => array(
     'dsn'      => "mysql:host=localhost;port=3307;dbname=test_db;username=root;password=1234;",
     'options'  => array()
@@ -227,12 +231,14 @@ There is a global <strong>PDO options</strong> parameter in your database config
 
 ```php
 <?php
+
 'options'  => array( PDO::ATTR_PERSISTENT => true );
 ```
 You can add more attributes in your option array like this.
 
 ```php
 <?php
+
 'options' => array( PDO::ATTR_PERSISTENT => false , PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true );
 ```
 
@@ -247,27 +253,38 @@ Putting this code into your Controller enough for the current database connectio
 
 ```php
 <?php
-/**
- * $app hello_world
- * @var Controller
- */
-$app = new Controller(
-    function () use ($c) {
-        $c->load('view');
-        $c->load('service/provider/database as db');   // create a database connection
+
+Class Welcome extends Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('view');
+        $this->c->load('service/provider/database as db');   // create a database connection
     }
-);
 
-$app->func(
-    'index', 
-    function () {
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index($t = false)
+    {
+        $this->view->load(
+            'welcome',
+            function () {
+                $this->db->query('SELECT * FROM %s', array('users'));
+                $results = $this->db->resultArray();
 
-        $this->db->query('SELECT * FROM %s', array('users'));
-        $results = $this->db->resultArray();
-
-        print_r($results);
+                print_r($results);
+            }
+        );
     }
-);
+}
 
 /* End of file hello_world.php */
 /* Location: .public/tutorials/controller/hello_world.php */
@@ -332,6 +349,7 @@ These methods simply build sql queries without effect your application performan
 
 ```php
 <?php
+
 echo $this->db->insert('users', array('username' => 'John', 'date' => time()));  //  gives 1 ( affected rows )
 
 // query : INSERT INTO users (username, date) VALUES ('John', 1401970851)
@@ -343,6 +361,7 @@ echo $this->db->insert('users', array('username' => 'John', 'date' => time())); 
 
 ```php
 <?php
+
 $data = array(
     'username' => 'Bob',
     'modification_date' => time()
@@ -358,6 +377,7 @@ echo $this->db->update('users', $data, array('user_id' => 5));  //  gives 1 ( af
 
 ```php
 <?php
+
 $this->db->delete('users', array('user_id' => 5));  //  gives 1 ( affected rows )
 
 // query : DELETE FROM users WHERE user_id = 5
@@ -379,7 +399,8 @@ Forexample
 
 ```php
 <?php
-$c->load('crud');
+
+$this->c->load('crud');
 $this->db->where('userd_id', 5);
 $this->db->update('users');         // query : UPDATE `users` SET `user_id` = 5;
 
@@ -393,6 +414,7 @@ pirnt_r($this->db->resultArray());
 
 ```php
 <?php
+
 $this->db->query('YOUR QUERY');
 
 if ($this->db->count() > 0) {
@@ -409,7 +431,8 @@ if ($this->db->count() > 0) {
 
 ```php
 <?php
-$c->load('crud');
+
+$this->c->load('crud');
 
 $this->db->where('user_id', 5)->get('users');
 
@@ -429,6 +452,7 @@ To submit a query, use the following function:
 
 ```php
 <?php
+
 $this->db->query('YOUR QUERY HERE');
 ```
 
@@ -436,6 +460,7 @@ The <dfn>query()</dfn> function returns a database result **object** when "read"
 
 ```php
 <?php
+
 $query = $this->db->query('YOUR QUERY HERE');
 ```
 
@@ -447,6 +472,7 @@ This query type same as direct query just it returns the $affected_rows automati
 
 ```php
 <?php
+
 $affectedRows = $this->db->exec('INSERT QUERY'); 
 
 echo $affectedRows;   //output  1
@@ -464,6 +490,7 @@ This function determines the data type so that it can escape only string data. I
 
 ```php
 <?php
+
 $sql = "INSERT INTO table (title) VALUES(".$this->db->escape((string)$title).")";
 ```
 
@@ -475,6 +502,7 @@ This function escapes the data passed to it, regardless of type. Most of the tim
 
 ```php
 <?php
+
 $sql = "INSERT INTO table (title) VALUES('".$this->db->escapeStr($title)."')";
 ```
 
@@ -484,6 +512,7 @@ This method should be used when strings are to be used in LIKE conditions so tha
 
 ```php
 <?php
+
 $search = '20% raise';
 $sql = "SELECT id FROM table WHERE column LIKE '%".$this->db->escapeLike($search)."%'";
 ```
@@ -492,6 +521,7 @@ $sql = "SELECT id FROM table WHERE column LIKE '%".$this->db->escapeLike($search
 
 ```php
 <?php
+
 $this->db->select("*");
 $this->db->like('article','%%blabla')
 $this->db->orLike('article', 'blabla')
@@ -557,6 +587,7 @@ The **double dots** in the query are automatically replaced with the values of *
 
 ```php
 <?php
+
 $this->db->prepare("SELECT * FROM %s WHERE %s = ? OR %s = ?", array('articles', 'article_id', 'tag'));
 $this->db->bindValue(1, 1, PARAM_INT);  
 $this->db->bindValue(2,'php', PARAM_STR); 
@@ -570,6 +601,7 @@ var_dump($a);
 
 ```php
 <?php
+
 $this->db->prepare("SELECT * FROM %s WHERE %s = :id OR %s = :tag", array('articles', 'article_id', 'tag'));
 $this->db->bindValue(':id', 1, PARAM_INT);  
 $this->db->bindValue(':tag', 'php', PARAM_STR); 
@@ -588,6 +620,7 @@ The using **colons** in the query are automatically replaced with the values of 
 
 ```php
 <?php
+
 $this->db->prepare("SELECT * FROM articles WHERE article_id = ? OR tag = ?");
 $this->db->execute(array(1, 'php'));
 
@@ -609,6 +642,7 @@ Outputs the database platform you are running (MySQL, MS SQL, Postgres, etc...):
 
 ```php
 <?php
+
 $drivers = $this->db->getDrivers();   print_r($drivers);  // Array ( [0] => mssql [1] => mysql [2] => sqlite2 )
 ```
  
@@ -618,6 +652,7 @@ Outputs the database version you are running (MySQL, MS SQL, Postgres, etc...):
 
 ```php
 <?php
+
 echo $this->db->getVersion(); // output like 5.0.45 or returns to null if server does not support this feature..
 ```
 
@@ -627,6 +662,7 @@ Checks the database connection is active or not
 
 ```php
 <?php
+
 echo $this->db->isConnected(); // output 1 or 0
 ```
 
@@ -636,6 +672,7 @@ Returns the last query that was run (the query string, not the result). Example:
 
 ```php
 <?php
+
 $str = $this->db->lastQuery();
 ```
 
@@ -645,6 +682,7 @@ Sets PDO connection attribute.
 
 ```php
 <?php
+
 $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
 
 $this->db->query(" .. ");
@@ -677,6 +715,7 @@ Auto transaction execute begin transaction, commit and rollBack operations withi
 
 ```php
 <?php
+
 $e = $this->db->transaction(
     function () {
         $this->db->query("INSERT INTO persons (person_type, person_name) VALUES ('clever', 'john')");
@@ -694,6 +733,7 @@ To run your queries using transactions manually you need to use <kbd>$this->db->
 
 ```php
 <?php
+
 try {
     
     $this->db->transaction(); // begin the transaction
@@ -723,6 +763,7 @@ Also you use active record class like this
 
 ```php
 <?php
+
 $e = $this->db->transaction(
     function () {
         $this->db->insert('persons', array('person_type' => 'lazy', 'person_name' => 'ersin'));
