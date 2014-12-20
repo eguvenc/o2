@@ -168,13 +168,13 @@ Class Filter
      */
     public function run($name)
     {
+        if ( ! is_string($name)) {
+            return;
+        }
         $registeredFilters = $this->c['router']->getFilters();
-
         if (isset($registeredFilters[$name]['class'])) { // run filter
             $Class = '\\'.ucfirst($registeredFilters[$name]['class']);
             new $Class($this->c);
-            
-            echo $Class;
         }
     }
 

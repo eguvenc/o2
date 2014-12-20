@@ -52,8 +52,11 @@ define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
  * 
  * @return string value
  */
-function envget($var, $required = true)
+function env($var, $required = true)
 {
+    if (is_string($required)) {     // default value
+        return $required;
+    }
     if ($required AND empty($_ENV[$var])) {
         die('<b>Configuration error: </b>'.$var.' key not found or value is empty in .env.'.ENV.'.php file array.');
     }
@@ -67,8 +70,9 @@ function envget($var, $required = true)
  * 
  * @return array
  */
-function envfile($file)
-{        
+function config($file)
+{    
+    global $c;
     ini_set('display_errors', 1);
     $return = include ENV_PATH .$file;
     if ($return == false) {
@@ -96,8 +100,8 @@ function configurationError($errorStr = null)
 | Config Component
 |--------------------------------------------------------------------------
 */
-$c['config'] = function () {
-    return new Obullo\Config\Config;
+$c['config'] = function () use ($c) {
+    return new Obullo\Config\Config($c);
 };
 /*
 |--------------------------------------------------------------------------

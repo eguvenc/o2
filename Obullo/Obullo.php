@@ -43,18 +43,10 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 
 $class = new $className;  // Call the controller
 
-
-$filter = null;
-if ($c['config']['annotations']) {
-    
-    $docs = new App\Annotations\Reader($class);
-    
-    // $reflection->getDocComment();
-
-    // Read doc blocks 
-    // if we have before.filter("") run
-    // 
-    //
+$filter = false;
+if ($c['config']['controller']['annotation']['reader']) {
+    $docs = new Obullo\Blocks\Annotations\Reader\Controller($c, $class);
+    $filter = $docs->parse();
 }
 
 /*
@@ -81,15 +73,10 @@ if ( ! method_exists($class, 'index')) {  // Check method exist or not
 }
 $arguments = array_slice($c['uri']->rsegments, 2);
 
-if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so, we call it instead
-    $class->_remap('index', $arguments);
-} else {
-
-    // Call the requested method. Any URI segments present (besides the directory / class / method) 
-    // will be passed to the method for convenience
-    // directory = 0, class = 1,  arguments = 2 (  method always = index )
-    call_user_func_array(array($class, 'index'), $arguments);
-}
+// Call the requested method. Any URI segments present (besides the directory / class / method) 
+// will be passed to the method for convenience
+// directory = 0, class = 1,  arguments = 2 (  method always = index )
+call_user_func_array(array($class, 'index'), $arguments);
 
 /*
  * ------------------------------------------------------
@@ -97,6 +84,7 @@ if (method_exists($class, '_remap')) {  // Is there any "remap" function? If so,
  * ------------------------------------------------------
  */
 $c['event']->fire('after.controller', array($class, $filter));
+
 
 /*
  * ------------------------------------------------------

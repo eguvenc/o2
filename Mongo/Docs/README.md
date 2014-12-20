@@ -9,7 +9,7 @@ Mongo Db Class is a full featured <kbd>( CRUD based )</kbd> database management 
 
 ```php
 <?php
-$this->c->load('service/mongo', 'db');
+$this->c->load('service/mongo');
 $this->mongo->method();
 ```
 
@@ -27,8 +27,8 @@ return array(
     'mongo' => array(
         'db' => array(
             'host' => 'localhost',
-            'username' => envget('MONGO_USERNAME'),
-            'password' => envget('MONGO_PASSWORD'),
+            'username' => env('MONGO_USERNAME'),
+            'password' => env('MONGO_PASSWORD'),
             'port' => '27017',
         ),
     ),

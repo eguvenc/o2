@@ -78,7 +78,7 @@ Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retri
 
 ### File Relationships 
 
-If you want, you can give relationship to main config file using <b>envfile('filename.php')</b> function. When you use it in your main config file this will add your <b>file</b> contents to this file.
+If you want, you can give relationship to config file using <b>config('filename.php')</b> function. This will add your <b>file</b> contents to main configuration array.
 
 ```php
 <?php
@@ -87,11 +87,82 @@ If you want, you can give relationship to main config file using <b>envfile('fil
 | Database
 |--------------------------------------------------------------------------
 */
-'database' => envfile('database.php'),
+'database' => config('database.php'),
 
 /* End of file config.php */
 /* Location: .app/env/local/config.php */
 ```
+
+### Environment Configuration ( environments.php )
+
+You can configure environments in <kbd>app/config/env/environments.php</kbd> file.
+
+
+```php
+<?php
+/*
+|--------------------------------------------------------------------------
+| Environments
+|--------------------------------------------------------------------------
+*/
+return array(
+    'local' => array (
+        'server' => array(
+            'hostname' => array(
+                'localhost.john',
+                'aly-desktop',
+                'zero',
+                'MS-7693-computer',
+            ),
+            'ip' => array(
+                '127.0.0.1',
+                '127.0.0.1',
+                '127.0.0.1',
+                '127.0.0.1',
+            ),
+        ),
+    ),
+    'test' => array (
+        'server' => array(
+            'hostname' => array(
+                'localhost.testdomain',
+            ),
+            'ip' => array(),
+        ),
+    ),
+    'prod' => array (
+        'server' => array(
+            'hostname' => array(
+                'localhost.production',
+            ),
+            'ip' => array(),
+        ),
+    ),
+);
+
+// END environments.php File
+/* End of file environments.php
+
+/* Location: .app/config/env/environments.php */
+```
+
+When the application run <b>$app->detectEnvironment();</b> method detect your current environment using your configuration array then it assign environment to <b>ENV</b> constant.
+
+```php
+<?php
+/*
+|--------------------------------------------------------------------------
+| Detect current environment
+|--------------------------------------------------------------------------
+*/
+define('ENV', $c['app']->detectEnvironment());
+
+// END Core.php File
+/* End of file Core.php
+
+/* Location: .Obullo/Obullo/Core.php */
+```
+
 
 
 ### Environment folders
@@ -166,12 +237,16 @@ Config xml file load <b>.env.local.php</b> variables from your project root.
 <?php
 
 return array(
-    'DATABASE_USERNAME' => 'root',
-    'DATABASE_PASSWORD' => '123456',
+
+    'MYSQL_USERNAME' => 'root',
+    'MYSQL_PASSWORD' => '123456',
+
     'MONGO_USERNAME' => 'root',
     'MONGO_PASSWORD' => '123456',
+
     'REDIS_AUTH' => 'aZX0bjL',
     'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
+
     'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
     'AMQP_USERNAME' => 'root',
     'AMQP_PASSWORD' => '123456',
@@ -191,9 +266,9 @@ After that you can fetch variable values using any of these methods
 * <b>$_SERVER['key']</b>
 * <b>getenv('key')</b>
 
-<b>envget()</b> is a wrapper function that helps you to getting environment variables safely.
+<b>env()</b> is a wrapper function that helps you to getting environment variables safely.
 
-Below the database config example we fetch environment variables from <b>.env.local.php</b> file using <b>envget();</b> function.
+Below the database config example we fetch environment variables from <b>.env.local.php</b> file using <b>env();</b> function.
 
 ```php
 <?php
@@ -207,8 +282,8 @@ Below the database config example we fetch environment variables from <b>.env.lo
 return array(
     'db' => array(
         'host' => 'localhost',
-        'username' => envget('DATABASE_USERNAME'),
-        'password' => envget('DATABASE_PASSWORD'),
+        'username' => env('DATABASE_USERNAME'),
+        'password' => env('DATABASE_PASSWORD'),
         'database' => 'test',
         'port'     => '',
         'charset'  => 'utf8',
@@ -255,14 +330,14 @@ Where <var>item</var> is the $config array index you want to change, and <var>va
 
 Xml variable returns to <b>SimpleXmlElement object</b>.
 
-#### Reading Variables
+#### Reading Xml Variables
 
 ```php
 <?php
 echo $this->config->xml()->route->site->attributes()->label; // gives "Web Server"
 ```
 
-#### Saving Variables
+#### Saving Xml Variables
 
 ```php
 <?php
@@ -290,77 +365,6 @@ End of file config.xml
 Location: .app/config/env/local/config.xml
 -->
 ```
-
-### environments.php
-
-You can configure environments in <kbd>app/config/env/environments.php</kbd> file.
-
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Environments
-|--------------------------------------------------------------------------
-*/
-return array(
-    'local' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.john',
-                'aly-desktop',
-                'zero',
-                'MS-7693-computer',
-            ),
-            'ip' => array(
-                '127.0.0.1',
-                '127.0.0.1',
-                '127.0.0.1',
-                '127.0.0.1',
-            ),
-        ),
-    ),
-    'test' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.testdomain',
-            ),
-            'ip' => array(),
-        ),
-    ),
-    'prod' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.production',
-            ),
-            'ip' => array(),
-        ),
-    ),
-);
-
-// END environments.php File
-/* End of file environments.php
-
-/* Location: .app/config/env/environments.php */
-```
-
-When the application run <b>$app->detectEnvironment();</b> method detect your current environment using your configuration array then it assign environment to <b>ENV</b> constant.
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Detect current environment
-|--------------------------------------------------------------------------
-*/
-define('ENV', $c['app']->detectEnvironment());
-
-// END Core.php File
-/* End of file Core.php
-
-/* Location: .Obullo/Obullo/Core.php */
-```
-
 
 ### Function Reference
 
@@ -401,10 +405,12 @@ Save valid xml output to xml configuration file.
 
 This functions helps to you getting environment file and variables safely.
 
-#### envget(string $key, $required = true);
+#### env(string $key, $requiredValue = true);
 
-Returns to env variables that is defined in .env.$environment.php file. If second parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$required = false</b>.
+Returns to env variables that is defined in .env.$environment.php file. If second parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$requiredValue = false</b>.
 
-#### envfile(string $filename);
+Eğer ikici parametre string türünde varsayılan bir değer olarak girilirse fonksiyon bu sefer bu varsayılan değere dönecektir.
+
+#### config(string $filename);
 
 Returns to environment based file configuration array which are located in <b>app/config/erv/$environment/filename.php</b>

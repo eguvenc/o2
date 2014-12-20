@@ -57,11 +57,13 @@ Class Config implements ArrayAccess
     /**
      * Constructor
      *
+     * @param object $c container
+     * 
      * Sets the $config data from the primary config.php file as a class variable
      * 
      * @return  void
      */
-    public function __construct()
+    public function __construct($c)
     {
         $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
         $this->xmlFile = $this->envPath .'config.xml';
@@ -87,6 +89,7 @@ Class Config implements ArrayAccess
      */
     public function load($filename = '')
     {
+        global $c;
         $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . '.php';
         $envFile = $this->envPath . str_replace('/', DS, $filename) . '.php';
 
@@ -126,6 +129,7 @@ Class Config implements ArrayAccess
      */
     public function loadEnv($file)
     {
+        global $c;
         $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
         if ( ! $envVariables = include ROOT .$filename) {
             configurationError();

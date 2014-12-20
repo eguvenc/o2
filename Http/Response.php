@@ -19,11 +19,46 @@ use Controller;
  */
 Class Response
 {
+    /**
+     * Container
+     * 
+     * @var object
+     */
     public $c;
+
+    /**
+     * Response last error
+     * 
+     * @var string
+     */
     public $error;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
     public $logger;
+
+    /**
+     * Final output
+     * 
+     * @var string
+     */
     public $finalOutput;
+
+    /**
+     * Compression switch
+     * 
+     * @var boolean
+     */
     public $outputCompression = true;
+
+    /**
+     * Php headers
+     * 
+     * @var array
+     */
     public $headers = array();
 
     /**
@@ -35,7 +70,7 @@ Class Response
     {
         $this->c = $c;
         $this->finalOutput = '';
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('return service/logger');
         $this->logger->debug('Response Class Initialized');
     }
 
@@ -117,7 +152,7 @@ Class Response
         if ($output == '') {                    // Set the output data
             $output = & $this->finalOutput;
         }
-        if ($this->c->load('config')['output']['compress']  // Is compression requested ?
+        if ($this->c['config']['output']['compress']  // Is compression requested ?
             AND $this->outputCompression == true
         ) {
             $this->compressOutput();
@@ -127,8 +162,8 @@ Class Response
                 header($header[0], $header[1]);
             }            
         }
-        if (class_exists('Controller', false) AND method_exists(Controller::$instance, '_output')) {    // Does the controller contain a function named _output()?
-            Controller::$instance->_output($output);              // If so send the output there.  Otherwise, echo it.
+        if (class_exists('Controller', false) AND method_exists(Controller::$instance, '_response')) {    // Does the controller contain a function named _response()?
+            Controller::$instance->_response($output);              // If so send the output there.  Otherwise, echo it.
             return;
         } 
         echo $output;  // Send it to the browser!
