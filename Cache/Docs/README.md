@@ -25,32 +25,32 @@ Kullanmak istediğimiz cache sürücülerinin ayarlarını **app/config/local/ca
 | Parametreler |||
 | :---------------------| :--------| :-------|:-------|:-----|
 | servers 				| hostname |  [port](#Redis-Example-config-file "default port 6379")    | [timeout](#Redis-Example-config-file "cache timeout")| [weight](#Redis-Example-config-file "The weight parameter effects the consistent hashing used to determine which server to read/write keys from.")|
-| auth 					| <span style="color:#666;">*(connection password)*</span>		   |       | 
+| auth 					| *(connection password)* |       | 
 | serializer    		| [serializer type](#Redis-Example-config-file "SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY") |       |
-| persistentConnect     | <span style="color:green;">0 or 1</span>       |       |
-| reconnectionAttemps   | <span style="color:green;">100 sec.</span>       |       |
+| persistentConnect     | 0 or 1       |       |
+| reconnectionAttemps   | 100 sec.     |       |
 
 ###FILE###
 
-| Parametreler |||
+| Parametreler ||
 | :---------------------| :--------|
-| [path](#File-cache-example-config)	| <span style="color:green;">data/cache</span> <span style="color:#666;">*(file data storage path)*</span> |
+| [path](#File-cache-example-config)	| data/cache *(file data storage path)* |
 
 
 ###MEMCACHE###
 
 | Parametreler |||
 | :--------------------------------| :--------| :-------|
-| hostname 						   | <span style="color:green;">127.0.0.1</span> | <span style="color:#666;">*or etc.*</span> |
-| port    						   | <span style="color:green;">11211</span> | <span style="color:#666;">*default port*</span> |
-| timeout	   					   | <span style="color:green;">2.5</span> | <span style="color:#666;">*2.5 sec timeout*</span> |
+| hostname 						   | 127.0.0.1 | *or etc.* |
+| port    						   | 11211 | *default port* |
+| timeout	   					   | 2.5 | *2.5 sec timeout* |
 
 ###MEMCACHED###
 
 | Parametreler |||
 | :--------------------------------| :--------------| :-------| :-------|
 | servers 						   | hostname 		| port 	  | [weight](#Connect-configuration-for-Memcached "The weight parameter effects the consistent hashing used to determine which server to read/write keys from")  |
-| serializer					   | <span style="color:green;">SERIALIZER_PHP</span> | 		  | 		|
+| serializer					   | SERIALIZER_PHP | 		  | 		|
 
 
 Aşağıda redis için yapılandırılmış ayarları görüyorsunuz.
