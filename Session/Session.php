@@ -46,11 +46,11 @@ Class Session
     public $params;
 
     /**
-     * Metadata Class
+     * MetaData Class
      * 
      * @var object
      */
-    public $metaData;
+    public $meta;
 
     /**
      * Constructor
@@ -60,11 +60,12 @@ Class Session
      */
     public function __construct($c, $params = array()) 
     {
+        $handler = '\Obullo\Session\Handler\\'.ucfirst($params['session']['handler']);
+
         $this->params = $params;        
-        $handler = '\Obullo\Session\Handler\\'.ucfirst($params['handler']);
         $this->handler = new $handler($c, $params);
-        $this->config = $c->load('config');
-        $this->logger = $c->load('service/logger');
+        $this->config = $c['config'];
+        $this->logger = $c->load('return service/logger');
 
         ini_set('session.cookie_domain', $this->params['cookie']['domain']);
 
@@ -76,18 +77,18 @@ Class Session
             array($this->handler, 'destroy'),
             array($this->handler, 'gc')
         );
-        $this->metaData = ($this->params['metaData']['enabled']) ? new MetaData($c, $params, $this) : new Disabled;
+        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $params, $this) : new Disabled;
         register_shutdown_function(array($this, 'close'));
 
         session_set_cookie_params(
-            ($this->params['expireOnClose']) ? 0 : $this->params['lifetime'],
+            ($this->params['session']['expireOnClose']) ? 0 : $this->params['session']['lifetime'],
             $this->params['cookie']['path'],
             $this->params['cookie']['domain'],
             $this->params['cookie']['secure'], 
             $this->params['cookie']['httpOnly']
         );
-
         session_name($this->getName());
+        
         if (session_status() == PHP_SESSION_NONE) { // If another session_start() used before ?
             session_start();
         }
@@ -115,7 +116,7 @@ Class Session
         if ($cookie === false) {
             return false;
         }
-        if ( ! $this->metaData->isValid()) { // If meta data is not valid say good bye to user !
+        if ( ! $this->meta->isValid()) { // If meta data is not valid say good bye to user !
             return false;
         }
         return true;
@@ -136,10 +137,10 @@ Class Session
     {
         $oldSessionId = session_id();
         session_regenerate_id((bool) $deleteOldSession);
-        $storageLifetime = ($lifetime == null) ? $this->params['lifetime'] : $lifetime;
+        $storageLifetime = ($lifetime == null) ? $this->params['session']['lifetime'] : $lifetime;
         $this->handler->setLifetime($storageLifetime);
         $this->remove($oldSessionId);  // Removes old Session id value
-        $this->metaData->create();
+        $this->meta->create();
 
         return session_id(); // new session_id
     }
@@ -191,12 +192,12 @@ Class Session
      */
     public function isExpired()
     {
-        $metaData = $this->metaData->read();
-        if ( ! isset($metaData['la'])) {  // la = meta data last activity.
+        $meta = $this->meta->read();
+        if ( ! isset($meta['la'])) {  // la = meta data last activity.
             return false;
         }
-        $expire = $this->getTime() - $this->params['lifetime'];
-        if ($metaData['la'] <= $expire) {
+        $expire = $this->getTime() - $this->params['session']['lifetime'];
+        if ($meta['la'] <= $expire) {
             return true;
         }
         return false;
@@ -221,45 +222,45 @@ Class Session
     /**
      * Add or change data in the $_SESSION
      * 
-     * @param mixed  $newData key or array
-     * @param string $newval  value
-     * @param string $prefix  prefix
+     * @param mixed  $new    key or array
+     * @param string $newval value
+     * @param string $prefix prefix
      * 
-     * @return   void
+     * @return void
      */
-    public function set($newData = array(), $newval = '', $prefix = '')
+    public function set($new = array(), $newval = '', $prefix = '')
     {
-        if (is_string($newData)) {
-            $newData = array($newData => $newval);
+        if (is_string($new)) {
+            $new = array($new => $newval);
         }
-        if (sizeof($newData) > 0) {
-            foreach ($newData as $key => $val) {
+        if (sizeof($new) > 0) {
+            foreach ($new as $key => $val) {
                 $_SESSION[$prefix . $key] = $val;
             }
         }
-        $this->metaData->buildUserData($newData);
+        $this->meta->buildUserData($new);
     }
 
     /**
      * Delete a session variable from the $_SESSION
      *
-     * @param mixed  $newData key or array
-     * @param string $prefix  sesison key prefix
+     * @param mixed  $new    key or array
+     * @param string $prefix sesison key prefix
      * 
      * @return void
      */
-    public function remove($newData = array(), $prefix = '')
+    public function remove($new = array(), $prefix = '')
     {
-        if (is_string($newData)) {
-            $newData = array($newData => '');
+        if (is_string($new)) {
+            $new = array($new => '');
         }
-        if (sizeof($newData) > 0) {
-            foreach ($newData as $key => $val) {
+        if (sizeof($new) > 0) {
+            foreach ($new as $key => $val) {
                 $val = null;
                 unset($_SESSION[$prefix . $key]);
             }
         }
-        if (sizeof($_SESSION) == 0) {               // If metadata option closed and when we want to unset() data we couldn't remove the last session key from storage.
+        if (sizeof($_SESSION) == 0) {               // If meta option closed and when we want to unset() data we couldn't remove the last session key from storage.
             $this->handler->destroy(session_id());  // This solution fix the issue.
         }
     }
@@ -287,9 +288,9 @@ Class Session
     public function close()
     {
         if ( ! $this->readSession()) {
-            $this->metaData->create();
+            $this->meta->create();
         } else {
-            $this->metaData->update();
+            $this->meta->update();
         }
         session_write_close();
     }

@@ -85,18 +85,11 @@ Class Router
     public $filters = array();
 
     /**
-     * Attached before routes to filters
-     * 
-     * @var array
-     */
-    public $attachAfter = array();
-
-    /**
      * Attached after routes to filters
      * 
      * @var array
      */
-    public $attachBefore = array();
+    public $attach = array();
 
     /**
      * Default controller name
@@ -106,7 +99,7 @@ Class Router
     public $defaultController = 'welcome';
 
     /**
-     * 404 not found handler
+     * Page not found handler ( 404 )
      * 
      * @var string
      */
@@ -127,9 +120,7 @@ Class Router
     protected $ROOT;
 
     /**
-     * Host address
-     *
-     * user.example.com
+     * Host address user.example.com
      * 
      * @var string
      */
@@ -150,20 +141,25 @@ Class Router
     protected $domainMatches = array();
 
     /**
+     * Http methods ( get, post, put, delete )
+     * 
+     * @var string
+     */
+    protected $httpMethod = 'get';
+
+    /**
      * Constructor
      * Runs the route mapping function.
      * 
      * @param array $c      container
      * @param array $params configuration array
-     * 
-     * @return void
      */
     public function __construct($c, $params = array())
     {
         $this->c = $c;
         $this->router = $params;
-        $this->uri    = $this->c->load('uri');
-        $this->config = $this->c->load('config');
+        $this->uri    = $this->c['uri'];
+        $this->config = $this->c['config'];
         $this->logger = $this->c->load('service/logger');
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
@@ -173,13 +169,16 @@ Class Router
         if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['host']) === false) {
             $c->load('response')->showError('Your host configuration is not correct in the main config file.');
         }
+        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
+        $this->httpMethod = strtolower($method);
+
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST));
     }
 
     /**
      * Clean all data for Layers
      *
-     * @return  void
+     * @return void
      */
     public function clear()
     {
@@ -223,11 +222,12 @@ Class Router
      * 
      * @param string $pageController controller
      * 
-     * @return void
+     * @return object
      */
     public function defaultPage($pageController)
     {
         $this->defaultController = $pageController;
+        return $this;
     }
 
     /**
@@ -235,17 +235,17 @@ Class Router
      * 
      * @param string $errorController error page
      * 
-     * @return void
+     * @return object
      */
     public function error404($errorController)
     {
         $this->pageNotFoundController = $errorController;
+        return $this;
     }
 
     /**
-     * Assign your routes
+     * Defines http $_GET based routes
      * 
-     * @param string $method  POST, GET, PUT, DELETE
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
@@ -253,10 +253,91 @@ Class Router
      * 
      * @return object router
      */
-    public function route($method, $match, $rewrite, $closure = null, $group = array('domain' => null, 'name' => '*'))
+    public function get($match, $rewrite, $closure = null, $group = array())
+    {
+        $this->route(array('get'), $match, $rewrite, $closure = null, $group);
+        return $this;
+    }
+
+    /**
+     * Defines http $_POST based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * @param string $group   optional group name
+     * 
+     * @return object router
+     */
+    public function post($match, $rewrite, $closure = null, $group = array())
+    {
+        $this->route(array('post'), $match, $rewrite, $closure = null, $group);
+        return $this;
+    }
+
+    /**
+     * Defines http $_REQUEST['PUT'] based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * @param string $group   optional group name
+     * 
+     * @return object router
+     */
+    public function put($match, $rewrite, $closure = null, $group = array())
+    {
+        $this->route(array('put'), $match, $rewrite, $closure = null, $group);
+        return $this;
+    }
+
+    /**
+     * Defines http $_REQUEST['DELETE'] based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * @param string $group   optional group name
+     * 
+     * @return object router
+     */
+    public function delete($match, $rewrite, $closure = null, $group = array())
+    {
+        $this->route(array('delete'), $match, $rewrite, $closure = null, $group);
+        return $this;
+    }
+
+    /**
+     * Defines multiple http request based routes
+     * 
+     * @param string $methods http methods
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * @param string $group   optional group name
+     * 
+     * @return object router
+     */
+    public function match($methods, $match, $rewrite, $closure = null, $group = array())
+    {
+        $this->route($methods, $match, $rewrite, $closure = null, $group);
+    }
+
+    /**
+     * Defines http $_REQUEST based routes
+     * 
+     * @param string $methods method names
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * @param string $group   optional group name
+     * 
+     * @return object router
+     */
+    public function route($methods = array(), $match, $rewrite, $closure = null, $group = array('domain' => null, 'name' => '*'))
     {
         $domainMatch = $this->detectDomain($group);
-        
+
         if ( ! isset($group['domain'])) {
             $group['domain'] = null;
         }
@@ -270,21 +351,21 @@ Class Router
         if ($this->isSubDomain($this->DOMAIN)) {
             $this->routes[$this->DOMAIN][] = array(
                 'group' => $group['name'],
-                'sub.domain' => is_object($group['domain']) ? $group['domain']->domain->regex : $group['domain'],
-                'method' => $method, 
-                'match' => $match, 
-                'rewrite' => $rewrite, 
-                'scheme' => $scheme, 
+                'sub.domain' => is_object($group['domain']) ? $group['domain']->attributes()->regex : $group['domain'],
+                'when' => $methods, 
+                'match' => $match,
+                'rewrite' => $rewrite,
+                'scheme' => $scheme,
                 'closure' => $closure,
             );
         } else {
             $this->routes[$this->DOMAIN][] = array(
                 'group' => $group['name'],
                 'sub.domain' => null,
-                'method' => $method, 
-                'match' => $match, 
-                'rewrite' => $rewrite, 
-                'scheme' => $scheme, 
+                'when' => $methods, 
+                'match' => $match,
+                'rewrite' => $rewrite,
+                'scheme' => $scheme,
                 'closure' => $closure,
             );
         }
@@ -296,9 +377,9 @@ Class Router
      * 
      * @param array $replace scheme replacement
      * 
-     * @return void
+     * @return object
      */
-    public function replace(array $replace)
+    public function where(array $replace)
     {   
         $count = count($this->routes) - 1;
         if ($count == -1) {
@@ -313,6 +394,7 @@ Class Router
             $scheme = str_replace(array('{','}'), array('',''), $scheme);
             $this->routes[$this->DOMAIN][$count]['match'] = $scheme;
         }
+        return $this;
     }
 
     /**
@@ -437,12 +519,12 @@ Class Router
     {
         $uri = implode('/', $this->uri->segments);
         if ( ! isset($this->routes[$this->DOMAIN])) {
-            // $this->logger->error('Route domain configuration hasn\'t been set correctly.', array('domain' => $this->DOMAIN));
             $this->setRequest($this->uri->segments); 
             return;
         }
         $parameters = array();
         foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
+
             if (strpos($val['scheme'], '}') !== false) {   // Does we have route Parameters like {id}/{name} ?
                 $parametersIndex = preg_split('#{(.*?)}#', $val['scheme']); // Get parameter indexes
                 foreach ($parametersIndex as $key => $values) {  // Find parameters we will send it to closure($args)
@@ -452,6 +534,9 @@ Class Router
                 $val['scheme'] = preg_replace('#{(.*?)}#', '', $val['scheme']);
             }
             if (preg_match('#^' . $val['match'] . '$#', $uri)) {  // Does the RegEx match?
+                if (count($val['when']) > 0) { //  When filter
+                    $this->c['event']->fire('on.method', array((object)$val['when'], $this->httpMethod));
+                }
                 if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
                     $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
                 }
@@ -514,9 +599,9 @@ Class Router
     }
 
     /**
-     * Fetch the current class
+     * Fetch the current routed class name
      *
-     * @return    string
+     * @return string
      */
     public function fetchClass()
     {
@@ -644,7 +729,7 @@ Class Router
      * @param string $route   filter route
      * @param array  $options attach options
      * 
-     * @return void
+     * @return object
      */
     public function attach($route, array $options = array())
     {
@@ -663,37 +748,31 @@ Class Router
         if ($this->DOMAIN != $host) {
             return;
         }
-        // if ( ! isset($options['before.filters']) AND ! isset($options['after.filters'])) {
-        //     throw new LogicException('You need to create "before.filters" or "after.filters" key in options to intialize the filters.');
-        // }
         if ( ! isset($options['domain'])) {
             $options['domain'] = '*';
         }
-        if (isset($options['before.filters'])) {
-            $this->configureFilters($options, $route, 'before');
+        if (isset($options['filters'])) {
+            $this->configureFilters($options['filters'], $route, $options);
+            return $this;
         }
-        if (isset($options['after.filters'])) {
-            $this->configureFilters($options, $route, 'after');
-        }
+        $this->configureFilters($options, $route, $options);
+        return $this;
     }
 
     /**
-     * Build filter array
+     * Configure attached filters
      * 
-     * @param array  $options group options
-     * @param string $route   current url regex
-     * @param string $dir     direction before or after
+     * @param array  $options arguments
+     * @param string $route   route
      * 
      * @return void
      */
-    protected function configureFilters(array $options, $route, $dir = 'before')
+    protected function configureFilters($options, $route)
     {
-        $direction = 'attach'.ucfirst($dir); // attachBefore, attachAfter
-
-        foreach ($options[$dir.'.filters'] as $value) {
-            $this->{$direction}[$this->DOMAIN][] = array(
+        foreach ($options as $value) {
+            $this->attach[$this->DOMAIN][] = array(
                 'name' => $value, 
-                'arguments' => $options, 
+                'arguments' => $options,
                 'route' => trim($route, '/'), 
                 'attachedRoute' => trim($route)
             );
@@ -703,18 +782,15 @@ Class Router
     /**
      * Creates route filter
      * 
-     * @param string $name               filter name
-     * @param mixed  $closureOrClassName anonymous function or classname string
+     * @param string $name      filter name
+     * @param mixed  $namespace classname with namespace
      * 
      * @return void
      */
-    public function createFilter($name, $closureOrClassName)
+    public function filter($name, $namespace)
     {
-        if (is_callable($closureOrClassName)) {
-            $this->filters[$name]['closure'] = $closureOrClassName; // closure
-            return;
-        }
-        $this->filters[$name]['class'] = $closureOrClassName; // class
+        $this->filters[$name]['class'] = $namespace; // class
+        return $this;
     }
 
     /**
@@ -741,27 +817,30 @@ Class Router
     /**
      * Initialize filter
      * 
-     * @param string $direction before or after direction
+     * @param string $direction directions ( before, after, load )
+     * @param object $filter    annotations filter object
      * 
      * @return void
      */
-    public function initFilters($direction = 'before')
+    public function initFilters($direction = 'before', $filter = false)
     {
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
-        $direction = ucfirst($direction);
-        $attachDirection = 'attach'.$direction;
-        if (count($this->{$attachDirection}) == 0 OR ! isset($this->{'attach'.$direction}[$this->DOMAIN])) {
+        if ($filter) {
+            $filter->initFilters($direction);  // Initialize annotation filters
+        }
+        if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
             return;
         }
         $route = $this->uri->getUriString();        // Get current uri
+
         if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run with 
-            foreach ($this->{'attach'.$direction}[$this->DOMAIN] as $value) {
+            foreach ($this->attach[$this->DOMAIN] as $value) {
                 if ($value['route'] == $route) {    // if we have natural route match
-                    $this->runFilter($value['name'], $value['arguments']);
+                    $this->runFilter($value['name'], $direction, $value['arguments']);
                 } elseif (preg_match('#^' . $value['attachedRoute'] . '$#', $route)) {
-                    $this->runFilter($value['name'], $value['arguments']);
+                    $this->runFilter($value['name'], $direction, $value['arguments']);
                 }
             }
         }
@@ -770,18 +849,24 @@ Class Router
     /**
      * Run filters
      * 
-     * @param array $name    filter name
-     * @param array $options route options array
+     * @param array  $name      filter name
+     * @param string $direction directions ( before, after, load )
+     * @param array  $options   route options array
      * 
      * @return void
      */
-    protected function runFilter($name, $options = array())
-    {        
-        if (isset($this->filters[$name]['closure'])) {
-            $this->bind($this->filters[$name]['closure'], $options);
-        } elseif (isset($this->filters[$name]['class'])) { 
+    public function runFilter($name, $direction = 'before', $options = array())
+    {
+        if ( ! is_string($name)) {
+            return;
+        }
+        if (isset($this->filters[$name]['class'])) {
             $Class = '\\'.ucfirst($this->filters[$name]['class']);
-            new $Class($this->c, $options);
+            $class = new $Class($this->c, $options);
+
+            if (method_exists($class, $direction)) {   // Check before or after method exists.
+                $class->$direction();
+            }
         }
     }
 

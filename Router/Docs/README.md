@@ -11,8 +11,7 @@ The router class allows you to remap the URLs.
 
 ```php
 <?php
-$c->load('router');
-$this->router->method();
+$this->c['router']->method();
 ```
 
 Typically there is a one-to-one relationship between a URL string and its corresponding <kbd>directory/class/arguments</kbd>. The segments in a URI normally follow this pattern:
@@ -43,21 +42,19 @@ Normally the second segment of the URL is reserved for the class name (show), bu
 Here is a routing example:
 
 ```php
-      // Request filter     // Url request         // Real Process
-  *|post|get|put|delete    example.com/product/4     shop/product/4
-           _ _ _ _ _ _ _      _ _ _ _ _ _ _           _ _ _ _ _ _ _ _
-                     |             |                        |
-                     |             |                        |
-$c['router']->route('get', 'product/([0-9])', 'shop/product/$1');                            
+                // Url request         // Real Process
+                example.com/product/4     shop/product/4
+                 _ _ _ _ _ _ _           _ _ _ _ _ _ _ _
+                        |                        |
+                        |                        |
+$c['router']->get('product/([0-9])', 'shop/product/$1');                            
 ```
 
 A URL with "product" as the first segment, and anything in the second will be remapped to the "shop" directory, "product" class and "arguments" passing in the match as a variable to the function.
 
 **Note:**  Default method is always <b>index</b> you don't need to write index method.
 
-The first parameter set request type of route.
-
-### Route Request Types
+### Route Types
 
 <table>
   <thead>
@@ -67,7 +64,7 @@ The first parameter set request type of route.
   </thead>
   <tbody>
     <tr>
-    <td>*</td>
+    <td>match</td>
     <td>Any type of request</td>
     </tr>
     <tr>
@@ -85,10 +82,6 @@ The first parameter set request type of route.
     <tr>
     <td>delete</td>
     <td>Setting route as $_DELETE request</td>
-    </tr>
-    <tr>
-    <td>post|get</td>
-    <td>You can use pipe to assign multiple request to one route</td>
     </tr>
   </tbody>
 </table>
@@ -126,16 +119,27 @@ $c['router']->domain('myproject.com');
 
 Routing rules are defined in your <kbd>routes.php</kbd> file. In it you'll see route functions that permits you to specify your own routing criteria.
 
+<b>GET routing</b> - any get matches with  example.com/welcome/
+
 ```php
 <?php
-$c['router']->route('*', 'welcome(.*)', 'tutorials/hello_world/$1');  // any matches with  example.com/welcome
+$c['router']->get('welcome(.*)', 'widgets/tutorials/hello_world/$1');
 ```
 
 Routes can either be specified using <kbd>/wildcards</kbd> or <kbd>Regular Expressions</kbd>.
 
+<b>POST routing</b> - any post matches with  example.com/welcome/
+
 ```php
 <?php
-$c['router']->route('*', 'welcome/(.+)', 'tutorials/hello_world/$1'); // any matches with  example.com/welcome/
+$c['router']->post('welcome/(.+)', 'widgets/tutorials/hello_world/$1');
+```
+
+<b>MULTIPLE http routing</b> ( GET, POST, DELETE, PUT and any types )
+
+```php
+<?php
+$c['router']->match(array('get','post'), 'welcome/(.+)', 'tutorials/hello_world/$1');
 ```
 
 Above the example a URL containing the word "welcome/$arg/$arg .." in the first segment will be remapped to the "tutorials/hellow_world/$arguments".
@@ -153,7 +157,7 @@ A typical RegEx route might look something like this:
 
 ```php
 <?php
-$c['router']->route('*', '([0-9]+)/([a-z]+)', 'welcome/$1/$2');
+$c['router']->get('([0-9]+)/([a-z]+)', 'welcome/$1/$2');
 ```
 
 In the above example, a URI similar to <kbd>example.com/1/test</kbd> call the <kbd>welcome</kbd> controller class index method with <kbd>1 - 2</kbd> arguments.
@@ -161,8 +165,8 @@ In the above example, a URI similar to <kbd>example.com/1/test</kbd> call the <k
 
 ```php
 <?php
-$c['router']->route(
-    '*', 'welcome/[0-9]+/[a-z]+', 'welcome/$1/$2', 
+$c['router']->get(
+    'welcome/[0-9]+/[a-z]+', 'welcome/$1/$2', 
     function () use ($c) {
         $c->load('view')->load('dummy');  // load  public/welcome/view/dummy.php
     }
@@ -176,35 +180,35 @@ And also your closure function run in router level.
 
 ```php
 <?php
-$c['router']->route(
-    '*', 'welcome/{id}/{name}', null,
+$c['router']->get(
+    'welcome/{id}/{name}', null,
     function ($directory, $id, $name) use ($c) {
         $c->load('response')->show404($directory.'-'.$id.'-'.$name);
     }
-)->replace(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
+)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
 ```
 
 In the above example, a URI similar to <kbd>example.com/welcome/123/test</kbd> call the <kbd>welcome</kbd> controller class and arguments belonging to our url scheme.
 
 ```php
 <?php
-$c['router']->route(
-    'get', '{id}/{name}/{any}', 'tutorials/hello_world/$1/$2/$3',
+$c['router']->get(
+    '{id}/{name}/{any}', 'tutorials/hello_world/$1/$2/$3',
     function ($id, $name, $any) use ($c) {
         echo $id.'-'.$name.'-'.$any;
     }
-)->replace(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
+)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
 ```
 
 In the above example URI scheme <kbd>{id}/{name}/{any}</kbd> replaced with your regex then if correct uri matched a URI like <kbd>welcome/123/electronic/mp3_player/</kbd> rewrite your kroute as <kbd>tutorials/hello_world/123/electronic/mp3_player/</kbd> and sends arguments to your closure function.
 
 ```php
 <?php
-$c['router']->route(
-    '*', 'shop/{id}/{name}', null,
+$c['router']->get(
+    'shop/{id}/{name}', null,
     function ($directory, $id, $name) use ($c) {
         
-        $db = $c->load('return db');
+        $db = $c->load('return service/provider/db');
         $db->prepare('SELECT * FROM products WHERE id = ?');
         $db->bindValue(1, $id, PARAM_INT);
         $db->execute();
@@ -213,7 +217,7 @@ $c['router']->route(
             $c->load('response')->showError(sprintf('The product %s not found', $name));
         }
     }
-)->replace(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
+)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
 ```
 
 In the above example URI scheme <kbd>shop/{id}/{name}</kbd> replaced with your regex then if correct uri matched a URI like <kbd>example.com/shop/123/mp3_player</kbd> sends arguments to your closure function.
@@ -253,8 +257,8 @@ Creating route group for shop.example.com domain.
 $c['router']->group(
     array('name' => 'shop', 'domain' => 'shop.example.com'), 
     function ($group) {
-        $this->route('get', 'welcome/(.+)', 'tutorials/hello_world', null, $group);
-        $this->route('*', 'product/{id}', 'product/list/$1', null, $group);
+        $this->get('welcome/(.+)', 'tutorials/hello_world', null, $group);
+        $this->get('product/{id}', 'product/list/$1', null, $group);
     }
 );
 ```
@@ -266,12 +270,12 @@ Creating route group for account.example.com domain.
 $c['router']->group(
     array('name' => 'accounts', 'domain' => 'account.example.com'), 
     function ($group) {
-        $this->route(
-            'get', '{id}/{name}/{any}', 'user/account/$1/$2/$3',
+        $this->get(
+            '{id}/{name}/{any}', 'user/account/$1/$2/$3',
             function ($id, $name, $any) {
                 echo $id.'-'.$name.'-'.$any;
             }
-        )->replace(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
+        )->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
     }
 );
 ```
@@ -292,14 +296,7 @@ In order to understand how a filter works, let’s break one down by look at one
 |--------------------------------------------------------------------------
 | Auth filter
 */
-$c['router']->createFilter(
-    'auth',
-    function () use ($c) {
-      if ($this->user->identity->isGuest()) {
-        $c->load('url')->redirect('/login');
-      }
-    }
-);
+$c['router']->filter('auth', 'Http/Filters/AuhtFilter');
 ```
 
 #### Attaching a Filter to a Route
@@ -310,7 +307,20 @@ To attach a filter, simply pass it as an argument in the array of the second arg
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world', 'before.filters' => array('auth'));
+$c['router']->attach('tutorials/hello_world', array('auth'));
+```
+
+Using attach method after routes
+
+```php
+<?php
+
+$c['router']->get(
+    'welcome/(.*)', null,
+    function () use ($c) {
+        $c->load('view')->load('dummy');
+    }
+)->attach('welcome/(.*)', array('auth'));
 ```
 
 #### Group Filters
@@ -322,7 +332,7 @@ A better solution is to use Group Filters:
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'test', 'before.filters' => array('auth')) 
+    array('name' => 'test', 'filters' => array('auth')) 
     function ($group) {
         $this->attach('tutorials/hello_form', $group);
         $this->attach('tutorials/hello_world', $group);
@@ -336,10 +346,10 @@ $c['router']->group(
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'shop', 'domain' => 'shop.example.com', 'before.filters' => array('auth')), 
+    array('name' => 'shop', 'domain' => 'shop.example.com', 'filters' => array('hello')), 
     function ($group) {
-        $this->route('get', 'welcome/.+', 'tutorials/hello_world', null, $group);
-        $this->route('*', 'product/{id}', 'product/list/$1', null, $group);
+        $this->get('welcome/.+', 'tutorials/hello_world', null, $group);
+        $this->get('product/{id}', 'product/list/$1', null, $group);
 
         $this->attach('.*', $group); // attach to all urls 
     }
@@ -348,11 +358,9 @@ $c['router']->group(
 
 #### Filter Classes
 
-In all of the examples above, we used Closures to hold the logic of the filter. Obullo also allows you to create a specific class for your custom defined filter.
+Keep filters in classes make organising and maintaining your filters a lot easier.
 
-Why would you want to do this? Well if you have many particular complex filters, it will probably make sense to abstract them away from the filters.php file to prevent that file from getting messy. This will make organising and maintaining your filters a lot easier.
-
-Filter classes also use IoC Container. This means that they will automatically be able to use dependancy injection so you can very easily test that they are working correctly.
+Filter classes also use Container. This means that they will automatically be able to use dependency injection so you can very easily test that they are working correctly.
 
 Open your filters.php file then put below the content.
 
@@ -364,26 +372,70 @@ Open your filters.php file then put below the content.
 |--------------------------------------------------------------------------
 | Example class filter
 */
-$c['router']->createFilter('hello', 'HelloFilter');
+$c['router']->filter('hello', 'Http/Filters/HelloFilter');
 ```
 
 An example of a filter class could be:
 
 ```php
 <?php
-class HelloFilter {
- 
-  public function __construct($c)
-  {
-      $this->post = $c->load('post');
 
-      if ($this->post['apikey'] != '123456') {
-        echo json_encode(array(
-            'error' => 'Your api key is not valid'
-        ));
-        die;
-      }
-  }
+Class HelloFilter
+{
+    /**
+     * Post
+     * 
+     * @var object
+     */
+    protected $post;
+
+    /**
+     * Constructor
+     *
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->post = $c['post'];
+    }
+
+    /**
+     * Before the controller
+     * 
+     * @return void
+     */
+    public function before()
+    {
+        if ($this->post['apikey'] != '123456') {
+            echo json_encode(
+                array(
+                'error' => 'Your api key is not valid'
+                )
+            );
+            die;
+        }
+    }
+
+    /**
+     * After the controller
+     * 
+     * @return void
+     */
+    public function after()
+    {
+        // ..
+    }
+
+    /**
+     * On load method of the controller
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        // ..
+    }
+
 }
 ```
 
@@ -391,37 +443,14 @@ Then attach your filter in routes.php
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('hello')));
+$c['router']->attach('tutorials/hello_world.*', array('auth'));
 ```
 
 Filters allow you to very easily abstract complex route access logic into concise and easy to use nuggets of code. This allows you to define the logic once, but then apply it to many different routes.
 
-#### Example Filter
+#### Example Filter ( Language Filter )
 
-* filters.php
-
-```php
-<?php
-$c['router']->createFilter(
-    'rewriteLocale',
-    function () use ($c) {
-      $c->load('url')->redirect('en'. $this->uri->getRequestUri());
-    }
-);
-```
-
-* routes.php
-
-```php
-<?php
-$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('rewriteLocale')));
-```
-
-#### Language Filters
-
-Advanced Example
-
-* filters.php
+Creating Locale filter
 
 ```php
 <?php
@@ -436,30 +465,88 @@ Advanced Example
 | 
 | Then: http://example.com/en/news/sports
 */
-$c['router']->createFilter(
-    'redirectLocale',
-    function () use ($c) {
-        $locale = $c->load('cookie')->get('locale');
-        $languages = $c['config']->load('translator')['languages'];
+$c['router']->filter('locale', 'Http\Filters\LocaleFilter');
+```
+
+Creating locale filter class.
+
+
+```php
+<?php
+
+namespace Http\Filters;
+
+/**
+ * Locale filter
+ *
+ * @category  Route
+ * @package   Filters
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/docs/router
+ */
+Class LocaleFilter
+{
+    /**
+     * Cookie
+     * 
+     * @var object
+     */
+    protected $cookie;
+
+    /**
+     * Url
+     * 
+     * @var string
+     */
+    protected $url;
+
+    /**
+     * Constructor
+     *
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->url = $c->load('url');
+        $this->cookie = $c->load('cookie');
+    }
+
+    /**
+     * Before the controller
+     * 
+     * @return void
+     */
+    public function before()
+    {
+        $locale = $this->cookie->get('locale');
+        $languages = $this->c['config']->load('translator')['languages'];
+
         if ( ! isset($languages[$locale])) {
             $locale = $this->translator->getLocale();
         }
-        $c->load('url')->redirect($locale. '/' . $this->uri->getUriString());
+        $this->url->redirect($locale. '/' . $this->uri->getUriString());
     }
-);
+}
+
+// END LocaleFilter class
+
+/* End of file LocaleFilter.php */
+/* Location: .Http/Filters/LocaleFilter.php */
 ```
 
-* routes.php
+Then we attach filter to our route group.
 
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'redirectLocale', 'domain' => '^www.example.com$|^example.com$', 'before.filters' => array('redirectLocale')),
+    array('name' => 'locale', 'domain' => '^www.example.com$|^example.com$', 'filters' => array('locale')),
     function ($group) {
 
         $this->defaultPage('welcome');
-        $this->route('get', '(?:en|tr|de|nl)/(.*)', '$1', null, $group);  // Dispatch request for http://example.com/en/folder/class
-        $this->route('get', '(?:en|tr|de|nl)', 'welcome/index',  null, $group);  // if request http://example.com/en  -> redirect it to default controller
+        $this->get('(?:en|tr|de|nl)/(.*)', '$1', null, $group);  // Dispatch request for http://example.com/en/folder/class
+        $this->get('(?:en|tr|de|nl)', 'welcome/index',  null, $group);  // if request http://example.com/en  -> redirect it to default controller
 
         $this->attach('/', $group);         // Filter only works for below the urls
         $this->attach('welcome', $group);
@@ -478,7 +565,7 @@ Example:
 ```php
 <?php
 $c['router']->group(
-    array('domain' => 'sports.*\d.example.com', 'before.filters' => array('maintenance')),
+    array('domain' => 'sports.*\d.example.com', 'filters' => array('maintenance')),
     function ($group) {
         $this->defaultPage('welcome');
         $this->attach('tutorials/hello_world.*', $group);
@@ -494,7 +581,7 @@ Open your filters.php file then put below the content.
 
 ```php
 <?php
-$c['router']->createFilter('maintenance', 'Http\Filters\MaintenanceFilter');
+$c['router']->filter('maintenance', 'Http\Filters\MaintenanceFilter');
 ```
 
 Then we can assign our domain to filter using attach method.
@@ -504,9 +591,8 @@ Open your routes.php file then put below the content.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->host->all, 'before.filters' => array('maintenance')), 
+    array('name' => 'general', 'domain' => $c['config']->xml()->route->all, 'filters' => array('maintenance')), 
     function ($group) {
-
         $this->defaultPage('welcome/index');
         $this->attach('tutorials/hello_world.*', $group); // attached to "sports" sub domain "/tutorials/hello_world/" url.
     }
@@ -518,16 +604,15 @@ Configure example for <b>All Website</b> and <b>all</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml->host->all, 'before.filters' => array('maintenance')), 
+    array('name' => 'general', 'domain' => $c['config']->xml()->route->all, 'filters' => array('maintenance')), 
     function ($group) {
-
         $this->defaultPage('welcome/index');
         $this->attach('.*', $group); // all urls of your domain
     }
 );
 ```
 
-**Note:** <b>$c['config']->xml->host->all</b> fetches your config.xml "<app><all> .. </all<app/>" keys as <b>simpleXmlElement object</b>.
+**Note:** <b>$c['config']->xml()->route->all</b> fetches your config.xml "<app><all> .. </all<app/>" keys as <b>simpleXmlElement object</b>.
 
 
 Then go to your console and type:
@@ -543,7 +628,7 @@ Configure example for <b>reverse</b> urls.
 ```php
 <?php
 $c['router']->group(
-    array('domain' => $c['config']->xml->host->sports, 'before.filters' => array('maintenance', 'auth')), 
+    array('domain' => $c['config']->xml()->route->sports, 'filters' => array('maintenance', 'auth')), 
     function ($group) {
         $this->attach('((?!tutorials/hello_world).)*$', $group);  // all urls which not contains "tutorials/hello_world"
     }
@@ -577,28 +662,83 @@ Open your filters.php file thn put below the content.
 |--------------------------------------------------------------------------
 | Force to https connection
 */
-$c['router']->createFilter(
-    'https://',
-    function () use ($c) {
-        if ($c->load('request')->isSecure() == false) {
-          $c->load('url')->redirect('https://'.$this->getDomain() . $c->load('uri')->getRequestUri());
-        }
-    }
-);
+$c['router']->filter('https://', 'Http\Filters\'Https');
 
 /* End of file filters.php */
 /* Location: .filters.php */
+```
+
+And 
+
+
+```php
+<?php
+
+namespace Http\Filters;
+
+/**
+ * Https filter
+ *
+ * @category  Route
+ * @package   Filters
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/docs/router
+ */
+Class HttpsFilter
+{
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Constructor
+     *
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->c = $c;
+        $this->uri = $c['uri'];
+        $this->url = $c->load('url');
+        $this->router = $c['router'];
+    }
+
+    /**
+     * Before the controller
+     * 
+     * @return void
+     */
+    public function before()
+    {
+        if ($this->c['request']->isSecure() == false) {
+            $this->url->redirect('https://'.$this->router->getDomain() . $this->uri->getRequestUri());
+        }
+    }
+}
+
+// END HttpsFilter class
+
+/* End of file HttpsFilter.php */
+/* Location: .Http/Filters/HttpsFilter.php */
 ```
 
 Then attach your filter using routes.php
 
 ```php
 <?php
-$c['router']->attach('tutorials/hello_world.*', array('before.filters' => array('https://'));
+$c['router']->attach('tutorials/hello_world.*', array('https://'));
 
 /* End of file routes.php */
 /* Location: .routes.php */
 ```
+
+Now we force <b>http://example.com/tutorials/hello_world</b> request to https:// secure connection.
+
 
 ### Route Reference
 
@@ -616,15 +756,27 @@ Sets your default controller.
 
 Sets your error controller.
 
-#### $c['router']->route(string $method, string $match, string $rewrite, object $closure = null, array $group = array)
+#### $c['router']->get(string $match, string $rewrite, object $closure = null, array $group = array)
 
-Creates a route.
+Creates a http GET based route.
+
+#### $c['router']->post(string $match, string $rewrite, object $closure = null, array $group = array)
+
+Creates a http POST based route.
+
+#### $c['router']->put(string $match, string $rewrite, object $closure = null, array $group = array)
+
+Creates a http PUT based route.
+
+#### $c['router']->delete(string $match, string $rewrite, object $closure = null, array $group = array)
+
+Creates a http DELETE based route.
 
 #### $c['router']->group(array $options, $closure);
 
 Creates a route group.
 
-#### $c['router']->replace(array $replace);
+#### $c['router']->where(array $replace);
 
 Replaces your route schema with arguments.
 
@@ -633,11 +785,11 @@ Replaces your route schema with arguments.
 
 ------
 
-#### $c['router']->createFilter($route, array $options = array())
+#### $c['router']->filter($route, array $options = array())
 
 Creates route filter.
 
-#### $c['router']->attach($route, array $options = array())
+#### $c['router']->attach($route, array $filters = array())
 
 Attach your route to defined filters.
 

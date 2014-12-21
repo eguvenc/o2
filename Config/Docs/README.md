@@ -11,8 +11,7 @@ The Config class provides a means to retrieve configuration preferences. These p
 
 ```php
 <?php
-$this->c->load('config');
-$this->config->method();    // method access
+$this->c['config']->method();    // method access
 ```
 
 **Note:** Controller içerisinde config sınıfı otomatik olarak yüklü gelir, controller işlemlerinde $this->config->method() çağrılarak kısayoldan bu kütüphaneye erişilebilir.

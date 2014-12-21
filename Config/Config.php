@@ -57,11 +57,9 @@ Class Config implements ArrayAccess
     /**
      * Constructor
      *
-     * @param object $c container
-     * 
      * Sets the $config data from the primary config.php file as a class variable
      * 
-     * @return  void
+     * @param object $c container
      */
     public function __construct($c)
     {
@@ -103,8 +101,7 @@ Class Config implements ArrayAccess
         $config = include $file;
         ini_set('display_errors', 0);
 
-        // Allow loading constant files
-        if (strpos($filename, 'constants/') === false 
+        if (strpos($filename, 'constants/') === false  // Allow loading constant files
             AND ($config == false OR ! isset($config) OR ! is_array($config))
         ) {
             throw new LogicException(
@@ -129,7 +126,6 @@ Class Config implements ArrayAccess
      */
     public function loadEnv($file)
     {
-        global $c;
         $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
         if ( ! $envVariables = include ROOT .$filename) {
             configurationError();

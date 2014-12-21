@@ -15,6 +15,13 @@ namespace Obullo\Session;
 Class Reminder
 {
     /**
+     * Config parameters
+     * 
+     * @var array
+     */
+    public $params;
+
+    /**
      * Session Class
      * 
      * @var object
@@ -24,10 +31,12 @@ Class Reminder
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c      container
+     * @param array  $params parameters
      */
-    public function __construct($c) 
+    public function __construct($c, $params = array())
     {
+        $this->params = (count($params) > 0) ? $params : $c['config']['session'];
         $this->session = $c->load('session');
     }
 
@@ -73,10 +82,10 @@ Class Reminder
     {
         session_set_cookie_params(
             $lifetime,
-            $this->cookiePath, 
-            $this->cookieDomain, 
-            $this->cookieSecure, 
-            $this->cookieHttpOnly
+            $this->params['cookie']['path'],
+            $this->params['cookie']['domain'],
+            $this->params['cookie']['secure'],
+            $this->params['cookie']['httpOnly']
         );
         if ($this->session->exists()) {
             $this->session->regenerateId($deleteOldSession, $lifetime); // There is a running session so we will regenerate id to send a new cookie.

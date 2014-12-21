@@ -7,6 +7,16 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
 
 **Note:** This class defined as service in your app/clases/Service folder. The <b>logger</b> package uses <kbd>Disabled</kbd> handler as default.
 
+### Initializing to Service
+
+------
+
+```php
+<?php
+$this->c->load('service/logger');
+$this->logger->method();
+```
+
 ### Available Log Hanlers
 
 * FileHandler

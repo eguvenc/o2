@@ -9,8 +9,8 @@ The URI Class provides functions that help you retrieve information from your UR
 ------
 
 ```php
-$this->c->load('uri');
-$this->uri->method();
+<?php
+$this->c['uri']->method();
 ```
 
 #### $this->uri->segment(n)
@@ -176,7 +176,7 @@ The function would return this:
 ------
 
 ```php
-$c->load('utils/uri');
+$this->c->load('utils/uri');
 $this->utilsUri->method();
 ```
 

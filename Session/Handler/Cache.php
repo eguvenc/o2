@@ -29,7 +29,7 @@ Class Cache
      * 
      * @var string
      */
-    public $storageKey = 'Sessions:';
+    public $key = 'Sessions:';
 
     /**
      * Expiration time of current session
@@ -43,15 +43,13 @@ Class Cache
      *
      * @param array $c      container
      * @param array $params configuration
-     *
-     * @return void
      */
     public function __construct($c, $params = array())
     {
         $this->c = $c;
         $this->params = $params;
-        $this->storageKey = $params['storageKey'];
-        $this->lifetime = $this->params['lifetime'];
+        $this->key = $params['session']['key'];
+        $this->lifetime = $params['session']['lifetime'];
     }
 
     /**
@@ -89,7 +87,7 @@ Class Cache
      */
     public function read($id)
     {   
-        $key = $this->storageKey . $id;
+        $key = $this->key . $id;
         $result = $this->cache->get($key);
         return $result ?: null;
     }
@@ -107,7 +105,7 @@ Class Cache
         if (empty($data)) { // If we have no session data don't write it.
             return false;
         }
-        $key = $this->storageKey . $id;
+        $key = $this->key . $id;
         $result = $this->cache->set($key, $data, $this->getLifetime());
         return $result ? true : false;
     }
@@ -121,7 +119,7 @@ Class Cache
      */
     public function destroy($id)
     {
-        $key = $this->storageKey . $id;
+        $key = $this->key . $id;
         $result = $this->cache->delete($key);
         return $result ? true : false;
     }

@@ -15,13 +15,6 @@ namespace Obullo\Auth;
 Class UserService
 {
     /**
-     * Service configuration parameters
-     * 
-     * @var array
-     */
-    protected $config = array();
-
-    /**
      * Container
      * 
      * @var object
@@ -29,11 +22,16 @@ Class UserService
     protected $c;
 
     /**
+     * Service configuration parameters
+     * 
+     * @var array
+     */
+    protected $config = array();
+
+    /**
      * Constructor
      * 
      * @param object $c container
-     *
-     * @return void
      */
     public function __construct($c)
     {

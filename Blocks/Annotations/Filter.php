@@ -36,6 +36,13 @@ Class Filter
     protected $after = array();
 
     /**
+     * On Controller load() filters data
+     * 
+     * @var array
+     */
+    protected $load = array();
+
+    /**
      * Track of filter names
      * 
      * @var array
@@ -58,12 +65,8 @@ Class Filter
 
     /**
      * Constructor
-     *
+     * 
      * @param object $c container
-     * 
-     * Sets the $config data from the primary config.php file as a class variable
-     * 
-     * @return void
      */
     public function __construct($c)
     {
@@ -104,6 +107,21 @@ Class Filter
     }
 
     /**
+     * Initialize to on load filters
+     * 
+     * @param string $filter name
+     * 
+     * @return object
+     */
+    public function load($filter = '')
+    {
+        $this->load[$this->count] = array('name' => $filter);
+        $this->track[] = 'load';
+        ++$this->count;
+        return $this;
+    }
+
+    /**
      * Initialize to after filters
      * 
      * @param string|array $params http method(s): ( post, get, put, delete )
@@ -133,7 +151,7 @@ Class Filter
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['event']->fire('method.filter', array((object)$params, $this->httpMethod));
+        $this->c['event']->fire('on.method', array((object)$params, $this->httpMethod));
         return;
     }
 
@@ -151,33 +169,14 @@ Class Filter
         }
         foreach ($this->{$direction} as $val) {
             if (isset($val['when']) AND in_array($this->httpMethod, $val['when'])) {  // stop filter
-                $this->run($val['name']);
+                $this->c['router']->runFilter($val['name'], $direction);
             }
             if ( ! isset($val['when'])) {
-                $this->run($val['name']);
+                $this->c['router']->runFilter($val['name'], $direction);
             }
         }
     }
-
-    /**
-     * Execute the filter classes
-     * 
-     * @param string $name filter name
-     * 
-     * @return void
-     */
-    public function run($name)
-    {
-        if ( ! is_string($name)) {
-            return;
-        }
-        $registeredFilters = $this->c['router']->getFilters();
-        if (isset($registeredFilters[$name]['class'])) { // run filter
-            $Class = '\\'.ucfirst($registeredFilters[$name]['class']);
-            new $Class($this->c);
-        }
-    }
-
+    
 }
 
 // END Filter.php File

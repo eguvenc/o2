@@ -14,7 +14,7 @@ use MongoClient;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mongo
  */
-Class MongoConnection
+Class Connection
 {
     /**
      * Dsn connection string
@@ -61,8 +61,6 @@ Class MongoConnection
 
     /**
      * Close the connection
-     * 
-     * @return void
      */
     public function __destruct()
     {
@@ -75,7 +73,7 @@ Class MongoConnection
     }
 }
 
-// END MongoConnection.php class
-/* End of file MongoConnection.php */
+// END Connection.php class
+/* End of file Connection.php */
 
-/* Location: .Obullo/Mongo/MongoConnection.php */
+/* Location: .Obullo/Mongo/Connection.php */

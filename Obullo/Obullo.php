@@ -32,7 +32,6 @@ $controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirecto
 if ( ! file_exists($controller)) {
     $response->show404($pageUri);
 }
-
 require $controller;  // Include the controller file.
 
 $className = $router->fetchClass();
@@ -56,10 +55,16 @@ if ($c['config']['controller']['annotation']['reader']) {
  */
 $c['event']->fire('before.controller', array($class, $filter));
 
-
 if (method_exists($class, 'load')) {
     $class->load();
 }
+/*
+ * ------------------------------------------------------
+ *  After controller load method
+ * ------------------------------------------------------
+ */
+$c['event']->fire('on.load', array($class, $filter));
+
 foreach (get_class_methods($class) as $method) {
     if ($method != 'index' AND $method != 'load' AND strpos($method, '_') !== 0) {
         throw new RunTimeException(

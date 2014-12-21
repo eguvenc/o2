@@ -61,14 +61,14 @@ Aşağıda redis için yapılandırılmış ayarları görüyorsunuz.
 'redis' => array(
        'servers' => array(
                         array(
-                          'hostname' => envget('REDIS_HOST'),
+                          'hostname' => env('REDIS_HOST'),
                           'port'     => '6379',
                           'timeout'  => '2.5',
                           'weight'   => '1'  
                         ),
         ),
 
-        'auth' =>  envget('REDIS_AUTH'),
+        'auth' =>  env('REDIS_AUTH'),
         'serializer' =>  'SERIALIZER_PHP',
         'persistentConnect' => 0,
         'reconnectionAttemps' => 100,
@@ -304,14 +304,14 @@ Connection settings can be configured within the config file.
 'redis' => array(
    'servers' => array(
                     array(
-                      'hostname' => envget('REDIS_HOST'),
+                      'hostname' => env('REDIS_HOST'),
                       'port'     => '6379',
                        // 'timeout'  => '2.5',  // 2.5 sec timeout, just for redis cache
                       'weight'   => '1'         // The weight parameter effects the consistent hashing 
                                                 // used to determine which server to read/write keys from.
                     ),
     ),
-    'auth' =>  envget('REDIS_AUTH'),     // connection password
+    'auth' =>  env('REDIS_AUTH'),     // connection password
     'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY
     'persistentConnect' => 5,
     'reconnectionAttemps' => 100,
@@ -328,21 +328,21 @@ For multi-connection, a new connection as a new array(inside the <kbd>servers</k
  'redis' => array(
        'servers' => array(
                         array(
-                          'hostname' => envget('REDIS_HOST'),
+                          'hostname' => env('REDIS_HOST'),
                           'port'     => '6379',
                            // 'timeout'  => '2.5',  // 2.5 sec timeout, just for redis cache
                           'weight'   => '1'         // The weight parameter effects the consistent hashing 
                                                     // used to determine which server to read/write keys from.
                         ),
                         array(
-                          'hostname' => envget('REDIS_HOST'),
+                          'hostname' => env('REDIS_HOST'),
                           'port'     => '6379',
                            // 'timeout'  => '2.5',  // 2.5 sec timeout, just for redis cache
                           'weight'   => '1'         // The weight parameter effects the consistent hashing 
                                                     // used to determine which server to read/write keys from.
                         )
         ),
-        'auth' =>  envget('REDIS_AUTH'),     // connection password
+        'auth' =>  env('REDIS_AUTH'),     // connection password
         'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY
         'persistentConnect' => 5,
         'reconnectionAttemps' => 100,
