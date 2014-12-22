@@ -3,7 +3,7 @@
 namespace Obullo\Permissions\Rbac;
 
 use Closure,
-    RunTimeException;
+    RuntimeException;
 
 /**
  * User Roles
@@ -25,28 +25,10 @@ use Closure,
 Class User
 {
     /**
-     * Table constants
-     */
-    const TABLENAME        = 'db.tablename';
-    const PRIMARY_KEY      = 'db.primary_key';
-    const USER_PRIMARY_KEY = 'db.user_primary_key';
-    const ROLE_PRIMARY_KEY = 'db.role_primary_key';
-    const ROLE_TEXT        = 'db.text';
-    const PERM_PRIMARY_KEY = 'db.perm_primary_key';
-    const PERM_PARENT_ID   = 'db.parent_id';
-    const PERM_RESOURCE    = 'db.resource';
-    const PERM_TEXT        = 'db.text';
-    const PERM_TYPE        = 'db.type';
-    const OP_PRIMARY_KEY   = 'db.op_primary_key';
-    const OP_TEXT          = 'db.text';
-    const ASSIGNMENT_DATE  = 'db.assignment_date';
-    const IS_ALLOWED       = 'db.allow';
-    const IS_DENIED        = 'db.deny';
-
-    /**
      * Cache constants
+     * Redis supported key format.
      */
-    const CACHE_HAS_PAGE_PERMISSION   = 'Permissions:Rbac:User:hasPagePermission:';   // Redis supported key format.
+    const CACHE_HAS_PAGE_PERMISSION   = 'Permissions:Rbac:User:hasPagePermission:';
     const CACHE_GET_ALL_PERMISSIONS   = 'Permissions:Rbac:User:getAllPermissions:';
     const CACHE_HAS_OBJECT_PERMISSION = 'Permissions:Rbac:User:hasObjectPermission:';
     const CACHE_GET_OPERATIONS        = 'Permissions:Rbac:User:getOperations:';
@@ -151,36 +133,49 @@ Class User
         $this->db = $db;
         $this->cache = $c->load('service/cache');
         
-        $this->c->config->load('constants/rbac');  // load rbac constants
+        $this->c->load('config')->load('constants/rbac');  // load rbac constants
         
         $columns = $config['database']['columns'];
 
         if (count($columns) > 0) {
-            $this->userRolesTableName           = $columns['user_roles'][static::TABLENAME];
-            $this->columnUserPrimaryKey         = $columns['user_roles'][static::USER_PRIMARY_KEY];
-            $this->columnUserRolePrimaryKey     = $columns['user_roles'][static::ROLE_PRIMARY_KEY];
-            $this->columnAssignmentDate         = $columns['user_roles'][static::ASSIGNMENT_DATE];
-            $this->rolesTableName               = $columns['roles'][static::TABLENAME];
-            $this->columnRolePrimaryKey         = $columns['roles'][static::PRIMARY_KEY];
-            $this->columnRoleText               = $columns['roles'][static::ROLE_TEXT];
-            $this->opTableName                  = $columns['operations'][static::TABLENAME];
-            $this->columnOpPrimaryKey           = $columns['operations'][static::PRIMARY_KEY];
-            $this->columnOpText                 = $columns['operations'][static::OP_TEXT];
-            $this->opPermTableName              = $columns['op_permissions'][static::TABLENAME];
-            $this->columnOpPermOpPrimaryKey     = $columns['op_permissions'][static::OP_PRIMARY_KEY];
-            $this->columnOpPermPrimaryKey       = $columns['op_permissions'][static::PERM_PRIMARY_KEY];
-            $this->columnOpRolePrimaryKey       = $columns['op_permissions'][static::ROLE_PRIMARY_KEY];
-            $this->rolePermTableName            = $columns['role_permissions'][static::TABLENAME];
-            $this->columnRolePermRolePrimaryKey = $columns['role_permissions'][static::ROLE_PRIMARY_KEY];
-            $this->columnRolePermPrimaryKey     = $columns['role_permissions'][static::PERM_PRIMARY_KEY];
-            $this->columnPermPrimaryKey         = $columns['permissions'][static::PRIMARY_KEY];
-            $this->columnPermParentId           = $columns['permissions'][static::PERM_PARENT_ID];
-            $this->permTableName                = $columns['permissions'][static::TABLENAME];
-            $this->columnPermText               = $columns['permissions'][static::PERM_TEXT];
-            $this->columnPermType               = $columns['permissions'][static::PERM_TYPE];
-            $this->columnPermResource           = $columns['permissions'][static::PERM_RESOURCE];
-            $this->isAllowed                    = $columns[static::IS_ALLOWED];
-            $this->isDenied                     = $columns[static::IS_DENIED];
+
+            // RBAC "user_roles" table definitions
+            $this->userRolesTableName           = RBAC_USER_ROLES_DB_TABLENAME;
+            $this->columnUserPrimaryKey         = RBAC_USER_ROLES_TABLE_USER_PRIMARY_KEY;
+            $this->columnUserRolePrimaryKey     = RBAC_USER_ROLES_TABLE_ROLE_PRIMARY_KEY;
+            $this->columnAssignmentDate         = RBAC_USER_ROLES_COLUMN_ASSIGNMENT_DATE;
+
+            // RBAC "roles" table definitions
+            $this->rolesTableName               = RBAC_ROLES_DB_TABLENAME;
+            $this->columnRolePrimaryKey         = RBAC_ROLES_COLUMN_PRIMARY_KEY;
+            $this->columnRoleText               = RBAC_ROLES_COLUMN_TEXT;
+
+            // RBAC "operations" table definitions
+            $this->opTableName                  = RBAC_OPERATIONS_DB_TABLENAME;
+            $this->columnOpPrimaryKey           = RBAC_OPERATIONS_COLUMN_PRIMARY_KEY;
+            $this->columnOpText                 = RBAC_OPERATIONS_COLUMN_TEXT;
+
+            // RBAC "op_permissions" table definitions
+            $this->opPermTableName              = RBAC_OP_PERM_DB_TABLENAME;
+            $this->columnOpPermOpPrimaryKey     = RBAC_OP_PERM_TABLE_OP_PRIMARY_KEY;
+            $this->columnOpPermPrimaryKey       = RBAC_OP_PERM_TABLE_PERM_PRIMARY_KEY;
+            $this->columnOpRolePrimaryKey       = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
+
+            // RBAC "role_permissions" table definitions
+            $this->rolePermTableName            = RBAC_ROLE_PERM_DB_TABLENAME;
+            $this->columnRolePermRolePrimaryKey = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
+            $this->columnRolePermPrimaryKey     = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
+
+            // RBAC "permissions" table definitions
+            $this->permTableName                = RBAC_PERM_DB_TABLENAME;
+            $this->columnPermPrimaryKey         = RBAC_PERM_COLUMN_PRIMARY_KEY;
+            $this->columnPermParentId           = RBAC_PERM_COLUMN_PARENT_ID;
+            $this->columnPermText               = RBAC_PERM_COLUMN_TEXT;
+            $this->columnPermType               = RBAC_PERM_COLUMN_TYPE;
+            $this->columnPermResource           = RBAC_PERM_COLUMN_RESOURCE;
+
+            // $this->isAllowed                    = $columns[static::IS_ALLOWED];
+            // $this->isDenied                     = $columns[static::IS_DENIED];
         }
     }
 
@@ -318,7 +313,7 @@ Class User
     public function getUserId()
     {
         if ($this->userId == 0) {
-            throw new RunTimeException(sprintf('User id is not defined. You must first use %s->hasPagePermission() or %s->setUserId() method.', get_class()));
+            throw new RuntimeException(sprintf('User id is not defined. You must first use %s->hasPagePermission() or %s->setUserId() method.', get_class()));
         }
         return $this->userId;
     }
@@ -331,7 +326,7 @@ Class User
     public function getRoleIds()
     {
         if (count($this->roleIds) == 0) {
-            throw new RunTimeException(sprintf('Role id is not defined. You must first use %s->setRoleIds() method.', get_class()));
+            throw new RuntimeException(sprintf('Role id is not defined. You must first use %s->setRoleIds() method.', get_class()));
         }
         return $this->roleIds;
     }
@@ -345,7 +340,7 @@ Class User
     {
         if (empty($this->resourceId)) {
             $getClass = get_class();
-            throw new RunTimeException(sprintf('Resource id is not defined. You must first use %s->hasPagePermission() or %s->setResourceId() method.', $getClass, $getClass));
+            throw new RuntimeException(sprintf('Resource id is not defined. You must first use %s->hasPagePermission() or %s->setResourceId() method.', $getClass, $getClass));
         }
         return $this->resourceId;
     }

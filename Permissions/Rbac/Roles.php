@@ -25,26 +25,6 @@ use Obullo\Tree\Db,
 Class Roles
 {
     /**
-     * Table Constants
-     */
-    const TABLENAME                  = 'db.tablename';
-    const PERM_PRIMARY_KEY           = 'db.primary_key';
-    const USER_PRIMARY_KEY           = 'db.user_primary_key';
-    const ROLE_PRIMARY_KEY           = 'db.role_primary_key';
-    const PERM_TABLENAME             = 'db.tablename';
-    const PERM_TEXT                  = 'db.text';
-    const ROLE_PERM_TABLENAME        = 'db.tablename';
-    const ROLE_PERM_ROLE_PRIMARY_KEY = 'db.role_primary_key';
-    const ROLE_PERM_PRIMARY          = 'db.perm_primary_key';
-    const OP_PERMS_ROLE_PRIMARY_KEY  = 'db.role_primary_key';
-    const PRIMARY_KEY                = 'db.primary_key';
-    const PARENT_ID                  = 'db.parent_id';
-    const TYPE                       = 'db.type';
-    const TEXT                       = 'db.text';
-    const LEFT                       = 'db.left';
-    const RIGHT                      = 'db.right';
-
-    /**
      * Cache constants
      * Redis supported key format.
      */
@@ -152,29 +132,39 @@ Class Roles
         $this->cache  = $c->load('service/cache');
         $this->treeDb = new Db($c, array('db' => $db));
         
-        $this->c->config->load('constants/rbac');  // load rbac constants
+        $this->c->load('config')->load('constants/rbac');  // load rbac constants
         
         $columns = $config['database']['columns'];
 
         if (count($columns) > 0) {
-            $this->tableName  = $columns['roles'][static::TABLENAME];
-            $this->primaryKey = $columns['roles'][static::PRIMARY_KEY];
-            $this->parentId   = $columns['roles'][static::PARENT_ID];
-            $this->text       = $columns['roles'][static::TEXT];
-            $this->type       = $columns['roles'][static::TYPE];
-            $this->lft        = $columns['roles'][static::LEFT];
-            $this->rgt        = $columns['roles'][static::RIGHT];
-            $this->userRolesTableName       = $columns['user_roles'][static::TABLENAME];
-            $this->columnUserPrimaryKey     = $columns['user_roles'][static::USER_PRIMARY_KEY];
-            $this->permtableName            = $columns['permissions'][static::PERM_TABLENAME];
-            $this->permPrimaryKey           = $columns['permissions'][static::PERM_PRIMARY_KEY];
-            $this->permText                 = $columns['permissions'][static::PERM_TEXT];
-            $this->columnUserRolePrimaryKey = $columns['user_roles'][static::ROLE_PRIMARY_KEY];
-            $this->rolePermTableName        = $columns['role_permissions'][static::ROLE_PERM_TABLENAME];
-            $this->rolePermRolePrimaryKey   = $columns['role_permissions'][static::ROLE_PERM_ROLE_PRIMARY_KEY];
-            $this->rolePermPrimaryKey       = $columns['role_permissions'][static::ROLE_PERM_PRIMARY];
-            $this->opPermsTableName         = $columns['op_permissions'][static::TABLENAME];
-            $this->opPermsRolePrimaryKey    = $columns['op_permissions'][static::OP_PERMS_ROLE_PRIMARY_KEY];
+
+            // RBAC "roles" table definitions
+            $this->tableName                = RBAC_ROLES_DB_TABLENAME;
+            $this->primaryKey               = RBAC_ROLES_COLUMN_PRIMARY_KEY;
+            $this->parentId                 = RBAC_ROLES_COLUMN_PARENT_ID;
+            $this->text                     = RBAC_ROLES_COLUMN_TEXT;
+            $this->type                     = RBAC_ROLES_COLUMN_TYPE;
+            $this->lft                      = RBAC_ROLES_COLUMN_LEFT;
+            $this->rgt                      = RBAC_ROLES_COLUMN_RIGHT;
+            
+            // RBAC "user_roles" table definitions
+            $this->userRolesTableName       = RBAC_USER_ROLES_DB_TABLENAME;
+            $this->columnUserPrimaryKey     = RBAC_USER_ROLES_TABLE_USER_PRIMARY_KEY;
+            $this->columnUserRolePrimaryKey = RBAC_USER_ROLES_TABLE_ROLE_PRIMARY_KEY;
+            
+            // RBAC "permissions" table definitions
+            $this->permtableName            = RBAC_PERM_DB_TABLENAME;
+            $this->permPrimaryKey           = RBAC_PERM_COLUMN_PRIMARY_KEY;
+            $this->permText                 = RBAC_PERM_COLUMN_TEXT;
+            
+            // RBAC "role_permissions" table definitions
+            $this->rolePermTableName        = RBAC_ROLE_PERM_DB_TABLENAME;
+            $this->rolePermRolePrimaryKey   = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
+            $this->rolePermPrimaryKey       = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
+            
+            // RBAC "op_permissions" table definitions
+            $this->opPermsTableName         = RBAC_OP_PERM_DB_TABLENAME;
+            $this->opPermsRolePrimaryKey    = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
         }
         
         $this->treeDb->setTablename($this->tableName);
@@ -418,18 +408,17 @@ Class Roles
      */
     public function getPermissionsSqlQuery($roleId)
     {
-        $db = $this->c->load('db');
-        $db->prepare(
+        $this->db->prepare(
             'SELECT %s FROM %s WHERE %s = ?',
             array(
-                $db->protect($this->rolePermPrimaryKey),
-                $db->protect($this->rolePermTableName),
-                $db->protect($this->rolePermRolePrimaryKey)
+                $this->db->protect($this->rolePermPrimaryKey),
+                $this->db->protect($this->rolePermTableName),
+                $this->db->protect($this->rolePermRolePrimaryKey)
             )
         );
-        $db->bindValue(1, $roleId, PARAM_INT);
-        $db->execute();
-        return $db->resultArray();
+        $this->db->bindValue(1, $roleId, PARAM_INT);
+        $this->db->execute();
+        return $this->db->resultArray();
     }
 
     /**
@@ -441,18 +430,17 @@ Class Roles
      */
     public function getUsersSqlQuery($roleId)
     {
-        $db = $this->c->load('db');
-        $db->prepare(
+        $this->db->prepare(
             'SELECT %s FROM %s WHERE %s = ?',
             array(
-                $db->protect($this->columnUserPrimaryKey),
-                $db->protect($this->userRolesTableName),
-                $db->protect($this->columnUserRolePrimaryKey)
+                $this->db->protect($this->columnUserPrimaryKey),
+                $this->db->protect($this->userRolesTableName),
+                $this->db->protect($this->columnUserRolePrimaryKey)
             )
         );
-        $db->bindValue(1, $roleId, PARAM_INT);
-        $db->execute();
-        return $db->resultArray();
+        $this->db->bindValue(1, $roleId, PARAM_INT);
+        $this->db->execute();
+        return $this->db->resultArray();
     }
 
     /**

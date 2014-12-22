@@ -32,32 +32,10 @@ array('publish', 'archive', 'delete'));
 Class Permissions
 {
     /**
-     * Table constants
-     */
-    const TABLENAME                  = 'db.tablename';
-    const OP_PERM_TABLENAME          = 'db.tablename';
-    const OP_PERM_PRIMARY_KEY        = 'db.perm_primary_key';
-    const OP_PERM_OP_PRIMARY_KEY     = 'db.op_primary_key';
-    const OP_PERM_ROLE_PRIMARY_KEY   = 'db.role_primary_key';
-    const ROLE_PERM_TABLENAME        = 'db.tablename';
-    const ROLE_PERM_ROLE_PRIMARY_KEY = 'db.role_primary_key';
-    const ROLE_PRIMARY_KEY           = 'db.role_primary_key';
-    const ROLE_PERM_PRIMARY          = 'db.perm_primary_key';
-    const PARENT_ID                  = 'db.parent_id';
-    const PRIMARY_KEY                = 'db.primary_key';
-    const PERM_TYPE                  = 'db.type';
-    const ROLE_ID                    = 'db.primary_key';
-    const RESOURCE                   = 'db.resource';
-    const TEXT                       = 'db.text';
-    const LEFT                       = 'db.left';
-    const RIGHT                      = 'db.right';
-    const PERM_MODULE_NAME           = 'db.perm_module_name';
-    const ASSIGNMENT_DATE            = 'db.assignment_date';
-
-    /**
      * Cache constants
+     * Redis supported key format.
      */
-    const CACHE_GET_PERMISSONS = 'Permissions:Rbac:Permissions:getPermissions'; // Redis supported key format.
+    const CACHE_GET_PERMISSONS = 'Permissions:Rbac:Permissions:getPermissions';
     const CACHE_GET_ROOT       = 'Permissions:Rbac:Permissions:getRoot';
     const CACHE_GET_ROLES      = 'Permissions:Rbac:Permissions:getRoles';
     const CACHE_GET_SIBLINGS   = 'Permissions:Rbac:Permissions:getSiblings:';
@@ -167,28 +145,33 @@ Class Permissions
         $this->cache = $c->load('service/cache');
         $this->treeDb = new Db($c, array('db' => $db));
 
-        $this->c->config->load('constants/rbac');  // load rbac constants
+        $this->c->load('config')->load('constants/rbac');  // load rbac constants
 
         $columns = $config['database']['columns'];
 
         if (count($columns) > 0) {
-            $this->permTableName          = $columns['permissions'][static::TABLENAME];
-            $this->opPermTableName        = $columns['op_permissions'][static::OP_PERM_TABLENAME];
-            $this->opPermPermPrimaryKey   = $columns['op_permissions'][static::OP_PERM_PRIMARY_KEY];
-            $this->opPermOpPrimaryKey     = $columns['op_permissions'][static::OP_PERM_OP_PRIMARY_KEY];
-            $this->opPermRolePrimaryKey   = $columns['op_permissions'][static::OP_PERM_ROLE_PRIMARY_KEY];
-            $this->rolePermTableName      = $columns['role_permissions'][static::ROLE_PERM_TABLENAME];
-            $this->rolePermRolePrimaryKey = $columns['role_permissions'][static::ROLE_PERM_ROLE_PRIMARY_KEY];
-            $this->assignmentDate         = $columns['role_permissions'][static::ASSIGNMENT_DATE];
-            $this->rolePrimaryKey         = $columns['role_permissions'][static::ROLE_PRIMARY_KEY];
-            $this->rolePermPrimaryKey     = $columns['role_permissions'][static::ROLE_PERM_PRIMARY];
-            $this->primaryKey             = $columns['permissions'][static::PRIMARY_KEY];
-            $this->parentId               = $columns['permissions'][static::PARENT_ID];
-            $this->resource               = $columns['permissions'][static::RESOURCE];
-            $this->permType               = $columns['permissions'][static::PERM_TYPE];
-            $this->text                   = $columns['permissions'][static::TEXT];
-            $this->lft                    = $columns['permissions'][static::LEFT];
-            $this->rgt                    = $columns['permissions'][static::RIGHT];
+
+            // RBAC "permissions" table variables
+            $this->permTableName          = RBAC_PERM_DB_TABLENAME;
+            $this->primaryKey             = RBAC_PERM_COLUMN_PRIMARY_KEY;
+            $this->parentId               = RBAC_PERM_COLUMN_PARENT_ID;
+            $this->resource               = RBAC_PERM_COLUMN_RESOURCE;
+            $this->permType               = RBAC_PERM_COLUMN_TYPE;
+            $this->text                   = RBAC_PERM_COLUMN_TEXT;
+            $this->lft                    = RBAC_PERM_COLUMN_LEFT;
+            $this->rgt                    = RBAC_PERM_COLUMN_RIGHT;
+
+            // RBAC "op_permissions" table variables
+            $this->opPermTableName        = RBAC_OP_PERM_DB_TABLENAME;
+            $this->opPermOpPrimaryKey     = RBAC_OP_PERM_TABLE_OP_PRIMARY_KEY;
+            $this->opPermPermPrimaryKey   = RBAC_OP_PERM_TABLE_PERM_PRIMARY_KEY;
+            $this->opPermRolePrimaryKey   = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
+
+            // RBAC "role_permissions" table variables
+            $this->rolePermTableName      = RBAC_ROLE_PERM_DB_TABLENAME;
+            $this->rolePermRolePrimaryKey = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
+            $this->rolePermPrimaryKey     = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
+            $this->assignmentDate         = RBAC_ROLE_PERM_COLUMN_ASSIGNMENT_DATE;
         }
         $this->treeDb->setTablename($this->permTableName);
         $this->treeDb->setPrimaryKey($this->primaryKey);
@@ -289,7 +272,7 @@ Class Permissions
             'INSERT INTO %s (%s,%s,%s) VALUES (?,?,?)',
             array(
                 $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePrimaryKey),
+                $this->db->protect($this->rolePermRolePrimaryKey),
                 $this->db->protect($this->rolePermPrimaryKey),
                 $this->db->protect($this->assignmentDate)
             )
@@ -346,7 +329,7 @@ Class Permissions
             'DELETE FROM %s WHERE %s = ? AND %s = ?',
             array(
                 $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePrimaryKey),
+                $this->db->protect($this->rolePermRolePrimaryKey),
                 $this->db->protect($this->rolePermPrimaryKey)
             )
         );
