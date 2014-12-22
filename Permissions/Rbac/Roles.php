@@ -138,7 +138,7 @@ Class Roles
 
         if (count($columns) > 0) {
 
-            // RBAC "roles" table definitions
+            // RBAC "roles" table variable definations
             $this->tableName                = RBAC_ROLES_DB_TABLENAME;
             $this->primaryKey               = RBAC_ROLES_COLUMN_PRIMARY_KEY;
             $this->parentId                 = RBAC_ROLES_COLUMN_PARENT_ID;
@@ -147,22 +147,22 @@ Class Roles
             $this->lft                      = RBAC_ROLES_COLUMN_LEFT;
             $this->rgt                      = RBAC_ROLES_COLUMN_RIGHT;
             
-            // RBAC "user_roles" table definitions
+            // RBAC "user_roles" table variable definations
             $this->userRolesTableName       = RBAC_USER_ROLES_DB_TABLENAME;
             $this->columnUserPrimaryKey     = RBAC_USER_ROLES_TABLE_USER_PRIMARY_KEY;
             $this->columnUserRolePrimaryKey = RBAC_USER_ROLES_TABLE_ROLE_PRIMARY_KEY;
             
-            // RBAC "permissions" table definitions
+            // RBAC "permissions" table variable definations
             $this->permtableName            = RBAC_PERM_DB_TABLENAME;
             $this->permPrimaryKey           = RBAC_PERM_COLUMN_PRIMARY_KEY;
             $this->permText                 = RBAC_PERM_COLUMN_TEXT;
             
-            // RBAC "role_permissions" table definitions
+            // RBAC "role_permissions" table variable definations
             $this->rolePermTableName        = RBAC_ROLE_PERM_DB_TABLENAME;
             $this->rolePermRolePrimaryKey   = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
             $this->rolePermPrimaryKey       = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
             
-            // RBAC "op_permissions" table definitions
+            // RBAC "op_permissions" table variable definations
             $this->opPermsTableName         = RBAC_OP_PERM_DB_TABLENAME;
             $this->opPermsRolePrimaryKey    = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
         }
