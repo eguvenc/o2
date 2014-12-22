@@ -6,6 +6,7 @@ use PDO,
     Exception,
     Closure,
     Controller;
+    
 /**
  * Adapter Class
  * 

@@ -16,7 +16,7 @@ use Obullo\Mail\Transport\AbstractAdapter,
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-Class QueueMailer extends AbstractAdapter
+Class Queue extends AbstractAdapter
 {
     /**
      * Config params
@@ -50,9 +50,9 @@ Class QueueMailer extends AbstractAdapter
     public function __construct($c, $config = array())
     {
         $this->config = $config;
-        $this->queue = $c->load('service/queue');
-        $this->logger = $c->load('service/logger');
-        $this->logger->debug('QueueMailer Class Initialized');
+        $this->queue = $c->load('return service/queue');
+        $this->logger = $c->load('return service/logger');
+        $this->logger->debug('Mailer Class Initialized');
 
         parent::__construct($c, $config);
     }
@@ -253,7 +253,7 @@ Class QueueMailer extends AbstractAdapter
 
         $this->queue->channel($this->config['send']['queue']['channel']);   // Push
         $push = $this->queue->push($this->config['send']['queue']['worker'], $route, $payload);
-        $this->debugMsg[] = ($push) ? 'QueueMailer push success.' : 'QueueMailer push failed.';
+        $this->debugMsg[] = ($push) ? 'Mailer push success.' : 'Mailer push failed.';
 
         $time = microtime(true) - $start;
         $this->logger->debug('Queue mailer push', array('message' => $payload['message'], 'time' => number_format($time * 1000, 2) . 'ms'));
@@ -317,7 +317,7 @@ Class QueueMailer extends AbstractAdapter
      */
     public function response()
     {   
-        throw new LogicException('QueueMailer class has not got a response. Don\'t use this method.');
+        throw new LogicException('Mailer class has not got a response. Don\'t use this method.');
     }
 
     /**
@@ -344,7 +344,7 @@ Class QueueMailer extends AbstractAdapter
 
 }
 
-// END QueueMailer class
-/* End of file QueueMailer.php */
+// END Mailer class
+/* End of file Mailer.php */
 
-/* Location: .Obullo/Mail/QueueMailer.php */
+/* Location: .Obullo/Mail/Mailer.php */

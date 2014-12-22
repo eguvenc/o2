@@ -762,17 +762,18 @@ Class Router
     /**
      * Configure attached filters
      * 
-     * @param array  $options arguments
+     * @param array  $filters arguments
      * @param string $route   route
+     * @param array  $options arguments
      * 
      * @return void
      */
-    protected function configureFilters($options, $route)
+    protected function configureFilters($filters, $route, $options)
     {
-        foreach ($options as $value) {
+        foreach ($filters as $value) {
             $this->attach[$this->DOMAIN][] = array(
                 'name' => $value, 
-                'arguments' => $options,
+                'options' => $options,
                 'route' => trim($route, '/'), 
                 'attachedRoute' => trim($route)
             );
@@ -838,9 +839,9 @@ Class Router
         if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run with 
             foreach ($this->attach[$this->DOMAIN] as $value) {
                 if ($value['route'] == $route) {    // if we have natural route match
-                    $this->runFilter($value['name'], $direction, $value['arguments']);
+                    $this->runFilter($value['name'], $direction, $value['options']);
                 } elseif (preg_match('#^' . $value['attachedRoute'] . '$#', $route)) {
-                    $this->runFilter($value['name'], $direction, $value['arguments']);
+                    $this->runFilter($value['name'], $direction, $value['options']);
                 }
             }
         }
@@ -862,6 +863,8 @@ Class Router
         }
         if (isset($this->filters[$name]['class'])) {
             $Class = '\\'.ucfirst($this->filters[$name]['class']);
+
+            
             $class = new $Class($this->c, $options);
 
             if (method_exists($class, $direction)) {   // Check before or after method exists.

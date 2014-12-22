@@ -67,7 +67,7 @@ Class Mailer implements ServiceInterface
     public function register($c)
     {
         $c['mailer'] = function () use ($c) {
-            return new Mandrill($c, $c->load('config')['mail']);
+            return new Mandrill($c, $c['config']['mail']);
         };
     }
 }

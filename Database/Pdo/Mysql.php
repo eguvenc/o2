@@ -43,7 +43,7 @@ Class Mysql extends Adapter
      */
     public function __construct($c, $params)
     {
-        parent::__construct($c, $params);
+        parent::__construct($c, $c['config']['database']['key'][$params['db']]);
         $this->connect();
     }
 

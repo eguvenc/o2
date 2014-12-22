@@ -37,7 +37,7 @@ Abstract Class FailedJob
      */
     public function __construct($c)
     {
-        $config = $c->load('config');
+        $config = $c['config'];
         $provider = $config['queue']['failed']['provider'];
 
         if ( ! isset($config['database'][$provider['db']])) {

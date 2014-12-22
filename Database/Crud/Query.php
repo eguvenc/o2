@@ -17,7 +17,7 @@ use RunTimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-Class Crud
+Class Query
 {
     public $arSelect = array();
     public $arDistinct = false;
@@ -1224,7 +1224,7 @@ Class Crud
 
 }
 
-// END Crud
-/* End of file Crud.php
+// END Query
+/* End of file Query.php
 
-/* Location: .Obullo/Database/Crud/Crud.php */
+/* Location: .Obullo/Database/Crud/Query.php */
