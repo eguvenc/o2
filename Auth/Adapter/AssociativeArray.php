@@ -179,7 +179,7 @@ class AssociativeArray extends AbstractAdapter
      */
     public function authenticate(GenericIdentity $genericUser, $login = true)
     {                
-        $this->resultRowArray = $storageResult = $this->storage->query($this->token);  // First do query to memory storage if user exists in memory
+        $this->resultRowArray = $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
         $database = new DatabaseProvider($this->c, $this->storage);
         
         if ($storageResult == false) {
@@ -201,7 +201,7 @@ class AssociativeArray extends AbstractAdapter
                 return false;
             }
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
-
+                
                 if ($login) {  // If login process allowed.
                     $this->generateUser($genericUser, $this->resultRowArray, $database, ($storageResult) ? false : true, $passwordNeedsRehash);
                 }
@@ -248,9 +248,14 @@ class AssociativeArray extends AbstractAdapter
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $database->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
-        if ($write2Storage || $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
+        
+        if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  
+        } else {
+            $this->storage->authenticatePermanentIdentity($this->resultRowArray, $this->token);
         }
+
+        // We delete old permanent authentication because we store the user as temporary.
         $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
 
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {  // If verification enabled "delete" old permanent credentials if exists

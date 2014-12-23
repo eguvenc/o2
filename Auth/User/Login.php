@@ -83,7 +83,7 @@ Class Login
     }
 
     /**
-     * Validate and Login
+     * Start the Login Operation ( validate, authenticate, set failure object )
      * 
      * @param array   $credentials user data
      * @param boolean $rememberMe  remember me switch

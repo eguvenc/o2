@@ -3,7 +3,8 @@
 namespace Obullo\Auth\Storage;
 
 use Auth\Credentials,
-    Obullo\Auth\AuthResult;
+    Obullo\Auth\AuthResult,
+    Obullo\Auth\Token;
 
  /*
  * Cache Storage Features
@@ -399,28 +400,39 @@ Class Redis implements StorageInterface
 
     /**
      * Match the user credentials.
-     *
-     * @param object $token security token
      * 
      * @return array|false
      */
-    public function query($token)
+    public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {
-
             $key = $this->getMemoryBlockKey('__permanent');
             $data = $this->cache->hGetAll($key);
- 
-            $data['__isAuthenticated'] = 1;
-            $data['__isTemporary'] = 0;
-            $data['__type'] = 'Authorized';
-            $data['__token'] = $token->get();
-            $block = '__permanent';
-
-            $this->cache->hMSet($key, $data, $this->getMemoryBlockLifetime($block)); // Create new block
             return $data;
         }
         return false;
+    }
+
+    /**
+     * Authenticate cached permanent identity
+     * 
+     * @param array  $data  cached auth data
+     * @param object $token token \Obullo\Auth\Token
+     * 
+     * @return void
+     */
+    public function authenticatePermanentIdentity($data, Token $token)
+    {
+        /**
+         * We override old authentication data
+         * that we stored before as permanent
+         */
+        $data['__isAuthenticated'] = 1;
+        $data['__isTemporary'] = 0;
+        $data['__type'] = 'Authorized';
+        $data['__token'] = $token->get();
+
+        $this->loginAsPermanent($data);
     }
 
 }
