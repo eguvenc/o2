@@ -182,7 +182,7 @@ Class Router
      */
     public function clear()
     {
-        $this->uri = $this->c->load('uri');   // reset cloned URI object.
+        $this->uri = $this->c['uri'];   // reset cloned URI object.
         $this->class = '';
         $this->directory = '';
         $this->topDirectory = '';
@@ -863,8 +863,6 @@ Class Router
         }
         if (isset($this->filters[$name]['class'])) {
             $Class = '\\'.ucfirst($this->filters[$name]['class']);
-
-            
             $class = new $Class($this->c, $options);
 
             if (method_exists($class, $direction)) {   // Check before or after method exists.

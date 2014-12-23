@@ -40,7 +40,7 @@ Abstract Class FailedJob
         $config = $c['config'];
         $provider = $config['queue']['failed']['provider'];
 
-        if ( ! isset($config['database'][$provider['db']])) {
+        if ( ! isset($config['database']['key'][$provider['db']])) {
             throw new LogicException(
                 sprintf(
                     'Failed job database "%s" is not defined in your config database.php',
@@ -48,7 +48,7 @@ Abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c->load('return new service/provider/'.$provider['name'], $provider['db']);
+        $this->db = $c->load('return new service/provider/'.$provider['name'], array('db' => $provider['db']));
 
         if ( ! $c->exists('provider:'.strtolower($provider['name']))) {  // If provider not exists ! Alert to developer
             throw new LogicException(

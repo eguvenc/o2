@@ -33,12 +33,17 @@ Class Connection
     /**
      * Constructor
      * 
-     * Automatically check if the Mongo PECL extension has been installed/enabled.
+     * Automatically check if the Mongo PECL extension has been installed / enabled.
      * 
-     * @param string $dsn connection string
+     * @param string $c      container
+     * @param string $params parameters
+     * @param string $dsn    connection string
      */
-    public function __construct($dsn)
+    public function __construct($c, $params, $dsn = '')
     {
+        $config = $c['config']['nosql']['mongo'][$params['db']];
+        $dsn = (empty($dsn)) ? 'mongodb://'.$config['username'].':'.$config['password'].'@'.$config['host'].':'.$config['port'].'/'.$params['db'] : $dsn;
+
         if ( ! class_exists('MongoClient', false)) {
             throw new RuntimeException('The MongoClient extension has not been installed or enabled.');
         }

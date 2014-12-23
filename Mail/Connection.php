@@ -1,8 +1,8 @@
 <?php
 
-namespace Obullo\Database;
+namespace Obullo\Cache;
 
-use Obullo\Database\Pdo\Mysql;
+use Obullo\Cache\Handler\Redis;
 
 /**
  * Database Connection Manager
@@ -46,7 +46,7 @@ Class Connection
     public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['database']['default']['provider'];
+        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['cache']['default']['provider'];
         $this->params = $params;
     }
 
@@ -58,7 +58,7 @@ Class Connection
     public function connect()
     {
         $class = ucfirst($this->provider);
-        return new $class($this->c, $this->params);
+        return new $class($this->c, $this->params['serializer']);
     }
 
 }

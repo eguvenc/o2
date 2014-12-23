@@ -352,8 +352,8 @@ Open your <b>routes.php</b> and add below the lines.
 ```php
 <?php
 
-$c['router']->route(
-    'get|post', 'examples/login(.*)', null, 
+$c['router']->get(
+    'examples/login(.*)', null, 
     function () use ($c) {
         $c['event']->subscribe(new Event\User($c));
     }

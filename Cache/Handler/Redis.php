@@ -69,7 +69,7 @@ Class Redis implements HandlerInterface
      */
     public function __construct($c, $serializer = null)
     {
-        $this->params = $c->load('config')['cache']['redis'];
+        $this->params = $c['config']['cache']['redis'];
         $this->container = new ArrayContainer;
 
         if ( ! extension_loaded('redis')) {
