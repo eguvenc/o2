@@ -37,12 +37,60 @@ Class Smtp extends Adapter
 
         $smtp = $config['send']['protocol']['smtp'];
 
-        $this->smtpHost = $smtp['host'];
-        $this->smtpUser = $smtp['user'];
-        $this->smtpPass = $smtp['pass'];
-        $this->smtpPort = $smtp['port'];
-        $this->smtpTimeout = $smtp['timeout'];
+        $this->host($smtp['host']);
+        $this->pass($smtp['pass']);
+        $this->port($smtp['port']);
+        $this->timeout($smtp['timeout']);
+
         $this->smtpAuth = ($this->smtpUser == '' AND $this->smtpPass == '') ? false : true;
+    }
+
+    /**
+     * Set smtp host
+     * 
+     * @param string $host address
+     * 
+     * @return void
+     */
+    public function host($host)
+    {
+        $this->smtpHost = $host;
+    }
+
+    /**
+     * Set smtp password
+     * 
+     * @param string $password password
+     * 
+     * @return void
+     */
+    public function pass($password)
+    {
+        $this->smtpPass = $password;
+    }
+
+    /**
+     * Set port
+     * 
+     * @param int $port port number
+     * 
+     * @return void
+     */
+    public function port($port)
+    {
+        $this->smtpPort = $port;
+    }
+
+    /**
+     * Connection timeout in second(s)
+     * 
+     * @param int $timeout time
+     * 
+     * @return void
+     */
+    public function timeout($timeout)
+    {
+        $this->smtpTimeout = $timeout;
     }
 
     /**
@@ -230,12 +278,12 @@ Class Smtp extends Adapter
      * 
      * @return void
      */
-    public function bcc($bcc = null, $limit = '')
+    public function bcc($bcc = null, $limit = null)
     {
         if (empty($bcc)) {
             return;
         }
-        if ($limit != '' && is_numeric($limit)) {
+        if ($limit != null && is_numeric($limit)) {
             $this->bccBatchMode = true;
             $this->bccBatchSize = $limit;
         }

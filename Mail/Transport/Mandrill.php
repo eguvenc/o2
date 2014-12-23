@@ -2,35 +2,19 @@
 
 namespace Obullo\Mail\Transport;
 
-use Obullo\Mail\Transport\Response;
-
 /**
  * Mandrill Transactional Email Api Client
  *
  * @category  Mail
- * @package   Transactional
+ * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-Class Mandrill extends AbstractAdapter
+Class Mandrill extends AbstractAdapter  implements TransportInterface 
 {
-    /**
-     * The Mandrill API key.
-     *
-     * @var string
-     */
-    protected $key;
-
-    /**
-     * Mandrill dedicated ip pool
-     *
-     * @var string
-     */
-    protected $ip_pool;
-
     /**
      * Logger
      * 
@@ -44,6 +28,27 @@ Class Mandrill extends AbstractAdapter
      * @var object
      */
     public $response;
+
+    /**
+     * Curl post body
+     * 
+     * @var array
+     */
+    public $message;
+
+    /**
+     * The Mandrill API key.
+     *
+     * @var string
+     */
+    protected $key;
+
+    /**
+     * Mandrill dedicated ip pool
+     *
+     * @var string
+     */
+    protected $ipPool;
 
     /**
      * Mandrill api call response array
@@ -63,9 +68,9 @@ Class Mandrill extends AbstractAdapter
     public function __construct($c, $config = array())
     {
         $this->key = $config['send']['transport']['mandrill']['key'];
-        $this->ip_pool = $config['send']['transport']['mandrill']['ip_pool'];
+        $this->ipPool = $config['send']['transport']['mandrill']['ip_pool'];
 
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('return service/logger');
         $this->logger->debug('Madrill Class Initialized');
 
         parent::__construct($c, $config);
@@ -130,12 +135,12 @@ Class Mandrill extends AbstractAdapter
      * 
      * @return void
      */
-    public function bcc($bcc = null, $limit = '')
+    public function bcc($bcc = null, $limit = null)
     {
         if (empty($bcc)) {
             return;
         }
-        if ($limit != '' AND is_numeric($limit)) {
+        if ($limit != null AND is_numeric($limit)) {
             $this->bccBatchMode = true;
             $this->bccBatchSize = $limit;
         }
@@ -235,61 +240,6 @@ Class Mandrill extends AbstractAdapter
     }
 
     /**
-     * Creates message array items
-     * 
-     * @param string $key item
-     * @param mixed  $val value,
-     *
-     * @return void
-     */
-    public function addMessage($key, $val)
-    {
-        $this->message[$key] = $val;
-    }
-
-    /**
-     * Send new http post request
-     *
-     * @param string $url    post url
-     * @param array  $params post data
-     * 
-     * @return string $result
-     */
-    protected function post($url, array $params)
-    {
-        if ( ! extension_loaded('curl')) {
-            throw new RuntimeException('Curl extension not installed');
-        }
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_USERAGENT, $this->useragent);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 600);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
-        curl_setopt($ch, CURLOPT_VERBOSE, false);
-
-        $start = microtime(true);
-        $body = curl_exec($ch);
-        $time = microtime(true) - $start;
-        $this->logger->debug('Transactional mail api call response', array('body' => $body, 'time' => number_format($time * 1000, 2) . 'ms'));
-    
-        if (curl_errno($ch)) {
-            $this->logger->error('Transactional mail api call failed', array('url' => $url, 'error' => curl_error($ch)));
-            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAIL:API_CALL_FAILED', $url, curl_error($ch));
-        }
-        $result['raw'] = $body;
-        $result['info'] = curl_getinfo($ch);
-        curl_close($ch);
-
-        return $result;
-    }
-
-    /**
      * Send email with curl
      * 
      * @return boelean
@@ -311,19 +261,25 @@ Class Mandrill extends AbstractAdapter
         // Async defaults to false for messages with no more than 10 recipients; 
         // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
         $this->message['async'] = false;   
-        $this->message['ip_pool'] = $this->ip_pool;
+        $this->message['ip_pool'] = $this->ipPool;
         $this->message['send_at'] = $this->setDate();
 
         $this->buildAttachments();
 
         $url = 'https://mandrillapp.com/api/1.0/messages/send.json';
-        $this->responseBody = $this->post(
+
+        // CURL POST
+
+        $this->responseBody = $this->httpPostRequest(
             $url,
             array(
                 'key' => $this->key,
                 'message' => $this->message
             )
         );
+
+        // SET YOUR RESPONSE FORMAT ( raw, xml or array )
+        
         $this->responseBody['array'] = json_decode($this->responseBody['raw'], true);
 
         if ($this->responseBody['array'] === null) {

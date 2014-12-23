@@ -42,6 +42,7 @@ Abstract Class AbstractAdapter
     public $attachments = array();
     public $logger;
     public $date;
+    public $message = array();   // curl data
 
     protected $attachCount = 0;
 
@@ -270,6 +271,61 @@ Abstract Class AbstractAdapter
         $this->attachments[$this->attachCount]['name'] = $name;
         $this->attachments[$this->attachCount]['fileurl'] = $filename;
         ++$this->attachCount;
+    }
+
+    /**
+     * Creates extra message array items for transport mailers
+     * 
+     * @param string $key item
+     * @param mixed  $val value,
+     *
+     * @return void
+     */
+    public function addMessage($key, $val)
+    {
+        $this->message[$key] = $val;
+    }
+
+    /**
+     * Send new http post request
+     *
+     * @param string $url    post url
+     * @param array  $params post data
+     * 
+     * @return string $result
+     */
+    public function httpPostRequest($url, array $params)
+    {
+        if ( ! extension_loaded('curl')) {
+            throw new RuntimeException('Curl extension not installed');
+        }
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->useragent);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 600);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
+        curl_setopt($ch, CURLOPT_VERBOSE, false);
+
+        $start = microtime(true);
+        $body = curl_exec($ch);
+        $time = microtime(true) - $start;
+        $this->logger->debug('Transactional mail api call response', array('body' => $body, 'time' => number_format($time * 1000, 2) . 'ms'));
+    
+        if (curl_errno($ch)) {
+            $this->logger->error('Transactional mail api call failed', array('url' => $url, 'error' => curl_error($ch)));
+            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAIL:API_CALL_FAILED', $url, curl_error($ch));
+        }
+        $result['raw'] = $body;
+        $result['info'] = curl_getinfo($ch);
+        curl_close($ch);
+
+        return $result;
     }
 
     /**

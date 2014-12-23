@@ -2,8 +2,6 @@
 
 namespace Obullo\Database;
 
-use Obullo\Database\Pdo\Mysql;
-
 /**
  * Database Connection Manager
  *
@@ -57,7 +55,7 @@ Class Connection
      */
     public function connect()
     {
-        $class = ucfirst($this->provider);
+        $class = '\\Obullo\Database\Pdo\\'.ucfirst($this->provider);
         return new $class($this->c, $this->params);
     }
 

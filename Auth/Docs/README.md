@@ -287,6 +287,11 @@ $result = $this->user->login->attempt(
 );
 
 if ($result->isValid()) {
+
+    // Go ..
+
+} else {
+
     print_r($result->getArray());
 
     /* Array ( 

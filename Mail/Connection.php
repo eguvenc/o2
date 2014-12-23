@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Cache;
+namespace Obullo\Mail;
 
-use Obullo\Cache\Handler\Redis;
+use RuntimeException;
 
 /**
- * Database Connection Manager
+ * Mail Connection Manager
  *
- * @category  Database
- * @package   Adapter
+ * @category  Mail
+ * @package   Connection
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/database
+ * @link      http://obullo.com/package/mail
  */
 Class Connection
 {
@@ -46,7 +46,8 @@ Class Connection
     public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['cache']['default']['provider'];
+        $this->handlers = $c['config']['mail']['handlers'];
+        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['mail']['default']['provider'];
         $this->params = $params;
     }
 
@@ -57,10 +58,25 @@ Class Connection
      */
     public function connect()
     {
-        $class = ucfirst($this->provider);
-        return new $class($this->c, $this->params['serializer']);
-    }
+        if ( ! isset($this->handlers[$this->provider])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Provider %s not defined in your mail.php configuration.',
+                    $this->provider
+                )
+            );
+        }
+        $Class = $this->handlers[$this->provider];
+        $mailer = new $Class($this->c, $this->params);
 
+        $from = $this->c['config']['mail']['from']['address'];
+        
+        if ( ! empty($this->params['from'])) {
+            $from = $this->params['from'];
+        }
+        $mailer->from($from);
+        return $mailer;
+    }
 }
 
 // END Connection class

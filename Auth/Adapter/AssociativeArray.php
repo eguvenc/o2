@@ -96,6 +96,13 @@ class AssociativeArray extends AbstractAdapter
     protected $trashIdentifier;
 
     /**
+     * Failure switch
+     * 
+     * @var boolean
+     */
+    protected $failure = false;
+
+    /**
      * Constructor
      * 
      * @param object $c    container object
@@ -182,6 +189,7 @@ class AssociativeArray extends AbstractAdapter
 
             if ( ! isset($this->resultRowArray[Credentials::IDENTIFIER])) {
                 $this->results['code'] = AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR;
+                $this->failure = true;
                 return false;
             }
             $plain = $genericUser->getPassword();
@@ -189,6 +197,7 @@ class AssociativeArray extends AbstractAdapter
 
             if ( ! $this->isHashedPassword($hash)) {  // Password must be hashed.
                 $this->results['code'] = AuthResult::FAILURE_UNHASHED_PASSWORD;
+                $this->failure = true;
                 return false;
             }
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
@@ -199,6 +208,8 @@ class AssociativeArray extends AbstractAdapter
                 return true;
             }
         }
+        $this->resultRowArray = array();
+        $this->failure = true; // We set failure variable when user password is fail.
         return false;
     }
 
@@ -333,7 +344,7 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function validateResult()
     {
-        if ( ! is_array($this->resultRowArray)) {
+        if ( ! is_array($this->resultRowArray) OR $this->failure) {   // We set failure variable when user password is fail.
             $this->results['code'] = AuthResult::FAILURE;
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();

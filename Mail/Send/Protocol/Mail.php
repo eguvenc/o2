@@ -79,12 +79,12 @@ Class Mail extends Adapter
      * 
      * @return void
      */
-    public function bcc($bcc = null, $limit = '')
+    public function bcc($bcc = null, $limit = null)
     {
         if (empty($bcc)) {
             return;
         }
-        if ($limit != '' && is_numeric($limit)) {
+        if ($limit != null && is_numeric($limit)) {
             $this->bccBatchMode = true;
             $this->bccBatchSize = $limit;
         }

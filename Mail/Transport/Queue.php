@@ -1,23 +1,40 @@
 <?php
 
-namespace Obullo\Mail;
-
-use Obullo\Mail\Transport\AbstractAdapter,
-    LogicException;
+namespace Obullo\Mail\Transport;
 
 /**
  * Queue Mailer Transport
  *
  * @category  Mail
- * @package   Transactional
+ * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
- * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-Class Queue extends AbstractAdapter
+Class Queue extends AbstractAdapter  implements TransportInterface 
 {
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    public $logger;
+
+    /**
+     * Response class
+     * 
+     * @var object
+     */
+    public $response;
+
+    /**
+     * Queue payload
+     * 
+     * @var array
+     */
+    public $message;
+
     /**
      * Config params
      *
@@ -33,11 +50,11 @@ Class Queue extends AbstractAdapter
     protected $queue;
 
     /**
-     * Logger service
+     * Queue push response array
      * 
-     * @var object
+     * @var array
      */
-    public $logger;
+    protected $responseBody = array();
 
     /**
      * Create a Queue transport instance.
@@ -292,14 +309,16 @@ Class Queue extends AbstractAdapter
 
         $this->buildAttachments();
 
-        $push = $this->push(array('message' => $this->message));
+        $push = $this->responseBody['array']['push'] = $this->push(array('message' => $this->message));
+        $this->responseBody['info']['body'] = $this->message;
 
         if ( ! $push) {
             $this->logger->error(
                 'Queue mailer push failed', 
                 array(
-                    'route' => $this->config['send']['queue']['route'],
-                    'message' => $this->message,
+                    'url' => $this->config['send']['queue']['route'],
+                    'body' => $this->message,
+                    'info' => 'Queue push failed'
                     )
             );
             return false;
@@ -317,7 +336,7 @@ Class Queue extends AbstractAdapter
      */
     public function response()
     {   
-        throw new LogicException('Mailer class has not got a response. Don\'t use this method.');
+        return new Response($this->responseBody);
     }
 
     /**

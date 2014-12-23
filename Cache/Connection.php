@@ -2,8 +2,6 @@
 
 namespace Obullo\Cache;
 
-use Obullo\Cache\Handler\Redis;
-
 /**
  * Database Connection Manager
  *
@@ -57,8 +55,8 @@ Class Connection
      */
     public function connect()
     {
-        $class = ucfirst($this->provider);
-        return new $class($this->c, $this->params['serializer']);
+        $Class = '\\Obullo\Cache\Handler\\'.ucfirst($this->provider);
+        return new $Class($this->c, $this->params['serializer']);
     }
 
 }

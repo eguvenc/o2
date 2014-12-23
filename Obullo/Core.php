@@ -52,7 +52,7 @@ define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
  * 
  * @return string value
  */
-function env($var, $required = true)
+function env($var, $required = false)
 {
     if (is_string($required)) {     // default value
         return $required;
