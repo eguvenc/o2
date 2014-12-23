@@ -404,11 +404,11 @@ Save valid xml output to xml configuration file.
 
 This functions helps to you getting environment file and variables safely.
 
-#### env(string $key, $requiredValue = true);
+#### env(string $key, string $default = '', bool $required = false)
 
-Returns to env variables that is defined in .env.$environment.php file. If second parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$requiredValue = false</b>.
+Returns to env variables that is defined in .env.$environment.php file. If you provide second parameter it returns to default value even if variable is empty.
 
-Eğer ikici parametre string türünde varsayılan bir değer olarak girilirse fonksiyon bu sefer bu varsayılan değere dönecektir.
+If third parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$required = false</b>.
 
 #### config(string $filename);
 

@@ -234,6 +234,9 @@ class AssociativeArray extends AbstractAdapter
             '__token' => $this->token->get(),
             '__time' => ceil(microtime(true)),
         );
+        /**
+         * Authenticate the user and fornat auth data
+         */
         $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
 
         if ($this->config['login']['session']['regenerateSessionId']) {
@@ -248,14 +251,19 @@ class AssociativeArray extends AbstractAdapter
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $database->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
         }
-        
+
         if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  
         } else {
+            /**
+             * Authenticate cached auth data. We override __isAuthenticated item value as "1"
+             * then we update the token.
+             */
             $this->storage->authenticatePermanentIdentity($this->resultRowArray, $this->token);
         }
-
-        // We delete old permanent authentication because we store the user as temporary.
+        /**
+         * If verification enabled We store use as temporay That's why we delete current auth data
+         */
         $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
 
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {  // If verification enabled "delete" old permanent credentials if exists
@@ -290,17 +298,17 @@ class AssociativeArray extends AbstractAdapter
      */
     protected function setAuthType($attributes)
     {
-        if ( ! $this->isEnabledVerification()) {    // If verification disabled however we authenticate the user.
+        if ( ! $this->isEnabledVerification()) {    // If verification disabled we authenticate the user.
             $attributes['__isAuthenticated'] = 1;
             $attributes['__type'] = static::AUTHORIZED;
             return $attributes;
         }
-        if ($this->user->identity->isVerified() == 0) {  // Otherwise verification enabled
+        if ($this->user->identity->isVerified() == 0) {  // Otherwise verification enabled we don't do authenticate
             $attributes['__isAuthenticated'] = 0;
             $attributes['__type'] = static::UNVERIFIED;
             return $attributes;
         }
-        if ($this->user->identity->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryLogin() method.
+        if ($this->user->identity->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryIdentity() method.
             $attributes['__isAuthenticated'] = 1;
             $attributes['__type'] = static::AUTHORIZED;
             return $attributes;

@@ -48,17 +48,22 @@ define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
  * Gets environment variable from $_ENV global
  * 
  * @param string $var      key
+ * @param string $default  default value
  * @param string $required if true people know any explicit required variables that your app will not work without
  * 
  * @return string value
  */
-function env($var, $required = false)
+function env($var, $default = '', $required = false)
 {
-    if (is_string($required)) {     // default value
-        return $required;
-    }
-    if ($required AND empty($_ENV[$var])) {
+    $empty = empty($_ENV[$var]);
+    if ($required AND $empty) {
         die('<b>Configuration error: </b>'.$var.' key not found or value is empty in .env.'.ENV.'.php file array.');
+    }
+    if ($empty AND $default != '') {     // default value
+        return $default;
+    }
+    if ( ! isset($_ENV[$var])) {
+        die('<b>Configuration error: </b>'.$var.' key not found in.env.'.ENV.'.php file array.');
     }
     return $_ENV[$var];
 }

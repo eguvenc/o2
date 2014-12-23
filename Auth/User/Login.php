@@ -110,9 +110,11 @@ Class Login
         }
         $authResult = $this->adapter->login(new GenericIdentity($credentials));
         
+        /**
+         * Create Login Attempt Event
+         */
         $userResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
                                                                                      // Event fire returns multiple array but we use one event response
-
         return isset($userResult[0]) ? current($userResult) : $authResult;
     }
  

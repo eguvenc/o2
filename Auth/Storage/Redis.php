@@ -405,7 +405,7 @@ Class Redis implements StorageInterface
      */
     public function query()
     {
-        if ( ! $this->isEmpty('__permanent')) {
+        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
             $key = $this->getMemoryBlockKey('__permanent');
             $data = $this->cache->hGetAll($key);
             return $data;

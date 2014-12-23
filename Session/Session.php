@@ -60,10 +60,10 @@ Class Session
      */
     public function __construct($c, $params = array()) 
     {
-        $handler = '\Obullo\Session\Handler\\'.ucfirst($params['session']['handler']);
+        $handlerClass = $params['handlers'][$params['default']['handler']];
 
         $this->params = $params;        
-        $this->handler = new $handler($c, $params);
+        $this->handler = new $handlerClass($c, $params);
         $this->config = $c['config'];
         $this->logger = $c->load('return service/logger');
 

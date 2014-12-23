@@ -2,6 +2,8 @@
 
 namespace Obullo\Auth\Storage;
 
+use Obullo\Auth\Token;
+
 /**
  * Cache storage interface
  * 
@@ -77,6 +79,16 @@ interface StorageInterface
      * @return void
      */
     public function authenticateTemporaryIdentity();
+
+    /**
+     * Makes unauthorized permanent credential attributes as permanent
+     * 
+     * @param array  $data  array $credentials
+     * @param object $token \Obullo\Auth\Token
+     * 
+     * @return void
+     */
+    public function authenticatePermanentIdentity($data, Token $token);
 
     /**
      * Update credentials
