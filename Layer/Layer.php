@@ -284,12 +284,14 @@ Class Layer
         }
 
         $this->makeGlobal();
-        $this->assignObjects($class); // Assign main controller objects to sub layers.
 
         ob_start();
         call_user_func_array(array($class, 'index'), array_slice($this->c['uri']->rsegments, 2));
         $response = ob_get_clean();
-                                          // Store classes to $storage container
+
+        $this->assignObjects($class); // Assign main controller objects to sub layers.
+
+                                            // Store classes to $storage container
         $storage[$this->layerUri] = $class; // Store class names to storage. We fetch it if its available in storage.
         
         if (is_numeric($expiration)) {

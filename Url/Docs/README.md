@@ -54,15 +54,15 @@ Would produce: <a href="news/local/123" title="The best news!">My News</a>
 Url anchor function support **'#'** characters. You can use it like this ..
 
 ```php
-echo $this->url->anchor('http://@host/news/local/123');
+echo $this->url->anchor('http://@WEBHOST/news/local/123');
 ```
 
-Url anchor function support string **'@host'** feature. This will replace your host url which is defined in <kbd>config.php</kbd>. If you need global url, you can use like this..
+Url anchor function support string **'@WEBHOST'** feature. This will replace your host url which is defined in <kbd>config.php</kbd>. If you need global url, you can use like this..
 
 Would produce: <a href="http://yourdomain.com/news/local/123" title="Base Url">Base Url</a>
 
 ```php
-echo $this->url->anchor('http://subdomain.@host/news/local/123');
+echo $this->url->anchor('http://subdomain.@WEBHOST/news/local/123');
 ```
 
 Would produce: <a href="http://subdomain.yourdomain.com/news/local/123" title="Base Url">Subdomain</a>

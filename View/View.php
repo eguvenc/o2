@@ -29,7 +29,7 @@ Class View
     public $object = array(); // Object type view variables
 
     /**
-     * Static variables ( @BASE, @HOST , @ASSETS )
+     * Static variables ( @BASE, @WEBHOST , @ASSETS )
      * 
      * @var array
      */
@@ -80,7 +80,7 @@ Class View
     {
         $this->variables = array(
             '@BASE' => rtrim($c['config']['url']['base'], '/'),
-            '@HOST' => rtrim($c['config']['url']['host'], '/'),
+            '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
             '@ASSETS' => rtrim($c['config']['url']['assets'], '/')
         );
         $this->c = $c;

@@ -50,7 +50,8 @@ Class Memcache implements HandlerInterface
     public function __construct($c, $serializer = null)
     {
         $serializer = null;
-        $this->params = $c->load('config')['cache']['memcache'];
+        $c['config']->load('cache');
+        $this->params = $c['config']['cache']['memcache'];
         $this->container = new ArrayContainer;
         
         if ( ! extension_loaded('memcache')) {

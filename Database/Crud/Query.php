@@ -59,11 +59,14 @@ Class Query
 
     /**
      * Constructor
-     * 
+     *
+     * @param object $c  container
      * @param object $db database object
      */
-    public function __construct($db)
+    public function __construct($c, $db)
     {
+        $c['config']->load('database');
+
         if ( ! is_object($db)) {
             throw new RunTimeException('Crud class requires database object.');
         }

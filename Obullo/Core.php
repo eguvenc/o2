@@ -63,28 +63,9 @@ function env($var, $default = '', $required = false)
         return $default;
     }
     if ( ! isset($_ENV[$var])) {
-        die('<b>Configuration error: </b>'.$var.' key not found in.env.'.ENV.'.php file array.');
+        die('<b>Configuration error: </b>'.$var.' key not found in .env.'.ENV.'.php file array.');
     }
     return $_ENV[$var];
-}
-
-/**
- * Include environment config file
- * 
- * @param string $file name
- * 
- * @return array
- */
-function config($file)
-{    
-    global $c;
-    ini_set('display_errors', 1);
-    $return = include ENV_PATH .$file;
-    if ($return == false) {
-        configurationError();
-    }
-    ini_set('display_errors', 0);
-    return $return;
 }
 
 /**

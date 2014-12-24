@@ -41,6 +41,8 @@ Class Connection
      */
     public function __construct($c, $params, $dsn = '')
     {
+        $c['config']->load('nosql');  // Load nosql configuration file
+
         $config = $c['config']['nosql']['mongo'][$params['db']];
         $dsn = (empty($dsn)) ? 'mongodb://'.$config['username'].':'.$config['password'].'@'.$config['host'].':'.$config['port'].'/'.$params['db'] : $dsn;
 

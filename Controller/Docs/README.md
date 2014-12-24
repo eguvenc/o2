@@ -169,7 +169,7 @@ Framework can be told to load a default controller when a URI is not present, as
 
 ```php
 <?php
-$c['router']->domain($c['config']['url']['host']);  // Root domain
+$c['router']->domain($c['config']['url']['webhost']);  // Root domain
 
 $c['router']->override('defaultController', 'welcome');  // This is the default controller, application call it as default
 $c['router']->override('pageNotFoundController', 'errors/page_not_found');  // You can redirect 404 errors to specify controller

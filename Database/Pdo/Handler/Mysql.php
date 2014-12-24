@@ -1,8 +1,9 @@
 <?php
 
-namespace Obullo\Database\Pdo;
+namespace Obullo\Database\Pdo\Handler;
 
-use PDO;
+use PDO,
+    Obullo\Database\Pdo\Adapter;
 
 /**
  * Pdo Mysql Driver
@@ -14,7 +15,7 @@ use PDO;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-Class Mysql extends Adapter
+Class Mysql extends Adapter implements HandlerInterface
 {
     /**
      * The character used for escaping
@@ -29,8 +30,10 @@ Class Mysql extends Adapter
      * @var string
      */
     public $likeEscapeStr = '';
+
     /**
      * Clause and character used for LIKE escape sequences - not used in MySQL
+     * 
      * @var string
      */
     public $likeEscapeChr = '';
@@ -41,9 +44,12 @@ Class Mysql extends Adapter
      * @param array $c      container
      * @param array $params connection parameters
      */
-    public function __construct($c, $params)
+    public function __construct($c, $params = array())
     {
+        $c['config']->load('database');
+
         parent::__construct($c, $c['config']['database']['key'][$params['db']]);
+
         $this->connect();
     }
 
@@ -326,4 +332,4 @@ Class Mysql extends Adapter
 // END Mysql Class
 /* End of file Mysql.php
 
-/* Location: .Obullo/Database/Pdo/Mysql.php */
+/* Location: .Obullo/Database/Pdo/Handler/Mysql.php */

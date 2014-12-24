@@ -49,7 +49,8 @@ Class File implements HandlerInterface
     public function __construct($c, $serializer = null)
     {
         $serializer = null;
-        $this->params = $c->load('config')['cache']['file'];
+        $c['config']->load('cache');
+        $this->params = $c['config']['cache']['file'];
         $this->container = new ArrayContainer;
         $this->filePath = APP . str_replace('/', DS, trim($this->params['cachePath'], '/')) . DS;
 

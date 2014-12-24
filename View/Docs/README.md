@@ -119,8 +119,8 @@ Some variables pre defined in view file and automatically replaced when you use 
 </tr>
 
 <tr>
-<td>@HOST</td>
-<td><b>echo $this->config['url']['host'];</b></td>
+<td>@WEBHOST</td>
+<td><b>echo $this->config['url']['webhost'];</b></td>
 <td>Root domain "example.com" ( without http://www. ) or "localhost"</td>
 </tr>
 

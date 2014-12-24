@@ -44,7 +44,9 @@ Class Connection
     public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['cache']['default']['provider'];
+        $this->c['config']->load('cache');  // Load cache configuration file
+
+        $this->provider = empty($params['provider']) ? $c['config']['cache']['default']['provider'] : $params['provider'];
         $this->params = $params;
     }
 
@@ -55,7 +57,9 @@ Class Connection
      */
     public function connect()
     {
-        $Class = '\\Obullo\Cache\Handler\\'.ucfirst($this->provider);
+        $handlers = $this->c['config']['cache']['handlers'];
+
+        $Class = $handlers[$this->provider];
         return new $Class($this->c, $this->params['serializer']);
     }
 

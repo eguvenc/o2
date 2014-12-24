@@ -166,7 +166,7 @@ Class Router
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
-        if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['host']) === false) {
+        if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['webhost']) === false) {
             $c->load('response')->showError('Your host configuration is not correct in the main config file.');
         }
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
@@ -351,7 +351,7 @@ Class Router
         if ($this->isSubDomain($this->DOMAIN)) {
             $this->routes[$this->DOMAIN][] = array(
                 'group' => $group['name'],
-                'sub.domain' => is_object($group['domain']) ? $group['domain']->attributes()->regex : $group['domain'],
+                'sub.domain' => isset($group['domain']['regex']) ? $group['domain']['regex'] : $group['domain'],
                 'when' => $methods, 
                 'match' => $match,
                 'rewrite' => $rewrite,
@@ -689,7 +689,7 @@ Class Router
     public function detectDomain(array $options = array())
     {
         $domain = (isset($options['domain'])) ? $options['domain'] : '*'; 
-        $domain = is_object($domain) ? $domain->attributes()->regex : $domain;
+        $domain = isset($domain['regex']) ? $domain['regex'] : $domain;
         $match = false;
 
         if ($domain != '*' AND $match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']

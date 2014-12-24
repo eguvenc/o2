@@ -65,7 +65,7 @@ Class Adapter
             $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
         }
         $this->config = $c->load('config');
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('return service/logger');
     }
 
     /**

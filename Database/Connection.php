@@ -44,7 +44,9 @@ Class Connection
     public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['database']['default']['provider'];
+        $this->c['config']->load('database');
+
+        $this->provider = empty($params['provider']) ? $c['config']['database']['default']['provider'] : $params['provider'];
         $this->params = $params;
     }
 
@@ -55,8 +57,10 @@ Class Connection
      */
     public function connect()
     {
-        $class = '\\Obullo\Database\Pdo\\'.ucfirst($this->provider);
-        return new $class($this->c, $this->params);
+        $handlers = $this->c['config']['database']['handlers'];
+
+        $Class = $handlers[$this->provider];
+        return new $Class($this->c, $this->params);
     }
 
 }

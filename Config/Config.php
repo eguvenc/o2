@@ -20,11 +20,11 @@ use ArrayAccess,
 Class Config implements ArrayAccess
 {
     /**
-     * SimpleXmlElement Object
+     * Env file array
      * 
-     * @var object
+     * @var array
      */
-    public $xml;
+    public $env;
 
     /**
      * Configuration container
@@ -32,13 +32,6 @@ Class Config implements ArrayAccess
      * @var array
      */
     public $array = array();
-
-    /**
-     * Xml file fullpath
-     * 
-     * @var string
-     */
-    public $xmlFile;
 
     /**
      * A cache of whether file is loaded.
@@ -64,15 +57,13 @@ Class Config implements ArrayAccess
     public function __construct($c)
     {
         $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
-        $this->xmlFile = $this->envPath .'config.xml';
+        $this->file = $this->envPath .'config.env';
 
         ini_set('display_errors', 1);
-        $this->xml = simplexml_load_file($this->xmlFile);   // Load xml file
-        if ($this->xml == false) {
-            configurationError();
-        }
-        if (isset($this->xml->env->attributes()->file)) {   // Load environment variables if exists
-            $this->loadEnv($this->xml->env->attributes()->file);
+        $this->env = include $this->file;
+
+        if (isset($this->env['environment']['file'])) {   // Load environment variables if exists
+            $this->loadEnv($this->env['environment']['file']);
         }
         $this->array = include $this->envPath .'config.php';  // Bind current environment config variables 
         ini_set('display_errors', 0);
@@ -95,7 +86,7 @@ Class Config implements ArrayAccess
             $file = $envFile;
         }
         if (in_array($file, $this->loaded, true)) {
-            return $this->array[$file];
+            return $this->array[$filename];
         }
         ini_set('display_errors', 1);
         $config = include $file;
@@ -111,11 +102,12 @@ Class Config implements ArrayAccess
                 )
             );
         }
-        $this->array[$file] = $config;
+        $this->array[$filename] = $config;
         $this->loaded[] = $file;
         unset($config);
-        return $this->array[$file];
+        return $this->array[$filename];
     }
+
 
     /**
      * Load env config variables file
@@ -127,7 +119,7 @@ Class Config implements ArrayAccess
     public function loadEnv($file)
     {
         $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
-        if ( ! $envVariables = include ROOT .$filename) {
+        if ( ! $envVariables = include ROOT .'.'.$filename) {
             configurationError();
         }
         foreach ($envVariables as $key => $value) {
@@ -135,16 +127,6 @@ Class Config implements ArrayAccess
             $_SERVER[$key] = $value;
             putenv("{$key}={$value}");   
         }
-    }
-
-    /**
-     * Returns to simple xml element object
-     * 
-     * @return object
-     */
-    public function xml()
-    {
-        return $this->xml;
     }
 
     /**
@@ -156,25 +138,25 @@ Class Config implements ArrayAccess
      */
     public function save($xmlOutput = null)
     {
-        $xml = empty($xmlOutput) ? $this->xml->asXML() : $xmlOutput;
+        // $xml = empty($xmlOutput) ? $this->xml->asXML() : $xmlOutput;
 
-        if ( ! is_writable($this->xmlFile)) {
-            throw new LogicException(
-                sprintf(
-                    'Your application config/env/%s/config.xml file is not writable.', 
-                    ENV
-                )
-            );
-        }
-        $dom = new DOMDocument('1.0');
-        $dom->preserveWhiteSpace = true;
-        $dom->formatOutput = false;
-        $dom->loadXML($xml);
-        if ( ! $dom) {
-            throw new RuntimeException('Error while parsing the config.xml document.');
-        }
-        $dom = simplexml_import_dom($dom);
-        $dom->saveXML($this->xmlFile);
+        // if ( ! is_writable($this->file)) {
+        //     throw new LogicException(
+        //         sprintf(
+        //             'Your application config/env/%s/config.xml file is not writable.', 
+        //             ENV
+        //         )
+        //     );
+        // }
+        // $dom = new DOMDocument('1.0');
+        // $dom->preserveWhiteSpace = true;
+        // $dom->formatOutput = false;
+        // $dom->loadXML($xml);
+        // if ( ! $dom) {
+        //     throw new RuntimeException('Error while parsing the config.xml document.');
+        // }
+        // $dom = simplexml_import_dom($dom);
+        // $dom->saveXML($this->file);
     }
 
     /**
@@ -186,7 +168,7 @@ Class Config implements ArrayAccess
      * @return void
      */
     public function offsetSet($key, $value)
-    {   
+    {
         $this->array[$key] = $value;
     }
 

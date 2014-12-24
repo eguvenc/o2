@@ -72,7 +72,9 @@ Class Memcached implements HandlerInterface
      */
     public function __construct($c, $serializer = null)
     {
-        $this->params = $c->load('config')['cache']['memcached'];
+        $c['config']->load('cache');
+        $this->params = $c['config']['cache']['memcached'];
+
         $this->container = new ArrayContainer;
 
         if ( ! extension_loaded('memcached')) {

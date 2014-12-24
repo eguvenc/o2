@@ -15,6 +15,13 @@ namespace Obullo\Flash;
 Class Session
 {
     /**
+     * Session
+     * 
+     * @var object
+     */
+    public $session;
+
+    /**
      * Logger
      * 
      * @var object
@@ -35,7 +42,7 @@ Class Session
      */
     public function __construct($c) 
     {
-        $this->sess = $c->load('session');
+        $this->session = $c->load('session');
         $this->logger = $c->load('service/logger');
         $this->flash = $c->load('config')->load('flash');
 
@@ -158,7 +165,7 @@ Class Session
         if (is_array($newData) AND sizeof($newData) > 0) {
             foreach ($newData as $key => $val) {
                 $flashdataKey = $this->flashdataKey . ':new:' . $key;
-                $this->sess->set($flashdataKey, $val);
+                $this->session->set($flashdataKey, $val);
             }
         }
     }
@@ -175,7 +182,7 @@ Class Session
     public function get($key, $prefix = '', $suffix = '')
     {
         $flashdataKey = $this->flashdataKey . ':old:' . $key;
-        $value = $this->sess->get($flashdataKey);
+        $value = $this->session->get($flashdataKey);
         if ($value == '') {
             $prefix = '';
             $suffix = '';
@@ -193,9 +200,9 @@ Class Session
     public function keep($key)
     {
         $old_flashdataKey = $this->flashdataKey . ':old:' . $key;
-        $value = $this->sess->get($old_flashdataKey);
+        $value = $this->session->get($old_flashdataKey);
         $new_flashdataKey = $this->flashdataKey . ':new:' . $key;
-        $this->sess->set($new_flashdataKey, $value);
+        $this->session->set($new_flashdataKey, $value);
     }
 
     /**
@@ -211,8 +218,8 @@ Class Session
             $parts = explode(':new:', $name);
             if (is_array($parts) AND count($parts) === 2) {
                 $newName = $this->flashdataKey . ':old:' . $parts[1];
-                $this->sess->set($newName, $value);
-                $this->sess->remove($name);
+                $this->session->set($newName, $value);
+                $this->session->remove($name);
             }
         }
     }
@@ -228,7 +235,7 @@ Class Session
         foreach ($session as $key => $value) {
             $value = null;
             if (strpos($key, ':old:')) {
-                $this->sess->remove($key);
+                $this->session->remove($key);
             }
         }
     }

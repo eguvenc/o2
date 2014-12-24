@@ -75,28 +75,6 @@ echo $this->config['database']['db']['hostname'];  // gives  "localhost"
 
 Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retrieve. For example, to fetch your language choice you'll do this:
 
-### File Relationships 
-
-If you want, you can give relationship to config file using <b>config('filename.php')</b> function. This will add your <b>file</b> contents to main configuration array.
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Database
-|--------------------------------------------------------------------------
-*/
-'database' => config('database.php'),
-
-/* End of file config.php */
-/* Location: .app/env/local/config.php */
-```
-
-### Environment Configuration ( environments.php )
-
-You can configure environments in <kbd>app/config/env/environments.php</kbd> file.
-
-
 ```php
 <?php
 /*
@@ -333,15 +311,15 @@ Xml variable returns to <b>SimpleXmlElement object</b>.
 
 ```php
 <?php
-echo $this->config->xml()->route->site->attributes()->label; // gives "Web Server"
+echo $this->config->reader->route->site->attributes()->label; // gives "Web Server"
 ```
 
 #### Saving Xml Variables
 
 ```php
 <?php
-$this->config->xml()->route->site->attributes()->label = 'Test Server';
-$this->config->xml()->route->site->attributes()->maintenance = 'down';
+$this->config->file('writer')->route->site->label = 'Test Server';
+$this->config->writer->route->site->maintenance = 'down';
 $this->config->save();
 ```
 

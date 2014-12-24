@@ -67,7 +67,10 @@ Class Mailer implements ServiceInterface
     public function register($c)
     {
         $c['mailer'] = function () use ($c) {
-            return new Mandrill($c, $c['config']['mail']);
+            $mailer = new Mandrill($c, $c['config']->load('mail'));
+            $mailer->from($c['config']['mail']['send']['from']['address']);
+            return $mailer;
+
         };
     }
 }
@@ -85,7 +88,7 @@ Example code
 <?php
 $c->load('service/mailer');
 
-$this->mailer->from('your@example.com', 'Your Name');
+// $this->mailer->from('your@example.com', 'Your Name');
 $this->mailer->to('someone@example.com'); 
 $this->mailer->cc('another@another-example.com'); 
 $this->mailer->bcc('them@their-example.com'); 

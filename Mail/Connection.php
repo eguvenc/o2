@@ -46,8 +46,10 @@ Class Connection
     public function __construct($c, $params)
     {
         $this->c = $c;
+        $this->c['config']->load('mail');
+
         $this->handlers = $c['config']['mail']['handlers'];
-        $this->provider = isset($params['provider']) ? $params['provider'] : $c['config']['mail']['default']['provider'];
+        $this->provider = empty($params['provider']) ? $c['config']['mail']['default']['provider'] : $params['provider'];
         $this->params = $params;
     }
 

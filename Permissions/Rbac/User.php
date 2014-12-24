@@ -3,7 +3,8 @@
 namespace Obullo\Permissions\Rbac;
 
 use Closure,
-    RuntimeException;
+    RuntimeException,
+    Obullo\Utils\ArrayUtils;
 
 /**
  * User Roles
@@ -134,7 +135,6 @@ Class User
         $this->cache = $c->load('return service/cache');
         
         $this->c['config']->load('constants/rbac');  // load rbac constants
-        
         $columns = $config['database']['columns'];
 
         if (count($columns) > 0) {
@@ -192,8 +192,7 @@ Class User
         if ( ! is_array($permissions)) {
             return false;
         }
-        $element = $this->c->load('return utils/element');
-        $isAssoc = $element->isAssoc($permissions);
+        $isAssoc = ArrayUtils::isAssoc($permissions);
 
         foreach ($permissions as $val) {
             $permValue = ($isAssoc) ? $val[$this->columnPermText] : $val;
