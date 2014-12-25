@@ -2,7 +2,8 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericIdentity,
+    Obullo\Utils\Random;
 
 /**
  * Abstract Adapter
@@ -114,17 +115,16 @@ abstract class AbstractAdapter
      */
     public function getRememberToken()
     {
-        $token = $this->c->load('return utils/random')->generate('alnum', 32);
+        $token = Random::generate('alnum', 32);
         $cookie = $this->config['login']['rememberMe']['cookie'];
 
-        $this->c->load('cookie')->set(
-            $cookie['name'],
-            $token,
-            $cookie['expire'],
-            $this->c['config']['cookie']['domain'],        //  Get domain from global config
-            $cookie['path'],
-            $cookie['prefix'],
-            $cookie['secure'],
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            $token, 
+            time() + $cookie['expire'], 
+            $cookie['path'], 
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
             $cookie['httpOnly']
         );
         return $token;

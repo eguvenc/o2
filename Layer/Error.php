@@ -56,7 +56,7 @@ Class Error
      */
     public function get404Error($response)
     {
-        if ($this->c->load('request')->isXmlHttp()) {  // Is ajax request ?
+        if ($this->c->load('request')->isAjax()) {  // Is ajax request ?
             return array(
                 'success' => 0,
                 'message' => $this->c->load('translator')['e_404'],
@@ -94,7 +94,7 @@ Class Error
             static::ERROR_FOOTER
         );
 
-        if ($this->c->load('request')->isXmlHttp()) {
+        if ($this->c->load('request')->isAjax()) {
             return array(
                 'success' => 0,
                 'message' => $error,

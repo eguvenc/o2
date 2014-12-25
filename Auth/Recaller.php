@@ -80,11 +80,15 @@ Class Recaller
     public function removeCookie()
     {
         $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
-        $this->c->load('cookie')->delete(
-            $cookie['name'],
-            $this->c['config']['cookie']['domain'], //  Get domain from global config
+        
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            null,
+            -1,
             $cookie['path'],
-            $cookie['prefix']
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
         );
     }
 

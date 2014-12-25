@@ -69,9 +69,7 @@ Class Activity
         $this->session = $this->c->load('return session');
         $this->request = $this->c->load('return request');
 
-        // $this->attributes = array(
-        //     'date' => time()
-        // );
+        $this->attributes = $this->user->identity->__activity;
         $this->identifier = $this->user->identity->getIdentifier();
     }
 

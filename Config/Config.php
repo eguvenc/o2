@@ -3,9 +3,9 @@
 namespace Obullo\Config;
 
 use ArrayAccess,
-    DOMDocument,
     LogicException,
-    RuntimeException;
+    RuntimeException,
+    Obullo\Config\Writer\PhpArray;
 
 /**
  * Config Class
@@ -34,18 +34,18 @@ Class Config implements ArrayAccess
     public $array = array();
 
     /**
+     * Config folder full path with current environment
+     * 
+     * @var string
+     */
+    protected $path;
+
+    /**
      * A cache of whether file is loaded.
      * 
      * @var array
      */
     protected $loaded = array();
-
-    /**
-     * Config folder full path with current environment
-     * 
-     * @var string
-     */
-    protected $envPath;
 
     /**
      * Constructor
@@ -56,8 +56,8 @@ Class Config implements ArrayAccess
      */
     public function __construct($c)
     {
-        $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
-        $this->file = $this->envPath .'config.env';
+        $this->path = APP .'config'. DS . 'env'. DS . ENV . DS;
+        $this->file = $this->path .'config.env';
 
         ini_set('display_errors', 1);
         $this->env = include $this->file;
@@ -65,7 +65,7 @@ Class Config implements ArrayAccess
         if (isset($this->env['environment']['file'])) {   // Load environment variables if exists
             $this->loadEnv($this->env['environment']['file']);
         }
-        $this->array = include $this->envPath .'config.php';  // Bind current environment config variables 
+        $this->array = include $this->path .'config.php';  // Bind current environment config variables 
         ini_set('display_errors', 0);
     }
 
@@ -80,7 +80,7 @@ Class Config implements ArrayAccess
     {
         global $c;
         $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . '.php';
-        $envFile = $this->envPath . str_replace('/', DS, $filename) . '.php';
+        $envFile = $this->path . str_replace('/', DS, $filename) . '.php';
 
         if (file_exists($envFile)) {
             $file = $envFile;
@@ -130,33 +130,15 @@ Class Config implements ArrayAccess
     }
 
     /**
-     * Save xml file
-     *
-     * @param string $xmlOutput xml file string
+     * Save to config.env file
      * 
      * @return void
      */
-    public function save($xmlOutput = null)
+    public function write()
     {
-        // $xml = empty($xmlOutput) ? $this->xml->asXML() : $xmlOutput;
-
-        // if ( ! is_writable($this->file)) {
-        //     throw new LogicException(
-        //         sprintf(
-        //             'Your application config/env/%s/config.xml file is not writable.', 
-        //             ENV
-        //         )
-        //     );
-        // }
-        // $dom = new DOMDocument('1.0');
-        // $dom->preserveWhiteSpace = true;
-        // $dom->formatOutput = false;
-        // $dom->loadXML($xml);
-        // if ( ! $dom) {
-        //     throw new RuntimeException('Error while parsing the config.xml document.');
-        // }
-        // $dom = simplexml_import_dom($dom);
-        // $dom->saveXML($this->file);
+        $writer = new PhpArray;
+        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/env/".ENV."/config.env */");
+        $writer->toFile($this->file, $this->env);
     }
 
     /**

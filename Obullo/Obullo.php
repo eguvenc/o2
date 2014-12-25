@@ -34,7 +34,7 @@ if ( ! file_exists($controller)) {
 }
 require $controller;  // Include the controller file.
 
-$className = $router->fetchClass();
+$className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
 
 if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);

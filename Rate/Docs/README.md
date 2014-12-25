@@ -21,7 +21,7 @@ Rate limiter class uses service cache object like a database. The following pict
 
 ```php
 <?php
-$c->load('rate/limiter as limiter');
+$this->c->load('rate/limiter as limiter');
 $this->limiter->load($identifier, $params = array());
 $this->limiter->identifier->method();
 ```
@@ -66,7 +66,7 @@ Aşağıda <b>ip</b> tanımlayıcısına ait örnek bir kullanım gösteriliyor.
 
 ```php
 <?php
-$c->load('rate/limiter as limiter');
+$this->c->load('rate/limiter as limiter');
 
 $this->limiter->load('ip');                                     // load ip configuration
 $this->limiter->ip->channel('login');                           // create a login channel
@@ -138,7 +138,7 @@ return array(
 
 ```php
 <?php
-$c->load('rate/limiter as limiter');
+$this->c->load('rate/limiter as limiter');
 
 $this->limiter->load('username');        
 $this->limiter->username->channel('login');

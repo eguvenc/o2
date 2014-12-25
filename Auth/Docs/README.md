@@ -533,6 +533,27 @@ Regenerates rememberMe token in <b>database</b>.
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
 
 
+### Identity Set Methods
+
+------
+
+### $this->user->identity->variable = 'value'
+
+Set a value to identity array.
+
+### unset($this->user->identity->variable)
+
+Remove value from identity array.
+
+### $this->user->identity->setRoles(int|string|array $roles);
+
+Set user roles to identity data.
+
+### $this->user->identity->setArray(array $attributes)
+
+Reset identity attributes with new values.
+
+
 ### Identity Get Methods
 
 ------
@@ -574,28 +595,15 @@ Returns to security token.
 Gets role(s) of the user.
 
 
-### Identity Set Methods
-
-### $this->user->identity->setRoles(int|string|array $roles);
-
-Set user roles to identity data.
-
-### $this->user->identity->setArray(array $attributes)
-
-Reset identity attributes with new values.
-
-### $this->user->identity->variable = 'value'
-
-Set a value to identity array.
-
-### unset($this->user->identity->variable)
-
-Remove value from identity array.
+**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/UserIdentity</kbd> class.
 
 
 ### Activity Reference
 
 ------
+
+
+Activity data contains online user activity data: lastActivity time or and any analytics data you want to add.
 
 ```php
 <?php

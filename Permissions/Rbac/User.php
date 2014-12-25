@@ -3,8 +3,7 @@
 namespace Obullo\Permissions\Rbac;
 
 use Closure,
-    RuntimeException,
-    Obullo\Utils\ArrayUtils;
+    RuntimeException;
 
 /**
  * User Roles
@@ -192,7 +191,7 @@ Class User
         if ( ! is_array($permissions)) {
             return false;
         }
-        $isAssoc = ArrayUtils::isAssoc($permissions);
+        $isAssoc = array_keys($permissions) !== range(0, count($permissions) - 1);
 
         foreach ($permissions as $val) {
             $permValue = ($isAssoc) ? $val[$this->columnPermText] : $val;

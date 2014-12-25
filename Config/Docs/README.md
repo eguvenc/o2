@@ -123,7 +123,7 @@ return array(
 /* Location: .app/config/env/environments.php */
 ```
 
-When the application run <b>$app->detectEnvironment();</b> method detect your current environment using your configuration array then it assign environment to <b>ENV</b> constant.
+When the application run <b>$c->detectEnvironment();</b> method detect your current environment using your configuration array then it assign environment to <b>ENV</b> constant.
 
 ```php
 <?php
@@ -132,7 +132,7 @@ When the application run <b>$app->detectEnvironment();</b> method detect your cu
 | Detect current environment
 |--------------------------------------------------------------------------
 */
-define('ENV', $c['app']->detectEnvironment());
+define('ENV', $c->detectEnvironment());
 
 // END Core.php File
 /* End of file Core.php
@@ -163,37 +163,56 @@ If you want to create new environment first create a new folder under the config
         - test
 ```
 
-## Xml Config File
+## Config.env File
 
-Xml config file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
+Config.env file keeps configuration data of your application with different environments. Also it helps to keep readable and writeable items. It is located in your <kbd>app/config</kbd> folder.
 
-```xml
+```php
+<?php
 
-<?xml version="1.0"?>
-<root>
-    <route>
-        <all maintenance="up" label="All Application" regex=".*.example.com"/>
-        <site maintenance="up" label="Web Server" regex="^example.com$|^www.example.com$"/>
-        <test maintenance="up" label="Sports" regex="sports\d+.example.com"/>
-        <support maintenance="up" label="Support" regex="support.example.com"/>
-    </route>
-    <service>
-        <all maintenance="down" label="All Services"/>
-        <queue maintenance="up" label="Queue Service"/>
-    </service>
-    <env file=".env.local.php">
-        <service>
-            <logger class="Log/Env/Local" cli="Log/Env/Cli" />
-        </service>
-        <provider></provider>
-    </env>
-</root>
-<!--
-END xml config File
-End of file config.xml
+return array(
+    
+    'environment' => array(
+        'file' => 'env.local.php',
+        'service' => array(
+            'logger' => array(
+                'cli' => 'Service/Log/Env/Cli',
+                'http' => 'Service/Log/Env/Local',
+            ),
+        ),
+    ),
+    'web' => array(
+        'route' => array(
+            'all' => array(
+                'maintenance' => 'up',
+                'label' => 'All Application',
+            ),
+            'site' => array(
+                'maintenance' => 'up',
+                'label' => 'Web Server',
+                'regex' => '^framework$',
+            ),
+            'support' => array(
+                'maintenance' => 'down',
+                'label' => 'Support',
+                'regex' => 'support.framework',
+            ),
+        ),
+    ),
+    'service' => array(
+        'all' => array(
+            'maintenance' => 'down',
+            'label' => 'All Services',
+        ),
+        'queue' => array(
+            'maintenance' => 'up',
+            'label' => 'Queue Service',
+        ),
+    ),
+);
 
-Location: .app/config/env/local/config.xml
--->
+/* End of file config.env  */
+/* Location: .app/config/config.env */
 ```
 
 Config xml file load <b>.env.local.php</b> variables from your project root.
@@ -359,21 +378,17 @@ Gets config variable from array config.
 
 Sets config variable to array config.
 
-#### $this->config->xml()->variable->item;
+#### $this->config->env['group']['item'];
 
-Gets config variable from <b>app/config/config.xml</b> file.
+Gets config variable from <b>app/config/$env/config.env</b> file.
 
-#### $this->config->xml()->variable->item = 'value';
+#### $this->config->env['group']['item'] = 'value';
 
-Sets config variable to xml config.
+Sets env variable to config.env.
 
-#### $this->config->xml()->variable->attributes()->item = 'value';
+#### $this->config->write();
 
-Updates attributes value.
-
-#### $this->config->save();
-
-Save valid xml output to xml configuration file.
+Save current env array to config.env configuration file.
 
 
 ### Environment Functions

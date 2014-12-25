@@ -655,6 +655,34 @@ Class Router
     }
 
     /**
+     * Returns php namespace of the current route
+     * 
+     * @return string
+     */
+    public function fetchNamespace()
+    {
+        $namespace = self::ucwordsUnderscore($this->fetchTopDirectory()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
+        $namespace = trim($namespace, '\\');
+        return str_replace(' ', '_', $namespace);
+    }
+
+    /**
+     * Replace underscore to spaces to use ucwords
+     * 
+     * before : widgets\tutorials a  
+     * agter  : Widgets\Tutorials_A
+     * 
+     * @param string $string namespace part
+     * 
+     * @return void
+     */
+    protected static function ucwordsUnderscore($string)
+    {
+        $str = str_replace('_', ' ', $string);
+        return ucwords($str);
+    }
+
+    /**
      * Check domain has sub name
      * 
      * @param string $domain name

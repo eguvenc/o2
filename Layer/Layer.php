@@ -44,8 +44,6 @@ use stdClass,
  */
 Class Layer
 {
-    public static $app;
-
     const CACHE_KEY = 'Layer:';
     const LOG_HEADER = '<br /><div style="float:left;">';
     const LOG_FOOTER = '</div><div style="clear:both;"></div>';
@@ -240,7 +238,7 @@ Class Layer
     {
         // Warning ! 
         global $c; // This is required for LAYERS "$c" scope if we remove it controller function use ($c) does not works.
-        static $storage = array();  // Store used "$app " variables
+        static $storage = array();  // Store used controllers
 
         $KEY = $this->id();    // Get layer id
         $start = microtime(true);   // Start query timer 
@@ -264,7 +262,7 @@ Class Layer
 
         $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$className;
         $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$className. '.php';
-                                                    
+
                                                   // Check class is exists in the storage
         if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
             $class = $storage[$this->layerUri];     // Get stored class.
@@ -272,12 +270,12 @@ Class Layer
             include $controller;        // Load the controller file.
         }
 
+        $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
         $class = new $className;  // Call the controller
 
         if (method_exists($class, 'load')) {
             $class->load();
         }
-
         if ( ! method_exists($class, 'index')) {  // Check method exist or not
             $this->reset();
             return $this->c['response']->show404($this->layerUri, false);
