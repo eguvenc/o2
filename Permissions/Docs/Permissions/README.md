@@ -11,7 +11,7 @@ The Rbac Permissions class execute add, update, delete, move methods on permissi
 
 ```php
 <?php
-$c->load('service/rbac');
+$c->load('service/rbac', $c->load('return service/provider/db'));
 $this->rbac->permissions->method();
 ```
 

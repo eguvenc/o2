@@ -31,6 +31,13 @@ Class Connection
     public $connection = null;
 
     /**
+     * Database name of mongo
+     * 
+     * @var string
+     */
+    protected $db;
+
+    /**
      * Constructor
      * 
      * Automatically check if the Mongo PECL extension has been installed / enabled.
@@ -45,6 +52,8 @@ Class Connection
 
         $config = $c['config']['nosql']['mongo'][$params['db']];
         $dsn = (empty($dsn)) ? 'mongodb://'.$config['username'].':'.$config['password'].'@'.$config['host'].':'.$config['port'].'/'.$params['db'] : $dsn;
+        
+        $this->db = $params['db'];
 
         if ( ! class_exists('MongoClient', false)) {
             throw new RuntimeException('The MongoClient extension has not been installed or enabled.');
@@ -64,6 +73,16 @@ Class Connection
             throw new RuntimeException('Mongo connection error.');
         }
         return $this->connection;
+    }
+
+    /**
+     * Returns to database name provider
+     * 
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->db;
     }
 
     /**

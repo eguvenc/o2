@@ -1,6 +1,8 @@
 
 ## Database
 
+------
+
 <ul>
 <li><a href="#requirements">Server Requirements</a></li>
 <li><a href="#connection">Connection</a><ul>
@@ -44,20 +46,88 @@ Look at for more details http://www.php.net/manual/en/pdo.installation.php
 
 ### Choosing Database Driver <a name='choosing-driver'></a>
 
-Open <kbd>services.php</kbd> in your root and set your <u>Database Driver</u> like below the example example ( Default Mysql ).
+Open <kbd>Classes/Service/Provider/Db.php</kbd> and set your <u>Database Driver</u> like below the example example ( Default Mysql ).
+
+```php
+<?php
+
+namespace Service\Provider;
+
+use Obullo\Database\Connection;
+
+/**
+ * Db Provider
+ *
+ * @category  Provider
+ * @package   Db
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/docs/providers
+ */
+Class Db implements ProviderInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {
+        $c['provider:db'] = function ($params = array('db' => 'db', 'provider' => 'mysql')) use ($c) {
+            $connection = new Connection($c, $params);
+            return $connection->connect();
+        };
+    }
+}
+
+// END Db class
+
+/* End of file Db.php */
+/* Location: .classes/Service/Provider/Db.php */
+```
+
+### Using Database Provider
+
+In your controller
+
+```php
+<?php
+$this->c->load('service/provider/db as db');
+
+$this->db->query('...');
+```
+
+In your classes
+
+```php
+<?php
+$this->db = $this->c->load('return service/provider/db as db');
+
+$this->db->query('...');
+```
+
+Creating new instance
+
+```php
+<?php
+$this->c->load('new service/provider/db as anydb', array('db' => 'anydb'));
+
+$this->anydb->query('...');
+```
+
+Using different driver
 
 
 ```php
 <?php
-/*
-|--------------------------------------------------------------------------
-| Db
-|--------------------------------------------------------------------------
-*/
-$c['db'] = function () use ($c) {
-    return new Obullo\Database\Pdo\Mysql($c->load('config')['database']);
-};
+$this->c->load('return new service/provider/db as anydb', array('db' => 'anydb', 'provider' => 'pgsql'));
+
+$this->anydb->query('...');
 ```
+
 
 To set your database configuration edit your <kbd>app/config/env/local/config.php</kbd>.
 
@@ -67,18 +137,42 @@ To set your database configuration edit your <kbd>app/config/env/local/config.ph
 |--------------------------------------------------------------------------
 | Database
 |--------------------------------------------------------------------------
+| Configuration file
+|
 */
-'database' => array(
-        'host' => 'localhost',
-        'username' => 'root',
-        'password' => '123456',
-        'database' => 'demo_blog',
-        'prefix'   => '',
-        'port'     => '',
-        'char_set' => 'utf8',
-        'dsn'      => '',
-        'options'  => array() // array( PDO::ATTR_PERSISTENT => false ); 
-),
+return array(
+    
+    'default' => array(
+        'provider' => 'mysql',
+    ),
+
+    'handlers' => array(
+        'mysql' => '\\Obullo\Database\Pdo\Handler\Mysql',
+        'pgsql' => '\\Obullo\Database\Pdo\Handler\Pgsql',
+        'yourhandler' => '\\Obullo\Database\Pdo\Handler\YourHandler',
+    ),
+
+    'key' => array(
+
+        'db' => array(
+            'host' => 'localhost',
+            'username' => env('MYSQL_USERNAME'),
+            'password' => env('MYSQL_PASSWORD', '', false),
+            'database' => 'test',
+            'port'     => '',
+            'charset'  => 'utf8',
+            'autoinit' => array('charset' => true, 'bufferedQuery' => true),
+            'dsn'      => '',
+            'pdo'      => array(
+                'options'  => array()
+            ),
+        ),
+    )
+
+);
+
+/* End of file database.php */
+/* Location: .app/env/local/database.php */
 ```
 
 ### Supported Database Types <a name='supported-types'></a>
@@ -156,48 +250,32 @@ If you want to add a second or third database connection <strong>copy/paste</str
 ```php
 <?php
 
-'database' => array(
-    'host'     => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    'database' => 'example_db',
-    'prefix'   => '',
-    'port'     => '',
-    'charset'  => 'utf8',
-    'dsn'      => '',
-    'options'  => array()
-    ),
-),
-'dbAny' => array(            // another database configuration
-    'host'     => 'localhost',
-    'username' => 'root',
-    'password' => '',
-    ...
-    ),
-),
-```
+    'key' => array(
 
-Then you need add it to <kbd>services.php</kbd>.
+        'db' => array(
+            'host' => 'localhost',
+            'username' => env('MYSQL_USERNAME'),
+            'password' => env('MYSQL_PASSWORD', '', false),
+            'database' => 'test',
+            'port'     => '',
+            'charset'  => 'utf8',
+            'autoinit' => array('charset' => true, 'bufferedQuery' => true),
+            'dsn'      => '',
+            'pdo'      => array(
+                'options'  => array()
+            ),
+        ),
 
-```php
-<?php
+        'dbSecond' => array(            // another database configuration
+            'host'     => 'localhost',
+            'username' => env('MYSQL_USERNAME'),
+            'password' => env('MYSQL_PASSWORD', '', false),,
+            ...
+            ),
+        ),
 
-/*
-|--------------------------------------------------------------------------
-| Db2
-|--------------------------------------------------------------------------
-*/
-$c['dbAny'] = function () use ($c) {
-    return new Obullo\Database\Pdo\Mysql($c->load('config')['dbAny']);
-};
-```
+    )
 
-Finally you can run it in the controller like below.
-
-```php
-<?php
-
-$this->dbAny->query('...');
 ```
 
 If you want to add <strong>dsn</strong> connection you don't need to provide some other parameters like this..
@@ -220,6 +298,7 @@ If you want to add <strong>dsn</strong> connection you don't need to provide som
 * driver   - The database type. ie: mysql, postgres, odbc, etc. Must be specified in lower case.
 * port     - The database port number.
 * charset  - The character set used in communicating with the database.
+* autoinit - Whether to set charset or bufferedQuery option when connection established.
 * dsn - Data source name.If you want to use dsn, you will not need to supply other parameters.
 * options - Pdo set attribute options.
 
@@ -264,7 +343,7 @@ Class Welcome extends Controller
     public function load()
     {
         $this->c->load('view');
-        $this->c->load('service/provider/database as db');   // create a database connection
+        $this->c->load('service/provider/db as db');   // create a database connection
     }
 
     /**
@@ -274,15 +353,10 @@ Class Welcome extends Controller
      */
     public function index($t = false)
     {
-        $this->view->load(
-            'welcome',
-            function () {
-                $this->db->query('SELECT * FROM %s', array('users'));
-                $results = $this->db->resultArray();
+        $this->db->query('SELECT * FROM %s', array('users'));
+        $results = $this->db->resultArray();
 
-                print_r($results);
-            }
-        );
+        print_r($results);
     }
 }
 
@@ -400,7 +474,8 @@ Forexample
 ```php
 <?php
 
-$this->c->load('crud');
+$this->c->load('service/crud as db', $this->c->load('service/provider/db'));
+
 $this->db->where('userd_id', 5);
 $this->db->update('users');         // query : UPDATE `users` SET `user_id` = 5;
 
@@ -432,7 +507,7 @@ if ($this->db->count() > 0) {
 ```php
 <?php
 
-$this->c->load('crud');
+$this->c->load('service/crud as db', $this->c->load('service/provider/db'));
 
 $this->db->where('user_id', 5)->get('users');
 

@@ -11,7 +11,7 @@ The Rbac User object control the permission access, permission assignments and a
 
 ```php
 <?php
-$c->load('service/rbac');
+$c->load('service/rbac', $c->load('return service/provider/db'));
 $this->rbac->user->method();
 ```
 

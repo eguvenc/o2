@@ -89,21 +89,6 @@ Class App
     {
         return $this->envArray;
     }
-
-    /**
-     * Store an object into controller
-     * 
-     * @param string $key   object name
-     * @param object $value object value
-     *
-     * @return void
-     */
-    public function __set($key, $value)
-    {
-        if (class_exists('\Controller', false) AND is_object($value)) {
-            Controller::$instance->{$key} = $value;
-        }
-    }
 }
 
 // END App.php File

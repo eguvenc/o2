@@ -13,7 +13,7 @@ RBAC is a secure method of restricting account access to authorized users. This 
 
 ```php
 <?php
-$c->load('service/rbac');
+$c->load('service/rbac', $c->load('return service/provider/db'));
 $this->rbac->roles->method();
 ```
 
