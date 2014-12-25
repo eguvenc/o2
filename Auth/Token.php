@@ -86,7 +86,7 @@ Class Token
     public function getCookie()
     {
         $cookie = $this->config['security']['cookie'];
-        return $this->c->load('cookie')->get($cookie['name']);
+        return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
     }
 
     /**
@@ -99,14 +99,13 @@ Class Token
         $token = $this->generate();
         $cookie = $this->config['security']['cookie'];
 
-        $this->c->load('cookie')->set(
-            $cookie['name'],
-            $token,
-            $cookie['expire'],
-            $this->c['config']['cookie']['domain'],  //  Get domain from global config
-            $cookie['path'],
-            $cookie['prefix'],
-            $cookie['secure'],
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            $token, 
+            time() + $cookie['expire'], 
+            $cookie['path'], 
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
             $cookie['httpOnly']
         );
         return $token;

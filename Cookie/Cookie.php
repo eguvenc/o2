@@ -45,14 +45,14 @@ Class Cookie
      * @param string  $value    cookie value
      * @param integer $expire   expire
      * @param string  $domain   domain e.g. .example.com
-     * @param string  $path     /
+     * @param string  $path     null default "/"
      * @param string  $prefix   cookie prefix_
      * @param boolean $secure   whether to https enabled cookie
      * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
      *
      * @return void
      */
-    public function set($name = '', $value = '', $expire = 0, $domain = '', $path = '/', $prefix = '', $secure = false, $httpOnly = false)
+    public function set($name = '', $value = '', $expire = 0, $domain = '', $path = null, $prefix = '', $secure = false, $httpOnly = false)
     {
         if (is_array($name)) {
             foreach (array('value', 'expire', 'domain', 'path', 'prefix', 'name') as $item) {
@@ -67,7 +67,7 @@ Class Cookie
         if ($domain == '' AND $this->config['cookie']['domain'] != '') {
             $domain = $this->config['cookie']['domain'];
         }
-        if ($path == '/' AND $this->config['cookie']['path'] != '/') {
+        if ($path == null) {
             $path = $this->config['cookie']['path'];
         }
         if ($secure == false AND $this->config['cookie']['secure'] != false) {
