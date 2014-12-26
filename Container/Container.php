@@ -47,7 +47,7 @@ Class Container implements ArrayAccess
      */
     public function __construct() 
     {
-        $this->envArray = include ROOT .'app'. DS .'config'. DS .'env'. DS .'environments.php';
+        $this->envArray = include ROOT .'app'. DS .'config'. DS .'environments.php';
         $this->aliases = new SplObjectStorage;
     }
 
@@ -552,7 +552,7 @@ Class Container implements ArrayAccess
         if (in_array($hostname, $this->envArray['env']['local']['server']['hostname'])) {
             return self::$env = 'local';
         }
-        die('We could not detect your application environment, please correct your <b>app/config/env/environments.php</b> hostname array.');
+        die('We could not detect your application environment, please correct your <b>app/config/environments.php</b> hostname array.');
     }
 
 }

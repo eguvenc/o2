@@ -102,7 +102,7 @@ Class Redis implements StorageInterface
     public function __construct($c) 
     {
         $this->c = $c;
-        $this->config = $c['config']->load('auth');
+        $this->config = $c['config']->load('shared/auth');
         
         $this->cache = $c->load('service/cache');
         $this->logger = $c->load('service/logger');

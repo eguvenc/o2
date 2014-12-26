@@ -102,7 +102,7 @@ Class Identity extends UserIdentity
     {
         $user = null;
         $this->c = $c;
-        $this->config = $this->c['config']->load('auth');
+        $this->config = $this->c['config']->load('shared/auth');
         $this->storage = $this->c['auth.storage'];
 
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists

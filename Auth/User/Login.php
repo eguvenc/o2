@@ -57,7 +57,7 @@ Class Login
     {
         $user = null;
         $this->c = $c;
-        $this->config = $this->c['config']->load('auth');
+        $this->config = $this->c['config']->load('shared/auth');
         $this->storage = $this->c['auth.storage'];
         $this->adapter = $this->c['auth.adapter'];
     }

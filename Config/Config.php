@@ -56,8 +56,9 @@ Class Config implements ArrayAccess
      */
     public function __construct($c)
     {
-        $this->path = APP .'config'. DS . 'env'. DS . ENV . DS;
-        $this->file = $this->path .'config.env';
+        $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
+        $this->local = APP . 'config' . DS .'env'. DS . 'local'. DS;
+        $this->file  = $this->path .'config.env';
 
         ini_set('display_errors', 1);
         $this->env = include $this->file;
@@ -65,7 +66,12 @@ Class Config implements ArrayAccess
         if (isset($this->env['environment']['file'])) {   // Load environment variables if exists
             $this->loadEnv($this->env['environment']['file']);
         }
-        $this->array = include $this->path .'config.php';  // Bind current environment config variables 
+        $this->array = include $this->local .'config.php';  // Bind current environment config variables 
+
+        if (ENV != 'local') {
+            $config = include $this->path .'config.php';
+            $this->array = array_replace_recursive($this->array, $config);  // Merge config variables if env not local.
+        }
         ini_set('display_errors', 0);
     }
 
@@ -79,10 +85,13 @@ Class Config implements ArrayAccess
     public function load($filename = '')
     {
         global $c;
-        $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . '.php';
-        $envFile = $this->path . str_replace('/', DS, $filename) . '.php';
+        $fileUrl = str_replace('/', DS, $filename);
+        $envFile = $this->path . $fileUrl .'.php';
+        $file = $this->local . $fileUrl .'.php';  // Default config path
 
-        if (file_exists($envFile)) {
+        if (strpos($filename, 'shared/') === 0) {
+            $file = APP . 'config' . DS . $fileUrl .'.php';
+        } elseif (file_exists($envFile)) {
             $file = $envFile;
         }
         if (in_array($file, $this->loaded, true)) {
@@ -92,7 +101,7 @@ Class Config implements ArrayAccess
         $config = include $file;
         ini_set('display_errors', 0);
 
-        if (strpos($filename, 'constants/') === false  // Allow loading constant files
+        if (strpos($filename, 'constant/') === false  // Allow loading constant files
             AND ($config == false OR ! isset($config) OR ! is_array($config))
         ) {
             throw new LogicException(

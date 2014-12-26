@@ -36,7 +36,7 @@ Class UserService
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('auth');
+        $this->config = $c['config']->load('shared/auth');
 
         $this->register();
     }

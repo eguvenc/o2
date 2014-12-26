@@ -63,7 +63,7 @@ abstract class AbstractAdapter
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c->load('config')->load('auth');
+        $this->config = $c->load('config')->load('shared/auth');
     }
 
     /**

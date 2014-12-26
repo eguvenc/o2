@@ -11,16 +11,10 @@ Example commmand line parameters
 php task queue list
 ```
 
-Example commmand line argument
-
-```php
-php task queue list --delete
-```
-
 Example commmand line parameters and arguments
 
 ```php
-php task queue listen --channel=Logger --route=logger --delay=0 --memory=128
+php task queue listen --channel=Log --route=logger --delay=0 --memory=128 --debug=1
 ```
 
 > **Note:** Framework only accepts dashes **(--)** to parse arguments.
@@ -41,52 +35,36 @@ $this->parser->method();
 Below the command run <b>app/tasks/queue</b> controller.
 
 ```php
-php task queue list --channel=Logger --route=logger --delay=0 --memory=128
+php task queue list --channel=Log --route=my-hostname.Logger
 ```
+
+Forexample QueueController class use cli parser to get command line arguments.
 
 ```php
 <?php
 
-/**
- * Queue controller
- */
-Class Queue extends Controller
-{
-    /**
-     * Index
-     * 
-     * @return void
-     */
-    public function index()
-    {
-        $this->c->load('queue/listener', func_get_args());
-    }
-}
-```
-
-```php
-<?php
-
-namespace Obullo\Queue;
+namespace Obullo\Cli\Controller;
 
 use Obullo\Process\Process;
 
 /**
- * Queue Listener Class
+ * Queue Controller
+ *
+ * Listen queue data and workers
  * 
- * @category  Queue
- * @package   Queue
+ * @category  Cli
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/package/queue
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/cli
  */
-Class Listener
+Class QueueController implements CliInterface
 {
     /**
      * Listen Queue
      *
-     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
+     * php task queue listen --channel=Log --route=my-hostname.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
      * 
      * @return void
      */
@@ -98,7 +76,7 @@ Class Listener
         $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
         $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
         $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $maxTries = $this->parser->argument('maxTries', 0);  // If job attempt failed we push and increase attempt number.
+        $tries = $this->parser->argument('tries', 0);        // If job attempt failed we push and increase attempt number.
         $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
         $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
         $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
@@ -106,7 +84,7 @@ Class Listener
         
         $this->emptyControl($channel, $route);
 
-        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --maxTries=$maxTries --debug=$debug --env=$env --project=$project --var=$var";
+        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
 
         $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
@@ -118,10 +96,10 @@ Class Listener
     }
 }
 
-// END Listener class
+// END QueueController class
 
-/* End of file Listener.php */
-/* Location: .Obullo/Queue/Listener.php */
+/* End of file QueueController.php */
+/* Location: .Obullo/Cli/Controller/QueueController.php */
 ```
 ### Function Reference
 
@@ -131,15 +109,15 @@ Class Listener
 
 Parse valid function parameters.
 
-#### $this->parser->segment($number);
+#### $this->parser->segment(int $number);
 
-Gets valid command line segment.
+Returns to selected command line segment.
 
 #### $this->parser->segmentArray();
 
 Returns to all segments.
 
-#### $this->parser->argument($key);
+#### $this->parser->argument(string $key, string $default = '');
 
 Gets valid command line argument.
 

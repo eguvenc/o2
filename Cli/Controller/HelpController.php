@@ -19,7 +19,7 @@ Class HelpController implements CliInterface
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Constructor
@@ -34,7 +34,7 @@ Class HelpController implements CliInterface
     /**
      * Execute command
      * 
-     * @return boolean
+     * @return void
      */
     public function run()
     {
@@ -46,19 +46,25 @@ Class HelpController implements CliInterface
        |______||____||_____||_||_||____|
 
         Welcome to Task Manager (c) 2014
-You are running $php task help command which is located in app / tasks folder.'."\n\033[0m\n";
+You are running $php task help command. For more help type php task [command] --help.'."\n\033[0m\n";
 
 echo "\33[1;36mAvailable commands:\33[0m\33[0;36m
+
 log        : Follow the application log file.
-clear      : Clear application log data.
-update     : Update your Obullo version.
+clear      : Clear all log data.
 queue      : Queue control functions.
+route      : Web route config.env file update manager. ( System maintenance and config update functions )
+service    : Service config.env file update manager. 
 help       : See list all of available commands.\33[0m\n\n";
 
 echo "\33[1;36mUsage:\33[0m\33[0;36m
+
 php task [command] [arguments]\n\33[0m\n";
 
-        return true;
+echo "\33[1;36mUsage help:\33[0m\33[0;36m
+
+php task [command] --help\n\33[0m\n";
+
     }
 
 }

@@ -9,6 +9,8 @@ use Obullo\Queue\Job,
 
 /**
  * Queue Worker Class
+ *
+ * Worker consumes queue data and do jobs using your job handler class
  * 
  * @category  Queue
  * @package   Queue
@@ -20,102 +22,109 @@ use Obullo\Queue\Job,
 Class Worker
 {
     /**
+     * Container
+     * 
+     * @var c
+     */
+    protected $c;
+
+    /**
      * Queue instance
      * 
      * @var object
      */
-    public $queue;
+    protected $queue;
 
     /**
      * Logger instance
      * 
      * @var object
      */
-    public $logger;
+    protected $logger;
 
     /**
      * Command line parser
      * 
      * @var object
      */
-    public $parser;
+    protected $parser;
 
     /**
      * Queue route key ( queue name )
      * 
      * @var string
      */
-    public $route;
+    protected $route;
 
     /**
      * Job delay interval
      * 
      * @var int
      */
-    public $delay;
+    protected $delay;
 
     /**
      * Maximum allowed memory for current job
      * 
      * @var int
      */
-    public $memory;
+    protected $memory;
 
     /**
      * Max timeout
      * 
      * @var int
      */
-    public $timeout;
+    protected $timeout;
 
     /**
      * Sleep time
      * 
      * @var int
      */
-    public $sleep;
+    protected $sleep;
 
     /**
      * Max attempts
      * 
      * @var int
      */
-    public $maxTries;
+    protected $tries;
 
     /**
      * Enable debugger
      * 
      * @var int
      */
-    public $debug;
+    protected $debug;
 
     /**
      * Job instance
      * 
      * @var object
      */
-    public $job;
+    protected $job;
 
     /**
      * Environment
      * 
      * @var string
      */
-    public $env = 'prod';
+    protected $env = 'prod';
 
     /**
      * Your project name
      * 
      * @var string
      */
-    public $project = null;
+    protected $project = null;
 
     /**
      * Your custom variable
      * 
      * @var string
      */
-    public $var = null;
+    protected $var = null;
 
     /**
      * Registered error handler
@@ -143,7 +152,7 @@ Class Worker
      * 
      * @var array
      */
-    public static $priorities = array(
+    protected static $priorities = array(
         'emergency' => LOG_EMERG,
         'alert'     => LOG_ALERT,
         'critical'  => LOG_CRIT,
@@ -159,7 +168,7 @@ Class Worker
      *
      * @var array
      */
-    public static $errorPriorities = array(
+    protected static $errorPriorities = array(
         E_NOTICE            => LOG_NOTICE,
         E_USER_NOTICE       => LOG_NOTICE,
         E_WARNING           => LOG_WARNING,
@@ -177,15 +186,17 @@ Class Worker
     /**
      * Create a new queue worker.
      *
-     * @param object $c container
+     * @param object $c         container
+     * @param array  $arguments array cli args
      */
-    public function __construct($c)
+    public function __construct($c, array $arguments = array())
     {
         $this->c = $c;
 
         $this->queue = $c->load('service/queue');
         $this->logger = $c->load('service/logger');
         $this->parser = $c->load('cli/parser');
+        $this->parser->parse($arguments);
 
         $this->c['config']->load('queue');  // Load queue configuration
 
@@ -203,11 +214,8 @@ Class Worker
      */
     public function init() 
     {
-        $args = func_get_args();
-        $this->parser->parse($args[0]);
-                                            // If debug closed don't show errors and use worker custom error handlers.
-        $this->registerExceptionHandler();  // Register worker error handlers.
-        $this->registerErrorHandler();
+        $this->registerExceptionHandler();  // If debug closed don't show errors and use worker custom error handlers.
+        $this->registerErrorHandler();      // Register worker error handlers.
         $this->registerFatalErrorHandler();
     
         ini_set('error_reporting', 0);      // Disable cli errors on console mode we already had error handlers.
@@ -221,7 +229,7 @@ Class Worker
         $this->delay  = $this->parser->argument('delay', 0);
         $this->timeout = $this->parser->argument('timeout', 0);
         $this->sleep = $this->parser->argument('sleep', 0);
-        $this->maxTries = $this->parser->argument('maxTries', 0);
+        $this->tries = $this->parser->argument('tries', 0);
         $this->debug = $this->parser->argument('debug', 0);
         $this->env = $this->parser->argument('env', 'local');
         $this->project = $this->parser->argument('project', 'default');
@@ -272,7 +280,7 @@ Class Worker
      */
     public function doJob()
     {
-        if ($this->maxTries > 0 AND $this->job->getAttempts() > $this->maxTries) {
+        if ($this->tries > 0 AND $this->job->getAttempts() > $this->tries) {
             $this->job->delete();
             $this->logger->channel('queue');
             $this->logger->warning('The job failed and deleted from queue.', array('job' => $this->job->getName(), 'body' => $this->job->getRawBody()));

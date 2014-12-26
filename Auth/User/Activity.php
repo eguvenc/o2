@@ -64,7 +64,7 @@ Class Activity
         $this->c = $c;
         $this->user = $user;
         $this->storage = $this->c['auth.storage'];
-        $this->config = $this->c['config']->load('auth');
+        $this->config = $this->c['config']->load('shared/auth');
         $this->cache = $this->c->load('return service/cache');
         $this->session = $this->c->load('return session');
         $this->request = $this->c->load('return request');

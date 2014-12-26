@@ -133,7 +133,7 @@ Class User
         $this->db = $db;
         $this->cache = $c->load('return service/cache');
         
-        $this->c['config']->load('constants/rbac');  // load rbac constants
+        $this->c['config']->load('constant/rbac');  // load rbac constants
         $columns = $config['database']['columns'];
 
         if (count($columns) > 0) {

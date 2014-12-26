@@ -29,7 +29,6 @@ php task [command] [arguments]
 Available commands:
 log        : Follows the application log file.
 clear      : Clear application log data. It is currently located in data folder.
-update     : Update your Obullo version.
 help       : See list all of available commands.
 
 ```

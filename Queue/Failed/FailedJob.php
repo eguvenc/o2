@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue\Failed;
 
-use LogicException;
+use RuntimeException;
 
 /**
  * Failed Job Class
@@ -37,28 +37,30 @@ Abstract Class FailedJob
      */
     public function __construct($c)
     {
-        $config = $c['config'];
-        $provider = $config['queue']['failed']['provider'];
+        $queue    = $c['config']->load('queue');
+        $database = $c['config']->load('database');
 
-        if ( ! isset($config['database']['key'][$provider['db']])) {
-            throw new LogicException(
+        $provider = $queue['failed']['provider'];
+
+        if ( ! isset($database['key'][$provider['db']])) {
+            throw new RuntimeException(
                 sprintf(
                     'Failed job database "%s" is not defined in your config database.php',
                     $provider['db']
                 )
             );
         }
-        $this->db = $c->load('return new service/provider/'.$provider['name'], array('db' => $provider['db']));
+        $this->db = $c->load('return new service/provider/'.$provider['name'], array('db' => $provider['db'], 'provider' => $provider['provider']));
 
         if ( ! $c->exists('provider:'.strtolower($provider['name']))) {  // If provider not exists ! Alert to developer
-            throw new LogicException(
+            throw new RuntimeException(
                 sprintf(
                     'FailedJob class requires %s service provider but it is not defined in your app/classes/Service/Provider folder.', 
                     $provider['name']
                 )
             );
         }
-        $this->table = $config['queue']['failed']['table'];
+        $this->table = $queue['failed']['table'];
     }
 
 }

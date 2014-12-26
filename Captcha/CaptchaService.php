@@ -59,7 +59,7 @@ Class CaptchaService
         $this->c = $c;
         $this->session = $c->load('return session');
         $this->logger = $c->load('return service/logger');
-        $this->captcha = $c['config']->load('captcha');
+        $this->captcha = $c['config']->load('shared/captcha');
 
         $this->init();
         $this->img_path = ROOT . str_replace('/', DS, trim($this->captcha['img_path'], '/')) . DS;  // replace with DS

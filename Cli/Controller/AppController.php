@@ -3,7 +3,7 @@
 namespace Obullo\Cli\Controller;
 
 /**
- * Service Controller
+ * App Controller
  * 
  * @category  Cli
  * @package   Controller
@@ -12,7 +12,7 @@ namespace Obullo\Cli\Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class ServiceController implements CliInterface
+Class AppController implements CliInterface
 {
     /**
      * Container
@@ -65,7 +65,7 @@ Class ServiceController implements CliInterface
            |______||____||_____||_||_||____|
 
             Welcome to Task Manager (c) 2014
-    You are running $php task service command. For help type php task service --help.'."\n\033[0m\n";
+    You are running $php task app command. For help type php task app --help.'."\n\033[0m\n";
     }
 
     /**
@@ -106,12 +106,12 @@ Class ServiceController implements CliInterface
     {
         $this->emptyControl($name);
 
-        $this->config->env['service']['app'][$name]['maintenance'] = 'down';
+        $this->config->env['web']['app'][$name]['maintenance'] = 'down';
         $this->config->write();
 
-        $label = empty($this->config->env['service']['app'][$name]['label']) ? $name : $this->config->env['service']['app'][$name]['label'];
+        $hostname = empty($this->config->env['web']['app'][$name]['label']) ? $name : $this->config->env['web']['app'][$name]['label'];
 
-        echo "\33[1;31mService \33[1;37m\33[41m$label\33[0m\33[1;31m down for maintenance.\33[0m\n";
+        echo "\33[1;31mApp \33[1;37m\33[41m$hostname\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
 
     /**
@@ -125,12 +125,12 @@ Class ServiceController implements CliInterface
     {
         $this->emptyControl($name);
 
-        $this->config->env['service']['app'][$name]['maintenance'] = 'up';
+        $this->config->env['web']['app'][$name]['maintenance'] = 'up';
         $this->config->write();
 
-        $label = empty($this->config->env['service']['app'][$name]['label']) ? $name : $this->config->env['service']['app'][$name]['label'];
+        $hostname = empty($this->config->env['web']['app'][$name]['label']) ? $name : $this->config->env['web']['app'][$name]['label'];
 
-        echo "\33[1;32mService \33[1;37m\33[42m$label\33[0m\33[1;32m up.\33[0m\n";
+        echo "\33[1;32mApp \33[1;37m\33[42m$hostname\33[0m\33[1;32m up.\33[0m\n";
     }
 
     /**
@@ -143,10 +143,10 @@ Class ServiceController implements CliInterface
     protected function emptyControl($name)
     {
         if (empty($name)) {
-            echo "\33[1;36mService \"--name\" can't be empty.\33[0m\n";
+            echo "\33[1;36mApp \"--name\" can't be empty.\33[0m\n";
             exit;
         }
-        if ( ! isset($this->config->env['service']['app'][$name])) {
+        if ( ! isset($this->config->env['web']['app'][$name])) {
             echo "\33[1;31m\33[1;37m\33[41m".ucfirst($name)."\33[0m\33[1;31m must be defined in your config.env file\33[0m\n";
             die;
         }
@@ -166,27 +166,26 @@ Class ServiceController implements CliInterface
 
 Available Commands
 
-    down       : Sets service down to enter maintenance mode.
-    up         : Sets service up to leaving from maintenance mode.
-    pause      : Sets service pause ( New requests stop but background jobs continue. ).
+    down       : Sets app down to enter maintenance mode.
+    up         : Sets app up to leaving from maintenance mode.
 
 Available Arguments
 
-    --name   : Sets service name.'."\n\033[0m\n";
+    --name   : Sets web app name.'."\n\033[0m\n";
 
 echo "\33[1;36mUsage:\33[0m\33[0;36m
 
-php task service down --name=queue\n\n";
+php task app down --name=site\n\n";
 
 echo "\33[1;36mDescription:\33[0m\33[0;36m
 
-Manages service features which are defined in your config.env file.
+Manages application features which are defined in your config.env file.
 \n\33[0m\n";
 
     }
 }
 
-// END ServiceController class
+// END AppController class
 
-/* End of file ServiceController.php */
-/* Location: .Obullo/Cli/Controller/ServiceController.php */
+/* End of file AppController.php */
+/* Location: .Obullo/Cli/Controller/AppController.php */
