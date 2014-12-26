@@ -496,15 +496,15 @@ $this->user->identity->method();
 
 Checks identity block available in memory. If yes returns to <b>true</b> otherwise <b>false</b>.
 
-### $this->user->identity->isAuthenticated();
+### $this->user->identity->check();
 
-if user is autheticated returns to <b>true</b> otherwise <b>false</b>.
+if user authenticated returns to <b>true</b> otherwise <b>false</b>.
 
 ### $this->user->identity->isVerified();
 
 if user is verified () after successfull login returns to <b>true</b> otherwise <b>false</b>.
 
-### $this->user->identity->isGuest();
+### $this->user->identity->guest();
 
 Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false</b>.
 

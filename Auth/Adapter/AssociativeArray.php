@@ -151,7 +151,7 @@ class AssociativeArray extends AbstractAdapter
     {
         $this->initialize($genericUser);
 
-        if ($this->user->identity->isAuthenticated()) {    // If user already authenticated ?
+        if ($this->user->identity->check()) {    // If user already authenticated ?
             $this->results['code'] = AuthResult::FAILURE_ALREADY_LOGGEDIN;
         } elseif ( ! $this->storage->isEmpty('__temporary')) {
             $this->isTemporary = true;

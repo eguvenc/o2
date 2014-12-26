@@ -163,8 +163,8 @@ Class Activity
         if (empty($this->identifier)) {
             return false;
         }
-        if ($this->config['activity']['singleSignOff'] AND $this->user->identity->isAuthenticated()) {  // Single sign-off is the property whereby a single action of signing out 
-                                                                                                        // terminates access to multiple login sessions.
+        if ($this->config['activity']['singleSignOff'] AND $this->user->identity->check()) {  // Single sign-off is the property whereby a single action of signing out 
+                                                                                              // terminates access to multiple login sessions.
             $sessions = $this->getAuthSessions();
 
             if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.

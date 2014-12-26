@@ -130,13 +130,13 @@ Class Identity extends UserIdentity
     }
 
     /**
-     * Get User has auth access 
+     * Check use has identity
      * 
      * its ok if returns to true otherwise false
      * 
      * @return boolean 
      */
-    public function isAuthenticated()
+    public function check()
     {
         if ( ! is_null($this->isAuthenticated)) {
             return $this->isAuthenticated;
@@ -158,6 +158,19 @@ Class Identity extends UserIdentity
     }
 
     /**
+     * Opposite of check() function
+     * 
+     * @return boolean
+     */
+    public function guest()
+    {
+        if ($this->check()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Check recaller cookie exists
      * 
      * @return string|boolean false
@@ -167,7 +180,8 @@ Class Identity extends UserIdentity
         $id = $this->storage->getIdentifier();
         $name = $this->config['login']['rememberMe']['cookie']['name'];
 
-        if (empty($id) AND $token = $this->c->load('cookie')->get($name)) {
+        $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
+        if (empty($id) AND $token = $cookie) {
             return $token;
         }
         return false;
@@ -181,19 +195,6 @@ Class Identity extends UserIdentity
     public function isTemporary()
     {
         return $this->attributes['__isTemporary'];
-    }
-
-    /**
-     * Opposite of isAuthenticated function
-     * 
-     * @return boolean
-     */
-    public function isGuest()
-    {
-        if ($this->isAuthenticated()) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -267,7 +268,8 @@ Class Identity extends UserIdentity
         if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh || ! is_null($this->recaller)) { // If identity data does not exists.
             return $this->tokenIsValid = true;
         }
-        $cookie = $this->c->load('cookie')->get($this->config['security']['cookie']['name']);
+        $name = $this->config['security']['cookie']['name'];
+        $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
         $token = $this->getToken();
 
         if ($cookie == $token) {
@@ -424,11 +426,14 @@ Class Identity extends UserIdentity
         if ( ! isset($_COOKIE[$cookie['name']])) {
             return;
         }
-        $this->c->load('cookie')->delete(
-            $cookie['name'],
-            $this->c['config']['cookie']['domain'], //  Get domain from global config
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            null,
+            -1,
             $cookie['path'],
-            $cookie['prefix']
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
         );
     }
 
