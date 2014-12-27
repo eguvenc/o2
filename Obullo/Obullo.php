@@ -24,17 +24,15 @@ $c['event']->fire('before.request');
  *  Load core components
  * ------------------------------------------------------
  */
-$router 	= $c->load('router');
-$response 	= $c->load('response');
+$router 	= $c['router'];
+$response 	= $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
-$controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'controller'. DS . $router->fetchClass() . '.php';
+$controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
-if ( ! file_exists($controller)) {
-    $response->show404($pageUri);
-}
 require $controller;  // Include the controller file.
 
 $className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
+
 
 if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);

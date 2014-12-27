@@ -62,10 +62,7 @@ Class Config implements ArrayAccess
 
         ini_set('display_errors', 1);
         $this->env = include $this->file;
-
-        if (isset($this->env['environment']['file'])) {   // Load environment variables if exists
-            $this->loadEnv($this->env['environment']['file']);
-        }
+        $this->loadEnv('.env.'. ENV .'.php'); // Load dot env.php file
         $this->array = include $this->local .'config.php';  // Bind current environment config variables 
 
         if (ENV != 'local') {
@@ -128,7 +125,7 @@ Class Config implements ArrayAccess
     public function loadEnv($file)
     {
         $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
-        if ( ! $envVariables = include ROOT .'.'.$filename) {
+        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
             configurationError();
         }
         foreach ($envVariables as $key => $value) {

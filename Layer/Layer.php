@@ -6,7 +6,7 @@ use stdClass,
     Controller;
 
 /**
- * Layers ( Layered View Controller ) is a programming technique that delivers you to
+ * Layers is a programming technique that delivers you to
  * "Multitier Architecture" to scale your applications.
  * 
  * Derived from HMVC pattern and named as "Layers" in Obullo.
@@ -138,7 +138,6 @@ Class Layer
         $this->c['response']->clear();
         $this->processDone = false;
         $this->requestMethod = 'GET';
-        // $GLOBALS['_SERVER_BACKUP']  = array();
         unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
     }
 
@@ -147,8 +146,6 @@ Class Layer
      * 
      * @param array $c      container
      * @param array $params config 
-     *
-     * @return void
      */
     public function __construct($c, $params)
     {
@@ -256,12 +253,12 @@ Class Layer
             return $this->c['response']->getError();
         }
         //  Create an uniq Layer Uri it must be unique otherwise may cause collission with standart uri
-        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Lvc Uri String with Layer ID
+        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Layer Uri String with Layer ID
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
 
-        $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$className;
-        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$className. '.php';
+        $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
+        $controller = CONTROLLERS .$this->c['router']->fetchModule(DS).$directory. DS .$className. '.php';
 
                                                   // Check class is exists in the storage
         if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
@@ -341,15 +338,13 @@ Class Layer
      * Reset router for mutiple layer requests
      * and close the layer connections.
      *
-     * @return   void
+     * @return void
      */
     protected function reset()
     {
         if ( ! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
             return;
         }
-        // $_SERVER = array();                     // Assign global variables we get backup before.
-        // $_SERVER = $GLOBALS['_SERVER_BACKUP'];  // Just reset server variable otherwise we couldn't use global variables layer in layer loops.
         $this->clear();  // Reset all Layer variables.
     }
     

@@ -5,8 +5,8 @@ use Obullo\Error\DebugOutput;
 if (isset($fatalError)) {
     echo "Fatal Error\n";
     // We could not load error libraries when error is fatal.
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getMessage())."\n";
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\n";
+    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLER_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage())."\n";
+    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLER_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\n";
     exit;
 }
 echo "Exception Error\n". DebugOutput::getSecurePath($e->getMessage())."\n";

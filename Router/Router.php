@@ -71,11 +71,11 @@ Class Router
     public $directory = '';
 
     /**
-     * Top directory name
+     * Module name
      * 
      * @var string
      */
-    public $topDirectory = '';
+    public $module = '';
 
     /**
      * Defined route filters
@@ -185,7 +185,7 @@ Class Router
         $this->uri = $this->c['uri'];   // reset cloned URI object.
         $this->class = '';
         $this->directory = '';
-        $this->topDirectory = '';
+        $this->module = '';
         $this->response = null;
     }
 
@@ -472,21 +472,22 @@ Class Router
         }
         $this->setDirectory($segments[0]); // Set first segment as default "top" directory 
 
-        if (isset($segments[1]) 
-            AND ! is_dir(PUBLIC_DIR .$segments[0]. DS .'controller'. DS) // If controller is not a folder.
-            AND is_dir(PUBLIC_DIR .$segments[0]. DS . $segments[1]. DS)  // Detect Top Directory and change directory !!
+        if (isset($segments[1]) AND is_dir(CONTROLLERS .$segments[0]. DS . $segments[1]. DS)  // Detect Top Directory and change directory !!
         ) {
-            $this->setTopDirectory($segments[0]);
+            $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);
             array_shift($segments);
         }
+        $module = $this->fetchModule(DS);
+        $directory = $this->fetchDirectory();
+
         // if segments[1] exists set first segment as a directory 
-        if ( ! empty($segments[1]) AND file_exists(PUBLIC_DIR . $this->fetchTopDirectory(DS). $this->fetchDirectory() . DS . 'controller' . DS . $segments[1] . '.php')) {
+        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .$segments[1].'.php')) {
             return $segments;
         }
         // if segments[1] not exists. forexamle http://example.com/welcome
-        if (file_exists(PUBLIC_DIR. $this->fetchDirectory() . DS . 'controller' . DS . $this->fetchDirectory() . '.php')) {
-            array_unshift($segments, $this->fetchDirectory());
+        if (file_exists(CONTROLLERS .$directory. DS .$directory. '.php')) {
+            array_unshift($segments, $directory);
             return $segments;
         }
         // HTTP 404
@@ -627,21 +628,21 @@ Class Router
      *
      * @return void
      */
-    public function setTopDirectory($directory)
+    public function setModule($directory)
     {
-        $this->topDirectory = $directory;
+        $this->module = $directory;
     }
 
     /**
-     * Get top directory
+     * Get module directory
      * 
      * @param string $seperator DS constant
      * 
      * @return void
      */
-    public function fetchTopDirectory($seperator = '')
+    public function fetchModule($seperator = '')
     {
-        return ( ! empty($this->topDirectory)) ? filter_var($this->topDirectory, FILTER_SANITIZE_SPECIAL_CHARS). $seperator : '';
+        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS). $seperator : '';
     }
 
     /**
@@ -661,7 +662,7 @@ Class Router
      */
     public function fetchNamespace()
     {
-        $namespace = self::ucwordsUnderscore($this->fetchTopDirectory()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
+        $namespace = self::ucwordsUnderscore($this->fetchModule()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
         $namespace = trim($namespace, '\\');
         return str_replace(' ', '_', $namespace);
     }
@@ -669,8 +670,8 @@ Class Router
     /**
      * Replace underscore to spaces to use ucwords
      * 
-     * before : widgets\tutorials a  
-     * agter  : Widgets\Tutorials_A
+     * Before : widgets\tutorials a  
+     * After  : Widgets\Tutorials_A
      * 
      * @param string $string namespace part
      * 

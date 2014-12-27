@@ -259,7 +259,7 @@ Class View
          * Fetch view ( als oit can be nested )
          */
         $return = $this->fetch(
-            PUBLIC_DIR .$router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'view'. DS,
+            CONTROLLERS .$router->fetchModule(DS). $router->fetchDirectory() . DS .'view'. DS,
             $filename,
             $dataOrNoInclude,
             $include
