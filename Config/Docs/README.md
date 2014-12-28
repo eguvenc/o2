@@ -52,7 +52,7 @@ $this->config->load('filename');
 
 ### Loading Constant Files
 
-Simply create your own constant file and save it in <kbd>app/config/shared/constants</kbd> folder.
+Simply create your own constant file and save it in <kbd>app/config/constants</kbd> folder.
 
 Then you can load it like below
 
@@ -80,7 +80,7 @@ Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retri
 
 Framework ortam sabitini atamak için bilgisayarınıza ait hostname değerine ihtiyaç duymaktadır. <b>Local</b> ortamı için hostname ler her biri yazılımcı için <b>Production</b> ortamı için de bu değerler her bir sunucu için tanımlanmalıdır.
 
-Using your environments array <b>$c->detectEnvironment();</b> method detect your current environment to assign <b>ENV</b> constant. Before this you need to define your hostnames in <kbd>app/config/environments.php</kbd> file.
+Using your environments array <b>$c->detectEnvironment();</b> method detect your current environment to assign <b>ENV</b> constant. Before this you need to define your hostnames in <kbd>app/environments.php</kbd> file.
 
 ```php
 <?php
@@ -118,7 +118,7 @@ return array(
 // END environments.php File
 /* End of file environments.php
 
-/* Location: .app/config/environments.php */
+/* Location: .app/environments.php */
 ```
 
 Auto detecting of environment.

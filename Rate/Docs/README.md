@@ -5,7 +5,7 @@ Rate limiter sınıfı gelen http isteklerini kullanıcı işlemlerine göre de�
 
 Rate limiter uygulama içerisinde çalışan yüksek güvenlik gerektiren bölümlerin kötü niyetli kullanıcıların çoklu istek yaparak servisi devre dışı bırakmaları veya servis için bir tehdit oluşturmalarını engellemek amacıyla geliştirilmiş bir sınıftır.
 
-Bu sınıfın çalışma felsefesi şöyledir:  Dışarıdan gelen kullanıcılar başarılı işlem yaptıklarında kullanıcının kredisi yani istek yapma limiti arttırılır, tam tersine her başarısız işlemde ise bu limit azaltılarak kullanıcının istek yapma limiti işlemlere göre sınırlandırılır. İşlem yapma kredisi <b>0</b> olan kullanıcılar istek limitine takılarak belirli bir süre sistem tarafından engellenirler. Bu süreler ve istek limitleri <kbd>app/config/shared/rate.php</kbd> config dosyası ile belirlenmektedir.
+Bu sınıfın çalışma felsefesi şöyledir:  Dışarıdan gelen kullanıcılar başarılı işlem yaptıklarında kullanıcının kredisi yani istek yapma limiti arttırılır, tam tersine her başarısız işlemde ise bu limit azaltılarak kullanıcının istek yapma limiti işlemlere göre sınırlandırılır. İşlem yapma kredisi <b>0</b> olan kullanıcılar istek limitine takılarak belirli bir süre sistem tarafından engellenirler. Bu süreler ve istek limitleri <kbd>app/config/rate.php</kbd> config dosyası ile belirlenmektedir.
 
 ------
 
@@ -26,7 +26,7 @@ $this->limiter->load($identifier, $params = array());
 $this->limiter->identifier->method();
 ```
 
-**Note:** Eğer ikinci parametreden array formatında config verisi girilmez ise rate limiter sınıfı <kbd>app/config/shared/rate.php</kbd> dosyasından varsayılan konfigurasyonları yükler ve static veri olarak cache e yazar. <b>Rate_Limiter_Config</b> isimli key cache den silinmediği sürece artık varsayılan ayarlar cache üzerinden okunur.
+**Note:** Eğer ikinci parametreden array formatında config verisi girilmez ise rate limiter sınıfı <kbd>app/config/rate.php</kbd> dosyasından varsayılan konfigurasyonları yükler ve static veri olarak cache e yazar. <b>Rate_Limiter_Config</b> isimli key cache den silinmediği sürece artık varsayılan ayarlar cache üzerinden okunur.
 
 ### Identifiers
 
@@ -129,7 +129,7 @@ return array(
 );
 
 /* End of file rate.php */
-/* Location: .app/config/shared/rate.php */
+/* Location: .app/config/rate.php */
 ```
 
 ### Basic Usage

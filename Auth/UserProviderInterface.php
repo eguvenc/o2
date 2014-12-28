@@ -5,7 +5,7 @@ namespace Obullo\Auth;
 use Auth\Identities\GenericIdentity;
 
 /**
- * User Database Provider Interface
+ * User Provider Interface
  * 
  * @category  Auth
  * @package   ModelUserInterface
@@ -14,15 +14,15 @@ use Auth\Identities\GenericIdentity;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-interface DatabaseProviderInterface
+interface UserProviderInterface
 {
     /**
      * Constructor
      * 
-     * @param object $c       container
-     * @param object $storage memory storage
+     * @param object $c  container
+     * @param object $db database object
      */
-    public function __construct($c, $storage);
+    public function __construct($c, $db);
 
     /**
      * Execute sql query
@@ -41,7 +41,7 @@ interface DatabaseProviderInterface
      * @return array
      */
     public function execRecallerQuery($token);
-
+    
     /**
      * Update remember token upon every login & logout requests
      * 
@@ -50,11 +50,11 @@ interface DatabaseProviderInterface
      * 
      * @return void
      */
-    public function refreshRememberMeToken($token, GenericIdentity $user);
+    public function updateRememberToken($token, GenericIdentity $user);
 
 }
 
-// END DatabaseProviderInterface File
-/* End of file DatabaseProviderInterface.php
+// END UserProviderInterface File
+/* End of file UserProviderInterface.php
 
-/* Location: .Obullo/Auth/DatabaseProviderInterface.php */
+/* Location: .Obullo/Auth/UserProviderInterface.php */

@@ -128,8 +128,7 @@ Class Layer
     protected $global = null;
 
     /**
-     * Reset all variables for multiple
-     * Layered Vc requests.
+     * Reset all variables for multiple layer requests.
      *
      * @return void
      */
@@ -151,7 +150,7 @@ Class Layer
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $c->load('return service/logger');
+        $this->logger = $c->load('service/logger');
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
@@ -162,9 +161,7 @@ Class Layer
      */
     public function setHeaders()
     {
-        $_SERVER['LAYER_REQUEST'] = true;   // Set Hvc Headers
-        // $GLOBALS['_SERVER_BACKUP'] = $_SERVER; // Get backup $_SERVER variable
-        // unset($_SERVER['HTTP_ACCEPT'], $_SERVER['REQUEST_METHOD']);    // Don't touch other global server items 
+        $_SERVER['LAYER_REQUEST'] = true;   // Set Headers
     }
 
     /**

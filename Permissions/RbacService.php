@@ -22,13 +22,6 @@ Class RbacService
     protected $c;
 
     /**
-     * Config parameters
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
      * Database provider
      *
      * @var object
@@ -38,15 +31,13 @@ Class RbacService
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $db     database object
-     * @param array  $config configuration
+     * @param object $c  container
+     * @param object $db database object
      */
-    public function __construct($c, $db, $config = array())
+    public function __construct($c, $db)
     {
         $this->c = $c;
         $this->db = $db;
-        $this->config = $config;
     }
 
     /**
@@ -65,7 +56,7 @@ Class RbacService
         }
         $Class = '\Obullo\Permissions\Rbac\\'.ucfirst($key);
 
-        return $this->{$key} = new $Class($this->c, $this->db, $this->config);
+        return $this->{$key} = new $Class($this->c, $this->db);
     }
 
 }

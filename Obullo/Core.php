@@ -29,7 +29,7 @@ require OBULLO_CONFIG;
 |--------------------------------------------------------------------------
 */
 define('ENV', $c->detectEnvironment());
-define('ENV_PATH', APP .'config'. DS . 'env'. DS . ENV . DS);
+define('ENV_PATH', APP .'config'. DS . ENV . DS);
 
 /**
  * Gets environment variable from $_ENV global

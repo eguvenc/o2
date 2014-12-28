@@ -28,7 +28,7 @@ if ($this->agent->isBrowser()) {
 }
 ```
 
-<blockquote>The string "Safari" in this example is an array key in the list of browser definitions. You can find this list in .app/config/shared/agents.php if you want to add new browsers or change the stings.</blockquote>
+<blockquote>The string "Safari" in this example is an array key in the list of browser definitions. You can find this list in .app/config/agents.php if you want to add new browsers or change the stings.</blockquote>
 
 #### $this->agent->isRobot();
 
@@ -41,7 +41,7 @@ if ($this->agent->isRobot()) {
 }
 ```
 
-<blockquote>The user agent library only contains the most common robot definitions. It is not a complete list of bots. There are hundreds of them so searching for each one would not be very efficient. If you find that some bots that commonly visit your site are missing from the list you can add them to your .app/config/shared/agents.php file.</blockquote>
+<blockquote>The user agent library only contains the most common robot definitions. It is not a complete list of bots. There are hundreds of them so searching for each one would not be very efficient. If you find that some bots that commonly visit your site are missing from the list you can add them to your .app/config/agents.php file.</blockquote>
 
 #### $this->agent->isMobile();
 

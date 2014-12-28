@@ -4,7 +4,6 @@ namespace Obullo\Auth\User;
 
 use Auth\Identities\GenericIdentity,
     Auth\Credentials,
-    Obullo\Auth\UserService,
     RuntimeException;
 
 /**
@@ -57,7 +56,7 @@ Class Login
     {
         $user = null;
         $this->c = $c;
-        $this->config = $this->c['config']->load('shared/auth');
+        $this->config = $this->c['config']->load('auth');
         $this->storage = $this->c['auth.storage'];
         $this->adapter = $this->c['auth.adapter'];
     }
@@ -92,8 +91,8 @@ Class Login
      */
     public function attempt(array $credentials, $rememberMe = false)
     {
-        $credentials['__rememberMe'] = ($rememberMe) ?  1 : 0;
-        
+        $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
+
         if ( ! isset($credentials[Credentials::IDENTIFIER]) OR ! isset($credentials[Credentials::PASSWORD]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
@@ -109,13 +108,14 @@ Class Login
             );
         }
         $authResult = $this->adapter->login(new GenericIdentity($credentials));
+        return $authResult;
         
-        /**
-         * Create Login Attempt Event
-         */
-        $userResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
-                                                                                     // Event fire returns multiple array but we use one event response
-        return isset($userResult[0]) ? current($userResult) : $authResult;
+        // /**
+        //  * Create Login Attempt Event
+        //  */
+        // $userResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
+        //                                                                              // Event fire returns multiple array but we use one event response
+        // return isset($userResult[0]) ? current($userResult) : $authResult;
     }
  
     /**

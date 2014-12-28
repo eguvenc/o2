@@ -2,8 +2,7 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Provider\DatabaseProvider,
-    Auth\Credentials,
+use Auth\Credentials,
     Obullo\Auth\Token,
     Obullo\Auth\Recaller,
     Obullo\Auth\UserService,
@@ -102,7 +101,7 @@ Class Identity extends UserIdentity
     {
         $user = null;
         $this->c = $c;
-        $this->config = $this->c['config']->load('shared/auth');
+        $this->config = $this->c['config']->load('auth');
         $this->storage = $this->c['auth.storage'];
 
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists
@@ -124,7 +123,7 @@ Class Identity extends UserIdentity
         }
 
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['cookie']['refresh'].' seconds');
-        $this->logger = $this->c->load('return service/logger');
+        $this->logger = $this->c->load('service/logger');
 
         register_shutdown_function(array($this, 'writeClose'));
     }
@@ -132,7 +131,7 @@ Class Identity extends UserIdentity
     /**
      * Check use has identity
      * 
-     * its ok if returns to true otherwise false
+     * Its ok if returns to true otherwise false
      * 
      * @return boolean 
      */
@@ -244,7 +243,7 @@ Class Identity extends UserIdentity
     }
 
     /**
-     * o2 Auth security token
+     * O2 Auth security token
      * 
      * We generate a uniuqe identity stamp for each users then every auth check operation we check it, 
      * If the user cookie token does not match the memory token we deny the user.
@@ -411,8 +410,7 @@ Class Identity extends UserIdentity
      */
     public function refreshRememberToken(GenericIdentity $genericUser)
     {
-        $database = new DatabaseProvider($this->c, $this->storage);
-        $database->refreshRememberMeToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
+        $this->c['user.provider']->updateRememberToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
     }
 
     /**

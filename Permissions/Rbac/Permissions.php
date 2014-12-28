@@ -134,44 +134,40 @@ Class Permissions
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $db     database object
-     * @param array  $config parameters
+     * @param object $c  container
+     * @param object $db database object
      */
-    public function __construct($c, $db, $config = array())
+    public function __construct($c, $db)
     {
         $this->c = $c;
         $this->db = $db;
-        $this->cache = $c->load('return service/cache');
+        $this->cache = $c->load('service/cache');
         $this->treeDb = new Db($c, array('db' => $db));
 
         $this->c['config']->load('constant/rbac');  // load rbac constants
-        $columns = $config['database']['columns'];
 
-        if (count($columns) > 0) {
+        // RBAC "permissions" table variable definitions
+        $this->permTableName          = RBAC_PERM_DB_TABLENAME;
+        $this->primaryKey             = RBAC_PERM_COLUMN_PRIMARY_KEY;
+        $this->parentId               = RBAC_PERM_COLUMN_PARENT_ID;
+        $this->resource               = RBAC_PERM_COLUMN_RESOURCE;
+        $this->permType               = RBAC_PERM_COLUMN_TYPE;
+        $this->text                   = RBAC_PERM_COLUMN_TEXT;
+        $this->lft                    = RBAC_PERM_COLUMN_LEFT;
+        $this->rgt                    = RBAC_PERM_COLUMN_RIGHT;
 
-            // RBAC "permissions" table variable definations
-            $this->permTableName          = RBAC_PERM_DB_TABLENAME;
-            $this->primaryKey             = RBAC_PERM_COLUMN_PRIMARY_KEY;
-            $this->parentId               = RBAC_PERM_COLUMN_PARENT_ID;
-            $this->resource               = RBAC_PERM_COLUMN_RESOURCE;
-            $this->permType               = RBAC_PERM_COLUMN_TYPE;
-            $this->text                   = RBAC_PERM_COLUMN_TEXT;
-            $this->lft                    = RBAC_PERM_COLUMN_LEFT;
-            $this->rgt                    = RBAC_PERM_COLUMN_RIGHT;
+        // RBAC "op_permissions" table variable definitions
+        $this->opPermTableName        = RBAC_OP_PERM_DB_TABLENAME;
+        $this->opPermOpPrimaryKey     = RBAC_OP_PERM_TABLE_OP_PRIMARY_KEY;
+        $this->opPermPermPrimaryKey   = RBAC_OP_PERM_TABLE_PERM_PRIMARY_KEY;
+        $this->opPermRolePrimaryKey   = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
 
-            // RBAC "op_permissions" table variable definations
-            $this->opPermTableName        = RBAC_OP_PERM_DB_TABLENAME;
-            $this->opPermOpPrimaryKey     = RBAC_OP_PERM_TABLE_OP_PRIMARY_KEY;
-            $this->opPermPermPrimaryKey   = RBAC_OP_PERM_TABLE_PERM_PRIMARY_KEY;
-            $this->opPermRolePrimaryKey   = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
-
-            // RBAC "role_permissions" table variable definations
-            $this->rolePermTableName      = RBAC_ROLE_PERM_DB_TABLENAME;
-            $this->rolePermRolePrimaryKey = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
-            $this->rolePermPrimaryKey     = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
-            $this->assignmentDate         = RBAC_ROLE_PERM_COLUMN_ASSIGNMENT_DATE;
-        }
+        // RBAC "role_permissions" table variable definitions
+        $this->rolePermTableName      = RBAC_ROLE_PERM_DB_TABLENAME;
+        $this->rolePermRolePrimaryKey = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
+        $this->rolePermPrimaryKey     = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
+        $this->assignmentDate         = RBAC_ROLE_PERM_COLUMN_ASSIGNMENT_DATE;
+        
         $this->treeDb->setTablename($this->permTableName);
         $this->treeDb->setPrimaryKey($this->primaryKey);
         $this->treeDb->setParentId($this->parentId);

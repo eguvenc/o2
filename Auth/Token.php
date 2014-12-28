@@ -45,7 +45,7 @@ Class Token
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('shared/auth');
+        $this->config = $this->c['config']->load('auth');
     }
 
     /**

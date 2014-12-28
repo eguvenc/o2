@@ -163,7 +163,7 @@ return array(
 );
 
 /* End of file auth.php */
-/* Location: .app/config/shared/auth.php */
+/* Location: .app/config/auth.php */
 ```
 
 ### Description Of Config Items
@@ -215,7 +215,7 @@ return array(
 
         <tr>
             <td>login[rememberMe]</td>
-            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__Auth\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
+            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__isAuthenticated\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
         </tr>
 
         <tr>
@@ -383,7 +383,7 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
                 - GenericIdentity
                 - UserIdentity
         - Provider
-            DatabaseProvider.php
+            UserProvider.php
         Credentials.php
 ```
 
@@ -446,6 +446,115 @@ $this->user->activity->update();
 
 // __activity a:3:{s:3:"sid";s:26:"f0usdabogp203n5df4srf9qrg1";s:4:"date";i:1413539421;}
 ```
+
+
+### Extending to UserProvider
+
+O2 Auth paketi kullanıcıya ait database fonksiyonlarını servis içerisinden Obullo\Auth\AuthUserProvider sınfından çağırmaktadır. Bu sınıfa genişlemek için önce Service/User sınıfından provider ı Auth\UserProvider olarak değiştirmeniz gerekmektedir.
+
+
+```php
+
+namespace Service;
+
+use Obullo\Auth\UserService,
+    Auth\Provider\UserProvider,
+    Service\ServiceInterface;
+
+Class User implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register($c)
+    {            
+        $c['user'] = function () use ($c) {
+            return new UserService($c);
+        };
+        $c['user.provider'] = function () use ($c) {
+            return new UserProvider($c, $c->load('service/provider/db'));
+        };
+    }
+}
+```
+
+Bunun için önce <b>app/classes/Auth/Provider</b> klasörünü yaratın. Daha sonra Database user provider aşağıdaki gibi yaratarak AbstractUserProvider sınıfına genişlemeniz gerekmektedir. Bunu yaparken UserProviderInterface içerisindeki  kurallara bir göz atın.
+
+Aşağıdaki örnek olarak verimiştir aşağıdaki sınıfı ihtiyaçlarınıza göre değiştirebilirsiniz. Bunun içib Obullo\Auth\AbstractUserProvider sınıfına bakın ve override etmek istediğiniz method yada değişkenleri UserProvider sınıfı içersine dail edin.
+
+
+```php
+
+<?php
+
+namespace Auth\Provider;
+
+use Obullo\Auth\UserProviderInterface,
+    Obullo\Auth\AuthUserProvider,
+    Auth\Identities\GenericIdentity,
+    Auth\Identities\UserIdentity,
+    Auth\Credentials;
+
+/**
+ * O2 Auth - User Database Provider
+ *
+ * @category  Auth
+ * @package   Provider
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/auth
+ */
+Class UserProvider extends AuthUserProvider implements UserProviderInterface
+{
+    /**
+     * Constructor
+     * 
+     * @param object $c  container
+     * @param object $db database
+     */
+    public function __construct($c, $db)
+    {
+        parent::__construct($c, $db);
+
+        $this->tablename = 'users';                     // Db users tablename
+        $this->rememberTokenColumn = 'remember_token';  // RememberMe token column name
+
+        $this->userSQL = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
+        $this->recalledUserSQL = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
+        $this->rememberTokenUpdateSQL = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
+    }
+    
+    /**
+     * Execute sql query
+     *
+     * @param object $user GenericIdentity object to get user's identifier
+     * 
+     * @return mixed boolean|object
+     */
+    public function execQuery(GenericIdentity $user)
+    {
+        // return parent::execQuery($user);
+        
+        $this->db->prepare($this->userSQL, array($this->tablename, Credentials::IDENTIFIER));
+        $this->db->bindValue(1, $user->getIdentifier(), PARAM_STR);
+        $this->db->execute();
+
+        return $this->db->row();  // returns to false if fail
+    }
+
+}
+
+// END UserProvider.php File
+/* End of file UserProvider.php
+
+/* Location: .app/classes/Auth/Provider/UserProvider.php */
+```
+
 
 ### Login Reference
 

@@ -47,7 +47,7 @@ Class Container implements ArrayAccess
      */
     public function __construct() 
     {
-        $this->envArray = include ROOT .'app'. DS .'config'. DS .'environments.php';
+        $this->envArray = include ROOT .'app'. DS .'environments.php';
         $this->aliases = new SplObjectStorage;
     }
 
@@ -151,9 +151,7 @@ Class Container implements ArrayAccess
             AND Controller::$instance != null  // Sometimes in router level controller instance comes null.
             AND $isCoreFile == false  // Ignore core classes which they have already loaded
         ) {
-            $instance = Controller::$instance->{$key} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
-            $instance = ($isService) ? null : $instance;
-            return $instance;
+            return Controller::$instance->{$key} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
         }
         return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
     }
@@ -259,10 +257,7 @@ Class Container implements ArrayAccess
                 if ( ! empty($matches['return'])) {
                     return $instance;
                 }
-                if (Controller::$instance != null) {
-                    Controller::$instance->{$key} = $instance;
-                } 
-                return;
+                return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
             }
         }
         if ($isService == false) {  // Load none service libraries
@@ -533,7 +528,7 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Detects application environment using "app/config/env/environments.php" file.
+     * Detects application environment using "app/environments.php" file.
      * 
      * @return string environment or die if fail
      */
@@ -552,7 +547,7 @@ Class Container implements ArrayAccess
         if (in_array($hostname, $this->envArray['env']['local']['server']['hostname'])) {
             return self::$env = 'local';
         }
-        die('We could not detect your application environment, please correct your <b>app/config/environments.php</b> hostname array.');
+        die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
     }
 
 }

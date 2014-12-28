@@ -2,7 +2,8 @@
 
 namespace Obullo\Mongo;
 
-use MongoClient;
+use MongoClient,
+    RuntimeException;
 
 /**
  * Mongo Connection Manager

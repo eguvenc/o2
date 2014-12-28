@@ -110,7 +110,6 @@ Class Form
      */
     public function setErrors($errors)
     {
-        // $this->messages[static::SUCCESS] = 1;
         if (is_object($errors)) {
             $errors = $errors->getErrors();  // Get "Validator" object errors
         }
@@ -209,7 +208,7 @@ Class Form
      * @param string $field   the field name
      * @param string $default value
      * 
-     * @return   void
+     * @return void
      */    
     public function setValue($field = '', $default = '')
     {

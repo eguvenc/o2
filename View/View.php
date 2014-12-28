@@ -68,7 +68,7 @@ Class View
      * 
      * @var object
      */
-    public $nestedController = null;
+    protected $nestedController = null;
 
     /**
      * Constructor
@@ -248,7 +248,7 @@ Class View
          * it will not work if router not available in the controller.
          * So first we need check router is available if not we user container->router otherwise Controller->router.
          */
-        $router = (Controller::$instance == null) ? $this->c->load('router') : Controller::$instance->router;
+        $router = (Controller::$instance == null) ? $this->c['router'] : Controller::$instance->router;
         /**
          * Is there any nested layer ?
          */
@@ -256,7 +256,7 @@ Class View
             $router = $this->nestedController->router;
         }
         /**
-         * Fetch view ( als oit can be nested )
+         * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
             CONTROLLERS .$router->fetchModule(DS). $router->fetchDirectory() . DS .'view'. DS,

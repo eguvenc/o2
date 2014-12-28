@@ -56,14 +56,21 @@ Class Config implements ArrayAccess
      */
     public function __construct($c)
     {
-        $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
-        $this->local = APP . 'config' . DS .'env'. DS . 'local'. DS;
+        $this->path  = APP .'config'. DS . ENV . DS;
+        $this->local = APP .'config'. DS . 'local'. DS;
         $this->file  = $this->path .'config.env';
 
         ini_set('display_errors', 1);
         $this->env = include $this->file;
-        $this->loadEnv('.env.'. ENV .'.php'); // Load dot env.php file
-        $this->array = include $this->local .'config.php';  // Bind current environment config variables 
+
+        $dotenv = '.env.'. ENV .'.php';
+        $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
+        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
+            configurationError();
+        }
+        $_ENV = $envVariables;
+
+        $this->array = include $this->local .'config.php';  // Load current environment config variables 
 
         if (ENV != 'local') {
             $config = include $this->path .'config.php';
@@ -86,9 +93,10 @@ Class Config implements ArrayAccess
         $envFile = $this->path . $fileUrl .'.php';
         $file = $this->local . $fileUrl .'.php';  // Default config path
 
-        if (strpos($filename, 'shared/') === 0) {
+        if (file_exists(APP . 'config' . DS . $fileUrl .'.php')) {  // If shared file exists 
             $file = APP . 'config' . DS . $fileUrl .'.php';
-        } elseif (file_exists($envFile)) {
+        }
+        if (file_exists($envFile)) {
             $file = $envFile;
         }
         if (in_array($file, $this->loaded, true)) {
@@ -98,41 +106,10 @@ Class Config implements ArrayAccess
         $config = include $file;
         ini_set('display_errors', 0);
 
-        if (strpos($filename, 'constant/') === false  // Allow loading constant files
-            AND ($config == false OR ! isset($config) OR ! is_array($config))
-        ) {
-            throw new LogicException(
-                sprintf(
-                    'Your %s file does not appear to contain a valid configuration array.', 
-                    $file
-                )
-            );
-        }
         $this->array[$filename] = $config;
         $this->loaded[] = $file;
         unset($config);
         return $this->array[$filename];
-    }
-
-
-    /**
-     * Load env config variables file
-     * 
-     * @param string $file filename
-     * 
-     * @return void
-     */
-    public function loadEnv($file)
-    {
-        $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
-        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
-            configurationError();
-        }
-        foreach ($envVariables as $key => $value) {
-            $_ENV[$key] = $value;
-            $_SERVER[$key] = $value;
-            putenv("{$key}={$value}");   
-        }
     }
 
     /**
@@ -143,7 +120,7 @@ Class Config implements ArrayAccess
     public function write()
     {
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/env/".ENV."/config.env */");
+        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/config/".ENV."/config.env */");
         $writer->toFile($this->file, $this->env);
     }
 

@@ -44,7 +44,7 @@ Class Session
     {
         $this->session = $c->load('session');
         $this->logger = $c->load('service/logger');
-        $this->flash = $c->load('config')->load('shared/flash');
+        $this->flash = $c->load('config')->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)

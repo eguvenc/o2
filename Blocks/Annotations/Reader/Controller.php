@@ -43,12 +43,12 @@ Class Controller
     {
         $this->c = $c;
 
-        $rc = new ReflectionClass($class);
-        $this->blocks = $rc->getMethod('index')->getDocComment();
+        $reflection = new ReflectionClass($class);
+        $this->blocks = $reflection->getMethod('index')->getDocComment();
     }
 
     /**
-     * Parse docs blocks then execute filters
+     * Parse docs blocks and execute filters
      * 
      * @return void|filter \Blocks\Annotations\Filter
      */

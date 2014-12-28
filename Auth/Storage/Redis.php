@@ -4,6 +4,7 @@ namespace Obullo\Auth\Storage;
 
 use Auth\Credentials,
     Obullo\Auth\AuthResult,
+    Obullo\Utils\Random,
     Obullo\Auth\Token;
 
  /*
@@ -26,7 +27,7 @@ use LogicException;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Redis implements StorageInterface
+Class Redis
 {
     /**
      * Cache storage unverified users key
@@ -102,7 +103,7 @@ Class Redis implements StorageInterface
     public function __construct($c) 
     {
         $this->c = $c;
-        $this->config = $c['config']->load('shared/auth');
+        $this->config = $c['config']->load('auth');
         
         $this->cache = $c->load('service/cache');
         $this->logger = $c->load('service/logger');
@@ -171,7 +172,7 @@ Class Redis implements StorageInterface
     public function setRandomId($id = null)
     {
         if (empty($id)) {
-            $id = $this->c->load('utils/random')->generate('alnum.lower', 10);
+            $id = Random::generate('alnum.lower', 10);
         }
         $this->session->set('__'.$this->config['memory']['key'].'/RandomId', $id);
         return $id;
@@ -401,14 +402,16 @@ Class Redis implements StorageInterface
     /**
      * Match the user credentials.
      * 
-     * @return array|false
+     * @return object|false
      */
     public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
             $key = $this->getMemoryBlockKey('__permanent');
-            $data = $this->cache->hGetAll($key);
-            return $data;
+            $data = (object)$this->cache->hGetAll($key);  // We convert it to object otherwise page loading time 
+                                                          // over 0.1500 seconds ..
+
+            return isset($data->__isAuthenticated) ? $data : false;
         }
         return false;
     }

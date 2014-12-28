@@ -105,7 +105,7 @@ Class Translator implements ArrayAccess
          * If cookie not exists ( especially in Cli mode ) we cannot get the default locale
          * so first of all we need set default locale code.
          */
-        $this->translator = $this->c['config']->load('shared/translator');  // Get package config file
+        $this->translator = $this->c['config']->load('translator');  // Get package config file
         $this->locale = $this->translator['locale']['default'];  // Default lang code
         $this->config = $this->c->load('config');  // Get package config file
 

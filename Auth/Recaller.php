@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Provider\DatabaseProvider,
+use Obullo\Auth\UserProviderInterface,
     Auth\Credentials,
     Auth\Identities\GenericIdentity;
 
@@ -53,7 +53,7 @@ Class Recaller
      */
     public function recallUser($token)
     {
-        $database = new DatabaseProvider($this->c, $this->storage);
+        $database = $this->c['user.provider'];
         $resultRowArray = $database->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
@@ -69,7 +69,7 @@ Class Recaller
         $adapter = $this->c['auth.adapter'];
         $adapter->generateUser($genericUser, $resultRowArray, $database, true);
 
-        $database->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
+        $database->updateRememberToken($adapter->getRememberToken(), $genericUser);
     }
 
     /**

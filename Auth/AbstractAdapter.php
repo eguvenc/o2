@@ -57,13 +57,11 @@ abstract class AbstractAdapter
      * Constructor
      * 
      * @param object $c container
-     *
-     * @return void
      */
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c->load('config')->load('shared/auth');
+        $this->config = $c->load('config')->load('auth');
     }
 
     /**
@@ -133,7 +131,7 @@ abstract class AbstractAdapter
     /**
      * Check password is hashed or not ?
      *
-     * $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
+     * Hash String : $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
      * 
      * @param string $hash hashed password
      * 

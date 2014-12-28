@@ -35,29 +35,19 @@ class AuthResult
     const FAILURE_UNCATEGORIZED = -3;
 
     /**
-     * Failure idenitifer not matched with results array.
-     */
-    const FAILURE_IDENTIFIER_CONSTANT_ERROR = -4;
-
-    /**
      * Already loggedin.
      */
-    const FAILURE_ALREADY_LOGGEDIN = -5;
-
-    /**
-     * User password not hashed.
-     */
-    const FAILURE_UNHASHED_PASSWORD = -6;
+    const FAILURE_ALREADY_LOGGEDIN = -4;
 
     /**
      * Temporary auth has been created
      */
-    const FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED = -7;
+    const FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED = -5;
 
     /**
      * Temporary auth ( Unverified user )
      */
-    const FAILURE_UNVERIFIED = -8;
+    const FAILURE_UNVERIFIED = -6;
 
     /**
      * Authentication success.

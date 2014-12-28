@@ -65,7 +65,7 @@ Class Session
         $this->params = $params;        
         $this->handler = new $handlerClass($c, $params);
         $this->config = $c['config'];
-        $this->logger = $c->load('return service/logger');
+        $this->logger = $c->load('service/logger');
 
         ini_set('session.cookie_domain', $this->params['cookie']['domain']);
 

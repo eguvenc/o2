@@ -44,7 +44,7 @@ Class Limiter
     public function load($identifier = 'ip', $params = array())
     {
         if (count($params) == 0) {
-            $params = $this->c['config']->load('shared/rate');  // Load from file
+            $params = $this->c['config']->load('rate');  // Load from file
         }
         if (isset($this->{$identifier})) {
             return $this->{$identifier};

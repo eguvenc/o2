@@ -188,7 +188,7 @@ Class Agent
     protected function loadAgentFile()
     {
         $return = false;
-        $userAgents = $this->c['config']->load('shared/agents');
+        $userAgents = $this->c['config']->load('agents');
 
         if (isset($userAgents['platforms'])) {
             $this->platforms = &$userAgents['platforms'];

@@ -36,7 +36,7 @@ Class UserService
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('shared/auth');
+        $this->config = $c['config']->load('auth');
 
         $this->register();
     }
@@ -54,7 +54,6 @@ Class UserService
         $this->c['auth.storage'] = function () use ($Storage) {
             return new $Storage($this->c);
         };
-
         $this->c['auth.adapter'] = function () use ($Adapter) {
             return new $Adapter($this->c, $this);
         };
