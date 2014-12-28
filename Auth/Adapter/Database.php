@@ -14,16 +14,16 @@ use Obullo\Auth\UserProviderInterface,
     RuntimeException;
 
 /**
- * O2 Authentication - Associative Array Adapter
+ * O2 Authentication - Database Adapter
  * 
  * @category  Auth
- * @package   AssociativeArray
+ * @package   Database
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-class AssociativeArray extends AbstractAdapter
+class Database extends AbstractAdapter
 {
     /**
      * User service
@@ -372,7 +372,7 @@ class AssociativeArray extends AbstractAdapter
     }
 }
 
-// END AssociativeArray.php File
-/* End of file AssociativeArray.php
+// END Database.php File
+/* End of file Database.php
 
-/* Location: .Obullo/Auth/Adapter/AssociativeArray.php */
+/* Location: .Obullo/Auth/Adapter/Database.php */

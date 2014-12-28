@@ -13,7 +13,7 @@ Below the flow chart shows authentication process of users:
 
 ## Adapters
 
-Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
+Auth adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
 
 ## Redis Storage
 
@@ -113,7 +113,7 @@ Array
 |
 */
 return array(
-    'adapter' => 'AssociativeArray',
+    'adapter' => 'Database',
     'memory' => array(          // Keeps user identitiy data in your cache driver.
         'key' => 'Auth',        // Auth key should be replace with your projectameAuth
         'storage' => 'Redis',   // Storage driver uses cache package
@@ -178,7 +178,7 @@ return array(
     <tbody>
         <tr>
             <td>adapter</td>
-            <td>Adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based.</td>
+            <td>Adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based.</td>
         </tr>
         <tr>
             <td>memory[key]</td>
