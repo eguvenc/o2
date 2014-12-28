@@ -84,7 +84,7 @@ Class View
             '@ASSETS' => rtrim($c['config']['url']['assets'], '/')
         );
         $this->c = $c;
-        $this->layouts = $params;
+        $this->layouts = $params['layouts'];
         $this->logger = $this->c->load('service/logger');
         $this->response = $this->c->load('response');
 

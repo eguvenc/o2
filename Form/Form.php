@@ -55,7 +55,7 @@ Class Form
     public function __construct($c, $params = array())
     {
         $this->c = $c;
-        $this->params = $params;
+        $this->params = (count($params) == 0) ? $c['config']->load('form') : $params;
         $this->logger = $this->c->load('service/logger');
         $this->logger->debug('Form Class Initialized');
     }
