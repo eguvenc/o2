@@ -31,31 +31,34 @@ Class UserService
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        container
+     * @param object $database provider
      */
-    public function __construct($c)
+    public function __construct($c, $database)
     {
         $this->c = $c;
         $this->config = $c['config']->load('auth');
 
-        $this->register();
+        $this->register($database);
     }
 
     /**
      * Register Services
+     *
+     * @param object $database provider database
      * 
      * @return void
      */
-    protected function register()
+    protected function register($database)
     {
-        $Adapter = $this->config['adapter'];
-        $Storage = $this->config['memory']['storage'];
-
-        $this->c['auth.storage'] = function () use ($Storage) {
-            return new $Storage($this->c);
+        $this->c['auth.storage'] = function () {
+            return new $this->config['memory']['storage']($this->c);
         };
-        $this->c['auth.adapter'] = function () use ($Adapter) {
-            return new $Adapter($this->c, $this);
+        $this->c['auth.adapter'] = function () {
+            return new $this->config['adapter']($this->c, $this);
+        };
+        $this->c['user.provider'] = function () use ($database) {
+            return new $this->config['user']['provider']($this->c, $database);
         };
     }
 
