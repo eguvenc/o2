@@ -2,7 +2,7 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Http\Get;
+use Obullo\Http\Sanitizer;
 
 /**
  * Uri Class
@@ -39,7 +39,7 @@ Class Uri
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c->load('config');
+        $this->config = $c['config'];
         $this->logger = $c->load('service/logger');
         $this->logger->debug('Uri Class Initialized', array(), 9); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
@@ -155,7 +155,7 @@ Class Uri
             // compatibility as many are unaware of how characters in the permitted_uri_chars will be parsed as a regex pattern
 
             if ( ! preg_match('|^[' . str_replace(array('\\-', '\-'), '-', preg_quote($this->config['uri']['permittedChars'], '-')) . ']+$|i', $str)) {
-                $this->c->load('response')->showError('The URI you submitted has disallowed characters.', 400);
+                $this->c['response']->showError('The URI you submitted has disallowed characters.', 400);
             }
         }
         // Convert programatic characters to entities and return
@@ -209,8 +209,7 @@ Class Uri
     public function setUriString($str = '', $filter = true)
     {
         if ($filter) {  // Filter out control characters
-            $this->c->load('http/sanitizer');
-            $str = $this->c->load('http/sanitizer')->sanitizeInvisibleCharacters($str, false);
+            $str = Sanitizer::sanitizeInvisibleCharacters($str, false);
         }
         $this->uriString = ($str == '/') ? '' : $str;  // If the URI contains only a slash we'll kill it
     }

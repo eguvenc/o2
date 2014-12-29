@@ -380,8 +380,8 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     - classes
         - Auth
             Identities
-                - GenericIdentity
-                - UserIdentity
+                - AuthorizedUser
+                - GenericUser
         - Provider
             UserProvider.php
         Credentials.php
@@ -402,15 +402,15 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
             <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\GenericIdentity</td>
+            <td>Auth\Identities\GenericUser</td>
             <td>Guest user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\UserIdentity</td>
+            <td>Auth\Identities\AuthorizedUser</td>
             <td>Authorized user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Model\User</td>
+            <td>Auth\Provider\UserProvider</td>
             <td>Contains user database query sql methods.</td>
         </tr>
     </tbody>
@@ -477,7 +477,7 @@ After verification, method authenticate temporary identity and removes old tempo
 
 Validate a user's credentials without authentication.
 
-### $this->user->login->validateCredentials(UserIdentity $user, array $credentials);
+### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
 Validate a user against the given credentials.
 
@@ -526,7 +526,7 @@ Destroys all identity stored in memory.
 
 Removes the rememberMe cookie.
 
-### $this->user->identity->refreshRememberToken(GenericIdentity $genericUser);
+### $this->user->identity->refreshRememberToken(GenericUser $genericUser);
 
 Regenerates rememberMe token in <b>database</b>.
 
@@ -595,7 +595,7 @@ Returns to security token.
 Gets role(s) of the user.
 
 
-**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/UserIdentity</kbd> class.
+**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> class.
 
 
 ### Activity Reference

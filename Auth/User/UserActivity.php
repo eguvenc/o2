@@ -2,9 +2,7 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Identities\UserIdentitiy,
-    Auth\Identities\GenericIdentity,
-    Obullo\Auth\UserService;
+use Obullo\Auth\UserService;
 
 /**
  * O2 Authentication - Online Users Activity Class
@@ -16,7 +14,7 @@ use Auth\Identities\UserIdentitiy,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Activity
+Class UserActivity
 {
     /**
      * Container
@@ -195,7 +193,7 @@ Class Activity
 
 }
 
-// END Activity.php File
-/* End of file Activity.php
+// END UserActivity.php File
+/* End of file UserActivity.php
 
-/* Location: .Obullo/Auth/User/Activity.php */
+/* Location: .Obullo/Auth/User/UserActivity.php */

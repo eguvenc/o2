@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity,
+use Auth\Identities\GenericUser,
     Obullo\Utils\Random;
 
 /**
@@ -126,23 +126,6 @@ abstract class AbstractAdapter
             $cookie['httpOnly']
         );
         return $token;
-    }
-
-    /**
-     * Check password is hashed or not ?
-     *
-     * Hash String : $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
-     * 
-     * @param string $hash hashed password
-     * 
-     * @return boolean
-     */
-    public function isHashedPassword($hash)
-    {
-        if (strlen($hash) > 50) {
-            return true;
-        }
-        return false;
     }
 
     /**

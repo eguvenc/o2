@@ -4,8 +4,8 @@ namespace Obullo\Auth\Adapter;
 
 use Obullo\Auth\UserProviderInterface,
     Auth\Credentials,
-    Auth\Identities\GenericIdentity,
-    Auth\Identities\UserIdentity,
+    Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
     Obullo\Auth\Token,
     Obullo\Auth\AuthResult,
     Obullo\Auth\UserService,
@@ -38,13 +38,6 @@ class Database extends AbstractAdapter
      * @var object
      */
     protected $token;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    protected $logger;
 
     /**
      * Session class
@@ -103,10 +96,10 @@ class Database extends AbstractAdapter
      */
     public function __construct($c, UserService $user)
     {
-        $this->user = $user;;
+        $this->user = $user;
         $this->storage = $c['auth.storage'];
         $this->session = $c->load('session');
-        $this->logger = $c->load('service/logger');
+        $this->cache = $c->load('service/cache');
 
         parent::__construct($c);
     }
@@ -118,7 +111,7 @@ class Database extends AbstractAdapter
      * 
      * @return boolean if success
      */
-    protected function initialize(GenericIdentity $genericUser)
+    protected function initialize(GenericUser $genericUser)
     {
         if ($this->user->identity->guest()) {
             $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
@@ -139,7 +132,7 @@ class Database extends AbstractAdapter
      * 
      * @return object authResult
      */
-    public function login(GenericIdentity $genericUser)
+    public function login(GenericUser $genericUser)
     {
         $this->initialize($genericUser);
 
@@ -167,15 +160,13 @@ class Database extends AbstractAdapter
      * 
      * @return object
      */
-    public function authenticate(GenericIdentity $genericUser, $login = true)
+    public function authenticate(GenericUser $genericUser, $login = true)
     {
         $this->resultRowArray = $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
 
-        if ($storageResult == false) {
+        if ($this->resultRowArray === false) {
             $this->resultRowArray = $this->c['user.provider']->execQuery($genericUser);  // If user does not exists in memory do sql query
         }
-
-        var_dump($this->resultRowArray->__time);
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Credentials::IDENTIFIER])) {
 
             $plain = $genericUser->getPassword();
@@ -195,7 +186,7 @@ class Database extends AbstractAdapter
     }
 
     /**
-     * Set identities data to UserIdentity object
+     * Set identities data to AuthorizedUser object
      * 
      * @param array $genericUser         generic identity array
      * @param array $resultRowArray      success auth query user data
@@ -204,16 +195,16 @@ class Database extends AbstractAdapter
      *
      * @return object
      */
-    public function generateUser(GenericIdentity $genericUser, $resultRowArray, $write2Storage = false, $passwordNeedsRehash = array())
+    public function generateUser(GenericUser $genericUser, $resultRowArray, $write2Storage = false, $passwordNeedsRehash = array())
     {
-        $this->token = new Token($this->c);
+        $token = new Token($this->c);
 
         $attributes = array(
             Credentials::IDENTIFIER => $genericUser->getIdentifier(),
             Credentials::PASSWORD => $resultRowArray[Credentials::PASSWORD],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
-            '__token' => $this->token->get(),
+            '__token' => $token->get(),
             '__time' => ceil(microtime(true)),
         );
         /**
@@ -240,7 +231,7 @@ class Database extends AbstractAdapter
              * Authenticate cached auth data. We override __isAuthenticated item value as "1"
              * then we update the token.
              */
-            $this->storage->authenticatePermanentIdentity($this->resultRowArray, $this->token);
+            $this->storage->authenticatePermanentIdentity($this->resultRowArray, $token);
         }
         $this->deleteOldAuth();
     }
@@ -318,10 +309,6 @@ class Database extends AbstractAdapter
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
             $this->results['code'] = AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';
-            return $this->createResult();
-        }
-        if ($this->results['code'] === AuthResult::FAILURE_ALREADY_LOGGEDIN) {
-            $this->results['messages'][] = 'You are already logged in.';
             return $this->createResult();
         }
         return true;

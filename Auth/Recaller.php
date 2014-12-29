@@ -4,7 +4,7 @@ namespace Obullo\Auth;
 
 use Obullo\Auth\UserProviderInterface,
     Auth\Credentials,
-    Auth\Identities\GenericIdentity;
+    Auth\Identities\GenericUser;
 
 /**
  * O2 Authentication - RememberMe Recaller
@@ -64,7 +64,7 @@ Class Recaller
         $id = $resultRowArray[Credentials::IDENTIFIER];
         $this->storage->setIdentifier($id);
         
-        $genericUser = new GenericIdentity(array(Credentials::IDENTIFIER => $id));
+        $genericUser = new GenericUser(array(Credentials::IDENTIFIER => $id));
 
         $adapter = $this->c['auth.adapter'];
         $adapter->generateUser($genericUser, $resultRowArray, $database, true);

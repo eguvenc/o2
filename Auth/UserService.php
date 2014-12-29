@@ -48,8 +48,8 @@ Class UserService
      */
     protected function register()
     {
-        $Adapter = '\Obullo\Auth\Adapter\\'.$this->config['adapter'];
-        $Storage = '\Obullo\Auth\Storage\\'.ucfirst($this->config['memory']['storage']);
+        $Adapter = $this->config['adapter'];
+        $Storage = $this->config['memory']['storage'];
 
         $this->c['auth.storage'] = function () use ($Storage) {
             return new $Storage($this->c);
@@ -73,7 +73,7 @@ Class UserService
         if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
             return $this->{$key};
         }
-        $Class = '\Obullo\Auth\User\\'.ucfirst($key);
+        $Class = '\Obullo\Auth\User\User'.ucfirst($key);
         return $this->{$key} = new $Class($this->c, $this);
     }
 

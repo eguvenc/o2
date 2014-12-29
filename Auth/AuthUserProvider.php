@@ -3,12 +3,12 @@
 namespace Obullo\Auth;
 
 use Obullo\Auth\UserProviderInterface,
-    Auth\Identities\GenericIdentity,
-    Auth\Identities\UserIdentity,
+    Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
     Auth\Credentials;
 
 /**
- * Obullo User Provider
+ * Auth Default User Provider
  * 
  * @category  Auth
  * @package   Adapter
@@ -49,11 +49,11 @@ Class AuthUserProvider implements UserProviderInterface
     /**
      * Execute sql query
      *
-     * @param object $user GenericIdentity object to get user's identifier
+     * @param object $user GenericUser object to get user's identifier
      * 
      * @return mixed boolean|array
      */
-    public function execQuery(GenericIdentity $user)
+    public function execQuery(GenericUser $user)
     {
         $this->db->prepare($this->userSQL, array($this->tablename, Credentials::IDENTIFIER));
         $this->db->bindValue(1, $user->getIdentifier(), PARAM_STR);
@@ -82,11 +82,11 @@ Class AuthUserProvider implements UserProviderInterface
      * Update remember me token upon every login & logout
      * 
      * @param string $token name
-     * @param object $user  object UserIdentity
+     * @param object $user  object GenericUser
      * 
      * @return void
      */
-    public function updateRememberToken($token, GenericIdentity $user)
+    public function updateRememberToken($token, GenericUser $user)
     {
         $this->db->prepare($this->rememberTokenUpdateSQL, array($this->tablename, $this->rememberTokenColumn, Credentials::IDENTIFIER));
         $this->db->bindValue(1, $token, PARAM_STR);

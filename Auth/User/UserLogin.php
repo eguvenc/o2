@@ -2,8 +2,10 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Identities\GenericIdentity,
+use Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
     Auth\Credentials,
+    Auth\AuthResult,
     RuntimeException;
 
 /**
@@ -16,7 +18,7 @@ use Auth\Identities\GenericIdentity,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Login
+Class UserLogin
 {
     /**
      * Container
@@ -33,20 +35,6 @@ Class Login
     protected $config;
 
     /**
-     * Storage class
-     * 
-     * @var object
-     */
-    protected $storage;
-
-    /**
-     * Adaapter
-     * 
-     * @var object
-     */
-    protected $adapter;
-
-    /**
      * Constructor
      *
      * @param object $c    container
@@ -57,8 +45,6 @@ Class Login
         $user = null;
         $this->c = $c;
         $this->config = $this->c['config']->load('auth');
-        $this->storage = $this->c['auth.storage'];
-        $this->adapter = $this->c['auth.adapter'];
     }
 
     /**
@@ -68,7 +54,7 @@ Class Login
      */
     public function enableVerification()
     {
-        $this->adapter->enableVerification();
+        $this->c['auth.adapter']->enableVerification();
     }
 
     /**
@@ -78,7 +64,7 @@ Class Login
      */
     public function disableVerification()
     {
-        $this->adapter->disableVerification();
+        $this->c['auth.adapter']->disableVerification();
     }
 
     /**
@@ -107,15 +93,14 @@ Class Login
                 )
             );
         }
-        $authResult = $this->adapter->login(new GenericIdentity($credentials));
-        return $authResult;
+        $authResult = $this->c['auth.adapter']->login(new GenericUser($credentials));
         
-        // /**
-        //  * Create Login Attempt Event
-        //  */
-        // $userResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
-        //                                                                              // Event fire returns multiple array but we use one event response
-        // return isset($userResult[0]) ? current($userResult) : $authResult;
+        /**
+         * Create Login Attempt Event
+         */
+        $eventResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
+                                                                                      // Event fire returns multiple array response but we use one.
+        return isset($eventResult[0]) ? current($eventResult) : $authResult;
     }
  
     /**
@@ -125,7 +110,7 @@ Class Login
      */
     public function authenticateVerifiedIdentity()
     {
-        return $this->storage->authenticateTemporaryIdentity();
+        return $this->c['auth.storage']->authenticateTemporaryIdentity();
     }
 
     /**
@@ -137,7 +122,7 @@ Class Login
      */
     public function validate(array $credentials = array())
     {
-        return $this->adapter->authenticate(new GenericIdentity($credentials), false);
+        return $this->c['auth.adapter']->authenticate(new GenericUser($credentials), false);
     }
 
     /**
@@ -150,7 +135,7 @@ Class Login
      * 
      * @return bool
      */
-    public function validateCredentials(UserIdentity $user, array $credentials)
+    public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
         $plain = $credentials[Credentials::PASSWORD];
 
@@ -166,7 +151,7 @@ Class Login
      */
     public function getAdapter()
     {
-        return $this->adapter;
+        return $this->c['auth.adapter'];
     }
 
     /**
@@ -178,12 +163,12 @@ Class Login
      */
     public function getStorage()
     {
-        return $this->storage;
+        return $this->c['auth.storage'];
     }
 
 }
 
-// END Login.php File
-/* End of file Login.php
+// END UserLogin.php File
+/* End of file UserLogin.php
 
-/* Location: .Obullo/Auth/User/Login.php */
+/* Location: .Obullo/Auth/User/UserLogin.php */

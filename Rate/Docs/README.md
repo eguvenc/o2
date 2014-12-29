@@ -70,7 +70,7 @@ $this->c->load('rate/limiter as limiter');
 
 $this->limiter->load('ip');                                     // load ip configuration
 $this->limiter->ip->channel('login');                           // create a login channel
-$this->limiter->ip->identifier($this->request->getIpAddress()); // set user ip
+$this->limiter->ip->identifier($this->request->ip()); // set user ip
 
 if ($this->limiter->ip->isAllowed()) {
 

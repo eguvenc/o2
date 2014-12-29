@@ -6,8 +6,8 @@ use Auth\Credentials,
     Obullo\Auth\Token,
     Obullo\Auth\Recaller,
     Obullo\Auth\UserService,
-    Auth\Identities\UserIdentity,
-    Auth\Identities\GenericIdentity;
+    Auth\Identities\AuthorizedUser,
+    Auth\Identities\GenericUser;
 
 /**
  * O2 Authentication - User Identity Class
@@ -19,7 +19,7 @@ use Auth\Credentials,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Identity extends UserIdentity
+Class UserIdentity extends AuthorizedUser
 {
     /**
      * Container
@@ -275,8 +275,11 @@ Class Identity extends UserIdentity
             return $this->tokenIsValid = true;
         }
         $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
+
         $this->logger->channel('security');
-        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(), 'token' => $token, 'cookie' => $cookie));
+        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(),'token' => $token,'cookie' => $cookie));
+
+        $this->c['event']->fire('auth.token', array($this, $cookie));
     
         return $this->tokenIsValid = false;
     }
@@ -383,7 +386,7 @@ Class Identity extends UserIdentity
         $credentials['__type'] = 'Unauthorized';
 
         if ($this->getRememberMe() == 1) {            // If user checked rememberMe option refresh rememberMe token
-            $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
+            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->setCredentials($credentials, null, '__permanent');
     }
@@ -396,7 +399,7 @@ Class Identity extends UserIdentity
     public function destroy()
     {
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
-            $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
+            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier())));
         }
         $this->storage->deleteCredentials('__permanent');
     }
@@ -404,11 +407,11 @@ Class Identity extends UserIdentity
     /**
      * Refresh the rememberMe token
      *
-     * @param object $genericUser GenericIdentity
+     * @param object $genericUser GenericUser
      * 
      * @return void
      */
-    public function refreshRememberToken(GenericIdentity $genericUser)
+    public function refreshRememberToken(GenericUser $genericUser)
     {
         $this->c['user.provider']->updateRememberToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
     }
@@ -459,7 +462,7 @@ Class Identity extends UserIdentity
 
 }
 
-// END Identity.php File
-/* End of file Identity.php
+// END UserIdentity.php File
+/* End of file UserIdentity.php
 
-/* Location: .Obullo/Auth/User/Identity.php */
+/* Location: .Obullo/Auth/User/UserIdentity.php */

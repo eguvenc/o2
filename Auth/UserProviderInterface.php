@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericUser;
 
 /**
  * User Provider Interface
@@ -27,11 +27,11 @@ interface UserProviderInterface
     /**
      * Execute sql query
      *
-     * @param array $user GenericIdentity object to get user's identifier
+     * @param array $user GenericUser object to get user's identifier
      * 
      * @return mixed boolean|array
      */
-    public function execQuery(GenericIdentity $user);
+    public function execQuery(GenericUser $user);
     
     /**
      * Recalled user sql query using remember cookie
@@ -46,11 +46,11 @@ interface UserProviderInterface
      * Update remember token upon every login & logout requests
      * 
      * @param string $token name
-     * @param object $user  object UserIdentity
+     * @param object $user  object GenericUser
      * 
      * @return void
      */
-    public function updateRememberToken($token, GenericIdentity $user);
+    public function updateRememberToken($token, GenericUser $user);
 
 }
 

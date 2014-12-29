@@ -2,6 +2,8 @@
 
 namespace Obullo\Cookie;
 
+use Obullo\Http\Sanitizer;
+
 /**
  * Fetches data from $_COOKIE variables
  * 
@@ -107,7 +109,7 @@ Class Cookie
         if ( ! isset($_COOKIE[$prefix.$key])) {
             return false;
         }
-        return $this->c->load('http/sanitizer')->sanitize($_COOKIE[$prefix.$key]);
+        return Sanitizer::sanitize($_COOKIE[$prefix.$key]);
     }
 
     /**

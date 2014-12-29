@@ -24,7 +24,7 @@ Class Sanitizer
      * 
      * @return   string
      */
-    public function sanitize($str)
+    public static function sanitize($str)
     {
         if (is_array($str)) {
             $newArray = array();

@@ -380,8 +380,8 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     - classes
         - Auth
             Identities
-                - GenericIdentity
-                - UserIdentity
+                - AuthorizedUser
+                - GenericUser
         - Provider
             UserProvider.php
         Credentials.php
@@ -402,15 +402,15 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
             <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\GenericIdentity</td>
+            <td>Auth\Identities\GenericUser</td>
             <td>Guest user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\UserIdentity</td>
+            <td>Auth\Identities\AuthorizedUser</td>
             <td>Authorized user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Model\User</td>
+            <td>Auth\Provider\UserProvider</td>
             <td>Contains user database query sql methods.</td>
         </tr>
     </tbody>
@@ -435,7 +435,8 @@ The class Identity manages the identity information and does the operations belo
 ## Activity
 
 ------
-The classs Activity acts as a container to manage the activities of the logged in users. The instant information like the last action of the user is on which page is sent to the identity data from this container. In order for information to be written on the memory, the update() method needs to be run once at the bottom. When the user logs in <b>sid</b> (session id) value is sent to the inside of the activity data by default.
+
+The classs Activity acts as a container to manage the meta data of the logged in users. The instant information like the last action of the user is on which page is sent to the identity data from this container. In order for information to be written on the memory, the update() method needs to be run once at the bottom. When the user logs in <b>sid</b> (session id) value is sent to the inside of the activity data by default.
 
 #### Adding activity data and update.
 
@@ -495,8 +496,8 @@ namespace Auth\Provider;
 
 use Obullo\Auth\UserProviderInterface,
     Obullo\Auth\AuthUserProvider,
-    Auth\Identities\GenericIdentity,
-    Auth\Identities\UserIdentity,
+    Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
     Auth\Credentials;
 
 /**
@@ -532,11 +533,11 @@ Class UserProvider extends AuthUserProvider implements UserProviderInterface
     /**
      * Execute sql query
      *
-     * @param object $user GenericIdentity object to get user's identifier
+     * @param object $user GenericUser object to get user's identifier
      * 
      * @return mixed boolean|object
      */
-    public function execQuery(GenericIdentity $user)
+    public function execQuery(GenericUser $user)
     {
         // return parent::execQuery($user);
         
@@ -554,6 +555,125 @@ Class UserProvider extends AuthUserProvider implements UserProviderInterface
 
 /* Location: .app/classes/Auth/Provider/UserProvider.php */
 ```
+
+
+### Events
+
+By default we have two active user event in event/user class. Auth class use these methods when you use service/user class.
+
+If you want you can release afterLogin and afterLogout events using fire method.
+
+```php
+<?php
+
+namespace Event;
+
+use Obullo\Auth\AuthResult,
+    Obullo\Auth\User\UserIdentity;
+
+/**
+ * User event handler
+ * 
+ * @category  Event
+ * @package   User
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/docs/event
+ */
+Class User
+{
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Constructor
+     *
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->c = $c;
+    }
+
+    /**
+     * Handle user login attempts
+     *
+     * @param object $authResult AuthResult object
+     * 
+     * @return void
+     */
+    public function onLoginAttempt(AuthResult $authResult)
+    {
+        if ( ! $authResult->isValid()) {
+
+            // Store attemtps
+
+        }
+        return $authResult;
+    }
+
+    /**
+     * Invalid auth token event listener
+     * 
+     * @param object $identity UserIdentity
+     * @param string $cookie   user token that we read from cookie
+     * 
+     * @return void
+     */
+    public function onInvalidToken(UserIdentity $identity, $cookie)
+    {
+        $this->c->load('flash/session')->error('Invalid auth token : '.$cookie.' identity '.$identity->getIdentifier().' destroyed');
+        $this->c->load('url')->redirect('/login');
+    }
+
+    /**
+     * Handler user login events
+     * 
+     * @return void
+     */
+    public function onAfterLogin()
+    {
+        // ..
+    }
+
+    /**
+     * Handle user logout events.
+     *
+     * @return void
+     */
+    public function onAfterLogout()
+    {
+        // ..
+    }
+
+    /**
+     * Register the listeners for the subscriber.
+     * 
+     * @param object $event event class
+     * 
+     * @return void
+     */
+    public function subscribe($event)
+    {
+        $event->listen('login.attempt', 'Event\User.onLoginAttempt');
+        $event->listen('after.login', 'Event\User.onAfterLogin');
+        $event->listen('auth.token', 'Event\User.onInvalidToken');
+        $event->listen('after.logout', 'Event\User.onAfterLogout');
+    }
+
+}
+
+// END User class
+
+/* End of file User.php */
+/* Location: .Event/User.php */
+```
+
 
 
 ### Login Reference
@@ -586,10 +706,17 @@ After verification, method authenticate temporary identity and removes old tempo
 
 Validate a user's credentials without authentication.
 
-### $this->user->login->validateCredentials(UserIdentity $user, array $credentials);
+### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
 Validate a user against the given credentials.
 
+$this->user->login->getAdapter();
+
+Returns user service adapter object.
+
+$this->user->login->getStorage();
+
+Returns to user service storage object.
 
 ### Identity Reference
 
@@ -635,14 +762,14 @@ Destroys all identity stored in memory.
 
 Removes the rememberMe cookie.
 
-### $this->user->identity->refreshRememberToken(GenericIdentity $genericUser);
+### $this->user->identity->refreshRememberToken(GenericUser $genericUser);
 
 Regenerates rememberMe token in <b>database</b>.
 
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
 
 
-### Identity Set Methods
+### Identity "Set" Methods
 
 ------
 
@@ -663,7 +790,7 @@ Set user roles to identity data.
 Reset identity attributes with new values.
 
 
-### Identity Get Methods
+### Identity "Get" Methods
 
 ------
 
@@ -704,7 +831,7 @@ Returns to security token.
 Gets role(s) of the user.
 
 
-**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/UserIdentity</kbd> class.
+**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> class.
 
 
 ### Activity Reference
@@ -722,16 +849,16 @@ $this->user->activity->method();
 
 ### $this->user->activity->set($key, $val);
 
-Add activity data to user.
+Add item to activity data array.
 
 ### $this->user->activity->get($key);
 
-Get activity data item of user.
+Fetches an item from activity data array.
 
 ### $this->user->activity->update();
 
-Updates all activity data of the user which we set them before using $this->user->activity->set(); method.
+Updates all activity data if $this->user->activity->set(); method used before on this method.
 
 ### $this->user->activity->remove();
 
-Remove activity key from container.
+Removes all activity data from auth container.

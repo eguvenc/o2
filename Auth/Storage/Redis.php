@@ -407,11 +407,12 @@ Class Redis
     public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-            $key = $this->getMemoryBlockKey('__permanent');
-            $data = (object)$this->cache->hGetAll($key);  // We convert it to object otherwise page loading time 
-                                                          // over 0.1500 seconds ..
-
-            return isset($data->__isAuthenticated) ? $data : false;
+            $data = (array)$this->cache->hGetAll($this->getMemoryBlockKey('__permanent'));   // We convert it to object otherwise page loading time 
+                                                                                      //  over 0.1500 seconds ..
+            if (count($data) == 0) {
+                return false;
+            }
+            return $data;
         }
         return false;
     }

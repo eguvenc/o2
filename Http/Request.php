@@ -2,8 +2,8 @@
 
 namespace Obullo\Http;
 
-use ArrayAccess,
-    stdClass;
+use stdClass,
+    Obullo\Http\Sanitizer;
 
 /**
  * Request Class
@@ -18,7 +18,7 @@ use ArrayAccess,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http/request
  */
-Class Request implements ArrayAccess
+Class Request
 {
     /**
      * Container
@@ -41,12 +41,11 @@ Class Request implements ArrayAccess
     public $headers;
 
     /**
-     * Global uri and routers objects 
-     * of application
+     * Global uri and routers objects
      * 
      * @var object
      */
-    public $globals;
+    public $global;
 
     /**
      * Constructor
@@ -58,90 +57,42 @@ Class Request implements ArrayAccess
         $this->c = $c;
         $this->logger = $this->c->load('service/logger');
         $this->logger->debug('Request Class Initialized');
+
+        if ( ! is_object($this->global)) { // We store real global objects ( uri, router ) into $this->global then we can grab them from all layers.
+            $this->global = new stdClass;    
+            $this->global->uri = $this->c['uri'];
+            $this->global->router = $this->c['router'];
+        }
     }
 
     /**
-     * We store global objects ( uri, router )
-     * in $this->globals then we can grab them from all layers.
+     * $_GET wrapper
      * 
-     * In Layered Vc we clone and get backup of them into global variable.
-     *
-     * @param string $class global classname
+     * @param string $key key
      * 
-     * @return object
-     */
-    public function globals($class = '')
-    {
-        if (is_object($this->globals)) {
-            $globals = $this->globals;
-        } else {
-            $this->globals = new stdClass;
-            $this->globals->uri = $this->c->load('uri');
-            $this->globals->router = $this->c->load('router');
-            $globals = $this->globals;
-        }
-        if ($class != '') {
-            return $globals->{$class};
-        }
-        return $globals;
-    }
-
-    /**
-     * Sets a parameter or an object.
-     *
-     * @param string $key   The unique identifier for the parameter
-     * @param mixed  $value The value of the parameter
-     *
      * @return void
      */
-    public function offsetSet($key, $value)
-    {        
-        $_REQUEST[$key] = $value;
-    }
-
-    /**
-     * Gets a parameter or an object.
-     *
-     * @param string $key The unique identifier for the parameter
-     *
-     * @return mixed The value of the parameter or an object
-     */
-    public function offsetGet($key)
+    public function get($key)
     {
-        if ($key === true) {
-            return $this->c->load('http/sanitizer')->sanitize($_REQUEST);
-        }
-        if ($key === false) {
-            return $_REQUEST;
-        }
-        if ( ! isset($_REQUEST[$key])) {
+        if ( ! isset($_GET[$key])) {
             return false;
         }
-        return $this->c->load('http/sanitizer')->sanitize($_REQUEST[$key]);
+        return Sanitizer::sanitize($_GET[$key]);
     }
 
     /**
-     * Checks if a parameter or an object is set.
-     *
-     * @param string $key The unique identifier for the parameter
-     *
-     * @return Boolean
-     */
-    public function offsetExists($key)
-    {
-        return isset($_REQUEST[$key]);
-    }
-
-    /**
-     * Unsets a parameter or an object.
-     *
-     * @param string $key The unique identifier for the parameter
-     *
+     * $_POST wrapper
+     * 
+     * @param string $key key
+     * 
      * @return void
      */
-    public function offsetUnset($key)
+    public function post($key)
     {
-        unset($_REQUEST[$key]);
+        if ( ! isset($_POST[$key])) {
+            return false;
+        }
+        return Sanitizer::sanitize($_POST[$key]);
     }
 
     /**
@@ -149,7 +100,7 @@ Class Request implements ArrayAccess
      * 
      * @return string | bool
      */
-    public function getMethod()
+    public function method()
     {
         if (isset($_SERVER['REQUEST_METHOD'])) {
             return $_SERVER['REQUEST_METHOD'];
@@ -167,7 +118,7 @@ Class Request implements ArrayAccess
      * 
      * @return string | boolean
      */
-    public function getHeader($key = 'Host')
+    public function header($key = 'Host')
     {
         if (function_exists('getallheaders')) {
             $headers = getallheaders();
@@ -210,7 +161,7 @@ Class Request implements ArrayAccess
      * 
      * @return string
      */
-    public function getIpAddress()
+    public function ip()
     {
         static $ipAddress = '';
         $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
@@ -218,7 +169,7 @@ Class Request implements ArrayAccess
             return $ipAddress;
         }
         $ipAddress = $REMOTE_ADDR;
-        $proxyIps  = $this->c->load('config')['proxy']['ips'];
+        $proxyIps  = $this->c['config']['proxy']['ips'];
         
         if ( ! empty($proxyIps)) {
             $proxyIps = explode(',', str_replace(' ', '', $proxyIps));
