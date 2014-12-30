@@ -3,6 +3,7 @@
 namespace Obullo\Auth;
 
 use Obullo\Auth\UserProviderInterface,
+    Obullo\Auth\Token,
     Auth\Credentials,
     Auth\Identities\GenericUser;
 
@@ -33,6 +34,13 @@ Class Recaller
     protected $storage;
 
     /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
      * Constructor
      * 
      * @param object $c       container
@@ -42,6 +50,7 @@ Class Recaller
     {
         $this->c = $c;
         $this->storage = $storage;
+        $this->config = $this->c['config']->load('auth');
     }
 
     /**
@@ -63,13 +72,20 @@ Class Recaller
         }
         $id = $resultRowArray[Credentials::IDENTIFIER];
         $this->storage->setIdentifier($id);
-        
-        $genericUser = new GenericUser(array(Credentials::IDENTIFIER => $id));
+    
+        $credentials = array(
+            Credentials::IDENTIFIER => $id,
+            '__rememberMe' => 1,
+            '__rememberToken' => $resultRowArray[Credentials::REMEMBER_TOKEN]
+        );
 
-        $adapter = $this->c['auth.adapter'];
-        $adapter->generateUser($genericUser, $resultRowArray, $database, true);
+        $genericUser = new GenericUser($credentials);
+        $this->c['auth.adapter']->authenticate($genericUser, true, false);
 
-        $database->updateRememberToken($adapter->getRememberToken(), $genericUser);
+        // $adapter->generateUser($genericUser, $resultRowArray, $database, true);
+
+        // $token = new Token($this->c);
+        // $database->updateRememberToken($token->getRememberToken(), $genericUser);
     }
 
     /**

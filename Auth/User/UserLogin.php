@@ -6,6 +6,7 @@ use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
     Auth\Credentials,
     Auth\AuthResult,
+    Obullo\Utils\Random,
     RuntimeException;
 
 /**
@@ -93,6 +94,8 @@ Class UserLogin
                 )
             );
         }
+        $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
+        $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
         $authResult = $this->c['auth.adapter']->login(new GenericUser($credentials));
         
         /**
@@ -102,7 +105,7 @@ Class UserLogin
                                                                                       // Event fire returns multiple array response but we use one.
         return isset($eventResult[0]) ? current($eventResult) : $authResult;
     }
- 
+
     /**
      * Authenticate temporary identity after verification
      * 

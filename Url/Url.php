@@ -24,8 +24,8 @@ Class Url
     public function __construct($c)
     {
         $this->c = $c;
-        $this->uri = $c->load('uri');
-        $c->load('service/logger')->debug('Url Class Initialized');
+        $this->uri = $c['uri'];
+        $this->c->load('service/logger')->debug('Url Class Initialized');
     }
 
     /**
@@ -52,7 +52,7 @@ Class Url
         // example:  example.com/?service_type=email&user_id=50
         // replace with:  example.com?service_type=email&user_id=50
 
-        if (strpos(trim($uri, '/'), '?') === 0) { 
+        if (strpos(trim($uri, '/'), '?') === 0) {
             $siteUri = (strpos($uri, '/') === 0) ? $siteUri : trim($siteUri, '/');
         }
         $siteUrl = ( ! preg_match('!^\w+://! i', $uri)) ? $siteUri : $uri;
@@ -84,6 +84,8 @@ Class Url
         if ( ! preg_match('#^https?://#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
+        $this->c['event']->fire('before.redirect', array($uri, $method));
+
         if (strpos($method, '[')) {
             $index = explode('[', $method);
             $param = str_replace(']', '', $index[1]);

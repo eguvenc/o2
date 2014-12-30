@@ -459,7 +459,6 @@ O2 Auth paketi kullanıcıya ait database fonksiyonlarını servis içerisinden 
 namespace Service;
 
 use Obullo\Auth\UserService,
-    Auth\Provider\UserProvider,
     Service\ServiceInterface;
 
 Class User implements ServiceInterface
@@ -474,11 +473,8 @@ Class User implements ServiceInterface
     public function register($c)
     {            
         $c['user'] = function () use ($c) {
-            return new UserService($c);
-        };
-        $c['user.provider'] = function () use ($c) {
-            return new UserProvider($c, $c->load('service/provider/db'));
-        };
+            return new UserService($c, $c->load('return service/provider/db'));
+        };;
     }
 }
 ```

@@ -2,8 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericUser,
-    Obullo\Utils\Random;
+use Auth\Identities\GenericUser;
 
 /**
  * Abstract Adapter
@@ -104,28 +103,6 @@ abstract class AbstractAdapter
     public function regenerateSessionId($deleteOldSession = true)
     {
         return $this->session->regenerateId($deleteOldSession);
-    }
-
-    /**
-     * Run cookie reminder
-     * 
-     * @return string token
-     */
-    public function getRememberToken()
-    {
-        $token = Random::generate('alnum', 32);
-        $cookie = $this->config['login']['rememberMe']['cookie'];
-
-        setcookie(
-            $cookie['prefix'].$cookie['name'], 
-            $token, 
-            time() + $cookie['expire'], 
-            $cookie['path'], 
-            $this->c['config']['cookie']['domain'],   //  Get domain from global config
-            $cookie['secure'], 
-            $cookie['httpOnly']
-        );
-        return $token;
     }
 
     /**

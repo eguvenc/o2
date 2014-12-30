@@ -36,7 +36,7 @@ Class AuthUserProvider implements UserProviderInterface
     public function __construct($c, $db)
     {
         $this->tablename = 'users';  // Db users tablename
-        $this->rememberTokenColumn = 'remember_token';  // RememberMe token column name
+        $this->rememberTokenColumn = Credentials::REMEMBER_TOKEN;  // RememberMe token column name
 
         $this->userSQL = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
         $this->recalledUserSQL = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
@@ -92,6 +92,8 @@ Class AuthUserProvider implements UserProviderInterface
         $this->db->bindValue(1, $token, PARAM_STR);
         $this->db->bindValue(2, $user->getIdentifier(), PARAM_STR);
         $this->db->execute();
+
+        $this->c->load('service/logger')->alert($this->db->lastQuery());
     }
 }
 

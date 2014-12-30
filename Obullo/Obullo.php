@@ -11,7 +11,7 @@
  * @link      http://obullo.com/package/obullo
  */
 
-$start = microtime(true);  // Run Timer
+$_SERVER['REQUEST_TIME_START'] = microtime(true);
 /*
  * ------------------------------------------------------
  *  Before request event
@@ -101,7 +101,7 @@ $response->sendOutput();    // Send the final rendered output to the browser
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.response', array($start));
+$c['event']->fire('after.response');
 
 
 // END Obullo.php File

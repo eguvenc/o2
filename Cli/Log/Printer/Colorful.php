@@ -58,8 +58,11 @@ Class Colorful
                 $line = "\033[0;35m".$line."\033[0m";
             }
             if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
-                if (strpos($messageBody, 'Final output sent to browser') !== false) {
-                    $line = "\033[1;36m".$line."\033[0m";
+                if (strpos($messageBody, '--> Final output sent') !== false) {
+                    $line = "\033[0m"."\033[1;36m".$line."\033[0m";
+                }
+                if (strpos($messageBody, '--> Header redirect') !== false) {
+                    $line = "\033[0m"."\033[1;33m".$line."\033[0m";
                 }
                 $line = "\033[0;35m".$line."\033[0m";
                 if ( ! isset($lines[$i])) {
@@ -79,7 +82,7 @@ Class Colorful
                 }
             }
             if (strpos($messageBody, 'alert') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
+                $line = "\033[1;33m".$line."\033[0m";
                 if ( ! isset($lines[$line])) {
                     echo $line."\n";
                 }

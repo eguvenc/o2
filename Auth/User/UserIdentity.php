@@ -137,15 +137,15 @@ Class UserIdentity extends AuthorizedUser
      */
     public function check()
     {
-        if ( ! is_null($this->isAuthenticated)) {
-            return $this->isAuthenticated;
-        }
         if ( ! isset($this->attributes['__isAuthenticated'])) {
             return $this->isAuthenticated = false;
         }
+        if ( ! is_null($this->isAuthenticated)) {
+            return $this->isAuthenticated;
+        }
         $tokenRefresh = false;
-        if ($this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
-            $token = new Token($this->c, $this->config);
+        if ($this->attributes['__isAuthenticated'] == 1 AND $this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
+            $token = new Token($this->c);
             $this->attributes['__token'] = $token->get();  // Refresh the token and write it to memory
             $this->attributes['__lastTokenRefresh'] = time();
             $tokenRefresh = true;
@@ -380,14 +380,13 @@ Class UserIdentity extends AuthorizedUser
     {
         $credentials = $this->storage->getCredentials('__permanent');
 
-        $token = new Token($this->c, $this->config);
+        $token = new Token($this->c);
         $credentials['__isAuthenticated'] = 0;        // Sets memory auth to "0".
         $credentials['__token'] = $token->refresh();  // Refresh the security token 
         $credentials['__type'] = 'Unauthorized';
 
-        if ($this->getRememberMe() == 1) {            // If user checked rememberMe option refresh rememberMe token
-            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier())));
-        }
+        $this->updateRememberToken();
+
         $this->storage->setCredentials($credentials, null, '__permanent');
     }
 
@@ -398,10 +397,26 @@ Class UserIdentity extends AuthorizedUser
      */
     public function destroy()
     {
-        if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
-            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier())));
-        }
+        $this->updateRememberToken();
+
         $this->storage->deleteCredentials('__permanent');
+    }
+
+
+    /**
+     * Update remember token if it exists in the memory and browser header
+     * 
+     * @return void
+     */
+    public function updateRememberToken()
+    {
+        if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
+
+            $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
+            $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+
+            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+        }
     }
 
     /**
@@ -413,8 +428,10 @@ Class UserIdentity extends AuthorizedUser
      */
     public function refreshRememberToken(GenericUser $genericUser)
     {
-        $this->c['user.provider']->updateRememberToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
+        $token = new Token($this->c);
+        $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
     }
+ 
 
     /**
      * Removes rememberMe cookie from user browser

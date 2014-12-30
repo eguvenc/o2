@@ -155,12 +155,13 @@ class Database extends AbstractAdapter
      * If memory login fail it will connect to "database table" and run sql 
      * query to find a record matching the provided identity.
      *
-     * @param object  $genericUser identity
-     * @param boolean $login       whether to authenticate user
+     * @param object  $genericUser    identity
+     * @param boolean $login          whether to authenticate user
+     * @param boolean $verifyPassword whether to verify password
      * 
      * @return object
      */
-    public function authenticate(GenericUser $genericUser, $login = true)
+    public function authenticate(GenericUser $genericUser, $login = true, $verifyPassword = true)
     {
         $this->resultRowArray = $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
 
@@ -172,13 +173,16 @@ class Database extends AbstractAdapter
             $plain = $genericUser->getPassword();
             $hash  = $this->resultRowArray[Credentials::PASSWORD];
 
-            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
-                
-                if ($login) {  // If login process allowed.
-                    $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
-                }
-                return true;
+            $passwordNeedsRehash = false;
+            $password = ($verifyPassword) ? false : true;
+            if ($verifyPassword AND $passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here may cause performance bottleneck depending to passwordNeedHash "cost" value
+                                                                                                    // default is 6 for best performance.
+                $password = true;
             }
+            if ($password == true AND $login) {  // If login process allowed.
+                $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
+            }
+            return true;
         }
         $this->resultRowArray = array();
         $this->failure = true; // We set failure variable when user password is fail.
@@ -222,7 +226,7 @@ class Database extends AbstractAdapter
             }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $this->c['user.provider']->updateRememberToken($this->getRememberToken(), $genericUser); // refresh rememberToken
+            $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
         }
         if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  
