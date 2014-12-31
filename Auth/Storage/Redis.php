@@ -439,6 +439,41 @@ Class Redis
         $this->loginAsPermanent($data);
     }
 
+    /**
+     * Get multiple authenticated sessions
+     * 
+     * @return array|false
+     */
+    public function getAllSessions()
+    {
+        $sessions = array();
+        $identifier = $this->getId();
+        $key = $this->config['memory']['key'].':__permanent:Authorized:';
+        
+        foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
+            $exp = explode(':', $val);
+            $aid = end($exp);
+            $sessions[$aid]['__isAuthenticated'] = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
+            $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
+            $sessions[$aid]['id'] = $identifier;
+            $sessions[$aid]['key'] = $key.$identifier.':'.$aid;
+            $sessions[$aid]['prefix'] = $key.$identifier;
+        }
+        return $sessions;
+    }
+
+    /**
+     * Kill authority of user using auth id
+     * 
+     * @param string $aid auth id (10 chars)  e.g:  ahtrzflp79
+     * 
+     * @return boolean
+     */
+    public function killSession($aid)
+    {
+        $this->cache->delete($this->config['memory']['key'].':__permanent:Authorized:'.$this->getId().':'.$aid);
+    }
+
 }
 
 // END Redis.php File

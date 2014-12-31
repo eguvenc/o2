@@ -82,7 +82,7 @@ Class Colorful
                 }
             }
             if (strpos($messageBody, 'alert') !== false) {
-                $line = "\033[1;33m".$line."\033[0m";
+                $line = "\033[1;31m".$line."\033[0m";
                 if ( ! isset($lines[$line])) {
                     echo $line."\n";
                 }

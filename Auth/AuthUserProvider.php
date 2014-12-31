@@ -92,8 +92,6 @@ Class AuthUserProvider implements UserProviderInterface
         $this->db->bindValue(1, $token, PARAM_STR);
         $this->db->bindValue(2, $user->getIdentifier(), PARAM_STR);
         $this->db->execute();
-
-        $this->c->load('service/logger')->alert($this->db->lastQuery());
     }
 }
 

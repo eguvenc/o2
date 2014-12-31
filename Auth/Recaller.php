@@ -62,8 +62,7 @@ Class Recaller
      */
     public function recallUser($token)
     {
-        $database = $this->c['user.provider'];
-        $resultRowArray = $database->execRecallerQuery($token);
+        $resultRowArray = $this->c['user.provider']->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
@@ -72,20 +71,35 @@ Class Recaller
         }
         $id = $resultRowArray[Credentials::IDENTIFIER];
         $this->storage->setIdentifier($id);
-    
+
+
         $credentials = array(
             Credentials::IDENTIFIER => $id,
             '__rememberMe' => 1,
             '__rememberToken' => $resultRowArray[Credentials::REMEMBER_TOKEN]
         );
-
         $genericUser = new GenericUser($credentials);
-        $this->c['auth.adapter']->authenticate($genericUser, true, false);
+        $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);
 
-        // $adapter->generateUser($genericUser, $resultRowArray, $database, true);
+        $this->removeInactiveSessions(); // Kill all inactive sessions
+    }
 
-        // $token = new Token($this->c);
-        // $database->updateRememberToken($token->getRememberToken(), $genericUser);
+    /**
+     * Destroy all inactive sessions of the user
+     * 
+     * @return void
+     */
+    protected function removeInactiveSessions()
+    {
+        $sessions = $this->storage->getAllSessions();
+        if (count($sessions) == 0) {
+            return;
+        }
+        foreach ($sessions as $aid => $val) {       // Destroy all inactive sessions
+            if ($val['__isAuthenticated'] == 0) {  
+                $this->storage->killSession($aid);
+            }
+        }
     }
 
     /**
@@ -96,7 +110,6 @@ Class Recaller
     public function removeCookie()
     {
         $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
-        
         setcookie(
             $cookie['prefix'].$cookie['name'], 
             null,

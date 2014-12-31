@@ -115,43 +115,6 @@ Class UserActivity
     }
 
     /**
-     * Get multiple authenticated sessions
-     * 
-     * @return array|false
-     */
-    public function getAuthSessions()
-    {
-        if (empty($this->identifier)) {
-            return false;
-        }
-        $sessions = array();
-        $key = $this->config['memory']['key'].':__permanent:Authorized:';
-        foreach ($this->cache->getAllKeys($key.$this->identifier.':*') as $val) {
-            $exp = explode(':', $val);
-            $aid = end($exp);
-            $sessions[$aid]['id'] = $this->identifier;
-            $sessions[$aid]['key'] = $key.$this->identifier.':'.$aid;
-            $sessions[$aid]['prefix'] = $key.$this->identifier;
-        }
-        return $sessions;
-    }
-
-    /**
-     * Kill authority of user using auth id
-     * 
-     * @param string $aid microtime
-     * 
-     * @return boolean
-     */
-    public function killAuthSession($aid)
-    {
-        if (empty($this->identifier)) {
-            return false;
-        }
-        $this->cache->delete($this->config['memory']['key'].':__permanent:Authorized:'.$this->identifier.':'.$aid);
-    }
-
-    /**
      * Update user activity
      * 
      * @return void
@@ -161,32 +124,8 @@ Class UserActivity
         if (empty($this->identifier)) {
             return false;
         }
-        if ($this->config['activity']['singleSignOff'] AND $this->user->identity->check()) {  // Single sign-off is the property whereby a single action of signing out 
-                                                                                              // terminates access to multiple login sessions.
-            $sessions = $this->getAuthSessions();
-
-            if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
-                return;
-            }
-            $sessionKeys = array();  // Keep the last session
-            foreach ($sessions as $key => $val) {
-                $time = $this->cache->hGet($val['key'], '__time');
-                $sessionKeys[$time] = $key;
-            }
-            $lastSession = max(array_keys($sessionKeys));      // Get the highest integer
-            $removalSession = $sessionKeys[$lastSession];
-            unset($sessions[$removalSession]);  // Don't touch the current session
-            /*
-            Array ( 
-                [ojj4ihn4m5] => Array ( 
-                        [id] => user@example.com 
-                        [key] => Auth:__permanent:Authorized:user@example.com:ojj4ihn4m5 
-                        [prefix] => Auth:__permanent:Authorized:user@example.com ) 
-                ) 
-            */
-            foreach (array_keys($sessions) as $aid) { // Destroy all other sessions
-                $this->killAuthSession($aid);
-            }
+        if ($this->config['activity']['uniqueSession'] AND $this->user->identity->check()) {  // Unique Session is the property whereby a single action of activity
+            $this->c['event']->fire('auth.unique');                                           // terminates access to multiple sessions.
         }
         $this->user->identity->__activity = $this->attributes;  // Update activity data
     }

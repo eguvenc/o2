@@ -155,34 +155,31 @@ class Database extends AbstractAdapter
      * If memory login fail it will connect to "database table" and run sql 
      * query to find a record matching the provided identity.
      *
-     * @param object  $genericUser    identity
-     * @param boolean $login          whether to authenticate user
-     * @param boolean $verifyPassword whether to verify password
+     * @param object  $genericUser identity
+     * @param boolean $login       whether to authenticate user
      * 
      * @return object
      */
-    public function authenticate(GenericUser $genericUser, $login = true, $verifyPassword = true)
+    public function authenticate(GenericUser $genericUser, $login = true)
     {
-        $this->resultRowArray = $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
+        $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
+        /**
+         * If user does not exists in memory do sql query
+         */
+        $this->resultRowArray = ($storageResult === false) ? $this->c['user.provider']->execQuery($genericUser) : $storageResult;
 
-        if ($this->resultRowArray === false) {
-            $this->resultRowArray = $this->c['user.provider']->execQuery($genericUser);  // If user does not exists in memory do sql query
-        }
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Credentials::IDENTIFIER])) {
 
             $plain = $genericUser->getPassword();
             $hash  = $this->resultRowArray[Credentials::PASSWORD];
 
-            $passwordNeedsRehash = false;
-            $password = ($verifyPassword) ? false : true;
-            if ($verifyPassword AND $passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here may cause performance bottleneck depending to passwordNeedHash "cost" value
-                                                                                                    // default is 6 for best performance.
-                $password = true;
+            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here may cause performance bottleneck depending to passwordNeedHash "cost" value
+                                                                                // default is 6 for best performance.
+                if ($login) {  // If login process allowed.
+                    $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
+                }
+                return true;
             }
-            if ($password == true AND $login) {  // If login process allowed.
-                $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
-            }
-            return true;
         }
         $this->resultRowArray = array();
         $this->failure = true; // We set failure variable when user password is fail.
@@ -214,7 +211,7 @@ class Database extends AbstractAdapter
         /**
          * Authenticate the user and fornat auth data
          */
-        $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
+        $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
         if ($this->config['login']['session']['regenerateSessionId']) {
             $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
@@ -235,7 +232,7 @@ class Database extends AbstractAdapter
              * Authenticate cached auth data. We override __isAuthenticated item value as "1"
              * then we update the token.
              */
-            $this->storage->authenticatePermanentIdentity($this->resultRowArray, $token);
+            $this->storage->authenticatePermanentIdentity($attributes, $token);
         }
         $this->deleteOldAuth();
     }
