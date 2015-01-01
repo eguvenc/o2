@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth\Storage;
 
-use Auth\Credentials,
+use Auth\Constant,
     Obullo\Auth\AuthResult,
     Obullo\Utils\Random,
     Obullo\Auth\Token;
@@ -260,7 +260,7 @@ Class Redis
     }
 
     /**
-     * Makes temporary credential attributes as permanent and authenticate the user.
+     * Makes temporary credentials as permanent and authenticate the user.
      * 
      * @return mixed false|array
      */
@@ -418,7 +418,7 @@ Class Redis
     }
 
     /**
-     * Authenticate cached permanent identity
+     * Re authenticate cached permanent identity
      * 
      * @param array  $data  cached auth data
      * @param object $token token \Obullo\Auth\Token

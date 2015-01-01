@@ -4,7 +4,7 @@ namespace Obullo\Auth;
 
 use Obullo\Auth\UserProviderInterface,
     Obullo\Auth\Token,
-    Auth\Credentials,
+    Auth\Constant,
     Auth\Identities\GenericUser;
 
 /**
@@ -69,14 +69,13 @@ Class Recaller
             $this->removeCookie();
             return;
         }
-        $id = $resultRowArray[Credentials::IDENTIFIER];
+        $id = $resultRowArray[Constant::IDENTIFIER];
         $this->storage->setIdentifier($id);
 
-
         $credentials = array(
-            Credentials::IDENTIFIER => $id,
+            Constant::IDENTIFIER => $id,
             '__rememberMe' => 1,
-            '__rememberToken' => $resultRowArray[Credentials::REMEMBER_TOKEN]
+            '__rememberToken' => $resultRowArray[Constant::REMEMBER_TOKEN]
         );
         $genericUser = new GenericUser($credentials);
         $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);

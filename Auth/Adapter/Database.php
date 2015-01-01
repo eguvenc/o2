@@ -3,7 +3,7 @@
 namespace Obullo\Auth\Adapter;
 
 use Obullo\Auth\UserProviderInterface,
-    Auth\Credentials,
+    Auth\Constant,
     Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
     Obullo\Auth\Token,
@@ -168,12 +168,12 @@ class Database extends AbstractAdapter
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.provider']->execQuery($genericUser) : $storageResult;
 
-        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Credentials::IDENTIFIER])) {
+        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Constant::IDENTIFIER])) {
 
             $plain = $genericUser->getPassword();
-            $hash  = $this->resultRowArray[Credentials::PASSWORD];
+            $hash  = $this->resultRowArray[Constant::PASSWORD];
 
-            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here may cause performance bottleneck depending to passwordNeedHash "cost" value
+            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
                                                                                 // default is 6 for best performance.
                 if ($login) {  // If login process allowed.
                     $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
@@ -201,8 +201,8 @@ class Database extends AbstractAdapter
         $token = new Token($this->c);
 
         $attributes = array(
-            Credentials::IDENTIFIER => $genericUser->getIdentifier(),
-            Credentials::PASSWORD => $resultRowArray[Credentials::PASSWORD],
+            Constant::IDENTIFIER => $genericUser->getIdentifier(),
+            Constant::PASSWORD => $resultRowArray[Constant::PASSWORD],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
             '__token' => $token->get(),
@@ -261,7 +261,7 @@ class Database extends AbstractAdapter
     protected function formatAttributes(array $attributes, $rehashedPassword = array())
     {
         if (is_array($rehashedPassword) AND isset($rehashedPassword['hash'])) {
-            $attributes[Credentials::PASSWORD] = $rehashedPassword['hash'];
+            $attributes[Constant::PASSWORD] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
         $attributes = $this->setAuthType($attributes);
@@ -308,7 +308,7 @@ class Database extends AbstractAdapter
             return $this->createResult();
         }
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
-            $this->results['code'] = AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED;
+            $this->results['code'] = AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';
             return $this->createResult();
         }
@@ -334,7 +334,7 @@ class Database extends AbstractAdapter
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
         }
-        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Credentials::IDENTIFIER]) {
+        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Constant::IDENTIFIER]) {
             $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
             $this->results['messages'][] = 'More than one record matches the supplied identity.';
             return $this->createResult();
