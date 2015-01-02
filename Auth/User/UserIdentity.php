@@ -279,7 +279,7 @@ Class UserIdentity extends AuthorizedUser
         $this->logger->channel('security');
         $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(),'token' => $token,'cookie' => $cookie));
 
-        $this->c['event']->fire('auth.token', array($this, $cookie));
+        $this->c['event']->fire('auth.invalidToken', array($this, $cookie));
     
         return $this->tokenIsValid = false;
     }
