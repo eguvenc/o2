@@ -154,7 +154,7 @@ Class Memcached implements HandlerInterface
             $this->serializer = $params['serializer'];
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_JSON]);
             break;
-        case static::SERIALIZER_IGBINARY: // The » igbinary serializer.
+        case static::SERIALIZER_IGBINARY: // The igbinary serializer.
                                           // Instead of textual representation it stores PHP data structures in a compact binary form, resulting in space and time gains.
                                           // https://github.com/igbinary/igbinary
             $this->serializer = $params['serializer'];

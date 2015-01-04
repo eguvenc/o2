@@ -131,6 +131,8 @@ if ( ! $this->request->isValidIp($ip)) {
 }
 ```
 
+#### $this->request->global->object->method();
+
 #### $this->request->get($key);
 
 #### $this->request->post($key);

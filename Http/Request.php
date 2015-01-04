@@ -42,14 +42,6 @@ Class Request
     public $headers;
 
     /**
-     * Global uri and routers objects
-     * 
-     * @var object
-     */
-    public $global;
-    public $globals;
-
-    /**
      * Constructor
      *
      * @param array $c container
@@ -62,21 +54,25 @@ Class Request
     }
 
     /**
-     * We store global objects ( uri and router ) into $this->globals
-     * then we can grab them from all layers.
+     * Get global object, we store original global objects( uri and router ) into 
+     * $this->global variable then we able to grab them from all layers.
      * 
-     * @return object
+     * @param string $key variable
+     * 
+     * @return void
      */
-    public function globals()
+    public function __get($key)
     {
+        if ($key != 'global') {
+            return null;
+        }
         if (is_object($this->globals)) {
             return $this->globals;
-        } else {
-            $this->globals = new stdClass;
-            $this->globals->uri = $this->c->load('uri');
-            $this->globals->router = $this->c->load('router');
-            return $this->globals;
         }
+        $this->globals = new stdClass;
+        $this->globals->uri = $this->c->load('uri');
+        $this->globals->router = $this->c->load('router');
+        return $this->globals;
     }
 
     /**
