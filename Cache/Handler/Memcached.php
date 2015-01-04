@@ -130,35 +130,38 @@ Class Memcached implements HandlerInterface
     /**
      * Set client option.
      * 
-     * @param string $serializer
+     * @param array $params options
      * 
      * You can use this options:
-     *     'serializer_php'
+     *     serializer => 'serializer_php'
      *     'serializer_igbinary'
      *     'serializer_json'
      * 
      * @return boolean true or false
      */
-    public function setOption($serializer)
+    public function setOption(array $params)
     {
-        switch ($serializer) {
+        if ( ! isset($params['serializer'])) {
+            return false;
+        }
+        switch ($params['serializer']) {
         case static::SERIALIZER_PHP: // The default PHP serializer.
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_PHP]);
             return true;
             break;
         case static::SERIALIZER_JSON: // The JSON serializer.
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_JSON]);
             break;
         case static::SERIALIZER_IGBINARY: // The » igbinary serializer.
                                           // Instead of textual representation it stores PHP data structures in a compact binary form, resulting in space and time gains.
                                           // https://github.com/igbinary/igbinary
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
             break;
         default:
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             return false;
             break;
         }

@@ -36,7 +36,8 @@ Class Request
 
     /**
      * Http request headers
-     * @var 
+     * 
+     * @var array
      */
     public $headers;
 
@@ -46,6 +47,7 @@ Class Request
      * @var object
      */
     public $global;
+    public $globals;
 
     /**
      * Constructor
@@ -57,16 +59,28 @@ Class Request
         $this->c = $c;
         $this->logger = $this->c->load('service/logger');
         $this->logger->debug('Request Class Initialized');
+    }
 
-        if ( ! is_object($this->global)) { // We store real global objects ( uri, router ) into $this->global then we can grab them from all layers.
-            $this->global = new stdClass;    
-            $this->global->uri = $this->c['uri'];
-            $this->global->router = $this->c['router'];
+    /**
+     * We store global objects ( uri and router ) into $this->globals
+     * then we can grab them from all layers.
+     * 
+     * @return object
+     */
+    public function globals()
+    {
+        if (is_object($this->globals)) {
+            return $this->globals;
+        } else {
+            $this->globals = new stdClass;
+            $this->globals->uri = $this->c->load('uri');
+            $this->globals->router = $this->c->load('router');
+            return $this->globals;
         }
     }
 
     /**
-     * $_GET wrapper
+     * GET wrapper
      * 
      * @param string $key key
      * 
@@ -81,7 +95,7 @@ Class Request
     }
 
     /**
-     * $_POST wrapper
+     * POST wrapper
      * 
      * @param string $key key
      * 

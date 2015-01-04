@@ -32,6 +32,13 @@ interface HandlerInterface
     public function setOption($params);
 
     /**
+     * Get current serializer name
+     * 
+     * @return string serializer name
+     */
+    public function getSerializer();
+
+    /**
      * Connection the cache..
      * 
      * @return boolean
