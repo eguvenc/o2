@@ -4,7 +4,7 @@ namespace Obullo\Auth\User;
 
 use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
-    Auth\Credentials,
+    Auth\Constant,
     Auth\AuthResult,
     Obullo\Utils\Random,
     RuntimeException;
@@ -80,11 +80,11 @@ Class UserLogin
     {
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
-        if ( ! isset($credentials[Credentials::IDENTIFIER]) OR ! isset($credentials[Credentials::PASSWORD]) ) {
+        if ( ! isset($credentials[Constant::IDENTIFIER]) OR ! isset($credentials[Constant::PASSWORD]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
-                Credentials::IDENTIFIER,
-                Credentials::PASSWORD
+                Constant::IDENTIFIER,
+                Constant::PASSWORD
             );
             return new AuthResult(
                 array(
@@ -140,7 +140,7 @@ Class UserLogin
      */
     public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
-        $plain = $credentials[Credentials::PASSWORD];
+        $plain = $credentials[Constant::PASSWORD];
 
         return $this->c->load('service/password')->verify($plain, $user->getPassword());
     }

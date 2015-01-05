@@ -35,19 +35,14 @@ class AuthResult
     const FAILURE_UNCATEGORIZED = -3;
 
     /**
-     * Already loggedin.
-     */
-    const FAILURE_ALREADY_LOGGEDIN = -4;
-
-    /**
      * Temporary auth has been created
      */
-    const FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED = -5;
+    const TEMPORARY_AUTH_HAS_BEEN_CREATED = -4;
 
     /**
      * Temporary auth ( Unverified user )
      */
-    const FAILURE_UNVERIFIED = -6;
+    const FAILURE_UNVERIFIED = -5;
 
     /**
      * Authentication success.

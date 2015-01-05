@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Credentials,
+use Auth\Constant,
     Obullo\Auth\Token,
     Obullo\Auth\Recaller,
     Obullo\Auth\UserService,
@@ -279,7 +279,7 @@ Class UserIdentity extends AuthorizedUser
         $this->logger->channel('security');
         $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(),'token' => $token,'cookie' => $cookie));
 
-        $this->c['event']->fire('auth.token', array($this, $cookie));
+        $this->c['event']->fire('auth.invalidToken', array($this, $cookie));
     
         return $this->tokenIsValid = false;
     }
@@ -415,7 +415,7 @@ Class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
             $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $this->refreshRememberToken(new GenericUser(array(Credentials::IDENTIFIER => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+            $this->refreshRememberToken(new GenericUser(array(Constant::IDENTIFIER => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
         }
     }
 

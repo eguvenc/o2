@@ -1,83 +1,178 @@
 
-## O2 Authentication
+## O2 Yetkilendirme ( Authentication )
 
-Auth package provides an API for authentication and includes concrete authentication adapters for common use case scenarios. O2 Auth is concerned only with <b>authentication</b> and <b>not</b> with authorization. For more information about authorization please see <b>Permissions</b> package.
+Auth paketi yetkilendirme adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 Auth yalnızca yetkilendirme ( <b>authentication</b> ) ile ilgilidir ve yetki ( authorization ) ile ilgili herhangi bir şeyi içermez. Yetkiler ile ilgili daha fazla bilgi için lütfen <b>Permissions</b> paketine bakınız. 
 
-**Note:** Auth package cache storage only supports <b>Redis</b> driver at this time. Look at here for <a href="https://github.com/obullo/warmup/tree/master/Redis">redis installation</a>.
+O2 Auth; hafıza depoları, adaptörler, güvenlik çerezi, oturum id sini yeniden yaratma, hatırlatma çerezi gibi mevcut özellikleri ile size esnek, hızlı ve güvenli bir yetkilendirme servisi sağlar.
 
-## Flow Chart
+O2 Auth redis sürücüsü kullandığınızda size online kullanıcı kimliklerini görüntüleme ve bu kimliklere ulaşarak çeşitli istatistik verileri oluşturabilmenize olanak sağlar.
 
-Below the flow chart shows authentication process of users:
+## Sınıfı yüklemek
 
-* [Click to see flowchart](/Auth/Docs/images/flowchart.png?raw=true)
+Auth paketi sınıflarına erişim user servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. Uygulamanınızın sürdürülebilirliği açısından bu servis üzerinde database provider haricinde değişiklilik yapmamanız önerilir. <b>User</b> sınıfı auth servisine ait olan <b>UserLogin</b>, <b>UserIdentity</b> ve <b>UserActivity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece auth paketi içerisinde kullanılan tüm public sınıf metodlarına tek bir sınıf üzerinden erişim sağlanmış olur.
 
-## Adapters
+User servisi bir kez çağrıldığı zaman bu servis içerisinden kütüphanelere erişim sağlanır.
 
-Auth adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
+```php
+$this->c->load('service/user');
+$this->user->class->method();
+```
 
-## Redis Storage
+Örneğin UserLogin sınıfı metodlarına user servisi üzerinden aşağıdaki şekilde erişim sağlanır.
 
-Auth class uses redis storage like database. The following picture shown an example authentication data stored in redis.
+```php
+$this->user->login->method();
+```
+
+UserIdentity için bir örnek
+
+```php
+$this->user->identity->method();
+```
+
+ve UserActivity için
+
+```php
+$this->user->activity->method();
+```
+
+
+## Adaptörler
+
+Auth adaptörleri yetkilendirme servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
+
+Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve dönen sonuçlar Auth adaptörleri için ortak kullanılır.
+
+## Hazıfa Deposu ( Storage )
+
+Hazıfa deposu yetkilendirme esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetkilendirme onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
+
+**Not:** O2 Auth şu anda depolama için sadece <b>Redis</b> sürücüsünü desteklemektedir. Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
+
+## Akış Şeması
+
+Aşağıdaki akış şeması bir kullanıcının yetkilendirme aşamalarından nasıl geçtiği ve yetkilendirme servisinin nasıl çalıştığı hakkında size bir ön bilgi verecektir:
+
+* [Şemayı görmek için buraya tıklayınız](/Auth/Docs/images/flowchart.png?raw=true)
+
+Şemada görüldüğü üzere <b>GenericUser</b> ve <b>AuthorizedUser</b> olarak iki farklı durumu olan bir kullanıcı sözkonusudur. GenericUser yetkilendirilmemiş AuhtorizedUser servis tarafından yetkilendirilmiş kullanıcıdır.
+
+GenericUser login butonuna bastığı anda performans için ilk olarak memory bloğunda daha önceden kullanıcının yetkilendirilmiş kalıcı kimliği olup olmadığında bakılır eğer memory bloğunda kalıcı yetkilendirme kaydı var ise kullanıcı kimliği buradan yok ise database adaptörüne sorgu yapılarak elde edilir.
+
+Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edilen kimlik kartı performans için tekrar memory bloğuna yazılır.
+
+Buradan sonraki işlemleri anlayabilmemiz için önce yetkilendirme onaylamasının ne olduğunu anlamamız gerekir.
+
+<b>Yetkilendirme onaylaması</b>, kullanıcı başarılı olarak giriş yaptıktan sonra kullanıcı kimliğinin onay için bekletilmesi aşamasıdır. Onay özelliği açık ise kullanıcı kimliği memory bloğuna geçiçi olarak kaydedilir. Kullanıcın geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerinden herhangi biriyle göndermiş olacağınız onay kodu ile gerçekleşir. Eğer kullanıcı 300 saniye içerisinde ( bu konfigürasyon dosyasından ayarlanabilir bir değişkendir ) kullanıcı kendisine gönderilen onay kodunu onaylayamaz ise geçiçi kimlik kendiliğinden yok olur.
+
+Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <b>temporary</b> memory bloğuna kaydedilmiş geçici kimlik artık herhangi bir database sorgusu ve password hash işlemi olmadadan memory bloğuna <b>permanent</b> yani kalıcı olarak yazılır ve kullanıcı yetkilendirilmesi başarılı bir şekilde gerçekleşmiş olur.
+
+Kullanıcın onaya düşmesi yani yetkilendirme onaylama varsayılan olarak kapalıdır. Aşağıdaki method login attemp fonksiyonun üzerinde kullanılırsa yetkilendirme onaylama özelliği açık hale gelecektir.
+
+**Note:** Bu paket programlanırken geçici kimlik "__temporary" kalıcı kimlik ise "__permanent" simgesi ile ifade edilmiş aynı zamanda hafıza depolarında bu ifadeler kullanılmıştır.
+
+#### Yetkilendirme onayının açılmasına bir örnek:
+
+```php
+$this->user->login->enableVerification();
+```
+
+Yetkilendirilme onayını aktif hale gelebilmesi için bu fonksiyonun oturum denemesi fonksiyondan önce kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise memory bloğunda geçici bir kimlik oluşturulur. Eğer sizin tarafınızdan yaratılıp gönderilecek olan onay kodunu kullanıcı onaylayamaz ise geçici kimlik 300 saniye içerisinde kendiliğinden yok olur. Fonksiyonun kullanılmadığı durumda ise tüm kullanıcılar sistemde kalıcı olarak oturum açmış olurlar.
+
+Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup bunu ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
+
+#### Onaylanmış kimliğin kalıcı hale getirilmesine bir örnek:
+
+```php
+$this->user->login->authenticateVerifiedIdentity();
+```
+
+Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde yetkili konuma gelir.
+
+Diğer bir durum yetkilendirme onayının kapalı olması yani varsayılan durumdur. Onaylamanın kapalı olması durumunda yani sisteminizde yetkilendirme öncesi onay gibi bir özellik kullanmıyor iseniz yukarıdaki onaylama metodlarının hiçbirini kullanmak zorunda kalmazsınız.
+
+Akış şeması üzerinden gidersek yetkilendirme onayının kapalı olması durumunda varsayılan işlemler devam eder ve kullanıcı kalıcı (__permanent) olarak memory bloğuna yazılır. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden sağlanmış olur. Kalıcı önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir.
+
+
+## Redis Deposu
+
+Auth sınıfı hafıza deposu için varsayılan olarak redis kullanır. Aşağıdaki resim kullanıcı kimliklerinin hafıza deposunda nasıl tutulduğunu göstermektedir.
 
 ![PhpRedisAdmin](/Auth/Docs/images/redis.png?raw=true "PhpRedisAdmin")
 
-### Predefined keys:
+Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 
-Auth package build its own variables which keys are start by 2 underscore "__". You should not change these variables by manually.
+```php
+<?php
+
+'memory' => array( 
+        'key' => 'Auth',
+        'storage' => '\Obullo\Auth\Storage\Redis',
+        'block' => array(
+
+        )
+    ),
+```
+
+Redis dışında bir çözüm kullanıyorsanız kendi memory depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
+
+### Auth paketinin kullandığı rezerve edilmiş anahtarlar :
+
+Auth paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Auth paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
 
 <table>
     <thead>
         <tr>
-            <th>Key</th>    
-            <th>Description</th>
+            <th>Anahtar</th>    
+            <th>Açıklama</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>__activity</td>
-            <td>Contains online user activity data: lastActivity time and any other data you want to add.</td>
+            <td>Online kullanıcı aktivite verilerini içerir: Son aktivite zamanı ve diğer eklemek istediğiniz veriler gibi.</td>
         </tr>
         <tr>
             <td>__isAuthenticated</td>
-            <td>If user has authority this key contains <b>1</b> otherwise <b>0</b>.</td>
+            <td>Eğer kullanıcı yetkilendirilmişse bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>If verification method <kbd>$this->user->login->enableVerification()</kbd> used before login the temporary authentication value will be <b>1</b> otherwise <b>0</b>. If user verified by mobile phone or any kind of verification then you need authenticate user by using <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> method.</td>
+            <td>Eğer yetkilendirme onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetkilendirme onayı kullanıyorsanız <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak kullanıcıyı kalıcı olarak yetkilendirmeniz gerekir.</td>
         </tr>
         <tr>
             <td>__isVerified</td>
-            <td>If user verified returns to <b>1</b> otherwise <b>0</b>.</td>
+            <td>Yetkilendirme onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
         </tr>
         <tr>
             <td>__lastTokenRefresh</td>
-            <td>The config <b>security token</b> updates cookie and memory token value every <b>1</b> minutes by default. If memory token and cookie does not match then we logout the user. This is a strong security measure for hijacking session id or token. ( Refreshing time is configurable item from your auth.php config file )</td>
+            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz.</td>
         </tr>
         <tr>
             <td>__rememberMe</td>
-            <td>If user checked rememberMe input before login it contains to <b>1</b> otherwise <b>0</b>.</td>
+            <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
         </tr>
         <tr>
             <td>__token</td>
-            <td>Random token for security cookie.</td>
+            <td>Güvenlik çerezinin ( Security Token ) güncel değerini içerir.</td>
         </tr>
         <tr>
             <td>__type</td>
-            <td>Contains authentication types of user: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
+            <td>Yetkilendirme tiplerini içerir. Bu tipler sırasıyla şöyledir: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
         </tr>
         <tr>
             <td>__time</td>
-            <td>Identity creation date in unix microtime format.</td>
+            <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
         </tr>
 
     </tbody>
 </table>
 
-Example output of the identity
+Oluşturulan kullanıcı kimliğinin tümüne aşağıdaki yöntemle ulaşabilirsiniz.
 
 ```php
 <?php
-print_r($this->user->identity->getArray()); // Gives
+print_r($this->user->identity->getArray()); // Çıktılar
 /*
 Array
 (
@@ -101,189 +196,170 @@ Array
 */
 ```
 
-## Configuration
+## Paket Konfigürasyonu
 
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Auth
-|--------------------------------------------------------------------------
-| Configuration file
-|
-*/
-return array(
-    'adapter' => 'Database',
-    'memory' => array(          // Keeps user identitiy data in your cache driver.
-        'key' => 'Auth',        // Auth key should be replace with your projectameAuth
-        'storage' => 'Redis',   // Storage driver uses cache package
-        'block' => array(
-            'permanent' => array(
-                'lifetime' => 3600  // 1 hour is default storage life time. if remember choosed we use "rememberMeSeconds" value as lifetime otherwise default.
-            ),
-            'temporary'  => array(
-                'lifetime' => 300  // 5 minutes is default temporary login lifetime.
-            )
-        )
-    ),
-    'security' => array(
-        'cookie' => array(
-            'name' => '__token',  // Cookie name, change it if you want
-            'refresh' => 60,   // Every 1 minutes do the cookie validation
-            'userAgentMatch' => false,  // Whether to match user agent when reading token
-            'path' => '/',
-            'secure' => false,
-            'httpOnly' => false,
-            'prefix' => '',
-            'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ". Should be same with rememberMeSeconds value.
-        ),
-        'passwordNeedsRehash' => array(
-            'cost' => 10
-        ),
-    ),
-    'login' => array(
-        'rememberMe'  => array(
-            'cookie' => array(
-                'name' => '__rm',
-                'path' => '/',
-                'secure' => false,
-                'httpOnly' => false,
-                'prefix' => '',
-                'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ".
-            )
-        ),
-        'session' => array(
-            'regenerateSessionId' => true,               // Regenerate session id upon new logins.
-            'deleteOldSessionAfterRegenerate' => false,  // Destroy old session data after regenerate the new session id upon new logins
-        )
-    ),
-    'activity' => array(
-        'singleSignOff' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions.
-    )
-);
+Auth paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
 
-/* End of file auth.php */
-/* Location: .app/config/auth.php */
-```
-
-### Description Of Config Items
+### Konfigürasyon değerleri tablosu
 
 <table>
     <thead>
         <tr>
-            <th>Key</th>    
-            <th>Description</th>
+            <th>Anahtar</th>    
+            <th>Açıklama</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>adapter</td>
-            <td>Adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based.</td>
+            <td>Auth adaptörleri yetkilendirme servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.</td>
         </tr>
         <tr>
             <td>memory[key]</td>
-            <td>This is Redis key, using same key may cause collison with your other projects. It should be replace with your "projectameAuth" ( e.g. frontendAuth, backendAuth ).</td>
+            <td>Bu değer auth paketinin kayıt olacağı anahtarın önekidir. Bu değeri her proje için farlı girmeniz projelerinizin karışmaması için tavsiye edilir. Bu değer "projectameAuth" ( örnek olarak frontendAuth, backendAuth ) olarak girilebilir.</td>
         </tr>
         <tr>
             <td>memory[storage]</td>
-            <td>Auth class uses a memory container to speed up your application default driver is Redis.</td>
+            <td>Hazıfa deposu yetkilendirme esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler.Varsayılan depo Redis tir.</td>
         </tr>
         <tr>
             <td>memory[block][permanent][lifetime]</td>
-            <td>Before the login action if verification is disabled by the <kbd>$this->user->login->disableVerification()</kbd> method user identity data is stored into <b>permanent</b> memory block otherwise it will be stored in temporary block. Permanent block expires after <b>3600</b> seconds by default. To speed up your login this feature prevents more than one login queries within the specified time period.</td>
+            <td>Login denemesinden önce eğer yetkilendirme onayı devre dışı yada kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> memory bloğuna bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler varsayılan olarak <b>7200</b> saniye sonra yok olur.</td>
         </tr>
-
         <tr>
             <td>memory[block][temporary][lifetime]</td>
-            <td>Before the login action if verification is enabled by the <kbd>$this->user->login->enableVerification()</kbd> method user identity data is stored into <b>temporary</b> memory block otherwise it will be stored in permanent block. Temporary block expires after <b>300</b> seconds by default. 
-
-            The temporary data is designed for the user <b>verification</b> protocols ( verification by <b>phone call</b>, verification by <b>SMS</b> etc.).
-            <br />
-            If the verification code you have generated is confirmed by the user within the specific time, the user information in the temporary data is updated and the user becomes authorized with the method <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd>. Otherwise, while you do not use this method the temporary identity information will be <b>lost</b>.
+            <td>Login denemesinden önce eğer yetkilendirme onayı açık ise kullanıcı kimliği verileri <b>temporary</b> memory bloğuna kaydedilir. Geçici bloğa kaydedilmiş veriler <b>300</b> saniye sonrasında varsayılan olarak yok olur.Geçici blok yetkilendirme onaylandırma durumları için dizayn edilmiştir.
             </td>
         </tr>
-
         <tr>
             <td>security[cookie]</td>
-            <td>This precaution is taken for preventing user information and session id from being stolen. Randomly generated security token with the information special to browser information of the user is saved to memory container and these tokens are renewed within a certain periods (1 minute by default). When the token is renewed, the verification function runs and if the token in the memory is not equal to the token in the browser of the user, the session of the user is expired. The expiration time of a security token is recommended to be the same with the time of the rememberMe cookie (6 months by default).</td>
+            <td>Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigürasyon dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz. Bu çereze ait <b>isValidToken()</b> adındaki kontrol fonksiyonu <b>Obullo/Auth/User/UserIdentity</b> sınıfı içerisinde çalışır. Esneklik için bu fonksiyon Event kütüphanesi yardımı ile bir olay olarak ilan edilmiştir. Güvenlik çerezi değeri yanlış olması durumda event sınıfı <b>auth.invalidToken</b> olayı ilan edilir ve bu olayı <b>app/classes/Event/User</b> sınıfı içerisindeki <b>onInvalidToken()</b> metodu dinler.onInvalidToken() fonksiyonunun varsayılan işlevi süresi geçmiş yada hatalı olan güvenli çerezi ile karşılaşıldığında kullanıcıyı sistem dışına yönlendirmektir.Eğer bu davranışı özelleştirmek istiyorsanız uygulama altında <b>app/classes/Event/User</b> sınıfı içerisinde yeralan onInvalidToken() fonksiyonu içeriğini değiştirebilirsiniz.</td>
         </tr>
-
         <tr>
             <td>security[passwordNeedsRehash][cost]</td>
-            <td>It is the length of the password hash and it should not exceed the 10, otherwise it may cause performance problems in your application.<b>Note:</b> If user password needs to be rehashed for the security purposes, run this method  <kbd>$this->user->identity->getPasswordNeedsReHash()</kbd> . If renewed, the method returns new hash password in the array format and the user password field in your database must be updated with the returned value. </td>
+            <td>Bu değer crypt/password kütüphanesi tarafından şifre hash işlemi için kullanılır. Varsayılan değer 6 dır fakat maximum vermeniz gereken değer 8 ila 12 arasında olmalıdır aksi takdirde uygulamanız yetkilendirme aşamasında performans sorunları yaşayabilir. 8 veya 10 değerleri orta donanımlı bilgisayarlar için 12 ise güçlü donanımlı çekirdek sayısı fazla bilgisayarlar için uygun olabilir.</td>
         </tr>
-
         <tr>
             <td>login[rememberMe]</td>
-            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__isAuthenticated\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
+            <td>Eğer kullanıcı beni hatırla özelliğini kullanarak giriş bilgilerini kalıcı olarak tarayıcısına kaydetmek istiyorsa  <b>__rm</b> isimli bir çerez ilk oturum açmadan sonra tarayıcısına kaydedilir. Bu çerezin sona erme süresi varsayılan olarak 6 aydır. Kullanıcı farklı zamanlarda uygulamanızı ziyaret ettiğinde eğer bu çerez ( remember token ) tarayıcısında kayıtlı ise <b>Auth\Recaller->recallUser($token)</b> metodu çalışmaya başlar ve beni hatırla çerezi database de kayıtlı olan değer ile karşılaştırılır değerler birbiri ile aynı ise kullanıcı sisteme giriş yapmış olur. Güvenlik amacıyla her oturum açma (login) ve kapatma (logout) işlemlerinden sonra bu değer çereze ve veritabanına yeniden kaydedilir.</td>
         </tr>
-
         <tr>
             <td>login[session][regenerateSessionId]</td>
-            <td>This is a security preacution for session id not to be stolen, if this option is active session id is updated on every login and the user information on the session is not removed.</td>
+            <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
         </tr>
-
         <tr>
             <td>login[session][deleteOldSessionAfterRegenerate]</td>
-            <td>If this option is active, during a login operation after session is regenerated, all the created information in the user's session is removed.</td>
+            <td>Eğer bu opsiyon pasif (false) durumda ise oturum açma işleminden sonra yeniden yaratılan session id verileri içerisine kullanıcının oturum açmadan önceki session id verileri kopyalanır. Aksi durumda bu opsiyon açık (true) ise eski session id verileri oturum açılır açılmaz yok edilir.</td>
         </tr>
-
         <tr>
-            <td>activity[singleSignOff]</td>
-            <td>Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions. If this option is active, all sessions of the user expired and only the last session remains active.</td>
+            <td>activity[uniqueSession]</td>
+            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak silinir. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Auth filtresi içerisindeki <b>$this->user->activity->update();</b> metodu kullanıcının en son aktivite zamanı gibi verilerini günceller.UniqueSession özelliği yine bu metod içerisinden tetiklenmektedir ve daha fazla esneklik ve sürdürülebilirlik amacıyla bu metod event yönetimine bağlanmıştır, <b>app/classes/Event/User</b> sınıfı içerisindeki <b>onUniqueSession()</b> fonksiyonu içeriğini güncelleyerek tekil oturum işlevini kendi ihtiyaçlarınıza göre değiştirebilmeniz planlanmıştır.</td>
         </tr>
     </tbody>
 </table>
 
 
-## Tutorial
-
-Controller Example
-
-* <a href="https://gist.github.com/eguvenc/7cff67ebec6ebe3ca3c5" target="_blank">Click to see example code</a>
-
-Vie Example
-
-* <a href="https://gist.github.com/eguvenc/6ce279d1fb0e2378e611" target="_blank">Click to see example code</a>
-
-
-
-## User ( Service )
-
-------
-
-User service class simply manage <b>login</b>, <b>identity</b> and <b>activity</b> modules of the auth.
-
-## Login
-
-------
-
-The class Login manages the operations like login, authentication and verification. 
+### Bir Kalıcı Oturum Açma Denemesi
 
 ```php
 <?php
-$this->user->login->disableVerification();
+$this->user->login->disableVerification();  // default disabled
 $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->request->post('email'), 
+        Auth\Constant::PASSWORD => $this->request->post('password')
     ),
-    $this->post['rememberMe']
+    $this->request->post('rememberMe')
 );
 ```
 
-## Auth Results
+### Bir Oturum Açma Örneği
 
-AuthResult class ile sonuç doğrulama filtresinden geçer oluşan hata kodları ve mesajlar array içerisine kaydedilir.
+Membership adı altında bir dizin açalım be login controller dosyamızı bu dizin içerisinde koyalım.
+
+```php
++ app
++ assets
+- controllers 
+    - membership
+        + view
+        login.php
+```
+
+```php
+<?php
+
+namespace Membership;
+
+use Auth\Constant,
+    Event\User;
+
+Class Login extends \Controller
+{
+    public function load()
+    {
+        $this->c->load('url');
+        $this->c->load('form');
+        $this->c->load('view');
+        $this->c->load('request');
+        $this->c->load('service/user');
+        $this->c->load('flash/session as flash');
+        $this->c->load('event')->subscribe(new User($this->c));   // Listen user events
+    }
+
+    public function index()
+    {
+        if ($this->request->isPost()) {
+
+            $this->c->load('validator'); // load validator
+            $this->validator->setRules('email', 'Email', 'required|email|trim');
+            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
+
+            if (  ! $this->validator->isValid()) {
+                $this->form->setErrors($this->validator);
+            } else {
+
+                // $this->user->login->enableVerification();
+
+                $result = $this->user->login->attempt(
+                    array(
+                        Constant::IDENTIFIER => $this->validator->value('email'), 
+                        Constant::PASSWORD => $this->validator->value('password')
+                    ),
+                    $this->request->post('rememberMe')
+                );
+                if ($result->isValid()) {
+                    $this->flash->success('You have authenticated successfully.');
+                    $this->url->redirect('membership/login');
+                } else {
+                    $this->validator->setError($result->getArray());
+                    $this->form->setErrors($this->validator);
+                }
+            }
+        }
+            
+        echo $this->flash->output();          // form message
+        print_r($this->form->outputArray());  // form errors
+
+    }
+}
+
+/* End of file login.php */
+/* Location: .controllers/membership/login.php */
+```
+
+### Oturum Açma Sonuçları
+
+Oturum açma denemesi yapıldığında AuthResult sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir.
 
 ```php
 <?php
 $result = $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->request->post('email'), 
+        Auth\Constant::PASSWORD => $this->request('password')
     ),
-    $this->post['rememberMe']
+    $this->request->post('rememberMe')
 );
 
 if ($result->isValid()) {
@@ -292,12 +368,12 @@ if ($result->isValid()) {
 
 } else {
 
-    print_r($result->getArray());
+    print_r($result->getArray()); // get errors
 
     /* Array ( 
-        [code] => -6 
+        [code] => -2 
         [messages] => Array ( 
-            [0] => You are already logged in. 
+            [0] => Supplied credentials invalid. 
         ) 
         [identifier] => user@example.com 
     ) 
@@ -305,75 +381,60 @@ if ($result->isValid()) {
 }
 ```
 
-#### AuthResult Codes
+#### Hata ve Sonuç Kodları Tablosu
 
 <table>
     <thead>
         <tr>
-            <th>Code</th>    
-            <th>Constant</th>    
-            <th>Description</th>
+            <th>Kod</th>    
+            <th>Sabit</th>    
+            <th>Açıklama</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>0</td>
             <td>AuthResult::FAILURE</td>
-            <td>General Failure.</td>
+            <td>Genel başarısız yetkilendirme.</td>
         </tr>
         <tr>
             <td>-1</td>
             <td>AuthResult::FAILURE_IDENTITY_AMBIGUOUS</td>
-            <td>Failure due to identity being ambiguous.( Found more than 1 identity record ).</td>
+            <td>Kimlik belirsiz olması nedeniyle başarısız yetkilendirme.( Sorgu sonucunda 1 den fazla kimlik bulunduğunu gösterir ).</td>
         </tr>
         <tr>
             <td>-2</td>
             <td>AuthResult::FAILURE_CREDENTIAL_INVALID</td>
-            <td>Failure due to invalid credential being supplied.</td>
+            <td>Geçersiz kimlik bilgileri girildiğini gösterir.</td>
         </tr>
         <tr>
             <td>-3</td>
             <td>AuthResult::FAILURE_UNCATEGORIZED</td>
-            <td>Failure due to uncategorized reasons.</td>
+            <td>Kategorize edilemeyen bir hata oluştuğu anlamına gelir.</td>
         </tr>
         <tr>
             <td>-4</td>
-            <td>AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR</td>
-            <td>Failure due to idenitifer constant not matched with results array.</td>
+            <td>AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED</td>
+            <td>Geçici kimlik bilgilerinin oluşturulduğuna dair bir bilgidir.</td>
         </tr>
         <tr>
             <td>-5</td>
-            <td>AuthResult::FAILURE_ALREADY_LOGGEDIN</td>
-            <td>Failure due to user already autheticated.</td>
-        </tr>
-        <tr>
-            <td>-6</td>
-            <td>AuthResult::FAILURE_UNHASHED_PASSWORD</td>
-            <td>Failure due to user password not hashed.</td>
-        </tr>
-        <tr>
-            <td>-7</td>
-            <td>AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED</td>
-            <td>Failure due to temporary user auth has been created and not verified.</td>
-        </tr>
-        <tr>
-            <td>-8</td>
             <td>AuthResult::FAILURE_UNVERIFIED</td>
-            <td>Failure due to user account not verified.</td>
+            <td>Yetkilendirilme onayı aktif iken geçici kimlik bilgilerin henüz doğrulanmadığını gösterir.</td>
         </tr>
         <tr>
             <td>1</td>
             <td>AuthResult::SUCCESS</td>
-            <td>Authentication success.</td>
+            <td>Yetkilendirilme başarılıdır.</td>
         </tr>
 
     </tbody>
 </table>
 
 
-## Customizing Auth
+### Auth Sabitleri ve Kimlik Sınıfları 
 
-Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketi ile senkron çalışır ve aşağıdaki dizindedir.
+Uygulamanın esnek çalışması için kimlik classları ve sabit (constant) tanımlamaları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketi ile senkron çalışır ve aşağıdaki dizindedir.
 
 ```php
 - app
@@ -382,12 +443,13 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
             Identities
                 - AuthorizedUser
                 - GenericUser
-        - Provider
-            UserProvider.php
-        Credentials.php
+        + Provider
+        Constant.php
 ```
 
-#### Class Descriptions
+<b>AuthorizedUser</b> yetkili kullanıcıların kimliklerine ait metodları, <b>GenericUser</b> sınıfı ise yetkisiz yani Guest diye tanımladığımız kullanıcıların kimliklerine ait metodları içerir. Bu sınıflar <b>get</b> metodu kullanıcı kimliklerinden <b>okuma</b>, <b>set</b> metodu ile de kimliklere <b>yazma</b> işlemlerini yürütülerer. Bu sınıflara metodlar ekleyerek ihtiyaçlarınıza göre düzenleme yapabilirsiniz fakat <b>Obullo\Auth\Identities\IdentityInterface</b> sınıfı içerisindeki tanımlı metodlardan birini bu sınıflar içerisinden silmemeniz gerekir.
+
+#### Sınıf Açıklamaları
 
 <table>
     <thead>
@@ -398,47 +460,46 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     </thead>
     <tbody>
         <tr>
-            <td>Auth\Credentials</td>
-            <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
+            <td>Auth\Constant</td>
+            <td>Auth paketine ait öntanımlı tablename, id, password gibi sabitleri içerir.</td>
         </tr>
         <tr>
             <td>Auth\Identities\GenericUser</td>
-            <td>Guest user identity.</td>
+            <td>Ziyaretçi (Guest) kullanıcısına ait genel kimlik profilidir.</td>
         </tr>
         <tr>
             <td>Auth\Identities\AuthorizedUser</td>
-            <td>Authorized user identity.</td>
+            <td>Yetkilendirilmiş kullanıcıya ait kimlik profilidir.</td>
         </tr>
         <tr>
             <td>Auth\Provider\UserProvider</td>
-            <td>Contains user database query sql methods.</td>
+            <td>Database sorgularını yöneten ve sorgular üzerinde değişiklik yapabileceğiniz ara yüzdür.</td>
         </tr>
     </tbody>
 </table>
 
 
-## Identity
+### UserIdentity Sınıfı İşlevleri
 
 ------
 
-The class Identity manages the identity information and does the operations below:
+Kullanıcı kimliği O2 paketi içerisindedir ve <b>app/Auth/Identities</b> içerisindeki AuthorizedUser sınıfına genişler. Bu sınıf aşağıdaki kimlik işlevlerini yönetir.
 
-* Reads data from the identity and saves the data to identity  
-* Checks if the user has identity
-* Checks if the identity is authorized
-* Checks if the identity is permanent or not
-* Makes the identity passive ( logout )
-* Expires the identity ( destroy )
-* Remembers the identity ( remeberMe ), removes the identity from the cookie ( forgetMe )
+* Kimlikten veri okuma ve kimliğe veri kaydetme
+* Kullanıcı kimliğinin olup olmadığı kontrolü
+* Kullanıcı kimliğinin kalıcı olup olmadığı
+* Kullanıcının kimliğinin oturumunu sonlandırma ( logout )
+* Kullanıcı kimliğini tamamen yok etme ( destroy )
+* Beni hatırla özelliği kullanılmışsa kullanıcı kimliğini çerezden kalıcı olarak silme forgetMe )
 
 
-## Activity
+### UserActivity Sınıfı İşlevleri
 
 ------
 
-The classs Activity acts as a container to manage the meta data of the logged in users. The instant information like the last action of the user is on which page is sent to the identity data from this container. In order for information to be written on the memory, the update() method needs to be run once at the bottom. When the user logs in <b>sid</b> (session id) value is sent to the inside of the activity data by default.
+Kullanıcı aktivite sınıfı yetkilendirilmiş kullancılara ait meta verilerini kaydeder. Son aktivite zamanı ve diğer eklemek istediğiniz harici anlık veriler bu sınıfı aracılığıyla activity key içerisinde tutulur.
 
-#### Adding activity data and update.
+#### Örnek bir aktivite verisi
 
 ```php
 <?php
@@ -448,65 +509,41 @@ $this->user->activity->update();
 // __activity a:3:{s:3:"sid";s:26:"f0usdabogp203n5df4srf9qrg1";s:4:"date";i:1413539421;}
 ```
 
+### Database Sorgularını Özelleştirmek için UserProvider Sınıfına Genişlemek
 
-### Extending to UserProvider
+O2 Auth paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <b>Obullo\Auth\UserProvider</b> sınfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından provider anahtarını <b>Auth\UserProvider</b> olarak değiştirmeniz gerekmektedir.
 
-O2 Auth paketi kullanıcıya ait database fonksiyonlarını servis içerisinden Obullo\Auth\AuthUserProvider sınfından çağırmaktadır. Bu sınıfa genişlemek için önce Service/User sınıfından provider ı Auth\UserProvider olarak değiştirmeniz gerekmektedir.
+Daha sonra <b>app/classes/Auth/Provider</b> klasörünü içerisine UserProvider.php dosyasını yaratarak aşağıdaki gibi UserProvider sınıfı içerisinden ObulloUserProvider sınıfına genişlemeniz gerekmektedir. Bunu yaparken UserProviderInterface içerisindeki yazım kurallarına bir göz atın.
 
+Aşağıda O2 Auth paketi içerisindeki UserProviderInterface sınıfı görülüyor.
 
 ```php
+<?php
 
-namespace Service;
-
-use Obullo\Auth\UserService,
-    Service\ServiceInterface;
-
-Class User implements ServiceInterface
+interface UserProviderInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register($c)
-    {            
-        $c['user'] = function () use ($c) {
-            return new UserService($c, $c->load('return service/provider/db'));
-        };;
-    }
+    public function __construct($c, $db);
+    public function execQuery(GenericUser $user);
+    public function execRecallerQuery($token);
+    public function updateRememberToken($token, GenericUser $user);
 }
 ```
 
-Bunun için önce <b>app/classes/Auth/Provider</b> klasörünü yaratın. Daha sonra Database user provider aşağıdaki gibi yaratarak AbstractUserProvider sınıfına genişlemeniz gerekmektedir. Bunu yaparken UserProviderInterface içerisindeki  kurallara bir göz atın.
-
-Aşağıdaki örnek olarak verimiştir aşağıdaki sınıfı ihtiyaçlarınıza göre değiştirebilirsiniz. Bunun içib Obullo\Auth\AbstractUserProvider sınıfına bakın ve override etmek istediğiniz method yada değişkenleri UserProvider sınıfı içersine dail edin.
+Aşağıda sizin için bir provider örneği yaptık bu örneği değiştererek ihtiyaçlarınıza göre kullanabilirsiniz. Bunun için <b>Obullo\Auth\AbstractUserProvider</b> sınıfına bakın ve ezmek ( override ) istediğiniz method yada değişkenleri sınıfınız içerisine dail edin.
 
 
 ```php
-
 <?php
 
 namespace Auth\Provider;
 
 use Obullo\Auth\UserProviderInterface,
-    Obullo\Auth\AuthUserProvider,
+    Obullo\Auth\UserProvider as ObulloUserProvider,
     Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
-    Auth\Credentials;
+    Auth\Constant;
 
-/**
- * O2 Auth - User Database Provider
- *
- * @category  Auth
- * @package   Provider
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/auth
- */
-Class UserProvider extends AuthUserProvider implements UserProviderInterface
+Class UserProvider extends ObulloUserProvider implements UserProviderInterface
 {
     /**
      * Constructor
@@ -518,12 +555,7 @@ Class UserProvider extends AuthUserProvider implements UserProviderInterface
     {
         parent::__construct($c, $db);
 
-        $this->tablename = 'users';                     // Db users tablename
-        $this->rememberTokenColumn = 'remember_token';  // RememberMe token column name
-
         $this->userSQL = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
-        $this->recalledUserSQL = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
-        $this->rememberTokenUpdateSQL = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
     }
     
     /**
@@ -531,17 +563,17 @@ Class UserProvider extends AuthUserProvider implements UserProviderInterface
      *
      * @param object $user GenericUser object to get user's identifier
      * 
-     * @return mixed boolean|object
+     * @return mixed boolean|array
      */
     public function execQuery(GenericUser $user)
     {
         // return parent::execQuery($user);
         
-        $this->db->prepare($this->userSQL, array($this->tablename, Credentials::IDENTIFIER));
+        $this->db->prepare($this->userSQL, array($this->tablename, Constant::IDENTIFIER));
         $this->db->bindValue(1, $user->getIdentifier(), PARAM_STR);
         $this->db->execute();
 
-        return $this->db->row();  // returns to false if fail
+        return $this->db->rowArray();  // returns to false if fail
     }
 
 }
@@ -552,12 +584,13 @@ Class UserProvider extends AuthUserProvider implements UserProviderInterface
 /* Location: .app/classes/Auth/Provider/UserProvider.php */
 ```
 
+### Olaylar ( Events )
 
-### Events
+Auth paketine ait olaylar <b>app/classes/Event/User.php</b> sınıfı tarafından dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <b>onLoginAttempt()</b> olayıdır. Bu olay <b>Obullo/Auth/User/UserIdentity</b> sınıfı içerisindeki loginAttempt metodu içerisinde <b>login.attempt</b> adı ile ilan edilmiştir. 
 
-By default we have two active user event in event/user class. Auth class use these methods when you use service/user class.
+Aşağıdaki örnekte gösterilen <b>app/classes/Event/User.php</b> sınıfı onLoginAttempt() metodu <b>login.attempt</b> olayını dinleyerek oturum denemeleri anını ve bu andan sonra oluşan sonuçları kontrol edebilmenizi sağlar. 
 
-If you want you can release afterLogin and afterLogout events using fire method.
+Lütfen takip eden örneğe bir göz atın.
 
 ```php
 <?php
@@ -567,35 +600,8 @@ namespace Event;
 use Obullo\Auth\AuthResult,
     Obullo\Auth\User\UserIdentity;
 
-/**
- * User event handler
- * 
- * @category  Event
- * @package   User
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/event
- */
 Class User
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
     /**
      * Handle user login attempts
      *
@@ -614,40 +620,6 @@ Class User
     }
 
     /**
-     * Invalid auth token event listener
-     * 
-     * @param object $identity UserIdentity
-     * @param string $cookie   user token that we read from cookie
-     * 
-     * @return void
-     */
-    public function onInvalidToken(UserIdentity $identity, $cookie)
-    {
-        $this->c->load('flash/session')->error('Invalid auth token : '.$cookie.' identity '.$identity->getIdentifier().' destroyed');
-        $this->c->load('url')->redirect('/login');
-    }
-
-    /**
-     * Handler user login events
-     * 
-     * @return void
-     */
-    public function onAfterLogin()
-    {
-        // ..
-    }
-
-    /**
-     * Handle user logout events.
-     *
-     * @return void
-     */
-    public function onAfterLogout()
-    {
-        // ..
-    }
-
-    /**
      * Register the listeners for the subscriber.
      * 
      * @param object $event event class
@@ -657,9 +629,6 @@ Class User
     public function subscribe($event)
     {
         $event->listen('login.attempt', 'Event\User.onLoginAttempt');
-        $event->listen('after.login', 'Event\User.onAfterLogin');
-        $event->listen('auth.token', 'Event\User.onInvalidToken');
-        $event->listen('after.logout', 'Event\User.onAfterLogout');
     }
 
 }
@@ -670,191 +639,167 @@ Class User
 /* Location: .Event/User.php */
 ```
 
+Yukarıdaki örnekte <b>onLoginAttempt()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetkilendirme sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
 
 
-### Login Reference
+### Login Referansı
 
 ------
-
-```php
-<?php
-$this->c->load('service/user');
-$this->user->login->method();
-```
 
 ### $this->user->login->enableVerification();
 
-If verification enabled, after successfull login memory storage creates a temporary identity. After a while temporary auth delete by storage if its not verified by the user.
+Yetkilendirilme onayını aktif hale getirir.
 
 ### $this->user->login->disableVerification();
 
-Disabled verification option.
+Yetkilendirilme onayını devre dışı bırakır.
 
 ### $this->user->login->attemp(array $credentials, $rememberMe = false);
 
-Do login attempt and if login success gives authority and identity to the user.
+Bu fonksiyon kullanıcı oturumunu açmayı dener ve AuthResult nesnesine döner.
 
 ### $this->user->login->authenticateVerifiedIdentity();
 
-After verification, method authenticate temporary identity and removes old temporary data.
+Kullanıcıyı kalıcı olarak yetkilendirir ve kalıcı kimliğe sahip olan kullanıcının geçici kimliğini önbellekten siler.
 
 ### $this->user->login->validate(array $credentials);
 
-Validate a user's credentials without authentication.
+Yetkilendirme yapmadan kullanıcı Guest kimliği bilgilerine doğrulama işlemi yapar.Bilgiler doğruysa true değerine yanlış ise false değerine döner.
 
 ### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
-Validate a user against the given credentials.
+AuthorizedUser kimliğine sahip kullanıcı bilgilerini dışarıdan gelen yeni bilgiler ile karşılaştırarak doğrulama yapar.
 
-$this->user->login->getAdapter();
+### $this->user->login->getAdapter();
 
-Returns user service adapter object.
+Serviste kullanılan adaptör nesnesine geri döner.
 
-$this->user->login->getStorage();
+### $this->user->login->getStorage();
 
-Returns to user service storage object.
+Serviste kullanılan storage nesnesine geri döner.
 
-### Identity Reference
+
+
+### Identity Referansı
 
 ------
 
-```php
-<?php
-$this->c->load('service/user');
-$this->user->identity->method();
-```
-
-### $this->user->identity->exists();
-
-Checks identity block available in memory. If yes returns to <b>true</b> otherwise <b>false</b>.
-
 ### $this->user->identity->check();
 
-if user authenticated returns to <b>true</b> otherwise <b>false</b>.
-
-### $this->user->identity->isVerified();
-
-if user is verified () after successfull login returns to <b>true</b> otherwise <b>false</b>.
+Kullanıcının yetkilendirilip yetkilendirilmediğini kontrol eder. Yetkili ise <b>true</b> değilse <b>false</b>değerine döner.
 
 ### $this->user->identity->guest();
 
 Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false</b>.
 
+### $this->user->identity->exists();
+
+Kimliğin önbellekte olup olmadığını kotrol eder. Varsa <b>true</b> yoksa <b>false</b>değerine döner.
+
+### $this->user->identity->isVerified();
+
+Onaya tabi olan yetkilendirmede başarılı oturum açma işleminden sonra kullanıcı onaylanıp onaylanmadığını gösterir. Kullanıcı onaylı ise <b>1</b> değerine değilse <b>0</b> değerine döner.
+
 ### $this->user->identity->isTemporary();
 
-Returns to <b>1</b> if user authenticated on temporary memory block otherwise <b>0</b>.
+Onaya tabi olan yetkilendirmede kullanıcının kimliğinin geçici olup olmadığını gösterir. <b>1</b> yada </b>0</b> değerine döner.
 
 ### $this->user->identity->logout();
 
-Logs out user, sets __isAuthenticated key to <b>0</b>. This method <kbd>does not destroy</kbd> the user <kbd>sessions</kbd>. It will just set authority of user to <b>0</b>.
-
-**Note:** When you use logout method, user logins will work on memory storage if cached auth exists.
+Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile güncellenir. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kappattı olarak kaydeder.
 
 ### $this->user->identity->destroy();
 
-Destroys all identity stored in memory. 
+Önbellekteki kimliği bütünüyle yok eder.
 
 ### $this->user->identity->forgetMe();
 
-Removes the rememberMe cookie.
+Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
 ### $this->user->identity->refreshRememberToken(GenericUser $genericUser);
 
-Regenerates rememberMe token in <b>database</b>.
-
-**Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
+Beni hatırla güvenlik çerezi (remember token) değerini yenileyerek database e kaydeder.
 
 
-### Identity "Set" Methods
+### Identity "Set" Metotları
 
 ------
 
 ### $this->user->identity->variable = 'value'
 
-Set a value to identity array.
+Kimlik dizisine yeni bir değer ekler.
 
 ### unset($this->user->identity->variable)
 
-Remove value from identity array.
+Kimlik dizisinde varolan değeri siler.
 
 ### $this->user->identity->setRoles(int|string|array $roles);
 
-Set user roles to identity data.
+Eğer bir yetki sistemi kullanıyorsanız sisteme kayıtlı rolleri kimliğe bağlayabilirsiniz.
 
 ### $this->user->identity->setArray(array $attributes)
 
-Reset identity attributes with new values.
+Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
 
-### Identity "Get" Methods
+### Identity "Get" Metotları
 
 ------
 
 ### $this->user->identity->getIdentifier();
 
-Get the unique identifier for the user.
+Kullanıcın tekil tanımlayıcı sına geri döner. Tanımlayıcı genellikle kullanıcı adı yada id sidir.
 
 ### $this->user->identity->getPassword();
 
-Returns to hashed password of the user.
+Kullanıcın hash edilmiş şifresine geri döner.
 
 ### $this->user->identity->getType();
 
-Get user type who has successfull memory token using by their session identifier. User types : <b>UNVERIFIED, AUTHORIZED</b>.
+Yetkilendirilmesi başarılı olmuş olan kullanıcının yetkilendirilme durumunu gösterir. Bu tipler : <b>UNVERIFIED, AUTHORIZED</b> dir.
 
 ### $this->user->identity->getRememberMe();
 
-Get rememberMe option if user choosed returns to <b>1</b> otherwise <b>0</b>.
-
-### $this->user->identity->getPasswordNeedsReHash();
-
-Checks the password needs rehash if yes returns to <b>array</b> that contains new hashed password otherwise <b>false</b>.
+Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine aksi durumda <b>0</b> değerine döner.
 
 ### $this->user->identity->getTime();
 
-Returns to creation time of identity. ( Php Unix microtime ).
+Kimliğin ilk yaratılma zamanının verir. ( Php Unix microtime ).
 
 ### $this->user->identity->getArray()
 
-Returns to all user identity data ( attributes of user ).
+Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
 ### $this->user->identity->getToken();
 
-Returns to security token.
+Güvenlik çerezinine geri döner.
 
 ### $this->user->identity->getRoles();
 
-Gets role(s) of the user.
+Kullanıcıya ait daha önceden kaydedilmiş rollere geri döner.
 
 
-**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> class.
+**Note:** Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine ekleyebilirsiniz.
 
 
-### Activity Reference
+### Activity Referansı
 
 ------
 
-
-Activity data contains online user activity data: lastActivity time or and any analytics data you want to add.
-
-```php
-<?php
-$this->c->load('service/user');
-$this->user->activity->method();
-```
+Activite verileri son aktivite zaman gibi anlık kullanıcı verilerini önbellekte tutubilmenizi sağlayan bir sınıftır.
 
 ### $this->user->activity->set($key, $val);
 
-Add item to activity data array.
+Aktivite dizininden bir değere geri döner. bir anahtar ve değerini ekler.
 
 ### $this->user->activity->get($key);
 
-Fetches an item from activity data array.
+Aktivite dizininde anahtarla eşleşen değere geri döner.
 
 ### $this->user->activity->update();
 
-Updates all activity data if $this->user->activity->set(); method used before on this method.
+Daha önce set metodu ile eklenen bütün verileri kaydeder. Bu metot en son çalıştırılmalıdır.
 
 ### $this->user->activity->remove();
 
-Removes all activity data from auth container.
+Tüm aktivite verilerini önbellekten temizler.

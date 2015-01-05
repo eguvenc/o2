@@ -265,8 +265,8 @@ The class Login manages the operations like login, authentication and verificati
 $this->user->login->disableVerification();
 $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->post['email'], 
+        Auth\Constant::PASSWORD => $this->post['password']
     ),
     $this->post['rememberMe']
 );
@@ -280,8 +280,8 @@ AuthResult class ile sonuç doğrulama filtresinden geçer oluşan hata kodları
 <?php
 $result = $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->post['email'], 
+        Auth\Constant::PASSWORD => $this->post['password']
     ),
     $this->post['rememberMe']
 );
@@ -398,7 +398,7 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     </thead>
     <tbody>
         <tr>
-            <td>Auth\Credentials</td>
+            <td>Auth\Constant</td>
             <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
         </tr>
         <tr>
