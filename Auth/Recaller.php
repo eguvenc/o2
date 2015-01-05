@@ -72,7 +72,6 @@ Class Recaller
         $id = $resultRowArray[Credentials::IDENTIFIER];
         $this->storage->setIdentifier($id);
 
-
         $credentials = array(
             Credentials::IDENTIFIER => $id,
             '__rememberMe' => 1,
