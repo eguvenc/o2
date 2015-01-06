@@ -122,6 +122,13 @@ Class User
     public $userId = 0;
 
     /**
+     * Permissions\Rbac\Db\User instance
+     * 
+     * @var null
+     */
+    protected static $dbUser = null;
+
+    /**
      * Constructor
      * 
      * @param object $c      container
@@ -130,8 +137,8 @@ Class User
      */
     public function __construct($c, $db, $config = array())
     {
-        $this->c = $c;
-        $this->db = $db;
+        $this->c     = $c;
+        $this->db    = $db;
         $this->cache = $c->load('return service/cache');
         
         $this->c['config']->load('constants/rbac');  // load rbac constants
@@ -180,6 +187,19 @@ Class User
     }
 
     /**
+     * Rbac Db User
+     * 
+     * @return Permissions\Rbac\Db\User object
+     */
+    protected static function dbUser()
+    {
+        if (static::$dbUser == null) {
+            static::$dbUser = new Obullo\Permissions\Rbac\Db\User($this);
+        }
+        return static::$dbUser;
+    }
+
+    /**
      * Checks permission name is allowed in your permission list
      * 
      * @param string $permName    permission name
@@ -214,19 +234,7 @@ Class User
     public function assign($userId, $roleId)
     {
         $this->deleteCache();
-        $this->db->prepare(
-            'INSERT INTO %s (%s,%s, %s) VALUES (?,?,?)',
-            array(
-                $this->userRolesTableName,
-                $this->columnUserPrimaryKey,
-                $this->columnUserRolePrimaryKey,
-                $this->columnAssignmentDate
-            )
-        );
-        $this->db->bindValue(1, $userId, PARAM_INT);
-        $this->db->bindValue(2, $roleId, PARAM_INT);
-        $this->db->bindValue(3, time(), PARAM_INT);
-        return $this->db->execute();
+        return static::dbUser()->assign($userId, $roleId);
     }
 
     /**
@@ -239,18 +247,7 @@ Class User
      */
     public function deAssign($userId, $roleId)
     {
-        $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s = ? AND %s = ?',
-            array(
-                $this->userRolesTableName,
-                $this->columnUserPrimaryKey,
-                $this->columnUserRolePrimaryKey
-            )
-        );
-        $this->db->bindValue(1, $userId, PARAM_INT);
-        $this->db->bindValue(2, $roleId, PARAM_INT);
-        return $this->db->execute();
+        return static::dbUser()->deAssign($userId, $roleId);
     }
 
     /**
@@ -356,7 +353,7 @@ Class User
         $key = static::CACHE_HAS_ROLE . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->hasRoleSqlQuery();  // do sql query
+            $queryResultArray = static::dbUser()->hasRoleSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -378,7 +375,7 @@ Class User
         $key = static::CACHE_GET_ROLES . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getRolesSqlQuery();  // do sql query
+            $queryResultArray = static::dbUser()->getRolesSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // 
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -404,7 +401,7 @@ Class User
         $key = static::CACHE_GET_ALL_PERMISSIONS . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getPermissionsSqlQuery($roleIds);  // do sql query
+            $queryResultArray = static::dbUser()->getPermissionsSqlQuery($roleIds);  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -430,7 +427,7 @@ Class User
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) { // If not exist in the cache
             $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = $this->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
+            $queryResultArray = static::dbUser()->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // If mysql query no result cache driver say cache is false but we have the empty values
             $this->cache->set($key, $resultArray, $expiration);                              // This fix the query loops and gives the native value.
         }
@@ -459,7 +456,7 @@ Class User
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) { // If not exist in the cache
             $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = $this->hasObjectPermissionSqlQuery($permName, $attribute);  // do sql query
+            $queryResultArray = static::dbUser()->hasObjectPermissionSqlQuery($permName, $attribute);  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -489,7 +486,7 @@ Class User
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) { // If not exist in the cache
             $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = $this->hasChildPermissionSqlQuery($objectName, $permName, $attribute);  // do sql query
+            $queryResultArray = static::dbUser()->hasChildPermissionSqlQuery($objectName, $permName, $attribute);  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -511,7 +508,7 @@ Class User
         $key         = static::CACHE_ROLE_COUNT . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
-            $queryResultArray = $this->roleCountSqlQuery();  // do sql query
+            $queryResultArray = static::dbUser()->roleCountSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -519,425 +516,6 @@ Class User
             return 0;
         }
         return $resultArray;
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @param string $objectName object name.
-     * @param string $permName   permission name.
-     * @param string $extra      extra
-     * 
-     * @return array data otherwise false.
-     */
-    public function hasChildPermissionSqlQuery($objectName, $permName, $extra = '')
-    {
-        $roleIds = $this->getRoleIds();
-        $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
-                FROM %s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                WHERE %s.%s = ?
-                AND %s.%s IN (%s)
-                AND %s.%s = ?
-                AND %s.%s = ?
-                AND %s.%s IN (%s)
-                AND %s.%s IN (%s)
-                AND %s.%s IN (SELECT %s FROM %s WHERE %s = ?)' . $extra,
-            array(
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpPermOpPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpPrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText),
-                str_repeat('?,', count($permName) - 1) . '?',
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermType),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermParentId),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText)
-            )
-        );
-        $this->db->bindValue(1, $this->getResourceId(), PARAM_STR);
-        $i = 1;
-        foreach ($permName as $name) {
-            $i++;
-            $this->db->bindValue($i, $name, PARAM_STR);
-        }
-        $i++;
-        $this->db->bindValue($i, 'object', PARAM_STR);
-        $i++;
-        $this->db->bindValue($i, $this->getUserId(), PARAM_INT);
-
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        $i++;
-        $this->db->bindValue($i, $objectName, PARAM_STR);
-        $this->db->execute();
-
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @return array data otherwise false.
-     */
-    protected function hasRoleSqlQuery()
-    {
-        $roleIds = $this->getRoleIds();
-        $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s
-                FROM %s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                WHERE %s.%s = ?
-                AND %s.%s IN (%s)',
-            array(
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->rolesTableName),
-                $this->db->protect($this->columnRoleText),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->rolesTableName),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->rolesTableName),
-                $this->db->protect($this->columnRolePrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?'
-            )
-        );
-        $this->db->bindValue(1, $this->getUserId(), PARAM_INT);
-        $i = 1;
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        $this->db->execute();
-        return $this->db->rowArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @return array data otherwise false.
-     */
-    protected function getRolesSqlQuery()
-    {
-        $this->db->prepare(
-            'SELECT %s
-                FROM %s
-                WHERE %s = ?',
-            array(
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $this->getUserId(), PARAM_INT);
-        $this->db->execute();
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @param string $roleIds role ids
-     * 
-     * @return array data otherwise false.
-     */
-    protected function getPermissionsSqlQuery($roleIds)
-    {
-        $this->db->prepare(
-            'SELECT
-                %s.%s
-                FROM
-                %s
-                WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnRolePermRolePrimaryKey], PARAM_INT);
-        }
-        $this->db->execute();
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @param string $permResource permission page resource ('admin/advertising')
-     * @param string $extra        extra sql data
-     * 
-     * @return array data otherwise false.
-     */
-    protected function hasPagePermissionSqlQuery($permResource, $extra)
-    {
-        $roleIds = $this->getRoleIds();
-        $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
-                FROM %s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                WHERE %s.%s = ?
-                AND %s.%s = ?
-                AND %s.%s = ?
-                AND %s.%s IN (%s)
-                AND %s.%s IN (%s)' . $extra,
-            array(
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpPermOpPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpPrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermType),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?'
-            )
-        );
-        $this->db->bindValue(1, $permResource, PARAM_STR);
-        $this->db->bindValue(2, 'page', PARAM_STR);
-        $this->db->bindValue(3, $this->getUserId(), PARAM_INT);
-        $i=3;
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        $this->db->execute();
-
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @param string $permName object name
-     * @param string $extra    extra data
-     * 
-     * @return array data otherwise false
-     */
-    protected function hasObjectPermissionSqlQuery($permName, $extra)
-    {
-        $roleIds = $this->getRoleIds();
-        $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
-                FROM %s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
-                WHERE %s.%s = ?
-                AND %s.%s IN (%s)
-                AND %s.%s = ?
-                AND %s.%s = ?
-                AND %s.%s IN (%s)
-                AND %s.%s IN (%s)' . $extra,
-            array(
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpText),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermPrimaryKey),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnRolePermPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpPermOpPrimaryKey),
-                $this->db->protect($this->opTableName),
-                $this->db->protect($this->columnOpPrimaryKey),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermResource),
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermText),
-                str_repeat('?,', count($permName) - 1) . '?',
-                $this->db->protect($this->permTableName),
-                $this->db->protect($this->columnPermType),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->columnOpRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?'
-            )
-        );
-        $this->db->bindValue(1, $this->getResourceId(), PARAM_STR);
-        $i = 1;
-        foreach ($permName as $name) {
-            $i++;
-            $this->db->bindValue($i, $name, PARAM_STR);
-        }
-        $i++;
-        $this->db->bindValue($i, 'object', PARAM_STR);
-        $i++;
-        $this->db->bindValue($i, $this->getUserId(), PARAM_INT);
-
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->columnUserRolePrimaryKey], PARAM_INT);
-        }
-        $this->db->execute();
-
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Run sql query
-     * 
-     * @return array data otherwise false
-     */
-    protected function roleCountSqlQuery()
-    {
-        $this->db->prepare(
-            'SELECT * FROM %s WHERE %s = ?',
-            array(
-                $this->userRolesTableName,
-                $this->columnUserPrimaryKey
-            )
-        );
-        $this->db->bindValue(1, $this->getUserId(), PARAM_INT);
-        $this->db->execute();
-        return $this->db->count();
     }
 
     /**
@@ -949,17 +527,7 @@ Class User
      */
     public function deleteRoleFromUsers($userId)
     {
-        $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s = ?',
-            array(
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserPrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $userId, PARAM_INT);
-
-        return $this->db->execute();
+        return static::dbUser()->deleteRoleFromUsers($userId);
     }
 
     /**

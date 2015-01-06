@@ -119,6 +119,13 @@ Class Roles
     public $cache;
 
     /**
+     * Permissions\Rbac\Db\Roles instance
+     * 
+     * @var null
+     */
+    protected static $dbRoles = null;
+
+    /**
      * Constructor
      *
      * @param object $c      container
@@ -127,8 +134,8 @@ Class Roles
      */
     public function __construct($c, $db, $config = array())
     {
-        $this->c = $c;
-        $this->db = $db;
+        $this->c      = $c;
+        $this->db     = $db;
         $this->cache  = $c->load('return service/cache');
         $this->treeDb = new Db($c, array('db' => $db));
         
@@ -173,6 +180,19 @@ Class Roles
         $this->treeDb->setText($this->text);
         $this->treeDb->setLft($this->lft);
         $this->treeDb->setRgt($this->rgt);
+    }
+
+    /**
+     * Rbac Db User
+     * 
+     * @return Permissions\Rbac\Db\User object
+     */
+    protected static function dbRoles()
+    {
+        if (static::$dbRoles == null) {
+            static::$dbRoles = new Obullo\Permissions\Rbac\Db\Roles($this);
+        }
+        return static::$dbRoles;
     }
     
     /**
@@ -364,7 +384,7 @@ Class Roles
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getUsersSqlQuery((int)$roleId, (string)$select); // do sql query
+            $queryResultArray = static::dbRoles()->getUsersSqlQuery((int)$roleId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -389,7 +409,7 @@ Class Roles
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getPermissionsSqlQuery((int)$roleId, (string)$select); // do sql query
+            $queryResultArray = static::dbRoles()->getPermissionsSqlQuery((int)$roleId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -397,50 +417,6 @@ Class Roles
             return null;
         }
         return $resultArray;
-    }
-
-    /**
-     * Get permissions sql query
-     * 
-     * @param int $roleId role id
-     * 
-     * @return array
-     */
-    public function getPermissionsSqlQuery($roleId)
-    {
-        $this->db->prepare(
-            'SELECT %s FROM %s WHERE %s = ?',
-            array(
-                $this->db->protect($this->rolePermPrimaryKey),
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePermRolePrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $roleId, PARAM_INT);
-        $this->db->execute();
-        return $this->db->resultArray();
-    }
-
-    /**
-     * Get users sql query
-     * 
-     * @param int $roleId role id
-     * 
-     * @return array
-     */
-    public function getUsersSqlQuery($roleId)
-    {
-        $this->db->prepare(
-            'SELECT %s FROM %s WHERE %s = ?',
-            array(
-                $this->db->protect($this->columnUserPrimaryKey),
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $roleId, PARAM_INT);
-        $this->db->execute();
-        return $this->db->resultArray();
     }
 
     /**
@@ -472,20 +448,8 @@ Class Roles
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePermRolePrimaryKey),
-                str_repeat('?,', count($roleId) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($roleId as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->primaryKey], PARAM_INT);
-        }
-        return $this->db->execute();
+        
+        return static::dbRoles()->deleteRolePermissions($roleId);
     }
 
     /**
@@ -503,20 +467,8 @@ Class Roles
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->userRolesTableName),
-                $this->db->protect($this->columnUserRolePrimaryKey),
-                str_repeat('?,', count($roleId) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($roleId as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->primaryKey], PARAM_INT);
-        }
-        return $this->db->execute();
+        
+        return static::dbRoles()->deleteRoleFromUsers($roleId);
     }
 
     /**
@@ -534,20 +486,8 @@ Class Roles
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->opPermsTableName),
-                $this->db->protect($this->opPermsRolePrimaryKey),
-                str_repeat('?,', count($roleId) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($roleId as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->primaryKey], PARAM_INT);
-        }
-        return $this->db->execute();
+        
+        return static::dbRoles()->deleteOperationsByRoleId($roleId);
     }
 
     /**

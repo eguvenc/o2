@@ -132,6 +132,13 @@ Class Permissions
     public $db;
 
     /**
+     * Permissions\Rbac\Db\Permissions instance
+     * 
+     * @var null
+     */
+    protected static $dbPerms = null;
+
+    /**
      * Constructor
      *
      * @param object $c      container
@@ -140,9 +147,9 @@ Class Permissions
      */
     public function __construct($c, $db, $config = array())
     {
-        $this->c = $c;
-        $this->db = $db;
-        $this->cache = $c->load('return service/cache');
+        $this->c      = $c;
+        $this->db     = $db;
+        $this->cache  = $c->load('return service/cache');
         $this->treeDb = new Db($c, array('db' => $db));
 
         $this->c['config']->load('constants/rbac');  // load rbac constants
@@ -179,6 +186,19 @@ Class Permissions
         $this->treeDb->setText($this->text);
         $this->treeDb->setLft($this->lft);
         $this->treeDb->setRgt($this->rgt);
+    }
+
+    /**
+     * Rbac Db User
+     * 
+     * @return Permissions\Rbac\Db\User object
+     */
+    protected static function dbPerms()
+    {
+        if (static::$dbPerms == null) {
+            static::$dbPerms = new Obullo\Permissions\Rbac\Db\Permissions($this);
+        }
+        return static::$dbPerms;
     }
     
     /**
@@ -268,20 +288,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        $this->db->prepare(
-            'INSERT INTO %s (%s,%s,%s) VALUES (?,?,?)',
-            array(
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePermRolePrimaryKey),
-                $this->db->protect($this->rolePermPrimaryKey),
-                $this->db->protect($this->assignmentDate)
-            )
-        );
-        $this->db->bindValue(1, $roleId, PARAM_INT);
-        $this->db->bindValue(2, $permId, PARAM_INT);
-        $this->db->bindValue(3, time(), PARAM_INT);
-        
-        return $this->db->execute();
+        return static::dbPerms()->assignRole($roleId, $permId);
     }
 
     /**
@@ -297,20 +304,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        $this->db->prepare(
-            'INSERT INTO %s (%s,%s,%s) VALUES (?,?,?)',
-            array(
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->opPermPermPrimaryKey),
-                $this->db->protect($this->opPermOpPrimaryKey),
-                $this->db->protect($this->opPermRolePrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $permId, PARAM_INT);
-        $this->db->bindValue(2, $opId, PARAM_INT);
-        $this->db->bindValue(3, $roleId, PARAM_INT);
-        
-        return $this->db->execute();
+        return static::dbPerms()->assignOperation($roleId, $permId, $opId);
     }
 
     /**
@@ -325,18 +319,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s = ? AND %s = ?',
-            array(
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePermRolePrimaryKey),
-                $this->db->protect($this->rolePermPrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $roleId, PARAM_INT);
-        $this->db->bindValue(2, $permId, PARAM_INT);
-        
-        return $this->db->execute();
+        return static::dbPerms()->deAssignRole($roleId, $permId);
     }
 
     /**
@@ -354,20 +337,8 @@ Class Permissions
         $permId = array_reverse($permId);
 
         $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->rolePermTableName),
-                $this->db->protect($this->rolePermPrimaryKey),
-                str_repeat('?,', count($permId) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($permId as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->primaryKey], PARAM_INT);
-        }
-        return $this->db->execute();
+
+        return static::dbPerms()->deAssignRoles($permId);
     }
 
     /**
@@ -383,20 +354,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s = ? AND %s = ? AND %s = ?',
-            array(
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->opPermPermPrimaryKey),
-                $this->db->protect($this->opPermOpPrimaryKey),
-                $this->db->protect($this->opPermRolePrimaryKey)
-            )
-        );
-        $this->db->bindValue(1, $permId, PARAM_INT);
-        $this->db->bindValue(2, $opId, PARAM_INT);
-        $this->db->bindValue(3, $roleId, PARAM_INT);
-        
-        return $this->db->execute();
+        return static::dbPerms()->deAssignOperation($roleId, $permId, $opId);
     }
 
     /**
@@ -411,18 +369,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s = ? AND %s = ?',
-            array(
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->opPermPermPrimaryKey),
-                $this->db->protect($this->opPermRolePrimaryKey),
-            )
-        );
-        $this->db->bindValue(1, $permId, PARAM_INT);
-        $this->db->bindValue(2, $roleId, PARAM_INT);
-
-        return $this->db->execute();
+        return static::dbPerms()->deAssignOperations($roleId, $permId);
     }
 
     /**
@@ -440,20 +387,8 @@ Class Permissions
         $permId = array_reverse($permId);
 
         $this->deleteCache();
-        $this->db->prepare(
-            'DELETE FROM %s WHERE %s IN (%s)',
-            array(
-                $this->db->protect($this->opPermTableName),
-                $this->db->protect($this->opPermPermPrimaryKey),
-                str_repeat('?,', count($permId) - 1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($permId as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->primaryKey], PARAM_INT);
-        }
-        return $this->db->execute();
+
+        return static::dbPerms()->deAssignAllOperations($permId);
     }
 
     /**
@@ -547,7 +482,7 @@ Class Permissions
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getRolesSqlQuery((int)$permId, (string)$select); // do sql query
+            $queryResultArray = static::dbPerms()->getRolesSqlQuery((int)$permId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -555,29 +490,6 @@ Class Permissions
             return null;
         }
         return $resultArray;
-    }
-
-    /**
-     * Get roles sql query
-     * 
-     * @param int $permId perm id
-     * 
-     * @return array
-     */
-    public function getRolesSqlQuery($permId)
-    {
-        $db = $this->c->load('db');
-        $db->prepare(
-            'SELECT %s FROM %s WHERE %s = ?',
-            array(
-                $db->protect($this->rolePermRolePrimaryKey),
-                $db->protect($this->rolePermTableName),
-                $db->protect($this->rolePermPrimaryKey)
-            )
-        );
-        $db->bindValue(1, $permId, PARAM_INT);
-        $db->execute();
-        return $db->resultArray();
     }
 
     /**
