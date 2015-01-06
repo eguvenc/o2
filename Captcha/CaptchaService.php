@@ -36,7 +36,6 @@ Class CaptchaService
     public $expiration;              // How long to keep generated images
     public $sessionKey;              // Random session key for saving captcha code.
     public $imageUrl;                // Captcha image display url with base url
-    public $send_output_header = false; // Whether to create captcha at browser header
 
     protected $Yperiod    = 12;      // Wave Y axis
     protected $Yamplitude = 14;      // Wave Y amplitude
@@ -55,19 +54,16 @@ Class CaptchaService
      */
     public function __construct($c, $config = array())
     {
-        $config = null;
         $this->c = $c;
-        $this->session = $c->load('return session');
-        $this->logger = $c->load('return service/logger');
-        $this->captcha = $c['config']->load('captcha');
+        $this->session = $c->load('session');
+        $this->logger = $c->load('service/logger');
+        $this->captcha = $config;
 
         $this->init();
         $this->img_path = ROOT . str_replace('/', DS, trim($this->captcha['img_path'], '/')) . DS;  // replace with DS
         $this->img_url = $c['uri']->getBaseUrl($this->captcha['img_path'] . DS); // add Directory Seperator ( DS )
         $this->user_font_path= ROOT . $this->captcha['user_font_path'] . DS;
         $this->default_font_path = OBULLO . 'Captcha' . DS . 'fonts' . DS;
-
-        $this->gc(); // Run garbage collection
 
         $this->logger->debug('Captcha Class Initialized');
     }
@@ -94,7 +90,6 @@ Class CaptchaService
         $this->wave_image          = $this->captcha['wave_image'];
         $this->char_pool           = $this->captcha['char_pool'];
         $this->image_type          = $this->captcha['image_type'];
-        $this->send_output_header  = $this->captcha['send_output_header'];
     }
 
     /**
@@ -352,14 +347,10 @@ Class CaptchaService
                 imageline($this->image, mt_rand(0, $this->width), mt_rand(0, $this->height), mt_rand(0, $this->width), mt_rand(0, $this->height), $noise_color);
             }
         }
-        if ($this->send_output_header) {
-            header('Content-Type: image/png');
-            imagepng($this->image);
-            imagedestroy($this->image);
-        } else {
-            imagepng($this->image, $this->img_path . $imgName);
-            imagedestroy($this->image);
-        }
+        header('Content-Type: image/png');
+        imagepng($this->image);
+        imagedestroy($this->image);
+        
         $this->session->set($this->captcha_id, array('image_name' => $this->sessionKey, 'code' => $this->code));
     }
 
@@ -404,34 +395,6 @@ Class CaptchaService
     }
 
     /**
-     * Garbage Collection
-     * Remove old files from image directory
-     * 
-     * @return void
-     */
-    public function gc()
-    {
-        if ($this->send_output_header) {
-            return;
-        }
-        if (mt_rand(1, $this->del_rand) !== 1) {  // don't do delete operation every time 
-            return;
-        }
-        $expire = time() - $this->expiration;
-
-        if ( ! $this->img_path OR mb_strlen($this->img_path, $this->c->config['locale']['charset']) < 2) {  // safety guard
-            return; 
-        }
-        foreach (new DirectoryIterator($this->img_path) as $file) {
-            if ( ! $file->isDot() AND ! $file->isDir()) {
-                if (file_exists($file->getPathname()) AND $file->getMTime() < $expire) {
-                    unlink($file->getPathname());
-                }
-            }
-        }
-    }
-
-    /**
      * Validate captcha code
      * 
      * @param string $code captcha word
@@ -443,9 +406,6 @@ Class CaptchaService
         if ($this->session->get($this->captcha_id)) {
             $captcha_value = $this->session->get($this->captcha_id);
             if ($code == $captcha_value['code']) {
-                if ($this->send_output_header == false) {
-                    unlink($this->img_path . $captcha_value['image_name'] . '.' . $this->image_type);
-                }
                 $this->session->remove($this->captcha_id);
                 return true;
             }
@@ -468,16 +428,6 @@ Class CaptchaService
         }
         $this->default_fonts = array_diff($this->default_fonts, $values);
         return $this;
-    }
-
-    /**
-     * Send Output Header
-     * 
-     * @return void
-     */
-    public function sendOutputHeader()
-    {
-        $this->send_output_header = true;
     }
 
     /**

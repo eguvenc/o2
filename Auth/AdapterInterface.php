@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity,
+use Auth\Identities\GenericUser,
     Obullo\Auth\UserService;
 
 /**
@@ -32,7 +32,7 @@ interface AdapterInterface
      * 
      * @return object authResult
      */
-    public function login(GenericIdentity $genericUser);
+    public function login(GenericUser $genericUser);
 
     /**
      * Login to authetication adapter
@@ -42,7 +42,7 @@ interface AdapterInterface
      * 
      * @return object
      */
-    public function authenticate(GenericIdentity $genericUser, $login = true);
+    public function authenticate(GenericUser $genericUser, $login = true);
 
 }
 

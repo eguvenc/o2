@@ -155,7 +155,7 @@ Layout method help to design your application layout using php anonymous functio
 );
 
 /* End of file view.php */
-/* Location: ./app/config/shared/view.php */
+/* Location: ./app/config/view.php */
 ```
 Then in your controller file you can call your layout using $this->layout() function.
 
@@ -435,7 +435,7 @@ $app = new Controller(
 $app->func(
     'index',
     function () {
-        $firstSegment   = $this->request->globals()->uri->segment(0);     // Get first segment from request global
+        $firstSegment   = $this->request->global->uri->segment(0);     // Get first segment from request global
         $currentSegment = (empty($firstSegment)) ? 'home' : $firstSegment;  // Set current segment as "home" if its empty
 
         $li = '';
@@ -505,7 +505,7 @@ Gives
 
 ------
 
-### Why Uri use $this->request->globals()->uri->segment() instead of $this->uri->segment(0);
+### Why Uri use $this->request->global->uri->segment() instead of $this->uri->segment(0);
 
 Normally <b>$this->request->segment(0);</b> method gives us to first segment.
 
@@ -515,8 +515,8 @@ So in <kbd>View Controllers</kbd> we access <b>Global Router</b> and <b>Global U
 
 ```php
 <?php
-$this->request->globals()->uri->method();
-$this->request->globals()->router->method();
+$this->request->global->uri->method();
+$this->request->global->router->method();
 ```
 
 Accessing <b>local</b> router and uri variables is same like below.
@@ -549,4 +549,4 @@ Assign static variables to available them in your views.
 
 #### $this->view->layout('name');
 
-Uses the layout configuration that is defined in your <kbd>app/config/env/shared/view.php</kbd>.
+Uses the layout configuration that is defined in your <kbd>app/config/env/view.php</kbd>.

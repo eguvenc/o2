@@ -2,26 +2,48 @@
 
 namespace Obullo\Config\Writer;
 
-use Obullo\Utils\ArrayUtils
+use Obullo\Utils\ArrayUtils,
+    Traversable,
     RuntimeException;
 
-
+/**
+ * Abstract Writer Class
+ *
+ * Borrowed from Zend Framework
+ * 
+ * @category  Config
+ * @package   Writer
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/config
+ */
 abstract class AbstractWriter
 {
     /**
      * toFile(): defined by Writer interface.
      *
+     * @param string $filename      filename
+     * @param mixed  $config        config
+     * @param bool   $exclusiveLock exclusive lock
+     * 
      * @see    WriterInterface::toFile()
-     * @param  string  $filename
-     * @param  mixed   $config
-     * @param  bool $exclusiveLock
-     * @return void
      * @throws Exception\RuntimeException
+     * 
+     * @return void
      */
     public function toFile($filename, $config, $exclusiveLock = true)
     {
         if (empty($filename)) {
             throw new RuntimeException('No file name specified');
+        }
+        if ( ! is_writable($filename)) {        // Check file is writable
+            throw new RuntimeException(
+                sprintf(
+                    '%s file is not writable.', 
+                    $this->file
+                )
+            );
         }
         $flags = 0;
         if ($exclusiveLock) {
@@ -29,6 +51,7 @@ abstract class AbstractWriter
         }
         set_error_handler(
             function ($error, $message = '', $file = '', $line = 0) use ($filename) {
+                $file = $line = null;
                 throw new RuntimeException(
                     sprintf('Error writing to "%s": %s', $filename, $message),
                     $error
@@ -36,7 +59,6 @@ abstract class AbstractWriter
             },
             E_WARNING
         );
-
         try {
             file_put_contents($filename, $this->toString($config), $flags);
         } catch (\Exception $e) {
@@ -49,24 +71,34 @@ abstract class AbstractWriter
     /**
      * toString(): defined by Writer interface.
      *
-     * @see    WriterInterface::toString()
-     * @param  mixed   $config
-     * @return string
+     * @param mixed $config config
+     * 
+     * @see   WriterInterface::toString()
      * @throws Exception\InvalidArgumentException
+     * 
+     * @return string
      */
     public function toString($config)
     {
         if ($config instanceof Traversable) {
             $config = ArrayUtils::iteratorToArray($config);
-        } elseif (!is_array($config)) {
+        } elseif ( ! is_array($config)) {
             throw new RuntimeException(__METHOD__ . ' expects an array or Traversable config');
         }
         return $this->processConfig($config);
     }
 
     /**
-     * @param array $config
+     * Abstract process
+     * 
+     * @param array $config config
+     * 
      * @return string
      */
     abstract protected function processConfig(array $config);
 }
+
+// END AbstractWriter.php File
+/* End of file AbstractWriter.php
+
+/* Location: .Obullo/Config/Writer/AbstractWriter.php */

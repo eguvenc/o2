@@ -1,50 +1,53 @@
 <?php
 
-namespace Obullo\Queue;
+namespace Obullo\Cli\Controller;
 
 use Obullo\Process\Process;
 
 /**
- * Queue Listener Class
+ * Queue Controller
+ *
+ * Listen queue data and workers
  * 
- * @category  Queue
- * @package   Queue
+ * @category  Cli
+ * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/queue
+ * @link      http://obullo.com/package/cli
  */
-Class Listener
+Class QueueController implements CliInterface
 {
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Cli command parser
+     * 
+     * @var object
+     */
+    protected $parser;
+
     /**
      * Constructor
      *
      * @param object $c         container
      * @param array  $arguments data
      */
-    public function __construct($c, $arguments)
+    public function __construct($c, array $arguments = array())
     {
         $this->queue = $c->load('service/queue');
+
         $this->parser = $c->load('cli/parser');
         $this->parser->parse($arguments);
-
-        switch ($this->parser->segment(0)) {
-        case 'list':
-            $this->listQueue();
-            break;
-        case 'listen':
-            $this->logo();
-            $this->listenQueue();
-            break;
-        default:
-            $this->logo();
-            $this->help();
-            break;
-        }
     }
 
     /**
-     * Display console logo
+     * Print logo
      * 
      * @return string
      */
@@ -58,7 +61,7 @@ Class Listener
            |______||____||_____||_||_||____|
 
             Welcome to Task Manager (c) 2014
-    You are running $php task queue command which is located in app / tasks folder.'."\n\033[0m\n";
+    You are running $php task queue command. For help type php task queue --help.'."\n\033[0m\n";
     }
 
     /**
@@ -68,19 +71,42 @@ Class Listener
      */
     public function help()
     {
-        echo "\33[1;36mUsage:\33[0m\33[0;36m
-    php task [command] [arguments]\n\33[0m\n";
+        echo "\33[0;36m".'
+'."\33[1;36m".'Queue Help:'."\33[0m\33[0;36m".'
 
-    echo "\33[1;36mAvailable commands:\33[0m\33[0;36m
+Available Commands
 
-    \33[1;36mlist       : List queued jobs.\33[0m\33[0;36m
-    \33[1;36mlisten     : Wait and send jobs to job handler.\33[0m\33[0;36m
-    \33[1;36mdown       : Pause the queue in maintenance mode.\33[0m\33[0;36m
-    \33[1;36mup         : Release the paused queue.\33[0m\33[0;36m
+    list       : List queued jobs.
+    listen     : Wait and send jobs to job handler.
+    down       : Pause the queue in maintenance mode ( Not implemented it is available on next release ).
+    up         : Release the paused queue ( Not implemented it is available on next release ).
 
-    \33[1;36mExamples :\33[0m\33[0;36m
-    \$php task queue list --channel=Logs --route=ServerName.Logger
-    \$php task queue listen --channel=Logs --route=ServerName.Logger --memory=128 --delay=0 --timeout=3 --debug=0\33[0m\n";
+Available Arguments
+
+    --channel   : Sets queue exchange ( Channel ).
+    --route     : Sets queue name.
+
+Optional
+
+    --debug     : Enables queue output and any possible worker exceptions. ( Designed for local environment  )
+    --delay     : Sets delay time for uncompleted jobs.
+    --memory    : Sets maximum allowed memory for current job.
+    --timeout   : Sets time limit execution of the current job.
+    --sleep     : If we have not job on the queue sleep the script for a given number of seconds.
+    --tries     : Sets the maximum number of times a job should be attempted.
+    --project   : Sets your project name to works with multiple projects.
+    --var       : Set your custom variable if you need.
+
+'."\n\033[0m";
+
+echo "\33[1;36mUsage for local:\33[0m\33[0;36m
+
+php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=1\n\n";
+
+echo "\33[1;36mUsage for production:\33[0m\33[0;36m
+
+php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\33[0m\n";
+
     }
 
     /**
@@ -92,7 +118,6 @@ Class Listener
      */
     public function listQueue()
     {
-        $this->logo();
         $break = "------------------------------------------------------------------------------------------";
 
         $channel = $this->parser->argument('channel');
@@ -139,27 +164,27 @@ Class Listener
     /**
      * Listen Queue
      *
-     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
+     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --debug=0 --env=prod
      * 
      * @return void
      */
     public function listenQueue()
     {
+        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
         $channel = $this->parser->argument('channel', null); // Sets queue exchange
         $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
         $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
         $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
         $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
         $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $maxTries = $this->parser->argument('maxTries', 0);  // If job attempt failed we push and increase attempt number.
-        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
+        $tries = $this->parser->argument('tries', 0);     // If job attempt failed we push back on to queue and increase attempt number.
         $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
         $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
         $var = $this->parser->argument('var', null);         // Sets your custom variable
         
         $this->emptyControl($channel, $route);
 
-        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --maxTries=$maxTries --debug=$debug --env=$env --project=$project --var=$var";
+        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
 
         $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
@@ -190,9 +215,34 @@ Class Listener
         }
     }
 
+    /**
+     * Execute command
+     * 
+     * @return void
+     */
+    public function run()
+    {
+        $this->logo();
+
+        if ($this->parser->argument('help')) {
+            return $this->help();
+        }
+        switch ($this->parser->segment(0)) {
+        case 'list':
+            $this->listQueue();
+            break;
+        case 'listen':
+            $this->listenQueue();
+            break;
+        default:
+            $this->help();
+            break;
+        }
+    }
+
 }
 
-// END Listener class
+// END LogController class
 
-/* End of file Listener.php */
-/* Location: .Obullo/Queue/Listener.php */
+/* End of file LogController.php */
+/* Location: .Obullo/Cli/Controller/LogController.php */

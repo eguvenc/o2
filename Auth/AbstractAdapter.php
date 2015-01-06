@@ -2,7 +2,7 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericUser;
 
 /**
  * Abstract Adapter
@@ -56,8 +56,6 @@ abstract class AbstractAdapter
      * Constructor
      * 
      * @param object $c container
-     *
-     * @return void
      */
     public function __construct($c)
     {
@@ -105,46 +103,6 @@ abstract class AbstractAdapter
     public function regenerateSessionId($deleteOldSession = true)
     {
         return $this->session->regenerateId($deleteOldSession);
-    }
-
-    /**
-     * Run cookie reminder
-     * 
-     * @return string token
-     */
-    public function getRememberToken()
-    {
-        $token = $this->c->load('return utils/random')->generate('alnum', 32);
-        $cookie = $this->config['login']['rememberMe']['cookie'];
-
-        $this->c->load('cookie')->set(
-            $cookie['name'],
-            $token,
-            $cookie['expire'],
-            $this->c['config']['cookie']['domain'],        //  Get domain from global config
-            $cookie['path'],
-            $cookie['prefix'],
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
-        return $token;
-    }
-
-    /**
-     * Check password is hashed or not ?
-     *
-     * $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
-     * 
-     * @param string $hash hashed password
-     * 
-     * @return boolean
-     */
-    public function isHashedPassword($hash)
-    {
-        if (strlen($hash) > 50) {
-            return true;
-        }
-        return false;
     }
 
     /**

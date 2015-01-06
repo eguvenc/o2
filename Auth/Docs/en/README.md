@@ -13,7 +13,7 @@ Below the flow chart shows authentication process of users:
 
 ## Adapters
 
-Auth adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
+Auth adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based. Different adapters are likely to have vastly different options and behaviors, but some basic things are common among authentication adapters. For example, accepting authentication credentials (including a purported identity), performing queries against the authentication service, and returning results are common to Auth adapters.
 
 ## Redis Storage
 
@@ -113,7 +113,7 @@ Array
 |
 */
 return array(
-    'adapter' => 'AssociativeArray',
+    'adapter' => 'Database',
     'memory' => array(          // Keeps user identitiy data in your cache driver.
         'key' => 'Auth',        // Auth key should be replace with your projectameAuth
         'storage' => 'Redis',   // Storage driver uses cache package
@@ -163,7 +163,7 @@ return array(
 );
 
 /* End of file auth.php */
-/* Location: .app/config/shared/auth.php */
+/* Location: .app/config/auth.php */
 ```
 
 ### Description Of Config Items
@@ -178,7 +178,7 @@ return array(
     <tbody>
         <tr>
             <td>adapter</td>
-            <td>Adapter is used to authenticate against a particular type of authentication service, such as AssociativeArray (RDBMS or NoSQL), or file-based.</td>
+            <td>Adapter is used to authenticate against a particular type of authentication service, such as Database (RDBMS or NoSQL), or file-based.</td>
         </tr>
         <tr>
             <td>memory[key]</td>
@@ -215,7 +215,7 @@ return array(
 
         <tr>
             <td>login[rememberMe]</td>
-            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__Auth\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
+            <td>If the user wants their information to be kept in the browser permanently, a cookie with the name <b>__rm</b> is created and saved to a browser(The default expiration time of the cookie is 6 months).When the user comes different times, if this cookie exists in the user's browser and the user id is not defined in the session, this value is saved to the key <b>$_SESSION['__isAuthenticated\Identifier']</b>. The user information is recalled with the method <b>Auth\Recaller->recallUser($rememberToken)</b> and the users starts to be active in the site. This value is updated in the both database and cookie on every login and logout.</td>
         </tr>
 
         <tr>
@@ -265,8 +265,8 @@ The class Login manages the operations like login, authentication and verificati
 $this->user->login->disableVerification();
 $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->post['email'], 
+        Auth\Constant::PASSWORD => $this->post['password']
     ),
     $this->post['rememberMe']
 );
@@ -280,8 +280,8 @@ AuthResult class ile sonuç doğrulama filtresinden geçer oluşan hata kodları
 <?php
 $result = $this->user->login->attempt(
     array(
-        Auth\Credentials::IDENTIFIER => $this->post['email'], 
-        Auth\Credentials::PASSWORD => $this->post['password']
+        Auth\Constant::IDENTIFIER => $this->post['email'], 
+        Auth\Constant::PASSWORD => $this->post['password']
     ),
     $this->post['rememberMe']
 );
@@ -380,10 +380,10 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     - classes
         - Auth
             Identities
-                - GenericIdentity
-                - UserIdentity
+                - AuthorizedUser
+                - GenericUser
         - Provider
-            DatabaseProvider.php
+            UserProvider.php
         Credentials.php
 ```
 
@@ -398,19 +398,19 @@ Uygulamanın esnek olarak çalışması için auth modeli kimlik classları <b>a
     </thead>
     <tbody>
         <tr>
-            <td>Auth\Credentials</td>
+            <td>Auth\Constant</td>
             <td>Contains user database field <b>id</b> and <b>passwod</b> field constants.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\GenericIdentity</td>
+            <td>Auth\Identities\GenericUser</td>
             <td>Guest user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Identities\UserIdentity</td>
+            <td>Auth\Identities\AuthorizedUser</td>
             <td>Authorized user identity.</td>
         </tr>
         <tr>
-            <td>Auth\Model\User</td>
+            <td>Auth\Provider\UserProvider</td>
             <td>Contains user database query sql methods.</td>
         </tr>
     </tbody>
@@ -477,7 +477,7 @@ After verification, method authenticate temporary identity and removes old tempo
 
 Validate a user's credentials without authentication.
 
-### $this->user->login->validateCredentials(UserIdentity $user, array $credentials);
+### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
 Validate a user against the given credentials.
 
@@ -496,15 +496,15 @@ $this->user->identity->method();
 
 Checks identity block available in memory. If yes returns to <b>true</b> otherwise <b>false</b>.
 
-### $this->user->identity->isAuthenticated();
+### $this->user->identity->check();
 
-if user is autheticated returns to <b>true</b> otherwise <b>false</b>.
+if user authenticated returns to <b>true</b> otherwise <b>false</b>.
 
 ### $this->user->identity->isVerified();
 
 if user is verified () after successfull login returns to <b>true</b> otherwise <b>false</b>.
 
-### $this->user->identity->isGuest();
+### $this->user->identity->guest();
 
 Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false</b>.
 
@@ -526,11 +526,32 @@ Destroys all identity stored in memory.
 
 Removes the rememberMe cookie.
 
-### $this->user->identity->refreshRememberToken(GenericIdentity $genericUser);
+### $this->user->identity->refreshRememberToken(GenericUser $genericUser);
 
 Regenerates rememberMe token in <b>database</b>.
 
 **Note:** When you use destroy method, user identity will removed from storage then new user login will do query to database for one time.
+
+
+### Identity Set Methods
+
+------
+
+### $this->user->identity->variable = 'value'
+
+Set a value to identity array.
+
+### unset($this->user->identity->variable)
+
+Remove value from identity array.
+
+### $this->user->identity->setRoles(int|string|array $roles);
+
+Set user roles to identity data.
+
+### $this->user->identity->setArray(array $attributes)
+
+Reset identity attributes with new values.
 
 
 ### Identity Get Methods
@@ -574,28 +595,15 @@ Returns to security token.
 Gets role(s) of the user.
 
 
-### Identity Set Methods
-
-### $this->user->identity->setRoles(int|string|array $roles);
-
-Set user roles to identity data.
-
-### $this->user->identity->setArray(array $attributes)
-
-Reset identity attributes with new values.
-
-### $this->user->identity->variable = 'value'
-
-Set a value to identity array.
-
-### unset($this->user->identity->variable)
-
-Remove value from identity array.
+**Note:** You can define your own methods into <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> class.
 
 
 ### Activity Reference
 
 ------
+
+
+Activity data contains online user activity data: lastActivity time or and any analytics data you want to add.
 
 ```php
 <?php

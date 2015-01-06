@@ -2,13 +2,12 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Provider\DatabaseProvider,
-    Auth\Credentials,
+use Auth\Constant,
     Obullo\Auth\Token,
     Obullo\Auth\Recaller,
     Obullo\Auth\UserService,
-    Auth\Identities\UserIdentity,
-    Auth\Identities\GenericIdentity;
+    Auth\Identities\AuthorizedUser,
+    Auth\Identities\GenericUser;
 
 /**
  * O2 Authentication - User Identity Class
@@ -20,7 +19,7 @@ use Auth\Provider\DatabaseProvider,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Identity extends UserIdentity
+Class UserIdentity extends AuthorizedUser
 {
     /**
      * Container
@@ -124,29 +123,29 @@ Class Identity extends UserIdentity
         }
 
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['cookie']['refresh'].' seconds');
-        $this->logger = $this->c->load('return service/logger');
+        $this->logger = $this->c->load('service/logger');
 
         register_shutdown_function(array($this, 'writeClose'));
     }
 
     /**
-     * Get User has auth access 
+     * Check use has identity
      * 
-     * its ok if returns to true otherwise false
+     * Its ok if returns to true otherwise false
      * 
      * @return boolean 
      */
-    public function isAuthenticated()
+    public function check()
     {
-        if ( ! is_null($this->isAuthenticated)) {
-            return $this->isAuthenticated;
-        }
         if ( ! isset($this->attributes['__isAuthenticated'])) {
             return $this->isAuthenticated = false;
         }
+        if ( ! is_null($this->isAuthenticated)) {
+            return $this->isAuthenticated;
+        }
         $tokenRefresh = false;
-        if ($this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
-            $token = new Token($this->c, $this->config);
+        if ($this->attributes['__isAuthenticated'] == 1 AND $this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
+            $token = new Token($this->c);
             $this->attributes['__token'] = $token->get();  // Refresh the token and write it to memory
             $this->attributes['__lastTokenRefresh'] = time();
             $tokenRefresh = true;
@@ -155,6 +154,19 @@ Class Identity extends UserIdentity
             return $this->isAuthenticated = true;
         }
         return $this->isAuthenticated = false;
+    }
+
+    /**
+     * Opposite of check() function
+     * 
+     * @return boolean
+     */
+    public function guest()
+    {
+        if ($this->check()) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -167,7 +179,8 @@ Class Identity extends UserIdentity
         $id = $this->storage->getIdentifier();
         $name = $this->config['login']['rememberMe']['cookie']['name'];
 
-        if (empty($id) AND $token = $this->c->load('cookie')->get($name)) {
+        $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
+        if (empty($id) AND $token = $cookie) {
             return $token;
         }
         return false;
@@ -181,19 +194,6 @@ Class Identity extends UserIdentity
     public function isTemporary()
     {
         return $this->attributes['__isTemporary'];
-    }
-
-    /**
-     * Opposite of isAuthenticated function
-     * 
-     * @return boolean
-     */
-    public function isGuest()
-    {
-        if ($this->isAuthenticated()) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -243,7 +243,7 @@ Class Identity extends UserIdentity
     }
 
     /**
-     * o2 Auth security token
+     * O2 Auth security token
      * 
      * We generate a uniuqe identity stamp for each users then every auth check operation we check it, 
      * If the user cookie token does not match the memory token we deny the user.
@@ -267,15 +267,19 @@ Class Identity extends UserIdentity
         if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh || ! is_null($this->recaller)) { // If identity data does not exists.
             return $this->tokenIsValid = true;
         }
-        $cookie = $this->c->load('cookie')->get($this->config['security']['cookie']['name']);
+        $name = $this->config['security']['cookie']['name'];
+        $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
         $token = $this->getToken();
 
         if ($cookie == $token) {
             return $this->tokenIsValid = true;
         }
         $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
+
         $this->logger->channel('security');
-        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(), 'token' => $token, 'cookie' => $cookie));
+        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(),'token' => $token,'cookie' => $cookie));
+
+        $this->c['event']->fire('auth.invalidToken', array($this, $cookie));
     
         return $this->tokenIsValid = false;
     }
@@ -376,14 +380,13 @@ Class Identity extends UserIdentity
     {
         $credentials = $this->storage->getCredentials('__permanent');
 
-        $token = new Token($this->c, $this->config);
+        $token = new Token($this->c);
         $credentials['__isAuthenticated'] = 0;        // Sets memory auth to "0".
         $credentials['__token'] = $token->refresh();  // Refresh the security token 
         $credentials['__type'] = 'Unauthorized';
 
-        if ($this->getRememberMe() == 1) {            // If user checked rememberMe option refresh rememberMe token
-            $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
-        }
+        $this->updateRememberToken();
+
         $this->storage->setCredentials($credentials, null, '__permanent');
     }
 
@@ -394,24 +397,41 @@ Class Identity extends UserIdentity
      */
     public function destroy()
     {
-        if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
-            $this->refreshRememberToken(new GenericIdentity(array(Credentials::IDENTIFIER => $this->getIdentifier())));
-        }
+        $this->updateRememberToken();
+
         $this->storage->deleteCredentials('__permanent');
+    }
+
+
+    /**
+     * Update remember token if it exists in the memory and browser header
+     * 
+     * @return void
+     */
+    public function updateRememberToken()
+    {
+        if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
+
+            $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
+            $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+
+            $this->refreshRememberToken(new GenericUser(array(Constant::IDENTIFIER => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+        }
     }
 
     /**
      * Refresh the rememberMe token
      *
-     * @param object $genericUser GenericIdentity
+     * @param object $genericUser GenericUser
      * 
      * @return void
      */
-    public function refreshRememberToken(GenericIdentity $genericUser)
+    public function refreshRememberToken(GenericUser $genericUser)
     {
-        $database = new DatabaseProvider($this->c, $this->storage);
-        $database->refreshRememberMeToken($this->c['auth.adapter']->getRememberToken(), $genericUser); // refresh rememberToken
+        $token = new Token($this->c);
+        $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
     }
+ 
 
     /**
      * Removes rememberMe cookie from user browser
@@ -424,11 +444,14 @@ Class Identity extends UserIdentity
         if ( ! isset($_COOKIE[$cookie['name']])) {
             return;
         }
-        $this->c->load('cookie')->delete(
-            $cookie['name'],
-            $this->c['config']['cookie']['domain'], //  Get domain from global config
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            null,
+            -1,
             $cookie['path'],
-            $cookie['prefix']
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
         );
     }
 
@@ -456,7 +479,7 @@ Class Identity extends UserIdentity
 
 }
 
-// END Identity.php File
-/* End of file Identity.php
+// END UserIdentity.php File
+/* End of file UserIdentity.php
 
-/* Location: .Obullo/Auth/User/Identity.php */
+/* Location: .Obullo/Auth/User/UserIdentity.php */

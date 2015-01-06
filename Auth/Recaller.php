@@ -2,9 +2,10 @@
 
 namespace Obullo\Auth;
 
-use Auth\Provider\DatabaseProvider,
-    Auth\Credentials,
-    Auth\Identities\GenericIdentity;
+use Obullo\Auth\UserProviderInterface,
+    Obullo\Auth\Token,
+    Auth\Constant,
+    Auth\Identities\GenericUser;
 
 /**
  * O2 Authentication - RememberMe Recaller
@@ -33,6 +34,13 @@ Class Recaller
     protected $storage;
 
     /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
      * Constructor
      * 
      * @param object $c       container
@@ -42,6 +50,7 @@ Class Recaller
     {
         $this->c = $c;
         $this->storage = $storage;
+        $this->config = $this->c['config']->load('auth');
     }
 
     /**
@@ -53,23 +62,43 @@ Class Recaller
      */
     public function recallUser($token)
     {
-        $database = new DatabaseProvider($this->c, $this->storage);
-        $resultRowArray = $database->execRecallerQuery($token);
+        $resultRowArray = $this->c['user.provider']->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
             $this->removeCookie();
             return;
         }
-        $id = $resultRowArray[Credentials::IDENTIFIER];
+        $id = $resultRowArray[Constant::IDENTIFIER];
         $this->storage->setIdentifier($id);
-        
-        $genericUser = new GenericIdentity(array(Credentials::IDENTIFIER => $id));
 
-        $adapter = $this->c['auth.adapter'];
-        $adapter->generateUser($genericUser, $resultRowArray, $database, true);
+        $credentials = array(
+            Constant::IDENTIFIER => $id,
+            '__rememberMe' => 1,
+            '__rememberToken' => $resultRowArray[Constant::REMEMBER_TOKEN]
+        );
+        $genericUser = new GenericUser($credentials);
+        $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);
 
-        $database->refreshRememberMeToken($adapter->getRememberToken(), $genericUser);
+        $this->removeInactiveSessions(); // Kill all inactive sessions
+    }
+
+    /**
+     * Destroy all inactive sessions of the user
+     * 
+     * @return void
+     */
+    protected function removeInactiveSessions()
+    {
+        $sessions = $this->storage->getAllSessions();
+        if (count($sessions) == 0) {
+            return;
+        }
+        foreach ($sessions as $aid => $val) {       // Destroy all inactive sessions
+            if ($val['__isAuthenticated'] == 0) {  
+                $this->storage->killSession($aid);
+            }
+        }
     }
 
     /**
@@ -80,11 +109,14 @@ Class Recaller
     public function removeCookie()
     {
         $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
-        $this->c->load('cookie')->delete(
-            $cookie['name'],
-            $this->c['config']['cookie']['domain'], //  Get domain from global config
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            null,
+            -1,
             $cookie['path'],
-            $cookie['prefix']
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
         );
     }
 

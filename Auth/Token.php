@@ -2,6 +2,8 @@
 
 namespace Obullo\Auth;
 
+use Obullo\Utils\Random;
+
 /**
  * O2 Authentication - Security Token
  *
@@ -59,9 +61,7 @@ Class Token
             $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
             $userAgentMatch = '.' . hash('adler32', trim($userAgent));
         }
-        $utils = $this->c->load('return utils/random');
-        $token = $utils->generate('alnum', 16);
-
+        $token = Random::generate('alnum', 16);
         return $this->token = $token.$userAgentMatch;  // Creates smaller token
     }
 
@@ -110,6 +110,29 @@ Class Token
         );
         return $token;
     }
+
+    /**
+     * Run cookie reminder
+     * 
+     * @return string token
+     */
+    public function getRememberToken()
+    {
+        $token = Random::generate('alnum', 32);
+        $cookie = $this->config['login']['rememberMe']['cookie'];
+
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            $token, 
+            time() + $cookie['expire'], 
+            $cookie['path'], 
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
+        );
+        return $token;
+    }
+
 
 }
 

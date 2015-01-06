@@ -802,9 +802,9 @@ Attach your route to defined filters.
 
 Gets the currently working domain.
 
-#### $this->router->fetchTopDirectory();
+#### $this->router->fetchModule();
 
-Gets the currently working top directory name.
+Gets the currently working module name.
 
 #### $this->router->fetchDirectory();
 

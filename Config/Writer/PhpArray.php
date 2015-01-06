@@ -1,8 +1,21 @@
 <?php
 
-include 'AbstractWriter.php';
+namespace Obullo\Config\Writer;
 
+use RuntimeException;
 
+/**
+ * PhpArray Writer
+ *
+ * Borrowed from Zend Framework
+ * 
+ * @category  Config
+ * @package   Writer
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/config
+ */
 Class PhpArray extends AbstractWriter
 {
     /**
@@ -33,13 +46,14 @@ Class PhpArray extends AbstractWriter
 
         return "<?php\n\n" .
                "return " . $arraySyntax['open'] . "\n\n" . $this->processIndented($config, $arraySyntax) .
-               $arraySyntax['close'] . ";\n";
+               $arraySyntax['close'] . ";\n".$this->docs;
     }
 
     /**
      * Sets whether or not to use the PHP 5.4+ "[]" array syntax.
      *
-     * @param  bool $value
+     * @param bool $value value
+     * 
      * @return self
      */
     public function setUseBracketArraySyntax($value)
@@ -51,35 +65,43 @@ Class PhpArray extends AbstractWriter
     /**
      * toFile(): defined by Writer interface.
      *
+     * @param string $filename      filename
+     * @param mixed  $config        config
+     * @param bool   $exclusiveLock exclusive lock
+     * 
      * @see    WriterInterface::toFile()
-     * @param  string  $filename
-     * @param  mixed   $config
-     * @param  bool $exclusiveLock
-     * @return void
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
+     * 
+     * @return void
      */
     public function toFile($filename, $config, $exclusiveLock = true)
     {
         if (empty($filename)) {
-            throw new \RuntimeException('No file name specified');
+            throw new RuntimeException('No file name specified');
         }
-
+        if ( ! is_writable($filename)) {   // Check file is writable
+            throw new RuntimeException(
+                sprintf(
+                    '%s file is not writable.', 
+                    $this->file
+                )
+            );
+        }
         $flags = 0;
         if ($exclusiveLock) {
             $flags |= LOCK_EX;
         }
-
         set_error_handler(
             function ($error, $message = '', $file = '', $line = 0) use ($filename) {
-                throw new \RuntimeException(
+                $file = $line = null;
+                throw new RuntimeException(
                     sprintf('Error writing to "%s": %s', $filename, $message),
                     $error
                 );
             },
             E_WARNING
         );
-
         try {
             // for Windows, paths are escaped.
             $dirname = str_replace('\\', '\\\\', dirname($filename));
@@ -92,22 +114,33 @@ Class PhpArray extends AbstractWriter
             restore_error_handler();
             throw $e;
         }
-
         restore_error_handler();
+    }
+
+    /**
+     * Add docs end of the file
+     * 
+     * @param string $doc docs
+     *
+     * @return void
+     */
+    public function addDoc($doc)
+    {
+        $this->docs = $doc;
     }
 
     /**
      * Recursively processes a PHP config array structure into a readable format.
      *
-     * @param  array $config
-     * @param  array $arraySyntax
-     * @param  int   $indentLevel
+     * @param array $config      config
+     * @param array $arraySyntax array syntac
+     * @param int   $indentLevel indent level
+     * 
      * @return string
      */
     protected function processIndented(array $config, array $arraySyntax, &$indentLevel = 1)
     {
         $arrayString = "";
-
         foreach ($config as $key => $value) {
             $arrayString .= str_repeat(self::INDENT_STRING, $indentLevel);
             $arrayString .= (is_int($key) ? $key : "'" . addslashes($key) . "'") . ' => ';
@@ -131,7 +164,11 @@ Class PhpArray extends AbstractWriter
                 $arrayString .= $value . ",\n";
             }
         }
-
         return $arrayString;
     }
 }
+
+// END PhpArray.php File
+/* End of file PhpArray.php
+
+/* Location: .Obullo/Config/Writer/PhpArray.php */

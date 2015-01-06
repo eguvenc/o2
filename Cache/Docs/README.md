@@ -3,92 +3,21 @@
 
 ------
 
-Framework features wrappers around some of the most popular forms of fast and dynamic caching. All but file-based caching require specific server requirements, and a Fatal Exception will be thrown if server requirements are not met.
+Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir API sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası app/config/$env/cache.php dosyasından yönetilir.
 
-### 
+Desteklenen önbellek sürücüleri  <b>Apc, File, Memcache ve Redis</b> dir. Her bir önbellek türünün konfigürasyonu tek bir dosyada fakat diğer türlerden ayrı olarak konfigüre edilir. Eğer büyük yada orta çaplı bir uygulama geliştiriyorsanız öncelikli olarak O2 içerisinde diğer bazı kütüphanelerde de sık kullanılan <b>Redis</b> sürücüsünü alternatif olarak <b>Memcached</b> sürücüsünü kullanmanızı tavsiye ediyoruz.
 
-### Initializing the Class
+### Servis Konfigürasyonu
 
-------
+Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı ayarlarını kurmamız gerekir. Cache servisi nesnesi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de konfigürasyon değişikliği yapılarak ( paylaşımsız ) kullanıldığı için sık sık kullanılır fakat kimi zaman farklı ihtiyaçlara cevap veremez.
 
-```php
-<?php
-$this->c->load('service/cache');
-$this->cache->method();
-```
-###Bağlantı Ayarları###
-Kullanmak istediğimiz cache sürücülerinin ayarlarını **app/config/local/cache.php** dosyası içinde yapılandırmamız gerekiyor.
+Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>PHP_SERIALIZER</b> parametresi ile kullanılmaya konfigure edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>SERIALIZER_NONE</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>SERIALIZER_NONE</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
 
+Hem bu nedenle hem de uygulama içerisinde kolaylık ve esneklik gibi avantajlardan yararlanmak için cache kütüphanesini aşağıdaki gibi hem servis hem de servis sağlayıcı ( service provider ) olarak kurmamız gerekir.
 
-###REDIS###
+### Servis Kurulumu
 
-| Parametreler |||
-| :---------------------| :--------| :-------|:-------|:-----|
-| servers 				| hostname |  [port](#Redis-Example-config-file "default port 6379")    | [timeout](#Redis-Example-config-file "cache timeout")| [weight](#Redis-Example-config-file "The weight parameter effects the consistent hashing used to determine which server to read/write keys from.")|
-| auth 					| *(connection password)* |       | 
-| serializer    		| [serializer type](#Redis-Example-config-file "SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY") |       |
-| persistentConnect     | 0 or 1       |       |
-| reconnectionAttemps   | 100 sec.     |       |
-
-###FILE###
-
-| Parametreler ||
-| :---------------------| :--------|
-| [path](#File-cache-example-config)	| data/cache *(file data storage path)* |
-
-
-###MEMCACHE###
-
-| Parametreler |||
-| :--------------------------------| :--------| :-------|
-| hostname 						   | 127.0.0.1 | *or etc.* |
-| port    						   | 11211 | *default port* |
-| timeout	   					   | 2.5 | *2.5 sec timeout* |
-
-###MEMCACHED###
-
-| Parametreler |||
-| :--------------------------------| :--------------| :-------| :-------|
-| servers 						   | hostname 		| port 	  | [weight](#Connect-configuration-for-Memcached "The weight parameter effects the consistent hashing used to determine which server to read/write keys from")  |
-| serializer					   | SERIALIZER_PHP | 		  | 		|
-
-
-Aşağıda redis için yapılandırılmış ayarları görüyorsunuz.
-
-```php
-<?php
-
-'redis' => array(
-       'servers' => array(
-                        array(
-                          'hostname' => env('REDIS_HOST'),
-                          'port'     => '6379',
-                          'timeout'  => '2.5',
-                          'weight'   => '1'  
-                        ),
-        ),
-
-        'auth' =>  env('REDIS_AUTH'),
-        'serializer' =>  'SERIALIZER_PHP',
-        'persistentConnect' => 0,
-        'reconnectionAttemps' => 100,
-    ),
-
-```
-
-
-### Sürücü Ayarları
-
-Proje gereksinimlerimize göre bugün sıkça kullandığımız cache kütüphanelerine Obullo destek vermektedir.
-
-Bunlar: **APC**, **File**, **Memcache**, **Memcached**, **Redis**.
-
-
-İlk olarak yapmamız gereken Service/Cache.php dosyası içindeki register methoduna driver'ı tanımlamamız gerekiyor.
-
-Örneğimizde **Redis** cache paketini kayıt ediyoruz.
-
-
+Servis kurulumu çok kolaydır tek yapmanız gereken kullanmak istediğiniz sürücüyü <b>use</b> komutu ile namespace ten önce çağırmak ve <b>closure</b> fonksiyonu içerisine <b>return new Sürücü($c);</b> şeklinde sınıfınızı ilan etmektir.
 
 ```php
 <?php
@@ -97,25 +26,8 @@ namespace Service;
 
 use Obullo\Cache\Handler\Redis;
 
-/**
- * Cache Service
- *
- * @category  Service
- * @package   Cache
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/docs/container
- */
 Class Cache implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
     public function register($c)
     {
         $c['cache'] = function () use ($c) {
@@ -123,185 +35,197 @@ Class Cache implements ServiceInterface
         };
     }
 }
+
+// END Cache class
+
+/* End of file Cache.php */
+/* Location: .classes/Service/Cache.php */
 ```
 
-> **Not:**
-Burada Memcache yada File cache için bir servis oluştursaydık sadece yapmamız gereken sadece kullanacağımız sürücünün adını değiştirmek olacaktır. Bu class isimlerini yukarıda belirtmiştik.
+### Servisi Yüklemek
 
+Bir kez servis load komutu ile yüklendiği zaman artık kütüphane metotlarına cache adıyla ulaşabilirsiniz.
 
-Redis servisini container'a kayıt ettik.
+```php
+<?php
+$this->c->load('service/cache');
+$this->cache->metod();
+```
 
-**register** methodun da varsayılan olarak gelen ve sonrasında **Redis**'e göndermiş olduğumuz parametre **Obullo**'nun container değişkenidir.
-Yapmış olduğumuz **Servis** kaydıyla da bu container'a **Redis** paketini **Inject** etmiş oluyoruz.
+Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisinden servisi yüklemek aşağıdaki gibidir.
 
-Servise ikinci bir parametre daha gönderebiliyoruz.
+```php
+<?php
+$this->cache = $this->c->load('service/cache');
+$this->cache->method();
+```
 
-Nedir bu parametre?
+### Servis Sağlayıcısı Kurulumu
 
-Bazen cache tutarken bunların hangi formatta saklanması konusunda değişiklikler yapma gereği duyabiliyoruz.
-
-Burada bir kaç çeşit format tipi tanımlaya biliiriz. Fakat her servis farklı formatlar desteklerken bazıları da sadece tek bir tipte formatlıyor.
-İkinci parametre cache verilerinin nasıl depolanacağı ile ilgili olduğunu kısaca özetleyebiliriz.
-
-Nasıl yaparım?
-
-
-**Service/Provider/Cache.php** dosyası içindeki örneğimiz bize nasıl olacağı konusunda yardımcı olacaktır.
-
-> **Not:**
-Direkt **Service** klasörü altındaki servisler ile **Service/Provider** klasörü altındak Provider'lar arasındaki fark, Provider'lar tanımladığımız servisler için bir yardımcı görevi görmektedir.
-Bir servisimiz var ve servisimiz bir çok türde parametre alıyor kabul edelim. İşte burada Provider'lar işte tamda burada devreye giriyorlar. Cache örneğinde olduğu gibi formatlama tipleri için ayrı parametreler göndermemiz gerektiğinden bahsetmiştik.
+Servis sağlayıcısı kurulumunun servisler den tek farkı göndermek isteğiniz ekstra paremetreleri burada konfigüre edebilme imkanınız olmasıdır. Aşağıda görüldüğü servis sağlayıcısında bir bağlantı menejeri ile sürücülere bağlanılır ve hangi sürücüye bağlanmanız gerektiği dışarıdan bir parametre gönderilerek belirlenir. O2 kütüphaneleri de dahil olmak üzere uygulamada bir çok yer servis sağlayıcıları kullandığı için çok gerek olmadığı sürece servis sağlayıcılar üzerinde değişklilik yapmamanız önerilir. Fakat ekstra parametre göndermek için $params değişkenine parametre ekleyebilirsiniz.
 
 ```php
 <?php
 
 namespace Service\Provider;
 
-use Obullo\Cache\Handler\Redis;
+use Obullo\Cache\Connection;
 
-/**
- * Cache Provider
- *
- * @category  Provider
- * @package   Cache
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
- * @link      http://obullo.com/docs/providers
- */
 Class Cache implements ProviderInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
     public function register($c)
     {
-        $c['provider:cache'] = function ($params = array('serializer' => 'SERIALIZER_NONE')) use ($c) {
-            return new Redis(
-                $c,
-                $params['serializer']
-            );
+        $c['provider:cache'] = function ($params = array('serializer' => 'SERIALIZER_NONE', 'provider' => 'redis')) use ($c) {
+            $connection = new Connection($c, $params);
+            return $connection->connect();
         };
     }
 }
+
+// END Cache class
+
+/* End of file Cache.php */
+/* Location: .classes/Service/Provider/Cache.php */
 ```
 
-**Cache** servisi için bir **Provider** tanımladık.
+### Servisi Sağlayıcısını Yüklemek
 
-Şimdi **Provider**'a servis için gerekli parametre göndererek yeni bir **instance** alalım.
+Bir kez servis sağlayıcı load komutu ile yüklendiği zaman artık kütüphane metotlarına providerCache adıyla ulaşabilirsiniz.
 
 ```php
 <?php
-$this->c->load('service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY'));
-
+$this->c->load('service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->providerCache->metod();
 ```
-Bu işlemi controller class'ında yaptığımızı varsayarsak:
+
+Fakat daha kısa bir yazım şekli istiyorsanız ve görünürde daha önceden yüklenen bir başka cache servisi de yoksa <b>as</b> komutu kullanabilirsiniz.
+
+```php
+<?php
+$this->c->load('service/provider/cache as cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->cache->metod();
+```
+
+Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisinden servis sağlaycısını yüklemek aşağıdaki gibidir.
+
+```php
+<?php
+$this->cache = $this->c->load('service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->cache->method();
+```
+
+### New Komutunu Kullanmak
+
+Servis sağlayıcılara bir kez parametre gönderildiği zaman sonraki çağrımlarında hep aynı instance a göre dönerler yani otomatik olarak <b>singleton</b> yapmaya başlarlar. Eğer her defasında yeni bir nesne yaratmak istiyorsanız servis sağlayıcısı yüklemesinden önce <b>new</b> komutunu kullanmanız gerekir. Bu komut servisler için de aynı davranışı gösterir.
+
+```php
+<?php
+$this->c->load('service/provider/cache', array('serializer' => 'SERIALIZER_PHP'));
+$this->c->load('service/provider/cache');  // eski instance
+$this->c->load('new service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY')); // yeni instance
+```
+
+### HandlerInterface
+
+Cache sürücüler handler interface arayüzünü kullanırlar. Handler interface size cache servisinde hangi metotların ortak kullanıldığı gösterir ve eğer yeni bir sürücü yazacaksınız sizi bu metotları sınıfınıza dahil etmeye zorlar. Cache sürücüsü ortak metotları aşağıdaki gibidir.
 
 ```php
 <?php
 
-Class Hello_World extends Controller
+interface HandlerInterface
 {
-    /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->c->load('service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY'));
-    }
-
-    /**
-     * Index
-     * 
-     * @return void
-     */
-    public function index()
-    {
-        $this->cache->set('key', 'value');
-    }
+    public function __construct($c, $params = array());
+    public function setOption($params);
+    public function getSerializer();
+    public function connect();
+    public function set($key = '', $data = 60, $ttl = 60);
+    public function get($key);
+    public function replace($key = '', $data = 60, $ttl = 60);
+    public function delete($key);
+    public function keyExists($key);
 }
 ```
+Şimdi bu metotları biraz tanıyalım.
 
-Örnekteki gibi kullanabiliyoruz.
+
+## Ortak Metotlar
+
+-------
+
+### $this->cache->set(mixed $key, $value, $ttl = 60);
+
+```php
+<?php
+$this->cache->set('test', 'hello world', $ttl = 60);
+$this->cache->set('test', 'hello world', 0);  // No expire
+```
+Önbellek deposuna veri kaydeder. Birinci parametre anahtar, ikici parametre değer, üçüncü parametre ise anahtara ait verinin yok olma süresidir. Üçüncü parametrenin varsayılan değeri 60 saniyedir. Eğer üçüncü parametre "0" olarak girerseniz önbelleğe kaydettiniz anahtar siz silmedikçe silinmeyecektir. Yani kalıcı olacaktır.
+
+### $this->cache->get(string $key);
+
+Önbellek deposundan veri okur.
+
+```php
+<?php
+echo $this->cache->get('test');  // gives hello world
+```
+
+### $this->cache->set(array $key, $ttl = 60);
+
+Eğer ilk parametreye bir dizi gönderirseniz ikinci parametreyi artık sona erme süresi olarak kullanabilirsiniz.
+
+```php
+<?php
+$this->cache->set(array('test' => 'cache test', 'test 1' => 'cache test 1'), $ttl = 20);
+```
+
+### $this->cache->delete(string $key);
+
+Anahtarı ve bu anahtara kaydedilen değeri bütünüyle siler.
+
+```php
+<?php
+$this->cache->delete($key);
+```
+
+### $this->cache->setOption(array('serializer' => 'SERIALIZER_PHP'));
+
+Encode ve decode işlemlerini için serileştirici türünü tekrar seçer, varsayılan opsiyon <b>SERIALIZER_PHP</b> dir.
+
+* **SERIALIZER_NONE**     : Serileştirici kullanılmaz veriler raw biçiminde kaydedilir.
+* **SERIALIZER_PHP**      : Varsayılan serileştirici php serializer fonksiyonudur.
+* **SERIALIZER_JSON**     : Serileştiriciyi JSON encoder fonksiyonu olarak seçer.
+* **SERIALIZER_IGBINARY** : Serileştiriciyi igbinary olarak seçer.
 
 
-Once loaded, the Cache object will be available using: <kbd>$this->cache->method()</kbd>
+### $this->cache->replace(mixed $key, $value, $ttl = 60);
 
-The following functions are available:
+Varsayılan anahtara ait değeri yeni değer ile günceller.
 
-### Creating a Cache Data
+### $this->cache->keyExists(string $key);
 
-The easiest way to create cache with default settings
+Eğer girilen anahtar önbellekte mevcut ise <b>true</b> değerine aksi durumda <b>false</b> değerine döner.
+
+### $this->cache->getMetaData(string $key);
+
+Girilen anahtar ile ilgili meta data verilerine döner.
+
+### $this->cache->flushAll();
+
+Önbelleği bütünüyle temizler.
+
+
+## Redis Sürücüsünü Yapılandırma
+
+-------
+
+Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>. Aşağıda redis için yapılandırılmış konfigürasyon ayarlarını görüyorsunuz.
 
 ```php
 <?php
 
-$key  = 'test';
-$data = 'cache test';
-$ttl  = 20; // default 60 seconds
-
-$this->cache->set($key, $data, $ttl);
-```
-
-###### If you provide array data as first parameter you need use second parameter for cache expiration.
-
-```php
-<?php
-
-$data = array(
-	'test'   => 'cache test',
-	'test 1' => 'cache test 1'
-);
-$ttl = 20; // default 60 seconds
-
-$this->cache->set($data, $ttl);
-```
-
-### Getting the cached value.
-
-```php
-<?php
-
-echo $this->cache->get('test');   // Gives: 'cache test'
-
-echo $this->cache->get('test 1'); // Gives: 'cache test 1'
-```
-Connection settings can be configured within the config file.
-
-##### Directory of Config File
-
-```php
-
-- app
-	- config
-	    - env
-	        - local
-	            cache.php
-	        - production
-	            cache.php
-	        - test
-	        	cache.php
-
-```
-
-### <a name="Redis-Example-config-file"></a>
-###Redis Example config file###
-
-```php
-<?php
-
-/*
-|--------------------------------------------------------------------------
-| Cache
-|--------------------------------------------------------------------------
-*/
 'redis' => array(
+
    'servers' => array(
                     array(
                       'hostname' => env('REDIS_HOST'),
@@ -311,16 +235,16 @@ Connection settings can be configured within the config file.
                                                 // used to determine which server to read/write keys from.
                     ),
     ),
-    'auth' =>  env('REDIS_AUTH'),     // connection password
+    'auth' =>  env('REDIS_AUTH'),       // connection password
     'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY
-    'persistentConnect' => 5,
+    'persistentConnect' => 0,           // Enable / Disable persistent connection, "1" on "0" off.
     'reconnectionAttemps' => 100,
 ),
 ```
 
-For multi-connection, a new connection as a new array(inside the <kbd>servers</kbd> array)  can be included to the <kbd>servers</kbd> array  
+Birden fazla bağlantı yapmak istiyorsanız ( multi-connection ) konfigürasyon dosyasında server dizisi içine aşağıdaki gibi birden fazla dizi girmeniz gerekir.
 
-**Example:**
+Örnek
 
 ```php
 <?php
@@ -342,385 +266,132 @@ For multi-connection, a new connection as a new array(inside the <kbd>servers</k
                                                     // used to determine which server to read/write keys from.
                         )
         ),
-        'auth' =>  env('REDIS_AUTH'),     // connection password
-        'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY
-        'persistentConnect' => 5,
-        'reconnectionAttemps' => 100,
     ),
 ```
 
-##### Temp Cache Directory
+## Redis Metotları
 
-```php
-+ app
-+ assets
-	- data
-		- temp
-			cache
-```
+-------
 
-### <a name="File-cache-example-config"></a>
-###File cache example config###
+Redis sürücüsü seçildiğinde bazı ek özellikler ve metotlar gelir bu özellikleri kullanabilmeniz için bunları biliyor olmanız gereklidir. Aşağıda şu anki sürümde tanımlı olan metotlar basitçe anlatılmıştır.
 
-You can change the path by editing it in 'path' config file.
+#### $this->cache->auth(string $password)
 
-```php
-<?php
+Eğer yetkilendirme konfigürasyon dosyasından yapılmıyorsa bu fonksiyon ile manual olarak yetkilendirme yapabilirsiniz. Şifre plain-text biçiminde olmalıdır.
 
-'cache' =>  array(
-    'path' =>  '/data/temp/cache/'
-),
-```
 
-The cache folder should be given the write permission <kbd>chmod 777</kbd>.
+#### $this->cache->setOption(string $option)
 
-#### Memcache
-
-### <a name="Connect-configuration-for-Memcache"></a>
-##### Connect configuration for Memcache
-
-If you want to establish a connection without the default settings in the config
+Varsayılan serileştiriciyi değiştirir.
 
 ```php
 <?php
-
-'memcache' => array(
-        'servers' => array(
-                        array(
-                          'hostname' => '',
-                          'port'     => '11211',
-                           // 'timeout'  => '2.5',  // 2.5 sec timeout
-                        ),
-        ),
-    ),
-```
-Under the array servers, you can create multi connection creating nested arrays. 
-
-```php
-<?php
-
-'memcache' => array(
-        'servers' => array(
-                        array(
-                          'hostname' => '',
-                          'port'     => '11211',
-                           // 'timeout'  => '2.5',  // 2.5 sec timeout
-                        ),
-                        array(
-                          'hostname' => '',
-                          'port'     => '11211',
-                           // 'timeout'  => '2.5',  // 2.5 sec timeout
-                        )
-        ),
-    ),
-```
-
-### <a name="Connect-configuration-for-Memcached"></a>
-#### Memcached
-
-
-##### Connect configuration for Memcached
-
-If you want to establish a connection without the default settings in the config
-
-```php
-<?php
-
-'memcached' => array(
-    'servers' => array(
-                    array(
-                      'hostname' => '',
-                      'port'     => '11211',
-                      'weight'   => '1'      // The weight parameter effects the consistent hashing 
-                                             // used to determine which server to read/write keys from.
-                    ),
-    ),
-    'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_JSON, SERIALIZER_IGBINARY
-)
-```
-Under the array servers, you can create multi connection creating nested arrays. 
-
-```php
-<?php
-
-'memcached' => array(
-    'servers' => array(
-                    array(
-                      'hostname' => '',
-                      'port'     => '11211',
-                      'weight'   => '1'      // The weight parameter effects the consistent hashing 
-                                             // used to determine which server to read/write keys from.
-                    ),
-                    array(
-                      'hostname' => '',
-                      'port'     => '11211',
-                      'weight'   => '1'      // The weight parameter effects the consistent hashing 
-                                             // used to determine which server to read/write keys from.
-                    )
-    ),
-    'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_JSON, SERIALIZER_IGBINARY
-)
-```
-
-##### $this->cache->setOption(string $option)
-
-You can use this options: <i>Default option <kbd>'SERIALIZER_PHP'</kbd></i>
-```
-* 'SERIALIZER_PHP' 		// The default PHP serializer.
-* 'SERIALIZER_JSON'     // The JSON serializer.
-* 'SERIALIZER_IGBINARY' // The » igbinary serializer.
-						// Instead of textual representation it stores PHP data structures
-						// ++ in a compact binary form,resulting in space and time gains.
-```
-
-Set client option.
-
-```php
-<?php
-
-$this->cache->setOption('SERIALIZER_JSON');
-
-```
-
-##### $this->cache->getOption(string $option)
-
-You can use this constants follow the link: <a href="http://www.php.net/manual/en/memcached.constants.php">php.net/manual/en/memcached.constants.php</a>
-
-***Example***:
-
-```php
-<?php
-
-// Memcached::OPT_SERIALIZER
-
-echo $this->cache->getOption('OPT_SERIALIZER');
-Gives : 1 // 1 == 'SERIALIZER_PHP'
-```
-
-##### $this->cache->set(mixed $key, mixed $data, int optional $expiration)
-
-Set the string or array value
-
-```php
-<?php
-
-// Simple key -> string value
-$this->cache->set('key', 'value');
-
-// Simple set add ttl
-$this->cache->set('key','value', 10); // 10 sec expiration time
-
-// Simple set -> array value
-$this->cache->set('key', array('testKey' => 'test value', 'testKey2' => 'test value 2'));
-```
-
-Set array key
-
-```php
-<?php
-
-$this->cache->set('example:key', 'value');
-
-// OR
-
-$this->cache->set(array('example', 'key'), 'value');
-```
-
-##### $this->cache->get(mixed $key)
-
-Get the string or array value
-
-```php
-<?php
-
-// Gives 'value'
-$this->cache->get('key');
-
-// Automatically converted to the array.
-$this->cache->get('example:key');
-//Gives
-Array
-(
-    [example] => Array
-        (
-            [key] => value
-        )
-)
-// Simple get array key.
-$this->cache->get(array('example'));
-//Gives
-Array
-(
-    [example] => Array
-        (
-            [key] => value
-        )
-)
-$this->cache->get(array('example' => 'key')); // Wrong use.
-//Gives
-Array
-(
-)
-$this->cache->get(array('example', 'key'));   // Correct use.
-//Gives
-Array
-(
-    [example] => Array
-        (
-            [key] => value
-        )
-)
-```
-
-#### Redis
-
-If you want to establish a connection without the default settings in the config
-
-```php
-<?php
-
-'cache' =>  array(
-   'servers' => array(
-	   				array(
-	                  'hostname' => '127.0.0.1',
-                      'port'     => '6379',
-	                   // 'timeout'  => '2.5',
-	                  'weight'   => '1'
-	              	),
-	'auth'       =>  'foorbared',
-	'cache_path' =>  '/data/temp/cache/',
-	'serializer' =>  'SERIALIZER_PHP',
-	),
-),
-```
-
-##### $this->cache->auth(string $password)
-
-Authenticate the connection using a password. Warning: The password is sent in plain-text over the network.
-
-```php
-<?php
-
-$this->cache->auth('foobared');
-```
-
-##### $this->cache->setOption(string $option)
-
-Option types
-
-```php
-<?php
-
-'SERIALIZER_NONE' 	  // don't serialize data
-'SERIALIZER_PHP'	  // use built-in serialize/unserialize
-'SERIALIZER_IGBINARY' // use igBinary serialize/unserialize
-```
-
-Set client option.
-
-```php
-<?php
-
 $this->cache->setOption('SERIALIZER_NONE');
 ```
 
-##### $this->cache->getOption(string $option)
+#### $this->cache->set(mixed $key, mixed $data, int optional $expiration)
 
-Get client option.
+Önbellek deposuna veri kaydeder. Kaydetme işlemlerinde string ve array türlerini kullanabilirsiniz.
 
 ```php
 <?php
-
-$this->cache->getOption();
+$this->cache->set('key', 'value');    // Basit key -> string değer
+$this->cache->set('key','value', 10); // 10 saniye yok olma süresi
+$this->cache->set('key', array('testKey' => 'test value', 'testKey2' => 'test value 2'));  // Array tipi set
 ```
 
-##### $this->cache->isConnected()
-
-Connected control, return true or false
+Array türü aşağıdaki iki yöntemden biriyle olabilir.
 
 ```php
 <?php
-
-$this->cache->isConnected();
-```
-
-##### $this->cache->set(mixed $key, mixed $data, int optional $expiration)
-
-Set the string or array value
-
-```php
-<?php
-
-// Simple key -> string value
-$this->cache->set('key', 'value');
-
-// Simple set add ttl
-$this->cache->set('key','value', 10); // 10 sec expiration time
-
-// Simple set -> array value
-$this->cache->set('key', array('testKey' => 'test value', 'testKey2' => 'test value 2'));
-```
-
-Set array key
-
-```php
-<?php
-
 $this->cache->set('example:key', 'value');
+```
+veya
 
-// OR
-
+```php
+<?php
 $this->cache->set(array('example' => 'value'));
 ```
 
-##### $this->cache->get($key)
+#### $this->cache->get($key)
+
+Önbellek deposundan veri okur. Okuma işlemlerinde string ve array türlerini kullanabilirsiniz.
 
 ```php
 <?php
-
-// Gives 'value'
-$this->cache->get('key');
-
-// Gives 'value'
-$this->cache->get('example:key');
-
-// Gives 'value'
-$this->cache->get(array('example'));
+$this->cache->get('key');           // Gives value
+$this->cache->get('example:key');   // Gives value
+$this->cache->get(array('example'));  // Gives value
 ```
 
-##### $this->cache->getLastError()
+#### $this->cache->append(string $key, $value);
 
-The last error message (if any)
-```php
-<?php
-
-$this->cache->getLastError();
-// "ERR Error compiling script (new function): user_script:1: '=' expected near '-'"
-```
-Sets an expiration date (a timeout) on an item. pexpire requires a TTL in milliseconds.
-
-##### $this->cache->setTimeout(string $key, int $ttl)
+Varolan veri üzerine string biçiminde yeni değer ekler.
 
 ```php
 <?php
-
-$this->cache->setTimeout('key','60'); // 60 sec
+$this->cache->set('key', 'value1');
+$this->cache->append('key', 'value2'); /* 12 */
+$this->cache->get('key'); /* 'value1value2' */
 ```
-##### $this->cache->setType(string $type)
 
-Set Type - Returns the type of data pointed by a given type key.
+#### $this->cache->getSet(string $key, );
 
-string: Redis::REDIS_STRING
-
-set: Redis::REDIS_SET
+Önbellek deposuna yeni veriyi kaydederken eski veriye geri dönerek eski veriyi elde etmenizi sağlar.
 
 ```php
 <?php
-
-$this->cache->setType('set');
+$this->cache->set('x', '42');
+$exValue = $this->cache->getSet('x', 'lol');  // return '42', replaces x by 'lol'
+$newValue = $this->cache->get('x')'           // return 'lol'
 ```
 
-##### $this->cache->flushDB()
+#### $this->cache->renameKey(string $key, string $newKey);
+
+
+
+#### $this->cache->getAllKeys();
+#### $this->cache->hSet();
+#### $this->cache->hGet();
+#### $this->cache->hGetAll();
+#### $this->cache->hLen();
+#### $this->cache->hDel();
+#### $this->cache->hKeys();
+#### $this->cache->hVals();
+#### $this->cache->hIncrBy();
+#### $this->cache->hIncrByFloat();
+#### $this->cache->hMSet();
+#### $this->cache->hMGet();
+
+
+#### $this->cache->getLastError()
+
+En son meydana gelen hataya string biçiminde geri döner.
+
+```php
+<?php
+$this->cache->getLastError();  // "ERR Error compiling script"
+```
+
+#### $this->cache->setTimeout(string $key, int $ttl)
+
+Önceden set edilmiş bir anahtarın yok olma süresini değiştirir. TTL parametresi mili saniye formatında yazılmalıdır.
+
+```php
+<?php
+$this->cache->setTimeout('key','60'); // 60 saniye sonra key silinecektir
+```
+
+#### $this->cache->type(string $key)
+
+Girilen anahtarın redis türünden biçimine döner bu biçimler şunlardır: string, set, list, zset, hash, other
+
+```php
+<?php
+$this->cache->type('key');
+```
+
+#### $this->cache->flushDB()
 
 Remove all keys from the current database. Return boolean always true
 ```php
@@ -729,7 +400,7 @@ Remove all keys from the current database. Return boolean always true
 $this->cache->flushDB();
 ```
 
-##### $this->cache->append(string $key, string or array $data)
+#### $this->cache->append(string $key, string or array $data)
 
 Append specified string to the string stored in specified key.
 ```php
@@ -752,7 +423,7 @@ $this->cache->keyExists('key'); /*  true */
 $this->cache->keyExists('NonExistingKey'); /* false */
 ```
 
-##### $this->cache->getMultiple(array $key)
+#### $this->cache->getMultiple(array $key)
 
 Get the values of all the specified keys. If one or more keys dont exist, the array will contain.
 
@@ -773,7 +444,7 @@ $this->cache->sAdd('key1', array('value2', 'value3')); /* 2, 'key1' => {'value1'
 $this->cache->sAdd('key1', 'value2'); /* 0, 'key1' => {'value1', 'value2', 'value3'}*/
 ```
 
-##### $this->cache->sort(string $key, array $sort)
+#### $this->cache->sort(string $key, array $sort)
 
 Sort the elements in a list, set or sorted set.
 
@@ -792,7 +463,7 @@ var_dump($this->cache->sort('test', array('sort' => 'desc'))); // 5,4,3,2,1
 var_dump($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
 ```
 
-##### $this->cache->sSize(string $key)
+#### $this->cache->sSize(string $key)
 
 Returns the cardinality of the set identified by key.
 
@@ -806,7 +477,7 @@ $this->cache->sSize('key1'); /* 3 */
 $this->cache->sSize('keyX'); /* 0 */
 ```
 
-##### $this->cache->sInter(array $key)
+#### $this->cache->sInter(array $key)
 
 Returns the members of a set resulting from the intersection of all the sets held at the specified keys.
 
@@ -833,7 +504,7 @@ var_dump($redis->sInter('key1', 'key2', 'key3'));
  */
 ```
 
-##### $this->cache->sGetMembers(string $key)
+#### $this->cache->sGetMembers(string $key)
 
 Returns the contents of a set.
 
@@ -856,73 +527,6 @@ Gives
  */
 ```
 
-#### The methods below ara available for all drivers.
-
----
-
-### $this->cache->set(string $key, string $data, int $expiration);
-
-```php
-<?php
-
-$this->cache->set('test','cache test', 20); // default 60 seconds
-```
-
-### $this->cache->get(string $key);
-
-You can get the saved values using this function.
-
-```php
-<?php
-
-$this->cache->get($key);
-```
-
-### $this->cache->getMetaData(string $key);
-
-You can reach the meta information of data with this function.
-
-```php
-<?php
-
-$this->cache->getMetaData($key);
-```
-
-### $this->cache->delete(string $key);
-
-Deletes the data of the specified key.
-
-```php
-<?php
-
-$this->cache->delete($key);
-```
-
-### $this->cache->flushAll();
-
-Cleans the memory completely.
-
-```php
-<?php
-
-$this->cache->flushAll();
-```
-
-### Complete Example Config
-
-Using <kbd>memcached</kbd> cache, we make a sample with the default settings:
-
-```php
-<?php
-
-$data = array('test' => 'cache test');
-$ttl  = 20; // default 60 seconds
-
-$this->cache->set($data, $ttl);
-$this->cache->get('test');
-$this->cache->delete('test');
-$this->cache->flushAll();
-```
 
 ### Function Reference
 
@@ -963,3 +567,7 @@ Gets the meta information of data of the chosen key.
 #### $this->cache->flushAll($key);
 
 Remove all keys from all databases.
+
+#### $this->cache->isConnected()
+
+Bağlantı aktif ise <b>true</b> değerine aksi durumda <b>false</b> değerine döner.

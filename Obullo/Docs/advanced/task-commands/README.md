@@ -19,8 +19,8 @@ DEBUG - 2013-09-13 06:39:44 --> Html Helper Initialized
 DEBUG - 2013-09-13 06:39:44 --> Url Helper Initialized 
 DEBUG - 2013-09-13 06:39:44 --> Application Autorun Initialized 
 DEBUG - 2013-09-13 06:39:44 --> View Class Initialized 
-DEBUG - 2013-09-13 06:39:44 --> View file loaded: PUBLIC_DIR/views/footer.php 
-DEBUG - 2013-09-13 06:39:44 --> View file loaded: PUBLIC_DIR/views/welcome.php 
+DEBUG - 2013-09-13 06:39:44 --> View file loaded: CONTROLLERS/views/footer.php 
+DEBUG - 2013-09-13 06:39:44 --> View file loaded: CONTROLLERS/views/welcome.php 
 DEBUG - 2013-09-13 06:39:44 --> Final output sent to browser 
 BENCH - 2013-09-13 06:39:44 --> Loading Time Base Classes: 0.0013 
 BENCH - 2013-09-13 06:39:44 --> Execution Time ( Welcome / Welcome / Index ): 0.0021 
@@ -79,7 +79,7 @@ All command line requests go to framework <b>task</b> file which is located in y
 $php task start
 ```
 
-Above the command calls the <samp>start</samp> controller from <b>tasks</b> folder which is located in your <kbd>modules/tasks</kbd>.
+Above the command calls the <samp>start</samp> controller from <b>tasks</b> folder which is located in your <kbd>app/tasks</kbd>.
 
 ```php
         ______  _            _  _

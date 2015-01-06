@@ -1,12 +1,12 @@
 <?php
 
-namespace Obullo\Cli\LogFollower\Printer;
+namespace Obullo\Cli\Log\Printer;
 
 /**
- * LogFollower Colorful Printer
+ * Log Colorful Printer
  * 
  * @category  Cli
- * @package   LogFollower
+ * @package   Log
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -58,8 +58,11 @@ Class Colorful
                 $line = "\033[0;35m".$line."\033[0m";
             }
             if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
-                if (strpos($messageBody, 'Final output sent to browser') !== false) {
-                    $line = "\033[1;36m".$line."\033[0m";
+                if (strpos($messageBody, '--> Final output sent') !== false) {
+                    $line = "\033[0m"."\033[1;36m".$line."\033[0m";
+                }
+                if (strpos($messageBody, '--> Header redirect') !== false) {
+                    $line = "\033[0m"."\033[1;33m".$line."\033[0m";
                 }
                 $line = "\033[0;35m".$line."\033[0m";
                 if ( ! isset($lines[$i])) {
@@ -138,4 +141,4 @@ $WHITE="33[1;37m";
 // END Colorful class
 
 /* End of file Colorful.php */
-/* Location: .Obullo/Cli/LogFollower/Printer/Colorful.php */
+/* Location: .Obullo/Cli/Log/Printer/Colorful.php */

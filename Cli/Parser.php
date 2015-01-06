@@ -48,7 +48,7 @@ Class Parser
      */
     public function __construct($c)
     {
-        $this->logger = $c->load('return service/logger');
+        $this->logger = $c->load('service/logger');
         if ($this->logger instanceof Logger) {  // We need to sure logger object is available
             $this->logger->debug('Cli Parser Class Initialized');
         }
@@ -57,18 +57,18 @@ Class Parser
     /**
      * Resolve command line parameters
      * 
-     * @param array $CliParameters parameter array
+     * @param array $parameters parameter array
      * 
      * @return array resolved parameters
      */
-    public function parse($CliParameters = array())
+    public function parse($parameters = array())
     {
-        if ( ! is_array($CliParameters) OR ! isset($CliParameters[0])) {
-            throw new InvalidArgumentException('Cli parameter not exists or it is not an array.');
+        if ( ! is_array($parameters) OR ! isset($parameters[0])) {
+            return array();
         }
-        $this->arguments['command'] = $CliParameters[0];
+        $this->arguments['command'] = $parameters[0];
         $params = array();
-        foreach ($CliParameters as $value) {
+        foreach ($parameters as $value) {
             if (strpos($value, static::SIGN) === 0) {
                 $val = explode(static::SEPARATOR, $value);
                 $paramKey = trim($val[0], static::SIGN);

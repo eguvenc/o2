@@ -119,6 +119,22 @@ interface StorageInterface
      */
     public function deleteCredentials($storage = '__temporary');
 
+    /**
+     * Get multiple authenticated sessions
+     * 
+     * @return array|false
+     */
+    public function getAllSessions();
+
+    /**
+     * Kill authority of user using auth id
+     * 
+     * @param string $aid auth id (10 chars)  e.g:  ahtrzflp79
+     * 
+     * @return boolean
+     */
+    public function killSession($aid);
+
 }
 
 // END StorageInterface.php File

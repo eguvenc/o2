@@ -49,8 +49,8 @@ use Obullo\Error\DebugOutput;
 <div id="exceptionContent">
 <?php if (isset($fatalError)) :  ?>
     <h1>Fatal Error</h1>
-    <h2><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_DIR), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getMessage()) ?></h2>
-    <div class="errorFile errorLine"><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_DIR), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getFile()) . '  Line : ' . $e->getLine() ?>
+    <h2><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage()) ?></h2>
+    <div class="errorFile errorLine"><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . '  Line : ' . $e->getLine() ?>
     </div>
 </div>
 <?php

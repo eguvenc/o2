@@ -2,10 +2,10 @@
 
 namespace Obullo\Auth;
 
-use Auth\Identities\GenericIdentity;
+use Auth\Identities\GenericUser;
 
 /**
- * User Database Provider Interface
+ * User Provider Interface
  * 
  * @category  Auth
  * @package   ModelUserInterface
@@ -14,24 +14,24 @@ use Auth\Identities\GenericIdentity;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-interface DatabaseProviderInterface
+interface UserProviderInterface
 {
     /**
      * Constructor
      * 
-     * @param object $c       container
-     * @param object $storage memory storage
+     * @param object $c  container
+     * @param object $db database object
      */
-    public function __construct($c, $storage);
+    public function __construct($c, $db);
 
     /**
      * Execute sql query
      *
-     * @param array $user GenericIdentity object to get user's identifier
+     * @param array $user GenericUser object to get user's identifier
      * 
      * @return mixed boolean|array
      */
-    public function execQuery(GenericIdentity $user);
+    public function execQuery(GenericUser $user);
     
     /**
      * Recalled user sql query using remember cookie
@@ -41,20 +41,20 @@ interface DatabaseProviderInterface
      * @return array
      */
     public function execRecallerQuery($token);
-
+    
     /**
      * Update remember token upon every login & logout requests
      * 
      * @param string $token name
-     * @param object $user  object UserIdentity
+     * @param object $user  object GenericUser
      * 
      * @return void
      */
-    public function refreshRememberMeToken($token, GenericIdentity $user);
+    public function updateRememberToken($token, GenericUser $user);
 
 }
 
-// END DatabaseProviderInterface File
-/* End of file DatabaseProviderInterface.php
+// END UserProviderInterface File
+/* End of file UserProviderInterface.php
 
-/* Location: .Obullo/Auth/DatabaseProviderInterface.php */
+/* Location: .Obullo/Auth/UserProviderInterface.php */

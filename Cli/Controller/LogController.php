@@ -23,33 +23,45 @@ Class LogController implements CliInterface
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Logger
      * 
      * @var object
      */
-    public $logger;
+    protected $logger;
 
     /**
-     * Request type = App, Ajax or Cli
+     * Request types ( http, ajax or cli )
      * 
      * @var string
      */
-    public $route;
+    protected $dir;
+
+    /**
+     * Collection or db name
+     * 
+     * @var string
+     */
+    protected $table;
 
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $params parameters
+     * @param object $c         container
+     * @param object $arguments parameters
      */
-    public function __construct($c, array $params = array())
+    public function __construct($c, array $arguments = array())
     {
         $this->c = $c;
-        $this->route = isset($params[0]) ? $params[0] : 'http';
+
+        $this->parser = $c->load('cli/parser');
+        $this->parser->parse($arguments);
         $this->logger = $c->load('service/logger');
+
+        $this->dir = $this->parser->argument('dir', 'http');
+        $this->table = $this->parser->argument('dir', 'logs');
     }
 
     /**
@@ -68,22 +80,54 @@ Class LogController implements CliInterface
        |______||____||_____||_||_||____|
 
         Welcome to Log Manager v2.0 (c) 2014
-You are displaying the "http" request logs. To change direction use $php task log "ajax" or "cli".'."\n\033[0m";
+You are displaying logs. For more help type $php task help.'."\n\033[0m";
 
     }
 
     /**
      * Execute command
      * 
-     * @return boolean
+     * @return void
      */
     public function run()
     {
         $this->logo();
-        
-        $followerClass = '\\Obullo\Cli\LogFollower\\'.ucfirst($this->logger->getWriterName());
-        $follower = new $followerClass;
-        $follower->follow($this->c, $this->route);
+
+        if ($this->parser->argument('help')) {
+            return $this->help();
+        }
+        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getWriterName());
+        $class = new $Class;
+        $class->follow($this->c, $this->dir, $this->table);
+    }
+
+    /**
+     * Log help
+     * 
+     * @return string
+     */
+    public function help()
+    {
+        echo "\33[0;36m".'
+'."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
+
+Available Arguments
+
+    --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
+    --table  : Collection name if mongo driver used otherwise database table name.'."\n\033[0m";
+
+echo "\33[1;36mUsage:\33[0m\33[0;36m
+
+php task log --dir=value
+
+    php task log 
+    php task log --dir=cli
+    php task log --dir=ajax
+    php task log --dir=http --table=logs\n\33[0m\n";
+
+
+echo "\33[1;36mDescription:\33[0m\33[0;36m\n\nRead log data from app/data/logs folder.\n\33[0m\n";
+
     }
 
 }

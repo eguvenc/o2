@@ -313,8 +313,8 @@ Class Welcome extends Controller
 
                         $result = $this->user->login->attempt(
                             array(
-                                Auth\Credentials::IDENTIFIER => $this->validator->value('email'), 
-                                Auth\Credentials::PASSWORD => $this->validator->value('password')
+                                Auth\Constant::IDENTIFIER => $this->validator->value('email'), 
+                                Auth\Constant::PASSWORD => $this->validator->value('password')
                             ),
                             $this->post['rememberMe']
                         );

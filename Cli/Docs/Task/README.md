@@ -8,11 +8,8 @@ Php <b>task</b> file which is located in your project root that helps you to run
 ```php
 + app
 + assets
-+ data
-+ obullo
-+ private
++ o2
 + public
-  components.php
   .
   .
   task
@@ -106,7 +103,7 @@ echo $this->task->run('help', true);
 
 #### $this->task->run('controller/arg1/arg2 ...', $debug = false);
 
-Using $this->cliTask->run() function run your tasks as a using php shell_exec(); command in the background.
+Using $this->task->run() function run your tasks as a using php shell_exec(); command in the background.
 
 
 #### Continious Tasks

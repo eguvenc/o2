@@ -2,7 +2,8 @@
 
 namespace Obullo\Mongo;
 
-use MongoClient;
+use MongoClient,
+    RuntimeException;
 
 /**
  * Mongo Connection Manager
@@ -72,6 +73,8 @@ Class Connection
         if ( ! $this->connection->connect()) {
             throw new RuntimeException('Mongo connection error.');
         }
+        $this->connection->provider = $this;  // We need store connection instance to mongo client object
+                                              // to run provider getName() method in service mongo.
         return $this->connection;
     }
 

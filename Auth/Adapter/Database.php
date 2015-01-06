@@ -2,10 +2,10 @@
 
 namespace Obullo\Auth\Adapter;
 
-use Auth\Provider\DatabaseProvider,
-    Auth\Credentials,
-    Auth\Identities\GenericIdentity,
-    Auth\Identities\UserIdentity,
+use Obullo\Auth\UserProviderInterface,
+    Auth\Constant,
+    Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
     Obullo\Auth\Token,
     Obullo\Auth\AuthResult,
     Obullo\Auth\UserService,
@@ -14,16 +14,16 @@ use Auth\Provider\DatabaseProvider,
     RuntimeException;
 
 /**
- * O2 Authentication - Associative Array Adapter
+ * O2 Authentication - Database Adapter
  * 
  * @category  Auth
- * @package   AssociativeArray
+ * @package   Database
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-class AssociativeArray extends AbstractAdapter
+class Database extends AbstractAdapter
 {
     /**
      * User service
@@ -38,13 +38,6 @@ class AssociativeArray extends AbstractAdapter
      * @var object
      */
     protected $token;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    protected $logger;
 
     /**
      * Session class
@@ -75,13 +68,6 @@ class AssociativeArray extends AbstractAdapter
     protected $resultRowArray = null;
 
     /**
-     * Auth model
-     * 
-     * @var object
-     */
-    protected $modelUser;
-
-    /**
      * Check temporary identity exists in storage
      * 
      * @var boolean
@@ -110,11 +96,10 @@ class AssociativeArray extends AbstractAdapter
      */
     public function __construct($c, UserService $user)
     {
-        $this->user = $user;;
+        $this->user = $user;
         $this->storage = $c['auth.storage'];
-        $this->session = $c->load('return session');
-        $this->logger = $c->load('return service/logger');
-        $this->token = new Token($c);
+        $this->session = $c->load('session');
+        $this->cache = $c->load('service/cache');
 
         parent::__construct($c);
     }
@@ -126,9 +111,9 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return boolean if success
      */
-    protected function initialize(GenericIdentity $genericUser)
+    protected function initialize(GenericUser $genericUser)
     {
-        if ($this->user->identity->isGuest()) {
+        if ($this->user->identity->guest()) {
             $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
         }
@@ -147,13 +132,11 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return object authResult
      */
-    public function login(GenericIdentity $genericUser)
+    public function login(GenericUser $genericUser)
     {
         $this->initialize($genericUser);
 
-        if ($this->user->identity->isAuthenticated()) {    // If user already authenticated ?
-            $this->results['code'] = AuthResult::FAILURE_ALREADY_LOGGEDIN;
-        } elseif ( ! $this->storage->isEmpty('__temporary')) {
+        if ( ! $this->storage->isEmpty('__temporary')) {
             $this->isTemporary = true;
         } else {
             $this->authenticate($genericUser);  // Perform Query
@@ -177,33 +160,23 @@ class AssociativeArray extends AbstractAdapter
      * 
      * @return object
      */
-    public function authenticate(GenericIdentity $genericUser, $login = true)
-    {                
-        $this->resultRowArray = $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
-        $database = new DatabaseProvider($this->c, $this->storage);
-        
-        if ($storageResult == false) {
-            $this->resultRowArray = $database->execQuery($genericUser);  // If user does not exists in memory do sql query
-        }
-        if (is_array($this->resultRowArray)) {
+    public function authenticate(GenericUser $genericUser, $login = true)
+    {
+        $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
+        /**
+         * If user does not exists in memory do sql query
+         */
+        $this->resultRowArray = ($storageResult === false) ? $this->c['user.provider']->execQuery($genericUser) : $storageResult;
 
-            if ( ! isset($this->resultRowArray[Credentials::IDENTIFIER])) {
-                $this->results['code'] = AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR;
-                $this->failure = true;
-                return false;
-            }
+        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Constant::IDENTIFIER])) {
+
             $plain = $genericUser->getPassword();
-            $hash = $this->resultRowArray[Credentials::PASSWORD];
+            $hash  = $this->resultRowArray[Constant::PASSWORD];
 
-            if ( ! $this->isHashedPassword($hash)) {  // Password must be hashed.
-                $this->results['code'] = AuthResult::FAILURE_UNHASHED_PASSWORD;
-                $this->failure = true;
-                return false;
-            }
-            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {
-                
+            if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
+                                                                                // default is 6 for best performance.
                 if ($login) {  // If login process allowed.
-                    $this->generateUser($genericUser, $this->resultRowArray, $database, ($storageResult) ? false : true, $passwordNeedsRehash);
+                    $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
                 }
                 return true;
             }
@@ -214,30 +187,31 @@ class AssociativeArray extends AbstractAdapter
     }
 
     /**
-     * Set identities data to UserIdentity object
+     * Set identities data to AuthorizedUser object
      * 
      * @param array $genericUser         generic identity array
      * @param array $resultRowArray      success auth query user data
-     * @param array $database            database provider
      * @param array $write2Storage       creates identity on memory storage
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    public function generateUser(GenericIdentity $genericUser, $resultRowArray, DatabaseProvider $database, $write2Storage = false, $passwordNeedsRehash = array())
+    public function generateUser(GenericUser $genericUser, $resultRowArray, $write2Storage = false, $passwordNeedsRehash = array())
     {
+        $token = new Token($this->c);
+
         $attributes = array(
-            Credentials::IDENTIFIER => $genericUser->getIdentifier(),
-            Credentials::PASSWORD => $resultRowArray[Credentials::PASSWORD],
+            Constant::IDENTIFIER => $genericUser->getIdentifier(),
+            Constant::PASSWORD => $resultRowArray[Constant::PASSWORD],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
-            '__token' => $this->token->get(),
+            '__token' => $token->get(),
             '__time' => ceil(microtime(true)),
         );
         /**
          * Authenticate the user and fornat auth data
          */
-        $attributes = $this->formatAttributes(array_merge($attributes, $resultRowArray), $passwordNeedsRehash);
+        $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
         if ($this->config['login']['session']['regenerateSessionId']) {
             $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
@@ -249,9 +223,8 @@ class AssociativeArray extends AbstractAdapter
             }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $database->refreshRememberMeToken($this->getRememberToken(), $genericUser); // refresh rememberToken
+            $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
         }
-
         if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  
         } else {
@@ -259,14 +232,20 @@ class AssociativeArray extends AbstractAdapter
              * Authenticate cached auth data. We override __isAuthenticated item value as "1"
              * then we update the token.
              */
-            $this->storage->authenticatePermanentIdentity($this->resultRowArray, $this->token);
+            $this->storage->authenticatePermanentIdentity($attributes, $token);
         }
-        /**
-         * If verification enabled We store use as temporay That's why we delete current auth data
-         */
-        $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
+        $this->deleteOldAuth();
+    }
 
-        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {  // If verification enabled "delete" old permanent credentials if exists
+    /**
+     * If verification enabled we create new temporay auth so we need to delete old credentials.
+     * 
+     * @return void
+     */
+    protected function deleteOldAuth()
+    {
+        $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
+        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {
             $this->storage->deleteCredentials($trashKey);
         }
     }
@@ -282,7 +261,7 @@ class AssociativeArray extends AbstractAdapter
     protected function formatAttributes(array $attributes, $rehashedPassword = array())
     {
         if (is_array($rehashedPassword) AND isset($rehashedPassword['hash'])) {
-            $attributes[Credentials::PASSWORD] = $rehashedPassword['hash'];
+            $attributes[Constant::PASSWORD] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
         $attributes = $this->setAuthType($attributes);
@@ -329,20 +308,8 @@ class AssociativeArray extends AbstractAdapter
             return $this->createResult();
         }
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
-            $this->results['code'] = AuthResult::FAILURE_TEMPORARY_AUTH_HAS_BEEN_CREATED;
+            $this->results['code'] = AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';
-            return $this->createResult();
-        }
-        if ($this->results['code'] === AuthResult::FAILURE_IDENTIFIER_CONSTANT_ERROR) {
-            $this->results['messages'][] = 'Credentials::IDENTIFIER constant error: Db column name doesn\'t match constant value."';
-            return $this->createResult();
-        }
-        if ($this->results['code'] === AuthResult::FAILURE_UNHASHED_PASSWORD) {
-            $this->results['messages'][] = 'User password not hashed.';
-            return $this->createResult();
-        }
-        if ($this->results['code'] === AuthResult::FAILURE_ALREADY_LOGGEDIN) {
-            $this->results['messages'][] = 'You are already logged in.';
             return $this->createResult();
         }
         return true;
@@ -367,7 +334,7 @@ class AssociativeArray extends AbstractAdapter
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
         }
-        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Credentials::IDENTIFIER]) {
+        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Constant::IDENTIFIER]) {
             $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
             $this->results['messages'][] = 'More than one record matches the supplied identity.';
             return $this->createResult();
@@ -393,7 +360,7 @@ class AssociativeArray extends AbstractAdapter
     }
 }
 
-// END AssociativeArray.php File
-/* End of file AssociativeArray.php
+// END Database.php File
+/* End of file Database.php
 
-/* Location: .Obullo/Auth/Adapter/AssociativeArray.php */
+/* Location: .Obullo/Auth/Adapter/Database.php */

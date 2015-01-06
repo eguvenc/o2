@@ -70,7 +70,7 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
         $this->key = $config['send']['transport']['mandrill']['key'];
         $this->ipPool = $config['send']['transport']['mandrill']['ip_pool'];
 
-        $this->logger = $c->load('return service/logger');
+        $this->logger = $c->load('service/logger');
         $this->logger->debug('Madrill Class Initialized');
 
         parent::__construct($c, $config);

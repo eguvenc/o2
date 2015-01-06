@@ -10,16 +10,62 @@ Request class detects the server request method, secure connection, ip address, 
 ```php
 <?php
 $this->c->load('request');
-
-$this->request['variable'];
 $this->request->method();
 ```
 
 Once loaded, the Request object will be available using: <dfn>$this->request->method()</dfn>
 
-#### $this->request['variable'];
+### Using GET Data
 
-if variable is exists in $_REQUEST global it returns to itself otherwise false.
+------
+
+Get class comes with input helper functions that let you fetch $_GET items. The main advantage of using the provided functions rather than fetching an item directly ($_GET['something']) is that the functions will check to see if the item is set and return false (boolean) if not. 
+
+This lets you conveniently use data without having to test whether an item exists first. In other words, normally you might do something like this:
+
+```php
+<?php
+if ( ! isset($_GET['variable'])) {
+    $variable = false;
+} else {
+    $variable = $_GET['variable'];
+}
+```
+
+With "Get" class built in functions you can simply do this:
+
+```php
+<?php
+if ($this->request->get('variable')) {
+	echo $this->request->get('variable');
+}
+```
+
+### Using POST Data
+
+------
+
+Post class comes with input helper functions that let you fetch $_POST items. The main advantage of using the provided functions rather than fetching an item directly ($_POST['something']) is that the functions will check to see if the item is set and return false (boolean) if not. 
+
+This lets you conveniently use data without having to test whether an item exists first. In other words, normally you might do something like this:
+
+```php
+<?php
+if ( ! isset($_POST['variable'])) {
+    $variable = false;
+} else {
+    $variable = $_POST['variable'];
+}
+```
+
+With "Post" class built in functions you can simply do this:
+
+```php
+<?php
+if ($this->request->post('variable')) {
+	echo $this->request->post('variable');
+}
+```
 
 #### $this->request->getHeader(string $key);
 
@@ -50,6 +96,15 @@ print_r(getallheaders());
 // Connection: keep-alive 
 ```
 
+#### $this->request->ip();
+
+Returns the IP address for the current user. If the IP address is not valid, the function will return an IP of: 0.0.0.0
+
+```php
+<?php
+echo $this->request->ip();  // 216.185.81.90
+```
+
 #### $this->request->server($key);
 
 Fetches $_SERVER variable items.
@@ -61,20 +116,11 @@ $this->request->server('HTTP_USER_AGENT');
 // gives Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0 
 ```
 
-#### $this->request->getIpAddress();
-
-Returns the IP address for the current user. If the IP address is not valid, the function will return an IP of: 0.0.0.0
-
-```php
-<?php
-echo $this->get->ipAddress();  // 216.185.81.90
-```
-
 #### $this->request->isValidIp($ip);
 
 Gets the IP address as input and returns true or false (boolean) depending on it is valid or not. 
 
-***Note:*** The $this->request->getIpAddress() method also validates the IP automatically.
+***Note:*** The $this->request->ipAddress() method also validates the IP automatically.
 
 ```php
 <?php
@@ -85,15 +131,21 @@ if ( ! $this->request->isValidIp($ip)) {
 }
 ```
 
+#### $this->request->global->object->method();
+
+#### $this->request->get($key);
+
+#### $this->request->post($key);
+
+#### $this->request->server($key);
+
+#### $this->request->header();
+
+#### $this->request->method();
+
+#### $this->request->ip();
+
 #### $this->request->isValidIp();
-
-#### $this->request->getIpAddress();
-
-#### $this->request->server();
-
-#### $this->request->getHeader();
-
-#### $this->request->getMethod();
 
 #### $this->request->isLayer();
 
@@ -122,12 +174,3 @@ If http request method equal to PUT returns to true otherwise false.
 #### $this->request->isDelete();
 
 If http request method equal to DELETE returns to true otherwise false.
-
-
-### Some popular array access examples:
-
-* $this->get['variable']  ( $_GET )
-* $this->post['variable']  ( $_POST )
-* $this->request['variable']  ( $_REQUEST )
-* $this->config['variable']  ( Retrieves Config class items )
-* $this->translator['variable']  ( Retrieves Translator file items )

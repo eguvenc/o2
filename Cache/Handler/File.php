@@ -76,6 +76,16 @@ Class File implements HandlerInterface
     }
 
     /**
+     * Get current serializer name
+     * 
+     * @return string serializer name
+     */
+    public function getSerializer()
+    {
+        return null;
+    }
+
+    /**
      * Get cache data.
      * 
      * @param string $key storeage key

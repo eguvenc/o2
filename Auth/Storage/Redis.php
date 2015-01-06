@@ -2,8 +2,9 @@
 
 namespace Obullo\Auth\Storage;
 
-use Auth\Credentials,
+use Auth\Constant,
     Obullo\Auth\AuthResult,
+    Obullo\Utils\Random,
     Obullo\Auth\Token;
 
  /*
@@ -26,7 +27,7 @@ use LogicException;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Redis implements StorageInterface
+Class Redis
 {
     /**
      * Cache storage unverified users key
@@ -171,7 +172,7 @@ Class Redis implements StorageInterface
     public function setRandomId($id = null)
     {
         if (empty($id)) {
-            $id = $this->c->load('utils/random')->generate('alnum.lower', 10);
+            $id = Random::generate('alnum.lower', 10);
         }
         $this->session->set('__'.$this->config['memory']['key'].'/RandomId', $id);
         return $id;
@@ -259,7 +260,7 @@ Class Redis implements StorageInterface
     }
 
     /**
-     * Makes temporary credential attributes as permanent and authenticate the user.
+     * Makes temporary credentials as permanent and authenticate the user.
      * 
      * @return mixed false|array
      */
@@ -401,20 +402,23 @@ Class Redis implements StorageInterface
     /**
      * Match the user credentials.
      * 
-     * @return array|false
+     * @return object|false
      */
     public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-            $key = $this->getMemoryBlockKey('__permanent');
-            $data = $this->cache->hGetAll($key);
+            $data = (array)$this->cache->hGetAll($this->getMemoryBlockKey('__permanent'));   // We convert it to object otherwise page loading time 
+                                                                                      //  over 0.1500 seconds ..
+            if (count($data) == 0) {
+                return false;
+            }
             return $data;
         }
         return false;
     }
 
     /**
-     * Authenticate cached permanent identity
+     * Re authenticate cached permanent identity
      * 
      * @param array  $data  cached auth data
      * @param object $token token \Obullo\Auth\Token
@@ -433,6 +437,41 @@ Class Redis implements StorageInterface
         $data['__token'] = $token->get();
 
         $this->loginAsPermanent($data);
+    }
+
+    /**
+     * Get multiple authenticated sessions
+     * 
+     * @return array|false
+     */
+    public function getAllSessions()
+    {
+        $sessions = array();
+        $identifier = $this->getId();
+        $key = $this->config['memory']['key'].':__permanent:Authorized:';
+        
+        foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
+            $exp = explode(':', $val);
+            $aid = end($exp);
+            $sessions[$aid]['__isAuthenticated'] = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
+            $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
+            $sessions[$aid]['id'] = $identifier;
+            $sessions[$aid]['key'] = $key.$identifier.':'.$aid;
+            $sessions[$aid]['prefix'] = $key.$identifier;
+        }
+        return $sessions;
+    }
+
+    /**
+     * Kill authority of user using auth id
+     * 
+     * @param string $aid auth id (10 chars)  e.g:  ahtrzflp79
+     * 
+     * @return boolean
+     */
+    public function killSession($aid)
+    {
+        $this->cache->delete($this->config['memory']['key'].':__permanent:Authorized:'.$this->getId().':'.$aid);
     }
 
 }

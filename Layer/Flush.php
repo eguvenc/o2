@@ -21,14 +21,21 @@ Class Flush
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Cache service
      * 
      * @var object
      */
-    public $cache;
+    protected $cache;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
 
     /**
      * Constructor
@@ -38,8 +45,9 @@ Class Flush
     public function __construct($c)
     {
         $this->c = $c;
-        $this->cache = $c->load('service/cache');
-        $this->c->load('service/logger')->debug('Layer Flush Class Initialized');
+        $this->cache = $c->load('return service/cache');
+        $this->logger = $this->c->load('service/logger');
+        $this->logger->debug('Layer Flush Class Initialized');
     }
 
     /**

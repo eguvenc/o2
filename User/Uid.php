@@ -126,7 +126,7 @@ Class Uid
      */
     public function addIp()
     {
-        $this->ip = sprintf("%u", ip2long($this->c->load('request')->getIpAddress()));
+        $this->ip = sprintf("%u", ip2long($this->c['request']->ip()));
 
         return $this;
     }

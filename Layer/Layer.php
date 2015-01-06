@@ -6,7 +6,7 @@ use stdClass,
     Controller;
 
 /**
- * Layers ( Layered View Controller ) is a programming technique that delivers you to
+ * Layers is a programming technique that delivers you to
  * "Multitier Architecture" to scale your applications.
  * 
  * Derived from HMVC pattern and named as "Layers" in Obullo.
@@ -44,8 +44,6 @@ use stdClass,
  */
 Class Layer
 {
-    public static $app;
-
     const CACHE_KEY = 'Layer:';
     const LOG_HEADER = '<br /><div style="float:left;">';
     const LOG_FOOTER = '</div><div style="clear:both;"></div>';
@@ -130,8 +128,7 @@ Class Layer
     protected $global = null;
 
     /**
-     * Reset all variables for multiple
-     * Layered Vc requests.
+     * Reset all variables for multiple layer requests.
      *
      * @return void
      */
@@ -140,7 +137,6 @@ Class Layer
         $this->c['response']->clear();
         $this->processDone = false;
         $this->requestMethod = 'GET';
-        // $GLOBALS['_SERVER_BACKUP']  = array();
         unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
     }
 
@@ -149,14 +145,12 @@ Class Layer
      * 
      * @param array $c      container
      * @param array $params config 
-     *
-     * @return void
      */
     public function __construct($c, $params)
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $c->load('return service/logger');
+        $this->logger = $c->load('service/logger');
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
@@ -167,9 +161,7 @@ Class Layer
      */
     public function setHeaders()
     {
-        $_SERVER['LAYER_REQUEST'] = true;   // Set Hvc Headers
-        // $GLOBALS['_SERVER_BACKUP'] = $_SERVER; // Get backup $_SERVER variable
-        // unset($_SERVER['HTTP_ACCEPT'], $_SERVER['REQUEST_METHOD']);    // Don't touch other global server items 
+        $_SERVER['LAYER_REQUEST'] = true;   // Set Headers
     }
 
     /**
@@ -240,7 +232,7 @@ Class Layer
     {
         // Warning ! 
         global $c; // This is required for LAYERS "$c" scope if we remove it controller function use ($c) does not works.
-        static $storage = array();  // Store used "$app " variables
+        static $storage = array();  // Store used controllers
 
         $KEY = $this->id();    // Get layer id
         $start = microtime(true);   // Start query timer 
@@ -258,13 +250,13 @@ Class Layer
             return $this->c['response']->getError();
         }
         //  Create an uniq Layer Uri it must be unique otherwise may cause collission with standart uri
-        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Lvc Uri String with Layer ID
+        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Layer Uri String with Layer ID
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
 
-        $this->layerUri = $this->c['router']->fetchTopDirectory().'/'.$directory.'/'.$className;
-        $controller = PUBLIC_DIR .$this->c['router']->fetchTopDirectory(DS).$directory. DS .'controller'. DS .$className. '.php';
-                                                    
+        $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
+        $controller = CONTROLLERS .$this->c['router']->fetchModule(DS).$directory. DS .$className. '.php';
+
                                                   // Check class is exists in the storage
         if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
             $class = $storage[$this->layerUri];     // Get stored class.
@@ -272,12 +264,12 @@ Class Layer
             include $controller;        // Load the controller file.
         }
 
+        $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
         $class = new $className;  // Call the controller
 
         if (method_exists($class, 'load')) {
             $class->load();
         }
-
         if ( ! method_exists($class, 'index')) {  // Check method exist or not
             $this->reset();
             return $this->c['response']->show404($this->layerUri, false);
@@ -343,15 +335,13 @@ Class Layer
      * Reset router for mutiple layer requests
      * and close the layer connections.
      *
-     * @return   void
+     * @return void
      */
     protected function reset()
     {
         if ( ! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
             return;
         }
-        // $_SERVER = array();                     // Assign global variables we get backup before.
-        // $_SERVER = $GLOBALS['_SERVER_BACKUP'];  // Just reset server variable otherwise we couldn't use global variables layer in layer loops.
         $this->clear();  // Reset all Layer variables.
     }
     

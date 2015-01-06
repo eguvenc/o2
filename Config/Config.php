@@ -3,9 +3,9 @@
 namespace Obullo\Config;
 
 use ArrayAccess,
-    DOMDocument,
     LogicException,
-    RuntimeException;
+    RuntimeException,
+    Obullo\Config\Writer\PhpArray;
 
 /**
  * Config Class
@@ -34,18 +34,18 @@ Class Config implements ArrayAccess
     public $array = array();
 
     /**
+     * Config folder full path with current environment
+     * 
+     * @var string
+     */
+    protected $path;
+
+    /**
      * A cache of whether file is loaded.
      * 
      * @var array
      */
     protected $loaded = array();
-
-    /**
-     * Config folder full path with current environment
-     * 
-     * @var string
-     */
-    protected $envPath;
 
     /**
      * Constructor
@@ -56,16 +56,26 @@ Class Config implements ArrayAccess
      */
     public function __construct($c)
     {
-        $this->envPath = APP .'config'. DS . 'env'. DS . ENV . DS;
-        $this->file = $this->envPath .'config.env';
+        $this->path  = APP .'config'. DS . ENV . DS;
+        $this->local = APP .'config'. DS . 'local'. DS;
+        $this->file  = $this->path .'config.env';
 
         ini_set('display_errors', 1);
         $this->env = include $this->file;
 
-        if (isset($this->env['environment']['file'])) {   // Load environment variables if exists
-            $this->loadEnv($this->env['environment']['file']);
+        $dotenv = '.env.'. ENV .'.php';
+        $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
+        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
+            configurationError();
         }
-        $this->array = include $this->envPath .'config.php';  // Bind current environment config variables 
+        $_ENV = $envVariables;
+
+        $this->array = include $this->local .'config.php';  // Load current environment config variables 
+
+        if (ENV != 'local') {
+            $config = include $this->path .'config.php';
+            $this->array = array_replace_recursive($this->array, $config);  // Merge config variables if env not local.
+        }
         ini_set('display_errors', 0);
     }
 
@@ -79,9 +89,13 @@ Class Config implements ArrayAccess
     public function load($filename = '')
     {
         global $c;
-        $file = APP . 'config' . DS .'shared'. DS . str_replace('/', DS, $filename) . '.php';
-        $envFile = $this->envPath . str_replace('/', DS, $filename) . '.php';
+        $fileUrl = str_replace('/', DS, $filename);
+        $envFile = $this->path . $fileUrl .'.php';
+        $file = $this->local . $fileUrl .'.php';  // Default config path
 
+        if (file_exists(APP . 'config' . DS . $fileUrl .'.php')) {  // If shared file exists 
+            $file = APP . 'config' . DS . $fileUrl .'.php';
+        }
         if (file_exists($envFile)) {
             $file = $envFile;
         }
@@ -92,71 +106,22 @@ Class Config implements ArrayAccess
         $config = include $file;
         ini_set('display_errors', 0);
 
-        if (strpos($filename, 'constants/') === false  // Allow loading constant files
-            AND ($config == false OR ! isset($config) OR ! is_array($config))
-        ) {
-            throw new LogicException(
-                sprintf(
-                    'Your %s file does not appear to contain a valid configuration array.', 
-                    $file
-                )
-            );
-        }
         $this->array[$filename] = $config;
         $this->loaded[] = $file;
         unset($config);
         return $this->array[$filename];
     }
 
-
     /**
-     * Load env config variables file
-     * 
-     * @param string $file filename
+     * Save to config.env file
      * 
      * @return void
      */
-    public function loadEnv($file)
+    public function write()
     {
-        $filename = (substr($file, -4) == '.php') ? $file : $file . '.php';
-        if ( ! $envVariables = include ROOT .'.'.$filename) {
-            configurationError();
-        }
-        foreach ($envVariables as $key => $value) {
-            $_ENV[$key] = $value;
-            $_SERVER[$key] = $value;
-            putenv("{$key}={$value}");   
-        }
-    }
-
-    /**
-     * Save xml file
-     *
-     * @param string $xmlOutput xml file string
-     * 
-     * @return void
-     */
-    public function save($xmlOutput = null)
-    {
-        // $xml = empty($xmlOutput) ? $this->xml->asXML() : $xmlOutput;
-
-        // if ( ! is_writable($this->file)) {
-        //     throw new LogicException(
-        //         sprintf(
-        //             'Your application config/env/%s/config.xml file is not writable.', 
-        //             ENV
-        //         )
-        //     );
-        // }
-        // $dom = new DOMDocument('1.0');
-        // $dom->preserveWhiteSpace = true;
-        // $dom->formatOutput = false;
-        // $dom->loadXML($xml);
-        // if ( ! $dom) {
-        //     throw new RuntimeException('Error while parsing the config.xml document.');
-        // }
-        // $dom = simplexml_import_dom($dom);
-        // $dom->saveXML($this->file);
+        $writer = new PhpArray;
+        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/config/".ENV."/config.env */");
+        $writer->toFile($this->file, $this->env);
     }
 
     /**

@@ -128,51 +128,51 @@ Class Roles
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $db     database object
-     * @param array  $config parameters
+     * @param object $c  container
+     * @param object $db database object
      */
-    public function __construct($c, $db, $config = array())
+    public function __construct($c, $db)
     {
+<<<<<<< HEAD
         $this->c      = $c;
         $this->db     = $db;
         $this->cache  = $c->load('return service/cache');
+=======
+        $this->c = $c;
+        $this->db = $db;
+        $this->cache  = $c->load('service/cache');
+>>>>>>> 85bf69444e3a4a4c7c704f7c8e486aa9afc98416
         $this->treeDb = new Db($c, array('db' => $db));
         
-        $this->c['config']->load('constants/rbac');  // load rbac constants
+        $this->c['config']->load('constant/rbac');  // load rbac constants
+
+        // RBAC "roles" table variable definitions
+        $this->tableName                = RBAC_ROLES_DB_TABLENAME;
+        $this->primaryKey               = RBAC_ROLES_COLUMN_PRIMARY_KEY;
+        $this->parentId                 = RBAC_ROLES_COLUMN_PARENT_ID;
+        $this->text                     = RBAC_ROLES_COLUMN_TEXT;
+        $this->type                     = RBAC_ROLES_COLUMN_TYPE;
+        $this->lft                      = RBAC_ROLES_COLUMN_LEFT;
+        $this->rgt                      = RBAC_ROLES_COLUMN_RIGHT;
         
-        $columns = $config['database']['columns'];
-
-        if (count($columns) > 0) {
-
-            // RBAC "roles" table variable definations
-            $this->tableName                = RBAC_ROLES_DB_TABLENAME;
-            $this->primaryKey               = RBAC_ROLES_COLUMN_PRIMARY_KEY;
-            $this->parentId                 = RBAC_ROLES_COLUMN_PARENT_ID;
-            $this->text                     = RBAC_ROLES_COLUMN_TEXT;
-            $this->type                     = RBAC_ROLES_COLUMN_TYPE;
-            $this->lft                      = RBAC_ROLES_COLUMN_LEFT;
-            $this->rgt                      = RBAC_ROLES_COLUMN_RIGHT;
-            
-            // RBAC "user_roles" table variable definations
-            $this->userRolesTableName       = RBAC_USER_ROLES_DB_TABLENAME;
-            $this->columnUserPrimaryKey     = RBAC_USER_ROLES_TABLE_USER_PRIMARY_KEY;
-            $this->columnUserRolePrimaryKey = RBAC_USER_ROLES_TABLE_ROLE_PRIMARY_KEY;
-            
-            // RBAC "permissions" table variable definations
-            $this->permtableName            = RBAC_PERM_DB_TABLENAME;
-            $this->permPrimaryKey           = RBAC_PERM_COLUMN_PRIMARY_KEY;
-            $this->permText                 = RBAC_PERM_COLUMN_TEXT;
-            
-            // RBAC "role_permissions" table variable definations
-            $this->rolePermTableName        = RBAC_ROLE_PERM_DB_TABLENAME;
-            $this->rolePermRolePrimaryKey   = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
-            $this->rolePermPrimaryKey       = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
-            
-            // RBAC "op_permissions" table variable definations
-            $this->opPermsTableName         = RBAC_OP_PERM_DB_TABLENAME;
-            $this->opPermsRolePrimaryKey    = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
-        }
+        // RBAC "user_roles" table variable definitions
+        $this->userRolesTableName       = RBAC_USER_ROLES_DB_TABLENAME;
+        $this->columnUserPrimaryKey     = RBAC_USER_ROLES_TABLE_USER_PRIMARY_KEY;
+        $this->columnUserRolePrimaryKey = RBAC_USER_ROLES_TABLE_ROLE_PRIMARY_KEY;
+        
+        // RBAC "permissions" table variable definitions
+        $this->permtableName            = RBAC_PERM_DB_TABLENAME;
+        $this->permPrimaryKey           = RBAC_PERM_COLUMN_PRIMARY_KEY;
+        $this->permText                 = RBAC_PERM_COLUMN_TEXT;
+        
+        // RBAC "role_permissions" table variable definitions
+        $this->rolePermTableName        = RBAC_ROLE_PERM_DB_TABLENAME;
+        $this->rolePermRolePrimaryKey   = RBAC_ROLE_PERM_TABLE_ROLES_PRIMARY_KEY;
+        $this->rolePermPrimaryKey       = RBAC_ROLE_PERM_TABLE_PERM_PRIMARY_KEY;
+        
+        // RBAC "op_permissions" table variable definitions
+        $this->opPermsTableName         = RBAC_OP_PERM_DB_TABLENAME;
+        $this->opPermsRolePrimaryKey    = RBAC_OP_PERM_TABLE_ROLE_PRIMARY_KEY;
         
         $this->treeDb->setTablename($this->tableName);
         $this->treeDb->setPrimaryKey($this->primaryKey);

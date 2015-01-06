@@ -75,7 +75,7 @@ Class MetaData
         $this->params = $params;
         $this->session = $session;
         $this->now = $this->session->getTime();
-        $this->ipAddress = $c['request']->getIpAddress();
+        $this->ipAddress = $c['request']->ip();
         $this->userAgent = $c['request']->server('HTTP_USER_AGENT');
         $this->cache = $c->load('service/provider/cache', array('serializer' => 'SERIALIZER_NONE'));
         $this->logger = $c->load('service/logger');

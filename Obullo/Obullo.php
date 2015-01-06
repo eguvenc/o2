@@ -11,7 +11,7 @@
  * @link      http://obullo.com/package/obullo
  */
 
-$start = microtime(true);  // Run Timer
+$_SERVER['REQUEST_TIME_START'] = microtime(true);
 /*
  * ------------------------------------------------------
  *  Before request event
@@ -24,17 +24,15 @@ $c['event']->fire('before.request');
  *  Load core components
  * ------------------------------------------------------
  */
-$router 	= $c->load('router');
-$response 	= $c->load('response');
+$router 	= $c['router'];
+$response 	= $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / index";
-$controller = PUBLIC_DIR . $router->fetchTopDirectory(DS). $router->fetchDirectory() . DS .'controller'. DS . $router->fetchClass() . '.php';
+$controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
-if ( ! file_exists($controller)) {
-    $response->show404($pageUri);
-}
 require $controller;  // Include the controller file.
 
-$className = $router->fetchClass();
+$className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
+
 
 if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);
@@ -103,7 +101,7 @@ $response->sendOutput();    // Send the final rendered output to the browser
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.response', array($start));
+$c['event']->fire('after.response');
 
 
 // END Obullo.php File

@@ -5,7 +5,7 @@ The Form Class operate your validator class outputs, custom messages, form notic
 
 ```php
 <?php
-$c->load('form')
+$this->c->load('form')
 $this->form->method();
 ```
 

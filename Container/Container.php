@@ -25,7 +25,6 @@ use Controller,
  */
 Class Container implements ArrayAccess
 {
-    public $envArray = array();         // $app->detectEnvironment() use this configuration
     protected $values = array();
     protected $frozen = array();
     protected $raw = array();
@@ -38,6 +37,9 @@ Class Container implements ArrayAccess
     protected $resolved = array();      // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
 
+    protected $envArray = array();      // $c->detectEnvironment() use this configuration
+    protected static $env;
+
     const PROVIDER_SIGN = ':';  // To protect providers we use a sign.
 
     /**
@@ -45,7 +47,7 @@ Class Container implements ArrayAccess
      */
     public function __construct() 
     {
-        $this->envArray = include ROOT.'app'. DS .'config'. DS .'env'. DS .'environments.php';
+        $this->envArray = include ROOT .'app'. DS .'environments.php';
         $this->aliases = new SplObjectStorage;
     }
 
@@ -90,15 +92,16 @@ Class Container implements ArrayAccess
     /**
      * Gets a parameter or an object.
      *
-     * @param string $cid     The unique identifier for the parameter or object
-     * @param string $params  The construct arguments
-     * @param string $matches Registry Command requests
+     * @param string $cid       The unique identifier for the parameter or object
+     * @param string $params    The construct arguments
+     * @param string $matches   Registry Command requests
+     * @param string $isService class is service
      *
      * @return mixed The value of the parameter or an object
      *
      * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function offsetGet($cid, $params = array(), $matches = array())
+    public function offsetGet($cid, $params = array(), $matches = array(), $isService = false)
     {
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
@@ -214,12 +217,13 @@ Class Container implements ArrayAccess
         $matches = $this->resolveCommand(trim($classString));
         $class = $matches['class'];
         
-        $service = null;
+        $isService = false;
         $provider = strpos($class, 'service/provider');
         $data = $this->getClassInfo($matches['class'], ($provider !== false) ? true : false);
 
         if (strpos($class, 'service/') === 0) {  // Resolve services & service providers
 
+            $isService = true;
             $exp = explode('/', $class);
             $map = $this->mapName($exp);  // Converts "utils/uri" to "utilsUri"
             $serviceClass = '\\'.implode('\\', $map);
@@ -256,14 +260,14 @@ Class Container implements ArrayAccess
                 return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
             }
         }
-        if ($service == null) {  // Load none service libraries
+        if ($isService == false) {  // Load none service libraries
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
         $matches['key'] = $key;
-        if ( ! $this->exists($data['cid']) AND ! is_object($service)) {   // Don't register service again.
+        if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
             $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
-        return $this->offsetGet($data['cid'], $params, $matches);
+        return $this->offsetGet($data['cid'], $params, $matches, $isService);
     }
 
     /**
@@ -338,11 +342,8 @@ Class Container implements ArrayAccess
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
                 if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and is not null
-
                     return Controller::$instance->{$key} = new $ClassName($this, $params);
-
                 }
-
                 return new $ClassName($this, $params);
             };
         }
@@ -524,6 +525,29 @@ Class Container implements ArrayAccess
             }
         };
         return $serviceClass;
+    }
+
+    /**
+     * Detects application environment using "app/environments.php" file.
+     * 
+     * @return string environment or die if fail
+     */
+    public function detectEnvironment()
+    {
+        $hostname = gethostname();
+        if (self::$env != null) {
+            return self::$env;
+        }
+        if (in_array($hostname, $this->envArray['env']['production']['server']['hostname'])) {
+            return self::$env = 'production';
+        }
+        if (in_array($hostname, $this->envArray['env']['test']['server']['hostname'])) {
+            return self::$env = 'test';
+        }
+        if (in_array($hostname, $this->envArray['env']['local']['server']['hostname'])) {
+            return self::$env = 'local';
+        }
+        die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
     }
 
 }

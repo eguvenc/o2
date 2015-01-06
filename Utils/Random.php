@@ -15,23 +15,6 @@ namespace Obullo\Utils;
 Class Random
 {
     /**
-     * Container
-     *
-     * @var object
-     */
-    public $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
     * Create a Random String
     *
     * Useful for generating passwords or hashes.
@@ -41,7 +24,7 @@ Class Random
     * 
     * @return string
     */
-    public function generate($type = 'alnum', $len = 8)
+    public static function generate($type = 'alnum', $len = 8)
     {   
         $type = str_replace('_', '.', $type);
 
@@ -57,7 +40,7 @@ Class Random
         case 'alpha'    :
         case 'alpha.lower' :
         case 'alpha.upper' :
-            $pool = $this->getPool($type);
+            $pool = self::getPool($type);
             $str = '';
             for ($i=0; $i < $len; $i++) {
                 $str .= substr($pool, mt_rand(0, strlen($pool) -1), 1);
@@ -74,7 +57,7 @@ Class Random
      * 
      * @return string
      */
-    protected function getPool($type)
+    protected static function getPool($type)
     {
         switch ($type) {
         case 'alpha'        : $pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

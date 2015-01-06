@@ -15,9 +15,9 @@ namespace Obullo\Cli\Controller;
 interface CliInterface
 {
     /**
-     * Execute Cli
+     * Execute Cli Command
      * 
-     * @return bool
+     * @return void
      */
     public function run();
 }

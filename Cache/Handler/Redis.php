@@ -88,7 +88,7 @@ Class Redis implements HandlerInterface
             );
         }
         $serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
-        $this->setOption($serializer);
+        $this->setOption(array('serializer' => $serializer));
     }
 
     /**
@@ -131,30 +131,28 @@ Class Redis implements HandlerInterface
 
     /**
      * Sets serializer options 
-     * 
-     * 'SERIALIZER_NONE'
-     * 'SERIALIZER_PHP'
-     * 'SERIALIZER_JSON'
-     * 'SERIALIZER_IGBINARY'
-     * 
-     * @param array $serializer serializer
+     *
+     * @param array $params options
      * 
      * @return boolean true or false
      */
-    public function setOption($serializer)
+    public function setOption($params)
     {
-        switch ($serializer) {
+        if ( ! isset($params['serializer'])) {
+            return false;
+        }
+        switch ($params['serializer']) {
         case static::SERIALIZER_NONE: // don't serialize data
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             return $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_NONE]);
             break;
         case static::SERIALIZER_PHP: // use built-in serialize/unserialize
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_PHP]);
             return true;
             break;
         case static::SERIALIZER_IGBINARY: // use igBinary serialize/unserialize
-            $this->serializer = $serializer;
+            $this->serializer = $params['serializer'];
             return $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
             break;
         default:
@@ -220,7 +218,7 @@ Class Redis implements HandlerInterface
      * 
      * @return Depending on the type of the data pointed by the type key
      */
-    public function setType($typeKey)
+    public function type($typeKey)
     {
         return $this->redis->type($typeKey);
     }
@@ -689,6 +687,19 @@ Class Redis implements HandlerInterface
     public function info()
     {
         return $this->redis->info();
+    }
+
+    /**
+     * Get Meta Data
+     * 
+     * @param string $key cache key.
+     * 
+     * @return object
+     */
+    public function getMetaData($key)
+    {
+        $key = null;
+        throw new RuntimeException('This function not implemented for redis driver.');
     }
 
     /**

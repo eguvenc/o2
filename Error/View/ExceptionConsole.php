@@ -5,8 +5,8 @@ use Obullo\Error\DebugOutput;
 if (isset($fatalError)) {
     echo "\33[1;36mFatal Error\33[0m\n";
     // We could not load error libraries when error is fatal.
-    echo "\33[0;36m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getMessage())."\n";
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, PUBLIC_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'PUBLIC' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\33[0m\n";
+    echo "\33[0;36m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLER_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage())."\n";
+    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLER_FOLDER), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\33[0m\n";
     exit;
 }
 echo "\33[1;36mException Error\n". DebugOutput::getSecurePath($e->getMessage())."\n";

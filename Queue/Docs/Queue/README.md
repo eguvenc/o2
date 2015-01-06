@@ -8,7 +8,8 @@ Queues allow you to defer the processing of a time consuming task, such as sendi
 ------
 
 ```php
-$c->load('service/queue');
+<?php
+$this->c->load('service/queue');
 $this->queue->method();
 ```
 
@@ -33,7 +34,6 @@ Php <b>task</b> file which is located in your project root that helps you to run
 + assets
 + o2
 + public
-  components.php
   .
   .
   task
@@ -74,8 +74,8 @@ Above the command follow your application logs by reading your <b>app/data/logs/
 	+ config
 	- tasks
 		- controller
-			clear.php
-			log.php
+			   clear.php
+			   log.php
 ```
 
 #### Clear Logs
@@ -157,9 +157,9 @@ Route   : localhost.logger
 ------------------------------------------------------------------------------------------
  Job ID | Job Name             | Data 
 ------------------------------------------------------------------------------------------
- 1      | Workers/QueueLogger  | {"log":{"debug":"test"}}
- 2      | Workers/QueueLogger  | {"message":"this is my message"}
- 3      | Workers/QueueLogger  | {"log":{"debug":"test"}}
+ 1      | Workers/Logger  | {"log":{"debug":"test"}}
+ 2      | Workers/Logger  | {"message":"this is my message"}
+ 3      | Workers/Logger  | {"log":{"debug":"test"}}
 ```
 
 
@@ -223,6 +223,10 @@ php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory
 </thead>
 <tbody>
 <tr>
+<td>--debug</td>
+<td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
+</tr>
+<tr>
 <td>--delay</td>
 <td>Sets delay time for uncompleted jobs.</td>
 </tr>
@@ -239,12 +243,8 @@ php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory
 <td>If we have not job on the queue sleep the script for a given number of seconds.</td>
 </tr>
 <tr>
-<td>--maxTries</td>
-<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
-</tr>
-<tr>
-<td>--debug</td>
-<td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
+<td>--tries</td>
+<td>Sets the maximum number of times a job should be attempted.</td>
 </tr>
 <tr>
 <td>--project</td>
@@ -271,8 +271,8 @@ Push examle
 $c->load('service/queue');
 
 $this->queue->channel('Logs');
-$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.File', array('log' => array('debug' => 'Test')));
-$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.Email', array('message' => 'This is my message'));
+$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', array('log' => array('debug' => 'Test')));
+$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', array('message' => 'This is my message'));
 ```
 
 Push example with delivery mode
@@ -282,7 +282,7 @@ Push example with delivery mode
 $c->load('service/queue');
 
 $this->queue->channel('Logs');
-$this->queue->push($job = 'Workers/QueueLogger', $route = 'MyHostname.Logger.File', 
+$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', 
   $data = array('log' => 'test'), 
   $delay = 0, 
   $options = array(

@@ -2,9 +2,11 @@
 
 namespace Obullo\Auth\User;
 
-use Auth\Identities\GenericIdentity,
-    Auth\Credentials,
-    Obullo\Auth\UserService,
+use Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
+    Auth\Constant,
+    Auth\AuthResult,
+    Obullo\Utils\Random,
     RuntimeException;
 
 /**
@@ -17,7 +19,7 @@ use Auth\Identities\GenericIdentity,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/auth
  */
-Class Login
+Class UserLogin
 {
     /**
      * Container
@@ -34,20 +36,6 @@ Class Login
     protected $config;
 
     /**
-     * Storage class
-     * 
-     * @var object
-     */
-    protected $storage;
-
-    /**
-     * Adaapter
-     * 
-     * @var object
-     */
-    protected $adapter;
-
-    /**
      * Constructor
      *
      * @param object $c    container
@@ -58,8 +46,6 @@ Class Login
         $user = null;
         $this->c = $c;
         $this->config = $this->c['config']->load('auth');
-        $this->storage = $this->c['auth.storage'];
-        $this->adapter = $this->c['auth.adapter'];
     }
 
     /**
@@ -69,7 +55,7 @@ Class Login
      */
     public function enableVerification()
     {
-        $this->adapter->enableVerification();
+        $this->c['auth.adapter']->enableVerification();
     }
 
     /**
@@ -79,7 +65,7 @@ Class Login
      */
     public function disableVerification()
     {
-        $this->adapter->disableVerification();
+        $this->c['auth.adapter']->disableVerification();
     }
 
     /**
@@ -92,13 +78,13 @@ Class Login
      */
     public function attempt(array $credentials, $rememberMe = false)
     {
-        $credentials['__rememberMe'] = ($rememberMe) ?  1 : 0;
-        
-        if ( ! isset($credentials[Credentials::IDENTIFIER]) OR ! isset($credentials[Credentials::PASSWORD]) ) {
+        $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
+
+        if ( ! isset($credentials[Constant::IDENTIFIER]) OR ! isset($credentials[Constant::PASSWORD]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
-                Credentials::IDENTIFIER,
-                Credentials::PASSWORD
+                Constant::IDENTIFIER,
+                Constant::PASSWORD
             );
             return new AuthResult(
                 array(
@@ -108,16 +94,18 @@ Class Login
                 )
             );
         }
-        $authResult = $this->adapter->login(new GenericIdentity($credentials));
+        $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
+        $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+        $authResult = $this->c['auth.adapter']->login(new GenericUser($credentials));
         
         /**
          * Create Login Attempt Event
          */
-        $userResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
-                                                                                     // Event fire returns multiple array but we use one event response
-        return isset($userResult[0]) ? current($userResult) : $authResult;
+        $eventResult = $this->c['event']->fire('login.attempt', array($authResult));  // Returns to overriden auth result object
+                                                                                      // Event fire returns multiple array response but we use one.
+        return isset($eventResult[0]) ? current($eventResult) : $authResult;
     }
- 
+
     /**
      * Authenticate temporary identity after verification
      * 
@@ -125,7 +113,7 @@ Class Login
      */
     public function authenticateVerifiedIdentity()
     {
-        return $this->storage->authenticateTemporaryIdentity();
+        return $this->c['auth.storage']->authenticateTemporaryIdentity();
     }
 
     /**
@@ -137,7 +125,7 @@ Class Login
      */
     public function validate(array $credentials = array())
     {
-        return $this->adapter->authenticate(new GenericIdentity($credentials), false);
+        return $this->c['auth.adapter']->authenticate(new GenericUser($credentials), false);
     }
 
     /**
@@ -150,9 +138,9 @@ Class Login
      * 
      * @return bool
      */
-    public function validateCredentials(UserIdentity $user, array $credentials)
+    public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
-        $plain = $credentials[Credentials::PASSWORD];
+        $plain = $credentials[Constant::PASSWORD];
 
         return $this->c->load('service/password')->verify($plain, $user->getPassword());
     }
@@ -166,7 +154,7 @@ Class Login
      */
     public function getAdapter()
     {
-        return $this->adapter;
+        return $this->c['auth.adapter'];
     }
 
     /**
@@ -178,12 +166,12 @@ Class Login
      */
     public function getStorage()
     {
-        return $this->storage;
+        return $this->c['auth.storage'];
     }
 
 }
 
-// END Login.php File
-/* End of file Login.php
+// END UserLogin.php File
+/* End of file UserLogin.php
 
-/* Location: .Obullo/Auth/User/Login.php */
+/* Location: .Obullo/Auth/User/UserLogin.php */
