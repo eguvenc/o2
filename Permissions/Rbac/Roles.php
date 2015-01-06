@@ -133,15 +133,9 @@ Class Roles
      */
     public function __construct($c, $db)
     {
-<<<<<<< HEAD
         $this->c      = $c;
         $this->db     = $db;
-        $this->cache  = $c->load('return service/cache');
-=======
-        $this->c = $c;
-        $this->db = $db;
         $this->cache  = $c->load('service/cache');
->>>>>>> 85bf69444e3a4a4c7c704f7c8e486aa9afc98416
         $this->treeDb = new Db($c, array('db' => $db));
         
         $this->c['config']->load('constant/rbac');  // load rbac constants
