@@ -47,9 +47,10 @@ Class Mysql extends Adapter implements HandlerInterface
     public function __construct($c, $params = array())
     {
         $c['config']->load('database');
+        $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
 
-        parent::__construct($c, $c['config']['database']['key'][$params['db']]);
-
+        parent::__construct($c, $c['config']['database']['key'][$default]);
+        
         $this->connect();
     }
 
@@ -66,16 +67,29 @@ Class Mysql extends Adapter implements HandlerInterface
         $port = empty($this->port) ? '' : ';port=' . $this->port;
         $dsn  = empty($this->dsn) ? 'mysql:host=' . $this->host . $port . ';dbname=' . $this->database : $this->dsn;
 
+        $this->initialize();
+        $this->pdoObject = $this->pdoConnect($dsn, $this->username, $this->password, $this->options);
+
+
+        echo 'connect !';
+        
+        // We set exception attribute for always showing the pdo exceptions errors.
+        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
+    }
+
+    /**
+     * Initialize to attributes
+     * 
+     * @return void
+     */
+    protected function initialize()
+    {
         if ($this->autoinit['bufferedQuery'] AND defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) { // Automatically use buffered queries.
             $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = true;
         }
         if ($this->autoinit['charset']) {
             $this->options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES $this->charset";
         }   
-        $this->pdoObject = $this->pdoConnect($dsn, $this->username, $this->password, $this->options);
-
-        // We set exception attribute for always showing the pdo exceptions errors.
-        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
     }
 
     /**
@@ -224,7 +238,7 @@ Class Mysql extends Adapter implements HandlerInterface
      * @param array  $keys   the insert keys
      * @param array  $values the insert values
      * 
-     * @return   string
+     * @return string
      */
     public function _insert($table, $keys, $values)
     {
@@ -241,7 +255,7 @@ Class Mysql extends Adapter implements HandlerInterface
      * @param array  $keys   the insert keys
      * @param array  $values the insert values
      * 
-     * @return  string
+     * @return string
      */
     public function _replace($table, $keys, $values)
     {

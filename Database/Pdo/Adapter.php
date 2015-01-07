@@ -742,8 +742,7 @@ Class Adapter
     }
 
     /**
-     * Assign all controller objects
-     * into db class
+     * Assign all controller objects into db class
      * to callback closure $this->object support.
      * 
      * @return void

@@ -9,7 +9,7 @@ use Controller,
     InvalidArgumentException,
     Exception;
 /*
- * Container for Obullo Ersin Guvenc (c) 2014
+ * Container for Obullo Ersin Guvenc (c) 2015
  * 
  * This file after modeled Pimple Software Dependency Container.
  */
@@ -238,7 +238,7 @@ Class Container implements ArrayAccess
                 $service = $this->registered[$serviceClass];
             } else {
                 $service = new $serviceClass;
-                $service->register($this);
+                $service->register($this, $matches);
                 $this->registered[$serviceClass] = $service;
             }
             $implements = key(class_implements($service));
@@ -334,6 +334,7 @@ Class Container implements ArrayAccess
      * @param string $matches   commands
      * @param string $ClassName classname
      * @param string $params    array
+     * @param string $lastKey   last used key if exists e.g. ( model.user  user is last key )
      * 
      * @return mixed object or null
      */
@@ -531,25 +532,24 @@ Class Container implements ArrayAccess
     /**
      * Bind class into the controller if it not exists.
      * 
-     * @param string $cid       class id
-     * @param string $namespace class path
-     * @param array  $params    construct parameters
+     * @param string $cid    class id
+     * @param array  $params construct parameters
      * 
      * @return void
      */
-    public function bind($cid, $namespace = null, $params =  array())
+    public function bind($cid, $params =  array())
     {
-        $Class = '\\'.$namespace;
+        $Class = '\\'.$cid;
         $bindKey = $cid;
         $lastKey = null;
         if ($exp = explode('.', $cid)) {
             $bindKey = $exp[0];
             $lastKey = $exp[1];
+            $Class = '\\'.ucfirst($lastKey);
         }
         if ( ! $this->exists($cid)) {   // Don't register service again.
-
             if ($bindKey == 'model') {  //  Include core model if model bind used.
-                include OBULLO .'Model'. DS .'Model.php';
+                $this->bindModel($Class);
             }
             $matches = array(
             'return' => '',
@@ -557,27 +557,17 @@ Class Container implements ArrayAccess
             $this->register($cid, $bindKey, $matches, $Class, $params);
         }
         return $this->bindGet($cid, $bindKey, $params, $lastKey);
-
-        // $instance = Controller::$instance;
-        // if ( ! isset(Controller::$instance->{$bindKey})) {
-        //     $instance = Controller::$instance->{$bindKey} = new stdClass;  //  Create empty class wrapper
-        // }
-        // if (isset($instance->{$lastKey})) {   //  Lazy loading
-        //     echo '--';
-        //     return $instance->{$lastKey};
-        // }
-        // if ($bindKey == 'model') {  //  Include core model if model bind used.
-        //     include OBULLO .'Model'. DS .'Model.php';
-        // }
-        // return $instance->{$lastKey} = new $Class($this, $params);
     }
 
     /**
-     * [bindGet description]
-     * @param  [type] $cid     [description]
-     * @param  [type] $bindKey [description]
-     * @param  [type] $lastKey [description]
-     * @return [type]          [description]
+     * Get registered bind object
+     * 
+     * @param string $cid     class id
+     * @param string $bindKey bind key
+     * @param string $params  construct paramters
+     * @param string $lastKey last used key if exists e.g. ( model.user user is last key )
+     * 
+     * @return object
      */
     protected function bindGet($cid, $bindKey, $params = array(), $lastKey = null)
     {
@@ -586,10 +576,31 @@ Class Container implements ArrayAccess
             return $this->values[$cid];
         }
         $this->frozen[$cid] = true;
+
+        if ( ! isset($instance->{$bindKey})) {
+            Controller::$instance->{$bindKey} = new stdClass;
+        }
         if (empty($lastKey)) {
             return $instance->{$bindKey} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
         }
-        return $instance->{$bindKey}->{$lastKey} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        return $instance->{$bindKey}->$lastKey = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+    }
+
+    /**
+     * Bind model object
+     * 
+     * @param string $namespace class namespace
+     * 
+     * @return void
+     */
+    protected function bindModel($namespace)
+    {
+        if ( ! class_exists('Model', false)) {
+            include OBULLO .'Model'. DS .'Model.php';
+        }
+        if ( ! class_exists($namespace, false)) {
+            include MODELS .str_replace('\\', DS, ltrim($namespace, '\\')). '.php';
+        }
     }
 
     /**

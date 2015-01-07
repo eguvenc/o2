@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Database\Crud;
+namespace Obullo\Database\Pdo;
 
 use RunTimeException,
     Exception;
@@ -1230,4 +1230,4 @@ Class Query
 // END Query
 /* End of file Query.php
 
-/* Location: .Obullo/Database/Crud/Query.php */
+/* Location: .Obullo/Database/Pdo/Query.php */

@@ -29,25 +29,25 @@ Class Connection
     protected $params;
 
     /**
-     * Database provider
+     * Provider connection commands
      * 
-     * @var object
+     * @var array
      */
-    protected $provider;
+    protected $commands;
 
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params configuration array
+     * @param object $c        container
+     * @param array  $params   configuration array
+     * @param array  $commands possible command parameters ( new, return, as .. )
      */
-    public function __construct($c, $params)
+    public function __construct($c, $params, $commands = array())
     {
         $this->c = $c;
         $this->c['config']->load('database');
-
-        $this->provider = empty($params['provider']) ? $c['config']['database']['default']['provider'] : $params['provider'];
         $this->params = $params;
+        $this->commands = $commands;
     }
 
     /**
@@ -58,8 +58,27 @@ Class Connection
     public function connect()
     {
         $handlers = $this->c['config']['database']['handlers'];
+        $defaultDb = $this->c['config']['database']['default']['database'];
+        $defaultProvider = $this->c['config']['database']['default']['provider'];
+        $provider = empty($this->params['provider']) ? $defaultProvider : $this->params['provider'];
 
-        $Class = $handlers[$this->provider];
+        /**
+        * Provider default instance fix.
+        * New keyword support.
+        * 
+        * If default database already available we need return to old instance.
+        * But if new keyword used in loader $this->c->load('new service/provider/db'); this time we cannot
+        * return to old instance.
+        */ 
+        if ($this->c->exists('db')  //  Is service available ?
+            AND $this->commands['class'] == 'service/provider/db' // Is this provider request ?
+            AND empty($this->commands['new']) 
+            AND $this->params['db'] == $defaultDb 
+            AND $this->params['provider'] == $defaultProvider
+        ) {
+            return $this->c->load('return service/db'); // return to current database instance
+        }
+        $Class = $handlers[$provider];
         return new $Class($this->c, $this->params);
     }
 
