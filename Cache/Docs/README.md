@@ -347,23 +347,205 @@ $newValue = $this->cache->get('x')'           // return 'lol'
 ```
 
 #### $this->cache->renameKey(string $key, string $newKey);
+Mevcut bir anahtarı yeni bir anahtar ile değiştirme imkanı sağlar.
+Değiştirilmek istenen anahtar var ise işlem sonucu **TRUE** yok ise **FALSE** dönecektir.
 
-
+>**Önemli:** Yeni anahtar daha önce tanımlanmış ise yeni anahtar bir öncekinin üzerine yazacaktır.
 
 #### $this->cache->getAllKeys();
+Bütün anahtarları dizi olarak döndürür.
+
+```php
+<?php
+$this->cache->set('key1', 'value1');
+$this->cache->set('key2', 'value2');
+$this->cache->set('key3', 'value3');
+```
+
+```php
+<?php
+var_dump($this->cache->getAllKeys());
+```
+Çıktı:
+```php
+<?php
+array(4) {
+  [0]=>
+  string(1) "key1"
+  [1]=>
+  string(1) "key2"
+  [2]=>
+  string(1) "key3"
+}
+```
 #### $this->cache->hSet();
+
+Belirtilen anahtara string değer ekler ve anahtarı hash olarak tutar. Daha önce hash`lenmiş bir anahtar ile değer eklenmek istendiğinde yeni değeri ekler fakat işlem sonucu **FALSE** döner.
+
+
+```php
+<?php
+$this->cache->delete('h')
+$this->cache->hSet('h', 'key1', 'hello'); /* 1, 'key1' => 'hello' in the hash at "h" */
+$this->cache->hGet('h', 'key1'); /* returns "hello" */
+
+$this->cache->hSet('h', 'key1', 'plop'); /* 0, value was replaced. */
+$this->cache->hGet('h', 'key1'); /* returns "plop" */
+```
+
 #### $this->cache->hGet();
+
+Anahtarı hash`lenmiş değer tablosundan bir değere ulaşmanızı sağlar.
+Saklanan değere erişmek için belirtilen anahtarı hash tablosunda veya diğer anahtarlar içinde arayacaktır. Bulunamaz ise sonuç **FALSE** dönecektir. 
+
+```php
+<?php
+$this->cache->hGet('h', 'key');
+```
 #### $this->cache->hGetAll();
+
+Tüm değerleri string dizisi olarak döndürür.
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hSet('h', 'a', 'x');
+$this->cache->hSet('h', 'b', 'y');
+$this->cache->hSet('h', 'c', 'z');
+$this->cache->hSet('h', 'd', 't');
+var_dump($this->cache->hGetAll('h'));
+```
+
+Çıktı:
+```php
+<?php
+array(4) {
+  ["a"]=>
+  string(1) "x"
+  ["b"]=>
+  string(1) "y"
+  ["c"]=>
+  string(1) "z"
+  ["d"]=>
+  string(1) "t"
+}
+```
 #### $this->cache->hLen();
+
+Hash tablosundaki değerlerin toplamını rakam olarak döndürür.
+
+```php
+<?php
+$this->cache->delete('h')
+$this->cache->hSet('h', 'key1', 'hello');
+$this->cache->hSet('h', 'key2', 'plop');
+$this->cache->hLen('h'); /* returns 2 */
+```
+
 #### $this->cache->hDel();
+
+Hash tablosundan bir değeri siler. Hash tablosu yada belirtilen anahtar yok ise sonuç **FALSE** dönecektir.
+
+```php
+<?php
+$this->cache->hDel('h', 'key');
+```
 #### $this->cache->hKeys();
+Bir hash`teki tüm anahtarları dizi olarak döndürür.
+
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hSet('h', 'a', 'x');
+$this->cache->hSet('h', 'b', 'y');
+$this->cache->hSet('h', 'c', 'z');
+$this->cache->hSet('h', 'd', 't');
+var_dump($this->cache->hKeys('h'));
+```
+
+Çıktı:
+```php
+<?php
+array(4) {
+  [0]=>
+  string(1) "a"
+  [1]=>
+  string(1) "b"
+  [2]=>
+  string(1) "c"
+  [3]=>
+  string(1) "d"
+}
+```
 #### $this->cache->hVals();
+Bir hash`teki tüm değerleri dizi olarak döndürür.
+
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hSet('h', 'a', 'x');
+$this->cache->hSet('h', 'b', 'y');
+$this->cache->hSet('h', 'c', 'z');
+$this->cache->hSet('h', 'd', 't');
+var_dump($this->cache->hVals('h'));
+```
+
+Çıktı:
+```php
+<?php
+array(4) {
+  [0]=>
+  string(1) "x"
+  [1]=>
+  string(1) "y"
+  [2]=>
+  string(1) "z"
+  [3]=>
+  string(1) "t"
+}
+```
+
 #### $this->cache->hIncrBy();
+Bir hash üyesinin değerini belirli bir miktarda artırır.
+
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hIncrBy('h', 'x', 2); /* returns 2: h[x] = 2 now. */
+$this->cache->hIncrBy('h', 'x', 1); /* h[x] ← 2 + 1. Returns 3 */
+```
 #### $this->cache->hIncrByFloat();
+
+Bir hash üyesinin değerini float (ondalıklı) değer olarak artırmayı sağlar.
+
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hIncrByFloat('h','x', 1.5); /* returns 1.5: h[x] = 1.5 now */
+$this->cache->hIncrByFLoat('h', 'x', 1.5); /* returns 3.0: h[x] = 3.0 now */
+$this->cache->hIncrByFloat('h', 'x', -3.0); /* returns 0.0: h[x] = 0.0 now */
+```
 #### $this->cache->hMSet();
+
+Tüm hash'leri doldurur. String olmayan değerleri string türüne çevirir, bunuda standart string`e dökme işlemini kullanarak yapar. Değeri **NULL** olarak saklanmış veriyi boş string olarak saklar.
+
+```php
+<?php
+$this->cache->delete('user:1');
+$this->cache->hMset('user:1', array('name' => 'Joe', 'salary' => 2000));
+$this->cache->hIncrBy('user:1', 'salary', 100); // Joe earns 100 more now.
+
+```
 #### $this->cache->hMGet();
 
+Hash'te özel tanımlanan alanların değerlerini dizi olarak getirir.
 
+```php
+<?php
+$this->cache->delete('h');
+$this->cache->hSet('h', 'field1', 'value1');
+$this->cache->hSet('h', 'field2', 'value2');
+$this->cache->hmGet('h', array('field1', 'field2')); /* returns array('field1' => 'value1', 'field2' => 'value2') */
+```
 #### $this->cache->getLastError()
 
 En son meydana gelen hataya string biçiminde geri döner.
@@ -393,7 +575,7 @@ $this->cache->type('key');
 
 #### $this->cache->flushDB()
 
-Remove all keys from the current database. Return boolean always true
+Geçerli veritabanından tüm anahtarları siler. Bu işlemin sonucu daima **TRUE** döner.
 ```php
 <?php
 
@@ -402,7 +584,7 @@ $this->cache->flushDB();
 
 #### $this->cache->append(string $key, string or array $data)
 
-Append specified string to the string stored in specified key.
+Daha önce değer atanmış bir anahtara yeni değer ekler. Önceki değer ile birleşir.
 ```php
 <?php
 
@@ -413,7 +595,7 @@ $this->cache->get('key'); /* 'value1value2' */
 
 ##### $this->cache->keyExists(string $key)
 
-Verify if the specified key exists.
+Bir anahtarın var olup olmadığını kontrol eder.
 
 ```php
 <?php
@@ -425,7 +607,7 @@ $this->cache->keyExists('NonExistingKey'); /* false */
 
 #### $this->cache->getMultiple(array $key)
 
-Get the values of all the specified keys. If one or more keys dont exist, the array will contain.
+Tüm belirtilen anahtarların değerini dizi olarak döndürür. Bir yada daha fazla anahtar değeri bulunamaz ise bu anahtarların değeri **FALSE** olarak dizide var olacaklardır.
 
 ```php
 <?php
@@ -435,6 +617,7 @@ $this->cache->set('key2', 'value2');
 $this->cache->set('key3', 'value3');
 $this->cache->getMultiple(array('key1', 'key2', 'key3')); 
 ```
+#### $this->cache->sAdd(string $key, string or array $value);
 
 ```php
 <?php
@@ -446,26 +629,29 @@ $this->cache->sAdd('key1', 'value2'); /* 0, 'key1' => {'value1', 'value2', 'valu
 
 #### $this->cache->sort(string $key, array $sort)
 
-Sort the elements in a list, set or sorted set.
+Saklanan değerleri parametreler doğrultusunda sıralar.
 
+Değerler:
 ```php
 <?php
 
 $this->cache->delete('test');
-$this->cache->sAdd('test', 5);
-$this->cache->sAdd('test', 4);
 $this->cache->sAdd('test', 2);
 $this->cache->sAdd('test', 1);
 $this->cache->sAdd('test', 3);
-
-var_dump($this->cache->sort('test')); // 1,2,3,4,5
+```
+Kullanımı:
+```php
+<?php
+var_dump($this->cache->sort('test')); // 1,2,3
 var_dump($this->cache->sort('test', array('sort' => 'desc'))); // 5,4,3,2,1
 var_dump($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
 ```
+>** Bilgi:** **sort** methodunun kullanılabilmesi için serileştirme tipi **SERIALIZER_NONE** olarak tanımlı olması gerekmektedir.
 
 #### $this->cache->sSize(string $key)
 
-Returns the cardinality of the set identified by key.
+Belirtilen anahtara ait değerlerin toplamını döndürür.
 
 ```php
 <?php
@@ -473,13 +659,16 @@ Returns the cardinality of the set identified by key.
 $this->cache->sAdd('key1' , 'test1');
 $this->cache->sAdd('key1' , 'test2');
 $this->cache->sAdd('key1' , 'test3'); /* 'key1' => {'test1', 'test2', 'test3'}*/
+```
+```php
+<?php
 $this->cache->sSize('key1'); /* 3 */
 $this->cache->sSize('keyX'); /* 0 */
 ```
 
 #### $this->cache->sInter(array $key)
 
-Returns the members of a set resulting from the intersection of all the sets held at the specified keys.
+Belirtilen anahtarlara ait değerleri bir birleriyle kesişenleri döndürür.
 
 ```php
 <?php
@@ -494,19 +683,22 @@ $this->cache->sAdd('key2', 'val4');
 
 $this->cache->sAdd('key3', 'val3');
 $this->cache->sAdd('key3', 'val4');
-
-var_dump($redis->sInter('key1', 'key2', 'key3'));
-/*
- * Output
-	array (size=2)
-	  0 => string 'val4' (length=4)
-	  1 => string 'val3' (length=4)
- */
+```
+```php
+<?php
+var_dump($this->cache->sInter('key1', 'key2', 'key3'));
 ```
 
+Çıktı:
+```php
+<?php
+array (size=2)
+    0 => string 'val4' (length=4)
+    1 => string 'val3' (length=4)
+```
 #### $this->cache->sGetMembers(string $key)
 
-Returns the contents of a set.
+Belirtilen anahtarın değerini bir dizi olarak döndürür.
 
 ```php
 <?php
@@ -516,58 +708,63 @@ $this->cache->sAdd('key', 'val1');
 $this->cache->sAdd('key', 'val2');
 $this->cache->sAdd('key', 'val1');
 $this->cache->sAdd('key', 'val3');
-
-var_dump($this->cache->sGetMembers('key'));
-/*
-Gives
-	array (size=3)
-	  0 => string 'val3' (length=4)
-	  1 => string 'val2' (length=4)
-	  2 => string 'val1' (length=4)
- */
 ```
 
+```php
+<?php
+var_dump($this->cache->sGetMembers('key'));
+```
+Çıktı:
+```php
+<?php
+array (size=3)
+    0 => string 'val3' (length=4)
+    1 => string 'val2' (length=4)
+    2 => string 'val1' (length=4)
+```
 
-### Function Reference
+### Metod Referansları
 
 -----
 
 #### $this->cache->keyExists($key);
 
-Check the is key exists providing by your key.
+Belirtilen anahtarın var olup olmadığını kontrol eder.
 
 #### $this->cache->get($key);
 
-Get cache data providing by your key.
+Belirtilen anahtarın değerini döndürür.
 
 #### $this->cache->set($key, $data, $expiration_time);
 
-Saves a cache data usign your key.
+İstenilen değeri belirtilen anahtar ile kayıt eder.
 
 #### $this->cache->getAllKeys();
 
-Gets the all keys, however, only suitable with file, memcached and redis.
+Tanımlı olan tüm anahtarları döndürür, fakat sadece file, memcached ve redis ile uyumlu çalışır.
 
 #### $this->cache->getAllData();
 
-Gets the all data, however, only suitable with file, memcached and redis.
+Tanımlı olan tüm değerleri döndürür, fakat sadece file, memcached ve redis ile uyumlu çalışır.
 
 #### $this->cache->delete($key);
 
-Deletes the selected key.
+Belirtilen anahtara ait değeri siler.
 
 #### $this->cache->info();
 
-Get software information installed on your server.
+Sunucuda kurulu cache sürücüsü hakkında bilgileri döndürür.
 
 #### $this->cache->getMetaData($key);
 
-Gets the meta information of data of the chosen key.
+Belirtilen anahtara ait değer hakkındaki meta bilgileri döndürür. *(Bu özelliği redis sürücüsü desteklememektedir.)*
 
 #### $this->cache->flushAll($key);
 
 Remove all keys from all databases.
 
+Tanımlanmış bütün anahtarları tüm veritabanından siler.
+
 #### $this->cache->isConnected()
 
-Bağlantı aktif ise <b>true</b> değerine aksi durumda <b>false</b> değerine döner.
+Bağlantı aktif ise **TRUE** değerine aksi durumda **FALSE** değerine döner.
