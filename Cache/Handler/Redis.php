@@ -385,7 +385,7 @@ Class Redis implements HandlerInterface
         if (count($sort) > 0) {
             return $this->redis->sort($key, $sort);
         }
-        return $this->redis->sort($sort);
+        return $this->redis->sort($key);
     }
 
     /**
