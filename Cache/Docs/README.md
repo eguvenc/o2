@@ -44,7 +44,7 @@ Class Cache implements ServiceInterface
 
 ### Servisi Yüklemek
 
-Bir kez servis load komutu ile yüklendiği zaman artık kütüphane metotlarına cache adıyla ulaşabilirsiniz.
+Servis bir kez load komutu ile yüklendiği zaman artık kütüphane metotlarına kendi adıyla ulaşabilirsiniz.
 
 ```php
 <?php

@@ -1,35 +1,29 @@
 
-## Captcha Class
+## Captcha Sınıfı
 
 ------
 
-The Captcha class file contains functions that assist in creating CAPTCHA security images.
+CAPTCHA Carnegie Mellon School of Computer Science tarafından geliştirilen bir projedir. Projenin amacı bilgisayar ile insanların davranışlarının ayırt edilmesidir ve daha çok bu ayrımı yapmanın en zor olduğu web ortamında kullanılmaktadır.
 
-### Initializing the Class
+CAPTCHA projesinin bazı uygulamalarına çoğu web sayfalarında rastlamak mümkündür. Üyelik formlarında rastgele resim gösterilerek formu dolduran kişiden bu resmin üzerinde yazan sözcüğü girmesi istenir. Buradaki basit mantık o resimde insan tarafından okunabilecek ancak bilgisayar programları tarafından okunması zor olan bir sözcük oluşturmaktır. Eğer forma girilen sözcük resimdeki ile aynı değilse ya formu dolduran kişi yanlış yapmıştır ya da formu dolduran bir programdır denebilir.
+
+O2 captcha sınıfı captcha resimlerini oluşturmanıza yardımcı olan bir kütüphanedir. 
+
+
+### Sınıfı Yüklemek
 
 ------
+
+Sınıf bir kez load komutu ile yüklendiği zaman artık kütüphane metotlarına kendi adıyla ulaşabilirsiniz.
 
 ```php
 <?php
 
-$this->c->load('service/captcha');
+$this->c->load('captcha');
 $this->captcha->method();
 ```
 
-Once loaded, the Captcha object will be available using: <dfn>$this->captcha->method()</dfn>
-
-The following functions are available:
-
-### Create a Captcha On the Fly
-
-Creates captcha on the fly with default settings.
-
-```php
-<?php
-$this->c->load('service/captcha');
-$this->captcha->create();
-```
-### Config File
+### Konfigürasyon
 
 You can set captcha configuration file from <kbd>app/config</kbd> folder.
 
@@ -49,6 +43,18 @@ The Captcha Class garbage collection function deletes images when expiration tim
 <?php
 
 $captcha['expiration'] = 180; // seconds
+```
+
+
+
+### Create a Captcha On the Fly
+
+Creates captcha on the fly with default settings.
+
+```php
+<?php
+$this->c->load('service/captcha');
+$this->captcha->create();
 ```
 
 ### Test Mode

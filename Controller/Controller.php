@@ -21,7 +21,6 @@ Class Controller
     public function __construct()
     {
         global $c;
-        
         $this->c = $c;
         self::$instance = &$this;
         $logger = $c->load('service/logger');  // Assign Default Loaded Packages

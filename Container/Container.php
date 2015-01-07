@@ -5,6 +5,7 @@ namespace Obullo\Container;
 use Controller,
     ArrayAccess,
     SplObjectStorage,
+    stdClass,
     InvalidArgumentException,
     Exception;
 /*
@@ -36,7 +37,6 @@ Class Container implements ArrayAccess
     protected $return = array();        // Stores return requests
     protected $resolved = array();      // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
-
     protected $envArray = array();      // $c->detectEnvironment() use this configuration
     protected static $env;
 
@@ -525,6 +525,26 @@ Class Container implements ArrayAccess
             }
         };
         return $serviceClass;
+    }
+
+    /**
+     * Register & Load classes to container then assign
+     * into controller if not exists.
+     * 
+     * @param string $key       class key
+     * @param string $namespace class path
+     * @param array  $params    construct parameters
+     * 
+     * @return void
+     */
+    public function bind($key, $namespace, $params =  array())
+    {
+        $bindKey = $key;
+        if ($exp = explode('.', $key)) {
+            $bindKey = $exp[0];    
+        }
+        Controller::$instance->{$bindKey} = new stdClass;
+        $this->register();
     }
 
     /**

@@ -61,29 +61,77 @@ Class Form
     }
 
     /**
-     * Set form head message
+     * Set success message and set status to "1".
      * 
-     * @param string $message message string
-     * @param mixed  $status  error, sucess, info
+     * @param string $message success message
      * 
      * @return void
      */
-    public function setMessage($message = '', $status = 0)
+    public function success($message)
     {
         $this->messages[static::MESSAGE] = (string)$message;
+        $this->messages[static::SUCCESS] = NOTICE_SUCCESS;
+    }
+
+    /**
+     * Set errors message and set status to "0".
+     * 
+     * @param string $message success message
+     * 
+     * @return void
+     */
+    public function error($message)
+    {
+        $this->messages[static::MESSAGE] = (string)$message;
+        $this->messages[static::SUCCESS] = NOTICE_ERROR;
+    }
+
+    /**
+     * Set info message
+     * 
+     * @param string $message success message
+     * 
+     * @return void
+     */
+    public function info($message)
+    {
+        $this->messages[static::MESSAGE] = (string)$message;
+        $this->messages[static::SUCCESS] = NOTICE_INFO;
+    }
+
+    /**
+     * Set warning message
+     * 
+     * @param string $message success message
+     * 
+     * @return void
+     */
+    public function warning($message)
+    {
+        $this->messages[static::MESSAGE] = (string)$message;
+        $this->messages[static::SUCCESS] = NOTICE_WARNING;
+    }
+
+    /**
+     * Sets form status
+     * 
+     * @param integer $status 1 or 0
+     * 
+     * @return void
+     */
+    public function status($status = 0)
+    {
         $this->messages[static::SUCCESS] = (int)$status;
     }
 
     /**
-     * Set success key's value
-     * 
-     * @param integer $status success value
+     * Returns to form status
      * 
      * @return void
      */
-    public function success($status = 1)
+    public function getStatus()
     {
-        $this->messages[static::SUCCESS] = (int)$status;
+        return $this->messages[static::SUCCESS];
     }
 
     /**
@@ -127,7 +175,7 @@ Class Form
      * 
      * @return string
      */
-    public function message($notice = '', $status = 0)
+    public function getMessage($notice = '', $status = 0)
     {
         if ( ! empty($notice) AND is_string($notice)) {
             $this->setMessage($notice, $status);
@@ -176,7 +224,7 @@ Class Form
      * 
      * @return mixed string or null
      */
-    public function error($field, $prefix = '', $suffix = '')
+    public function getError($field, $prefix = '', $suffix = '')
     {
         if ($this->c->exists('validator')) {  // If we have validator object
             return $this->c->load('validator')->getError($field, $prefix, $suffix);
@@ -194,7 +242,7 @@ Class Form
      * 
      * @return mixed string or null
      */    
-    public function value($field = '', $default = '')
+    public function getValue($field = '', $default = '')
     {
         if ($this->c->exists('validator')) { // If we have validator object
             return $this->c->load('validator')->getValue($field, $default);

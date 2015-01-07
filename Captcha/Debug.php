@@ -23,8 +23,8 @@ Class Debug
         global $c;
 
         $images = '';
-        $config = $c['config']->load('captcha.conf');
-        $this->captcha = $c->load('service/captcha');
+        $config = $c['config']->load('captcha');
+        $this->captcha = $c->load('captcha');
 
         asort($this->captcha->fonts);
 
