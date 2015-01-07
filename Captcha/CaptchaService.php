@@ -50,20 +50,20 @@ Class CaptchaService
      * Constructor
      *
      * @param object $c      container
-     * @param array  $config parameters
+     * @param array  $params parameters
      */
-    public function __construct($c, $config = array())
+    public function __construct($c, $params = array())
     {
         $this->c = $c;
-        $this->session = $c->load('session');
-        $this->logger = $c->load('service/logger');
-        $this->captcha = $config;
+        $this->session = $this->c->load('session');
+        $this->logger  = $this->c->load('service/logger');
+        $this->config  = $params;
 
-        $this->init();
-        $this->img_path = ROOT . str_replace('/', DS, trim($this->captcha['img_path'], '/')) . DS;  // replace with DS
-        $this->img_url = $c['uri']->getBaseUrl($this->captcha['img_path'] . DS); // add Directory Seperator ( DS )
-        $this->user_font_path= ROOT . $this->captcha['user_font_path'] . DS;
-        $this->default_font_path = OBULLO . 'Captcha' . DS . 'fonts' . DS;
+        // $this->init();
+        $this->imgPath         = ROOT . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
+        $this->imgUrl          = $c['uri']->getBaseUrl($this->config['img_path'] . DS); // add Directory Seperator ( DS )
+        $this->fontPath        = ROOT . $this->config['user_font_path'] . DS;
+        $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'fonts' . DS;
 
         $this->logger->debug('Captcha Class Initialized');
     }
@@ -75,21 +75,21 @@ Class CaptchaService
      */
     protected function init()
     {
-        $this->driver              = $this->captcha['driver'];
-        $this->captcha_id          = $this->captcha['captcha_id'];
-        $this->colors              = $this->captcha['colors'];
-        $this->default_text_color  = $this->captcha['default_text_color'];
-        $this->default_noise_color = $this->captcha['default_noise_color'];
-        $this->default_fonts       = array_keys($this->captcha['fonts']);
-        $this->fonts               = $this->captcha['fonts'];
-        $this->expiration          = $this->captcha['expiration'];
-        $this->char                = $this->captcha['char'];
-        $this->height              = $this->captcha['height'];
-        $this->font_size           = $this->captcha['font_size'];
-        $this->set_pool            = $this->captcha['set_pool'];
-        $this->wave_image          = $this->captcha['wave_image'];
-        $this->char_pool           = $this->captcha['char_pool'];
-        $this->image_type          = $this->captcha['image_type'];
+        // $this->driver              = $this->config['driver'];
+        // $this->captcha_id          = $this->config['captcha_id'];
+        // $this->colors              = $this->config['colors'];
+        // $this->default_text_color  = $this->config['default_text_color'];
+        // $this->default_noise_color = $this->config['default_noise_color'];
+        // $this->default_fonts       = array_keys($this->config['fonts']);
+        // $this->fonts               = $this->config['fonts'];
+        // $this->expiration          = $this->config['expiration'];
+        // $this->char                = $this->config['char'];
+        // $this->height              = $this->config['height'];
+        // $this->font_size           = $this->config['font_size'];
+        // $this->set_pool            = $this->config['set_pool'];
+        // $this->wave_image          = $this->config['wave_image'];
+        // $this->char_pool           = $this->config['char_pool'];
+        // $this->image_type          = $this->config['image_type'];
     }
 
     /**
@@ -116,22 +116,22 @@ Class CaptchaService
      *
      * @return void
      */
-    protected function setDefaults($variable, $defaultVariable, $values)
-    {
-        $array = array();
-        if (is_string($values)) {
-            $values = array($values);
-        }
-        foreach ($values as $val) {
-            if (array_key_exists($val, $this->$variable)) {
-                $array[$val] = $val;
-            }
-        }
-        if ( ! empty($array)) {
-            $this->{$defaultVariable} = $array;
-        }
-        unset($array);
-    }
+    // protected function setDefaults($variable, $defaultVariable, $values)
+    // {
+    //     $array = array();
+    //     if (is_string($values)) {
+    //         $values = array($values);
+    //     }
+    //     foreach ($values as $val) {
+    //         if (array_key_exists($val, $this->$variable)) {
+    //             $array[$val] = $val;
+    //         }
+    //     }
+    //     if ( ! empty($array)) {
+    //         $this->{$defaultVariable} = $array;
+    //     }
+    //     unset($array);
+    // }
 
     /**
      * Set capthca id
@@ -142,38 +142,33 @@ Class CaptchaService
      */
     public function setCaptchaId($captchaId)
     {
-        $this->captcha_id = $captchaId;
+        $this->config['input']['id'] = $captchaId;
+        return $this;
     }
 
     /**
      * Set background noise color
      * 
-     * @param mixed $values color
+     * @param mixed $color color
      * 
      * @return object
      */
-    public function setNoiseColor($values = '')
+    public function setNoiseColor($color)
     {
-        if (empty($values)) {
-            return $this;
-        }
-        $this->setDefaults('colors', 'default_noise_color', $values);
+        $this->config['text']['colors']['noise'] = $color;
         return $this;
     }
 
     /**
      * Set text color
      * 
-     * @param mixed $values color
+     * @param mixed $color color
      * 
      * @return object
      */
-    public function setColor($values)
+    public function setColor($color)
     {
-        if (empty($values)) {
-            return $this;
-        }
-        $this->setDefaults('colors', 'default_text_color', $values);
+        $this->config['text']['colors']['text'] = $color;
         return $this;
     }
 
@@ -186,23 +181,20 @@ Class CaptchaService
      */
     public function setFont($values)
     {
-        if (empty($values)) {
-            return $this;
-        }
-        $this->setDefaults('fonts', 'default_fonts', $values);
+        $this->config['fonts'] = $font;
         return $this;
     }
 
     /**
      * Set text font size
      * 
-     * @param int $fontSize font size
+     * @param int $size font size
      * 
      * @return object
      */
-    public function setFontSize($fontSize)
+    public function setFontSize($size)
     {
-        $this->font_size = $fontSize;
+        $this->config['font']['size'] = $size;
         return $this;
     }
 
@@ -215,7 +207,7 @@ Class CaptchaService
      */
     public function setHeight($height)
     {
-        $this->height = $height;
+        $this->config['image']['height'] = $height;
         return $this;
     }
 
@@ -228,33 +220,35 @@ Class CaptchaService
      */
     public function setPool($pool)
     {
-        if (array_key_exists($pool, $this->char_pool)) {
-            $this->set_pool = $pool;
+        if (isset($this->config['characters']['pools'][$pool])) {
+            $this->config['characters']['default']['pool'] = $pool;
         }
+        return $this;
     }
 
     /**
-     * Set character
+     * Set character length
      * 
-     * @param int $char character
+     * @param int $length character length
      * 
      * @return object
      */
-    public function setChar($char)
+    public function setChar($length)
     {
-        $this->char = $char;
+        $this->config['characters']['length'] = $length;
+        return $this;
     }
 
     /**
      * Set wave TRUE or FALSE
      * 
-     * @param option $wave enable wave for font
+     * @param boolean $wave enable wave for font
      * 
      * @return object
      */
     public function setWave($wave)
     {
-        $this->wave_image = $wave;
+        $this->config['image']['wave'] = (boolean)$wave;
         return $this;
     }
 
@@ -281,7 +275,7 @@ Class CaptchaService
             $this->code = '';
             $i = 0;
             while ($i < $this->char) {
-                $this->code.= mb_substr($possible, mt_rand(0, mb_strlen($possible, $this->captcha['charset']) - 1), 1, $this->captcha['charset']);
+                $this->code.= mb_substr($possible, mt_rand(0, mb_strlen($possible, $this->config['charset']) - 1), 1, $this->config['charset']);
                 $i++;
             }
         } elseif ($this->debugFlag == 'all') {
