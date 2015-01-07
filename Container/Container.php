@@ -337,12 +337,13 @@ Class Container implements ArrayAccess
      * 
      * @return mixed object or null
      */
-    protected function register($cid, $key, $matches, $ClassName, $params)
+    protected function register($cid, $key, $matches, $ClassName, $params, $lastKey = null)
     {
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
-                if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and is not null
-                    return Controller::$instance->{$key} = new $ClassName($this, $params);
+                $instance =  Controller::$instance;
+                if ($instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null
+                    return empty($lastKey) ? $instance->{$key} = new $ClassName($this, $params) : $instance->{$key}->{$lastKey} = new $ClassName($this, $params);
                 }
                 return new $ClassName($this, $params);
             };
@@ -528,23 +529,67 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Register & Load classes to container then assign
-     * into controller if not exists.
+     * Bind class into the controller if it not exists.
      * 
-     * @param string $key       class key
+     * @param string $cid       class id
      * @param string $namespace class path
      * @param array  $params    construct parameters
      * 
      * @return void
      */
-    public function bind($key, $namespace, $params =  array())
+    public function bind($cid, $namespace = null, $params =  array())
     {
-        $bindKey = $key;
-        if ($exp = explode('.', $key)) {
-            $bindKey = $exp[0];    
+        $Class = '\\'.$namespace;
+        $bindKey = $cid;
+        $lastKey = null;
+        if ($exp = explode('.', $cid)) {
+            $bindKey = $exp[0];
+            $lastKey = $exp[1];
         }
-        Controller::$instance->{$bindKey} = new stdClass;
-        $this->register();
+        if ( ! $this->exists($cid)) {   // Don't register service again.
+
+            if ($bindKey == 'model') {  //  Include core model if model bind used.
+                include OBULLO .'Model'. DS .'Model.php';
+            }
+            $matches = array(
+            'return' => '',
+            );
+            $this->register($cid, $bindKey, $matches, $Class, $params);
+        }
+        return $this->bindGet($cid, $bindKey, $params, $lastKey);
+
+        // $instance = Controller::$instance;
+        // if ( ! isset(Controller::$instance->{$bindKey})) {
+        //     $instance = Controller::$instance->{$bindKey} = new stdClass;  //  Create empty class wrapper
+        // }
+        // if (isset($instance->{$lastKey})) {   //  Lazy loading
+        //     echo '--';
+        //     return $instance->{$lastKey};
+        // }
+        // if ($bindKey == 'model') {  //  Include core model if model bind used.
+        //     include OBULLO .'Model'. DS .'Model.php';
+        // }
+        // return $instance->{$lastKey} = new $Class($this, $params);
+    }
+
+    /**
+     * [bindGet description]
+     * @param  [type] $cid     [description]
+     * @param  [type] $bindKey [description]
+     * @param  [type] $lastKey [description]
+     * @return [type]          [description]
+     */
+    protected function bindGet($cid, $bindKey, $params = array(), $lastKey = null)
+    {
+        $instance = Controller::$instance;
+        if (isset($this->frozen[$cid])) {
+            return $this->values[$cid];
+        }
+        $this->frozen[$cid] = true;
+        if (empty($lastKey)) {
+            return $instance->{$bindKey} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        }
+        return $instance->{$bindKey}->{$lastKey} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
     }
 
     /**

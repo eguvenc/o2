@@ -58,6 +58,13 @@ Class Controller
                               // and object types
     }
 
+    // public function __get($key)
+    // {
+    //     // if ($key == 'model') {
+    //     //     return $this->model;
+    //     // }
+    // }
+
 }
 
 // END Controller class

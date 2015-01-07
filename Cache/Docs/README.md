@@ -348,39 +348,27 @@ $newValue = $this->cache->get('x')'           // return 'lol'
 
 #### $this->cache->renameKey(string $key, string $newKey);
 Mevcut bir anahtarı yeni bir anahtar ile değiştirme imkanı sağlar.
-Değiştirilmek istenen anahtar var ise işlem sonucu **TRUE** yok ise **FALSE** dönecektir.
+Değiştirilmek istenen anahtar var ise işlem sonucu **true** yok ise **false** dönecektir.
 
 >**Önemli:** Yeni anahtar daha önce tanımlanmış ise yeni anahtar bir öncekinin üzerine yazacaktır.
 
 #### $this->cache->getAllKeys();
+
 Bütün anahtarları dizi olarak döndürür.
 
 ```php
 <?php
-$this->cache->set('key1', 'value1');
-$this->cache->set('key2', 'value2');
-$this->cache->set('key3', 'value3');
+print_r($this->cache->getAllKeys());
 ```
+Çıktı:
 
 ```php
 <?php
-var_dump($this->cache->getAllKeys());
-```
-Çıktı:
-```php
-<?php
-array(4) {
-  [0]=>
-  string(1) "key1"
-  [1]=>
-  string(1) "key2"
-  [2]=>
-  string(1) "key3"
-}
+// array ( "key1", "key2", "key3")
 ```
 #### $this->cache->hSet();
 
-Belirtilen anahtara string değer ekler ve anahtarı hash olarak tutar. Daha önce hash`lenmiş bir anahtar ile değer eklenmek istendiğinde yeni değeri ekler fakat işlem sonucu **FALSE** döner.
+Belirtilen anahtara string değer ekler ve anahtarı hash olarak tutar. Daha önce hash`lenmiş bir anahtar ile değer eklenmek istendiğinde yeni değeri ekler fakat işlem sonucu **false** döner.
 
 
 ```php
@@ -396,7 +384,7 @@ $this->cache->hGet('h', 'key1'); /* returns "plop" */
 #### $this->cache->hGet();
 
 Anahtarı hash`lenmiş değer tablosundan bir değere ulaşmanızı sağlar.
-Saklanan değere erişmek için belirtilen anahtarı hash tablosunda veya diğer anahtarlar içinde arayacaktır. Bulunamaz ise sonuç **FALSE** dönecektir. 
+Saklanan değere erişmek için belirtilen anahtarı hash tablosunda veya diğer anahtarlar içinde arayacaktır. Bulunamaz ise sonuç **false** dönecektir. 
 
 ```php
 <?php
@@ -443,7 +431,7 @@ $this->cache->hLen('h'); /* returns 2 */
 
 #### $this->cache->hDel();
 
-Hash tablosundan bir değeri siler. Hash tablosu yada belirtilen anahtar yok ise sonuç **FALSE** dönecektir.
+Hash tablosundan bir değeri siler. Hash tablosu yada belirtilen anahtar yok ise sonuç **false** dönecektir.
 
 ```php
 <?php
@@ -575,7 +563,7 @@ $this->cache->type('key');
 
 #### $this->cache->flushDB()
 
-Geçerli veritabanından tüm anahtarları siler. Bu işlemin sonucu daima **TRUE** döner.
+Geçerli veritabanından tüm anahtarları siler. Bu işlemin sonucu daima **true** döner.
 ```php
 <?php
 
@@ -607,7 +595,7 @@ $this->cache->keyExists('NonExistingKey'); /* false */
 
 #### $this->cache->getMultiple(array $key)
 
-Tüm belirtilen anahtarların değerini dizi olarak döndürür. Bir yada daha fazla anahtar değeri bulunamaz ise bu anahtarların değeri **FALSE** olarak dizide var olacaklardır.
+Tüm belirtilen anahtarların değerini dizi olarak döndürür. Bir yada daha fazla anahtar değeri bulunamaz ise bu anahtarların değeri **false** olarak dizide var olacaklardır.
 
 ```php
 <?php
@@ -767,4 +755,4 @@ Tanımlanmış bütün anahtarları tüm veritabanından siler.
 
 #### $this->cache->isConnected()
 
-Bağlantı aktif ise **TRUE** değerine aksi durumda **FALSE** değerine döner.
+Bağlantı aktif ise **true** değerine aksi durumda **false** değerine döner.
