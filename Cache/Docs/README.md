@@ -343,7 +343,7 @@ $this->cache->get('key'); /* 'value1value2' */
 <?php
 $this->cache->set('x', '42');
 $exValue = $this->cache->getSet('x', 'lol');  // return '42', replaces x by 'lol'
-$newValue = $this->cache->get('x')'           // return 'lol'
+$newValue = $this->cache->get('x');           // return 'lol'
 ```
 
 #### $this->cache->renameKey(string $key, string $newKey);
@@ -364,21 +364,23 @@ print_r($this->cache->getAllKeys());
 
 ```php
 <?php
-// array ( "key1", "key2", "key3")
+//array("key1","key2","key3");
 ```
 #### $this->cache->hSet();
 
-Belirtilen anahtara string değer ekler ve anahtarı hash olarak tutar. Daha önce hash`lenmiş bir anahtar ile değer eklenmek istendiğinde yeni değeri ekler fakat işlem sonucu **false** döner.
-
+Belirtilen anahtara bir değer ekler. Anahtar hash  ile saklanır. Ancak anahtar daha önce başka bir değer için eklenmiş ise yeni değer eklenir fakat bu işlemin sonucu **false** dönecektir.
 
 ```php
 <?php
 $this->cache->delete('h')
-$this->cache->hSet('h', 'key1', 'hello'); /* 1, 'key1' => 'hello' in the hash at "h" */
-$this->cache->hGet('h', 'key1'); /* returns "hello" */
-
-$this->cache->hSet('h', 'key1', 'plop'); /* 0, value was replaced. */
-$this->cache->hGet('h', 'key1'); /* returns "plop" */
+$this->cache->hSet('h', 'key1', 'merhaba'); // sonuç true döner.
+$this->cache->hGet('h', 'key1'); // return "merhaba"
+```
+**false** olan sonuç:
+```php
+<?php
+$this->cache->hSet('h', 'key1', 'merhaba php'); // değer değiştirilir fakat sonuç false döner
+$this->cache->hGet('h', 'key1'); // return merhaba php
 ```
 
 #### $this->cache->hGet();
@@ -399,23 +401,13 @@ $this->cache->delete('h');
 $this->cache->hSet('h', 'a', 'x');
 $this->cache->hSet('h', 'b', 'y');
 $this->cache->hSet('h', 'c', 'z');
-$this->cache->hSet('h', 'd', 't');
-var_dump($this->cache->hGetAll('h'));
+print_r($this->cache->hGetAll('h'));
 ```
 
 Çıktı:
 ```php
 <?php
-array(4) {
-  ["a"]=>
-  string(1) "x"
-  ["b"]=>
-  string(1) "y"
-  ["c"]=>
-  string(1) "z"
-  ["d"]=>
-  string(1) "t"
-}
+// array("x", "y", "z");
 ```
 #### $this->cache->hLen();
 
@@ -424,9 +416,9 @@ Hash tablosundaki değerlerin toplamını rakam olarak döndürür.
 ```php
 <?php
 $this->cache->delete('h')
-$this->cache->hSet('h', 'key1', 'hello');
-$this->cache->hSet('h', 'key2', 'plop');
-$this->cache->hLen('h'); /* returns 2 */
+$this->cache->hSet('h', 'key1', 'php');
+$this->cache->hSet('h', 'key2', 'obullo');
+print_r($this->cache->hLen('h')); // sonuç 2
 ```
 
 #### $this->cache->hDel();
@@ -445,25 +437,15 @@ Bir hash`teki tüm anahtarları dizi olarak döndürür.
 $this->cache->delete('h');
 $this->cache->hSet('h', 'a', 'x');
 $this->cache->hSet('h', 'b', 'y');
-$this->cache->hSet('h', 'c', 'z');
-$this->cache->hSet('h', 'd', 't');
-var_dump($this->cache->hKeys('h'));
+print_r($this->cache->hKeys('h'));
 ```
 
 Çıktı:
 ```php
 <?php
-array(4) {
-  [0]=>
-  string(1) "a"
-  [1]=>
-  string(1) "b"
-  [2]=>
-  string(1) "c"
-  [3]=>
-  string(1) "d"
-}
+// array("a", "b");
 ```
+
 #### $this->cache->hVals();
 Bir hash`teki tüm değerleri dizi olarak döndürür.
 
@@ -472,55 +454,48 @@ Bir hash`teki tüm değerleri dizi olarak döndürür.
 $this->cache->delete('h');
 $this->cache->hSet('h', 'a', 'x');
 $this->cache->hSet('h', 'b', 'y');
-$this->cache->hSet('h', 'c', 'z');
-$this->cache->hSet('h', 'd', 't');
-var_dump($this->cache->hVals('h'));
+print_r($this->cache->hVals('h'));
 ```
 
 Çıktı:
 ```php
 <?php
-array(4) {
-  [0]=>
-  string(1) "x"
-  [1]=>
-  string(1) "y"
-  [2]=>
-  string(1) "z"
-  [3]=>
-  string(1) "t"
-}
+// array("x", "y");
 ```
 
 #### $this->cache->hIncrBy();
 Bir hash üyesinin değerini belirli bir miktarda artırır.
 
+>**Önemli:** hIncrBy() metodunu kullanabilmek için serileştirme türü SERIALIZER_NONE olmalıdır.
+
 ```php
 <?php
 $this->cache->delete('h');
-$this->cache->hIncrBy('h', 'x', 2); /* returns 2: h[x] = 2 now. */
-$this->cache->hIncrBy('h', 'x', 1); /* h[x] ← 2 + 1. Returns 3 */
+$this->cache->hIncrBy('h', 'x', 2); // sonuç 2 / yeni değer: h[x] = 2
+$this->cache->hIncrBy('h', 'x', 1); // h[x] ← 2 + 1. sonuç 3
 ```
 #### $this->cache->hIncrByFloat();
 
 Bir hash üyesinin değerini float (ondalıklı) değer olarak artırmayı sağlar.
 
+>**Önemli:** hIncrByFloat() metodunu kullanabilmek için serileştirme türü SERIALIZER_NONE olmalıdır.
+
 ```php
 <?php
 $this->cache->delete('h');
-$this->cache->hIncrByFloat('h','x', 1.5); /* returns 1.5: h[x] = 1.5 now */
-$this->cache->hIncrByFLoat('h', 'x', 1.5); /* returns 3.0: h[x] = 3.0 now */
-$this->cache->hIncrByFloat('h', 'x', -3.0); /* returns 0.0: h[x] = 0.0 now */
+$this->cache->hIncrByFloat('h','x', 1.5); // sonuç 1.5: h[x] = 1.5 now
+$this->cache->hIncrByFLoat('h', 'x', 1.5); // sonuç 3.0: h[x] = 3.0 now
+$this->cache->hIncrByFloat('h', 'x', -3.0); // sonuç 0.0: h[x] = 0.0 now
 ```
 #### $this->cache->hMSet();
 
-Tüm hash'leri doldurur. String olmayan değerleri string türüne çevirir, bunuda standart string`e dökme işlemini kullanarak yapar. Değeri **NULL** olarak saklanmış veriyi boş string olarak saklar.
+Tüm hash'leri doldurur. String olmayan değerleri string türüne çevirir, bunuda standart string`e dökme işlemini kullanarak yapar. Değeri **null** olarak saklanmış veriyi boş string olarak saklar.
 
 ```php
 <?php
 $this->cache->delete('user:1');
-$this->cache->hMset('user:1', array('name' => 'Joe', 'salary' => 2000));
-$this->cache->hIncrBy('user:1', 'salary', 100); // Joe earns 100 more now.
+$this->cache->hMset('user:1', array('ad' => 'Ali', 'maas' => 2000));
+$this->cache->hIncrBy('user:1', 'maas', 100); // Ali'nin maaşını 100 puan artırdık.
 
 ```
 #### $this->cache->hMGet();
@@ -532,7 +507,7 @@ Hash'te özel tanımlanan alanların değerlerini dizi olarak getirir.
 $this->cache->delete('h');
 $this->cache->hSet('h', 'field1', 'value1');
 $this->cache->hSet('h', 'field2', 'value2');
-$this->cache->hmGet('h', array('field1', 'field2')); /* returns array('field1' => 'value1', 'field2' => 'value2') */
+$this->cache->hmGet('h', array('field1', 'field2')); // sonuç: array('field1' => 'value1', 'field2' => 'value2')
 ```
 #### $this->cache->getLastError()
 
@@ -540,7 +515,7 @@ En son meydana gelen hataya string biçiminde geri döner.
 
 ```php
 <?php
-$this->cache->getLastError();  // "ERR Error compiling script"
+$this->cache->getLastError();
 ```
 
 #### $this->cache->setTimeout(string $key, int $ttl)
@@ -577,8 +552,8 @@ Daha önce değer atanmış bir anahtara yeni değer ekler. Önceki değer ile b
 <?php
 
 $this->cache->set('key', 'value1');
-$this->cache->append('key', 'value2'); /* 12 */
-$this->cache->get('key'); /* 'value1value2' */
+$this->cache->append('key', 'value2'); // 12 
+$this->cache->get('key'); // 'value1value2'
 ```
 
 ##### $this->cache->keyExists(string $key)
@@ -589,8 +564,8 @@ Bir anahtarın var olup olmadığını kontrol eder.
 <?php
 
 $this->cache->set('key', 'value');
-$this->cache->keyExists('key'); /*  true */
-$this->cache->keyExists('NonExistingKey'); /* false */
+$this->cache->keyExists('key'); //  true 
+$this->cache->keyExists('NonExistingKey'); // false 
 ```
 
 #### $this->cache->getMultiple(array $key)
@@ -607,12 +582,13 @@ $this->cache->getMultiple(array('key1', 'key2', 'key3'));
 ```
 #### $this->cache->sAdd(string $key, string or array $value);
 
+Belirtilen anahtar
 ```php
 <?php
 
-$this->cache->sAdd('key1', 'value1'); /* 1, 'key1' => {'value1'} */
-$this->cache->sAdd('key1', array('value2', 'value3')); /* 2, 'key1' => {'value1', 'value2', 'value3'}*/
-$this->cache->sAdd('key1', 'value2'); /* 0, 'key1' => {'value1', 'value2', 'value3'}*/
+$this->cache->sAdd('key1', 'value1'); // 1, 'key1' => {'value1'}
+$this->cache->sAdd('key1', array('value2', 'value3')); // 2, 'key1' => {'value1', 'value2', 'value3'}
+$this->cache->sAdd('key1', 'value2'); // 0, 'key1' => {'value1', 'value2', 'value3'}
 ```
 
 #### $this->cache->sort(string $key, array $sort)
@@ -631,9 +607,9 @@ $this->cache->sAdd('test', 3);
 Kullanımı:
 ```php
 <?php
-var_dump($this->cache->sort('test')); // 1,2,3
-var_dump($this->cache->sort('test', array('sort' => 'desc'))); // 5,4,3,2,1
-var_dump($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
+print_r($this->cache->sort('test')); // 1,2,3
+print_r($this->cache->sort('test', array('sort' => 'desc'))); // 5,4,3,2,1
+print_r($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
 ```
 >** Bilgi:** **sort** methodunun kullanılabilmesi için serileştirme tipi **SERIALIZER_NONE** olarak tanımlı olması gerekmektedir.
 
@@ -646,7 +622,7 @@ Belirtilen anahtara ait değerlerin toplamını döndürür.
 
 $this->cache->sAdd('key1' , 'test1');
 $this->cache->sAdd('key1' , 'test2');
-$this->cache->sAdd('key1' , 'test3'); /* 'key1' => {'test1', 'test2', 'test3'}*/
+$this->cache->sAdd('key1' , 'test3'); // 'key1' => {'test1', 'test2', 'test3'}
 ```
 ```php
 <?php
@@ -674,15 +650,13 @@ $this->cache->sAdd('key3', 'val4');
 ```
 ```php
 <?php
-var_dump($this->cache->sInter('key1', 'key2', 'key3'));
+print_r($this->cache->sInter('key1', 'key2', 'key3'));
 ```
 
 Çıktı:
 ```php
 <?php
-array (size=2)
-    0 => string 'val4' (length=4)
-    1 => string 'val3' (length=4)
+// array('val4', 'val3')
 ```
 #### $this->cache->sGetMembers(string $key)
 
@@ -700,15 +674,12 @@ $this->cache->sAdd('key', 'val3');
 
 ```php
 <?php
-var_dump($this->cache->sGetMembers('key'));
+print_r($this->cache->sGetMembers('key'));
 ```
 Çıktı:
 ```php
 <?php
-array (size=3)
-    0 => string 'val3' (length=4)
-    1 => string 'val2' (length=4)
-    2 => string 'val1' (length=4)
+// array('val3', 'val2', 'val1');
 ```
 
 ### Metod Referansları
@@ -748,8 +719,6 @@ Sunucuda kurulu cache sürücüsü hakkında bilgileri döndürür.
 Belirtilen anahtara ait değer hakkındaki meta bilgileri döndürür. *(Bu özelliği redis sürücüsü desteklememektedir.)*
 
 #### $this->cache->flushAll($key);
-
-Remove all keys from all databases.
 
 Tanımlanmış bütün anahtarları tüm veritabanından siler.
 

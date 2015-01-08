@@ -406,7 +406,7 @@ Class HelloFilter
      */
     public function before()
     {
-        if ($this->post['apikey'] != '123456') {
+        if ($this->request->isPost() AND $this->request->post('apikey') != '123456') {
             echo json_encode(
                 array(
                 'error' => 'Your api key is not valid'

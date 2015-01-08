@@ -18,13 +18,6 @@ use MongoClient,
 Class Connection
 {
     /**
-     * Dsn connection string
-     * 
-     * @var string
-     */
-    public $dsn = '';
-
-    /**
      * Db object
      * 
      * @var object
@@ -32,34 +25,57 @@ Class Connection
     public $connection = null;
 
     /**
-     * Database name of mongo
+     * Containser
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Config params
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
+     * Loader commands
+     * 
+     * @var array
+     */
+    protected $commands;
+
+    /**
+     * Data source name
      * 
      * @var string
      */
-    protected $db;
+    protected $dsn;
 
     /**
      * Constructor
      * 
      * Automatically check if the Mongo PECL extension has been installed / enabled.
      * 
-     * @param string $c      container
-     * @param string $params parameters
-     * @param string $dsn    connection string
+     * @param string $c        container
+     * @param string $params   parameters
+     * @param array  $commands loader command parameters ( new, return, as, class .. )
      */
-    public function __construct($c, $params, $dsn = '')
+    public function __construct($c, $params, $commands = array())
     {
-        $c['config']->load('nosql');  // Load nosql configuration file
+        $c['config']->load('mongo');  // Load nosql configuration file
+        $this->params = $params;
+        $this->commands = $commands;
 
-        $config = $c['config']['nosql']['mongo'][$params['db']];
-        $dsn = (empty($dsn)) ? 'mongodb://'.$config['username'].':'.$config['password'].'@'.$config['host'].':'.$config['port'].'/'.$params['db'] : $dsn;
-        
-        $this->db = $params['db'];
+        $db = (empty($this->params['db'])) ? $this->c['config']['mongo']['default']['database'] : $this->params['db'];
+
+        $mongo = $this->c['config']['mongo']['key'][$db];
+        $connStr = 'mongodb://'.$mongo['username'].':'.$mongo['password'].'@'.$mongo['host'].':'.$mongo['port'].'/'.$db;
+        $this->dsn = (empty($this->params['dsn'])) ? $connStr : $this->params['dsn'];
 
         if ( ! class_exists('MongoClient', false)) {
             throw new RuntimeException('The MongoClient extension has not been installed or enabled.');
         }
-        $this->dsn = $dsn;
     }
 
     /**
@@ -69,6 +85,22 @@ Class Connection
      */
     public function connect()
     {
+        /**
+        * Provider default instance fix.
+        * New keyword support.
+        * 
+        * If default database already available we need return to old instance.
+        * But if new keyword used in loader $this->c->load('new service/provider/db'); this time we cannot
+        * return to old instance.
+        */ 
+        if ($this->c->exists('mongo')  //  Is service available ?
+            AND $this->commands['class'] == 'service/provider/mongo'  // Is this provider request ?
+            AND empty($this->commands['new']) 
+            AND $this->params['db'] == $this->c['config']['mongo']['default']['database']
+        ) {
+            return $this->c->load('return service/mongo'); // return to current mongo instance
+        }
+
         $this->connection = new MongoClient($this->dsn);
         if ( ! $this->connection->connect()) {
             throw new RuntimeException('Mongo connection error.');

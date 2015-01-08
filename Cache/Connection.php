@@ -38,16 +38,18 @@ Class Connection
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params configuration array
+     * @param object $c        container
+     * @param array  $params   configuration array
+     * @param array  $commands loader command parameters ( new, return, as, class .. )
      */
-    public function __construct($c, $params)
+    public function __construct($c, $params, $commands = array())
     {
         $this->c = $c;
         $this->c['config']->load('cache');  // Load cache configuration file
 
         $this->provider = empty($params['provider']) ? $c['config']['cache']['default']['provider'] : $params['provider'];
         $this->params = $params;
+        $this->commands = $commands;
     }
 
     /**
@@ -57,8 +59,25 @@ Class Connection
      */
     public function connect()
     {
-        $handlers = $this->c['config']['cache']['handlers'];
+        /**
+        * Provider default instance fix.
+        * New keyword support.
+        * 
+        * If default cache already available we need return to old instance.
+        * But if new keyword used in loader $this->c->load('new service/provider/cache'); this time we cannot
+        * return to old instance.
+        */ 
+        if ($this->c->exists('cache')  //  Is service available ?
+            AND $this->commands['class'] == 'service/provider/cache'  // Is this provider request ?
+            AND empty($this->commands['new']) 
+            AND $this->params['provider'] == $this->c['config']['cache']['default']['provider']
+            AND $this->params['serializer'] == $this->c['config']['cache']['default']['serializer']
+        ) {
+            return $this->c->load('return service/cache'); // return to current mongo instance
+        }
 
+        $handlers = $this->c['config']['cache']['handlers'];
+        
         $Class = $handlers[$this->provider];
         return new $Class($this->c, $this->params['serializer']);
     }

@@ -17,7 +17,7 @@ use LogicException;
  * @link      http://alexbilbie.com
  * @link      http://obullo.com/docs/mongo
  */
-Class Db
+Class Query
 {
     /**
      * Container
@@ -1068,7 +1068,7 @@ Class Db
 
 }
 
-// END Db Class
+// END Query Class
 
-/* End of file Db.php */
-/* Location: .Obullo/Mongo/Db.php */
+/* End of file Query.php */
+/* Location: .Obullo/Mongo/Query.php */

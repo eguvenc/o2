@@ -14,7 +14,7 @@ Class Controller
 {
     public static $instance;                    // Controller instance
     public $c, $config, $uri, $router, $logger; // Core packages
-
+    
     /**
      * Constructor
      */

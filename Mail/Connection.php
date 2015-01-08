@@ -38,12 +38,20 @@ Class Connection
     protected $provider;
 
     /**
+     * Loader commands
+     * 
+     * @var array
+     */
+    protected $commands;
+
+    /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params configuration array
+     * @param object $c        container
+     * @param array  $params   configuration array
+     * @param array  $commands loader command parameters ( new, return, as, class .. )
      */
-    public function __construct($c, $params)
+    public function __construct($c, $params, $commands = array())
     {
         $this->c = $c;
         $this->c['config']->load('mail');
@@ -51,6 +59,7 @@ Class Connection
         $this->handlers = $c['config']['mail']['handlers'];
         $this->provider = empty($params['provider']) ? $c['config']['mail']['default']['provider'] : $params['provider'];
         $this->params = $params;
+        $this->commands = $commands;
     }
 
     /**
