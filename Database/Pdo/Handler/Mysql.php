@@ -69,9 +69,6 @@ Class Mysql extends Adapter implements HandlerInterface
 
         $this->initialize();
         $this->pdoObject = $this->pdoConnect($dsn, $this->username, $this->password, $this->options);
-
-
-        echo 'connect !';
         
         // We set exception attribute for always showing the pdo exceptions errors.
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT

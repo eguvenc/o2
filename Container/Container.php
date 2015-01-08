@@ -6,6 +6,7 @@ use Controller,
     ArrayAccess,
     SplObjectStorage,
     stdClass,
+    Closure,
     InvalidArgumentException,
     Exception;
 /*
@@ -164,7 +165,7 @@ Class Container implements ArrayAccess
     * 
     * @return object closure
     */
-    protected function runClosure($closure, $params = array())
+    protected function runClosure(Closure $closure, $params = array())
     {
         if (count($params) > 0) {
             return $closure($params);
@@ -214,7 +215,7 @@ Class Container implements ArrayAccess
      */
     public function load($classString, $params = array())
     {
-        $matches = $this->resolveCommand(trim($classString));
+        $matches = $this->resolveCommand($classString);
         $class = $matches['class'];
         
         $isService = false;
@@ -312,15 +313,16 @@ Class Container implements ArrayAccess
     /**
      * Map the class names
      * 
-     * @param array $exp names
+     * @param array  $exp   names
+     * @param string $slash whetherto add slash
      * 
      * @return void
      */
-    protected function mapName($exp)
+    protected function mapName($exp, $slash = '')
     {
         return array_map(
-            function ($value) {
-                return ucfirst($value);  // Converts "utils/uri" to "utilsUri"
+            function ($value) use ($slash) {
+                return $slash.ucfirst($value);  // Converts "utils/uri" to "utilsUri"
             },
             $exp
         );
@@ -341,10 +343,14 @@ Class Container implements ArrayAccess
     protected function register($cid, $key, $matches, $ClassName, $params, $lastKey = null)
     {
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
-            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
-                $instance =  Controller::$instance;
-                if ($instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null
-                    return empty($lastKey) ? $instance->{$key} = new $ClassName($this, $params) : $instance->{$key}->{$lastKey} = new $ClassName($this, $params);
+
+            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName, $lastKey) {
+
+                if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
+                    if (empty($lastKey)) {
+                        return Controller::$instance->{$key} = new $ClassName($this, $params);
+                    }
+                    return Controller::$instance->{$key}->{$lastKey} = new $ClassName($this, $params);
                 }
                 return new $ClassName($this, $params);
             };
@@ -361,17 +367,25 @@ Class Container implements ArrayAccess
      */
     protected function resolveCommand($class)
     {
+        $class = trim($class);
         if (isset($this->resolvedCommand[$class])) {
             return $this->resolvedCommand[$class];
         }
         $matches = array(
             'return' => '',
             'new' => '',
-            'class' => trim($class),
+            'class' => $class,
+            'origin' => $class,
+            'bindKey' => '',
             'last' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
             preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
+        }
+        $matches['origin'] = $matches['class'];
+        if (strpos($matches['class'], 'model.') === 0) {
+            $matches['bindKey'] = 'model';
+            $matches['class'] = substr($matches['class'], 6);
         }
         $this->resolvedCommand[$class] = $matches;
         return $matches;
@@ -391,7 +405,7 @@ Class Container implements ArrayAccess
             return $this->resolved[$cid];
         }
         $Class = ucfirst($cid);
-        $Class = str_replace('/', '\\', trim($Class));  // Replace  all forward slashes "/" backslashes to "\\".
+        $Class = str_replace('/', '\\', trim($Class));  // Replace  all forward slashes "/" to backslashes "\\".
 
         if ($this->exists($cid) || $this->exists(strtolower($cid)) AND strpos($cid, '/') > 0) {  // If its a provider "/"
             $Class = $cid;
@@ -517,9 +531,10 @@ Class Container implements ArrayAccess
      */
     protected function resolveServiceClass($serviceClass, $class, $service = 'service')
     {
-        if (isset($this->values['config']->env['environment'][$service][$class])) {   // Check environment based services
+        $config = $this->values['config'];
+        if (isset($config->env['environment'][$service][$class])) {   // Check environment based services
 
-            $attributes = $this->values['config']->env['environment'][$service][$class];
+            $attributes = $config->env['environment'][$service][$class];
             $serviceClass = '\\'.str_replace('/', '\\', $attributes['http']);
 
             if (isset($attributes['cli']) AND defined('STDIN')) {
@@ -537,69 +552,103 @@ Class Container implements ArrayAccess
      * 
      * @return void
      */
-    public function bind($cid, $params =  array())
+    public function bind($cid, $params = array())
     {
-        $Class = '\\'.$cid;
+        $matches = $this->resolveCommand($cid);
+        echo $cid = $matches['origin'];
+
+        $matches['class'] = str_replace('\\', '/', $matches['class']);
+        if ($exp = explode('/', $matches['class'])) {
+            $matches['class'] = implode('\\', $this->mapName($exp));
+            // var_dump($matches['class']);
+        }
+        $Class = '\\'.ucfirst($matches['class']);
         $bindKey = $cid;
         $lastKey = null;
-        if ($exp = explode('.', $cid)) {
-            $bindKey = $exp[0];
-            $lastKey = $exp[1];
-            $Class = '\\'.ucfirst($lastKey);
+        if ( ! empty($matches['bindKey'])) {
+            $bindKey = $matches['bindKey'];
+            $lastKey = $matches['class'];
+            $Class = '\\'.ucfirst($matches['class']);
         }
         if ( ! $this->exists($cid)) {   // Don't register service again.
-            if ($bindKey == 'model') {  //  Include core model if model bind used.
-                $this->bindModel($Class);
+            $this->bindClass($bindKey, $Class);
+            if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
+                Controller::$instance->{$bindKey} = new stdClass;
             }
-            $matches = array(
-            'return' => '',
-            );
-            $this->register($cid, $bindKey, $matches, $Class, $params);
+            $this->register($cid, $bindKey, $matches, $Class, $params, $lastKey);
         }
-        return $this->bindGet($cid, $bindKey, $params, $lastKey);
-    }
-
-    /**
-     * Get registered bind object
-     * 
-     * @param string $cid     class id
-     * @param string $bindKey bind key
-     * @param string $params  construct paramters
-     * @param string $lastKey last used key if exists e.g. ( model.user user is last key )
-     * 
-     * @return object
-     */
-    protected function bindGet($cid, $bindKey, $params = array(), $lastKey = null)
-    {
-        $instance = Controller::$instance;
-        if (isset($this->frozen[$cid])) {
+        if (empty($matches['new']) AND isset($this->frozen[$cid])) {
             return $this->values[$cid];
         }
+        if ( ! empty($matches['new'])) {
+            return $this->runClosure($this->raw[$cid], $params);
+        }
         $this->frozen[$cid] = true;
-
-        if ( ! isset($instance->{$bindKey})) {
-            Controller::$instance->{$bindKey} = new stdClass;
-        }
-        if (empty($lastKey)) {
-            return $instance->{$bindKey} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
-        }
-        return $instance->{$bindKey}->$lastKey = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        $this->raw[$cid] = $this->values[$cid];
+        return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
     }
 
     /**
-     * Bind model object
+     * Bind class into the controller if it not exists.
      * 
+     * @param string $cid    class id
+     * @param array  $params construct parameters
+     * 
+     * @return void
+     */
+    // public function bind($cid, $params = array())
+    // {
+    //     $matches = $this->resolveCommand($cid);
+    //     echo $cid = $matches['origin'];
+
+    //     $matches['class'] = str_replace('\\', '/', $matches['class']);
+    //     if ($exp = explode('/', $matches['class'])) {
+    //         $matches['class'] = implode('\\', $this->mapName($exp));
+    //         // var_dump($matches['class']);
+    //     }
+    //     $Class = '\\'.ucfirst($matches['class']);
+    //     $bindKey = $cid;
+    //     $lastKey = null;
+    //     if ( ! empty($matches['bindKey'])) {
+    //         $bindKey = $matches['bindKey'];
+    //         $lastKey = $matches['class'];
+    //         $Class = '\\'.ucfirst($matches['class']);
+    //     }
+    //     if ( ! $this->exists($cid)) {   // Don't register service again.
+    //         $this->bindClass($bindKey, $Class);
+    //         if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
+    //             Controller::$instance->{$bindKey} = new stdClass;
+    //         }
+    //         $this->register($cid, $bindKey, $matches, $Class, $params, $lastKey);
+    //     }
+    //     if (empty($matches['new']) AND isset($this->frozen[$cid])) {
+    //         return $this->values[$cid];
+    //     }
+    //     if ( ! empty($matches['new'])) {
+    //         return $this->runClosure($this->raw[$cid], $params);
+    //     }
+    //     $this->frozen[$cid] = true;
+    //     $this->raw[$cid] = $this->values[$cid];
+    //     return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+    // }
+
+    /**
+     * Bind object
+     * 
+     * @param string $bindKey   key
      * @param string $namespace class namespace
      * 
      * @return void
      */
-    protected function bindModel($namespace)
+    protected function bindClass($bindKey, $namespace)
     {
-        if ( ! class_exists('Model', false)) {
-            include OBULLO .'Model'. DS .'Model.php';
-        }
-        if ( ! class_exists($namespace, false)) {
-            include MODELS .str_replace('\\', DS, ltrim($namespace, '\\')). '.php';
+        if ($bindKey == 'model') {  //  Include core model if model bind used.
+            if ( ! class_exists('Model', false)) {
+                include OBULLO .'Model'. DS .'Model.php';
+            }
+            if ( ! class_exists($namespace, false)) {
+                include MODELS .str_replace('\\', DS, ltrim($namespace, '\\')). '.php';
+            }
         }
     }
 

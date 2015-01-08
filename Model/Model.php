@@ -38,10 +38,10 @@ Class Model
      * 
      * @return void
      */
-    public function __get($key)
-    {
-        return Controller::$instance->{$key};
-    }
+    // public function __get($key)
+    // {
+    //     return Controller::$instance->{$key};
+    // }
 
 }
 

@@ -95,8 +95,7 @@ In your controller
 
 ```php
 <?php
-$this->c->load('service/provider/db as db');
-
+$this->c->load('service/db');
 $this->db->query('...');
 ```
 
@@ -104,7 +103,7 @@ In your classes
 
 ```php
 <?php
-$this->db = $this->c->load('return service/provider/db as db');
+$this->db = $this->c->load('return service/db');
 
 $this->db->query('...');
 ```
@@ -266,7 +265,7 @@ If you want to add a second or third database connection <strong>copy/paste</str
             ),
         ),
 
-        'dbSecond' => array(            // another database configuration
+        'dbAny' => array(            // another database configuration
             'host'     => 'localhost',
             'username' => env('MYSQL_USERNAME'),
             'password' => env('MYSQL_PASSWORD', '', false),,
@@ -333,7 +332,9 @@ Putting this code into your Controller enough for the current database connectio
 ```php
 <?php
 
-Class Welcome extends Controller
+namespace Welcome;
+
+Class Welcome extends \Controller
 {
     /**
      * Loader
@@ -343,7 +344,7 @@ Class Welcome extends Controller
     public function load()
     {
         $this->c->load('view');
-        $this->c->load('service/provider/db as db');   // create a database connection
+        $this->c->load('service/db');   // create a database connection
     }
 
     /**
@@ -351,7 +352,7 @@ Class Welcome extends Controller
      * 
      * @return void
      */
-    public function index($t = false)
+    public function index()
     {
         $this->db->query('SELECT * FROM %s', array('users'));
         $results = $this->db->resultArray();
