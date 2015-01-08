@@ -265,7 +265,7 @@ Class Adapter
     /**
      * PDO Last Insert Id
      *
-     * @return  object PDO::Statement
+     * @return object PDO::Statement
      */
     public function insertId()
     {
@@ -298,8 +298,7 @@ Class Adapter
      * Keep / reestablish the db connection if no queries have been
      * sent for a length of time exceeding the server's idle timeout
      *
-     * @access    public
-     * @return    void
+     * @return void
      */
     public function reconnect()
     {
@@ -309,8 +308,7 @@ Class Adapter
     /**
      * Get Database Version number.
      *
-     * @access    public
-     * @return    string
+     * @return string
      */
     public function getVersion()
     {
@@ -417,7 +415,8 @@ Class Adapter
             'charset',
             'port',
             'dsn',
-            'options');
+            'options'
+        );
     }
 
     /**
@@ -468,7 +467,7 @@ Class Adapter
     /**
      * Get available drivers on your host
      *
-     * @return  object PDO::Statement
+     * @return object PDO::Statement
      */
     public function getDrivers()
     {
@@ -512,9 +511,7 @@ Class Adapter
     }
 
     /**
-     * "Smart" Escape String via PDO
-     *
-     * Escapes data based on type
+     * Smart Escape String via PDO Escapes data based on type
      * Sets boolean and null types
      *
      * @param string $str escape value
@@ -596,14 +593,13 @@ Class Adapter
         $this->useBindParams  = false;
         $this->lastBindValues = array();
         $this->lastBindParams = array();
+
         return $this->Stmt;
     }
 
     /**
-     * exec used just for CREATE, DELETE, INSERT and
-     * UPDATE operations it returns to
-     * number of [affected rows] after the write
-     * operations.
+     * Exec used just for CREATE, DELETE, INSERT and UPDATE operations it returns to
+     * number of [affected rows] after the write operations.
      *
      * @param string $sql    query sql
      * @param array  $fields array fields
@@ -615,7 +611,7 @@ Class Adapter
         $this->lastSql = $this->sprintf($sql, $fields);
 
         $start = microtime(true);
-        $affected_rows = $this->connection->exec($this->lastSql);
+        $affectedRows = $this->connection->exec($this->lastSql);
         $time  = microtime(true) - $start;
         ++$this->queryCount;
 
@@ -627,7 +623,7 @@ Class Adapter
                 ($this->queryCount * -1 )
             );
         }
-        return $affected_rows;
+        return $affectedRows;
     }
 
     /**
@@ -707,6 +703,7 @@ Class Adapter
     /**
      * Get the pdo statement object and use native pdo functions.
      *
+     *  Example: 
      *  $stmt = $this->db->getStatement();
      *  $stmt->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
      * 
