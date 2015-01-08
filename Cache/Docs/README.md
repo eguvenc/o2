@@ -354,11 +354,8 @@ Değiştirilmek istenen anahtar var ise işlem sonucu **true** yok ise **false**
 
 #### $this->cache->getAllKeys();
 
-<<<<<<< HEAD
-=======
 Bütün anahtarları dizi olarak döndürür.
 
->>>>>>> 5ca7dffdcc5772b9cd5a6792f719bb9ca863cf4c
 ```php
 <?php
 print_r($this->cache->getAllKeys());
