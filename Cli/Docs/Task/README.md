@@ -3,45 +3,43 @@
 
 ------
 
-Php <b>task</b> file which is located in your project root that helps you to run your Cli tasks.
+Php **task** dosyası projenizin ana dizinin de (root) bulunmaktadır. Cli görevlerini çalıştırmanızda size yardımcı olur.  
 
 ```php
 + app
 + assets
 + o2
-+ public
   .
   .
   task
 ```
 
-Open your shell Cli and type
+Terminalinizi açıp aşağıdaki komutu çalıştırabilirsiniz.
 
 ```php
 php task help
 ```
 
-Each task command resolves a task <b>controller</b>.
+Her task komutu bir task **controller** olarak çözümlenir.
 
 ```php
 - app
-- config
-- tasks
-  - controller
-    help.php
+  - config
+  - tasks
+      help.php
 ```
 
-### Following Logs
+### Loglar takip etme için
 
-Open your shell Cli and type
+Terminalinizi açın ve aşağıdaki komutu yazınız
 
 ```php
 php task log
 ```
 
-Above the command open your log Cli and follow application logs by reading app.log file.
+Yukarıdaki komut **log** Cli sınıfını çalıştırır ve app.log dosyasını okuyarak uygulama loglarını takip eder.
 
-<b>Log</b> segment is a controller that is located in your <b>app/tasks</b> folder.
+**Log** parametresi bir controller sınıfıdır, **app/task** dizini altında bulunmaktadır.
 
 ```php
 - app
@@ -51,17 +49,18 @@ Above the command open your log Cli and follow application logs by reading app.l
     log.php
 ```
 
-### Clear log files
+### Log kayıtlarını temizlemek
 
-Open your shell Cli and type
+Terminalinizi açın ve aşağıdaki komutu yazınız
 
 ```php
 php task clear
 ```
 
-Above the command deletes log files from <b>app/data/logs</b> folder.
+Yukarıdaki komut **app/data/logs** dizininden tüm log kayıtlarını siler.
 
-<b>Clear</b> segment is a controller that is located in your <b>app/tasks</b> folder.
+**Clear** parametresi bir controller sınıfıdır, **app/task** dizini altında bulunmaktadır.
+
 
 ```php
 - app
@@ -72,28 +71,32 @@ Above the command deletes log files from <b>app/data/logs</b> folder.
     log.php
 ```
 
-## Task class
+## Task sınıfı
 
-Task class helps you use CLI operations ( running shell scripts etc..) also it helps to run some basic tasks using php schell_exec() function.
+Task sınıfı **CLI** işlemlerini (shell script vs. çalıştırır) kullanmanızı sağlar, ayrıca php **shell_exec()** fonksiyonu aracılığıyla bazı basit komutları çalıştırmada yardımcı olur.
 
-All task controllers located in your <b>app/tasks</b> folder. $this->cliTask->run() method resolve your controllers run task in the background.
+Tüm task controller sınıfları **app/tasks** dizini altında bulunmaktadır. $this->cliTask->run() methodu controller sınıfını çözümler ve görevleri arka planda çalıştırır.
 
-**Note:** This class useful for simple operations forexample setting configuration files to memory if they not exists in the cache. To run heavy operations in the background use <b>Queue</b> package e.g. sending emails, logging and any async jobs.
+**Önemli:** Bu sınıf basit işlemlerde çok kullanışlı, örneğin projenizin bir takım ayarlarını önbelleğinde (cache) tutup yalnızca önbellekten okuduğunuzu varsayalım. Task sınıfıyla projenin çalıştığı sırada ilk işlem olarak ayarları önbelleğe aktararak yalnızca önbellekten çalıştırabilirsiniz.
 
-### Initializing the Class
+
+
+### Sınıfı yükleme
 
 ------
 
 ```php
+<?php
 $this->c->load('cli/task as task');
 $this->task->run('controller');
 ```
 
-#### Running Tasks
+#### Görevleri (Task) çalıştırma
 
-The task uri works like framework uri it calls the <kbd>controller/index/arguments</kbd>
+Task sınıfı framework uri mantığında çalışır. <kbd>controller/index/argument</kbd>
 
 ```php
+<?php
 echo $this->task->run('help', true);
 ```
 
