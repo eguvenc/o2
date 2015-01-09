@@ -62,7 +62,7 @@ Class Debug extends Image
                     ),
                     true
                 ).'</pre>
-                <img src="/assets'.$this->getImageUrl().'">
+                <img src="/app'.$this->getImageUrl().'">
             </p>';
         }
         return $images;

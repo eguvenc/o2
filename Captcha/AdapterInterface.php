@@ -15,13 +15,6 @@ namespace Obullo\Captcha;
 interface AdapterInterface
 {
     /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c);
-
-    /**
      * Initialize
      * 
      * @return void

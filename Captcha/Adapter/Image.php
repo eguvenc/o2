@@ -212,7 +212,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
     {
         $this->config          = $this->tempConfig;
         $this->fonts           = array_keys($this->config['fonts']);
-        $this->imgPath         = ASSETS . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
+        $this->imgPath         = APP . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
         $this->imgRawUrl       = $this->c['uri']->getBaseUrl($this->config['image']['path'] . DS); // add Directory Seperator ( DS )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
         $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'fonts' . DS;
