@@ -97,11 +97,11 @@ abstract Class AbstractAdapter
     /**
      * Create result.
      * 
-     * @return Result object
+     * @return CaptchaResult object
      */
     protected function createResult()
     {
-        return new Result(
+        return new CaptchaResult(
             $this->result['code'],
             $this->result['message']
         );

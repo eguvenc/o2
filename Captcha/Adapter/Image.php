@@ -3,7 +3,7 @@
 namespace Obullo\Captcha\Adapter;
 
 use RuntimeException,
-    Obullo\Captcha\Result,
+    Obullo\Captcha\CaptchaResult,
     Obullo\Captcha\CaptchaService,
     Obullo\Captcha\AbstractAdapter,
     Obullo\Captcha\AdapterInterface;
@@ -706,7 +706,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
      * 
      * @param string $code captcha word
      * 
-     * @return Captcha\Result object
+     * @return Captcha\CaptchaResult object
      */
     public function check($code)
     {
@@ -714,7 +714,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
             return $this->validateCode($data, $code);
         }
         $this->result = array(  // Last failure.
-            'code' => Result::FAILURE_CAPTCHA_NOT_FOUND,
+            'code' => CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND,
             'message' => 'The captcha code not found.'
         );
         return $this->createResult();
@@ -726,7 +726,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
      * @param array  $data captcha session data
      * @param string $code captcha code
      * 
-     * @return Captcha\Result object
+     * @return Captcha\CaptchaResult object
      */
     protected function validateCode($data, $code)
     {
@@ -735,7 +735,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
             $this->session->remove($this->config['input']['id']);
 
             $this->result = array(
-                'code'    => Result::FAILURE_HAS_EXPIRED,
+                'code'    => CaptchaResult::FAILURE_HAS_EXPIRED,
                 'message' => 'The captcha code has expired.'
             );
             return $this->createResult();
@@ -746,13 +746,13 @@ Class Image extends AbstractAdapter implements AdapterInterface
             $this->session->remove($this->config['input']['id']);
 
             $this->result = array(
-                'code'    => Result::SUCCESS,
+                'code'    => CaptchaResult::SUCCESS,
                 'message' => 'Captcha code has been entered successfully.'
             );
             return $this->createResult();
         }
         $this->result = array(
-            'code'    => Result::FAILURE_INVALID_CODE,
+            'code'    => CaptchaResult::FAILURE_INVALID_CODE,
             'message' => 'Invalid captcha code.'
         );
         return $this->createResult();

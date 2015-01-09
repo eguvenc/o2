@@ -6,13 +6,13 @@ namespace Obullo\Captcha;
  * O2 Captcha - Captcha Result Controller
  *
  * @category  Captcha
- * @package   Result
+ * @package   CaptchaResult
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/captcha
  */
-Class Result
+Class CaptchaResult
 {
     /**
      * Successful process.
@@ -128,7 +128,7 @@ Class Result
     }
 }
 
-// END Result.php File
-/* End of file Result.php
+// END CaptchaResult.php File
+/* End of file CaptchaResult.php
 
-/* Location: .Obullo/Captcha/Result.php */
+/* Location: .Obullo/Captcha/CaptchaResult.php */
