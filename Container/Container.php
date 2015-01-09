@@ -547,35 +547,31 @@ Class Container implements ArrayAccess
     /**
      * Bind class into the controller if it not exists.
      * 
-     * @param string $cid    class id
-     * @param array  $params construct parameters
+     * @param string $cid       class id
+     * @param string $namespace class
+     * @param array  $params    parameters
      * 
      * @return void
      */
-    public function bind($cid, $params = array())
+    public function bind($cid, $namespace = null, $params = array())
     {
         $matches = $this->resolveCommand($cid);
-        echo $cid = $matches['origin'];
+        $cid = 'bind.'.$matches['origin'];  // protect from services
+        $key = $matches['origin'];
 
-        $matches['class'] = str_replace('\\', '/', $matches['class']);
-        if ($exp = explode('/', $matches['class'])) {
-            $matches['class'] = implode('\\', $this->mapName($exp));
-            // var_dump($matches['class']);
-        }
-        $Class = '\\'.ucfirst($matches['class']);
-        $bindKey = $cid;
+        $bindKey = $key;
         $lastKey = null;
         if ( ! empty($matches['bindKey'])) {
             $bindKey = $matches['bindKey'];
             $lastKey = $matches['class'];
-            $Class = '\\'.ucfirst($matches['class']);
         }
+        var_dump($cid);
         if ( ! $this->exists($cid)) {   // Don't register service again.
-            $this->bindClass($bindKey, $Class);
+            $this->bindClass($bindKey, $namespace);
             if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
                 Controller::$instance->{$bindKey} = new stdClass;
             }
-            $this->register($cid, $bindKey, $matches, $Class, $params, $lastKey);
+            $this->register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
         }
         if (empty($matches['new']) AND isset($this->frozen[$cid])) {
             return $this->values[$cid];
@@ -587,50 +583,6 @@ Class Container implements ArrayAccess
         $this->raw[$cid] = $this->values[$cid];
         return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
     }
-
-    /**
-     * Bind class into the controller if it not exists.
-     * 
-     * @param string $cid    class id
-     * @param array  $params construct parameters
-     * 
-     * @return void
-     */
-    // public function bind($cid, $params = array())
-    // {
-    //     $matches = $this->resolveCommand($cid);
-    //     echo $cid = $matches['origin'];
-
-    //     $matches['class'] = str_replace('\\', '/', $matches['class']);
-    //     if ($exp = explode('/', $matches['class'])) {
-    //         $matches['class'] = implode('\\', $this->mapName($exp));
-    //         // var_dump($matches['class']);
-    //     }
-    //     $Class = '\\'.ucfirst($matches['class']);
-    //     $bindKey = $cid;
-    //     $lastKey = null;
-    //     if ( ! empty($matches['bindKey'])) {
-    //         $bindKey = $matches['bindKey'];
-    //         $lastKey = $matches['class'];
-    //         $Class = '\\'.ucfirst($matches['class']);
-    //     }
-    //     if ( ! $this->exists($cid)) {   // Don't register service again.
-    //         $this->bindClass($bindKey, $Class);
-    //         if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
-    //             Controller::$instance->{$bindKey} = new stdClass;
-    //         }
-    //         $this->register($cid, $bindKey, $matches, $Class, $params, $lastKey);
-    //     }
-    //     if (empty($matches['new']) AND isset($this->frozen[$cid])) {
-    //         return $this->values[$cid];
-    //     }
-    //     if ( ! empty($matches['new'])) {
-    //         return $this->runClosure($this->raw[$cid], $params);
-    //     }
-    //     $this->frozen[$cid] = true;
-    //     $this->raw[$cid] = $this->values[$cid];
-    //     return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
-    // }
 
     /**
      * Bind object
