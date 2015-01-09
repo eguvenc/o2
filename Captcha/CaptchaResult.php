@@ -6,14 +6,19 @@ namespace Obullo\Captcha;
  * O2 Captcha - Captcha Result Controller
  *
  * @category  Captcha
- * @package   Result
+ * @package   CaptchaResult
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/captcha
  */
-Class Result
+Class CaptchaResult
 {
+    /**
+     * General failure.
+     */
+    const FAILURE = 0;
+
     /**
      * Successful process.
      */
@@ -46,18 +51,18 @@ Class Result
      * 
      * @var array
      */
-    protected $message = array();
+    protected $messages = array();
 
     /**
      * Sets the result code and failure message
      *
-     * @param int    $code    result code
-     * @param string $message message
+     * @param int    $code     result code
+     * @param string $messages messages
      */
-    public function __construct($code, $message)
+    public function __construct($code, $messages)
     {
         $this->code = (int)$code;
-        $this->message = $message;
+        $this->messages = $messages;
     }
 
     /**
@@ -81,13 +86,13 @@ Class Result
     }
 
     /**
-     * Get message
+     * Get messages
      *
      * @return array
      */
-    public function getMessage()
+    public function getMessages()
     {
-        return $this->message;
+        return $this->messages;
     }
 
     /**
@@ -111,7 +116,7 @@ Class Result
      */
     public function setMessage($message)
     {
-        $this->message = $message;
+        $this->messages[] = $message;
     }
 
     /**
@@ -123,12 +128,12 @@ Class Result
     {
         return array(
             'code' => $this->code,
-            'message' => $this->message,
+            'messages' => $this->messages,
         );
     }
 }
 
-// END Result.php File
-/* End of file Result.php
+// END CaptchaResult.php File
+/* End of file CaptchaResult.php
 
-/* Location: .Obullo/Captcha/Result.php */
+/* Location: .Obullo/Captcha/CaptchaResult.php */

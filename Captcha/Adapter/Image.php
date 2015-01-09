@@ -3,9 +3,10 @@
 namespace Obullo\Captcha\Adapter;
 
 use RuntimeException,
-    Obullo\Captcha\Result,
+    Obullo\Captcha\CaptchaResult,
     Obullo\Captcha\CaptchaService,
-    Obullo\Captcha\AbstractAdapter;
+    Obullo\Captcha\AbstractAdapter,
+    Obullo\Captcha\AdapterInterface;
 
 /**
  * Captcha image class.
@@ -17,7 +18,7 @@ use RuntimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-Class Image extends AbstractAdapter
+Class Image extends AbstractAdapter implements AdapterInterface
 {
     /**
      * Actual fonts
@@ -98,6 +99,27 @@ Class Image extends AbstractAdapter
     public $imgName;
 
     /**
+     * Captcha html
+     * 
+     * @var string
+     */
+    protected $html = '';
+
+    /**
+     * Configuration data
+     * 
+     * @var array
+     */
+    protected $config = array();
+
+    /**
+     * Configuration temp data
+     * 
+     * @var array
+     */
+    protected $tempConfig = array();
+
+    /**
      * Image unique id
      * 
      * @var string
@@ -164,14 +186,29 @@ Class Image extends AbstractAdapter
     protected $code;
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Constructor
      *
-     * @param object $c       container
-     * @param object $captcha captcha
+     * @param object $c      container
+     * @param array  $params parameters
      */
-    public function __construct($c, CaptchaService $captcha)
+    public function __construct($c, array $params = array())
     {
-        parent::__construct($c, $captcha);
+        if (sizeof($params) == 0) {
+            $params = $c['config']->load('captcha');
+        }
+        $this->c          = $c;
+        $this->config     = $params;
+        $this->tempConfig = $params;
+
+        parent::__construct($c);
+        $this->buildHtml();
     }
 
     /**
@@ -181,9 +218,9 @@ Class Image extends AbstractAdapter
      */
     public function init()
     {
-        $this->config          = $this->params;
+        $this->config          = $this->tempConfig;
         $this->fonts           = array_keys($this->config['fonts']);
-        $this->imgPath         = ASSETS . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
+        $this->imgPath         = APP . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
         $this->imgRawUrl       = $this->c['uri']->getBaseUrl($this->config['image']['path'] . DS); // add Directory Seperator ( DS )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
         $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'fonts' . DS;
@@ -221,7 +258,7 @@ Class Image extends AbstractAdapter
      */
     public function setCaptchaId($captchaId)
     {
-        $this->config['input']['id'] = $captchaId;
+        $this->config['form']['input']['attributes']['id'] = $captchaId;
         return $this;
     }
 
@@ -521,13 +558,14 @@ Class Image extends AbstractAdapter
         $this->imageGenerate(); // The last function for image.
         
         $this->session->set(
-            $this->config['input']['id'],
+            $this->config['form']['input']['attributes']['name'],
             array(
                 'image_name' => $this->getImageId(),
                 'code'       => $this->getCode(),
                 'expiration' => time() + $this->config['image']['expiration']
             )
         );
+        // $this->buildHtml();
         $this->init(); // Variables are reset.
     }
 
@@ -677,17 +715,16 @@ Class Image extends AbstractAdapter
      * 
      * @param string $code captcha word
      * 
-     * @return Captcha\Result object
+     * @return Captcha\CaptchaResult object
      */
     public function check($code)
     {
-        if ($data = $this->session->get($this->config['input']['id'])) {
+        if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
         }
-        $this->result = array(  // Last failure.
-            'code' => Result::FAILURE_CAPTCHA_NOT_FOUND,
-            'message' => 'The captcha code not found.'
-        );
+        // Last failure.
+        $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
+        $this->result['messages'][] = 'The captcha code not found.';
         return $this->createResult();
     }
 
@@ -697,36 +734,79 @@ Class Image extends AbstractAdapter
      * @param array  $data captcha session data
      * @param string $code captcha code
      * 
-     * @return Captcha\Result object
+     * @return Captcha\CaptchaResult object
      */
     protected function validateCode($data, $code)
     {
         if ($data['expiration'] < time()) { // Expiration time of captcha ( second )
             // Remove captcha data from session.
-            $this->session->remove($this->config['input']['id']);
+            $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result = array(
-                'code'    => Result::FAILURE_HAS_EXPIRED,
-                'message' => 'The captcha code has expired.'
-            );
+            $this->result['code'] = CaptchaResult::FAILURE_HAS_EXPIRED;
+            $this->result['messages'][] = 'The captcha code has expired.';
             return $this->createResult();
         }
 
         if ($code == $data['code']) { // Is the code correct?
             // Remove captcha data from session.
-            $this->session->remove($this->config['input']['id']);
+            $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result = array(
-                'code'    => Result::SUCCESS,
-                'message' => 'Captcha code has been entered successfully.'
-            );
+            $this->result['code'] = CaptchaResult::SUCCESS;
+            $this->result['messages'][] = 'Captcha code has been entered successfully.';
             return $this->createResult();
         }
-        $this->result = array(
-            'code'    => Result::FAILURE_INVALID_CODE,
-            'message' => 'Invalid captcha code.'
-        );
+        $this->result['code'] = CaptchaResult::FAILURE_INVALID_CODE;
+        $this->result['messages'][] = 'Invalid captcha code.';
         return $this->createResult();
+    }
+
+    /**
+     * Build html
+     * 
+     * @return void
+     */
+    protected function buildHtml()
+    {
+        foreach ($this->config['form'] as $key => $val) {
+            $this->html .= vsprintf(
+                '<%s %s/>',
+                array(
+                    $key,
+                    $this->buildAttributes($val['attributes'])
+                )
+            );
+        }
+        // $this->html .= sprintf(
+        //     '<img %s/>',
+        //     $this->buildAttributes($this->config['form']['img']['attributes'])
+        // );
+    }
+
+    /**
+     * Build attributes
+     * 
+     * @param array $attributes attributes
+     * 
+     * @return string
+     */
+    protected function buildAttributes(array $attributes)
+    {
+        $attr = array();
+
+        foreach ($attributes as $key => $value) {
+            $attr[] = $key.'="'.$value.'"';
+        }
+        return count($attr) ? implode(' ', $attr) : '';
+    }
+
+    /**
+     * Print captcha html
+     * 
+     * @return string html
+     */
+    public function printCaptcha()
+    {
+        print($this->html);
     }
 }
 

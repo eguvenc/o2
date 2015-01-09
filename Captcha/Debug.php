@@ -22,8 +22,7 @@ Class Debug extends Image
     public function __construct()
     {
         global $c;
-        $captcha = $c->load('service/captcha');
-        parent::__construct($c, $captcha);
+        parent::__construct($c);
 
         $this->clearImages(); // Delete all old images from temp folder.
     }
@@ -63,7 +62,7 @@ Class Debug extends Image
                     ),
                     true
                 ).'</pre>
-                <img src="/assets'.$this->getImageUrl().'">
+                <img src="/app'.$this->getImageUrl().'">
             </p>';
         }
         return $images;
