@@ -38,8 +38,6 @@ Class Container implements ArrayAccess
     protected $return = array();        // Stores return requests
     protected $resolved = array();      // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
-    protected $envArray = array();      // $c->detectEnvironment() use this configuration
-    protected static $env;
 
     const PROVIDER_SIGN = ':';  // To protect providers we use a sign.
 
@@ -48,7 +46,6 @@ Class Container implements ArrayAccess
      */
     public function __construct() 
     {
-        $this->envArray = include ROOT .'app'. DS .'environments.php';
         $this->aliases = new SplObjectStorage;
     }
 
@@ -243,22 +240,10 @@ Class Container implements ArrayAccess
                 $this->registered[$serviceClass] = $service;
             }
             $implements = key(class_implements($service));
-
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
 
             if ($implements == 'Service\Provider\ProviderInterface') {
-                $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
-                $key = $this->getAlias($data['cid'], lcfirst(substr(implode('', $map), 7)), $matches);  // Converts "serviceProviderCache" to "providerCache"
-
-                $newMatches['return'] = 'return'; // Provider must be return to closure.
-                $newMatches['new'] = $matches['new'];
-                $newMatches['key'] = $key;
-                $instance = $this->offsetGet($cid, $params, $newMatches);
-
-                if ( ! empty($matches['return'])) {
-                    return $instance;
-                }
-                return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
+                return $this->resolveProvider($data, $map, $matches, $params);
             }
         }
         if ($isService == false) {  // Load none service libraries
@@ -269,6 +254,32 @@ Class Container implements ArrayAccess
             $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches, $isService);
+    }
+
+    /**
+     * Resolve provider and return to provider instance
+     * 
+     * @param array $data    getClassInfo data
+     * @param array $map     map data
+     * @param array $matches commands
+     * @param array $params  parameters
+     * 
+     * @return object
+     */
+    protected function resolveProvider($data, $map, $matches, $params)
+    {
+        $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
+        $key = $this->getAlias($data['cid'], lcfirst(substr(implode('', $map), 7)), $matches);  // Converts "serviceProviderCache" to "providerCache"
+
+        $newMatches['return'] = 'return'; // Provider must be return to closure.
+        $newMatches['new'] = $matches['new'];
+        $newMatches['key'] = $key;
+        $instance = $this->offsetGet($cid, $params, $newMatches);
+
+        if ( ! empty($matches['return'])) {
+            return $instance;
+        }
+        return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
     }
 
     /**
@@ -304,6 +315,19 @@ Class Container implements ArrayAccess
         if ( ! is_null($callable) AND $this->aliases->contains($callable)) {
             $key = $this->aliases[$callable];
         }
+        return $this->searchAs($key, $matches);
+    }
+
+    /**
+     * Serach "as" keyword
+     * 
+     * @param string $key     class key
+     * @param array  $matches loader command matches
+     * 
+     * @return string
+     */
+    protected function searchAs($key, $matches)
+    {
         if ( ! empty($matches['last'])) {  // Replace key with alias if we have it
             $key = preg_replace('#(as)\b#i', '', trim($matches['last']));  // as "name"
         }
@@ -375,17 +399,10 @@ Class Container implements ArrayAccess
             'return' => '',
             'new' => '',
             'class' => $class,
-            'origin' => $class,
-            'bindKey' => '',
             'last' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
             preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
-        }
-        $matches['origin'] = $matches['class'];
-        if (strpos($matches['class'], 'model.') === 0) {
-            $matches['bindKey'] = 'model';
-            $matches['class'] = substr($matches['class'], 6);
         }
         $this->resolvedCommand[$class] = $matches;
         return $matches;
@@ -556,16 +573,15 @@ Class Container implements ArrayAccess
     public function bind($cid, $namespace = null, $params = array())
     {
         $matches = $this->resolveCommand($cid);
-        $cid = 'bind.'.$matches['origin'];  // protect from services
-        $key = $matches['origin'];
+        $key = $this->searchAs($cid, $matches);
+        $cid = 'bind.'.$key;  // protect from services
 
         $bindKey = $key;
         $lastKey = null;
-        if ( ! empty($matches['bindKey'])) {
-            $bindKey = $matches['bindKey'];
-            $lastKey = $matches['class'];
+        if ($matches['class'] == 'model') {
+            $bindKey = 'model';
+            $lastKey = $key;
         }
-        var_dump($cid);
         if ( ! $this->exists($cid)) {   // Don't register service again.
             $this->bindClass($bindKey, $namespace);
             if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
@@ -576,7 +592,7 @@ Class Container implements ArrayAccess
         if (empty($matches['new']) AND isset($this->frozen[$cid])) {
             return $this->values[$cid];
         }
-        if ( ! empty($matches['new'])) {
+        if ( ! empty($matches['new']) AND isset($this->raw[$cid])) {
             return $this->runClosure($this->raw[$cid], $params);
         }
         $this->frozen[$cid] = true;
@@ -602,29 +618,6 @@ Class Container implements ArrayAccess
                 include MODELS .str_replace('\\', DS, ltrim($namespace, '\\')). '.php';
             }
         }
-    }
-
-    /**
-     * Detects application environment using "app/environments.php" file.
-     * 
-     * @return string environment or die if fail
-     */
-    public function detectEnvironment()
-    {
-        $hostname = gethostname();
-        if (self::$env != null) {
-            return self::$env;
-        }
-        if (in_array($hostname, $this->envArray['env']['production']['server']['hostname'])) {
-            return self::$env = 'production';
-        }
-        if (in_array($hostname, $this->envArray['env']['test']['server']['hostname'])) {
-            return self::$env = 'test';
-        }
-        if (in_array($hostname, $this->envArray['env']['local']['server']['hostname'])) {
-            return self::$env = 'local';
-        }
-        die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
     }
 
 }

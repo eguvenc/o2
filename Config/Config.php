@@ -63,12 +63,7 @@ Class Config implements ArrayAccess
         ini_set('display_errors', 1);
         $this->env = include $this->file;
 
-        $dotenv = '.env.'. ENV .'.php';
-        $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
-        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
-            configurationError();
-        }
-        $_ENV = $envVariables;
+        $this->assignEnvironments();
 
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
 
@@ -80,6 +75,21 @@ Class Config implements ArrayAccess
     }
 
     /**
+     * Assign environment variables
+     * 
+     * @return void
+     */
+    protected function assignEnvironments()
+    {
+        $dotenv = '.env.'. ENV .'.php';
+        $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
+        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
+            configurationError();
+        }
+        $_ENV = $envVariables;
+    }
+
+    /**
      * Load Config File
      *
      * @param string $filename the config file name
@@ -88,7 +98,8 @@ Class Config implements ArrayAccess
      */
     public function load($filename = '')
     {
-        global $c;
+        global $c; //  Available container variable in config files.
+
         $fileUrl = str_replace('/', DS, $filename);
         $envFile = $this->path . $fileUrl .'.php';
         $file = $this->local . $fileUrl .'.php';  // Default config path

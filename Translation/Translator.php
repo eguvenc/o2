@@ -22,7 +22,7 @@ Class Translator implements ArrayAccess
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Framework logger object
