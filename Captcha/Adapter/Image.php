@@ -5,7 +5,8 @@ namespace Obullo\Captcha\Adapter;
 use RuntimeException,
     Obullo\Captcha\Result,
     Obullo\Captcha\CaptchaService,
-    Obullo\Captcha\AbstractAdapter;
+    Obullo\Captcha\AbstractAdapter,
+    Obullo\Captcha\AdapterInterface;
 
 /**
  * Captcha image class.
@@ -17,7 +18,7 @@ use RuntimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-Class Image extends AbstractAdapter
+Class Image extends AbstractAdapter implements AdapterInterface
 {
     /**
      * Actual fonts
@@ -98,6 +99,20 @@ Class Image extends AbstractAdapter
     public $imgName;
 
     /**
+     * Configuration data
+     * 
+     * @var array
+     */
+    protected $config = array();
+
+    /**
+     * Configuration temp data
+     * 
+     * @var array
+     */
+    protected $tempConfig = array();
+
+    /**
      * Image unique id
      * 
      * @var string
@@ -164,14 +179,28 @@ Class Image extends AbstractAdapter
     protected $code;
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Constructor
      *
-     * @param object $c       container
-     * @param object $captcha captcha
+     * @param object $c      container
+     * @param array  $params parameters
      */
-    public function __construct($c, CaptchaService $captcha)
+    public function __construct($c, array $params = array())
     {
-        parent::__construct($c, $captcha);
+        if (sizeof($params) == 0) {
+            $params = $c['config']->load('captcha');
+        }
+        $this->c          = $c;
+        $this->config     = $params;
+        $this->tempConfig = $params;
+
+        parent::__construct($c);
     }
 
     /**
@@ -181,7 +210,7 @@ Class Image extends AbstractAdapter
      */
     public function init()
     {
-        $this->config          = $this->params;
+        $this->config          = $this->tempConfig;
         $this->fonts           = array_keys($this->config['fonts']);
         $this->imgPath         = ASSETS . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
         $this->imgRawUrl       = $this->c['uri']->getBaseUrl($this->config['image']['path'] . DS); // add Directory Seperator ( DS )

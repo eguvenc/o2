@@ -29,20 +29,6 @@ abstract Class AbstractAdapter
     );
 
     /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Config data
-     * 
-     * @var array
-     */
-    protected $config = array();
-
-    /**
      * Session instance
      * 
      * @var object
@@ -66,19 +52,15 @@ abstract Class AbstractAdapter
     /**
      * Constructor
      *
-     * @param object $c       container
-     * @param object $captcha captcha service
+     * @param object $c container
      */
-    public function __construct($c, CaptchaService $captcha)
+    public function __construct($c)
     {
-        $this->c       = $c;
-        $this->params  = $captcha->config;
-        $this->config  = $captcha->config;
-        $this->session = $this->c->load('session');
-        $this->logger  = $this->c->load('service/logger');
+        $this->session = $c->load('session');
+        $this->logger  = $c->load('service/logger');
 
         $this->init();
-
+        
         $this->logger->debug('Captcha Class Initialized');
     }
 
