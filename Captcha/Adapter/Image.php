@@ -99,6 +99,13 @@ Class Image extends AbstractAdapter implements AdapterInterface
     public $imgName;
 
     /**
+     * Captcha html
+     * 
+     * @var string
+     */
+    protected $html = '';
+
+    /**
      * Configuration data
      * 
      * @var array
@@ -201,6 +208,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
         $this->tempConfig = $params;
 
         parent::__construct($c);
+        $this->buildHtml();
     }
 
     /**
@@ -250,7 +258,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
      */
     public function setCaptchaId($captchaId)
     {
-        $this->config['input']['id'] = $captchaId;
+        $this->config['form']['input']['attributes']['id'] = $captchaId;
         return $this;
     }
 
@@ -550,13 +558,14 @@ Class Image extends AbstractAdapter implements AdapterInterface
         $this->imageGenerate(); // The last function for image.
         
         $this->session->set(
-            $this->config['input']['id'],
+            $this->config['form']['input']['attributes']['name'],
             array(
                 'image_name' => $this->getImageId(),
                 'code'       => $this->getCode(),
                 'expiration' => time() + $this->config['image']['expiration']
             )
         );
+        // $this->buildHtml();
         $this->init(); // Variables are reset.
     }
 
@@ -710,13 +719,12 @@ Class Image extends AbstractAdapter implements AdapterInterface
      */
     public function check($code)
     {
-        if ($data = $this->session->get($this->config['input']['id'])) {
+        if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
         }
-        $this->result = array(  // Last failure.
-            'code' => CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND,
-            'message' => 'The captcha code not found.'
-        );
+        // Last failure.
+        $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
+        $this->result['messages'][] = 'The captcha code not found.';
         return $this->createResult();
     }
 
@@ -732,30 +740,73 @@ Class Image extends AbstractAdapter implements AdapterInterface
     {
         if ($data['expiration'] < time()) { // Expiration time of captcha ( second )
             // Remove captcha data from session.
-            $this->session->remove($this->config['input']['id']);
+            $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result = array(
-                'code'    => CaptchaResult::FAILURE_HAS_EXPIRED,
-                'message' => 'The captcha code has expired.'
-            );
+            $this->result['code'] = CaptchaResult::FAILURE_HAS_EXPIRED;
+            $this->result['messages'][] = 'The captcha code has expired.';
             return $this->createResult();
         }
 
         if ($code == $data['code']) { // Is the code correct?
             // Remove captcha data from session.
-            $this->session->remove($this->config['input']['id']);
+            $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result = array(
-                'code'    => CaptchaResult::SUCCESS,
-                'message' => 'Captcha code has been entered successfully.'
-            );
+            $this->result['code'] = CaptchaResult::SUCCESS;
+            $this->result['messages'][] = 'Captcha code has been entered successfully.';
             return $this->createResult();
         }
-        $this->result = array(
-            'code'    => CaptchaResult::FAILURE_INVALID_CODE,
-            'message' => 'Invalid captcha code.'
-        );
+        $this->result['code'] = CaptchaResult::FAILURE_INVALID_CODE;
+        $this->result['messages'][] = 'Invalid captcha code.';
         return $this->createResult();
+    }
+
+    /**
+     * Build html
+     * 
+     * @return void
+     */
+    protected function buildHtml()
+    {
+        foreach ($this->config['form'] as $key => $val) {
+            $this->html .= vsprintf(
+                '<%s %s/>',
+                array(
+                    $key,
+                    $this->buildAttributes($val['attributes'])
+                )
+            );
+        }
+        // $this->html .= sprintf(
+        //     '<img %s/>',
+        //     $this->buildAttributes($this->config['form']['img']['attributes'])
+        // );
+    }
+
+    /**
+     * Build attributes
+     * 
+     * @param array $attributes attributes
+     * 
+     * @return string
+     */
+    protected function buildAttributes(array $attributes)
+    {
+        $attr = array();
+
+        foreach ($attributes as $key => $value) {
+            $attr[] = $key.'="'.$value.'"';
+        }
+        return count($attr) ? implode(' ', $attr) : '';
+    }
+
+    /**
+     * Print captcha html
+     * 
+     * @return string html
+     */
+    public function printCaptcha()
+    {
+        print($this->html);
     }
 }
 

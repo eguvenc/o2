@@ -15,6 +15,11 @@ namespace Obullo\Captcha;
 Class CaptchaResult
 {
     /**
+     * General failure.
+     */
+    const FAILURE = 0;
+
+    /**
      * Successful process.
      */
     const SUCCESS = 1;
@@ -46,18 +51,18 @@ Class CaptchaResult
      * 
      * @var array
      */
-    protected $message = array();
+    protected $messages = array();
 
     /**
      * Sets the result code and failure message
      *
-     * @param int    $code    result code
-     * @param string $message message
+     * @param int    $code     result code
+     * @param string $messages messages
      */
-    public function __construct($code, $message)
+    public function __construct($code, $messages)
     {
         $this->code = (int)$code;
-        $this->message = $message;
+        $this->messages = $messages;
     }
 
     /**
@@ -81,13 +86,13 @@ Class CaptchaResult
     }
 
     /**
-     * Get message
+     * Get messages
      *
      * @return array
      */
-    public function getMessage()
+    public function getMessages()
     {
-        return $this->message;
+        return $this->messages;
     }
 
     /**
@@ -111,7 +116,7 @@ Class CaptchaResult
      */
     public function setMessage($message)
     {
-        $this->message = $message;
+        $this->messages[] = $message;
     }
 
     /**
@@ -123,7 +128,7 @@ Class CaptchaResult
     {
         return array(
             'code' => $this->code,
-            'message' => $this->message,
+            'messages' => $this->messages,
         );
     }
 }
