@@ -1,0 +1,134 @@
+<?php
+
+namespace Obullo\Captcha;
+
+/**
+ * O2 Captcha - Captcha Result Controller
+ *
+ * @category  Captcha
+ * @package   Result
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/docs/captcha
+ */
+Class Result
+{
+    /**
+     * Successful process.
+     */
+    const SUCCESS = 1;
+
+    /**
+     * Has been expired the captcha.
+     */
+    const FAILURE_HAS_EXPIRED = -1;
+
+    /**
+     * Invalid captcha code.
+     */
+    const FAILURE_INVALID_CODE = -2;
+
+    /**
+     * Captcha data not found.
+     */
+    const FAILURE_CAPTCHA_NOT_FOUND = -3;
+
+    /**
+     * Captcha result code
+     *
+     * @var int
+     */
+    protected $code;
+
+    /**
+     * Result message
+     * 
+     * @var array
+     */
+    protected $message = array();
+
+    /**
+     * Sets the result code and failure message
+     *
+     * @param int    $code    result code
+     * @param string $message message
+     */
+    public function __construct($code, $message)
+    {
+        $this->code = (int)$code;
+        $this->message = $message;
+    }
+
+    /**
+     * Returns whether the result represents a successful captcha code
+     *
+     * @return bool
+     */
+    public function isValid()
+    {
+        return ($this->code > 0) ? true : false;
+    }
+
+    /**
+     * Get the result code for this captcha code
+     *
+     * @return int
+     */
+    public function getCode()
+    {
+        return $this->code;
+    }
+
+    /**
+     * Get message
+     *
+     * @return array
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+    /**
+     * Set custom error code
+     * 
+     * @param int $code error code
+     *
+     * @return void
+     */
+    public function setCode($code)
+    {
+        $this->code = $code;
+    }
+
+    /**
+     * Set custom error messages
+     * 
+     * @param string $message message
+     *
+     * @return void
+     */
+    public function setMessage($message)
+    {
+        $this->message = $message;
+    }
+
+    /**
+     * Gets all messages
+     * 
+     * @return array
+     */
+    public function getArray()
+    {
+        return array(
+            'code' => $this->code,
+            'message' => $this->message,
+        );
+    }
+}
+
+// END Result.php File
+/* End of file Result.php
+
+/* Location: .Obullo/Captcha/Result.php */
