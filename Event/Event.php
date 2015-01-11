@@ -6,6 +6,7 @@ use RuntimeException;
 
 /**
  * Event Class
+ * 
  * Modeled after Laravel event package.
  * 
  * @category  Event
@@ -49,8 +50,6 @@ Class Event
      * Create a new event dispatcher instance.
      *
      * @param object $c container
-     * 
-     * @return void
      */
     public function __construct($c)
     {

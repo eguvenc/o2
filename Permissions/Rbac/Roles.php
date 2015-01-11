@@ -172,8 +172,8 @@ Class Roles
         $this->treeDb->setPrimaryKey($this->primaryKey);
         $this->treeDb->setParentId($this->parentId);
         $this->treeDb->setText($this->text);
-        $this->treeDb->setLft($this->lft);
-        $this->treeDb->setRgt($this->rgt);
+        $this->treeDb->setLeft($this->lft);
+        $this->treeDb->setRight($this->rgt);
     }
 
     /**

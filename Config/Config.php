@@ -27,7 +27,7 @@ Class Config implements ArrayAccess
     public $env;
 
     /**
-     * Configuration container
+     * Configuration files stack
      * 
      * @var array
      */
@@ -39,13 +39,6 @@ Class Config implements ArrayAccess
      * @var string
      */
     protected $path;
-
-    /**
-     * A cache of whether file is loaded.
-     * 
-     * @var array
-     */
-    protected $loaded = array();
 
     /**
      * Constructor
@@ -67,9 +60,9 @@ Class Config implements ArrayAccess
 
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
 
-        if (ENV != 'local') {
-            $config = include $this->path .'config.php';
-            $this->array = array_replace_recursive($this->array, $config);  // Merge config variables if env not local.
+        if (ENV != 'local') { // Merge config variables if env not local.
+            $envConfig = include $this->path .'config.php';
+            $this->array = array_replace_recursive($this->array, $envConfig);
         }
         ini_set('display_errors', 0);
     }
@@ -98,28 +91,36 @@ Class Config implements ArrayAccess
      */
     public function load($filename = '')
     {
-        global $c; //  Available container variable in config files.
+        global $c; //  Make available $c variable in config files.
 
-        $fileUrl = str_replace('/', DS, $filename);
-        $envFile = $this->path . $fileUrl .'.php';
-        $file = $this->local . $fileUrl .'.php';  // Default config path
-
-        if (file_exists(APP . 'config' . DS . $fileUrl .'.php')) {  // If shared file exists 
-            $file = APP . 'config' . DS . $fileUrl .'.php';
-        }
-        if (file_exists($envFile)) {
-            $file = $envFile;
-        }
-        if (in_array($file, $this->loaded, true)) {
+        if (isset($this->array[$filename])) {   // Is file loaded before ?
             return $this->array[$filename];
+        }
+        if ($filename == 'config') {  //  Config already loaded but someone may want to load it again.
+            return $this->array;
+        }
+        $fileUrl = str_replace('/', DS, $filename);
+        $envFile = $this->path . $fileUrl.'.php';
+        $file = $this->local . $fileUrl.'.php';  // Default config path
+
+        if (file_exists(APP .'config'. DS .$fileUrl.'.php')) {  // If shared file exists 
+            $file = APP .'config'. DS .$fileUrl.'.php';
+        }
+        $isEnvFile = false;
+        if (file_exists($envFile)) {   // Do we able to locate environment file ?
+            $isEnvFile = true;
+            $file = $envFile;
         }
         ini_set('display_errors', 1);
         $config = include $file;
-        ini_set('display_errors', 0);
 
-        $this->array[$filename] = $config;
-        $this->loaded[] = $file;
-        unset($config);
+        if (ENV != 'local' AND $isEnvFile) { // Merge config variables if env not local.
+            $localConfig = include $this->local . $fileUrl .'.php';
+            return $this->array[$filename] = array_replace_recursive($localConfig, $config);
+        } else {
+            $this->array[$filename] = $config;
+        }
+        ini_set('display_errors', 0);
         return $this->array[$filename];
     }
 

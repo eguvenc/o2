@@ -44,7 +44,6 @@ if ($c['config']['controller']['annotation']['reader']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class);
     $filter = $docs->parse();
 }
-
 /*
  * ------------------------------------------------------
  *  Before controller event

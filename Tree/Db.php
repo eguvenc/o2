@@ -167,7 +167,7 @@ Class Db
      *
      * @return void
      */
-    public function setLft($lft)
+    public function setLeft($lft)
     {
         $this->lft = $lft;
     }
@@ -179,7 +179,7 @@ Class Db
      *
      * @return void
      */
-    public function setRgt($rgt)
+    public function setRight($rgt)
     {
         $this->rgt = $rgt;
     }

@@ -335,9 +335,9 @@ public function index()
 
 ------
 
-Framework has an response class that takes care of sending your final rendered data to the web browser automatically. More information on this can be found in the Views and Response class pages. In some cases, however, you might want to post-process the finalized data in some way and send it to the browser yourself. Framework permits you to add a function named <kbd>_response()</kbd> to your controller that will receive the finalized output data.
+Framework has an response class that takes care of sending your final rendered data to the web browser automatically. More information on this can be found in the Views and Response class pages. In some cases, however, you might want to post-process the finalized data in some way and send it to the browser yourself. Framework permits you to add a function named <kbd>response()</kbd> to your controller that will receive the finalized output data.
 
-**Note:** If your controller contains a function named <kbd>_response()</kbd>, it will always be called by the response class instead of echoing the finalized data directly. The first parameter of the function will contain the finalized output.
+**Note:** If your controller contains a function named <kbd>response()</kbd>, it will always be called by the response class instead of echoing the finalized data directly. The first parameter of the function will contain the finalized output.
 
 Here is an example:
 
@@ -348,10 +348,10 @@ Here is an example:
  * 
  * @return void
  */
-public function _response($output)
+public function response($output)
 {
     echo $output;
 }
 ```
 
-Please note that your <kbd>_response()</kbd> function will receive the data in its finalized state. For an alternate way to control output <em>before</em> any of the final processing is done, please see the available methods in the Response Class.
+Please note that your <kbd>response()</kbd> function will receive the data in its finalized state. For an alternate way to control output <em>before</em> any of the final processing is done, please see the available methods in the Response Class.

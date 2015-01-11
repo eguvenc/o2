@@ -198,7 +198,7 @@ Class User
      * 
      * @return boolean
      */
-    public function isPermitted($permName, $permissions)
+    public function isAllowed($permName, $permissions)
     {
         if ( ! is_array($permissions)) {
             return false;
@@ -496,7 +496,7 @@ Class User
      */
     public function roleCount($expiration = 7200)
     {
-        $key         = static::CACHE_ROLE_COUNT . $this->getUserId();
+        $key = static::CACHE_ROLE_COUNT . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
             $queryResultArray = static::dbUser()->roleCountSqlQuery();  // do sql query

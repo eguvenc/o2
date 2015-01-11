@@ -48,12 +48,12 @@ View Layers
 
 ```
 
-#### Json Layers
+#### Database Layers
 
-Json layers same as view layers main difference is response format is <b>json</b> and they can be used for seperating form validations or caching some heavy operations.
+Database layers same as view layers main difference is response format is <b>json</b> and they can be used for seperating form validations or caching some heavy operations.
 
 ```php
-Json Layers
+Database Layers
 
       Controller
         ------  
@@ -62,7 +62,7 @@ Json Layers
              \         \
               -------   \
               |  v  |    \
-              -------     \  Controller ( Json )
+              -------     \  Controller ( Database )
                           ------
                           | c  |
                           ------ 
@@ -82,7 +82,7 @@ Below the example simply demonstrate <b>Layers</b> technique.
 |                                                                                   |
 |-----------------------------------------------------------------------------------|
 |                                                                                   |
-|             $r = $this->layer->post('jsons/membership/create_user');              |
+|             $r = $this->layer->post('database/membership/create_user');              |
 |                                                                                   |
 |             if ($r['success']) {                                                  |
 |                  // user created successfully.                                    |

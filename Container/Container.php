@@ -12,7 +12,9 @@ use Controller,
 /*
  * Container for Obullo Ersin Guvenc (c) 2015
  * 
- * This file after modeled Pimple Software Dependency Container.
+ * This file after modeled Pimple Software ( Dependency Container ).
+ * 
+ * http://pimple.sensiolabs.org/
  */
 
 /**
@@ -38,6 +40,7 @@ Class Container implements ArrayAccess
     protected $return = array();        // Stores return requests
     protected $resolved = array();      // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
+    protected $bindNamespaces = array(); // Stores bind method namespaces
 
     const PROVIDER_SIGN = ':';  // To protect providers we use a sign.
 
@@ -371,6 +374,7 @@ Class Container implements ArrayAccess
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName, $lastKey) {
 
                 if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
+
                     if (empty($lastKey)) {
                         return Controller::$instance->{$key} = new $ClassName($this, $params);
                     }
@@ -398,11 +402,12 @@ Class Container implements ArrayAccess
         $matches = array(
             'return' => '',
             'new' => '',
+            'model' => '',
             'class' => $class,
             'last' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
+            preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<model>(?:)model|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
         }
         $this->resolvedCommand[$class] = $matches;
         return $matches;
@@ -470,8 +475,6 @@ Class Container implements ArrayAccess
      * @param string $cid The unique identifier for the parameter or object
      *
      * @return mixed The value of the parameter or the closure defining an object
-     *
-     * @throws InvalidArgumentException if the identifier is not defined
      */
     public function raw($cid)
     {
@@ -494,8 +497,6 @@ Class Container implements ArrayAccess
      * @param callable $callable A service definition to extend the original
      *
      * @return callable The wrapped callable
-     *
-     * @throws InvalidArgumentException if the identifier is not defined or not a service definition
      */
     public function extend($cid, $callable)
     {
@@ -573,12 +574,20 @@ Class Container implements ArrayAccess
     public function bind($cid, $namespace = null, $params = array())
     {
         $matches = $this->resolveCommand($cid);
-        $key = $this->searchAs($cid, $matches);
-        $cid = 'bind.'.$key;  // protect from services
 
+        $bcid = $matches['class'];
+        if ($namespace == null) {
+            $namespace = isset($this->bindNamespaces[$bcid]) ? $this->bindNamespaces[$bcid] : ucfirst($matches['class']);
+        } else {
+            $this->bindNamespaces[$bcid] = $namespace;
+        }
+        $key = $this->findBindKey($cid, $namespace, $matches);
+
+        $cid = 'bind.'.$key;  // protect from services
         $bindKey = $key;
         $lastKey = null;
-        if ($matches['class'] == 'model') {
+        if ($matches['model'] != '') {
+            $cid = 'bind.model.'.$key;
             $bindKey = 'model';
             $lastKey = $key;
         }
@@ -598,6 +607,26 @@ Class Container implements ArrayAccess
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
         return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+    }
+
+    /**
+     * Find bind key
+     * 
+     * @param string $cid       key
+     * @param string $namespace class namespace
+     * @param array  $matches   array
+     * 
+     * @return void
+     */
+    protected function findBindKey($cid, $namespace, $matches)
+    {
+        $key = $this->searchAs($cid, $matches);
+
+        if (empty($matches['last'])) {  // If "as" not used lets use key end of the namespace 
+            $exp = explode('\\', $namespace);
+            $key = strtolower(end($exp));
+        }
+        return $key;
     }
 
     /**

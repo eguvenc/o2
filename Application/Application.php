@@ -15,6 +15,13 @@ namespace Obullo\Application;
 Class Application
 {
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Current environent
      * 
      * @var string
@@ -30,11 +37,12 @@ Class Application
 
     /**
      * Constructor
-     * 
-     * Fetch environments array
+     *
+     * @param object $c container
      */
-    public function __construct()
+    public function __construct($c)
     {
+        $this->c = $c;
         $this->envArray = include ROOT .'app'. DS .'environments.php';
     }
 

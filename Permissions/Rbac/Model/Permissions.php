@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Permissions\Rbac\Db;
+namespace Obullo\Permissions\Rbac\Model;
 
 use Obullo\Permissions\Rbac\Permissions as RbacPerms;
 
