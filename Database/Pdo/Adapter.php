@@ -22,7 +22,7 @@ Class Adapter
     public $sql;
     public $pdo = array();      // Pdo config
     public $pdoObject = null;   // Pdo object.
-    public $Stmt = null;        // PDOStatement Object
+    public $stmt = null;        // PDOStatement Object
     public $connection = null;  // Pdo connection object.
     public $startQueryTimer;    // Timer
     public $escapeChar = '`';   // The character used for escaping
@@ -94,7 +94,7 @@ Class Adapter
      */
     public function insert($table, $data = array())
     {
-        $data = $this->doArrayEscape($data);
+        $data = $this->arrayEscape($data);
         $sql = $this->_insert($table, array_keys($data), array_values($data));
         return $this->exec($sql);
     }
@@ -109,7 +109,7 @@ Class Adapter
      */
     public function replace($table, $data = array())
     {
-        $data = $this->doArrayEscape($data);
+        $data = $this->arrayEscape($data);
         $sql = $this->_replace($table, array_keys($data), array_values($data));
         return $this->exec($sql);
     }
@@ -127,8 +127,8 @@ Class Adapter
      */
     public function update($table, $data = array(), $where = array(), $extraSql = '', $limit = false)
     {     
-        $data = $this->doArrayEscape($data);
-        $where = $this->doArrayEscape($where);
+        $data = $this->arrayEscape($data);
+        $where = $this->arrayEscape($where);
         $conditions = $this->buildConditions($where);
         $sql = $this->_update($table, $data, $conditions, array(), $limit, $extraSql);
         return $this->exec($sql);
@@ -146,7 +146,7 @@ Class Adapter
      */
     public function delete($table, $where = array(), $extraSql = '', $limit = false)
     {
-        $where = $this->doArrayEscape($where);
+        $where = $this->arrayEscape($where);
         $conditions = $this->buildConditions($where);
         $sql = $this->_delete($table, $conditions, array(), $limit, $extraSql);
         return $this->exec($sql);
@@ -184,7 +184,7 @@ Class Adapter
      * 
      * @return array escaped data
      */
-    protected function doArrayEscape($data)
+    protected function arrayEscape($data)
     {
         $newData = array();
         foreach ($data as $key => $value) {
@@ -207,7 +207,7 @@ Class Adapter
         $this->startQueryTimer = microtime(true);
         $this->lastSql = $this->sprintf($sql, $fields);
 
-        $this->Stmt = $this->connection->prepare($this->lastSql, $options);
+        $this->stmt = $this->connection->prepare($this->lastSql, $options);
         $this->prepQueries[] = $this->lastSql;  // Save the  query for debugging
         $this->prepare = true;
         ++$this->queryCount;
@@ -219,24 +219,29 @@ Class Adapter
      * 
      * @param string $sql    query
      * @param array  $fields array fields
+     * @param array  $values bind values
      * 
      * @return object pdo
      */
-    public function query($sql, $fields = array())
+    public function query($sql, $fields = array(), $values = array())
     {
         $this->lastSql = $this->sprintf($sql, $fields);
 
         $start = microtime(true);
-        $this->Stmt = $this->connection->query($this->lastSql);
-        $time = microtime(true) - $start;
+        if (count($values) > 0) {
+            $this->prepare($this->lastSql);
+            return $this->execute($values);
+        } else {
+            $this->stmt = $this->connection->query($this->lastSql);
+        }
+        $time  = microtime(true) - $start;
+
         ++$this->queryCount;
         if ($this->config['log']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Query ):', 
-                array(
-                    'time' => number_format($time, 4), 
-                    'output' => trim(preg_replace('/\n/', ' ', $this->lastSql), "\n")
-                ), ($this->queryCount * -1 )
+                array('time' => number_format($time, 4), 'output' => self::getSqlString($this->lastSql)), 
+                ($this->queryCount * -1 )
             );
         }
         return ($this);
@@ -487,7 +492,7 @@ Class Adapter
      */
     public function bindParam($param, $val, $type, $length = null, $options = null)
     {
-        $this->Stmt->bindParam($param, $val, $type, $length, $options);
+        $this->stmt->bindParam($param, $val, $type, $length, $options);
         $this->useBindParams = true;
         $this->lastBindParams[$param] = $val;
         return $this;
@@ -504,7 +509,7 @@ Class Adapter
      */
     public function bindValue($param, $val, $type)
     {
-        $this->Stmt->bindValue($param, $val, $type);
+        $this->stmt->bindValue($param, $val, $type);
         $this->useBindValues = true;
         $this->lastBindValues[$param] = $val;
         return $this;
@@ -523,22 +528,7 @@ Class Adapter
         if (is_string($str)) {
             return $this->escapeStr($str);
         }
-        if (is_integer($str)) {
-            return (int)$str;
-        }
-        if (is_double($str)) {
-            return (double)$str;
-        }
-        if (is_float($str)) {
-            return (float)$str;
-        }
-        if (is_bool($str)) {
-            return (bool)$str;
-        }
-        if (is_null($str)) {
-            return null;
-        }
-        return null;
+        return $str;
     }
 
     /**
@@ -566,18 +556,17 @@ Class Adapter
      */
     public function execute($array = null)
     {
-        $this->Stmt->execute($array);
+        $this->stmt->execute($array);
         $time = microtime(true) - $this->startQueryTimer;
 
         if ($this->config['log']['extra']['queries'] AND isset($this->prepQueries[0])) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Execute ):', 
-                array('time' => number_format($time, 4), 
-                'output' => trim(preg_replace('/\n/', ' ', end($this->prepQueries)), "\n")), 
+                array('time' => number_format($time, 4), 'output' => self::getSqlString(end($this->prepQueries))), 
                 ($this->queryCount * -1 )
             );
         }
-        $this->prepare = false;   // reset prepare variable and prevent collision with next query ..
+        $this->prepare = false;  // reset prepare variable and prevent collision with next query ..
         ++$this->execCount;      // count execute of prepared statements ..
 
         $this->lastValues = array();   // reset last bind values ..
@@ -594,7 +583,7 @@ Class Adapter
         $this->lastBindValues = array();
         $this->lastBindParams = array();
 
-        return $this->Stmt;
+        return $this->stmt;
     }
 
     /**
@@ -618,12 +607,24 @@ Class Adapter
         if ($this->config['log']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Exec ):', 
-                array('time' => number_format($time, 4), 
-                'output' => trim(preg_replace('/\n/', ' ', $this->lastSql), "\n")), 
+                array('time' => number_format($time, 4), 'output' => self::getSqlString($this->lastSql)), 
                 ($this->queryCount * -1 )
             );
         }
         return $affectedRows;
+    }
+
+    /**
+     * Return to last sql query string
+     *
+     * @param string $sqlStr string sql
+     * 
+     * @return void
+     */
+    protected static function getSqlString($sqlStr)
+    {
+        $sql = preg_replace('/\n/', ' ', $sqlStr);
+        return trim($sql, "\n");
     }
 
     /**
@@ -633,7 +634,7 @@ Class Adapter
      */
     public function count()
     {
-        return $this->Stmt->rowCount();
+        return $this->stmt->rowCount();
     }
 
     /**
@@ -645,7 +646,7 @@ Class Adapter
      */
     public function row($failArray = false)
     {
-        $result = $this->Stmt->fetch(PDO::FETCH_OBJ);
+        $result = $this->stmt->fetch(PDO::FETCH_OBJ);
         if ($result === false AND $failArray == true) {
             return array();
         }
@@ -661,7 +662,7 @@ Class Adapter
      */
     public function rowArray($failArray = false)
     {
-        $result = $this->Stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $this->stmt->fetch(PDO::FETCH_ASSOC);
         if ($result === false AND $failArray == true) {
             return array();
         }
@@ -677,7 +678,7 @@ Class Adapter
      */
     public function result($failArray = false)
     {
-        $result = $this->Stmt->fetchAll(PDO::FETCH_OBJ);
+        $result = $this->stmt->fetchAll(PDO::FETCH_OBJ);
         if ($result === false AND $failArray == true) {
             return array();
         }
@@ -693,7 +694,7 @@ Class Adapter
      */
     public function resultArray($failArray = false)
     {
-        $result = $this->Stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
         if ($result === false AND $failArray == true) {
             return array();
         }
@@ -711,7 +712,7 @@ Class Adapter
      */
     public function getStatement()
     {
-        return $this->Stmt;
+        return $this->stmt;
     }
     
     /**
