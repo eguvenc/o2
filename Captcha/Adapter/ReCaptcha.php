@@ -358,4 +358,3 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
 /* End of file ReCaptcha.php
 
 /* Location: .Obullo/Captcha/Adapter/ReCaptcha.php */
-
