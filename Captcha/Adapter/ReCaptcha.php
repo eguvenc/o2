@@ -1,6 +1,10 @@
 <?php
 
-namespace Obullo\Captcha;
+namespace Obullo\Captcha\Adapter;
+
+use Obullo\Captcha\CaptchaResult,
+    Obullo\Captcha\AbstractAdapter,
+    Obullo\Captcha\AdapterInterface;
 
 /**
  * o2 Captcha - ReCaptcha
@@ -59,8 +63,10 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         self::FAILURE_MISSING_INPUT_SECRET   => 'The secret parameter is missing.',
         self::FAILURE_INVALID_INPUT_SECRET   => 'The secret parameter is invalid or malformed.',
         self::FAILURE_MISSING_INPUT_RESPONSE => 'The response parameter is missing.',
-        self::FAILURE_INVALID_INPUT_RESPONS  => 'The response parameter is invalid or malformed.'
+        self::FAILURE_INVALID_INPUT_RESPONSE  => 'The response parameter is invalid or malformed.'
     );
+
+    protected $html = '';
 
     /**
      * Constructor
@@ -90,6 +96,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         if ($this->config['reCaptcha']['user']['auto_send_ip']) {
             $this->setUserIp($this->c->load('request')->ip());
         }
+        $this->buildHtml();
     }
 
     /**
@@ -228,9 +235,6 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function check($response)
     {
-        if (empty($response)) {
-            return false;
-        }
         $response = $this->sendVerifyRequest(
             array(
                 'secret'   => $this->getSecretKey(),
@@ -251,12 +255,11 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected function validateCaptcha($response)
     {
         if (isset($response['success'])) {
-
             if ( ! $response['success']
-                AND isset($response['error-code'])
-                AND sizeof($response['error-code']) > 0
+                AND isset($response['error-codes'])
+                AND sizeof($response['error-codes']) > 0
             ) {
-                foreach ($response['error-code'] as $err) {
+                foreach ($response['error-codes'] as $err) {
                     if (isset($this->errorCodes[$err])) {
                         $this->result['code'] = CaptchaResult::FAILURE;
                         $this->result['messages'][$err] = $this->errorCodes[$err];
@@ -270,6 +273,9 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
                 return $this->createResult();
             }
         }
+        $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
+        $this->result['messages'][] = 'The captcha response not found.';
+        return $this->createResult();
     }
 
     /**
@@ -298,7 +304,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         
         $this->html  = '<script src="'.$this->getJsLink().'" async defer></script>'."\n";
         $this->html .= sprintf(
-            '<div class="g-recaptcha">%s</div>',
+            '<div class="g-recaptcha" %s></div>',
             $this->buildAttributes($attributes)
         );
     }
@@ -317,7 +323,17 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         foreach ($attributes as $key => $value) {
             $html[] = $key.'="'.$value.'"';
         }
-        return count($html) ? ' '.implode(' ', $html) : '';
+        return count($html) ? implode(' ', $html) : '';
+    }
+
+    /**
+     * Generate code
+     * 
+     * @return void
+     */
+    public function generateCode()
+    {
+        return;
     }
 }
 

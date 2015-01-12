@@ -25,7 +25,7 @@ abstract Class AbstractAdapter
      */
     public $result = array(
         'code' => '',
-        'message' => '',
+        'messages' => array(),
     );
 
     /**
@@ -103,7 +103,7 @@ abstract Class AbstractAdapter
     {
         return new CaptchaResult(
             $this->result['code'],
-            $this->result['message']
+            $this->result['messages']
         );
     }
 }

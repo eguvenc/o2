@@ -4,7 +4,6 @@ namespace Obullo\Captcha\Adapter;
 
 use RuntimeException,
     Obullo\Captcha\CaptchaResult,
-    Obullo\Captcha\CaptchaService,
     Obullo\Captcha\AbstractAdapter,
     Obullo\Captcha\AdapterInterface;
 
@@ -208,7 +207,6 @@ Class Image extends AbstractAdapter implements AdapterInterface
         $this->tempConfig = $params;
 
         parent::__construct($c);
-        $this->buildHtml();
     }
 
     /**
@@ -218,6 +216,8 @@ Class Image extends AbstractAdapter implements AdapterInterface
      */
     public function init()
     {
+        $this->buildHtml();
+
         $this->config          = $this->tempConfig;
         $this->fonts           = array_keys($this->config['fonts']);
         $this->imgPath         = APP . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
