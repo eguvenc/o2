@@ -12,38 +12,74 @@ In your app folder you'll find one called translator containing sets of language
 ------
 
 ```php
-$c->load('translator');
+$this->c->load('translator');
 
-$this->translator['variable'];
+$this->translator['item'];
 $this->translator->method();
+```
+
+Controller sınıfı mevcut değilse
+
+```php
+$c['translator']['item'];
+$c['translator']->method();
 ```
 
 ### Create Your Translation File
 
 ------
 
-Within the file you will assign each line of text to an array called <var>$translate</var> with this prototype:
+It's a good practice to use ":" as key for all messages in a given file to avoid collisions with similarly named items in other files. 
+
+We define keys an array. An example 
 
 ```php
-$translate['language_key'] = "The actual message to be shown";
-```
+<?php
 
-**Note:** It's a good practice to use actual message as key for all messages in a given file to avoid collisions with similarly named items in other files. 
+return array(
 
-```php
-$translate['You must submit an email address'] = "You must submit an email address";
-$translate['You must submit a URL']  = "You must submit a URL";
-$translate['You must submit a username'] = "You must submit a username";
-```
+    /**
+     * Label
+     */
+    'GAMES:MANAGEMENT:LABEL:ID'              => 'Id',
+    'GAMES:MANAGEMENT:LABEL:NAME'            => 'Game Name',
+    'GAMES:MANAGEMENT:LABEL:CATEGORIES'      => 'Categories',
+    'GAMES:MANAGEMENT:LABEL:PROVIDERS'       => 'Providers',
+    'GAMES:MANAGEMENT:LABEL:STATUS'          => 'Status',
+    'GAMES:MANAGEMENT:LABEL:ORDER'           => 'Order',
+    'GAMES:MANAGEMENT:LABEL:GAME_URL'        => 'Game URL',
+    'GAMES:MANAGEMENT:LABEL:GAME_IP'         => 'Game IP',
+    'GAMES:MANAGEMENT:LABEL:GAME_RESOLUTION' => 'Game Resolution',
+    'GAMES:MANAGEMENT:LABEL:IMAGE'           => 'Image',
+    'GAMES:MANAGEMENT:LABEL:DESCRIPTION'     => 'Description',
+    'GAMES:MANAGEMENT:LABEL:ACTIVE'          => 'Active',
+    'GAMES:MANAGEMENT:LABEL:PASSIVE'         => 'Passive',
+    'GAMES:MANAGEMENT:LABEL:FILTER_ALL'      => 'All',
+    'GAMES:MANAGEMENT:LABEL:EDIT'            => 'Edit',
 
-### Defining Translation Constants
+    /**
+     * Link
+     */
+    'GAMES:MANAGEMENT:LINK:EDIT'    => 'Edit Game',
+    'GAMES:MANAGEMENT:LINK:ADD_NEW' => 'Add New Games',
 
-We define the constants to control the translate keys.
+    /**
+     * Error
+     */
+    'GAMES:MANAGEMENT:ERROR:NOTVALIDRESOLUTION' => 'Games Resolution is not valid. Ex: 800x600',
 
-```php
-$translate['FORM_ERROR:EMAIL_ADDRESS_REQUIRED'] = "You must submit an email address";
-$translate['FORM_ERROR:USERNAME_REQUIRED'] = "You must enter your username";
-$translate['FORM_ERROR:PASSWORD_REQUIRED'] = "You must enter your password";
+    /**
+     * Button
+     */
+    'GAMES:MANAGEMENT:BUTTON:FILTER' => 'Filter',
+    'GAMES:MANAGEMENT:BUTTON:SUBMIT' => 'Submit',
+
+    /**
+     * Notice
+     */
+    'GAMES:MANAGEMENT:NOTICE:CREATE' => 'Game successfully added.',
+    'GAMES:MANAGEMENT:NOTICE:UPDATE' => 'Game successfully updated.',
+);
 ```
 
 ### Loading a Translate File
@@ -57,8 +93,7 @@ If you want load language files from your <b>app</b> folder create your language
     + config
     - translations
         - en
-            email.php
-            contact.php 
+            games.php
 ```
 
 This function loads a language file from your <kbd>app/translator</kbd> folder.

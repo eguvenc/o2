@@ -49,7 +49,7 @@ Class RbacService
      */
     public function __get($class)
     {
-        $key = strtolower($class);   // Services: $this->user->login, $this->user->identity, $this->user->activity .. 
+        $key = strtolower($class);   // Services: $this->rbac->user, $this->rbac->permissions, $this->rbac->roles .. 
 
         if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
             return $this->{$key};

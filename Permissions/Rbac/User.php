@@ -41,7 +41,7 @@ Class User
      * 
      * @var object
      */
-    protected $c;
+    public $c;
 
     /**
      * Tablename
@@ -125,7 +125,7 @@ Class User
      * 
      * @var null
      */
-    protected static $dbUser = null;
+    protected $modelUser = null;
 
     /**
      * Constructor
@@ -139,7 +139,7 @@ Class User
         $this->db    = $db;
         $this->cache = $c->load('service/cache');
         
-        $this->c['config']->load('constant/rbac');  // load rbac constants
+        $this->c['config']->load('rbac');  // load rbac constants
 
         // RBAC "user_roles" table variable definitions
         $this->userRolesTableName           = RBAC_USER_ROLES_DB_TABLENAME;
@@ -178,16 +178,33 @@ Class User
     }
 
     /**
+     * Magic methods (Get)
+     * 
+     * @param string $name get name
+     * 
+     * @return return object;
+     */
+    public function __get($name)
+    {
+        $name = strtolower($name);
+        $Class = 'Obullo\Permissions\Rbac\\'. ucfirst($name);
+
+        if (class_exists($Class)) {
+            return new $Class($this);
+        }
+    }
+
+    /**
      * Rbac Db User
      * 
      * @return Permissions\Rbac\Db\User object
      */
-    protected static function dbUser()
+    public function getModel()
     {
-        if (static::$dbUser == null) {
-            static::$dbUser = new Obullo\Permissions\Rbac\Db\User($this);
+        if ($this->modelUser == null) {
+            $this->modelUser = new \Obullo\Permissions\Rbac\Model\User($this);
         }
-        return static::$dbUser;
+        return $this->modelUser;
     }
 
     /**
@@ -225,7 +242,7 @@ Class User
     public function assign($userId, $roleId)
     {
         $this->deleteCache();
-        return static::dbUser()->assign($userId, $roleId);
+        return $this->getModel()->assign($userId, $roleId);
     }
 
     /**
@@ -238,7 +255,7 @@ Class User
      */
     public function deAssign($userId, $roleId)
     {
-        return static::dbUser()->deAssign($userId, $roleId);
+        return $this->getModel()->deAssign($userId, $roleId);
     }
 
     /**
@@ -287,11 +304,11 @@ Class User
     public function setRoleIds($roleIds)
     {
         if ( ! is_array($roleIds)) {
-            $roleIds[] = array($this->columnUserRolePrimaryKey => $roleIds);
+            $roleIds = array(array($this->columnUserRolePrimaryKey => $roleIds));
         }
         $this->roleIds = $roleIds;
     }
-    
+
     /**
      * Get User Id
      * 
@@ -327,11 +344,11 @@ Class User
     {
         if (empty($this->resourceId)) {
             $getClass = get_class();
-            throw new RuntimeException(sprintf('Resource id is not defined. You must first use %s->hasPagePermission() or %s->setResourceId() method.', $getClass, $getClass));
+            throw new RuntimeException(sprintf('Resource id is not defined. You must first use %s->setResourceId() method.', $getClass, $getClass));
         }
         return $this->resourceId;
     }
-    
+
     /**
      * hasRole
      * 
@@ -344,7 +361,7 @@ Class User
         $key = static::CACHE_HAS_ROLE . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbUser()->hasRoleSqlQuery();  // do sql query
+            $queryResultArray = $this->getModel()->hasRoleSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -366,7 +383,7 @@ Class User
         $key = static::CACHE_GET_ROLES . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbUser()->getRolesSqlQuery();  // do sql query
+            $queryResultArray = $this->getModel()->getRolesSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // 
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -392,7 +409,7 @@ Class User
         $key = static::CACHE_GET_ALL_PERMISSIONS . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbUser()->getPermissionsSqlQuery($roleIds);  // do sql query
+            $queryResultArray = $this->getModel()->getPermissionsSqlQuery($roleIds);  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -405,20 +422,19 @@ Class User
     /**
      * Has page permission
      * 
-     * @param string $permResource  permission page resource ('admin/advertising'),
      * @param string $operationName operations ( edit, update, delete, view )
      * @param int    $expiration    expiration time
      * 
      * @return boolean
      */
-    public function hasPagePermission($permResource, $operationName = 'view', $expiration = 7200)
+    public function getPermission($operationName = 'view', $expiration = 7200)
     {
-        $this->setResourceId($permResource);
+        $permResource = $this->getResourceId();  // permission page resource ('admin/advertising')
         $key = static::CACHE_HAS_PAGE_PERMISSION . $this->getUserId() . ':' . $permResource;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) { // If not exist in the cache
             $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = static::dbUser()->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
+            $queryResultArray = $this->getModel()->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // If mysql query no result cache driver say cache is false but we have the empty values
             $this->cache->set($key, $resultArray, $expiration);                              // This fix the query loops and gives the native value.
         }
@@ -426,65 +442,6 @@ Class User
             return false;
         }
         return true;
-    }
-
-    /**
-     * Has operation
-     * 
-     * @param string $permName      perm name
-     * @param string $operationName operations ( edit, update, delete, view )
-     * @param int    $expiration    expiration time
-     * 
-     * @return boolean
-     */
-    public function hasObjectPermission($permName, $operationName, $expiration = 7200)
-    {
-        if ( ! is_array($permName)) {
-            $permName = array($permName);
-        }
-        $cacheKey = md5(json_encode($permName));
-        $key = static::CACHE_HAS_OBJECT_PERMISSION . $this->getUserId() . ':' . $cacheKey . ':' . $operationName;
-        $resultArray = $this->cache->get($key);
-        if ($resultArray === false) { // If not exist in the cache
-            $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = static::dbUser()->hasObjectPermissionSqlQuery($permName, $attribute);  // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->cache->set($key, $resultArray, $expiration);
-        }
-        if ($resultArray == 'empty') {
-            return false;
-        }
-        return $resultArray;
-    }
-
-    /**
-     * Has operation
-     * 
-     * @param string $objectName    object name
-     * @param string $permName      permission name
-     * @param string $operationName operations ( edit, update, delete, view )
-     * @param int    $expiration    expiration time
-     * 
-     * @return boolean
-     */
-    public function hasChildPermission($objectName, $permName, $operationName, $expiration = 7200)
-    {
-        if ( ! is_array($permName)) {
-            $permName = array($permName);
-        }
-        $cacheKey = md5(json_encode($permName));
-        $key = static::CACHE_HAS_OBJECT_PERMISSION . $this->getUserId() . ':' . $cacheKey . ':' . $operationName;
-        $resultArray = $this->cache->get($key);
-        if ($resultArray === false) { // If not exist in the cache
-            $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = static::dbUser()->hasChildPermissionSqlQuery($objectName, $permName, $attribute);  // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->cache->set($key, $resultArray, $expiration);
-        }
-        if ($resultArray == 'empty') {
-            return false;
-        }
-        return $resultArray;
     }
 
     /**
@@ -499,7 +456,7 @@ Class User
         $key = static::CACHE_ROLE_COUNT . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
-            $queryResultArray = static::dbUser()->roleCountSqlQuery();  // do sql query
+            $queryResultArray = $this->getModel()->roleCountSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -518,7 +475,7 @@ Class User
      */
     public function deleteRoleFromUsers($userId)
     {
-        return static::dbUser()->deleteRoleFromUsers($userId);
+        return $this->getModel()->deleteRoleFromUsers($userId);
     }
 
     /**

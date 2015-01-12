@@ -71,7 +71,8 @@ Class Connection
         * return to old instance.
         */ 
         if ($this->c->exists('db')  //  Is service available ?
-            AND $this->commands['class'] == 'service/provider/db' // Is this provider request ?
+            AND isset($this->params['db'])      // Is this provider request ?
+            AND isset($this->params['provider'])
             AND empty($this->commands['new']) 
             AND $this->params['db'] == $defaultDb 
             AND $this->params['provider'] == $defaultProvider

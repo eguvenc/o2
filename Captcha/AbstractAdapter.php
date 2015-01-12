@@ -25,7 +25,7 @@ abstract Class AbstractAdapter
      */
     public $result = array(
         'code' => '',
-        'message' => '',
+        'messages' => array(),
     );
 
     /**
@@ -79,6 +79,13 @@ abstract Class AbstractAdapter
     abstract protected function generateCode();
 
     /**
+     * Validation set
+     * 
+     * @return void
+     */
+    abstract protected function validationSet();
+
+    /**
      * Create captcha and save into captcha
      *
      * @return void
@@ -95,6 +102,13 @@ abstract Class AbstractAdapter
     abstract public function check($code);
 
     /**
+     * Print javascript link
+     * 
+     * @return string
+     */
+    abstract public function printJs();
+
+    /**
      * Create result.
      * 
      * @return CaptchaResult object
@@ -103,7 +117,7 @@ abstract Class AbstractAdapter
     {
         return new CaptchaResult(
             $this->result['code'],
-            $this->result['message']
+            $this->result['messages']
         );
     }
 }

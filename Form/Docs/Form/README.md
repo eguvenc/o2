@@ -108,7 +108,7 @@ Gets notification message for valid post.
 ```php
 <?php
 $this->form->setMessage('Example of a success message.', NOTICE_SUCCESS);
-echo $this->form->message();  // Gives: Example of a native POST success message.
+echo $this->form->getMessage();  // Gives: Example of a native POST success message.
 ```
 
 Gets notification from session flash data with error templates.

@@ -4,7 +4,6 @@ namespace Obullo\Captcha\Adapter;
 
 use RuntimeException,
     Obullo\Captcha\CaptchaResult,
-    Obullo\Captcha\CaptchaService,
     Obullo\Captcha\AbstractAdapter,
     Obullo\Captcha\AdapterInterface;
 
@@ -201,14 +200,13 @@ Class Image extends AbstractAdapter implements AdapterInterface
     public function __construct($c, array $params = array())
     {
         if (sizeof($params) == 0) {
-            $params = $c['config']->load('captcha');
+            $params = $c['config']->load('captcha/image');
         }
         $this->c          = $c;
         $this->config     = $params;
         $this->tempConfig = $params;
 
         parent::__construct($c);
-        $this->buildHtml();
     }
 
     /**
@@ -218,12 +216,15 @@ Class Image extends AbstractAdapter implements AdapterInterface
      */
     public function init()
     {
+        $this->buildHtml();
+        $this->validationSet();
+
         $this->config          = $this->tempConfig;
         $this->fonts           = array_keys($this->config['fonts']);
         $this->imgPath         = APP . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
         $this->imgRawUrl       = $this->c['uri']->getBaseUrl($this->config['image']['path'] . DS); // add Directory Seperator ( DS )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
-        $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'fonts' . DS;
+        $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'Fonts' . DS;
     }
 
     /**
@@ -717,8 +718,11 @@ Class Image extends AbstractAdapter implements AdapterInterface
      * 
      * @return Captcha\CaptchaResult object
      */
-    public function check($code)
+    public function check($code = null)
     {
+        if ($code == null) {
+            $code = $this->c->load('request')->post($this->config['form']['input']['attributes']['name']);
+        }
         if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
         }
@@ -776,10 +780,6 @@ Class Image extends AbstractAdapter implements AdapterInterface
                 )
             );
         }
-        // $this->html .= sprintf(
-        //     '<img %s/>',
-        //     $this->buildAttributes($this->config['form']['img']['attributes'])
-        // );
     }
 
     /**
@@ -807,6 +807,30 @@ Class Image extends AbstractAdapter implements AdapterInterface
     public function printCaptcha()
     {
         print($this->html);
+    }
+
+    /**
+     * Print javascript link
+     * 
+     * @return string
+     */
+    public function printJs()
+    {
+        return;
+    }
+
+    /**
+     * Validation set
+     * 
+     * @return void
+     */
+    protected function validationSet()
+    {
+        $this->c->load('validator')->setRules(
+            $this->config['form']['input']['attributes']['name'],
+            'Captcha',
+            'required|exact('.$this->config['characters']['length'].')|trim'
+        );
     }
 }
 
