@@ -58,10 +58,9 @@ Class Application
             return;
         }
         foreach ($this->getEnvironments() as $current) {
-            if (in_array($hostname, $this->envArray['env'][$current]['server']['hostname'])) {
+            if (in_array($hostname, $this->envArray[$current])) {
                 self::$env = $current;
                 break;
-                echo $current;
             }
         }
         if (self::$env == null) {
@@ -86,7 +85,7 @@ Class Application
      */
     public function getEnvironments()
     {
-        return array_keys($this->envArray['env']);
+        return array_keys($this->envArray);
     }
 
     /**

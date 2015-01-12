@@ -61,23 +61,19 @@ Uygulamanızın hangi ortamda çalıştığını belirleyen metottur. Ortam değ
 ```php
 <?php
 return array(
-    'env' => array(
-        'local' => array (
-            'server' => array(
-                'hostname' => array(
-                    'john-desktop',     // hostname
-                    'localhost.ubuntu', // hostname
-                ),
-            ),
-        ),
-        'test' => array (
-            'server' => array(
-                'hostname' => array(
-                    'localhost.test',
-                ),
-            ),
-        ),
-        'production' => array( .. )
+
+    'local' => array (
+        'john-desktop',     // hostname
+        'localhost.ubuntu', // hostname
+    ),
+
+    'test' => array (
+        'localhost.test',
+    ),
+
+    'production' => array (
+        'localhost.production',
+    ),
 );
 
 /* End of file environments.php */
@@ -139,14 +135,11 @@ print_r($c['app']->getEnvArray());
 
 /* Çıktı
 Array ( 
-    [env] => Array ( 
-            [local] => Array ( 
-                [server] => Array ( 
-                    [hostname] => Array ( 
-                        [0] => my-desktop 
-                        [1] => someone.computer 
-                        [2] => anotherone.computer 
-                        [3] => john-desktop ) ...
+    [0] => my-desktop 
+    [1] => someone.computer 
+    [2] => anotherone.computer 
+    [3] => john-desktop 
+)
 */
 ```
 
@@ -189,7 +182,6 @@ echo $c['app']->getEnvPath();  // Çıktı  /var/www/project.com/app/config/loca
 ------
 
 <b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas verileri içerir. Bu dosyalar içerisindeki anahtarlara <b>env()</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
-
 
 ```php
 <?php
@@ -280,18 +272,13 @@ Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adın
 ```php
 <?php
 return array(
-    'env' => array(
-        'local' => array ( ... ),
-        'test' => array ( ... ),
-        'production' => array( ... )
-        'myenv' => array ( 
-            'server' => array(
-                'hostname' => array(
-                    'example.hostname'
-                    'example2.hostname'
-                )
-            )
-         )
+    'local' => array ( ... ),
+    'test' => array ( ... ),
+    'production' => array( ... )
+    'myenv' => array ( 
+        'example.hostname'
+        'example2.hostname'
+    )
 );
 
 /* End of file environments.php */
