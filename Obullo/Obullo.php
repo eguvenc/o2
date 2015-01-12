@@ -33,7 +33,6 @@ require $controller;  // Include the controller file.
 
 $className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
 
-
 if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);
 }
@@ -42,10 +41,9 @@ $class = new $className;  // Call the controller
 
 $filter = false;
 if ($c['config']['controller']['annotation']['reader']) {
-    $docs = new Obullo\Blocks\Annotations\Reader\Controller($c, $class);
+    $docs = new Obullo\Annotations\Reader\Controller($c, $class);
     $filter = $docs->parse();
 }
-
 /*
  * ------------------------------------------------------
  *  Before controller event

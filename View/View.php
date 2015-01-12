@@ -246,7 +246,7 @@ Class View
          * Router may not available in some levels, we need to always use container object.
          * Forexample if we define a closure route which contains the view class, 
          * it will not work if router not available in the controller.
-         * So first we need check router is available if not we user container->router otherwise Controller->router.
+         * So first we need check router is available if not we use container->router otherwise Controller->router.
          */
         $router = (Controller::$instance == null) ? $this->c['router'] : Controller::$instance->router;
         /**

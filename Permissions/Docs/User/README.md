@@ -175,12 +175,12 @@ Array
 */
 ```
 
-#### $this->rbac->user->isPermitted(string $permName, array $permissions)
+#### $this->rbac->user->isAllowed(string $permName, array $permissions)
 
 
 ```php
 <?php
-$this->rbac->user->isPermitted($permName = 'foo', $permissions = array('foo', 'bar')); // true
+$this->rbac->user->isAllowed('deleteMember', $perms = array('deleteMember', 'updateMember')); // true
 ```
 
 #### $this->rbac->user->hasPagePermission(string $permResource, $expiration = 7200);
@@ -208,17 +208,11 @@ Returns array if has object permission allowed for given operation name otherwis
 <?php
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
-$this->rbac->user->hasPagePermission('admin/marketing');
-
-// or
-
-$this->rbac->user->setUserId(1);
-$this->rbac->user->setRoleId(1);
-$this->rbac->user->setResourceId('admin/marketing/index');
+$this->rbac->user->hasPagePermission('admin/marketing/index');
 
 $permissions = $this->rbac->user->hasObjectPermission('foo', 'view');
 
-if ($this->rbac->user->isPermitted('foo', $permissions)) {
+if ($this->rbac->user->isAllowed('foo', $permissions)) {
 
     // .. go
 }
@@ -236,15 +230,9 @@ $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->hasPagePermission('admin/marketing');
 
-// or
-
-$this->rbac->user->setUserId(1);
-$this->rbac->user->setRoleId(1);
-$this->rbac->user->setResourceId('admin/marketing/index');
-
 $permissions = $this->rbac->user->hasChildPermission($objectName = 'foo', $permName = 'bar', $operationName = 'view');
 
-if ($this->rbac->user->isPermitted('bar', $permissions)) {
+if ($this->rbac->user->isAllowed('bar', $permissions)) {
 
     // go ..
 }
@@ -313,7 +301,7 @@ Sets role id of user to comfortable permission check operations.
 
 Get all permissions of given permission name.
 
-#### $this->rbac->user->isPermitted(string $permName, array $permissions);
+#### $this->rbac->user->isAllowed(string $permName, array $permissions);
 
 Checks permission name is allowed in your permission list.
 

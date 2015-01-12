@@ -672,11 +672,11 @@ Set primary key column name overridding to default value.
 
 Set text column name overridding to default value.
 
-#### $this->tree->setLft(string $lft = 'lft');
+#### $this->tree->setLeft(string $lft = 'lft');
 
 Set left column name overridding to default value.
 
-#### $this->tree->setRgt(string $rgt = 'rgt');
+#### $this->tree->setRight(string $rgt = 'rgt');
 
 Set right column name overridding to default value.
 

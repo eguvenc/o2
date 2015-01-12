@@ -179,8 +179,8 @@ Class Permissions
         $this->treeDb->setPrimaryKey($this->primaryKey);
         $this->treeDb->setParentId($this->parentId);
         $this->treeDb->setText($this->text);
-        $this->treeDb->setLft($this->lft);
-        $this->treeDb->setRgt($this->rgt);
+        $this->treeDb->setLeft($this->lft);
+        $this->treeDb->setRight($this->rgt);
     }
 
     /**
@@ -191,7 +191,7 @@ Class Permissions
     protected static function dbPerms()
     {
         if (static::$dbPerms == null) {
-            static::$dbPerms = new Obullo\Permissions\Rbac\Db\Permissions($this);
+            static::$dbPerms = new Obullo\Permissions\Rbac\Model\Permissions($this);
         }
         return static::$dbPerms;
     }

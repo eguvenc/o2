@@ -26,9 +26,17 @@ Simply create your own file and save it in <dfn>config</dfn> folder.
 
 **Note:** If you do create your own config files use the same format as the primary one, storing your items in an array. 
 
-### Loading Config Files
+### Konfigürasyon ayarlarına erişim
 
-------
+Konfigürasyon dosyaları load metodu ile yüklendiğinde çevre ortamı ne olursa olsun ortak biri dizi içerisinde kaydedilirler ve config sınıfı ile bu diziden ilgili konfigürasyon dosyası ayarlarına ulaşılır. Lüten aşağıdaki örneğe bir göz atın.
+
+```php
+<?php
+$c['config']->load('database');
+
+echo $c['config']['database']['key']['db']['host'];  // Çıktı localhost
+```
+
 
 **Note:** Framework automatically loads the primary config file <kbd>app/config/env/local/config.php</kbd>, so you will only need to load a config file if you have created your own.
 
@@ -52,13 +60,13 @@ $this->config->load('filename');
 
 ### Loading Constant Files
 
-Simply create your own constant file and save it in <kbd>app/config/constants</kbd> folder.
+Simply create your own constant file and save it in <kbd>app/config/</kbd> folder.
 
 Then you can load it like below
 
 ```php
 <?php
-$this->config->load('constants/filename');
+$this->config->load('myconstants');
 ```
 
 ### Accessing Variables
@@ -174,7 +182,6 @@ Config.env file keeps configuration data of your application with different envi
 return array(
 
     'environment' => array(
-        'file' => 'env.local.php',
         'service' => array(
             'logger' => array(
                 'cli' => 'Service/Log/Env/Cli',
@@ -239,7 +246,7 @@ return array(
     'MONGO_PASSWORD' => '123456',
 
     'REDIS_AUTH' => 'aZX0bjL',
-    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
+    'MANDRILL_API_KEY' => 'BIK8O7xt',
     'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
 
     'AMQP_HOST' => '',

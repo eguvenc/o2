@@ -49,7 +49,7 @@ Class Layer
     const LOG_FOOTER = '</div><div style="clear:both;"></div>';
 
     /**
-     * Layered Vc configuration
+     * Layer configuration
      * 
      * @var array
      */
@@ -98,7 +98,7 @@ Class Layer
     public $processDone = false;
 
     /**
-     * Unique Lvc connection string that 
+     * Unique Layer connection string that 
      * we need to convert it md5.
      *  
      * @var string
@@ -194,7 +194,7 @@ Class Layer
     /**
      * Set Layer Request Method
      *
-     * @param string $method lvc method
+     * @param string $method layer method
      * @param array  $data   params
      * 
      * @return void
@@ -368,7 +368,7 @@ Class Layer
     }
 
     /**
-     * Create Lvc connection string next
+     * Create layer connection string next
      * we will convert it to connection id.
      *
      * @param mixed $resource string

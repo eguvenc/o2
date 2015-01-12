@@ -185,7 +185,7 @@ Class Logger extends AbstractLogger
         $this->queue = $queue;
         $this->config = $config;
         $this->enabled = $this->config['log']['control']['enabled'];
-        $this->debug = $this->config['log']['control']['output'];
+        $this->debug = $this->config['log']['control']['firelog'];
         $this->channel = $this->config['log']['default']['channel'];
         $this->queries = $this->config['log']['extra']['queries'];
         $this->benchmark = $this->config['log']['extra']['benchmark'];

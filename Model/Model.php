@@ -17,7 +17,7 @@ Class Model
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Constructor
@@ -38,11 +38,11 @@ Class Model
      * 
      * @return void
      */
-    // public function __get($key)
-    // {
-    //     return Controller::$instance->{$key};
-    // }
-
+    public function __get($key)
+    {
+        return Controller::$instance->{$key};
+    }
+    
 }
 
 // END Model class

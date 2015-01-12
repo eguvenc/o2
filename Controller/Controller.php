@@ -57,14 +57,6 @@ Class Controller
         $this->{$key} = $val; // store only app classes & packages 
                               // and object types
     }
-
-    // public function __get($key)
-    // {
-    //     // if ($key == 'model') {
-    //     //     return $this->model;
-    //     // }
-    // }
-
 }
 
 // END Controller class
