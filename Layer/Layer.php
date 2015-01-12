@@ -230,15 +230,13 @@ Class Layer
      */
     public function execute($expiration = '')
     {
-        // Warning ! 
-        global $c; // This is required for LAYERS "$c" scope if we remove it controller function use ($c) does not works.
         static $storage = array();  // Store used controllers
 
-        $KEY = $this->id();    // Get layer id
+        $KEY = $this->id();         // Get layer id
         $start = microtime(true);   // Start query timer 
 
         if ($this->params['cache']) {
-            $response = $c->load('service/cache')->get($KEY);     // This type cache use cache package
+            $response = $this->c->load('service/cache')->get($KEY);     // This type cache use cache package
             if ( ! empty($response)) {              // If cache exists return to cached string.
                 $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
                 $this->reset();
@@ -251,15 +249,17 @@ Class Layer
         }
         //  Create an uniq Layer Uri it must be unique otherwise may cause collission with standart uri
         $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Layer Uri String with Layer ID
+        
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
+        $method    = $this->c['router']->fetchMethod();
 
         $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
         $controller = CONTROLLERS .$this->c['router']->fetchModule(DS).$directory. DS .$className. '.php';
 
                                                   // Check class is exists in the storage
         if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
-            $class = $storage[$this->layerUri];     // Get stored class.
+            $class = $storage[$this->layerUri];   // Get stored class.
         } else {
             include $controller;        // Load the controller file.
         }
@@ -270,15 +270,15 @@ Class Layer
         if (method_exists($class, 'load')) {
             $class->load();
         }
-        if ( ! method_exists($class, 'index')) {  // Check method exist or not
+        if ( ! method_exists($class, $method)) {  // Check method exist or not
             $this->reset();
-            return $this->c['response']->show404($this->layerUri, false);
+            return $this->c['response']->show404($this->layerUri.'/'.$method, false);
         }
 
         $this->makeGlobal();
 
         ob_start();
-        call_user_func_array(array($class, 'index'), array_slice($this->c['uri']->rsegments, 2));
+        call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 2));
         $response = ob_get_clean();
 
         $this->assignObjects($class); // Assign main controller objects to sub layers.
@@ -287,7 +287,7 @@ Class Layer
         $storage[$this->layerUri] = $class; // Store class names to storage. We fetch it if its available in storage.
         
         if (is_numeric($expiration)) {
-            $c->load('service/cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
+            $this->c->load('service/cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
         }
         $this->log('$_LAYER:', $this->getUri(), $start, $KEY, $response);
         return $response;

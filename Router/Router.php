@@ -64,6 +64,13 @@ Class Router
     public $class = '';
 
     /**
+     * Default method
+     * 
+     * @var string
+     */
+    public $method = 'index';
+
+    /**
      * Directory name
      * 
      * @var string
@@ -167,7 +174,7 @@ Class Router
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
         if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['webhost']) === false) {
-            $c->load('response')->showError('Your host configuration is not correct in the main config file.');
+            $this->c['response']->showError('Your host configuration is not correct in the main config file.');
         }
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
         $this->httpMethod = strtolower($method);
@@ -423,6 +430,7 @@ Class Router
                 return false;  
             }
             $this->setClass($segments[1]);
+            $this->setMethod('index');
             $this->uri->rsegments = $segments;  // Assign the segments to the URI class
             $this->logger->debug('No URI present. Default controller set.');
             return;
@@ -449,6 +457,11 @@ Class Router
             return;
         }
         $this->setClass($segments[1]);
+        if (isset($segments[2])) {
+            $this->setMethod($segments[2]); // A standard method request
+        } else {
+            $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
+        }
         $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.    
     }
 
@@ -497,6 +510,7 @@ Class Router
             $exp = explode('/', $this->pageNotFoundController);
             $this->setDirectory($exp[0]);
             $this->setClass($exp[1]);
+            $this->setMethod(isset($exp[2]) ? $exp[2] : 'index');
             return $exp;
         }
         $errorPage = (isset($segments[1])) ? $segments[0] . '/' . $segments[1] : $segments[0];
@@ -600,6 +614,18 @@ Class Router
     }
 
     /**
+     * Set current method
+     * 
+     * @param string $method name
+     *
+     * @return void
+     */
+    public function setMethod($method)
+    {
+        $this->method = $method;
+    }
+
+    /**
      * Fetch the current routed class name
      *
      * @return string
@@ -653,6 +679,16 @@ Class Router
     public function fetchDirectory()
     {
         return filter_var($this->directory, FILTER_SANITIZE_SPECIAL_CHARS);
+    }
+
+    /**
+     * Returns to current method
+     * 
+     * @return string
+     */
+    public function fetchMethod()
+    {
+        return $this->method;
     }
 
     /**
