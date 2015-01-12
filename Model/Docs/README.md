@@ -57,3 +57,120 @@ Controller üzerinden modellere erişime bir örnek.
 ```php
 $this->model->bar->method();
 ```
+
+```php
+
+namespace Blog;
+
+use Model;
+
+Class Entry extends Model
+{
+    public $title;
+    public $content;
+    public $date;
+
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('service/db');  // Load database
+    }
+
+    /**
+     * Get last 10 entries
+     * 
+     * @return array
+     */
+    public function getLastTen()
+    {
+    	$this->db->query("SELECT FROM * entries LIMIT 10");
+    	return $this->db->resultArray();
+    }
+        public function insert_entry()
+        {
+                $this->title    = $_POST['title']; // please read the below note
+                $this->content  = $_POST['content'];
+                $this->date     = time();
+
+                $this->db->insert('entries', $this);
+        }
+
+        public function update_entry()
+        {
+                $this->title    = $_POST['title'];
+                $this->content  = $_POST['content'];
+                $this->date     = time();
+
+                $this->db->update('entries', $this, array('id' => $_POST['id']));
+        }
+
+
+    public function insert()
+    {
+        $this->db->insert(
+            'users', 
+            array(
+            'username' => $this->username,
+            'email' => $this->email,
+            'date' => $this->date,
+            )
+        );
+    }
+
+    public function update($id)
+    {
+    	$this->db->update(
+            'entries', 
+            array(
+            'title' => $this->title,
+            'content' => $this->content,
+            'date' => $this->date,
+            ),
+            array('entry_id' => $id)
+        );
+    }
+
+}
+
+class Blog_model extends Model {
+
+        public $title;
+        public $content;
+        public $date;
+
+        public function __construct()
+        {
+                // Call the CI_Model constructor
+                parent::__construct();
+        }
+
+        public function get_last_ten_entries()
+        {
+                $query = $this->db->get('entries', 10);
+                return $query->result();
+        }
+
+        public function insert_entry()
+        {
+                $this->title    = $_POST['title']; // please read the below note
+                $this->content  = $_POST['content'];
+                $this->date     = time();
+
+                $this->db->insert('entries', $this);
+        }
+
+        public function update_entry()
+        {
+                $this->title    = $_POST['title'];
+                $this->content  = $_POST['content'];
+                $this->date     = time();
+
+                $this->db->update('entries', $this, array('id' => $_POST['id']));
+        }
+
+}
+```

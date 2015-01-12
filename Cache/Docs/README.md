@@ -110,7 +110,7 @@ Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisin
 
 ```php
 <?php
-$this->cache = $this->c->load('service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->cache = $this->c->load('return service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
 $this->cache->method();
 ```
 

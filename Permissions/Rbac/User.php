@@ -405,15 +405,14 @@ Class User
     /**
      * Has page permission
      * 
-     * @param string $permResource  permission page resource ('admin/advertising'),
      * @param string $operationName operations ( edit, update, delete, view )
      * @param int    $expiration    expiration time
      * 
      * @return boolean
      */
-    public function hasPagePermission($permResource, $operationName = 'view', $expiration = 7200)
+    public function hasPagePermission($operationName = 'view', $expiration = 7200)
     {
-        $this->setResourceId($permResource);
+        $permResource = $this->getResourceId();  // permission page resource ('admin/advertising')
         $key = static::CACHE_HAS_PAGE_PERMISSION . $this->getUserId() . ':' . $permResource;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) { // If not exist in the cache
