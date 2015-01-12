@@ -2,7 +2,7 @@
 
 namespace Obullo\Authentication;
 
-use Authentication\Identities\GenericUser;
+use Auth\Identities\GenericUser;
 
 /**
  * User Provider Interface
