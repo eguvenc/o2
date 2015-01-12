@@ -77,23 +77,32 @@ An example form validation controller:
  * 
  * @var Controller
  */
-$app = new Controller(
-    function ($c) {
-        $c->load('url');
-        $c->load('html');
-        $c->load('view');
-        $c->load('post');
-        $c->load('form');
+
+namespace HelloForm;
+
+Class HelloForm extends \Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('url');
+        $this->c->load('html');
+        $this->c->load('view');
+        $this->c->load('post');
+        $this->c->load('form');
+        $this->c->load('request');
+        $this->c->load('flash/session as flash');
     }
-);
 
-$app->func(
-    'index',
-    function () use ($c) {
+    public function index()
+    {
+        if ($this->request->isPost()) {  // If we have submit post
 
-        if ($this->post['submit']) {  // If we have submit post
-
-            $c->load('validator');
+            $this->c->load('validator');
 
             $this->validator->setRules('email', 'Email', 'required|email');
             $this->validator->setRules('password', 'Password', 'required|min(6)');
@@ -101,9 +110,8 @@ $app->func(
             $this->validator->setRules('agreement', 'User Agreement', 'required');
 
             if ($this->validator->isValid()) {
-                $this->form->setMessage('Example form success message in current page !', 1);  // 1 = success, 0 = fail
+                $this->flash->success('Example form success message in current page !');  // 1 = success, 0 = fail
             }
-            $this->form->setErrors($this->validator);
         }
 
         $this->view->load(
@@ -111,11 +119,11 @@ $app->func(
             function () {
                 $this->assign('name', 'Obullo');
                 $this->assign('footer', $this->template('footer'));
+                $this->layout('default');
             }
         );
-
     }
-);
+}
 
 /* End of file hello_form.php */
 /* Location: .public/tutorials/controller/hello_form.php */
@@ -126,6 +134,7 @@ $app->func(
 
 ```php
 <section><?php echo $this->form->message() ?></section>
+<section><?php echo $this->flash->output() ?></section>
 
 <form action="/tutorials/hello_form" method="POST">
     <table width="100%">
@@ -180,6 +189,7 @@ The <kbd>controller</kbd> (form_example.php) has one function: <kbd>index()</kbd
 Obullo lets you set as many validation rules as you need for a given field, cascading them in order, and it even lets you prep and pre-process the field data at the same time. To set validation rules you will use the <kbd>setRules()</kbd> function:
 
 ```php
+<?php
 $this->validator->setRules();
 ```
 
@@ -192,6 +202,7 @@ The above function takes **three** parameters as input:
 Here is an example. In your <kbd>controller</kbd> (form.php), add this code just below the validation initialization function:
 
 ```php
+<?php
 $this->validator->setRules('username', 'Username', 'required');
 $this->validator->setRules('password', 'Password', 'required');
 $this->validator->setRules('passconf', 'Password Confirmation', 'required');
@@ -209,6 +220,7 @@ Now submit the form with the fields blank and you should see the error messages.
 Obullo lets you pipe multiple rules together. Let's try it. Change your rules in the third parameter of rule setting function, like this:
 
 ```php
+<?php
 $this->validator->setRules('username', 'Username', 'required|min(5)|max(12)');
 $this->validator->setRules('password', 'Password', 'required|matches(passconf)');
 $this->validator->setRules('passconf', 'Password Confirmation', 'required');
@@ -230,6 +242,7 @@ Give it a try ! Submit your form without the proper data and you'll see new erro
 In addition to the validation functions like the ones we used above, you can also prep your data in various ways. For example, you can set up rules like this:
 
 ```php
+<?php
 $this->validator->setRules('username', 'Username', 'trim|required|min(5)|max(12)');
 $this->validator->setRules('password', 'Password', 'trim|required|matches(passconf)|md5');
 $this->validator->setRules('passconf', 'Password Confirmation', 'trim|required');
@@ -250,6 +263,7 @@ In the above example, we are "trimming" the fields, converting the password to M
 Thus far we have only been dealing with errors. It's time to repopulate the form field with the submitted data. Validator offers several helper functions that permit you to do this. The one you will use most commonly is:
 
 ```php
+<?php
 $this->form->setValue('fieldname')
 ```
 
@@ -300,6 +314,7 @@ The validation system supports callbacks to your own validation functions. This 
 In your controller, change the "username" rule to this:
 
 ```php
+<?php
 $this->validator->setRules('username', 'Username', 'callback_username');
 
 $this->validator->func(
@@ -324,24 +339,29 @@ Then add a new function called <kbd>username</kbd> using func() method. Here's h
 /**
  * $app hello_form
  * 
- * @var Controller
+ * @var HelloForm
  */
-$app = new Controller(
-    function ($c) {
-        $c->load('url');
-        $c->load('html');
-        $c->load('view');
-        $c->load('post');
-        $c->load('form');
-        $c->load('session as sess');
+namespace HelloForm;
+
+Class HelloForm extends \Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->load('url');
+        $this->c->load('view');
+        $this->c->load('post');
+        $this->c->load('form');
+        $this->c->load('session as sess');
     }
-);
 
-$app->func(
-    'index',
-    function () {
-
-        if ($this->post['submit']) {
+    public function index()
+    {
+        if ($this->request->isPost()) {  // If we have submit post
 
             $this->validator->setRules('email', 'Email', 'required|email|callback_username(100)');
             $this->validator->setRules('password', 'Password', 'required|min(6)');
@@ -352,7 +372,7 @@ $app->func(
                 'callback_username',
                 function ($username, $val) {
                     if (strlen($username) < $val) {
-                        $this->setMessage('callback_test', 'Username can not bigger than '.$val. 'chars.');
+                        $this->setMessage('callback_username', 'Username can not bigger than '.$val. 'chars.');
                         $this->logger->debug('Callback username test.', array('username' => $username));
                         return false;
                     }
@@ -360,8 +380,10 @@ $app->func(
                 }
             );
             if ($this->validator->isValid()) {
-                $this->validator->setError('email', 'Example after validation error.');
-                $this->form->setMessage('Example form success message in current page !', 1);
+                $this->flash->success('Example form success message in current page !');
+                $this->url->redirect('/helloform');
+            }else{
+                $this->form->setErrors($this->validator);
             }
         }
 
@@ -370,11 +392,11 @@ $app->func(
             function () {
                 $this->assign('name', 'Obullo');
                 $this->assign('footer', $this->template('footer'));
+                $this->layout('default');
             }
         );
-
     }
-);
+}
 
 /* End of file hello_form.php */
 /* Location: .public/tutorials/controller/hello_form.php */
@@ -395,6 +417,7 @@ All of the native error messages are located in the following language file: <kb
 To set your own custom message you can either edit that file, or use the following function:
 
 ```php
+<?php
 $this->validator->setMessage('rule', 'Error Message');
 ```
 
@@ -405,12 +428,14 @@ If you include <kbd>%s</kbd> in your error string, it will be replaced with the 
 In the **"callback"** example above, the error message was set by passing the name of the function:
 
 ```php
+<?php
 $this->validator->setMessage('usernameCheck')
 ```
 
 You can also override any error message found in the language file. For example, to change the message for the "required" rule you will do this:
 
 ```php
+<?php
 $this->validator->setMessage('required', 'Your custom message here');
 ```
 
@@ -423,18 +448,21 @@ If you would like to store the "human" name you passed to the <kbd>setRules()</k
 First, prefix your "human" name with <kbd>translate:</kbd>, as in this example:
 
 ```php
+<?php
 $this->validator->setRules('first_name', 'translate:FORM_LABEL:FIRSTNAME', 'required');
 ```
 
 Then, store the name in one of your language file arrays (without the prefix):
 
 ```php
+<?php
 $translate['FORM_LABEL:FIRSTNAME'] = 'First Name';
 ```
 
 **Note:** If you store your array item in a language file that is not loaded automatically by Framework, you'll need to remember to load it in your controller using:
 
 ```php
+<?php
 $this->translator->load('filename');
 ```
 
@@ -520,7 +548,7 @@ A nice feature of the Form Validation class is that it permits you to store all 
 
 The Form Validator class supports the use of arrays as field names. Consider this example:
 
-```php
+```html
 <input type="text" name="options[]" value="" size="50" />
 ```
 
@@ -529,6 +557,7 @@ If you do use an array as a field name, you must use the EXACT array name in the
 For example, to set a rule for the above field you would use:
 
 ```php
+<?php
 $this->validator->setRules('options[]', 'Options', 'required');
 ```
 
@@ -546,13 +575,13 @@ Or to re-populate the field you would use:
 
 You can use multidimensional arrays as field names as well. For example:
 
-```php
+```html
 <input type="text" name="options[size]" value="" size="50" />
 ```
 
 Or even:
 
-```php
+```html
 <input type="text" name="sports[nba][basketball]" value="" size="50" />
 ```
 
@@ -564,7 +593,7 @@ As with our first example, you must use the exact array name in the helper funct
 
 If you are using checkboxes (or other fields) that have multiple options, don't forget to leave an empty bracket after each option, so that all selections will be added to the POST array:
 
-```php
+```html
 <input type="checkbox" name="options[]" value="red" />
 <input type="checkbox" name="options[]" value="blue" />
 <input type="checkbox" name="options[]" value="green" /> 
@@ -572,7 +601,7 @@ If you are using checkboxes (or other fields) that have multiple options, don't 
 
 Or if you use a multidimensional array:
 
-```php
+```html
 <input type="checkbox" name="options[color][]" value="red" />
 <input type="checkbox" name="options[color][]" value="blue" />
 <input type="checkbox" name="options[color][]" value="green" /> 
@@ -808,7 +837,7 @@ Shows an individual error message associated with the field name supplied to the
 
 Returns to all errors in array format.
 
-#### $this->validator->isError($field, $return_string = 'error')
+#### $this->validator->isError($field)
 
 Shows an individual error message associated with the field name supplied to the function and it returns to string if supplied an error string otherwise it returns to **booelan**
 
