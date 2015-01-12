@@ -63,9 +63,14 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         self::FAILURE_MISSING_INPUT_SECRET   => 'The secret parameter is missing.',
         self::FAILURE_INVALID_INPUT_SECRET   => 'The secret parameter is invalid or malformed.',
         self::FAILURE_MISSING_INPUT_RESPONSE => 'The response parameter is missing.',
-        self::FAILURE_INVALID_INPUT_RESPONSE  => 'The response parameter is invalid or malformed.'
+        self::FAILURE_INVALID_INPUT_RESPONSE => 'The response parameter is invalid or malformed.'
     );
 
+    /**
+     * Captcha html
+     * 
+     * @var string
+     */
     protected $html = '';
 
     /**
@@ -77,10 +82,10 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function __construct($c, array $params = array())
     {
         if (sizeof($params) == 0) {
-            $params = $c['config']->load('captcha');
+            $params = $c['config']->load('captcha/recaptcha');
         }
-        $this->c          = $c;
-        $this->config     = $params;
+        $this->c = $c;
+        $this->config = $params;
         $this->tempConfig = $params;
 
         parent::__construct($c);
@@ -93,7 +98,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function init()
     {
-        if ($this->config['reCaptcha']['user']['auto_send_ip']) {
+        if ($this->config['user']['autoSendIp']) {
             $this->setUserIp($this->c->load('request')->ip());
         }
         $this->buildHtml();
@@ -108,7 +113,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setSiteKey($siteKey)
     {
-        $this->config['reCaptcha']['api']['key']['site'] = $siteKey;
+        $this->config['api']['key']['site'] = $siteKey;
         return $this;
     }
 
@@ -121,7 +126,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setSecretKey($secretKey)
     {
-        $this->config['reCaptcha']['api']['key']['secret'] = $secretKey;
+        $this->config['api']['key']['secret'] = $secretKey;
         return $this;
     }
 
@@ -134,7 +139,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setLang($lang)
     {
-        $this->config['reCaptcha']['user']['lang'] = $lang;
+        $this->config['locale']['lang'] = $lang;
         return $this;
     }
 
@@ -168,7 +173,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getSiteKey()
     {
-        return $this->config['reCaptcha']['api']['key']['site'];
+        return $this->config['api']['key']['site'];
     }
 
     /**
@@ -178,7 +183,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getSecretKey()
     {
-        return $this->config['reCaptcha']['api']['key']['secret'];
+        return $this->config['api']['key']['secret'];
     }
 
     /**
@@ -188,7 +193,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getLang()
     {
-        return $this->config['reCaptcha']['user']['lang'];
+        return $this->config['locale']['lang'];
     }
 
     /**
@@ -196,14 +201,15 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * 
      * @return string
      */
-    public function getJsLink()
+    public function printJs()
     {
         $lang = $this->getLang();
+        $link = static::CLIENT_API;
 
         if (empty($lang)) {
-            return static::CLIENT_API .'?hl='. $lang;
+            $link = static::CLIENT_API .'?hl='. $lang;
         }
-        return static::CLIENT_API;
+        print('<script src="'.$link.'" async defer></script>');
     }
 
     /**
@@ -233,8 +239,11 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * 
      * @return bool
      */
-    public function check($response)
+    public function check($response = null)
     {
+        if ($response == null) {
+            $response = $this->c->load('request')->post($this->config['form']['input']['attributes']['name']);
+        }
         $response = $this->sendVerifyRequest(
             array(
                 'secret'   => $this->getSecretKey(),
@@ -301,9 +310,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected function buildHtml()
     {
         $attributes['data-sitekey'] = $this->getSitekey();
-        
-        $this->html  = '<script src="'.$this->getJsLink().'" async defer></script>'."\n";
-        $this->html .= sprintf(
+        $this->html = sprintf(
             '<div class="g-recaptcha" %s></div>',
             $this->buildAttributes($attributes)
         );
@@ -335,9 +342,20 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     {
         return;
     }
+
+    /**
+     * Set validation
+     * 
+     * @return void
+     */
+    protected function validationSet()
+    {
+        return;
+    }
 }
 
 // END ReCaptcha.php File
 /* End of file ReCaptcha.php
 
 /* Location: .Obullo/Captcha/Adapter/ReCaptcha.php */
+
