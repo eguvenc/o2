@@ -21,7 +21,7 @@ Sonraki çağrımda bind metodu singleton yaparak sınıfın ( eski instance ın
 
 ```php
 <?php
-$this->c->bind('model bar'); // yukarıdaki örnekten hemen sonraki çağrımda singleton
+$this->c->bind('model bar'); // yukarıdaki örnekten hemen sonraki çağrımda singleton uygulanır.
 $this->model->bar->method();
 ```
 
@@ -37,7 +37,7 @@ Yada önceden yüklü bir model den yeni bir instance yaratabilirsiniz.
 
 ```php
 <?php
-$this->c->bind('new model bar', 'Foo\Bar', $params = array());  // yeni instance
+$this->c->bind('new model bar', 'Foo\Bar', $params = array());  // yeni instance yaratmak
 ```
 
 Bind metodu modelleri konteyner içerisine kayıt etmenizi sağlar buda uygulamanın her yerinde modellere ulaşabilmeniz anlamına gelir. Container sınıfına kaydedilen modellere direkt olarak konteyner üzerinde de ulaşılabilir.
@@ -58,10 +58,23 @@ Controller üzerinden modellere erişime bir örnek.
 $this->model->bar->method();
 ```
 
-Aşağıdaki örnek modellerin nasıl yazılabileceği hakkında size bir fikir verebilir.
+Aşağıdaki örnek modellerin nasıl yazılabileceği hakkında size bir fikir verebilir. Bu örnekte gösterilen <b>entry.php</b>  dosyasının yolu <b>/models/blog/</b> klasörüdür.
 
-Bu örneğin dosya yolu <b>/models/blog</b> klasörüdür.
+```php
++ app
++ controllers
+- models
+	- Blog
+		Entry.php
 
+```
+
+Model sınıflarını yaratırken aynı sınıf yapılarında olduğu gibi dosya adı ve klasör adı büyük harfle yazılmalıdır. Php namespace özelliği tercihe göre gerek duyulmayan yerlerde kullanılmayabilir.
+
+
+
+
+#### Entry.php
 
 ```php
 <?php
@@ -83,7 +96,7 @@ Class Entry extends Model
      */
     public function load()
     {
-        $this->c->load('service/db');  // Load database
+        $this->c->load('service/db');  // Load database object
     }
 
     /**
@@ -91,11 +104,11 @@ Class Entry extends Model
      * 
      * @return array
      */
-    public function findOne($id = 1)
+    public function getOne($id = 1)
     {
     	$this->db->query("SELECT * FROM %s WHERE id = ?", array('users'), array($id));
 
-    	return $this->db->resultArray();
+    	return $this->db->rowArray();
     }
 
     /**
@@ -103,7 +116,7 @@ Class Entry extends Model
      * 
      * @return array
      */
-    public function findAll($limit = 10)
+    public function getAll($limit = 10)
     {
     	$this->db->query("SELECT * FROM %s LIMIT %d", array('users', $limit));
 
@@ -145,4 +158,45 @@ Class Entry extends Model
     }
 
 }
+
+
+/* End of file entry.php */
+/* Location: .models/Blog/Entry.php */
+```
+
+Şimdi entry modelini controller sınıfı içerisinde nasıl kullanacağımıza bir bakalım.
+
+
+```php
+<?php
+
+namespace Welcome;
+
+Class Welcome extends \Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c->bind('model entry', 'Blog\Entry');
+    }
+
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
+    	$rowArray = $this->model->entry->getOne(1);     // Modeller ile çalışmaktan çok mutluyum !
+
+		print_r($rowArray);
+    }
+}
+
+/* End of file welcome.php */
+/* Location: .controllers/welcome/welcome.php */
 ```
