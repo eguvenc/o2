@@ -11,7 +11,7 @@ The Rbac User object control the permission access, permission assignments and a
 
 ```php
 <?php
-$c->load('service/rbac', $c->load('return service/provider/db'));
+$c->load('service/rbac', $c->load('return service/db'));
 $this->rbac->user->method();
 ```
 
@@ -191,8 +191,9 @@ Returns true if has page permission allowed for given resource id otherwise fals
 <?php
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
+$this->rbac->user->setResourceId('admin/marketing');
 
-if ($this->rbac->user->hasPagePermission('admin/marketing'))) {
+if ($this->rbac->user->hasPagePermission())) {
 
     // .. go
 } 
@@ -208,9 +209,21 @@ Returns array if has object permission allowed for given operation name otherwis
 <?php
 $this->rbac->user->setUserId(1);
 $this->rbac->user->setRoleId(1);
-$this->rbac->user->hasPagePermission('admin/marketing/index');
+$this->rbac->user->setResourceId('admin/marketing/index');
 
-$permissions = $this->rbac->user->hasObjectPermission('foo', 'view');
+
+$this->rbac->user->hasPermission();  // Page access permission
+
+$permissions = $this->rbac->user->object->getPermission('form', 'view');  // hasObjectPermission()
+
+// veya
+
+$permissions = $this->rbac->user->object->form->getPermissions(array('input1', 'input2'), array('view'));  // hasChildPermission()
+
+
+// $this->rbac->user->hasPagePermission();
+
+// $permissions = $this->rbac->user->hasObjectPermission('foo', 'view');
 
 if ($this->rbac->user->isAllowed('foo', $permissions)) {
 

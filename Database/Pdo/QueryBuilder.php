@@ -17,7 +17,7 @@ use RunTimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-Class Query
+Class QueryBuilder
 {
     public $arSelect = array();
     public $arDistinct = false;
@@ -1230,4 +1230,4 @@ Class Query
 // END Query
 /* End of file Query.php
 
-/* Location: .Obullo/Database/Pdo/Query.php */
+/* Location: .Obullo/Database/Pdo/QueryBuilder.php */
