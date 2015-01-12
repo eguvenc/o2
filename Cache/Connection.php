@@ -68,7 +68,8 @@ Class Connection
         * return to old instance.
         */ 
         if ($this->c->exists('cache')  //  Is service available ?
-            AND $this->commands['class'] == 'service/provider/cache'  // Is this provider request ?
+            AND isset($this->params['provider'])
+            AND isset($this->params['serializer']) // Is this provider request ?
             AND empty($this->commands['new']) 
             AND $this->params['provider'] == $this->c['config']['cache']['default']['provider']
             AND $this->params['serializer'] == $this->c['config']['cache']['default']['serializer']

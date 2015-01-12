@@ -50,7 +50,7 @@ $this->c['bind.model.user']->method();
 
 Görüldüğü gibi yüklediğiniz modeller konteyner içerisine kaydedilir ve kayıtlı diğer servislerle karışmaması için <b>bind.</b> öneki ile farklılaştırılır.
 
-> **Note:** Bir modele sadece controller sınıfının henüz o yükleme seviyesinde mevcut olmadığı durumlarda konteyner üzerinden erişilmelidir. Controller sınıfının mevcut olduğu durumlarda modellere her zaman aşağıdaki gibi controller üzerinden erişmek gereklidir.
+> **Note:** Bir modele sadece controller sınıfının yükleme seviyesinde mevcut olmadığı durumlarda konteyner üzerinden erişilmelidir. Controller sınıfının mevcut olduğu durumlarda modellere her zaman aşağıdaki gibi controller üzerinden erişmek gerekir.
 
 Controller üzerinden modellere erişime bir örnek.
 
@@ -58,7 +58,13 @@ Controller üzerinden modellere erişime bir örnek.
 $this->model->bar->method();
 ```
 
+Aşağıdaki örnek modellerin nasıl yazılabileceği hakkında size bir fikir verebilir.
+
+Bu örneğin dosya yolu <b>/models/blog</b> klasörüdür.
+
+
 ```php
+<?php
 
 namespace Blog;
 
@@ -81,96 +87,62 @@ Class Entry extends Model
     }
 
     /**
+     * Get one record
+     * 
+     * @return array
+     */
+    public function findOne($id = 1)
+    {
+    	$this->db->query("SELECT * FROM %s WHERE id = ?", array('users'), array($id));
+
+    	return $this->db->resultArray();
+    }
+
+    /**
      * Get last 10 entries
      * 
      * @return array
      */
-    public function getLastTen()
+    public function findAll($limit = 10)
     {
-    	$this->db->query("SELECT FROM * entries LIMIT 10");
+    	$this->db->query("SELECT * FROM %s LIMIT %d", array('users', $limit));
+
     	return $this->db->resultArray();
     }
-        public function insert_entry()
-        {
-                $this->title    = $_POST['title']; // please read the below note
-                $this->content  = $_POST['content'];
-                $this->date     = time();
 
-                $this->db->insert('entries', $this);
-        }
-
-        public function update_entry()
-        {
-                $this->title    = $_POST['title'];
-                $this->content  = $_POST['content'];
-                $this->date     = time();
-
-                $this->db->update('entries', $this, array('id' => $_POST['id']));
-        }
-
-
+    /**
+     * Insert entry
+     * 
+     * @return void
+     */
     public function insert()
     {
-        $this->db->insert(
-            'users', 
-            array(
-            'username' => $this->username,
-            'email' => $this->email,
-            'date' => $this->date,
-            )
-        );
-    }
-
-    public function update($id)
-    {
-    	$this->db->update(
-            'entries', 
-            array(
+    	$data = array(
             'title' => $this->title,
             'content' => $this->content,
-            'date' => $this->date,
-            ),
-            array('entry_id' => $id)
-        );
+            'date' => (int)$this->date,
+            );
+
+    	$this->db->insert('users', $data);
     }
 
-}
+    /**
+     * Update entry
+     * 
+     * @param integer $id id
+     * 
+     * @return void
+     */
+    public function update($id)
+    {
+    	$data = array(
+            'title' => $this->title,
+            'content' => $this->content,
+            'date' => (int)$this->date,
+            );
 
-class Blog_model extends Model {
-
-        public $title;
-        public $content;
-        public $date;
-
-        public function __construct()
-        {
-                // Call the CI_Model constructor
-                parent::__construct();
-        }
-
-        public function get_last_ten_entries()
-        {
-                $query = $this->db->get('entries', 10);
-                return $query->result();
-        }
-
-        public function insert_entry()
-        {
-                $this->title    = $_POST['title']; // please read the below note
-                $this->content  = $_POST['content'];
-                $this->date     = time();
-
-                $this->db->insert('entries', $this);
-        }
-
-        public function update_entry()
-        {
-                $this->title    = $_POST['title'];
-                $this->content  = $_POST['content'];
-                $this->date     = time();
-
-                $this->db->update('entries', $this, array('id' => $_POST['id']));
-        }
+    	$this->db->update('entries', $data, array('entry_id' => $id));
+    }
 
 }
 ```

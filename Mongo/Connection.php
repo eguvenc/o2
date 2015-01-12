@@ -100,7 +100,6 @@ Class Connection
         ) {
             return $this->c->load('return service/mongo'); // return to current mongo instance
         }
-
         $this->connection = new MongoClient($this->dsn);
         if ( ! $this->connection->connect()) {
             throw new RuntimeException('Mongo connection error.');

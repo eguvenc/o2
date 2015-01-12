@@ -354,8 +354,8 @@ Class Welcome extends \Controller
      */
     public function index()
     {
-        $this->db->query('SELECT * FROM %s', array('users'));
-        $results = $this->db->resultArray();
+        $this->db->query('SELECT * FROM %s WHERE id = ?', array('users'), array(5));
+        $results = $this->db->rowArray();
 
         print_r($results);
     }
@@ -554,6 +554,16 @@ $affectedRows = $this->db->exec('INSERT QUERY');
 echo $affectedRows;   //output  1
 ```
 
+
+### Query Binding
+
+------
+
+
+$this->db->query("SELECT * FROM %s LIMIT ?", array('users'), array(10));
+
+
+
 ### Escaping Queries
 
 ------
@@ -567,20 +577,10 @@ This function determines the data type so that it can escape only string data. I
 ```php
 <?php
 
-$sql = "INSERT INTO table (title) VALUES(".$this->db->escape((string)$title).")";
+$sql = "INSERT INTO table (title) VALUES(".$this->db->escape($title).")";
 ```
 
 Supported data types: <samp>(int), (string), (boolean)</samp>
-
-#### $this->escapeStr();
-
-This function escapes the data passed to it, regardless of type. Most of the time you'll use the above function rather than this one. Use the function like this:
-
-```php
-<?php
-
-$sql = "INSERT INTO table (title) VALUES('".$this->db->escapeStr($title)."')";
-```
 
 #### $this->db->escapeLike()
 
@@ -608,7 +608,7 @@ echo $query->lastQuery();
 // Output
 ```
 
-## Query Binding <a name="query-binding"></a>
+## Traditional Query Binding <a name="query-binding"></a>
 
 ------
 
@@ -655,7 +655,7 @@ Framework offers PDO bindValue functionality, using query binding will help you 
 
 The **double dots** in the query are automatically replaced with the values of **bindValue** functions.
 
-#### Bind Example
+#### Traditional Bind Example
 
 ##### $this->db->bindValue($paramater, $variable, $type)
 

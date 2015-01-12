@@ -202,7 +202,7 @@ Class Mysql extends Adapter implements HandlerInterface
             } elseif (is_bool($value)) {
                 $values[$key] = ($value) ? 'TRUE' : 'FALSE';
             } else {
-                $values[$key] = $value;
+                $values[$key] = $value;  // We already do escape in Adapter class not need to escape
             }
         }
         return $values;
