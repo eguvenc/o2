@@ -6,8 +6,8 @@ use stdClass,
     Controller;
 
 /**
- * Layers is a programming technique that delivers you to
- * "Multitier Architecture" to scale your applications.
+ * Layers is a programming technique that delivers you to "Multitier Architecture" 
+ * to scale your applications.
  * 
  * Derived from HMVC pattern and named as "Layers" in Obullo.
  * 
@@ -230,8 +230,6 @@ Class Layer
      */
     public function execute($expiration = '')
     {
-        static $storage = array();  // Store used controllers
-
         $KEY = $this->id();         // Get layer id
         $start = microtime(true);   // Start query timer 
 
@@ -247,8 +245,8 @@ Class Layer
             $this->reset();
             return $this->c['response']->getError();
         }
-        //  Create an uniq Layer Uri it must be unique otherwise may cause collission with standart uri
-        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); // Create a uniq Layer Uri String with Layer ID
+
+        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); //  Create Layer ID
         
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
@@ -257,14 +255,13 @@ Class Layer
         $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
         $controller = CONTROLLERS .$this->c['router']->fetchModule(DS).$directory. DS .$className. '.php';
 
-                                                  // Check class is exists in the storage
-        if (isset($storage[$this->layerUri])) {   // Don't allow multiple include.
-            $class = $storage[$this->layerUri];   // Get stored class.
-        } else {
-            include $controller;        // Load the controller file.
+        $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
+
+                                                    // Check class is exists in the storage
+        if ( ! class_exists($className, false)) {   // Don't allow multiple include.
+            include $controller;                    // Load the controller file.
         }
 
-        $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
         $class = new $className;  // Call the controller
 
         if (method_exists($class, 'load')) {
@@ -278,14 +275,11 @@ Class Layer
         $this->makeGlobal();
 
         ob_start();
-        call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 2));
+        call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 3));
         $response = ob_get_clean();
 
         $this->assignObjects($class); // Assign main controller objects to sub layers.
 
-                                            // Store classes to $storage container
-        $storage[$this->layerUri] = $class; // Store class names to storage. We fetch it if its available in storage.
-        
         if (is_numeric($expiration)) {
             $this->c->load('service/cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
         }

@@ -240,7 +240,7 @@ Class Container implements ArrayAccess
             } else {
                 $service = new $serviceClass;
                 $service->register($this, $matches);
-
+                
                 if (method_exists($service, 'bindArray')) {
                     $bindArray = $service->bindArray();
                     $service->__bindParameters = $bindArray;

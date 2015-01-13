@@ -28,9 +28,11 @@ Class User
      * Cache constants
      * Redis supported key format.
      */
+    const CACHE_HAS_ELEMENT_PERMISSIONS = 'Permissions:Rbac:User:hasElementPermissions:';   // Obullo\Permissions\Rbac\Element->getPermissions();
+    const CACHE_HAS_OBJECT_PERMISSION   = 'Permissions:Rbac:User:hasObjectPermissions:';    // Obullo\Permissions\Rbac\Object->getPermissions();
+
     const CACHE_HAS_PAGE_PERMISSION   = 'Permissions:Rbac:User:hasPagePermission:';
     const CACHE_GET_ALL_PERMISSIONS   = 'Permissions:Rbac:User:getAllPermissions:';
-    const CACHE_HAS_OBJECT_PERMISSION = 'Permissions:Rbac:User:hasObjectPermission:';
     const CACHE_GET_OPERATIONS        = 'Permissions:Rbac:User:getOperations:';
     const CACHE_GET_ROLES             = 'Permissions:Rbac:User:getRoles:';
     const CACHE_ROLE_COUNT            = 'Permissions:Rbac:User:roleCount:';
@@ -130,16 +132,18 @@ Class User
     /**
      * Constructor
      * 
-     * @param object $c  container
-     * @param object $db database object
+     * @param object $c      container
+     * @param object $params parameters
      */
-    public function __construct($c, $db)
+    public function __construct($c, $params)
     {
-        $this->c     = $c;
-        $this->db    = $db;
-        $this->cache = $c->load('service/cache');
-        
+        $this->c = $c;
+        $this->cache  = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
+
+        $this->c['model.user'] = function () use ($params) {
+             return new \Obullo\Permissions\Rbac\Model\User($this->c, $this->c->load('service/provider/db', $params));
+        };
 
         // RBAC "user_roles" table variable definitions
         $this->userRolesTableName           = RBAC_USER_ROLES_DB_TABLENAME;
@@ -177,35 +181,22 @@ Class User
         $this->columnPermResource           = RBAC_PERM_COLUMN_RESOURCE;
     }
 
-    /**
-     * Magic methods (Get)
-     * 
-     * @param string $name get name
-     * 
-     * @return return object;
-     */
-    public function __get($name)
-    {
-        $name = strtolower($name);
-        $Class = 'Obullo\Permissions\Rbac\\'. ucfirst($name);
+    // /**
+    //  * Magic methods (Get)
+    //  * 
+    //  * @param string $name get name
+    //  * 
+    //  * @return return object;
+    //  */
+    // public function __get($name)
+    // {
+    //     $name = strtolower($name);
+    //     $Class = 'Obullo\Permissions\Rbac\\'. ucfirst($name);
 
-        if (class_exists($Class)) {
-            return new $Class($this);
-        }
-    }
-
-    /**
-     * Rbac Db User
-     * 
-     * @return Permissions\Rbac\Db\User object
-     */
-    public function getModel()
-    {
-        if ($this->modelUser == null) {
-            $this->modelUser = new \Obullo\Permissions\Rbac\Model\User($this);
-        }
-        return $this->modelUser;
-    }
+    //     if (class_exists($Class)) {
+    //         return new $Class($this);
+    //     }
+    // }
 
     /**
      * Checks permission name is allowed in your permission list
@@ -242,7 +233,7 @@ Class User
     public function assign($userId, $roleId)
     {
         $this->deleteCache();
-        return $this->getModel()->assign($userId, $roleId);
+        return $this->c['mode.user']->assign($userId, $roleId);
     }
 
     /**
@@ -255,7 +246,7 @@ Class User
      */
     public function deAssign($userId, $roleId)
     {
-        return $this->getModel()->deAssign($userId, $roleId);
+        return $this->c['mode.user']->deAssign($userId, $roleId);
     }
 
     /**
@@ -265,21 +256,9 @@ Class User
      * 
      * @return void
      */
-    public function setUserId($userId)
+    public function setId($userId)
     {
         $this->userId = (int)$userId;
-    }
-
-    /**
-     * Set Resource Id
-     * 
-     * @param string $resourceId resource id
-     * 
-     * @return void
-     */
-    public function setResourceId($resourceId)
-    {
-        $this->resourceId = (string)$resourceId;
     }
     
     /**
@@ -314,7 +293,7 @@ Class User
      * 
      * @return integer
      */
-    public function getUserId()
+    public function getId()
     {
         if ($this->userId == 0) {
             throw new RuntimeException(sprintf('User id is not defined. You must first use %s->hasPagePermission() or %s->setUserId() method.', get_class()));
@@ -335,41 +314,27 @@ Class User
         return $this->roleIds;
     }
 
-    /**
-     * Get Resource Id
-     * 
-     * @return string
-     */
-    public function getResourceId()
-    {
-        if (empty($this->resourceId)) {
-            $getClass = get_class();
-            throw new RuntimeException(sprintf('Resource id is not defined. You must first use %s->setResourceId() method.', $getClass, $getClass));
-        }
-        return $this->resourceId;
-    }
-
-    /**
-     * hasRole
-     * 
-     * @param int $expiration expiration time
-     * 
-     * @return array
-     */
-    public function hasRole($expiration = 7200)
-    {
-        $key = static::CACHE_HAS_ROLE . $this->getUserId();
-        $resultArray = $this->cache->get($key);
-        if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->hasRoleSqlQuery();  // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->cache->set($key, $resultArray, $expiration);
-        }
-        if ($resultArray == 'empty') {
-            return null;
-        }
-        return $resultArray;
-    }
+    // /**
+    //  * hasRole
+    //  * 
+    //  * @param int $expiration expiration time
+    //  * 
+    //  * @return array
+    //  */
+    // public function hasRole($expiration = 7200)
+    // {
+    //     $key = static::CACHE_HAS_ROLE . $this->getUserId();
+    //     $resultArray = $this->cache->get($key);
+    //     if ($resultArray == false) {  // If not exist in the cache
+    //         $queryResultArray = $this->c['mode.user']->hasRoleSqlQuery();  // do sql query
+    //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
+    //         $this->cache->set($key, $resultArray, $expiration);
+    //     }
+    //     if ($resultArray == 'empty') {
+    //         return null;
+    //     }
+    //     return $resultArray;
+    // }
 
     /**
      * Get Operations
@@ -383,7 +348,7 @@ Class User
         $key = static::CACHE_GET_ROLES . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->getRolesSqlQuery();  // do sql query
+            $queryResultArray = $this->c['mode.user']->getRolesSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // 
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -393,56 +358,56 @@ Class User
         return $resultArray;
     }
 
-    /**
-     * Get all permission
-     * 
-     * @param string $roleIds    role ids
-     * @param int    $expiration expiration time.
-     * 
-     * @return array
-     */
-    public function getPermissions($roleIds, $expiration = 7200)
-    {
-        if (empty($roleIds)) {
-            return null;
-        }
-        $key = static::CACHE_GET_ALL_PERMISSIONS . $this->getUserId();
-        $resultArray = $this->cache->get($key);
-        if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->getPermissionsSqlQuery($roleIds);  // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->cache->set($key, $resultArray, $expiration);
-        }
-        if ($resultArray == 'empty') {
-            return null;
-        }
-        return $resultArray;
-    }
+    // /**
+    //  * Get all permission
+    //  * 
+    //  * @param string $roleIds    role ids
+    //  * @param int    $expiration expiration time.
+    //  * 
+    //  * @return array
+    //  */
+    // public function getPermissions($roleIds, $expiration = 7200)
+    // {
+    //     if (empty($roleIds)) {
+    //         return null;
+    //     }
+    //     $key = static::CACHE_GET_ALL_PERMISSIONS . $this->getUserId();
+    //     $resultArray = $this->cache->get($key);
+    //     if ($resultArray == false) {  // If not exist in the cache
+    //         $queryResultArray = $this->c['mode.user']->getPermissionsSqlQuery($roleIds);  // do sql query
+    //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
+    //         $this->cache->set($key, $resultArray, $expiration);
+    //     }
+    //     if ($resultArray == 'empty') {
+    //         return null;
+    //     }
+    //     return $resultArray;
+    // }
 
-    /**
-     * Has page permission
-     * 
-     * @param string $operationName operations ( edit, update, delete, view )
-     * @param int    $expiration    expiration time
-     * 
-     * @return boolean
-     */
-    public function getPermission($operationName = 'view', $expiration = 7200)
-    {
-        $permResource = $this->getResourceId();  // permission page resource ('admin/advertising')
-        $key = static::CACHE_HAS_PAGE_PERMISSION . $this->getUserId() . ':' . $permResource;
-        $resultArray = $this->cache->get($key);
-        if ($resultArray == false) { // If not exist in the cache
-            $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-            $queryResultArray = $this->getModel()->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // If mysql query no result cache driver say cache is false but we have the empty values
-            $this->cache->set($key, $resultArray, $expiration);                              // This fix the query loops and gives the native value.
-        }
-        if ($resultArray == 'empty') {
-            return false;
-        }
-        return true;
-    }
+    // /**
+    //  * Has page permission
+    //  * 
+    //  * @param string $operationName operations ( edit, update, delete, view )
+    //  * @param int    $expiration    expiration time
+    //  * 
+    //  * @return boolean
+    //  */
+    // public function getPermission($operationName = 'view', $expiration = 7200)
+    // {
+    //     $permResource = $this->getResourceId();  // permission page resource ('admin/advertising')
+    //     $key = static::CACHE_HAS_PAGE_PERMISSION . $this->getUserId() . ':' . $permResource;
+    //     $resultArray = $this->cache->get($key);
+    //     if ($resultArray == false) { // If not exist in the cache
+    //         $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
+    //         $queryResultArray = $this->c['mode.user']->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
+    //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // If mysql query no result cache driver say cache is false but we have the empty values
+    //         $this->cache->set($key, $resultArray, $expiration);                              // This fix the query loops and gives the native value.
+    //     }
+    //     if ($resultArray == 'empty') {
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     /**
      * Role Count
@@ -456,7 +421,7 @@ Class User
         $key = static::CACHE_ROLE_COUNT . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->roleCountSqlQuery();  // do sql query
+            $queryResultArray = $this->c['mode.user']->roleCountSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -473,9 +438,9 @@ Class User
      * 
      * @return object statement of Pdo
      */
-    public function deleteRoleFromUsers($userId)
+    public function deleteRoles($userId)
     {
-        return $this->getModel()->deleteRoleFromUsers($userId);
+        return $this->c['mode.user']->deleteRoleFromUsers($userId);
     }
 
     /**
@@ -497,6 +462,31 @@ Class User
     public function getStatement()
     {
         return $this->db->getStatement();
+    }
+
+    /**
+     * Hash
+     * 
+     * @param mixed $data hash data
+     * 
+     * @return string
+     */
+    public function hash($data)
+    {
+        return hash('adler32', json_encode($data));
+    }
+
+
+    /**
+     * Build array
+     * 
+     * @param mix $data data
+     * 
+     * @return array
+     */
+    public function arrayConvert($data)
+    {
+        return (! is_array($data)) ? array($data) : $data;
     }
 }
 

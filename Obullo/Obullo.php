@@ -73,7 +73,7 @@ if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() =
         $response->show404($pageUri);
     }
 }
-$arguments = array_slice($c['uri']->rsegments, 2);
+$arguments = array_slice($c['uri']->rsegments, 3);
 
 /**
  * ------------------------------------------------------
