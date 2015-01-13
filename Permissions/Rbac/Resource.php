@@ -7,10 +7,10 @@ use Obullo\Permissions\Rbac\Resource\Page,
     RuntimeException;
 
 /**
- * User Roles
+ * RBAC Resource
  * 
- * @category  Permissions
- * @package   Object
+ * @category  Rbac
+ * @package   Resource
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>

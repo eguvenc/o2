@@ -6,10 +6,10 @@ use Obullo\Permissions\Rbac\User,
     Obullo\Permissions\Rbac\Resource;
 
 /**
- * User Roles
+ * Resource Page Permission
  * 
- * @category  Permissions
- * @package   Object
+ * @category  Resource
+ * @package   Page
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>
@@ -27,33 +27,11 @@ Class Page
     public function __construct($c)
     {
         $this->c = $c;
-
-        // $this->c['rbac.resource.object.element'] = function () {
-        //     return new Element($this->c);
-        // };
     }
 
-    // /**
-    //  * Magic methods (Get)
-    //  * 
-    //  * @param string $name get name
-    //  * 
-    //  * @return return object;
-    //  */
-    // public function __get($name)
-    // {
-    //     $Class = 'Obullo\Permissions\Rbac\Resource\Object\\'. ucfirst(strtolower($name));
-
-    //     if ( ! class_exists($Class, false)) {
-    //         $this->c['rbac.resource.object.element']->objectName = $name;
-    //         return $this->c['rbac.resource.object.element'];
-    //     }
-    // }
-
     /**
-     * Get permissions
+     * Get permission
      * 
-     * @param mix $permName   perm name
      * @param mix $opName     operations ( view,update,delete,insert,save )
      * @param int $expiration expiration time
      * 
@@ -80,7 +58,7 @@ Class Page
 }
 
 
-// END Object.php File
-/* End of file Object.php
+// END Page.php File
+/* End of file Page.php
 
-/* Location: .Obullo/Permissions/Rbac/Object.php */
+/* Location: .Obullo/Permissions/Rbac/Resource/Page.php */

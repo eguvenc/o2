@@ -5,9 +5,9 @@ namespace Obullo\Permissions\Rbac\Resource;
 use Obullo\Permissions\Rbac\Resource\Object\Element;
 
 /**
- * User Roles
+ * Resource Object Permission
  * 
- * @category  Permissions
+ * @category  Resource
  * @package   Object
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
@@ -82,4 +82,4 @@ Class Object
 // END Object.php File
 /* End of file Object.php
 
-/* Location: .Obullo/Permissions/Rbac/Object.php */
+/* Location: .Obullo/Permissions/Rbac/Resource/Object.php */

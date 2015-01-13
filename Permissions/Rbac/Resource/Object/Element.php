@@ -5,9 +5,9 @@ namespace Obullo\Permissions\Rbac\Resource\Object;
 use Obullo\Permissions\Rbac\User;
 
 /**
- * Element Permissions
+ * Object Element Permissions
  * 
- * @category  Permissions
+ * @category  Object
  * @package   Element
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
@@ -32,7 +32,6 @@ Class Element
      */
     public function __construct($c)
     {
-        echo 'zz';
         $this->c = $c;
     }
 
@@ -67,7 +66,7 @@ Class Element
 }
 
 
-// END Child.php File
-/* End of file Child.php
+// END Element.php File
+/* End of file Element.php
 
-/* Location: .Obullo/Permissions/Rbac/Child.php */
+/* Location: .Obullo/Permissions/Rbac/Resource/Object/Element.php */
