@@ -115,9 +115,7 @@ Class Request
      */
     public function raw($method, $uri, $data = array(), $expiration = '')
     {
-        // Layer always must create new instance
-        // Other ways we can't use nested layers !!
-        $layer = new Layer($this->c, $this->params);
+        $layer = new Layer($this->c, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
         $layer->setHeaders();  // Headers must be at the top
         $layer->setUrl($uri);

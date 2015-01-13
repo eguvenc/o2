@@ -76,7 +76,7 @@ Class Error
     public function getFormatError($response)
     {
         $error = sprintf(
-            '%s<span style="font-weight:bold;">Json response must be array and contain at least one of the following keys.</span><pre style="border:none;">
+            '%s<span style="font-weight:bold;">Database layer response must be array and contain at least one of the following keys.</span><pre style="border:none;">
             $r = array(
                 \'success\' => integer     // optional
                 \'message\' => string,     // optional

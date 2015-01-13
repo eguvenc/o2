@@ -226,24 +226,19 @@ Class Adapter
     public function query($sql, $fields = array(), $values = array())
     {
         $this->lastSql = $this->sprintf($sql, $fields);
+        $this->startQueryTimer = microtime(true);
 
-        $start = microtime(true);
         if (count($values) > 0) {
             $this->prepare($this->lastSql);
-            return $this->execute($values);
+            $this->execute($values);
+            return $this;
         } else {
             $this->stmt = $this->connection->query($this->lastSql);
         }
-        $time  = microtime(true) - $start;
-
         ++$this->queryCount;
-        if ($this->config['log']['extra']['queries']) {
-            $this->logger->debug(
-                '$_SQL '.$this->queryCount.' ( Query ):', 
-                array('time' => number_format($time, 4), 'output' => self::getSqlString($this->lastSql)), 
-                ($this->queryCount * -1 )
-            );
-        }
+
+        $this->sqlLog($this->lastSql);
+
         return ($this);
     }
 
@@ -341,8 +336,7 @@ Class Adapter
      */
     public function transaction($closure = null)
     {
-        $this->assignObjects();
-        $this->__wakeup();
+        $this->connect();
         $this->connection->beginTransaction();
         if (is_callable($closure)) {
             try
@@ -379,7 +373,7 @@ Class Adapter
      */
     public function commit()
     {
-        $this->__wakeup();
+        $this->connect();
         return $this->connection->commit();
     }
 
@@ -400,38 +394,8 @@ Class Adapter
      */
     public function rollBack()
     {
-        $this->__wakeup();        
+        $this->connect();      
         return $this->connection->rollBack();
-    }
-
-    /**
-     * Sleep
-     * 
-     * @return array
-     */
-    public function __sleep()
-    {
-        return array(
-            'host',
-            'username',
-            'password',
-            'database',
-            'driver',
-            'charset',
-            'port',
-            'dsn',
-            'options'
-        );
-    }
-
-    /**
-     * Wake up
-     * 
-     * @return void
-     */
-    public function __wakeup()
-    {
-        $this->connect();
     }
 
     /**
@@ -557,14 +521,9 @@ Class Adapter
     public function execute($array = null)
     {
         $this->stmt->execute($array);
-        $time = microtime(true) - $this->startQueryTimer;
 
-        if ($this->config['log']['extra']['queries'] AND isset($this->prepQueries[0])) {
-            $this->logger->debug(
-                '$_SQL '.$this->queryCount.' ( Execute ):', 
-                array('time' => number_format($time, 4), 'output' => self::getSqlString(end($this->prepQueries))), 
-                ($this->queryCount * -1 )
-            );
+        if (isset($this->prepQueries[0])) {
+            $this->sqlLog(end($this->prepQueries));
         }
         $this->prepare = false;  // reset prepare variable and prevent collision with next query ..
         ++$this->execCount;      // count execute of prepared statements ..
@@ -599,18 +558,12 @@ Class Adapter
     {
         $this->lastSql = $this->sprintf($sql, $fields);
 
-        $start = microtime(true);
+        $this->startQueryTimer = microtime(true);
         $affectedRows = $this->connection->exec($this->lastSql);
-        $time  = microtime(true) - $start;
         ++$this->queryCount;
 
-        if ($this->config['log']['extra']['queries']) {
-            $this->logger->debug(
-                '$_SQL '.$this->queryCount.' ( Exec ):', 
-                array('time' => number_format($time, 4), 'output' => self::getSqlString($this->lastSql)), 
-                ($this->queryCount * -1 )
-            );
-        }
+        $this->sqlLog($this->lastSql);
+
         return $affectedRows;
     }
 
@@ -741,16 +694,35 @@ Class Adapter
 
     /**
      * Assign all controller objects into db class
-     * to callback closure $this->object support.
+     * to available closure $this->object support in transaction() method.
+     *
+     * @param string $key Controller variable
      * 
      * @return void
      */
-    public function assignObjects()
+    public function __get($key)
     {
-        foreach (get_object_vars(Controller::$instance) as $k => $v) {  // Get object variables
-            if (is_object($v)) { // Do not assign again reserved variables
-                $this->{$k} = Controller::$instance->{$k};
-            }
+        return Controller::$instance->{$key};
+    }
+
+    /**
+     * Log sql
+     * 
+     * @param string $sql   sql query
+     * @param string $start time
+     * 
+     * @return void
+     */
+    protected function sqlLog($sql, $start)
+    {
+        $time  = microtime(true) - $start;
+
+        if ($this->config['log']['extra']['queries']) {
+            $this->logger->debug(
+                '$_SQL '.$this->queryCount.' ( Query ):', 
+                array('time' => number_format($time, 4), 'output' => self::getSqlString($sql)), 
+                ($this->queryCount * -1 )
+            );
         }
     }
 

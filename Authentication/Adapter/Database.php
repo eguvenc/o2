@@ -2,8 +2,7 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use Auth\Constant,
-    Auth\Identities\GenericUser,
+use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
     Obullo\Authentication\Token,
     Obullo\Authentication\AuthResult,
@@ -89,6 +88,20 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected $failure = false;
 
     /**
+     * Db Idenitifier column name
+     * 
+     * @var string
+     */
+    protected $columnIdentifier;
+
+    /**
+     * Db Password column name
+     * 
+     * @var string
+     */
+    protected $columnPassword;
+
+    /**
      * Constructor
      * 
      * @param object $c    container object
@@ -98,8 +111,11 @@ class Database extends AbstractAdapter implements AdapterInterface
     {
         $this->user = $user;
         $this->storage = $c['auth.storage'];
-        $this->session = $c->load('session');
+        $this->session = $c['session'];
         $this->cache = $c->load('service/cache');
+
+        $this->columnIdentifier = '';
+        $this->columnPassword = '';
 
         parent::__construct($c);
     }
@@ -168,10 +184,10 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.provider']->execQuery($genericUser) : $storageResult;
 
-        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[Constant::IDENTIFIER])) {
+        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
 
             $plain = $genericUser->getPassword();
-            $hash  = $this->resultRowArray[Constant::PASSWORD];
+            $hash  = $this->resultRowArray[$this->$this->columnPassword];
 
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
                                                                                 // default is 6 for best performance.
@@ -201,8 +217,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $token = new Token($this->c);
 
         $attributes = array(
-            Constant::IDENTIFIER => $genericUser->getIdentifier(),
-            Constant::PASSWORD => $resultRowArray[Constant::PASSWORD],
+            $this->columnIdentifier => $genericUser->getIdentifier(),
+            $this->columnPassword => $resultRowArray[$this->columnPassword],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
             '__token' => $token->get(),
@@ -244,7 +260,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function deleteOldAuth()
     {
-        $trashKey = $this->config['memory']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
+        $trashKey = $this->config['cache']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {
             $this->storage->deleteCredentials($trashKey);
         }
@@ -261,7 +277,7 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected function formatAttributes(array $attributes, $rehashedPassword = array())
     {
         if (is_array($rehashedPassword) AND isset($rehashedPassword['hash'])) {
-            $attributes[Constant::PASSWORD] = $rehashedPassword['hash'];
+            $attributes[$this->columnPassword] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
         $attributes = $this->setAuthType($attributes);
@@ -334,7 +350,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
         }
-        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][Constant::IDENTIFIER]) {
+        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][$this->columnIdentifier]) {
             $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
             $this->results['messages'][] = 'More than one record matches the supplied identity.';
             return $this->createResult();

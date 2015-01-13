@@ -152,7 +152,7 @@ Class Permissions
         $this->treeDb = new Db($c, array('db' => $db));
 
         $this->c['config']->load('constant/rbac');  // load rbac constants
-
+        
         // RBAC "permissions" table variable definitions
         $this->permTableName          = RBAC_PERM_DB_TABLENAME;
         $this->primaryKey             = RBAC_PERM_COLUMN_PRIMARY_KEY;
@@ -191,7 +191,7 @@ Class Permissions
     protected static function dbPerms()
     {
         if (static::$dbPerms == null) {
-            static::$dbPerms = new Obullo\Permissions\Rbac\Model\Permissions($this);
+            static::$dbPerms = new Obullo\Permissions\Rbac\Model\Permissions($this, $thi->c->load('service/provider/db', $this->params));
         }
         return static::$dbPerms;
     }

@@ -2,8 +2,7 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Constant,
-    Auth\Identities\GenericUser,
+use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
     Obullo\Authentication\UserProviderInterface;
 
@@ -22,25 +21,33 @@ Class UserProvider implements UserProviderInterface
     public $c;                      // Container
     public $db;                     // Database
     public $tablename;              // Users tablename
-    public $rememberTokenColumn;    // Remember token column name  
-    public $userSQL;                // User query sql
-    public $recalledUserSQL;        // Recalled user sql
-    public $rememberTokenUpdateSQL; // Remember token update sql
+    public $columnId;               // Primary key column name
+    public $columnIdentifier;       // Username column name
+    public $columnPassword;         // Password column name
+    public $columnRememberToken;    // Remember token column name  
+    public $sqlUser;                // User query sql
+    public $sqlRecalledUser;        // Recalled user sql
+    public $sqlUpdateRememberToken; // Remember token update sql
 
      /**
      * Constructor
      * 
-     * @param object $c  container
-     * @param object $db db object
+     * @param object $c      container
+     * @param object $db     db object
+     * @param array  $params array
      */
-    public function __construct($c, $db)
+    public function __construct($c, $db, $params = array())
     {
-        $this->tablename = Constant::TABLENAME;  // Db users tablename
-        $this->rememberTokenColumn = Constant::REMEMBER_TOKEN;  // RememberMe token column name
+        $this->tablename = $params['tablename'];  // Db users tablename
+        
+        $this->columnId = $params['id'];
+        $this->columnIdentifier = $params['identifier'];
+        $this->columnPassword = $params['password'];
+        $this->columnRememberToken = $params['rememberToken'];  // RememberMe token column name
 
-        $this->userSQL = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
-        $this->recalledUserSQL = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
-        $this->rememberTokenUpdateSQL = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
+        $this->sqlUser = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
+        $this->sqlRecalledUser = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
+        $this->sqlUpdateRememberToken = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
 
         $this->c = $c;
         $this->db = $db;
@@ -55,7 +62,7 @@ Class UserProvider implements UserProviderInterface
      */
     public function execQuery(GenericUser $user)
     {
-        $this->db->prepare($this->userSQL, array($this->tablename, Constant::IDENTIFIER));
+        $this->db->prepare($this->sqlUser, array($this->tablename, $this->columnId));
         $this->db->bindValue(1, $user->getIdentifier(), PARAM_STR);
         $this->db->execute();
 
@@ -71,7 +78,7 @@ Class UserProvider implements UserProviderInterface
      */
     public function execRecallerQuery($token)
     {
-        $this->db->prepare($this->recalledUserSQL, array($this->tablename, $this->rememberTokenColumn));
+        $this->db->prepare($this->sqlRecalledUser, array($this->tablename, $this->columnRememberToken));
         $this->db->bindValue(1, $token, PARAM_STR);
         $this->db->execute();
 
@@ -88,7 +95,7 @@ Class UserProvider implements UserProviderInterface
      */
     public function updateRememberToken($token, GenericUser $user)
     {
-        $this->db->prepare($this->rememberTokenUpdateSQL, array($this->tablename, $this->rememberTokenColumn, Constant::IDENTIFIER));
+        $this->db->prepare($this->sqlUpdateRememberToken, array($this->tablename, $this->columnRememberToken, $this->columnIdentifier));
         $this->db->bindValue(1, $token, PARAM_STR);
         $this->db->bindValue(2, $user->getIdentifier(), PARAM_STR);
         $this->db->execute();
