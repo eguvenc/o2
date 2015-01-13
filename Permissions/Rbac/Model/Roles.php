@@ -5,9 +5,9 @@ namespace Obullo\Permissions\Rbac\Model;
 use Obullo\Permissions\Rbac\Roles as RbacRoles;
 
 /**
- * Db Roles
+ * Model Roles
  * 
- * @category  Db
+ * @category  Model
  * @package   Roles
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
@@ -15,11 +15,6 @@ use Obullo\Permissions\Rbac\Roles as RbacRoles;
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/tree
- * 
- * What is the Rbac?
- * @see       https://www.sans.org/reading-room/whitepapers/sysadmin/role-based-access-control-nist-solution-1270
- *
- * http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.84.9866&rep=rep1&type=pdf
  */
 Class Roles
 {
@@ -40,12 +35,14 @@ Class Roles
     /**
      * Constructor
      * 
-     * @param object $roles rbac roles instance
+     * @param object $c  container
+     * @param object $db database
      */
-    public function __construct(RbacRoles $roles)
+    public function __construct($c, $db)
     {
-        $this->db    = $roles->c['db'];
-        $this->roles = $roles;
+        $this->c = $c;
+        $this->db = $db;
+        $this->roles = $this->c['rbac.permissions'];
     }
 
     /**

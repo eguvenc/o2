@@ -5,9 +5,9 @@ namespace Obullo\Permissions\Rbac\Model;
 use Obullo\Permissions\Rbac\User as RbacUser;
 
 /**
- * Db User
+ * Model User
  * 
- * @category  Db
+ * @category  Model
  * @package   User
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>

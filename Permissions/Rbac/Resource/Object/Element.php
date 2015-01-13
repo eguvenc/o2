@@ -46,10 +46,10 @@ Class Element
      */
     public function getPermissions($permName, $opName, $expiration = 7200)
     {
-        $opName   = $this->c['rbac.user']->arrayConvert($opName);
-        $permName = $this->c['rbac.user']->arrayConvert($permName);
+        $opName   = Utils::arrayConvert($opName);
+        $permName = Utils::arrayConvert($permName);
         
-        $key = User::CACHE_HAS_ELEMENT_PERMISSIONS . $this->c['rbac.user']->getId() .':'. $this->c['rbac.user']->hash($permName) .':'. $this->c['rbac.user']->hash($opName);
+        $key = User::CACHE_HAS_ELEMENT_PERMISSIONS . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
         $resultArray = $this->c['rbac.user']->cache->get($key);
         $resultArray = false;
 

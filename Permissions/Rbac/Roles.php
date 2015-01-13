@@ -119,26 +119,20 @@ Class Roles
     public $cache;
 
     /**
-     * Permissions\Rbac\Db\Roles instance
-     * 
-     * @var null
-     */
-    protected static $dbRoles = null;
-
-    /**
      * Constructor
-     *
-     * @param object $c  container
-     * @param object $db database object
+     * 
+     * @param object $c      container
+     * @param object $params parameters
      */
-    public function __construct($c, $db)
+    public function __construct($c, $params)
     {
-        $this->c      = $c;
-        $this->db     = $db;
+        $this->c = $c;
         $this->cache  = $c->load('service/cache');
-        $this->treeDb = new Db($c, array('db' => $db));
-        
-        $this->c['config']->load('constant/rbac');  // load rbac constants
+        $this->c['config']->load('rbac');  // load rbac constants
+
+        $this->c['model.user'] = function () use ($params) {
+             return new \Obullo\Permissions\Rbac\Model\Permissions($this->c, $this->c->load('service/provider/db', $params));
+        };
 
         // RBAC "roles" table variable definitions
         $this->tableName                = RBAC_ROLES_DB_TABLENAME;

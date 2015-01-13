@@ -233,7 +233,7 @@ Class User
     public function assign($userId, $roleId)
     {
         $this->deleteCache();
-        return $this->getModel()->assign($userId, $roleId);
+        return $this->c['mode.user']->assign($userId, $roleId);
     }
 
     /**
@@ -246,7 +246,7 @@ Class User
      */
     public function deAssign($userId, $roleId)
     {
-        return $this->getModel()->deAssign($userId, $roleId);
+        return $this->c['mode.user']->deAssign($userId, $roleId);
     }
 
     /**
@@ -326,7 +326,7 @@ Class User
     //     $key = static::CACHE_HAS_ROLE . $this->getUserId();
     //     $resultArray = $this->cache->get($key);
     //     if ($resultArray == false) {  // If not exist in the cache
-    //         $queryResultArray = $this->getModel()->hasRoleSqlQuery();  // do sql query
+    //         $queryResultArray = $this->c['mode.user']->hasRoleSqlQuery();  // do sql query
     //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
     //         $this->cache->set($key, $resultArray, $expiration);
     //     }
@@ -348,7 +348,7 @@ Class User
         $key = static::CACHE_GET_ROLES . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->getRolesSqlQuery();  // do sql query
+            $queryResultArray = $this->c['mode.user']->getRolesSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // 
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -374,7 +374,7 @@ Class User
     //     $key = static::CACHE_GET_ALL_PERMISSIONS . $this->getUserId();
     //     $resultArray = $this->cache->get($key);
     //     if ($resultArray == false) {  // If not exist in the cache
-    //         $queryResultArray = $this->getModel()->getPermissionsSqlQuery($roleIds);  // do sql query
+    //         $queryResultArray = $this->c['mode.user']->getPermissionsSqlQuery($roleIds);  // do sql query
     //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
     //         $this->cache->set($key, $resultArray, $expiration);
     //     }
@@ -399,7 +399,7 @@ Class User
     //     $resultArray = $this->cache->get($key);
     //     if ($resultArray == false) { // If not exist in the cache
     //         $attribute = ' AND ' . $this->db->protect($this->opTableName) . '.' . $this->db->protect($this->columnOpText) . ' = ' . $this->db->escape($operationName);
-    //         $queryResultArray = $this->getModel()->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
+    //         $queryResultArray = $this->c['mode.user']->hasPagePermissionSqlQuery($permResource, $attribute); // do sql query
     //         $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // If mysql query no result cache driver say cache is false but we have the empty values
     //         $this->cache->set($key, $resultArray, $expiration);                              // This fix the query loops and gives the native value.
     //     }
@@ -421,7 +421,7 @@ Class User
         $key = static::CACHE_ROLE_COUNT . $this->getUserId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
-            $queryResultArray = $this->getModel()->roleCountSqlQuery();  // do sql query
+            $queryResultArray = $this->c['mode.user']->roleCountSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -440,7 +440,7 @@ Class User
      */
     public function deleteRoles($userId)
     {
-        return $this->getModel()->deleteRoleFromUsers($userId);
+        return $this->c['mode.user']->deleteRoleFromUsers($userId);
     }
 
     /**

@@ -132,26 +132,20 @@ Class Permissions
     public $db;
 
     /**
-     * Permissions\Rbac\Db\Permissions instance
-     * 
-     * @var null
-     */
-    protected static $dbPerms = null;
-
-    /**
      * Constructor
-     *
-     * @param object $c  container
-     * @param object $db database object
+     * 
+     * @param object $c      container
+     * @param object $params parameters
      */
-    public function __construct($c, $db)
+    public function __construct($c, $params)
     {
-        $this->c      = $c;
-        $this->db     = $db;
+        $this->c = $c;
         $this->cache  = $c->load('service/cache');
-        $this->treeDb = new Db($c, array('db' => $db));
+        $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['config']->load('constant/rbac');  // load rbac constants
+        $this->c['model.user'] = function () use ($params) {
+             return new \Obullo\Permissions\Rbac\Model\Permissions($this->c, $this->c->load('service/provider/db', $params));
+        };
 
         // RBAC "permissions" table variable definitions
         $this->permTableName          = RBAC_PERM_DB_TABLENAME;
@@ -183,19 +177,6 @@ Class Permissions
         $this->treeDb->setRight($this->rgt);
     }
 
-    /**
-     * Rbac Db User
-     * 
-     * @return Permissions\Rbac\Db\User object
-     */
-    protected static function dbPerms()
-    {
-        if (static::$dbPerms == null) {
-            static::$dbPerms = new Obullo\Permissions\Rbac\Model\Permissions($this);
-        }
-        return static::$dbPerms;
-    }
-    
     /**
      * Add root
      * 
@@ -252,8 +233,8 @@ Class Permissions
         $permIds = $this->treeDb->getTree((int)$permId);
 
         $this->deleteCache();
-        $this->deAssignAllOperations($permIds);
-        $this->deAssignRoles($permIds);
+        $this->deleteAllOperations($permIds);
+        $this->deleteRoles($permIds);
         $this->treeDb->deleteNode((int)$permId);
     }
 
@@ -283,7 +264,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        return static::dbPerms()->assignRole($roleId, $permId);
+        return $this->c['model.permissions']->assignRole($roleId, $permId);
     }
 
     /**
@@ -299,7 +280,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        return static::dbPerms()->assignOperation($roleId, $permId, $opId);
+        return $this->c['model.permissions']->assignOperation($roleId, $permId, $opId);
     }
 
     /**
@@ -314,7 +295,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        return static::dbPerms()->deAssignRole($roleId, $permId);
+        return $this->c['model.permissions']->deAssignRole($roleId, $permId);
     }
 
     /**
@@ -324,7 +305,7 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignRoles($permId)
+    public function deleteRoles($permId)
     {
         if ( ! is_array($permId)) {
             $permId = array(array($this->primaryKey => $permId));
@@ -333,7 +314,7 @@ Class Permissions
 
         $this->deleteCache();
 
-        return static::dbPerms()->deAssignRoles($permId);
+        return $this->c['model.permissions']->deAssignRoles($permId);
     }
 
     /**
@@ -349,7 +330,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        return static::dbPerms()->deAssignOperation($roleId, $permId, $opId);
+        return $this->c['model.permissions']->deAssignOperation($roleId, $permId, $opId);
     }
 
     /**
@@ -360,11 +341,11 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignOperations($roleId, $permId)
+    public function deleteOperations($roleId, $permId)
     {
         $this->deleteCache();
 
-        return static::dbPerms()->deAssignOperations($roleId, $permId);
+        return $this->c['model.permissions']->deAssignOperations($roleId, $permId);
     }
 
     /**
@@ -374,7 +355,7 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignAllOperations($permId)
+    public function deleteAllOperations($permId)
     {
         if ( ! is_array($permId)) {
             $permId = array(array($this->primaryKey => $permId));
@@ -383,7 +364,7 @@ Class Permissions
 
         $this->deleteCache();
 
-        return static::dbPerms()->deAssignAllOperations($permId);
+        return $this->c['model.permissions']->deAssignAllOperations($permId);
     }
 
     /**
@@ -477,7 +458,7 @@ Class Permissions
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbPerms()->getRolesSqlQuery((int)$permId, (string)$select); // do sql query
+            $queryResultArray = $this->c['model.permissions']->getRolesSqlQuery((int)$permId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
