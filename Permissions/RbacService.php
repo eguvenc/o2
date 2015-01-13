@@ -2,6 +2,11 @@
 
 namespace Obullo\Permissions;
 
+use Obullo\Permissions\Rbac\User,
+    Obullo\Permissions\Rbac\Roles,
+    Obullo\Permissions\Rbac\Resource,
+    Obullo\Permissions\Rbac\Permissions;
+
 /**
  * RbacService Class
  * 
@@ -31,13 +36,26 @@ Class RbacService
     /**
      * Constructor
      *
-     * @param object $c  container
-     * @param object $db database object
+     * @param object $c      container
+     * @param array  $params parameters
      */
-    public function __construct($c, $db)
+    public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->db = $db;
+        $this->params = $params;
+
+        $this->c['rbac.user'] = function () {
+            return new User($this->c, $this->params); 
+        };
+        $this->c['rbac.roles'] = function () {
+            return new Roles($this->c, $this->params); 
+        };
+        $this->c['rbac.resource'] = function () {
+            return new Resource($this->c, $this->params); 
+        };
+        $this->c['rbac.permissions'] = function () {
+            return new Permissions($this->c, $this->params); 
+        };
     }
 
     /**
@@ -49,14 +67,7 @@ Class RbacService
      */
     public function __get($class)
     {
-        $key = strtolower($class);   // Services: $this->rbac->user, $this->rbac->permissions, $this->rbac->roles .. 
-
-        if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
-            return $this->{$key};
-        }
-        $Class = '\Obullo\Permissions\Rbac\\'.ucfirst($key);
-
-        return $this->{$key} = new $Class($this->c, $this->db);
+        return $this->c['rbac.'. strtolower($class)]; // Services: $this->rbac->user, $this->rbac->resource, $this->rbac->roles .. 
     }
 
 }
