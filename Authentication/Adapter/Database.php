@@ -181,7 +181,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         /**
          * If user does not exists in memory do sql query
          */
-        $this->resultRowArray = ($storageResult === false) ? $this->c['user.provider']->execQuery($genericUser) : $storageResult;
+        $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
 
@@ -238,7 +238,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
+            $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
         }
         if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  

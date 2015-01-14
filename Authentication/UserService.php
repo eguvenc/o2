@@ -49,8 +49,8 @@ Class UserService
         $this->c['auth.adapter'] = function () {
             return new $this->config['adapter']($this->c, $this);
         };
-        $this->c['user.provider'] = function () use ($params) {
-            return new $this->config['user']['provider']($this->c, $params);
+        $this->c['user.model'] = function () use ($params) {
+            return new $this->config['user']['model']($this->c, $params);
         };
     }
 
@@ -63,7 +63,7 @@ Class UserService
      */
     public function __get($class)
     {
-        return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity .. ]
+        return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity ..
     }
 
 }

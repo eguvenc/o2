@@ -141,11 +141,11 @@ Class Mysql extends Adapter implements HandlerInterface
      * 
      * @return string
      */
-    public function escapeStr($str, $like = false, $side = 'both')
+    public function _escape($str, $like = false, $side = 'both')
     {
         if (is_array($str)) {
             foreach ($str as $key => $val) {
-                $str[$key] = $this->escapeStr($val, $like);
+                $str[$key] = $this->_escape($val, $like);
             }
             return $str;
         }
@@ -199,12 +199,53 @@ Class Mysql extends Adapter implements HandlerInterface
                 $values[$key] = 'NULL';
             } elseif (is_bool($value)) {
                 $values[$key] = ($value) ? 'TRUE' : 'FALSE';
-            } else {
-                $values[$key] = $value;  // We already do escape in Adapter class not need to escape
+            } elseif (is_string($value)) {
+                $values[$key] = $this->escape($value);  // We already do escape in Adapter class not need to escape
             }
         }
         return $values;
     }
+
+    public function prepFields($fields)
+    {
+
+    }
+
+    /**
+     * Preparation of sql for write statements
+     * 
+     * @param string $sql    sql string
+     * @param array  $fields sprintf values
+     * @param array  $values [description]
+     * 
+     * @return [type]         [description]
+     */
+    public function _prepSQL($sql, $fields, $values = array())
+    {
+        $exp = explode(' ', $sql);
+        switch ($exp[0]) {
+            case 'INSERT':
+                $escapedValues = $this->buildValues($values);
+                $prepFields = $this->prepFields($fields);
+
+                if ($this->isMultiArray($values)) {
+
+                } else {
+                    $sql = $sql . " (" . implode(', ', $prepFields['array']) . ") VALUES (" . implode(', ', $escapedValues) . ") ";
+                }
+                
+                unset($prepFields['array']);
+                return $this->sprintf($sql, $prepFields);
+                break;
+            
+            default:
+                # code...
+                break;
+        }
+        return $sql;
+    }
+
+
 
     /**
      * From Tables
@@ -229,16 +270,18 @@ Class Mysql extends Adapter implements HandlerInterface
      *
      * Generates a platform-specific insert string from the supplied data
      *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
+     * @param string $table    the table name
+     * @param array  $keys     the insert keys
+     * @param array  $values   the insert values
+     * @param array  $extraSql extra sql 
      * 
      * @return string
      */
-    public function _insert($table, $keys, $values)
+    public function _insert($table, $keys, $values, $extraSql = null)
     {
         $values = $this->buildValues($values);
-        return "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
+        $sql = "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ") ".$extraSql;
+        return trim($sql);
     }
 
     /**
@@ -282,7 +325,12 @@ Class Mysql extends Adapter implements HandlerInterface
         $orderby = (count($orderby) >= 1) ? ' ORDER BY ' . implode(", ", $orderby) : '';
 
         $sql = "UPDATE " . $table . " SET " . implode(', ', $valstr);
-        $sql .= ($where != '' AND count($where) >= 1) ? " WHERE " . implode(" ", $where) : '';
+
+        if (is_array($where)) {
+            $sql .= (count($where) >= 1) ? " WHERE " . implode(" ", $where) : '';
+        } elseif (is_string($where)) {
+            $sql .= $where;
+        }
         $sql .= $orderby . $limit .' '.trim($extraSql);
         return trim($sql);
     }
@@ -300,10 +348,10 @@ Class Mysql extends Adapter implements HandlerInterface
      * 
      * @return string
      */
-    public function _delete($table, $where = array(), $like = array(), $limit = false, $extraSql = '')
+    public function _delete($table, $where = null, $like = array(), $limit = false, $extraSql = '')
     {
-        $conditions = '';
-        if (count($where) > 0 OR count($like) > 0) {
+        $conditions = $where;
+        if (is_array($where) AND count($where) > 0 OR count($like) > 0) {
             $conditions = "\nWHERE ";
             $conditions .= implode("\n", $where);
             if (count($where) > 0 AND count($like) > 0) {  // Put and for like

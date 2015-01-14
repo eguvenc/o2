@@ -3,7 +3,7 @@
 namespace Obullo\Authentication\Identities;
 
 /**
- * Identity Inderface
+ * AuthorizedUser Inderface
  *
  * @category  Authentication
  * @package   IdentityInterface
@@ -12,7 +12,7 @@ namespace Obullo\Authentication\Identities;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-interface IdentityInterface
+interface AuthorizedUserInterface
 {
     /**
      * Get the unique identifier for the user.
@@ -67,7 +67,7 @@ interface IdentityInterface
 
 }
 
-// END IdentityInterface.php File
-/* End of file IdentityInterface.php
+// END AuthorizedUserInterface.php File
+/* End of file AuthorizedUserInterface.php
 
-/* Location: .Obullo/Authentication/IdentityInterface.php */
+/* Location: .Obullo/Authentication/AuthorizedUserInterface.php */

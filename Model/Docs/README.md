@@ -136,6 +136,8 @@ Class Entry extends Model
             'date' => (int)$this->date,
             );
 
+        // $this->db->query("INSERT INTO %s", array('users'), $data);
+
     	$this->db->insert('users', $data);
     }
 
@@ -154,7 +156,10 @@ Class Entry extends Model
             'date' => (int)$this->date,
             );
 
-    	$this->db->update('entries', $data, array('entry_id' => $id));
+        $this->db->query("UPDATE %s WHERE user_id = ?", array('users'), $data);
+        // $this->db->query("DELETE FROM %s WHERE user_id = ?", array('users'), $data);
+
+    	// $this->db->update('entries', $data, array('entry_id' => $id));
     }
 
 }

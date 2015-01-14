@@ -429,7 +429,7 @@ Class UserIdentity extends AuthorizedUser
     public function refreshRememberToken(GenericUser $genericUser)
     {
         $token = new Token($this->c);
-        $this->c['user.provider']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
+        $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
     }
  
 
