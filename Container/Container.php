@@ -238,13 +238,8 @@ Class Container implements ArrayAccess
             if (isset($this->registered[$data['cid']])) {  // If service registered before don't register it again.
                 $service = $this->registered[$data['cid']];
             } else {
-                $service = new $serviceClass;
+                $service = new $serviceClass($this);
                 $service->register($this, $matches);
-                
-                if (method_exists($service, 'bindArray')) {
-                    $bindArray = $service->bindArray();
-                    $service->__bindParameters = $bindArray;
-                }
                 $this->registered[$data['cid']] = $service;
             }
             $implements = key(class_implements($service));

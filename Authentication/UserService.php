@@ -19,13 +19,6 @@ use Obullo\Authentication\User\UserActivity,
 Class UserService
 {
     /**
-     * Bind Parameters
-     * 
-     * @var array
-     */
-    public $bindArray = array();
-
-    /**
      * Container
      * 
      * @var object
