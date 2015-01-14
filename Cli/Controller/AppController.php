@@ -106,10 +106,10 @@ Class AppController implements CliInterface
     {
         $this->emptyControl($name);
 
-        $this->config->env['web']['app'][$name]['maintenance'] = 'down';
+        $this->config->env['application'][$name]['maintenance'] = 'down';
         $this->config->write();
 
-        $hostname = empty($this->config->env['web']['app'][$name]['label']) ? $name : $this->config->env['web']['app'][$name]['label'];
+        $hostname = empty($this->config->env['application'][$name]['label']) ? $name : $this->config->env['application'][$name]['label'];
 
         echo "\33[1;31mApp \33[1;37m\33[41m$hostname\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
@@ -125,10 +125,10 @@ Class AppController implements CliInterface
     {
         $this->emptyControl($name);
 
-        $this->config->env['web']['app'][$name]['maintenance'] = 'up';
+        $this->config->env['application'][$name]['maintenance'] = 'up';
         $this->config->write();
 
-        $hostname = empty($this->config->env['web']['app'][$name]['label']) ? $name : $this->config->env['web']['app'][$name]['label'];
+        $hostname = empty($this->config->env['application'][$name]['label']) ? $name : $this->config->env['application'][$name]['label'];
 
         echo "\33[1;32mApp \33[1;37m\33[42m$hostname\33[0m\33[1;32m up.\33[0m\n";
     }
@@ -146,7 +146,7 @@ Class AppController implements CliInterface
             echo "\33[1;36mApp \"--name\" can't be empty.\33[0m\n";
             exit;
         }
-        if ( ! isset($this->config->env['web']['app'][$name])) {
+        if ( ! isset($this->config->env['application'][$name])) {
             echo "\33[1;31m\33[1;37m\33[41m".ucfirst($name)."\33[0m\33[1;31m must be defined in your config.env file\33[0m\n";
             die;
         }

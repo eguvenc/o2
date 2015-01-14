@@ -110,7 +110,7 @@ Class Redis
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__'.$this->config['memory']['key'].'/Identifier', $identifier.':'.$this->getRandomId());
+        $this->session->set('__'.$this->config['cache']['key'].'/Identifier', $identifier.':'.$this->getRandomId());
     }
 
     /**
@@ -120,7 +120,7 @@ Class Redis
      */
     public function getIdentifier()
     {
-        return $this->session->get('__'.$this->config['memory']['key'].'/Identifier');
+        return $this->session->get('__'.$this->config['cache']['key'].'/Identifier');
     }
 
     /**
@@ -145,7 +145,7 @@ Class Redis
      */
     public function getRandomId()
     {
-        $id = $this->session->get('__'.$this->config['memory']['key'].'/RandomId');
+        $id = $this->session->get('__'.$this->config['cache']['key'].'/RandomId');
         if ($id == false) {
             $id = $this->setRandomId();
             return $id;
@@ -165,7 +165,7 @@ Class Redis
         if (empty($id)) {
             $id = Random::generate('alnum.lower', 10);
         }
-        $this->session->set('__'.$this->config['memory']['key'].'/RandomId', $id);
+        $this->session->set('__'.$this->config['cache']['key'].'/RandomId', $id);
         return $id;
     }
 
@@ -176,7 +176,7 @@ Class Redis
      */
     public function unsetIdentifier()
     {   
-        $this->session->remove('__'.$this->config['memory']['key'].'/Identifier');
+        $this->session->remove('__'.$this->config['cache']['key'].'/Identifier');
     }
 
     /**
@@ -358,7 +358,7 @@ Class Redis
         $id = $this->getIdentifier();
         $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
-        return $this->config['memory']['key']. ':' .$block. ':' .$constant.$identifier;  // Create unique key
+        return $this->config['cache']['key']. ':' .$block. ':' .$constant.$identifier;  // Create unique key
     }
 
     /**
@@ -372,7 +372,7 @@ Class Redis
     {
         $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
 
-        return $this->config['memory']['key']. ':' .$block. ':' .$key.$this->getId();
+        return $this->config['cache']['key']. ':' .$block. ':' .$key.$this->getId();
     }
 
     /**
@@ -385,9 +385,9 @@ Class Redis
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->config['memory']['block']['temporary']['lifetime'];
+            return (int)$this->config['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->config['memory']['block']['permanent']['lifetime'];
+        return (int)$this->config['cache']['block']['permanent']['lifetime'];
     }
 
     /**
@@ -439,7 +439,7 @@ Class Redis
     {
         $sessions = array();
         $identifier = $this->getId();
-        $key = $this->config['memory']['key'].':__permanent:Authorized:';
+        $key = $this->config['cache']['key'].':__permanent:Authorized:';
         
         foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
             $exp = explode(':', $val);
@@ -462,7 +462,7 @@ Class Redis
      */
     public function killSession($aid)
     {
-        $this->cache->delete($this->config['memory']['key'].':__permanent:Authorized:'.$this->getId().':'.$aid);
+        $this->cache->delete($this->config['cache']['key'].':__permanent:Authorized:'.$this->getId().':'.$aid);
     }
 
 }

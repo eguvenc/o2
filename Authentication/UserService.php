@@ -2,6 +2,10 @@
 
 namespace Obullo\Authentication;
 
+use Obullo\Authentication\User\UserActivity,
+    Obullo\Authentication\User\UserIdentity,
+    Obullo\Authentication\User\UserLogin;
+
 /**
  * O2 Authentication - User Service
  *
@@ -14,6 +18,13 @@ namespace Obullo\Authentication;
  */
 Class UserService
 {
+    /**
+     * Bind Parameters
+     * 
+     * @var array
+     */
+    public $bindArray = array();
+
     /**
      * Container
      * 
@@ -31,34 +42,22 @@ Class UserService
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $database provider
+     * @param object $c      container
+     * @param array  $params configuration parameters
      */
-    public function __construct($c, $database)
+    public function __construct($c, $params = array())
     {
         $this->c = $c;
         $this->config = $c['config']->load('auth');
 
-        $this->register($database);
-    }
-
-    /**
-     * Register Services
-     *
-     * @param object $database provider database
-     * 
-     * @return void
-     */
-    protected function register($database)
-    {
         $this->c['auth.storage'] = function () {
-            return new $this->config['memory']['storage']($this->c);
+            return new $this->config['cache']['storage']($this->c);
         };
         $this->c['auth.adapter'] = function () {
             return new $this->config['adapter']($this->c, $this);
         };
-        $this->c['user.provider'] = function () use ($database) {
-            return new $this->config['user']['provider']($this->c, $database);
+        $this->c['user.provider'] = function () use ($params) {
+            return new $this->config['user']['provider']($this->c, $params);
         };
     }
 
@@ -71,13 +70,7 @@ Class UserService
      */
     public function __get($class)
     {
-        $key = strtolower($class); // Services: $this->user->login, $this->user->identity, $this->user->activity .. 
-
-        if (isset($this->{$key})) {  // Lazy loading ( returns to old instance if class already exists ).
-            return $this->{$key};
-        }
-        $Class = '\Obullo\Authentication\User\User'.ucfirst($key);
-        return $this->{$key} = new $Class($this->c, $this);
+        return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity .. ]
     }
 
 }

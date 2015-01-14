@@ -235,12 +235,17 @@ Class Container implements ArrayAccess
             $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'service');
             $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'provider');
 
-            if (isset($this->registered[$serviceClass])) {  // If service registered before don't register it again.
-                $service = $this->registered[$serviceClass];
+            if (isset($this->registered[$data['cid']])) {  // If service registered before don't register it again.
+                $service = $this->registered[$data['cid']];
             } else {
                 $service = new $serviceClass;
                 $service->register($this, $matches);
-                $this->registered[$serviceClass] = $service;
+                
+                if (method_exists($service, 'bindArray')) {
+                    $bindArray = $service->bindArray();
+                    $service->__bindParameters = $bindArray;
+                }
+                $this->registered[$data['cid']] = $service;
             }
             $implements = key(class_implements($service));
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
@@ -249,6 +254,7 @@ Class Container implements ArrayAccess
                 return $this->resolveProvider($data, $map, $matches, $params);
             }
         }
+
         if ($isService == false) {  // Load none service libraries
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
@@ -550,9 +556,9 @@ Class Container implements ArrayAccess
     protected function resolveServiceClass($serviceClass, $class, $service = 'service')
     {
         $config = $this->values['config'];
-        if (isset($config->env['environment'][$service][$class])) {   // Check environment based services
+        if (isset($config->env[$service][$class]['env'])) {   // Check environment based services
 
-            $attributes = $config->env['environment'][$service][$class];
+            $attributes = $config->env[$service][$class]['env'];
             $serviceClass = '\\'.str_replace('/', '\\', $attributes['http']);
 
             if (isset($attributes['cli']) AND defined('STDIN')) {

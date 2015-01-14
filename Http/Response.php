@@ -214,12 +214,12 @@ Class Response
     * @param string  $page    page name
     * @param boolean $http404 http 404 or layer 404
     * 
-    * @return string
+    * @return void|string
     */
     public function show404($page = '', $http404 = true)
     {
         $error = new Error($this->c, $this);
-        $error->show404($page, $http404);
+        return $error->show404($page, $http404);
     }
 
     /**

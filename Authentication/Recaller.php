@@ -4,8 +4,7 @@ namespace Obullo\Authentication;
 
 use Auth\Constant,
     Auth\Identities\GenericUser,
-    Obullo\Authentication\Token,
-    Obullo\Authentication\UserProviderInterface;
+    Obullo\Authentication\Token;
 
 /**
  * O2 Authentication - RememberMe Recaller

@@ -118,7 +118,7 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 ```php
 <?php
 
-'hafıza' => array( 
+'cache' => array( 
         'key' => 'Auth',
         'storage' => '\Obullo\Authentication\Storage\Redis',
         'block' => array(
@@ -230,19 +230,19 @@ Yetkilendirme paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosyas�
             <td>Yetkilendirme adaptörleri yetkilendirme servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.</td>
         </tr>
         <tr>
-            <td>hafıza[key]</td>
+            <td>cache[key]</td>
             <td>Bu değer auth paketinin kayıt olacağı anahtarın önekidir. Bu değeri her proje için farlı girmeniz projelerinizin karışmaması için tavsiye edilir. Bu değer "projectameAuth" ( örnek olarak frontendAuth, backendAuth ) olarak girilebilir.</td>
         </tr>
         <tr>
-            <td>hafıza[storage]</td>
+            <td>cache[storage]</td>
             <td>Hazıfa deposu yetkilendirme esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler.Varsayılan depo Redis tir.</td>
         </tr>
         <tr>
-            <td>hafıza[block][permanent][lifetime]</td>
+            <td>cache[block][permanent][lifetime]</td>
             <td>Login denemesinden önce eğer yetkilendirme onayı devre dışı yada kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> hafıza bloğuna bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler varsayılan olarak <b>7200</b> saniye sonra yok olur.</td>
         </tr>
         <tr>
-            <td>hafıza[block][temporary][lifetime]</td>
+            <td>cache[block][temporary][lifetime]</td>
             <td>Login denemesinden önce eğer yetkilendirme onayı açık ise kullanıcı kimliği verileri <b>temporary</b> hafıza bloğuna kaydedilir. Geçici bloğa kaydedilmiş veriler <b>300</b> saniye sonrasında varsayılan olarak yok olur.Geçici blok yetkilendirme onaylandırma durumları için dizayn edilmiştir.
             </td>
         </tr>
@@ -459,7 +459,6 @@ Uygulamanın esnek çalışması için kimlik classları ve sabit (constant) tan
                 - AuthorizedUser
                 - GenericUser
         + Provider
-        Constant.php
 ```
 
 <b>AuthorizedUser</b> yetkili kullanıcıların kimliklerine ait metodları, <b>GenericUser</b> sınıfı ise yetkisiz yani Guest diye tanımladığımız kullanıcıların kimliklerine ait metodları içerir. Bu sınıflar <b>get</b> metodu kullanıcı kimliklerinden <b>okuma</b>, <b>set</b> metodu ile de kimliklere <b>yazma</b> işlemlerini yürütülerer. Bu sınıflara metodlar ekleyerek ihtiyaçlarınıza göre düzenleme yapabilirsiniz fakat <b>Obullo\Authentication\Identities\IdentityInterface</b> sınıfı içerisindeki tanımlı metodlardan birini bu sınıflar içerisinden silmemeniz gerekir.

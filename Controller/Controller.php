@@ -51,11 +51,11 @@ Class Controller
      */
     public function __set($key, $val)  // Custom variables is not allowed !!! 
     {
-        if ( ! is_object($val)) {
-            throw new RunTimeException('Just object type variable allowed in controllers.');
+        if (is_object($val)) {
+            $this->{$key} = $val; // WARNING : Store only app classes & packages 
+                                  // and object types if we don't do this every array params of 
+                                  // container will be stored in the controller.
         }
-        $this->{$key} = $val; // store only app classes & packages 
-                              // and object types
     }
 }
 

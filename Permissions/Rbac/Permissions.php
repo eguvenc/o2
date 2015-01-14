@@ -6,13 +6,6 @@ use Obullo\Tree\Db,
     Obullo\Permissions\Rbac\Utils,
     Obullo\Permissions\Rbac\Model\Permissions as ModelPermissions;
 
-/*
-Alternatively, the above could be written:
-allow('guest', null, 'view');
-array('edit', 'submit', 'revise'));
-array('publish', 'archive', 'delete'));
-*/
-
 /**
  * RBAC Permissions
  * 

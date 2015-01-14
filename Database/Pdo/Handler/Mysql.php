@@ -50,8 +50,6 @@ Class Mysql extends Adapter implements HandlerInterface
         $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
 
         parent::__construct($c, $c['config']['database']['key'][$default]);
-        
-        $this->connect();
     }
 
     /**
@@ -61,15 +59,15 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function connect()
     {
-        if ($this->connection) { // If connection is ok .. not need to again connect..
-            return;
+        if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
+            return $this;
         }
         $port = empty($this->port) ? '' : ';port=' . $this->port;
         $dsn  = empty($this->dsn) ? 'mysql:host=' . $this->host . $port . ';dbname=' . $this->database : $this->dsn;
 
         $this->initialize();
-        $this->pdoObject = $this->pdoConnect($dsn, $this->username, $this->password, $this->options);
-        
+        $this->connection($dsn, $this->username, $this->password, $this->options);
+
         // We set exception attribute for always showing the pdo exceptions errors.
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
     }

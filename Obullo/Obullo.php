@@ -24,8 +24,8 @@ $c['event']->fire('before.request');
  *  Load core components
  * ------------------------------------------------------
  */
-$router 	= $c['router'];
-$response 	= $c['response'];
+$router     = $c['router'];
+$response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
 $controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
@@ -61,14 +61,26 @@ if (method_exists($class, 'load')) {
  */
 $c['event']->fire('on.load', array($class, $filter));
 
+/*
+ * ------------------------------------------------------
+ *  Dispatcher
+ * ------------------------------------------------------
+ */
 if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() == 'load') { // load method reserved
-    $response->show404($pageUri);
+    if (method_exists($class, 'index')) {   // If we have index method run it. This feature also enables task functionality.
+        $router->setMethod('index');
+    } else {
+        $response->show404($pageUri);
+    }
 }
-$arguments = array_slice($c['uri']->rsegments, 2);
+$arguments = array_slice($c['uri']->rsegments, 3);
 
-// Call the requested method. Any URI segments present (besides the directory / class / method) 
-// will be passed to the method for convenience
-// directory = 0, class = 1,  arguments = 2 (  method always = index )
+/**
+ * ------------------------------------------------------
+ *  Call the requested method. Any URI segments present (besides the directory / class / method)  will be passed to the method for convenience
+ *  directory = 0, class = 1,  arguments = 2 (  method always = index )
+ *  ------------------------------------------------------
+ */
 call_user_func_array(array($class, $router->fetchMethod()), $arguments);
 
 /*

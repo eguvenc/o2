@@ -94,32 +94,18 @@ Using your environments array <b>$c->detectEnvironment();</b> method detect your
 <?php
 
 return array(
+
     'local' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.john',
-                'aly-desktop',
-                'zero',
-                'MS-7693-computer',
-            ),
-            'ip' => array(),
-        ),
+        'localhost.john',
+        'aly-desktop',
+        'zero',
+        'MS-7693-computer',
     ),
     'test' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.testdomain',
-            ),
-            'ip' => array(),
-        ),
+        'localhost.testdomain',
     ),
     'production' => array (
-        'server' => array(
-            'hostname' => array(
-                'localhost.production',
-            ),
-            'ip' => array(),
-        ),
+        'localhost.production',
     ),
 );
 
@@ -181,37 +167,29 @@ Config.env file keeps configuration data of your application with different envi
 
 return array(
 
-    'environment' => array(
-        'service' => array(
-            'logger' => array(
+    'service' => array(
+
+        'logger' => array(
+            'env' => array(
                 'cli' => 'Service/Log/Env/Cli',
                 'http' => 'Service/Log/Env/Local',
             ),
+            'label' => 'Logger Service',
+        ),
+        'queue' => array(
+            'maintenance' => 'up',
+            'label' => 'Queue Service',
         ),
     ),
-    'web' => array(
-        'app' => array(
-            'all' => array(
-                'maintenance' => 'up',
-                'label' => 'All Application',
-            ),
-            'site' => array(
-                'maintenance' => 'down',
-                'label' => 'Web Server',
-                'regex' => '^framework$',
-            ),
+    'application' => array(
+        'all' => array(
+            'maintenance' => 'up',
+            'label' => 'All Application',
         ),
-    ),
-    'service' => array(
-        'app' => array(
-            'all' => array(
-                'maintenance' => 'up',
-                'label' => 'All Services',
-            ),
-            'queue' => array(
-                'maintenance' => 'up',
-                'label' => 'Queue Service',
-            ),
+        'site' => array(
+            'maintenance' => 'up',
+            'label' => 'Web Server',
+            'regex' => '^framework$',
         ),
     ),
 );
@@ -292,7 +270,7 @@ return array(
         'autoinit' => array('charset' => true, 'bufferedQuery' => true),
         'dsn'      => '',
         'pdo'      => array(
-            'options'  => array()
+        'options'  => array()
         ),
     ),
 );
@@ -319,15 +297,15 @@ echo $this->config['database']['db']['host'];  // gives test.example.com
 
 ```php
 <?php
-echo $this->config->env['web']['app']['site']['label']; // gives "Web Server"
+echo $this->config->env['application']['site']['label']; // gives "Web Server"
 ```
 
 #### Saving Config.env Variables
 
 ```php
 <?php
-$this->config->env['web']['app']['site']['label'] = 'Test Server';
-$this->config->env['web']['app']['site']['maintenance'] = 'down';
+$this->config->env['application']['site']['label'] = 'Test Server';
+$this->config->env['application']['site']['maintenance'] = 'down';
 $this->config->write();
 ```
 
@@ -338,26 +316,26 @@ Now your config.env file updated as below.
 
 return array(
 
-    'environment' => array(
-        'file' => 'env.local.php',
-        'service' => array(
-            'logger' => array(
+    'service' => array(
+
+        'logger' => array(
+            'env' => array(
                 'cli' => 'Service/Log/Env/Cli',
                 'http' => 'Service/Log/Env/Local',
-            ),
+            )
         ),
     ),
-    'web' => array(
-        'app' => array(
-            'all' => array(
-                'maintenance' => 'up',
-                'label' => 'All Application',
-            ),
-            'site' => array(
-                'maintenance' => 'down',
-                'label' => 'Test Server',
-                'regex' => '^framework$',
-            ),
+
+    'application' => array(
+
+        'all' => array(
+            'maintenance' => 'up',
+            'label' => 'All Application',
+        ),
+        'site' => array(
+            'maintenance' => 'down',
+            'label' => 'Test Server',
+            'regex' => '^framework$',
         ),
     ),
 
@@ -405,7 +383,3 @@ This functions helps to you getting environment file and variables safely.
 Returns to env variables that is defined in .env.$environment.php file. If you provide second parameter it returns to default value even if variable is empty.
 
 If third parameter <b>true</b> people know any explicit <b>required variables</b> that your app will not work without. The function will not display an error message if <b>$required = false</b>.
-
-#### config(string $filename);
-
-Returns to environment based file configuration array which are located in <b>app/config/erv/$environment/filename.php</b>

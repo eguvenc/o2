@@ -49,8 +49,8 @@ Class Config implements ArrayAccess
      */
     public function __construct($c)
     {
-        $this->path  = APP .'config'. DS . 'environments'. DS . ENV . DS;
-        $this->local = APP .'config'. DS . 'environments'. DS .'local'. DS;
+        $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
+        $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
         $this->file  = $this->path .'config.env';
 
         ini_set('display_errors', 1);
@@ -132,7 +132,7 @@ Class Config implements ArrayAccess
     public function write()
     {
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/config/environments/".ENV."/config.env */");
+        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/config/env/".ENV."/config.env */");
         $writer->toFile($this->file, $this->env);
     }
 
