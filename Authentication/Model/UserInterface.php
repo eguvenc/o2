@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\Authentication\Model;
 
 use Auth\Identities\GenericUser;
 
@@ -14,7 +14,7 @@ use Auth\Identities\GenericUser;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-interface UserProviderInterface
+interface UserInterface
 {
     /**
      * Constructor
@@ -54,7 +54,7 @@ interface UserProviderInterface
 
 }
 
-// END UserProviderInterface File
-/* End of file UserProviderInterface.php
+// END UserInterface File
+/* End of file UserInterface.php
 
-/* Location: .Obullo/Authentication/UserProviderInterface.php */
+/* Location: .Obullo/Authentication/Model/UserInterface.php */

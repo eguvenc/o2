@@ -99,12 +99,26 @@ Class Db
     public $cache;
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Sql query or cached sql query
      * result array
      *
      * @var object
      */
     protected $resultArray;
+
+    /**
+     * Config parameters
+     * 
+     * @var array
+     */
+    protected $params = array();
 
     /**
      * Constructor
@@ -114,7 +128,8 @@ Class Db
      */
     public function __construct($c, $params = array())
     {
-        $this->db = ( ! isset($params['db'])) ? $c->load('return service/provider/db') : $params['db']; // set database object.
+        $this->c = $c;
+        $this->params = $params;
 
         $this->tableName  = static::TABLE_NAME; // set default values
         $this->primaryKey = static::PRIMARY_KEY;
@@ -197,12 +212,26 @@ Class Db
     }
 
     /**
+     * Connect to database if its necessary
+     * 
+     * @return void
+     */
+    protected function loadDb()
+    {   
+        if ($this->db) {      // Lazy loading
+            return;
+        }
+        $this->db = ( ! isset($this->params['db'])) ? $this->c->load('return service/provider/db') : $this->params['db']; // set database object.
+    }
+
+    /**
      * Empties the table currently in use - use with extreme caution!
      *
      * @return boolean
      */
     public function truncateTable()
     {
+        $this->loadDb();
         return $this->db->exec('TRUNCATE TABLE %s', array($this->tableName));
     }
 
@@ -216,6 +245,7 @@ Class Db
      */
     public function addTree($text, $extra = array())
     {
+        $this->loadDb();
         $this->db->query(
             'SELECT MAX(%s) AS %s FROM %s',
             array(
@@ -248,21 +278,22 @@ Class Db
      */
     public function insert($tableName, $data)
     {
-        $this->db->prepare(
-            "INSERT INTO %s ( %s ) VALUES ( %s )",
-            array(
-                $tableName,
-                implode(',', array_keys($data)),
-                str_repeat("?,", count($data)-1) . '?'
-            )
-        );
-        $i = 0;
-        foreach ($data as $value) {
-            $i++;
-            $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
-            $this->db->bindValue($i, $value, $param);
-        }
-        return $this->db->execute();
+        $this->loadDb();
+        // $this->db->prepare(
+        //     "INSERT INTO %s ( %s ) VALUES ( %s )",
+        //     array(
+        //         $tableName,
+        //         implode(',', array_keys($data)),
+        //         str_repeat("?,", count($data)-1) . '?'
+        //     )
+        // );
+        // $i = 0;
+        // foreach ($data as $value) {
+        //     $i++;
+        //     $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
+        //     $this->db->bindValue($i, $value, $param);
+        // }
+        return $this->db->insert($tableName, $data);
     }
 
     /**
@@ -274,6 +305,7 @@ Class Db
      */
     public function getRow($category_id)
     {
+        $this->loadDb();
         $this->db->prepare(
             'SELECT * FROM %s WHERE %s = ? LIMIT 1',
             array(
@@ -441,6 +473,7 @@ Class Db
      */
     public function updateNode($category_id, $data = array())
     {
+        $this->loadDb();
         if (isset($data[$this->parentId]) AND intval($data[$this->parentId]) > 0) {
             $this->moveAsLastChild($category_id, $data[$this->parentId]);
             unset($data[$this->parentId]);
@@ -470,6 +503,7 @@ Class Db
      */
     public function getStatement()
     {
+        $this->loadDb();
         return $this->db->getStatement();
     }
     
@@ -483,6 +517,7 @@ Class Db
      */
     public function updateParentId($source, $category_id)
     {
+        $this->loadDb();
         if (isset($source[$this->parentId]) AND is_numeric($source[$this->parentId])) {
             $parent_id = $source[$this->parentId];
         } else {
@@ -697,6 +732,7 @@ Class Db
      */
     protected function updateLeft($setValue, $whereValue, $attribute = '')
     {
+        $this->loadDb();
         $sql = 'UPDATE %s SET %s = %s + ? WHERE %s >= ? ' . ( ! empty($attribute) ? $attribute : '');
         $this->db->prepare(
             $sql,
@@ -724,6 +760,7 @@ Class Db
      */
     protected function updateRight($setValue, $whereValue, $attribute = '')
     {
+        $this->loadDb();
         $sql = 'UPDATE %s SET %s = %s + ? WHERE %s >= ? ' . ( ! empty($attribute) ? $attribute : '');
         $this->db->prepare(
             $sql,
@@ -770,6 +807,7 @@ Class Db
      */
     public function getTree($nodeId = 1, $select = null)
     {
+        $this->loadDb();
         $str        = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $select     = str_replace(',', $this->escapeChar . ',node.' . $this->escapeChar, $str);
         $columnName = $this->primaryKey;
@@ -812,6 +850,7 @@ Class Db
      */
     public function getDepthOfSubTree($nodeId = 1, $select = null)
     {
+        $this->loadDb();
         $str = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $select = str_replace(',', $this->escapeChar . ',node.' . $this->escapeChar, $str);
         $columnName = $this->primaryKey;
@@ -895,6 +934,7 @@ Class Db
      */
     public function getAllTree($select = null)
     {
+        $this->loadDb();
         $str    = ($select == null) ? $this->primaryKey . ',' . $this->parentId . ',' . $this->text : $select;
         $select = str_replace(',', $this->escapeChar . ',node.' . $this->escapeChar, $str);
 
@@ -932,6 +972,7 @@ Class Db
      */
     public function getRoot($select = null)
     {
+        $this->loadDb();
         $str    = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $select = str_replace(',', $this->escapeChar . ',' . $this->escapeChar, $str);
 
@@ -956,6 +997,7 @@ Class Db
      */
     public function getSiblings($category_id, $select = null)
     {
+        $this->loadDb();
         $str       = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $select    = str_replace(',', $this->escapeChar . ',' . $this->escapeChar, $str);
         $parent_id = $this->getParentId((int)$category_id);
@@ -983,6 +1025,7 @@ Class Db
      */
     public function getParentId($category_id)
     {
+        $this->loadDb();
         $this->db->query(
             'SELECT %s FROM %s WHERE %s = %s LIMIT 1',
             array(

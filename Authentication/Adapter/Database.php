@@ -9,7 +9,6 @@ use Auth\Identities\GenericUser,
     Obullo\Authentication\UserService,
     Obullo\Authentication\AbstractAdapter,
     Obullo\Authentication\AdapterInterface,
-    Obullo\Authentication\UserProviderInterface,
     RuntimeException;
 
 /**

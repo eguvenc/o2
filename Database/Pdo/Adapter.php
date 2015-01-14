@@ -17,11 +17,10 @@ use PDO,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-Class Adapter
+Abstract Class Adapter
 {
     public $sql;
     public $pdo = array();      // Pdo config
-    public $pdoObject = null;   // Pdo object.
     public $stmt = null;        // PDOStatement Object
     public $connection = null;  // Pdo connection object.
     public $startQueryTimer;    // Timer
@@ -78,10 +77,9 @@ Class Adapter
      * 
      * @return void
      */
-    public function pdoConnect($dsn, $user = null, $pass = null, $options = null)
+    public function connection($dsn, $user = null, $pass = null, $options = null)
     {
         $this->connection = new PDO($dsn, $user, $pass, $options);
-        return $this;
     }
 
     /**
@@ -94,6 +92,7 @@ Class Adapter
      */
     public function insert($table, $data = array())
     {
+        $this->connect();
         $data = $this->arrayEscape($data);
         $sql = $this->_insert($table, array_keys($data), array_values($data));
         return $this->exec($sql);
@@ -109,6 +108,7 @@ Class Adapter
      */
     public function replace($table, $data = array())
     {
+        $this->connect();
         $data = $this->arrayEscape($data);
         $sql = $this->_replace($table, array_keys($data), array_values($data));
         return $this->exec($sql);
@@ -127,6 +127,7 @@ Class Adapter
      */
     public function update($table, $data = array(), $where = array(), $extraSql = '', $limit = false)
     {     
+        $this->connect();
         $data = $this->arrayEscape($data);
         $where = $this->arrayEscape($where);
         $conditions = $this->buildConditions($where);
@@ -146,6 +147,7 @@ Class Adapter
      */
     public function delete($table, $where = array(), $extraSql = '', $limit = false)
     {
+        $this->connect();
         $where = $this->arrayEscape($where);
         $conditions = $this->buildConditions($where);
         $sql = $this->_delete($table, $conditions, array(), $limit, $extraSql);
@@ -204,6 +206,7 @@ Class Adapter
      */
     public function prepare($sql, $fields = array(), $options = array())
     {
+        $this->connect();
         $this->startQueryTimer = microtime(true);
         $this->lastSql = $this->sprintf($sql, $fields);
 
@@ -225,6 +228,7 @@ Class Adapter
      */
     public function query($sql, $fields = array(), $values = array())
     {
+        $this->connect();
         $this->lastSql = $this->sprintf($sql, $fields);
         $this->startQueryTimer = microtime(true);
 
@@ -556,6 +560,7 @@ Class Adapter
      */
     public function exec($sql, $fields = array())
     {
+        $this->connect();
         $this->lastSql = $this->sprintf($sql, $fields);
 
         $this->startQueryTimer = microtime(true);
@@ -708,14 +713,13 @@ Class Adapter
     /**
      * Log sql
      * 
-     * @param string $sql   sql query
-     * @param string $start time
+     * @param string $sql sql query
      * 
      * @return void
      */
-    protected function sqlLog($sql, $start)
+    protected function sqlLog($sql)
     {
-        $time  = microtime(true) - $start;
+        $time  = microtime(true) - $this->startQueryTimer;
 
         if ($this->config['log']['extra']['queries']) {
             $this->logger->debug(

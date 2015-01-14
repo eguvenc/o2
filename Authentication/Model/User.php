@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\Authentication\Model;
 
 use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
@@ -102,7 +102,7 @@ Class UserProvider implements UserProviderInterface
     }
 }
 
-// END UserProvider.php File
-/* End of file UserProvider.php
+// END User.php File
+/* End of file User.php
 
-/* Location: .Obullo/Authentication/UserProvider.php */
+/* Location: .Obullo/Authentication/Model/User.php */
