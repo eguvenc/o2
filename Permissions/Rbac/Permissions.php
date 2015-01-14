@@ -3,12 +3,13 @@
 namespace Obullo\Permissions\Rbac;
 
 use Obullo\Tree\Db,
-    Obullo\Permissions\Rbac\User;
+    Obullo\Permissions\Rbac\Utils,
+    Obullo\Permissions\Rbac\Model\Permissions as ModelPermissions;
 
 /**
- * User Permissions
+ * RBAC Permissions
  * 
- * @category  Permissions
+ * @category  Rbac
  * @package   Permissions
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
@@ -118,13 +119,6 @@ Class Permissions
     public $cache;
 
     /**
-     * Db object
-     * 
-     * @var object
-     */
-    public $db;
-
-    /**
      * Constructor
      * 
      * @param object $c      container
@@ -136,8 +130,8 @@ Class Permissions
         $this->cache  = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['model.user'] = function () use ($params) {
-             return new \Obullo\Permissions\Rbac\Model\Permissions($this->c, $this->c->load('service/provider/db', $params));
+        $this->c['model.permissions'] = function () use ($params) {
+             return new ModelPermissions($this->c, $this->c->load('service/provider/db', $params));
         };
 
         // RBAC "permissions" table variable definitions
@@ -300,14 +294,12 @@ Class Permissions
      */
     public function deleteRoles($permId)
     {
-        if ( ! is_array($permId)) {
-            $permId = array(array($this->primaryKey => $permId));
-        }
+        $permId = Utils::doubleArrayConvert($permId, $this->primaryKey);
         $permId = array_reverse($permId);
 
         $this->deleteCache();
 
-        return $this->c['model.permissions']->deAssignRoles($permId);
+        return $this->c['model.permissions']->deleteRoles($permId);
     }
 
     /**
@@ -338,7 +330,7 @@ Class Permissions
     {
         $this->deleteCache();
 
-        return $this->c['model.permissions']->deAssignOperations($roleId, $permId);
+        return $this->c['model.permissions']->deleteOperations($roleId, $permId);
     }
 
     /**
@@ -350,14 +342,12 @@ Class Permissions
      */
     public function deleteAllOperations($permId)
     {
-        if ( ! is_array($permId)) {
-            $permId = array(array($this->primaryKey => $permId));
-        }
+        $permId = Utils::doubleArrayConvert($permId, $this->primaryKey);
         $permId = array_reverse($permId);
 
         $this->deleteCache();
 
-        return $this->c['model.permissions']->deAssignAllOperations($permId);
+        return $this->c['model.permissions']->deleteAllOperations($permId);
     }
 
     /**
@@ -535,7 +525,7 @@ Class Permissions
      */
     public function getStatement()
     {
-        return $this->db->getStatement();
+        return $this->c['model.permissions']->getStatement();
     }
 }
 

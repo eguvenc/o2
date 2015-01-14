@@ -3,13 +3,15 @@
 namespace Obullo\Permissions\Rbac;
 
 use Obullo\Tree\Db,
-    Obullo\Permissions\Rbac\User;
+    Obullo\Permissions\Rbac\User,
+    Obullo\Permissions\Rbac\Utils,
+    Obullo\Permissions\Rbac\Model\Roles as ModelRoles;
 
 /**
  * Roles
  * 
- * @category  Permissions
- * @package   Rbac
+ * @category  Rbac
+ * @package   Roles
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>
@@ -127,11 +129,11 @@ Class Roles
     public function __construct($c, $params)
     {
         $this->c = $c;
-        $this->cache  = $c->load('service/cache');
+        $this->cache = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['model.user'] = function () use ($params) {
-             return new \Obullo\Permissions\Rbac\Model\Permissions($this->c, $this->c->load('service/provider/db', $params));
+        $this->c['model.roles'] = function () use ($params) {
+             return new ModelRoles($this->c, $this->c->load('service/provider/db', $params));
         };
 
         // RBAC "roles" table variable definitions
@@ -168,19 +170,6 @@ Class Roles
         $this->treeDb->setText($this->text);
         $this->treeDb->setLeft($this->lft);
         $this->treeDb->setRight($this->rgt);
-    }
-
-    /**
-     * Rbac Db User
-     * 
-     * @return Permissions\Rbac\Db\User object
-     */
-    protected static function dbRoles()
-    {
-        if (static::$dbRoles == null) {
-            static::$dbRoles = new Obullo\Permissions\Rbac\Db\Roles($this);
-        }
-        return static::$dbRoles;
     }
     
     /**
@@ -291,7 +280,7 @@ Class Roles
      * 
      * @return array
      */
-    public function getRoles($select = null, $expiration = 7200)
+    public function getAllRoles($select = null, $expiration = 7200)
     {
         $key         = static::CACHE_GET_ROLES;
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
@@ -372,7 +361,7 @@ Class Roles
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbRoles()->getUsersSqlQuery((int)$roleId, (string)$select); // do sql query
+            $queryResultArray = $this->c['model.roles']->getUsersSqlQuery((int)$roleId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -397,7 +386,7 @@ Class Roles
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text : $select;
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = static::dbRoles()->getPermissionsSqlQuery((int)$roleId, (string)$select); // do sql query
+            $queryResultArray = $this->c['model.roles']->getPermissionsSqlQuery((int)$roleId, (string)$select); // do sql query
             $resultArray = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -428,16 +417,14 @@ Class Roles
      * 
      * @return object statement of Pdo
      */
-    public function deleteRolePermissions($roleId)
+    public function deletePermissions($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->primaryKey => $roleId));
-        }
+        $roleId = Utils::doubleArrayConvert($roleId, $this->primaryKey);
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
         
-        return static::dbRoles()->deleteRolePermissions($roleId);
+        return $this->c['model.roles']->deletePermissions($roleId);
     }
 
     /**
@@ -447,39 +434,35 @@ Class Roles
      * 
      * @return object statement of Pdo
      */
-    public function deleteRoleFromUsers($roleId)
+    public function deleteUsers($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->primaryKey => $roleId));
-        }
+        $roleId = Utils::doubleArrayConvert($roleId, $this->primaryKey);
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
         
-        return static::dbRoles()->deleteRoleFromUsers($roleId);
+        return $this->c['model.roles']->deleteUsers($roleId);
     }
 
     /**
-     * Delete Assign User Roles
+     * Delete Assign Operations
      * 
      * @param int $roleId role primary key
      * 
      * @return object statement of Pdo
      */
-    public function deleteOperationsByRoleId($roleId)
+    public function deleteOperations($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->primaryKey => $roleId));
-        }
+        $roleId = Utils::doubleArrayConvert($roleId, $this->primaryKey);
         $roleId = array_reverse($roleId);
 
         $this->deleteCache();
         
-        return static::dbRoles()->deleteOperationsByRoleId($roleId);
+        return $this->c['model.roles']->deleteOperationsByRoleId($roleId);
     }
 
     /**
-     * Remove permission
+     * Delete the role
      * 
      * @param int $roleId role id
      * 
@@ -488,9 +471,9 @@ Class Roles
     public function delete($roleId)
     {
         $this->deleteCache();
-        $this->deleteOperationsByRoleId((int)$roleId);
-        $this->deleteRoleFromUsers((int)$roleId);
-        $this->deleteRolePermissions((int)$roleId);
+        $this->deleteOperations((int)$roleId);
+        $this->deleteUsers((int)$roleId);
+        $this->deletePermissions((int)$roleId);
         $this->treeDb->deleteNode((int)$roleId);
     }
 
@@ -504,6 +487,7 @@ Class Roles
         $this->cache->delete(User::CACHE_GET_ROLES);
         $this->cache->delete(User::CACHE_HAS_PAGE_PERMISSION);
         $this->cache->delete(User::CACHE_HAS_OBJECT_PERMISSION);
+        $this->cache->delete(User::CACHE_HAS_ELEMENT_PERMISSION);
     }
 
     /**
@@ -513,7 +497,7 @@ Class Roles
      */
     public function getStatement()
     {
-        return $this->db->getStatement();
+        return $this->c['model.roles']->getStatement();
     }
 }
 
