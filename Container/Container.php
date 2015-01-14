@@ -82,7 +82,7 @@ Class Container implements ArrayAccess
      * @return void
      */
     public function offsetSet($cid, $value)
-    {
+    {   
         if (isset($this->frozen[$cid])) {
             return;
         }

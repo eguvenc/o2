@@ -3,6 +3,7 @@
 namespace Obullo\Permissions\Rbac;
 
 use RuntimeException,
+    ArrayAccess,
     Obullo\Permissions\Rbac\Resource\Page,
     Obullo\Permissions\Rbac\Resource\Object;
 
@@ -30,13 +31,11 @@ Class Resource
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct($c)
     {
         $this->c = $c;
-        $this->params = $params;
 
         $this->c['rbac.resource.page'] = function () {
             return new Page($this->c);

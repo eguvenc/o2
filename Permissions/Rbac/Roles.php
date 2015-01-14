@@ -123,17 +123,17 @@ Class Roles
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param object $params parameters
+     * @param object $c container
      */
-    public function __construct($c, $params)
+    public function __construct($c)
     {
-        $this->c = $c;
-        $this->cache = $c->load('service/cache');
+        $this->c      = $c;
+        $this->treeDb = new Db($this->c);
+        $this->cache  = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['model.roles'] = function () use ($params) {
-             return new ModelRoles($this->c, $this->c->load('service/provider/db', $params));
+        $this->c['model.roles'] = function () {
+             return new ModelRoles($this->c);
         };
 
         // RBAC "roles" table variable definitions

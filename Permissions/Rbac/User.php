@@ -3,7 +3,8 @@
 namespace Obullo\Permissions\Rbac;
 
 use RuntimeException,
-    Obullo\Permissions\Rbac\Utils;
+    Obullo\Permissions\Rbac\Utils,
+    Obullo\Permissions\Rbac\Model\User as ModelUser;
 
 /**
  * Rbac User
@@ -28,23 +29,18 @@ Class User
      * Cache constants
      * Redis supported key format.
      */
-    const CACHE_HAS_ELEMENT_PERMISSIONS = 'Permissions:Rbac:User:hasElementPermissions:';   // Obullo\Permissions\Rbac\Element->getPermissions();
-    const CACHE_HAS_OBJECT_PERMISSION   = 'Permissions:Rbac:User:hasObjectPermissions:';    // Obullo\Permissions\Rbac\Object->getPermissions();
+    const CACHE_GET_ROLES               = 'Permissions:Rbac:User:getRoles:';                // Obullo\Permissions\Rbac\User->getRoles();
+    const CACHE_ROLE_COUNT              = 'Permissions:Rbac:User:roleCount:';               // Obullo\Permissions\Rbac\User->roleCount();
     const CACHE_HAS_PAGE_PERMISSION     = 'Permissions:Rbac:User:hasPagePermission:';       // Obullo\Permissions\Rbac\Page->getPermissions();
-
-    // const CACHE_GET_ALL_PERMISSIONS   = 'Permissions:Rbac:User:getAllPermissions:';
-    // const CACHE_GET_OPERATIONS        = 'Permissions:Rbac:User:getOperations:';
-    // const CACHE_HAS_ROLE              = 'Permissions:Rbac:User:hasRole:';
-    
-    const CACHE_GET_ROLES             = 'Permissions:Rbac:User:getRoles:';
-    const CACHE_ROLE_COUNT            = 'Permissions:Rbac:User:roleCount:';
+    const CACHE_HAS_OBJECT_PERMISSION   = 'Permissions:Rbac:User:hasObjectPermissions:';    // Obullo\Permissions\Rbac\Object->getPermissions();
+    const CACHE_HAS_ELEMENT_PERMISSIONS = 'Permissions:Rbac:User:hasElementPermissions:';   // Obullo\Permissions\Rbac\Element->getPermissions();
 
     /**
      * Container
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Tablename
@@ -110,13 +106,6 @@ Class User
     public $roleIds = array();
 
     /**
-     * Resource id
-     * 
-     * @var string
-     */
-    public $resourceId = '';
-
-    /**
      * User id
      * 
      * @var integer
@@ -126,17 +115,16 @@ Class User
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param object $params parameters
+     * @param object $c container
      */
-    public function __construct($c, $params)
+    public function __construct($c)
     {
         $this->c = $c;
-        $this->cache  = $c->load('service/cache');
+        $this->cache = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['model.user'] = function () use ($params) {
-             return new \Obullo\Permissions\Rbac\Model\User($this->c, $this->c->load('service/provider/db', $params));
+        $this->c['model.user'] = function () {
+             return new ModelUser($this->c);
         };
 
         // RBAC "user_roles" table variable definitions
@@ -210,7 +198,7 @@ Class User
     public function assign($userId, $roleId)
     {
         $this->deleteCache();
-        return $this->c['mode.user']->assign($userId, $roleId);
+        return $this->c['model.user']->assign($userId, $roleId);
     }
 
     /**
@@ -223,11 +211,11 @@ Class User
      */
     public function deAssign($userId, $roleId)
     {
-        return $this->c['mode.user']->deAssign($userId, $roleId);
+        return $this->c['model.user']->deAssign($userId, $roleId);
     }
 
     /**
-     * Set User Id
+     * Set user id
      * 
      * @param int $userId user id
      * 
@@ -263,7 +251,7 @@ Class User
     }
 
     /**
-     * Get User Id
+     * Get user id
      * 
      * @return integer
      */
@@ -276,7 +264,7 @@ Class User
     }
 
     /**
-     * Get Role Id
+     * Get role ids
      * 
      * @return integer
      */
@@ -289,7 +277,7 @@ Class User
     }
 
     /**
-     * Get Operations
+     * Get roles by user id
      * 
      * @param int $expiration expiration time.
      * 
@@ -300,7 +288,7 @@ Class User
         $key = static::CACHE_GET_ROLES . $this->getId();
         $resultArray = $this->cache->get($key);
         if ($resultArray == false) {  // If not exist in the cache
-            $queryResultArray = $this->c['mode.user']->getRolesSqlQuery();  // do sql query
+            $queryResultArray = $this->c['model.user']->getRolesSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;  // 
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -322,7 +310,7 @@ Class User
         $key = static::CACHE_ROLE_COUNT . $this->getId();
         $resultArray = $this->cache->get($key);
         if ($resultArray === false) {  // If not exist in the cache
-            $queryResultArray = $this->c['mode.user']->roleCountSqlQuery();  // do sql query
+            $queryResultArray = $this->c['model.user']->roleCountSqlQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             $this->cache->set($key, $resultArray, $expiration);
         }
@@ -341,7 +329,7 @@ Class User
      */
     public function deleteRoles($userId)
     {
-        return $this->c['mode.user']->deleteRoleFromUsers($userId);
+        return $this->c['model.user']->deleteRoleFromUsers($userId);
     }
 
     /**
@@ -362,7 +350,7 @@ Class User
      */
     public function getStatement()
     {
-        return $this->c['mode.user']->getStatement();
+        return $this->c['model.user']->getStatement();
     }
 }
 

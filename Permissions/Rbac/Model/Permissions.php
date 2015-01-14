@@ -33,13 +33,12 @@ Class Permissions
     /**
      * Constructor
      * 
-     * @param object $c  container
-     * @param object $db database
+     * @param object $c container
      */
-    public function __construct($c, $db)
+    public function __construct($c)
     {
-        $this->c = $c;
-        $this->db = $db;
+        $this->c     = $c;
+        $this->db    = $this->c->load('service/provider/db', $this->c['config']['rbac.params.database']);
         $this->perms = $this->c['rbac.permissions'];
     }
 

@@ -36,25 +36,23 @@ Class RbacService
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct($c, $params)
+    public function __construct($c)
     {
         $this->c = $c;
-        $this->params = $params;
 
         $this->c['rbac.user'] = function () {
-            return new User($this->c, $this->params); 
+            return new User($this->c); 
         };
         $this->c['rbac.roles'] = function () {
-            return new Roles($this->c, $this->params); 
+            return new Roles($this->c); 
         };
         $this->c['rbac.resource'] = function () {
-            return new Resource($this->c, $this->params); 
+            return new Resource($this->c); 
         };
         $this->c['rbac.permissions'] = function () {
-            return new Permissions($this->c, $this->params); 
+            return new Permissions($this->c); 
         };
     }
 

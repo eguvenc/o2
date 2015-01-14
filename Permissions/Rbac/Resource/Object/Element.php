@@ -52,6 +52,7 @@ Class Element
         
         $key         = User::CACHE_HAS_ELEMENT_PERMISSIONS . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
         $resultArray = $this->c['rbac.user']->cache->get($key);
+        $resultArray = false;
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasElementPermissionSqlQuery($this->objectName, $permName, $opName);  // do sql query

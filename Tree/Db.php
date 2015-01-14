@@ -218,7 +218,7 @@ Class Db
      */
     protected function loadDb()
     {   
-        if ($this->db) {      // Lazy loading
+        if ($this->db) { // Lazy loading
             return;
         }
         $this->db = ( ! isset($this->params['db'])) ? $this->c->load('return service/provider/db') : $this->params['db']; // set database object.
@@ -278,7 +278,6 @@ Class Db
      */
     public function insert($tableName, $data)
     {
-        $this->loadDb();
         // $this->db->prepare(
         //     "INSERT INTO %s ( %s ) VALUES ( %s )",
         //     array(
@@ -293,6 +292,8 @@ Class Db
         //     $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
         //     $this->db->bindValue($i, $value, $param);
         // }
+        
+        $this->loadDb();
         return $this->db->insert($tableName, $data);
     }
 

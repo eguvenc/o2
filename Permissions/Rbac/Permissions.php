@@ -121,17 +121,17 @@ Class Permissions
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param object $params parameters
+     * @param object $c container
      */
-    public function __construct($c, $params)
+    public function __construct($c)
     {
-        $this->c = $c;
+        $this->c      = $c;
+        $this->treeDb = new Db($this->c);
         $this->cache  = $c->load('service/cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
-        $this->c['model.permissions'] = function () use ($params) {
-             return new ModelPermissions($this->c, $this->c->load('service/provider/db', $params));
+        $this->c['model.permissions'] = function () {
+             return new ModelPermissions($this->c);
         };
 
         // RBAC "permissions" table variable definitions
@@ -358,7 +358,7 @@ Class Permissions
      * 
      * @return array
      */
-    public function getPermissions($select = null, $expiration = 7200)
+    public function getAllPermissions($select = null, $expiration = 7200)
     {
         $select      = ($select == null) ? $this->primaryKey . ',' . $this->text . ',' . $this->resource : $select;
         $key         = static::CACHE_GET_PERMISSONS . $select;
