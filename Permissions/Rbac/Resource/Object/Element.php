@@ -2,7 +2,8 @@
 
 namespace Obullo\Permissions\Rbac\Resource\Object;
 
-use Obullo\Permissions\Rbac\User;
+use Obullo\Permissions\Rbac\User,
+    Obullo\Permissions\Rbac\Utils;
 
 /**
  * Object Element Permissions
@@ -14,7 +15,7 @@ use Obullo\Permissions\Rbac\User;
  * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/permissions
+ * @link      http://obullo.com/package/rbac
  */
 Class Element
 {
@@ -46,12 +47,11 @@ Class Element
      */
     public function getPermissions($permName, $opName, $expiration = 7200)
     {
-        $opName   = Utils::arrayConvert($opName);
-        $permName = Utils::arrayConvert($permName);
+        $opName      = Utils::arrayConvert($opName);
+        $permName    = Utils::arrayConvert($permName);
         
-        $key = User::CACHE_HAS_ELEMENT_PERMISSIONS . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
+        $key         = User::CACHE_HAS_ELEMENT_PERMISSIONS . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
         $resultArray = $this->c['rbac.user']->cache->get($key);
-        $resultArray = false;
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasElementPermissionSqlQuery($this->objectName, $permName, $opName);  // do sql query

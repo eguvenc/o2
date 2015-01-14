@@ -2,9 +2,9 @@
 
 namespace Obullo\Permissions\Rbac;
 
-use Obullo\Permissions\Rbac\Resource\Page,
-    Obullo\Permissions\Rbac\Resource\Object,
-    RuntimeException;
+use RuntimeException,
+    Obullo\Permissions\Rbac\Resource\Page,
+    Obullo\Permissions\Rbac\Resource\Object;
 
 /**
  * RBAC Resource

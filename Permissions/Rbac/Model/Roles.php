@@ -2,8 +2,6 @@
 
 namespace Obullo\Permissions\Rbac\Model;
 
-use Obullo\Permissions\Rbac\Roles as RbacRoles;
-
 /**
  * Model Roles
  * 
@@ -42,7 +40,7 @@ Class Roles
     {
         $this->c = $c;
         $this->db = $db;
-        $this->roles = $this->c['rbac.permissions'];
+        $this->roles = $this->c['rbac.roles'];
     }
 
     /**
@@ -98,13 +96,8 @@ Class Roles
      * 
      * @return object statement of Pdo
      */
-    public function deleteRolePermissions($roleId)
+    public function deletePermissions($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->roles->primaryKey => $roleId));
-        }
-        $roleId = array_reverse($roleId);
-
         $this->db->prepare(
             'DELETE FROM %s WHERE %s IN (%s)',
             array(
@@ -128,13 +121,8 @@ Class Roles
      * 
      * @return object statement of Pdo
      */
-    public function deleteRoleFromUsers($roleId)
+    public function deleteUsers($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->roles->primaryKey => $roleId));
-        }
-        $roleId = array_reverse($roleId);
-
         $this->db->prepare(
             'DELETE FROM %s WHERE %s IN (%s)',
             array(
@@ -158,13 +146,8 @@ Class Roles
      * 
      * @return object statement of Pdo
      */
-    public function deleteOperationsByRoleId($roleId)
+    public function deleteOperations($roleId)
     {
-        if ( ! is_array($roleId)) {
-            $roleId = array(array($this->roles->primaryKey => $roleId));
-        }
-        $roleId = array_reverse($roleId);
-
         $this->db->prepare(
             'DELETE FROM %s WHERE %s IN (%s)',
             array(
@@ -180,9 +163,19 @@ Class Roles
 
         return $this->db->execute();
     }
+
+    /**
+     * Get PDO Statement Object
+     * 
+     * @return array
+     */
+    public function getStatement()
+    {
+        return $this->db->getStatement();
+    }
 }
 
 // END Roles.php File
 /* End of file Roles.php
 
-/* Location: .Obullo/Permissions/Rbac/Db/Roles.php */
+/* Location: .Obullo/Permissions/Rbac/Model/Roles.php */

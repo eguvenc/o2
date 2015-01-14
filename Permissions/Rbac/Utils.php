@@ -3,7 +3,7 @@
 namespace Obullo\Permissions\Rbac;
 
 /**
- * User Roles
+ * Utils Helper
  * 
  * @category  Permissions
  * @package   Utils
@@ -12,7 +12,7 @@ namespace Obullo\Permissions\Rbac;
  * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/tree
+ * @link      http://obullo.com/package/rbac
  */
 Class Utils
 {
@@ -38,6 +38,19 @@ Class Utils
     public static function arrayConvert($data)
     {
         return (! is_array($data)) ? array($data) : $data;
+    }
+
+    /**
+     * Double array convert
+     * 
+     * @param mix    $data data
+     * @param string $key  key
+     * 
+     * @return array
+     */
+    public static function doubleArrayConvert($data, $key)
+    {
+        return (! is_array($data)) ? array(array($key => $data)) : $data;
     }
 }
 

@@ -2,8 +2,6 @@
 
 namespace Obullo\Permissions\Rbac\Model;
 
-use Obullo\Permissions\Rbac\Permissions as RbacPerms;
-
 /**
  * Model Permissions
  * 
@@ -81,10 +79,10 @@ Class Permissions
         $this->db->prepare(
             'INSERT INTO %s (%s,%s,%s) VALUES (?,?,?)',
             array(
-                $this->db->protect($this->permss->rolePermTableName),
-                $this->db->protect($this->permss->rolePermRolePrimaryKey),
-                $this->db->protect($this->permss->rolePermPrimaryKey),
-                $this->db->protect($this->permss->assignmentDate)
+                $this->db->protect($this->perms->rolePermTableName),
+                $this->db->protect($this->perms->rolePermRolePrimaryKey),
+                $this->db->protect($this->perms->rolePermPrimaryKey),
+                $this->db->protect($this->perms->assignmentDate)
             )
         );
         $this->db->bindValue(1, $roleId, PARAM_INT);
@@ -108,10 +106,10 @@ Class Permissions
         $this->db->prepare(
             'INSERT INTO %s (%s,%s,%s) VALUES (?,?,?)',
             array(
-                $this->db->protect($this->permss->opPermTableName),
-                $this->db->protect($this->permss->opPermPermPrimaryKey),
-                $this->db->protect($this->permss->opPermOpPrimaryKey),
-                $this->db->protect($this->permss->opPermRolePrimaryKey)
+                $this->db->protect($this->perms->opPermTableName),
+                $this->db->protect($this->perms->opPermPermPrimaryKey),
+                $this->db->protect($this->perms->opPermOpPrimaryKey),
+                $this->db->protect($this->perms->opPermRolePrimaryKey)
             )
         );
         $this->db->bindValue(1, $permId, PARAM_INT);
@@ -134,9 +132,9 @@ Class Permissions
         $this->db->prepare(
             'DELETE FROM %s WHERE %s = ? AND %s = ?',
             array(
-                $this->db->protect($this->permss->rolePermTableName),
-                $this->db->protect($this->permss->rolePermRolePrimaryKey),
-                $this->db->protect($this->permss->rolePermPrimaryKey)
+                $this->db->protect($this->perms->rolePermTableName),
+                $this->db->protect($this->perms->rolePermRolePrimaryKey),
+                $this->db->protect($this->perms->rolePermPrimaryKey)
             )
         );
         $this->db->bindValue(1, $roleId, PARAM_INT);
@@ -152,24 +150,19 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignRoles($permId)
+    public function deleteRoles($permId)
     {
-        if ( ! is_array($permId)) {
-            $permId = array(array($this->permss->primaryKey => $permId));
-        }
-        $permId = array_reverse($permId);
-
         $this->db->prepare(
             'DELETE FROM %s WHERE %s IN (%s)',
             array(
-                $this->db->protect($this->permss->rolePermTableName),
-                $this->db->protect($this->permss->rolePermPrimaryKey),
+                $this->db->protect($this->perms->rolePermTableName),
+                $this->db->protect($this->perms->rolePermPrimaryKey),
                 str_repeat('?,', count($permId) - 1) . '?'
             )
         );
         $i = 1;
         foreach ($permId as $id) {
-            $this->db->bindValue($i++, $id[$this->permss->primaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->perms->primaryKey], PARAM_INT);
         }
         return $this->db->execute();
     }
@@ -188,10 +181,10 @@ Class Permissions
         $this->db->prepare(
             'DELETE FROM %s WHERE %s = ? AND %s = ? AND %s = ?',
             array(
-                $this->db->protect($this->permss->opPermTableName),
-                $this->db->protect($this->permss->opPermPermPrimaryKey),
-                $this->db->protect($this->permss->opPermOpPrimaryKey),
-                $this->db->protect($this->permss->opPermRolePrimaryKey)
+                $this->db->protect($this->perms->opPermTableName),
+                $this->db->protect($this->perms->opPermPermPrimaryKey),
+                $this->db->protect($this->perms->opPermOpPrimaryKey),
+                $this->db->protect($this->perms->opPermRolePrimaryKey)
             )
         );
         $this->db->bindValue(1, $permId, PARAM_INT);
@@ -209,14 +202,14 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignOperations($roleId, $permId)
+    public function deleteOperations($roleId, $permId)
     {
         $this->db->prepare(
             'DELETE FROM %s WHERE %s = ? AND %s = ?',
             array(
-                $this->db->protect($this->permss->opPermTableName),
-                $this->db->protect($this->permss->opPermPermPrimaryKey),
-                $this->db->protect($this->permss->opPermRolePrimaryKey),
+                $this->db->protect($this->perms->opPermTableName),
+                $this->db->protect($this->perms->opPermPermPrimaryKey),
+                $this->db->protect($this->perms->opPermRolePrimaryKey),
             )
         );
         $this->db->bindValue(1, $permId, PARAM_INT);
@@ -232,30 +225,35 @@ Class Permissions
      * 
      * @return object statement of Pdo
      */
-    public function deAssignAllOperations($permId)
+    public function deleteAllOperations($permId)
     {
-        if ( ! is_array($permId)) {
-            $permId = array(array($this->permss->primaryKey => $permId));
-        }
-        $permId = array_reverse($permId);
-
         $this->db->prepare(
             'DELETE FROM %s WHERE %s IN (%s)',
             array(
-                $this->db->protect($this->permss->opPermTableName),
-                $this->db->protect($this->permss->opPermPermPrimaryKey),
+                $this->db->protect($this->perms->opPermTableName),
+                $this->db->protect($this->perms->opPermPermPrimaryKey),
                 str_repeat('?,', count($permId) - 1) . '?'
             )
         );
         $i = 1;
         foreach ($permId as $id) {
-            $this->db->bindValue($i++, $id[$this->permss->primaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->perms->primaryKey], PARAM_INT);
         }
         return $this->db->execute();
+    }
+
+    /**
+     * Get PDO Statement Object
+     * 
+     * @return array
+     */
+    public function getStatement()
+    {
+        return $this->db->getStatement();
     }
 }
 
 // END Permissions.php File
 /* End of file Permissions.php
 
-/* Location: .Obullo/Permissions/Rbac/Db/Permissions.php */
+/* Location: .Obullo/Permissions/Rbac/Model/Permissions.php */

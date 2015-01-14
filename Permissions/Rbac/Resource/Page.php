@@ -3,7 +3,7 @@
 namespace Obullo\Permissions\Rbac\Resource;
 
 use Obullo\Permissions\Rbac\User,
-    Obullo\Permissions\Rbac\Resource;
+    Obullo\Permissions\Rbac\Utils;
 
 /**
  * Resource Page Permission
@@ -39,11 +39,9 @@ Class Page
      */
     public function getPermission($opName, $expiration = 7200)
     {
-        $opName = $this->c['rbac.user']->arrayConvert($opName);
-
-        $key = User::CACHE_HAS_OBJECT_PERMISSION . $this->c['rbac.user']->getId() .':'. $this->c['rbac.user']->hash($this->c['rbac.resource']->getId()) .':'. $this->c['rbac.user']->hash($opName);
+        $opName      = Utils::arrayConvert($opName);
+        $key         = User::CACHE_HAS_PAGE_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($this->c['rbac.resource']->getId()) .':'. Utils::hash($opName);
         $resultArray = $this->c['rbac.user']->cache->get($key);
-        $resultArray = false;
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasPagePermissionSqlQuery($opName);  // do sql query

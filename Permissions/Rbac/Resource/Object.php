@@ -2,7 +2,8 @@
 
 namespace Obullo\Permissions\Rbac\Resource;
 
-use Obullo\Permissions\Rbac\Resource\Object\Element;
+use Obullo\Permissions\Rbac\Resource\Object\Element,
+    Obullo\Permissions\Rbac\Utils;
 
 /**
  * Resource Object Permission
@@ -60,10 +61,10 @@ Class Object
      */
     public function getPermissions($permName, $opName, $expiration = 7200)
     {
-        $opName   = Utils::arrayConvert($opName);
-        $permName = Utils::arrayConvert($permName);
+        $opName      = Utils::arrayConvert($opName);
+        $permName    = Utils::arrayConvert($permName);
 
-        $key = User::CACHE_HAS_OBJECT_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
+        $key         = User::CACHE_HAS_OBJECT_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
         $resultArray = $this->c['rbac.user']->cache->get($key);
 
         if ($resultArray === false) { // If not exist in the cache

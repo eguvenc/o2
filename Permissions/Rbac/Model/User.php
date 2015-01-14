@@ -2,8 +2,6 @@
 
 namespace Obullo\Permissions\Rbac\Model;
 
-use Obullo\Permissions\Rbac\User as RbacUser;
-
 /**
  * Model User
  * 
@@ -620,9 +618,20 @@ Class User
         
         return $this->db->count();
     }
+
+    /**
+     * Get PDO Statement Object
+     * 
+     * @return array
+     */
+    public function getStatement()
+    {
+        return $this->db->getStatement();
+    }
 }
+
 
 // END User.php File
 /* End of file User.php
 
-/* Location: .Obullo/Permissions/Rbac/Db/User.php */
+/* Location: .Obullo/Permissions/Rbac/Model/User.php */
