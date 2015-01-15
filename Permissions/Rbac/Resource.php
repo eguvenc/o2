@@ -46,15 +46,15 @@ Class Resource
     }
 
     /**
-     * Magic methods (Get)
+     * Magic methods ( Get )
      * 
      * @param string $class name
      * 
-     * @return return object;
+     * @return object
      */
     public function __get($class)
     {
-        return $this->c['rbac.resource.'.strtolower($class)];
+        return $this->c['rbac.resource.'. strtolower($class)];
     }
 
     /**

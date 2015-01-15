@@ -23,18 +23,11 @@ use ArrayAccess,
 Class Object implements ArrayAccess
 {
     /**
-     * Offset count
+     * Object name
      * 
      * @var integer
      */
-    protected $offsetCount = 0;
-
-    /**
-     * Container
-     * 
-     * @var array
-     */
-    protected $container = array();
+    protected $objectName;
 
     /**
      * Constructor
@@ -53,27 +46,59 @@ Class Object implements ArrayAccess
     /**
      * Magic methods ( Call )
      * 
-     * @param string $func function name
-     * @param array  $args arguments
+     * @param string $func      function name
+     * @param array  $arguments arguments
      * 
      * @return array
      */
-    public function __call($func, $args)
+    public function __call($func, $arguments)
     {
-        if ($this->offsetCount > 1) {
+        /**
+         * $arguments
+         * 
+         * Array
+         * (
+         *     [0] => Array
+         *     (
+         *         [0] => user_username
+         *     )
+         *     [1] => Array
+         *     (
+         *         [0] => view
+         *         [1] => insert
+         *     )
+         * )
+         * @var array
+         */
+        if (count($arguments) > 1) { // If that argument is greater than 1 we understand desired permission is element.
 
-            if (! method_exists($this->c['rbac.resource.object.element'], $func)) {
+            if (! method_exists($this->c['rbac.resource.object.element'], $func)) { // If method exists in "Element" class
                 throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
             }
-            $this->c['rbac.resource.object.element']->objectName = $this->container[$this->offsetCount -1];
+            $this->c['rbac.resource.object.element']->objectName = $this->objectName; // Set object name in "Element" class
 
-            return $this->c['rbac.resource.object.element']->$func($this->container[$this->offsetCount], $args[0]);
+            // e.g. Obullo\Rbac\Permissions\Resource\Object\Element->getPermissions($arg[0], $arguments[1]);
+            return $this->c['rbac.resource.object.element']->$func($arguments[0], $arguments[1]); 
         }
-
-        if (count($args) > 1) {
-            return $this->c['rbac.resource.object.element']->getPermissions($this->container[$this->offsetCount], $args[0]);
+        if (! method_exists($this, $func)) {
+            throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
         }
-        return $this->getPermissions($this->container[$this->offsetCount], $args[0]);
+        /**
+         * $arguments
+         * 
+         * Array
+         *
+         * (
+         *     [0] => Array
+         *     (
+         *         [0] => view
+         *         [1] => insert
+         *     )
+         * )
+         * @var  array
+         * @uses $this->getPermissions();
+         */
+        return $this->$func($this->objectName, $arguments[0]);
     }
 
     /**
@@ -85,8 +110,7 @@ Class Object implements ArrayAccess
      */
     public function offsetGet($offset)
     {
-        $this->offsetCount++;
-        $this->container[$this->offsetCount] = $offset;
+        $this->objectName = $offset;
         return $this;
     }
 
@@ -100,6 +124,7 @@ Class Object implements ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
+        unset($offset, $value);
         return;
     }
 
@@ -112,6 +137,7 @@ Class Object implements ArrayAccess
      */
     public function offsetExists($value)
     {
+        unset($value);
         return;
     }
 
@@ -124,6 +150,7 @@ Class Object implements ArrayAccess
      */
     public function offsetUnset($value)
     {
+        unset($value);
         return;
     }
 
@@ -154,24 +181,6 @@ Class Object implements ArrayAccess
         }
         return $resultArray;
     }
-
-
-    // /**
-    //  * Magic methods (Get)
-    //  * 
-    //  * @param string $name get name
-    //  * 
-    //  * @return return object;
-    //  */
-    // public function __get($name)
-    // {
-    //     $Class = 'Obullo\Permissions\Rbac\Resource\Object\\'. ucfirst(strtolower($name));
-
-    //     if ( ! class_exists($Class, false)) {
-    //         $this->c['rbac.resource.object.element']->objectName = $name;
-    //         return $this->c['rbac.resource.object.element'];
-    //     }
-    // }
 }
 
 

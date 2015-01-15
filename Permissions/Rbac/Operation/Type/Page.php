@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Permissions\Rbac\Resource;
+namespace Obullo\Permissions\Rbac\Operation\Type;
 
 use ArrayAccess,
-    Obullo\Permissions\Rbac\User,
-    Obullo\Permissions\Rbac\Utils;
+    Obullo\Permissions\Rbac\Resource,
+    Obullo\Permissions\Rbac\Operation\AbstractOperationType;
 
 /**
- * Resource Page Permission
+ * Resource Object Permission
  * 
  * @category  Resource
- * @package   Page
+ * @package   Object
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>
@@ -18,8 +18,15 @@ use ArrayAccess,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/permissions
  */
-Class Page implements ArrayAccess
+Class Page extends AbstractOperationType implements ArrayAccess
 {
+    /**
+     * Permissions
+     * 
+     * @var array
+     */
+    protected $permissions = array();
+
     /**
      * Constructor
      * 
@@ -28,10 +35,34 @@ Class Page implements ArrayAccess
     public function __construct($c)
     {
         $this->c = $c;
+
+        $this->c['rbac.resource'] = function () {
+            return new Resource($this->c); 
+        };
     }
 
     /**
-     * Permission resource id
+     * Get permissions
+     *
+     * @return array
+     */
+    protected function getPermissions()
+    {
+        return $this->c['rbac.resource']->page->getPermission($this->getOperationName());
+    }
+
+    /**
+     * Get key
+     * 
+     * @return string
+     */
+    protected function getKey()
+    {
+        return $this->c['rbac.user']->columnPermResource;
+    }
+
+    /**
+     * Resource id
      * 
      * @param string $resource id
      * 
@@ -40,6 +71,7 @@ Class Page implements ArrayAccess
     public function offsetGet($resource)
     {
         $this->c['rbac.resource']->setId($resource);
+        $this->setPermissionName($resource);
         return $this;
     }
 
@@ -84,28 +116,26 @@ Class Page implements ArrayAccess
     }
 
     /**
-     * Get permission
-     * 
-     * @param mix $opName     operations ( view,update,delete,insert,save )
-     * @param int $expiration expiration time
+     * Is allowed permission
      * 
      * @return boolean
      */
-    public function getPermission($opName, $expiration = 7200)
+    public function isAllowed()
     {
-        $opName      = Utils::arrayConvert($opName);
-        $key         = User::CACHE_HAS_PAGE_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($this->c['rbac.resource']->getId()) .':'. Utils::hash($opName);
-        $resultArray = $this->c['rbac.user']->cache->get($key);
+        $permissions = $this->getPermissions();
 
-        if ($resultArray === false) { // If not exist in the cache
-            $queryResultArray = $this->c['model.user']->hasPagePermissionSqlQuery($opName);  // do sql query
-            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
-        }
-        if ($resultArray == 'empty') {
+        if (! is_array($permissions)) {
             return false;
         }
-        return $resultArray;
+        $key = $this->getKey();
+        $permName = $this->getPermissionName();
+
+        foreach ($permissions as $perm) {
+            if ($permName == $perm[$key]) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -113,4 +143,4 @@ Class Page implements ArrayAccess
 // END Page.php File
 /* End of file Page.php
 
-/* Location: .Obullo/Permissions/Rbac/Resource/Page.php */
+/* Location: .Obullo/Permissions/Rbac/Page.php */

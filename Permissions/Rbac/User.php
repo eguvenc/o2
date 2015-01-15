@@ -3,7 +3,9 @@
 namespace Obullo\Permissions\Rbac;
 
 use RuntimeException,
+    Obullo\Permissions\Rbac\Page,
     Obullo\Permissions\Rbac\Utils,
+    Obullo\Permissions\Rbac\Object,
     Obullo\Permissions\Rbac\Model\User as ModelUser;
 
 /**
@@ -126,6 +128,12 @@ Class User
         $this->c['model.user'] = function () {
              return new ModelUser($this->c);
         };
+        $this->c['rbac.page'] = function () {
+            return new Page($this->c);
+        };
+        $this->c['rbac.object'] = function () {
+            return new Object($this->c);
+        };
 
         // RBAC "user_roles" table variable definitions
         $this->userRolesTableName           = RBAC_USER_ROLES_DB_TABLENAME;
@@ -164,27 +172,21 @@ Class User
     }
 
     /**
-     * Checks permission name is allowed in your permission list
+     * Magic methods ( Get )
      * 
-     * @param string $permName    permission name
-     * @param array  $permissions permissions
+     * @param string $class name
      * 
-     * @return boolean
+     * @return object
      */
-    public function isAllowed($permName, $permissions)
+    public function __get($class)
     {
-        if ( ! is_array($permissions)) {
-            return false;
-        }
-        $isAssoc = array_keys($permissions) !== range(0, count($permissions) - 1);
+        $key = strtolower($class);
 
-        foreach ($permissions as $val) {
-            $permValue = ($isAssoc) ? $val[$this->columnPermText] : $val;
-            if ($permName == $permValue) {
-                return true;
-            }
+        if (isset($this->{$key})) { // Lazy loading
+            return $this->{$key};
         }
-        return false;
+        $class = 'Obullo\Permissions\Rbac\Operation\\'. ucfirst($key);
+        return $this->{$key} = new $class($this->c);
     }
 
     /**

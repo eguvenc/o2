@@ -2,11 +2,13 @@
 
 namespace Obullo\Permissions\Rbac\Operation;
 
+use Obullo\Permissions\Rbac\Operation\OperationInterface;
+
 /**
- * Operation View
+ * Operation Save
  * 
  * @category  Operation
- * @package   View
+ * @package   Save
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>
@@ -14,15 +16,8 @@ namespace Obullo\Permissions\Rbac\Operation;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/rbac
  */
-Class View
+Class Save implements OperationInterface
 {
-    /**
-     * Permissions\Rbac\User instance
-     * 
-     * @var object
-     */
-    protected $user;
-
     /**
      * Constructor
      * 
@@ -30,37 +25,33 @@ Class View
      */
     public function __construct($c)
     {
-        $this->c    = $c;
-        $this->user = $this->c['rbac.user'];
+        $this->c = $c;
     }
 
     /**
-     * Checks permission name is allowed in your permission list
+     * Magic methods ( Get )
      * 
-     * @param string $permName    permission name
-     * @param array  $permissions permissions
+     * @param string $class name
      * 
-     * @return boolean
+     * @return object
      */
-    public function isAllowed($permName, $permissions)
+    public function __get($class)
     {
-        if ( ! is_array($permissions)) {
-            return false;
-        }
-        $isAssoc = array_keys($permissions) !== range(0, count($permissions) - 1);
+        $key = strtolower($class);
 
-        foreach ($permissions as $val) {
-            $permValue = ($isAssoc) ? $val[$this->columnPermText] : $val;
-            if ($permName == $permValue) {
-                return true;
-            }
+        if (isset($this->{$key})) { // Lazy loading
+            return $this->{$key};
         }
-        return false;
+        $class = 'Obullo\Permissions\Rbac\Operation\Type\\'. ucfirst($key);
+        $this->{$key} = new $class($this->c);
+        $this->{$key}->setOperationName('save');
+
+        return $this->{$key};
     }
 }
 
 
-// END View.php File
-/* End of file View.php
+// END Save.php File
+/* End of file Save.php
 
-/* Location: .Obullo/Permissions/Rbac/Operation/View.php */
+/* Location: .Obullo/Permissions/Rbac/Operation/Save.php */
