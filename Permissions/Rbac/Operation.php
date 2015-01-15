@@ -1,14 +1,12 @@
 <?php
 
-namespace Obullo\Permissions\Rbac\Operation;
-
-use Obullo\Permissions\Rbac\Operation\OperationInterface;
+namespace Obullo\Permissions\Rbac;
 
 /**
- * Operation Insert
+ * Operation Class
  * 
  * @category  Operation
- * @package   Save
+ * @package   Operation
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
  * @author    Ersin Guvenc <eguvenc@gmail.com>
@@ -16,16 +14,18 @@ use Obullo\Permissions\Rbac\Operation\OperationInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/rbac
  */
-Class Insert implements OperationInterface
+Class Operation
 {
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c         container
+     * @param string $operation operation
      */
-    public function __construct($c)
+    public function __construct($c, $operation)
     {
         $this->c = $c;
+        $this->operation = $operation;
     }
 
     /**
@@ -44,14 +44,14 @@ Class Insert implements OperationInterface
         }
         $class = 'Obullo\Permissions\Rbac\Operation\Type\\'. ucfirst($key);
         $this->{$key} = new $class($this->c);
-        $this->{$key}->setOperationName('insert');
+        $this->{$key}->setOperationName($this->operation);
 
         return $this->{$key};
     }
 }
 
 
-// END Insert.php File
-/* End of file Insert.php
+// END Operation.php File
+/* End of file Operation.php
 
-/* Location: .Obullo/Permissions/Rbac/Operation/Insert.php */
+/* Location: .Obullo/Permissions/Rbac/Operation.php */

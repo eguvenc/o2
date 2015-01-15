@@ -51,14 +51,16 @@ Class Object extends AbstractOperationType implements ArrayAccess
     protected function getPermissions($permName = '')
     {
         if ($permName === null) {
-            return $this->c['rbac.resource']->object[$this->getPermissionName()]->getPermissions(
+            return $this->c['rbac.resource']->object[$this->getPermissionName()]
+                ->getPermissions(
+                    $this->getOperationName()
+                );
+        }
+        return $this->c['rbac.resource']->object[$this->getPermissionName()]
+            ->getPermissions(
+                $permName,
                 $this->getOperationName()
             );
-        }
-        return $this->c['rbac.resource']->object[$this->getPermissionName()]->getPermissions(
-            $permName,
-            $this->getOperationName()
-        );
     }
 
     /**
@@ -82,46 +84,6 @@ Class Object extends AbstractOperationType implements ArrayAccess
     {
         $this->setPermissionName($perm);
         return $this;
-    }
-
-    /**
-     * Offset Set
-     * 
-     * @param string $offset offset
-     * @param mix    $value  value
-     * 
-     * @return void
-     */
-    public function offsetSet($offset, $value)
-    {
-        unset($offset, $value);
-        return;
-    }
-
-    /**
-     * Offset exists
-     *
-     * @param string $value offset value
-     *
-     * @return void
-     */
-    public function offsetExists($value)
-    {
-        unset($value);
-        return;
-    }
-
-    /**
-     * Offset exists
-     *
-     * @param string $value offset value
-     *
-     * @return void
-     */
-    public function offsetUnset($value)
-    {
-        unset($value);
-        return;
     }
 
     /**
