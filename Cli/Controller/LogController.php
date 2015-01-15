@@ -2,7 +2,8 @@
 
 namespace Obullo\Cli\Controller;
 
-use Obullo\Cli\LogFollower;
+use Controller,
+    Obullo\Cli\LogFollower;
 
 /**
  * Log Controller
@@ -16,52 +17,37 @@ use Obullo\Cli\LogFollower;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class LogController implements CliInterface
+Class LogController extends Controller
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    protected $logger;
-
-    /**
-     * Request types ( http, ajax or cli )
-     * 
-     * @var string
-     */
-    protected $dir;
-
-    /**
-     * Collection or db name
-     * 
-     * @var string
-     */
-    protected $table;
-
-    /**
-     * Constructor
+     * Loader
      *
-     * @param object $c         container
-     * @param object $arguments parameters
+     * @return void
      */
-    public function __construct($c, array $arguments = array())
+    public function load()
     {
-        $this->c = $c;
+        $this->c->load('cli/parser as parser');
+        $this->c->load('service/logger');
+    }
 
-        $this->parser = $c->load('cli/parser');
-        $this->parser->parse($arguments);
-        $this->logger = $c->load('service/logger');
+    /**
+     * Execute command
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        $this->logo();
+        $this->parser->parse(func_get_args());
+        $dir = $this->parser->argument('dir', 'http');
+        $table = $this->parser->argument('dir', 'logs');
 
-        $this->dir = $this->parser->argument('dir', 'http');
-        $this->table = $this->parser->argument('dir', 'logs');
+        if ($this->parser->argument('help')) {
+            return $this->help();
+        }
+        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getWriterName());
+        $class = new $Class;
+        $class->follow($this->c, $dir, $table);
     }
 
     /**
@@ -79,26 +65,9 @@ Class LogController implements CliInterface
        | |__| || |_||| |_| || || || |_||
        |______||____||_____||_||_||____|
 
-        Welcome to Log Manager v2.0 (c) 2014
+        Welcome to Log Manager v2.0 (c) 2015
 You are displaying logs. For more help type $php task help.'."\n\033[0m";
 
-    }
-
-    /**
-     * Execute command
-     * 
-     * @return void
-     */
-    public function run()
-    {
-        $this->logo();
-
-        if ($this->parser->argument('help')) {
-            return $this->help();
-        }
-        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getWriterName());
-        $class = new $Class;
-        $class->follow($this->c, $this->dir, $this->table);
     }
 
     /**

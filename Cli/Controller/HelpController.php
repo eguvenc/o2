@@ -2,6 +2,8 @@
 
 namespace Obullo\Cli\Controller;
 
+use Controller;
+
 /**
  * Help Controller
  * 
@@ -12,31 +14,14 @@ namespace Obullo\Cli\Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class HelpController implements CliInterface
+Class HelpController extends Controller
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
     /**
      * Execute command
      * 
      * @return void
      */
-    public function run()
+    public function index()
     {
         echo "\33[1;36m".'
         ______  _            _  _

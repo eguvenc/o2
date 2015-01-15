@@ -67,11 +67,7 @@ $c['event']->fire('on.load', array($class, $filter));
  * ------------------------------------------------------
  */
 if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() == 'load') { // load method reserved
-    if (method_exists($class, 'index')) {   // If we have index method run it. This feature also enables task functionality.
-        $router->setMethod('index');
-    } else {
-        $response->show404($pageUri);
-    }
+    $response->show404($pageUri);
 }
 $arguments = array_slice($c['uri']->rsegments, 3);
 

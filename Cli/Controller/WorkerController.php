@@ -2,7 +2,8 @@
 
 namespace Obullo\Cli\Controller;
 
-use Obullo\Queue\Worker;
+use Controller,
+    Obullo\Queue\Worker;
 
 /**
  * Worker Controller
@@ -16,44 +17,16 @@ use Obullo\Queue\Worker;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class WorkerController implements CliInterface
+Class WorkerController extends Controller
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Cli arguments
-     * 
-     * @var array
-     */
-    protected $arguments;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c         container
-     * @param array  $arguments array
-     * 
-     * @return void
-     */
-    public function __construct($c, array $arguments = array())
-    {
-        $this->c = $c;
-        $this->arguments = $arguments;
-    }
-
     /**
      * Execute command
      * 
      * @return void
      */
-    public function run()
+    public function index()
     {
-        $worker = new Worker($this->c, $this->arguments);
+        $worker = new Worker($this->c, func_get_args());
         $worker->init();
         $worker->pop();
     }

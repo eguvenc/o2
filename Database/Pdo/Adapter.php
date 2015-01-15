@@ -129,10 +129,12 @@ Abstract Class Adapter
      * 
      * @return object pdo
      */
-    public function query($sql, $sprintf = array(), $values = array())
+    public function query()
     {
         $this->connect();
-        $this->lastSql = $this->sprintf($sql, $sprintf);
+        $this->lastSql = $this->_prepSqlQuery(func_get_args());
+
+        exit($this->lastSql);
         $this->startQueryTimer = microtime(true);
 
         if (count($values) > 0) {
@@ -148,23 +150,23 @@ Abstract Class Adapter
         return ($this);
     }
 
-    public function write($sql, $sprintf, $columns = array(), $values = array())
-    {
-        $this->connect();
-        $this->lastSql = $this->_prepSQL($sql, $sprintf, $values);
+    // public function write($sql, $sprintf, $columns = array(), $values = array())
+    // {
+    //     $this->connect();
+    //     $this->lastSql = $this->_prepSQL($sql, $sprintf, $values);
 
-        if (count($values) > 0) {
-            $this->prepare($this->lastSql);
-            $this->execute($values);
-            return $this;
-        } else {
-            $this->stmt = $this->connection->query($this->lastSql);
-        }
-        ++$this->queryCount;
-        $this->sqlLog($this->lastSql);
+    //     if (count($values) > 0) {
+    //         $this->prepare($this->lastSql);
+    //         $this->execute($values);
+    //         return $this;
+    //     } else {
+    //         $this->stmt = $this->connection->query($this->lastSql);
+    //     }
+    //     ++$this->queryCount;
+    //     $this->sqlLog($this->lastSql);
 
-        return ($this);
-    }
+    //     return ($this);
+    // }
 
     /**
      * Checks array is multidimensional
@@ -173,13 +175,13 @@ Abstract Class Adapter
      * 
      * @return boolean
      */
-    public function isMultiArray($array)
-    {
-        foreach ($array as $value) {
-            if (is_array($value)) return true;
-        }
-        return false;
-    }
+    // public function isMultiArray($array)
+    // {
+    //     foreach ($array as $value) {
+    //         if (is_array($value)) return true;
+    //     }
+    //     return false;
+    // }
 
     /**
      * Protect array values
@@ -624,7 +626,7 @@ Abstract Class Adapter
     public function insert($table, $data = array(), $extraSql = null)
     {
         $this->connect();
-        $data = $this->arrayEscape($data);
+        $data = $this->escapeArray($data);
         $sql = $this->_insert($table, array_keys($data), array_values($data), $extraSql);
         return $this->exec($sql);
     }
@@ -640,7 +642,7 @@ Abstract Class Adapter
     public function replace($table, $data = array())
     {
         $this->connect();
-        $data = $this->arrayEscape($data);
+        $data = $this->escapeArray($data);
         $sql = $this->_replace($table, array_keys($data), array_values($data));
         return $this->exec($sql);
     }
@@ -659,8 +661,8 @@ Abstract Class Adapter
     public function update($table, $data = array(), $where = array(), $extraSql = '', $limit = false)
     {     
         $this->connect();
-        $data = $this->arrayEscape($data);
-        $where = $this->arrayEscape($where);
+        $data = $this->escapeArray($data);
+        $where = $this->escapeArray($where);
         $conditions = $this->buildConditions($where);
         $sql = $this->_update($table, $data, $conditions, array(), $limit, $extraSql);
         return $this->exec($sql);
@@ -679,10 +681,8 @@ Abstract Class Adapter
     public function delete($table, $extraSql = '', $limit = false)
     {
         $this->connect();
-        $where = $this->arrayEscape($where);
-        
-        // $conditions = $this->buildConditions($where);
-
+        $where = $this->escapeArray($where);
+        $conditions = $this->buildConditions($where);
         $sql = $this->_delete($table, $conditions, array(), $limit, $extraSql);
         return $this->exec($sql);
     }

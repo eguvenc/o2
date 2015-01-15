@@ -2,6 +2,8 @@
 
 namespace Obullo\Cli\Controller;
 
+use Controller;
+
 /**
  * Clear Controller
  * 
@@ -12,42 +14,16 @@ namespace Obullo\Cli\Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class ClearController implements CliInterface
+Class ClearController extends Controller
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Config array
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * Cli command parser
-     * 
-     * @var object
-     */
-    protected $parser;
-
     /**
      * Constructor
      *
-     * @param object $c         container
-     * @param object $arguments parameters
+     * @return void
      */
-    public function __construct($c, array $arguments = array())
+    public function load()
     {
-        $this->c = $c;
-        $this->config = $this->c['config'];
-
-        $this->parser = $c->load('cli/parser');
-        $this->parser->parse($arguments);
+        $this->c->load('cli/parser as parser');
     }
 
     /**
@@ -64,7 +40,7 @@ Class ClearController implements CliInterface
            | |__| || |_||| |_| || || || |_||
            |______||____||_____||_||_||____|
 
-            Welcome to Task Manager (c) 2014
+            Welcome to Task Manager (c) 2015
     You are running $php task queue command. For help type php task clear --help.'."\n\033[0m\n";
     }
 
@@ -73,8 +49,10 @@ Class ClearController implements CliInterface
      * 
      * @return void
      */
-    public function run()
+    public function index()
     {
+        $this->parser->parse(func_get_args());
+
         if ($this->parser->argument('help')) {
             return $this->help();
         }

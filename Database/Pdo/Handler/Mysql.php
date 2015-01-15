@@ -214,38 +214,39 @@ Class Mysql extends Adapter implements HandlerInterface
     /**
      * Preparation of sql for write statements
      * 
-     * @param string $sql    sql string
-     * @param array  $fields sprintf values
-     * @param array  $values [description]
+     * @param array $args query arguments
      * 
-     * @return [type]         [description]
+     * @return string
      */
-    public function _prepSQL($sql, $fields, $values = array())
+    public function _prepSqlQuery($args)
     {
+        $sql = $args[0];
+        $sprintf = $args[1];
         $exp = explode(' ', $sql);
+
         switch ($exp[0]) {
-            case 'INSERT':
-                $escapedValues = $this->buildValues($values);
-                $prepFields = $this->prepFields($fields);
-
-                if ($this->isMultiArray($values)) {
-
-                } else {
-                    $sql = $sql . " (" . implode(', ', $prepFields['array']) . ") VALUES (" . implode(', ', $escapedValues) . ") ";
-                }
-                
-                unset($prepFields['array']);
-                return $this->sprintf($sql, $prepFields);
-                break;
-            
-            default:
-                # code...
-                break;
+        case 'SELECT':
+            return $this->sprintf($sql, $sprintf);
+            break;
+        case 'INSERT' || 'REPLACE ':
+            $multipleValues = isset($args[3]) ? $args[3] : null;
+            if (is_array($multipleValues)) {
+                // multiple insert
+                $prepColumns   = $this->prepFields($args[2]);
+            } else {
+                $escapedValues = $this->buildValues($args[2]);
+                $sql = $sql . " (" . implode(', ', array_keys($escapedValues)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
+            }
+            return $this->sprintf($sql, $sprintf);
+            break;
+        case 'UPDATE':
+            return $this->sprintf($sql, $sprintf);
+            break;
+        default:
+            break;
         }
         return $sql;
     }
-
-
 
     /**
      * From Tables

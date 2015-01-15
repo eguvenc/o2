@@ -2,7 +2,8 @@
 
 namespace Obullo\Cli\Controller;
 
-use Obullo\Process\Process;
+use Controller,
+    Obullo\Process\Process;
 
 /**
  * Queue Controller
@@ -16,34 +17,28 @@ use Obullo\Process\Process;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class QueueController implements CliInterface
+Class QueueController extends Controller
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Cli command parser
-     * 
-     * @var object
-     */
-    protected $parser;
-
     /**
      * Constructor
      *
-     * @param object $c         container
-     * @param array  $arguments data
+     * @return void
      */
-    public function __construct($c, array $arguments = array())
+    public function load()
     {
-        $this->queue = $c->load('service/queue');
+        $this->c->load('service/queue');
+        $this->c->load('cli/parser as parser');
+    }
 
-        $this->parser = $c->load('cli/parser');
-        $this->parser->parse($arguments);
+    /**
+     * Run command
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        $this->logo();
+        $this->help();
     }
 
     /**
@@ -60,7 +55,8 @@ Class QueueController implements CliInterface
            | |__| || |_||| |_| || || || |_||
            |______||____||_____||_||_||____|
 
-            Welcome to Task Manager (c) 2014
+
+            Welcome to Task Manager (c) 2015
     You are running $php task queue command. For help type php task queue --help.'."\n\033[0m\n";
     }
 
@@ -76,12 +72,12 @@ Class QueueController implements CliInterface
 
 Available Commands
 
-    list       : List queued jobs.
+    show       : Display all queued jobs.
     listen     : Wait and send jobs to job handler.
-    down       : Pause the queue in maintenance mode ( Not implemented it is available on next release ).
+    down       : Pause the queue in maintenance mode ( Not implemented will be available on next release ).
     up         : Release the paused queue ( Not implemented it is available on next release ).
 
-Available Arguments
+Arguments
 
     --channel   : Sets queue exchange ( Channel ).
     --route     : Sets queue name.
@@ -95,7 +91,7 @@ Optional
     --sleep     : If we have not job on the queue sleep the script for a given number of seconds.
     --tries     : Sets the maximum number of times a job should be attempted.
     --project   : Sets your project name to works with multiple projects.
-    --var       : Set your custom variable if you need.
+    --var       : Sets your custom variable if you need.
 
 '."\n\033[0m";
 
@@ -112,12 +108,14 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
     /**
      * List ( debug ) queue data
      *
-     * php task queue list --route=Server1.Logger clear=1
+     * php task queue show --route=Server1.Logger clear=1
      * 
      * @return string
      */
-    public function listQueue()
+    public function show()
     {
+        $this->parser->parse(func_get_args());
+
         $break = "------------------------------------------------------------------------------------------";
 
         $channel = $this->parser->argument('channel');
@@ -168,8 +166,10 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
      * 
      * @return void
      */
-    public function listenQueue()
+    public function listen()
     {
+        $this->parser->parse(func_get_args());
+
         $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
         $channel = $this->parser->argument('channel', null); // Sets queue exchange
         $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
@@ -182,7 +182,14 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
         $var = $this->parser->argument('var', null);         // Sets your custom variable
         
-        $this->emptyControl($channel, $route);
+        if (empty($channel)) {
+            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
+            exit;
+        }
+        if (empty($route)) {
+            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
+            exit;
+        }
 
         $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
 
@@ -192,51 +199,6 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
             if ($debug == 1) {
                 echo $process->getOutput();
             }
-        }
-    }
-
-    /**
-     * Check --channel and --route is empty
-     * 
-     * @param string $channel exchange
-     * @param string $route   queue name
-     * 
-     * @return void
-     */
-    protected function emptyControl($channel, $route)
-    {
-        if (empty($channel)) {
-            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
-            exit;
-        }
-        if (empty($route)) {
-            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
-            exit;
-        }
-    }
-
-    /**
-     * Execute command
-     * 
-     * @return void
-     */
-    public function run()
-    {
-        $this->logo();
-
-        if ($this->parser->argument('help')) {
-            return $this->help();
-        }
-        switch ($this->parser->segment(0)) {
-        case 'list':
-            $this->listQueue();
-            break;
-        case 'listen':
-            $this->listenQueue();
-            break;
-        default:
-            $this->help();
-            break;
         }
     }
 

@@ -29,6 +29,10 @@ Class File
     {
         $table = null; // unused variable
 
+        if ( ! isset($c['config']['log']['file']['path'][$dir])) {
+            echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['log']['file']['path'][$dir] array.\033[0m\n");
+            exit;
+        }
         $path = str_replace('/', DS, trim($c['config']['log']['file']['path'][$dir], '/'));
         $file = $path;
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path

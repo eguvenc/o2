@@ -196,6 +196,7 @@ Class Worker
         $this->queue = $c->load('service/queue');
         $this->logger = $c->load('service/logger');
         $this->parser = $c->load('cli/parser');
+
         $this->parser->parse($arguments);
 
         $this->c['config']->load('queue');  // Load queue configuration
