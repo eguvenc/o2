@@ -58,7 +58,7 @@ interface HandlerInterface
      * 
      * @return string
      */
-    public function escapeStr($str, $like = false, $side = 'both');
+    public function _escape($str, $like = false, $side = 'both');
 
     /**
      * Platform specific pdo quote function.

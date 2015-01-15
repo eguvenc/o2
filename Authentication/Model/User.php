@@ -7,7 +7,7 @@ use Auth\Identities\GenericUser,
     Obullo\Authentication\UserProviderInterface;
 
 /**
- * Authentication Default User Provider
+ * O2 User Model
  * 
  * @category  Authentication
  * @package   Adapter
@@ -16,7 +16,7 @@ use Auth\Identities\GenericUser,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class UserProvider implements UserProviderInterface
+Class User implements UserInterface
 {
     public $c;                      // Container
     public $db;                     // Database

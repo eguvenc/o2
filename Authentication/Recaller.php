@@ -61,7 +61,7 @@ Class Recaller
      */
     public function recallUser($token)
     {
-        $resultRowArray = $this->c['user.provider']->execRecallerQuery($token);
+        $resultRowArray = $this->c['user.model']->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
