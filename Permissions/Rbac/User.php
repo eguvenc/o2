@@ -6,6 +6,7 @@ use RuntimeException,
     Obullo\Permissions\Rbac\Page,
     Obullo\Permissions\Rbac\Utils,
     Obullo\Permissions\Rbac\Object,
+    Obullo\Permissions\Rbac\Operation,
     Obullo\Permissions\Rbac\Model\User as ModelUser;
 
 /**
@@ -185,8 +186,7 @@ Class User
         if (isset($this->{$key})) { // Lazy loading
             return $this->{$key};
         }
-        $class = 'Obullo\Permissions\Rbac\Operation\\'. ucfirst($key);
-        return $this->{$key} = new $class($this->c);
+        return $this->{$key} = new Operation($this->c, $key);
     }
 
     /**

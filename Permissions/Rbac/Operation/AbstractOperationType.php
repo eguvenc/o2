@@ -31,6 +31,20 @@ abstract class AbstractOperationType
     protected $permissionName = '';
 
     /**
+     * Constructor
+     * 
+     * @param object $c container
+     */
+    public function __construct($c)
+    {
+        $this->c = $c;
+
+        $this->c['rbac.resource'] = function () {
+            return new Resource($this->c); 
+        };
+    }
+
+    /**
      * Gey key
      * 
      * @return string key
@@ -50,6 +64,15 @@ abstract class AbstractOperationType
      * @return boolean
      */
     abstract public function isAllowed();
+
+    /**
+     * OffsetGet
+     * 
+     * @param string $offset offset
+     * 
+     * @return object self
+     */
+    abstract public function offsetGet($offset);
 
     /**
      * Set permission name
@@ -93,6 +116,46 @@ abstract class AbstractOperationType
     public function getPermissionName()
     {
         return $this->permissionName;
+    }
+
+    /**
+     * Offset Set
+     * 
+     * @param string $offset offset
+     * @param mix    $value  value
+     * 
+     * @return void
+     */
+    public function offsetSet($offset, $value)
+    {
+        unset($offset, $value);
+        return;
+    }
+
+    /**
+     * Offset exists
+     *
+     * @param string $value offset value
+     *
+     * @return void
+     */
+    public function offsetExists($value)
+    {
+        unset($value);
+        return;
+    }
+
+    /**
+     * Offset exists
+     *
+     * @param string $value offset value
+     *
+     * @return void
+     */
+    public function offsetUnset($value)
+    {
+        unset($value);
+        return;
     }
 
 }
