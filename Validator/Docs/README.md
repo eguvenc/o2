@@ -114,7 +114,7 @@ Class HelloForm extends \Controller
             }
         }
 
-        $this->view->load(
+        $this->c['view']->load(
             'hello_form', 
             function () {
                 $this->assign('name', 'Obullo');
@@ -387,7 +387,7 @@ Class HelloForm extends \Controller
             }
         }
 
-        $this->view->load(
+        $this->c['view']->load(
             'hello_form', 
             function () {
                 $this->assign('name', 'Obullo');

@@ -123,13 +123,16 @@ Class Env implements ArrayAccess
     {   
         $arguments = array(
             'value' => $value,
-            'default' => '',
+            'default' => null,
             'required' => '',
         );
         if (strpos($value, '.') > 0) {
             $exp = explode('.', $value);
             $arguments['value'] = strstr($value, '.', true);
-            $arguments['default']  = (isset($exp[1])) ? $exp[1] : null;
+            $arguments['default'] = $exp[1];
+            if (strtolower($exp[1]) == 'null' OR empty($exp[1])) {
+                $arguments['default'] = null;
+            }
             $arguments['required'] = (isset($exp[2])) ? true : false;
         }
         return $arguments;

@@ -63,7 +63,7 @@ Abstract Class Adapter
         foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
             $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
         }
-        $this->config = $c->load('config');
+        $this->config = $c['config'];
         $this->logger = $c->load('service/logger');
     }
 
@@ -123,23 +123,20 @@ Abstract Class Adapter
     /**
      * Prepared or Direct Pdo Query
      * 
-     * @param string $sql     query
-     * @param array  $sprintf array fields
-     * @param array  $values  bind values
-     * 
      * @return object pdo
      */
     public function query()
     {
         $this->connect();
-        $this->lastSql = $this->_prepSqlQuery(func_get_args());
-
-        exit($this->lastSql);
+        $data = $this->_prepSqlQuery(func_get_args());
+        $this->lastSql = $data['sql'];
         $this->startQueryTimer = microtime(true);
 
-        if (count($values) > 0) {
+        exit($this->lastSql);
+
+        if (count($data['values']) > 0) {
             $this->prepare($this->lastSql);
-            $this->execute($values);
+            $this->execute($data['values']);
             return $this;
         } else {
             $this->stmt = $this->connection->query($this->lastSql);
@@ -612,79 +609,6 @@ Abstract Class Adapter
             return vsprintf($sql, $newValues);
         }
         return $this->lastSql;
-    }
-
-    /**
-     * Insert data to table
-     * 
-     * @param string $table    tablename
-     * @param array  $data     insert data
-     * @param array  $extraSql extra sql 
-     * 
-     * @return integer affected rows
-     */
-    public function insert($table, $data = array(), $extraSql = null)
-    {
-        $this->connect();
-        $data = $this->escapeArray($data);
-        $sql = $this->_insert($table, array_keys($data), array_values($data), $extraSql);
-        return $this->exec($sql);
-    }
-
-    /**
-     * Replace the in the table
-     * 
-     * @param string $table tablename
-     * @param array  $data  insert data
-     * 
-     * @return integer affected rows
-     */
-    public function replace($table, $data = array())
-    {
-        $this->connect();
-        $data = $this->escapeArray($data);
-        $sql = $this->_replace($table, array_keys($data), array_values($data));
-        return $this->exec($sql);
-    }
-
-    /**
-     * Update table
-     * 
-     * @param string $table    tablename
-     * @param array  $data     array
-     * @param array  $where    array
-     * @param string $extraSql add extra sql end of your query
-     * @param int    $limit    sql limit
-     *  
-     * @return integer affected rows
-     */
-    public function update($table, $data = array(), $where = array(), $extraSql = '', $limit = false)
-    {     
-        $this->connect();
-        $data = $this->escapeArray($data);
-        $where = $this->escapeArray($where);
-        $conditions = $this->buildConditions($where);
-        $sql = $this->_update($table, $data, $conditions, array(), $limit, $extraSql);
-        return $this->exec($sql);
-    }
-
-    /**
-     * Delete data from table
-     * 
-     * @param string $table    tablename
-     * @param array  $where    array
-     * @param string $extraSql add extra sql end of your query
-     * @param int    $limit    sql limit
-     *  
-     * @return integer affected rows
-     */
-    public function delete($table, $extraSql = '', $limit = false)
-    {
-        $this->connect();
-        $where = $this->escapeArray($where);
-        $conditions = $this->buildConditions($where);
-        $sql = $this->_delete($table, $conditions, array(), $limit, $extraSql);
-        return $this->exec($sql);
     }
 
     // /**

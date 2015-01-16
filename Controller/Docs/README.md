@@ -62,7 +62,7 @@ Class Welcome extends Controller
      */
     public function index()
     {
-        $this->view->load(
+        $this->c['view']->load(
             'welcome',
             function () {
                 $this->assign('name', 'Obullo');

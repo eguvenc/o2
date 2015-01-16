@@ -296,7 +296,7 @@ Class Welcome extends Controller
      */
     public function index()
     {
-        $this->view->load(
+        $this->c['view']->load(
             'welcome',
             function () {
                 $this->assign('name', 'Obullo');
@@ -330,7 +330,7 @@ Class Welcome extends Controller
                     $this->form->setErrors($this->validator);
                 }
 
-                $this->view->load(
+                $this->c['view']->load(
                     'login',
                     function () {
                         $this->assign('footer', $this->template('footer'));

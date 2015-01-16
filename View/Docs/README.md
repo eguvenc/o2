@@ -25,14 +25,14 @@ To load a view file from your <kbd>public/directory/view</kbd> folder call follo
 
 ```php
 <?php
-$this->view->load('filename');
+$this->c['view']->load('filename');
 ```
 
 **Tip**: This function normally include a view file. If you want to load file as string use <b>false</b> parameter.
 
 ```php
 <?php
-echo $this->view->load('filename', false);
+echo $this->c['view']->load('filename', false);
 ```
 
 ### Templates
@@ -43,14 +43,14 @@ To load a template file as string from <kbd>app/templates</kbd> folder you need 
 
 ```php
 <?php
-echo $this->view->template('filename');
+echo $this->c['view']->template('filename');
 ```
 
 To include it as file use <b>true</b> parameter.
 
 ```php
 <?php
-$this->view->template('filename', false);
+$this->c['view']->template('filename', false);
 ```
 
 ### Dynamic Variables <a name="dynamic-variables"></a>
@@ -61,7 +61,7 @@ To create view variables shown as below:
 
 ```php
 <?php
-$this->view->load('hello_world', function() {
+$this->c['view']->load('hello_world', function() {
     $this->assign('name', 'Obullo');
     $this->assign('footer', $this->template('footer'));
 });
@@ -162,7 +162,7 @@ Then in your controller file you can call your layout using $this->layout() func
 ```php
 <?php
 
-$this->view->load(
+$this->c['view']->load(
   'hello_world',
     function () {
       $this->assign('title', 'Hello World !');
@@ -252,7 +252,7 @@ Data is passed from the controller to the view by an <strong>array</strong> in t
 ```php
 <?php
 
-$this->view->load(
+$this->c['view']->load(
   'welcome', 
   function () {
     $data = array(
@@ -279,7 +279,7 @@ $anotherData = array(
                   'title' => 'Hello World !';
                 );
 
-$this->view->load(
+$this->c['view']->load(
    'hello_world', 
     function () use ($data, $anotherData) {
         $this->assign('mydata', $data);
@@ -313,7 +313,7 @@ $app->func(
             'message' => 'My Message'
           );
 
-        $this->view->load(
+        $this->c['view']->load(
             'hello_world',
             function () use ($data) {
                 $this->assign('title', 'Hello World !');
@@ -369,13 +369,13 @@ There is a second optional parameter that lets you change the behavior of the fu
 
 ```php
 <?php
-echo $this->view->load('myfile', false);  
+echo $this->c['view']->load('myfile', false);  
 ```
 ### Loading view as File
 
 ```php
 <?php
-$this->view->load('myfile');  // default behaviour
+$this->c['view']->load('myfile');  // default behaviour
 ```
 
 ### Templates
@@ -384,8 +384,8 @@ $this->view->load('myfile');  // default behaviour
 
 ```php
 <?php
-echo $this->view->template('header');
-echo $this->view->template('footer');
+echo $this->c['view']->template('header');
+echo $this->c['view']->template('footer');
 ```
 
 Then in your controller file you can call your scheme using $this->getScheme() function.
@@ -393,7 +393,7 @@ Then in your controller file you can call your scheme using $this->getScheme() f
 ```php
 <?php
 
-$this->view->load(
+$this->c['view']->load(
   'hello_world',
   function () {
       $this->assign('title', 'Hello World !');
@@ -428,7 +428,6 @@ $app = new Controller(
     function ($c) {
         $c->load('url');
         $c->load('request');
-        $c->load('view');
     }
 );
 
@@ -531,7 +530,7 @@ $this->request->router->method();
 
 ------
 
-#### $this->view->load('filename', $include = true, $data = array());
+#### $this->c['view']->load('filename', $include = true, $data = array());
 
 Gets the file from local directory e.g. <kbd>public/welcome/view</kbd>
 

@@ -199,8 +199,8 @@ Class Mysql extends Adapter implements HandlerInterface
                 $values[$key] = 'NULL';
             } elseif (is_bool($value)) {
                 $values[$key] = ($value) ? 'TRUE' : 'FALSE';
-            } elseif (is_string($value)) {
-                $values[$key] = $this->escape($value);  // We already do escape in Adapter class not need to escape
+            } else {
+                $values[$key] = $value;  // We already do escape in Adapter class not need to escape
             }
         }
         return $values;
@@ -221,31 +221,110 @@ Class Mysql extends Adapter implements HandlerInterface
     public function _prepSqlQuery($args)
     {
         $sql = $args[0];
-        $sprintf = $args[1];
+        $sprintf = isset($args[1]) ? $args[1] : null;
         $exp = explode(' ', $sql);
+        $operator = $exp[0];
+        $values = array();
 
-        switch ($exp[0]) {
-        case 'SELECT':
-            return $this->sprintf($sql, $sprintf);
-            break;
-        case 'INSERT' || 'REPLACE ':
-            $multipleValues = isset($args[3]) ? $args[3] : null;
-            if (is_array($multipleValues)) {
-                // multiple insert
-                $prepColumns   = $this->prepFields($args[2]);
-            } else {
-                $escapedValues = $this->buildValues($args[2]);
-                $sql = $sql . " (" . implode(', ', array_keys($escapedValues)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
+        if ($sprintf != null) {
+            $sprintf = $this->resolveModifiers($sprintf);  // parse : $insert, $update, $in, $multi, $columns, $values
+        }
+        switch ($operator) {
+
+        case ($operator == 'SELECT'):
+            if (isset($args[2]) AND is_array($args[2])) {   // bind values
+                $values = $args[2];
             }
-            return $this->sprintf($sql, $sprintf);
+            $sql = $this->sprintf($sql, $sprintf);
             break;
-        case 'UPDATE':
-            return $this->sprintf($sql, $sprintf);
-            break;
+
+        // case ($operator == 'INSERT' || $operator == 'REPLACE '):
+        //     if (isset($args[3]) AND is_array($args[3])) {   // bind values
+        //         $values = $args[3];
+        //     }
+        //     if (isset($args[1]) AND in_array('$multiple', $args[1])) {  //  Multiple operations
+        //         $data = $this->buildValues($args[2]);
+        //         $escapedValues = $this->escapeArray($data);
+        //         $sqlString = " (" . implode(', ', array_keys($data)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
+        //         // exit('multiple');
+        //         // multiple insert
+        //         // $prepColumns = $this->prepFields($args[2]);
+        //         // ....
+        //         // ....
+        //     } else {
+        //         $data = $this->buildValues($args[2]);
+        //         $escapedValues = $this->escapeArray($data);
+        //         $sqlString = " (" . implode(', ', array_keys($data)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
+        //     }
+        //     $sql = $this->sprintf($sql, $sprintf);
+
+        //     if (isset($args[2]) AND is_array($args[2])) {   // developer may don't want to send third parameter using "false".
+        //         $sql = str_replace('$'.strtolower($operator), $sqlString, $sql);
+        //         $sql = str_replace('$multiple', $sqlString, $sql);
+        //     }
+        //     break;
+
+        // case ($operator == 'UPDATE'):
+        //     $values = isset($args[3]) ? $args[3] : $values;  // bind values
+        //     $sql = $this->sprintf($sql, $sprintf);
+
+        //     if (isset($args[2]) AND is_array($args[2])) {  // developer may don't want to send third parameter using "false".
+        //         $sqlString = '';
+        //         foreach ($args[2] as $key => $value) {
+        //             $sqlString .= $key."=".$this->escape($value).',';
+        //         }
+        //         $sql = str_replace('$update', rtrim($sqlString, ','), $sql);
+        //     }
+        //     break;
+
         default:
             break;
         }
-        return $sql;
+        return array('sql' => trim($sql), 'values' => $values);
+    }
+
+    public function resolveModifiers($sprintf)
+    {
+        $array = array();
+        foreach ($sprintf as $key => $value) {
+            if (is_array($value)) {
+                $mod = key($value);
+                switch ($mod) {
+                case '$in':
+                    $array[$key] = rtrim(implode(',', $this->escapeArray($value['$in'])), ',');
+                    break;
+                case '$col':
+                    $array[$key] = rtrim(implode(',', $value['$col']), ',');
+                    break;
+                case '$val':
+                    $array[$key] = rtrim(implode(',', $this->escapeArray($value['$val'])), ',');
+                    break;
+                case '$and':
+                    $AND = '';
+                    $i = 0;
+                    foreach ($value['$and'] as $key => $value) {
+                        $AND .= $key.' = '.$this->escape($value).' AND ';
+                        ++$i;
+                    }
+                    $val = ($i > 1) ? substr($AND, 0, -4) : $AND;
+                    $array[$key] = trim($val);
+                    break;
+                case '$or':
+                    $OR = '';
+                    $i = 0;
+                    foreach ($value['$or'] as $key => $value) {
+                        $OR .= $key.' = '.$this->escape($value).' OR ';
+                        ++$i;
+                    }
+                    $val = substr($OR, 0, -3);
+                    $array[$key] = trim($val);
+                    break;
+                }
+            } else {
+                $array[$key] = $value;
+            }
+        }
+        return $array;
     }
 
     /**
