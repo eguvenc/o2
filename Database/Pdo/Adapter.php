@@ -147,39 +147,6 @@ Abstract Class Adapter
         return ($this);
     }
 
-    // public function write($sql, $sprintf, $columns = array(), $values = array())
-    // {
-    //     $this->connect();
-    //     $this->lastSql = $this->_prepSQL($sql, $sprintf, $values);
-
-    //     if (count($values) > 0) {
-    //         $this->prepare($this->lastSql);
-    //         $this->execute($values);
-    //         return $this;
-    //     } else {
-    //         $this->stmt = $this->connection->query($this->lastSql);
-    //     }
-    //     ++$this->queryCount;
-    //     $this->sqlLog($this->lastSql);
-
-    //     return ($this);
-    // }
-
-    /**
-     * Checks array is multidimensional
-     * 
-     * @param array $array array
-     * 
-     * @return boolean
-     */
-    // public function isMultiArray($array)
-    // {
-    //     foreach ($array as $value) {
-    //         if (is_array($value)) return true;
-    //     }
-    //     return false;
-    // }
-
     /**
      * Protect array values
      * 

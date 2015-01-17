@@ -25,20 +25,6 @@ Class Mysql extends Adapter implements HandlerInterface
     public $escapeChar = '`';
 
     /**
-     * Clause and character used for LIKE escape sequences - not used in MySQL
-     * 
-     * @var string
-     */
-    public $likeEscapeStr = '';
-
-    /**
-     * Clause and character used for LIKE escape sequences - not used in MySQL
-     * 
-     * @var string
-     */
-    public $likeEscapeChr = '';
-
-    /**
      * Constructor
      * 
      * @param array $c      container
@@ -135,37 +121,19 @@ Class Mysql extends Adapter implements HandlerInterface
     /**
      * Escape string
      * 
-     * @param string  $str  string
-     * @param boolean $like whether or not the string will be used in a LIKE condition
-     * @param string  $side direction
+     * @param string $str string
      * 
      * @return string
      */
-    public function _escape($str, $like = false, $side = 'both')
+    public function _escape($str)
     {
         if (is_array($str)) {
             foreach ($str as $key => $val) {
-                $str[$key] = $this->_escape($val, $like);
+                $str[$key] = $this->_escape($val);
             }
             return $str;
         }
-        if ($like === true) {         // escape LIKE condition wildcards
-            $str = str_replace(array('%', '_'), array('\\%', '\\_'), $str);
-
-            switch ($side) {
-            case 'before':
-                $str = "%{$str}";
-                break;
-
-            case 'after':
-                $str = "{$str}%";
-                break;
-
-            default:
-                $str = "%{$str}%";
-            }
-        }
-        if ($this->prepare === false) {          // make sure is it bind value, if not ...
+        if ($this->prepare === false AND trim($str) != '?') { // Make sure is it bind value, if not ...
             $str = $this->quote($str, PDO::PARAM_STR);
         }
         return $str;
@@ -226,9 +194,11 @@ Class Mysql extends Adapter implements HandlerInterface
         $operator = $exp[0];
         $values = array();
 
+            print_r($sprintf); exit;
         if ($sprintf != null) {
             $sprintf = $this->resolveModifiers($sprintf);  // parse : $insert, $update, $in, $multi, $columns, $values
         }
+
         switch ($operator) {
 
         case ($operator == 'SELECT'):
@@ -283,6 +253,13 @@ Class Mysql extends Adapter implements HandlerInterface
         return array('sql' => trim($sql), 'values' => $values);
     }
 
+    /**
+     * Resovle framework modifiers 
+     * 
+     * @param string $sprintf format
+     * 
+     * @return array
+     */
     public function resolveModifiers($sprintf)
     {
         $array = array();
@@ -325,143 +302,6 @@ Class Mysql extends Adapter implements HandlerInterface
             }
         }
         return $array;
-    }
-
-    /**
-     * From Tables
-     *
-     * This function implicitly groups FROM tables so there is no confusion
-     * about operator precedence in harmony with SQL standards
-     * 
-     * @param array $tables values
-     * 
-     * @return string
-     */
-    public function _fromTables($tables)
-    {
-        if ( ! is_array($tables)) {
-            $tables = array($tables);
-        }
-        return '(' . implode(', ', $tables) . ')';
-    }
-
-    /**
-     * Insert statement
-     *
-     * Generates a platform-specific insert string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $keys     the insert keys
-     * @param array  $values   the insert values
-     * @param array  $extraSql extra sql 
-     * 
-     * @return string
-     */
-    public function _insert($table, $keys, $values, $extraSql = null)
-    {
-        $values = $this->buildValues($values);
-        $sql = "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ") ".$extraSql;
-        return trim($sql);
-    }
-
-    /**
-     * Replace statement
-     *
-     * Generates a platform-specific replace string from the supplied data
-     *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
-     * 
-     * @return string
-     */
-    public function _replace($table, $keys, $values)
-    {
-        $values = $this->buildValues($values);
-        return "REPLACE INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
-    }
-
-    /**
-     * Update statement
-     *
-     * Generates a platform-specific update string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $values   the update data
-     * @param array  $where    the where clause
-     * @param array  $orderby  the orderby clause
-     * @param int    $limit    the limit clause
-     * @param int    $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _update($table, $values, $where, $orderby = array(), $limit = false, $extraSql = '')
-    {
-        $values = $this->buildValues($values);
-        foreach ($values as $key => $val) {
-            $valstr[] = $key . " = " . $val;
-        }
-        $limit = ( ! $limit) ? '' : ' LIMIT ' . $limit;
-        $orderby = (count($orderby) >= 1) ? ' ORDER BY ' . implode(", ", $orderby) : '';
-
-        $sql = "UPDATE " . $table . " SET " . implode(', ', $valstr);
-
-        if (is_array($where)) {
-            $sql .= (count($where) >= 1) ? " WHERE " . implode(" ", $where) : '';
-        } elseif (is_string($where)) {
-            $sql .= $where;
-        }
-        $sql .= $orderby . $limit .' '.trim($extraSql);
-        return trim($sql);
-    }
-
-    /**
-     * Delete statement
-     *
-     * Generates a platform-specific delete string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $where    the where clause
-     * @param string $like     the like clause
-     * @param string $limit    the limit clause
-     * @param string $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _delete($table, $where = null, $like = array(), $limit = false, $extraSql = '')
-    {
-        $conditions = $where;
-        if (is_array($where) AND count($where) > 0 OR count($like) > 0) {
-            $conditions = "\nWHERE ";
-            $conditions .= implode("\n", $where);
-            if (count($where) > 0 AND count($like) > 0) {  // Put and for like
-                $conditions .= " AND ";
-            }
-            $conditions .= implode("\n", $like);
-        }
-        $limit = ( ! $limit) ? '' : ' LIMIT ' . $limit;
-        $sql = "DELETE FROM " . $table . $conditions . $limit .' '.trim($extraSql);
-        return trim($sql);
-    }
-
-    /**
-     * Limit string
-     * Generates a platform-specific LIMIT clause
-     * 
-     * @param string  $sql    query
-     * @param integer $limit  number limit
-     * @param integer $offset number offset
-     * 
-     * @return string
-     */
-    public function _limit($sql, $limit, $offset)
-    {
-        if ($offset == 0) {
-            $offset = '';
-        } else {
-            $offset .= ", ";
-        }
-        return $sql . "LIMIT " . $offset . $limit;
     }
 
 }

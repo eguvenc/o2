@@ -1,6 +1,8 @@
 <?php
 
-namespace Obullo\Cli\Controller;
+namespace Obullo\Cli\Tasks;
+
+use Controller;
 
 /**
  * App Controller
@@ -12,42 +14,27 @@ namespace Obullo\Cli\Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class AppController implements CliInterface
+Class AppController extends Controller
 {
     /**
-     * Container
+     * Loader
      * 
-     * @var object
+     * @return void
      */
-    protected $c;
-
-    /**
-     * Cli parser
-     * 
-     * @var object
-     */
-    protected $parser;
-
-    /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
-     * Constructor
-     *
-     * @param object $c         container
-     * @param array  $arguments $arguments
-     */
-    public function __construct($c, array $arguments = array())
+    public function load()
     {
-        $this->c = $c;
-        $this->config = $c['config'];
+        $this->c->load('cli/parser as parser');
+    }
 
-        $this->parser = $c->load('cli/parser');
-        $this->parser->parse($arguments);
+    /**
+     * Execute command
+     * 
+     * @return boolean
+     */
+    public function index()
+    {
+        $this->logo();
+        $this->help();
     }
 
     /**
@@ -64,47 +51,20 @@ Class AppController implements CliInterface
            | |__| || |_||| |_| || || || |_||
            |______||____||_____||_||_||____|
 
-            Welcome to Task Manager (c) 2014
+            Welcome to Task Manager (c) 2015
     You are running $php task app command. For help type php task app --help.'."\n\033[0m\n";
     }
 
     /**
-     * Execute command
-     * 
-     * @return boolean
-     */
-    public function run()
-    {
-        if ($this->parser->argument('help')) {
-            return $this->help();
-        }
-        $name = $this->parser->argument('name', null);
-        $command = $this->parser->segment(0);
-
-        switch ($command) {
-        case 'down':
-            $this->down($name);
-            break;
-        case 'up':
-            $this->up($name);
-            break;
-        default:
-            $this->help();
-            break;
-        }
-        return true;
-    }
-
-    /**
      * Enter the maintenance mode
-     *
-     * @param string $name app key ( like : site, support, sports, shop )
      * 
      * @return void
      */
-    public function down($name)
+    public function down()
     {
-        $this->emptyControl($name);
+        $this->parser->parse(func_get_args());
+        $name = $this->parser->argument('name', null);
+        $this->isEmpty($name);
 
         $this->config->env['application'][$name]['maintenance'] = 'down';
         $this->config->write();
@@ -117,13 +77,13 @@ Class AppController implements CliInterface
     /**
      * Leave from maintenance mode
      *
-     * @param string $name route key ( like : site, support, sports, shop )
-     * 
      * @return void
      */
-    public function up($name)
+    public function up()
     {
-        $this->emptyControl($name);
+        $this->parser->parse(func_get_args());
+        $name = $this->parser->argument('name', null);
+        $this->isEmpty($name);
 
         $this->config->env['application'][$name]['maintenance'] = 'up';
         $this->config->write();
@@ -140,7 +100,7 @@ Class AppController implements CliInterface
      * 
      * @return void
      */
-    protected function emptyControl($name)
+    protected function isEmpty($name)
     {
         if (empty($name)) {
             echo "\33[1;36mApp \"--name\" can't be empty.\33[0m\n";
@@ -166,8 +126,8 @@ Class AppController implements CliInterface
 
 Available Commands
 
-    down       : Sets app down to enter maintenance mode.
-    up         : Sets app up to leaving from maintenance mode.
+    down     : Sets app down to enter maintenance mode.
+    up       : Sets app up to leaving from maintenance mode.
 
 Available Arguments
 
@@ -188,4 +148,4 @@ Manages application features which are defined in your config.env file.
 // END AppController class
 
 /* End of file AppController.php */
-/* Location: .Obullo/Cli/Controller/AppController.php */
+/* Location: .Obullo/Cli/Tasks/AppController.php */

@@ -304,7 +304,7 @@ Class Uri
      */
     public function getBaseUrl($uri = '')
     {
-        return rtrim($this->config['url']['base'], '/') .'/'. ltrim($uri, '/');
+        return rtrim($this->config['url']['baseurl'], '/') .'/'. ltrim($uri, '/');
     }
 
     /**
@@ -313,7 +313,7 @@ Class Uri
      * @param string  $uri_str the URI string
      * @param boolean $suffix  switch off suffix by manually
      * 
-     * @return   string
+     * @return string
      */
     public function getSiteUrl($uri_str = '', $suffix = true)
     {

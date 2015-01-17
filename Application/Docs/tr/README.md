@@ -4,7 +4,7 @@
 ------
 
 Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/obullo/core.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam sabiti ( environment constant ) olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile çözümlenir ve ortam sabitine dönüştürülür.
-Ortam değişkeninin ortam sabitine atanmasının nedeni <b>$c['app']->get$c['env'][)</b> metodunu uygulamanın her yerinde kullanmak yerine ortam değişkenine <b>ENV</b> sabiti ile daha rahat ulaşmaktır.
+Ortam değişkeninin ortam sabitine atanmasının nedeni <kbd>$c['app']->getEnv()</kbd> metodunu uygulamanın her yerinde kullanmak yerine ortam değişkenine <b>ENV</b> sabiti ile daha rahat ulaşmaktır.
 
 Aşağıda <kbd>o2/obullo/core.php</kbd> dosyasının ilgili içeriği bize uygulama sınıfının konteyner (ioc) içerisine nasıl tanımlandığını ve ortam değişkeninin uygulamanın yüklenme seviyesinde nasıl belirlendiğini gösteriyor.
 
@@ -24,7 +24,7 @@ $c['app']->detectEnvironment();
 | Build environment constants
 |--------------------------------------------------------------------------
 */
-define('ENV', $c['app']->get$c['env'][));
+define('ENV', $c['app']->getEnv());
 
 /* Location: .Obullo/Obullo/Core.php */
 ```
@@ -98,13 +98,13 @@ We could not detect your application environment, please correct your app/enviro
 
 ------
 
-### $c['app']->get$c['env'][);
+### $c['app']->getEnv();
 
 Geçerli ortam değişkenine geri döner.
 
 ```php
 <?php
-echo $c['app']->get$c['env'][);  // Çıktı  local
+echo $c['app']->getEnv();  // Çıktı  local
 ```
 
 ### $c['app']->getEnvironments();
@@ -228,9 +228,9 @@ Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b
 > **Not:** Boş sayfa hatası aldığınızda eğer framework debugger bile hatayı göremiyorsa <kbd>error > reporting</kbd> değerini true yaparak tüm hataları görebilirsiniz. Yinede hataları göremiyorsanız <b>index.php</b> dosyasının en başına 
 <b>ini_set('display_errors', 1);</b> ve <b>error_reporting(1);</b> komutlarını yazın. Bu türden boş sayfa hatalarına çok nadir rastlanır ve genellikle kütüphane geliştirme ortamlarında ortaya çıkabilirler.
 
-### $c['env']['KEY.DEFAULT.REQUIRED']; 
+### $c['env']['key']; 
 
-Env fonksiyonu <b>obullo/core.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env'][)</b> metotları ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+Env fonksiyonu <b>obullo/core.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env']</b> sınıfı ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
 Fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, ikinci parametresi anahtarın varsayılan değerini tayin eder ve üçüncü parametre anahtarın zorunlu olup olmadığını belirler.
 
@@ -238,8 +238,7 @@ Eğer <b>ikinci</b> parametre girildiyse <b>$_ENV</b> değişkeni içerisindeki 
 
 Eğer <b>üçüncü</b> parametre <b>true</b> olarak girildiyse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
 
-
-Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin <b>$c['env'][)</b> fonksiyonu ile nasıl atandığını görüyorsunuz.
+Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin <b>$c['env']</b> sınıfı ile nasıl atandığını görüyorsunuz.
 
 ```php
 <?php
@@ -369,7 +368,7 @@ echo $c['config']['database']['key']['db']['host'];  // Çıktı localhost
 
 ------
 
-#### $this->c['app']->get$c['env'][);
+#### $this->c['app']->getEnv();
 
 Geçerli ortam değişkenine geri döner.
 

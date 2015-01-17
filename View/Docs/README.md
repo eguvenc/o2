@@ -113,8 +113,8 @@ Some variables pre defined in view file and automatically replaced when you use 
 <tbody>
 
 <tr>
-<td>@BASE</td>
-<td><b>echo $this->config['url']['base'];</b></td>
+<td>@BASEURL</td>
+<td><b>echo $this->config['url']['baseurl'];</b></td>
 <td>Generally "/" a trailing slash</td>
 </tr>
 

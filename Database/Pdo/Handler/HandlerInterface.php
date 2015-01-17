@@ -52,13 +52,11 @@ interface HandlerInterface
     /**
      * Escape string
      * 
-     * @param string  $str  string
-     * @param boolean $like whether or not the string will be used in a LIKE condition
-     * @param string  $side direction
+     * @param string $str string
      * 
      * @return string
      */
-    public function _escape($str, $like = false, $side = 'both');
+    public function _escape($str);
 
     /**
      * Platform specific pdo quote function.
@@ -78,87 +76,6 @@ interface HandlerInterface
      * @return array
      */
     public function buildValues(array $data);
-
-    /**
-     * From Tables
-     *
-     * This function implicitly groups FROM tables so there is no confusion
-     * about operator precedence in harmony with SQL standards
-     * 
-     * @param array $tables values
-     * 
-     * @return string
-     */
-    public function _fromTables($tables);
-
-    /**
-     * Insert statement
-     *
-     * Generates a platform-specific insert string from the supplied data
-     *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
-     * 
-     * @return   string
-     */
-    public function _insert($table, $keys, $values);
-
-    /**
-     * Replace statement
-     *
-     * Generates a platform-specific replace string from the supplied data
-     *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
-     * 
-     * @return  string
-     */
-    public function _replace($table, $keys, $values);
-
-    /**
-     * Update statement
-     *
-     * Generates a platform-specific update string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $values   the update data
-     * @param array  $where    the where clause
-     * @param array  $orderby  the orderby clause
-     * @param int    $limit    the limit clause
-     * @param int    $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _update($table, $values, $where, $orderby = array(), $limit = false, $extraSql = '');
-
-    /**
-     * Delete statement
-     *
-     * Generates a platform-specific delete string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $where    the where clause
-     * @param string $like     the like clause
-     * @param string $limit    the limit clause
-     * @param string $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _delete($table, $where = array(), $like = array(), $limit = false, $extraSql = '');
-
-    /**
-     * Limit string
-     * Generates a platform-specific LIMIT clause
-     * 
-     * @param string  $sql    query
-     * @param integer $limit  number limit
-     * @param integer $offset number offset
-     * 
-     * @return string
-     */
-    public function _limit($sql, $limit, $offset);
 
 }
 

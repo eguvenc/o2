@@ -118,7 +118,7 @@ Class Container implements ArrayAccess
         }
         // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
         // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
-        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they are available.
+        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they available.
         if ($noReturn
             AND $controllerExists
             AND Controller::$instance == null
@@ -458,6 +458,7 @@ Class Container implements ArrayAccess
         if ($implode) {
             $exp = $this->mapName($exp);   // Converts "utils/uri" to "utilsUri"
             $key = lcfirst(implode('', $exp));  // First letter must be lowercase
+            // echo $key.'<br />';
         }
         if ($separator == '/') { // Shared type service
             return $this->resolved[$key] = array('key' => $key, 'cid' => $Class, 'class' => $Class);

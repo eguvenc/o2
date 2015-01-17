@@ -58,9 +58,8 @@ abstract Class AbstractAdapter
     {
         $this->session = $c->load('session');
         $this->logger  = $c->load('service/logger');
-
-        $this->init();
         
+        $this->init();
         $this->logger->debug('Captcha Class Initialized');
     }
 

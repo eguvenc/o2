@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Cli\Controller;
+namespace Obullo\Cli\Tasks;
 
 use Controller,
     Obullo\Process\Process;
@@ -68,14 +68,15 @@ Class QueueController extends Controller
     public function help()
     {
         echo "\33[0;36m".'
-'."\33[1;36m".'Queue Help:'."\33[0m\33[0;36m".'
+'."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
 
 Available Commands
 
-    show       : Display all queued jobs.
-    listen     : Wait and send jobs to job handler.
-    down       : Pause the queue in maintenance mode ( Not implemented will be available on next release ).
-    up         : Release the paused queue ( Not implemented it is available on next release ).
+    show        : Display all queued jobs.
+    listen      : Wait and send jobs to job handler.
+    down        : Pause the queue in maintenance mode ( Not implemented will be available on next release ).
+    up          : Release the paused queue ( Not implemented it is available on next release ).
+    help        : Display help.
 
 Arguments
 
@@ -207,4 +208,4 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
 // END LogController class
 
 /* End of file LogController.php */
-/* Location: .Obullo/Cli/Controller/LogController.php */
+/* Location: .Obullo/Cli/Tasks/LogController.php */
