@@ -410,6 +410,15 @@ This function same as rowArray() except <b>returns to empty array</b> if result 
 Returns to last executed sql string.
 
 
+### Select Queries
+
+------
+
+```php
+<?php
+$this->db->query();
+```
+
 ### Insert, Update, Delete Operations <a name="insert-update-delete"></a>
 
 ------
@@ -420,70 +429,67 @@ These methods simply build sql queries without effect your application performan
 
 ### Insert
 
-#### $this->db->insert(string $tablename, array $data);
+#### $this->db->query("INSERT INTO table %s", [['@insert' => $data]]);
 
 ```php
 <?php
+$data = array('username' => 'John', 'date' => time());
 
-echo $this->db->insert('users', array('username' => 'John', 'date' => time()));  //  gives 1 ( affected rows )
+echo $this->db->query("INSERT INTO users %s", array(['@insert' => $data])); //  gives 1 ( affected rows )
 
 // query : INSERT INTO users (username, date) VALUES ('John', 1401970851)
 ```
 
 ### Update
 
-#### $this->db->update(string $tablename, array $data, array $where = array(), $extraSql = '', integer $limit = '');
+#### $this->db->query("UPDATE table SET %s WHERE id = ?", array(['@update' => $data]), [$id]);
 
 ```php
 <?php
 
 $data = array(
-    'username' => 'Bob',
-    'modification_date' => time()
+    'title' => 'Welcome',
+    'content' => "Bob's Content",
 )
-echo $this->db->update('users', $data, array('user_id' => 5));  //  gives 1 ( affected rows )
+$this->db->query("UPDATE entries SET %s WHERE entry_id = ?", array(['@update' => $data]), [4]);
 
-// query : UPDATE users SET username = 'Bob' modification_date = 1401970851 WHERE user_id = 5
+// query : UPDATE users SET title='Welcome', content='Bob\'s Content' WHERE entry_id = 4
 ```
 
 ### Delete
 
-#### $this->db->delete(string $tablename, array $where = array(), string $extraSql = '', integer $limit = '');
+#### $this->db->query("DELETE FROM table WHERE id = ?", array(), [$id]);
 
 ```php
 <?php
+$this->db->query("DELETE FROM table WHERE id IN (%s)", array(['@in' => [1,2,3]]));
 
-$this->db->delete('users', array('user_id' => 5));  //  gives 1 ( affected rows )
+// query: DELETE FROM users WHERE id IN ('1','2','3')
+```
+AND example
 
-// query : DELETE FROM users WHERE user_id = 5
+```php
+<?php
+$this->db->query(
+    "DELETE FROM users WHERE id = ? AND (%s)", 
+    array(['@and' => ['a' => 'b', 'c' => 'd']]), 
+    array(5)
+);
 
-$this->db->delete('users', array('user_id' => 5), array(), 1);
-
-// query : DELETE FROM users WHERE user_id = 5 LIMIT 1
-
-$this->db->delete('users', array(), ' WHERE username LIKE '.$this->db->escapeLike('test'));
-
-// query : DELETE FROM users WHERE username LIKE '%test%'
+// query: DELETE FROM users WHERE id = 5 AND (a = 'b' AND c = 'd')
 ```
 
-Above the methods don't protect your identifiers. ( `tablename`, `column names` ..  ) If you need to advanced functionalities you can prefer <b>Crud</b> class.
-
-Crud class will replace your database object with crud functions also protect your sql identifiers.
-
-Forexample
+OR example
 
 ```php
 <?php
+$this->db->query(
+    "DELETE FROM users WHERE OR %s", 
+    array(['@or' => ['a' => 'b', 'c' => "d's"]]), 
+    array(4)
+);
 
-$this->c->load('service/crud as db', $this->c->load('service/provider/db'));
-
-$this->db->where('userd_id', 5);
-$this->db->update('users');         // query : UPDATE `users` SET `user_id` = 5;
-
-$this->db->where('userd_id', 5);
-$this->db->get('users');            // query : SELECT * FROM `users` WHERE `user_id` = 5;
-
-pirnt_r($this->db->resultArray());
+// query: DELETE FROM users WHERE id = 4 OR a = 'b' OR c = 'd\'s'
 ```
 
 #### Testing Results
@@ -499,23 +505,6 @@ if ($this->db->count() > 0) {
    echo $row['name'];
    echo $row['body'];
 } 
-```
-
-#### Testing Results with Crud
-
-------
-
-```php
-<?php
-
-$this->c->load('service/crud as db', $this->c->load('service/provider/db'));
-
-$this->db->where('user_id', 5)->get('users');
-
-if ($this->db->count() !== false) {
-    $b = $this->db->resultArray();
-    print_r($b);    // output array( ... )   
-}
 ```
 
 ## Running and Escaping Queries <a name="running-queries"></a>
@@ -559,53 +548,35 @@ echo $affectedRows;   //output  1
 
 ------
 
-
+```php
+<?php
 $this->db->query("SELECT * FROM %s LIMIT ?", array('users'), array(10));
+```
 
-
-
-### Escaping Queries
+### Manually Escaping Queries
 
 ------
 
 It's a very good security practice to escape your data before submitting it into your database. Obullo has three methods that help you do this:
 
-#### $this->db->escape()
+#### $this->db->escape(mixed $data)
 
 This function determines the data type so that it can escape only string data. It also automatically adds single quotes around the data and it can automatically determine data types. 
 
 ```php
 <?php
+$title = 'Welcome';
+$content = "John's blog";
 
-$sql = "INSERT INTO table (title) VALUES(".$this->db->escape($title).")";
-```
+$this->db->query(
+    "INSERT INTO table (title, content) VALUES ("
+    .$this->db->escape($title)
+    .",".
+    $this->db->escape($content)
+    .')'
+);
 
-Supported data types: <samp>(int), (string), (boolean)</samp>
-
-#### $this->db->escapeLike()
-
-This method should be used when strings are to be used in LIKE conditions so that LIKE wildcards ('%', '_') in the string are also properly escaped. 
-
-```php
-<?php
-
-$search = '20% raise';
-$sql = "SELECT id FROM table WHERE column LIKE '%".$this->db->escapeLike($search)."%'";
-```
-
-**Note:** You don't need to **$this->escapeLike** function when you use Crud class because of it do auto escape for like conditions.
-
-```php
-<?php
-
-$this->db->select("*");
-$this->db->like('article','%%blabla')
-$this->db->orLike('article', 'blabla')
-$query = $this->db->get('articles');
-
-echo $query->lastQuery();
-
-// Output
+// INSERT INTO table (title, content) VALUES ('Welcome','John\'s blog')
 ```
 
 ## Traditional Query Binding <a name="query-binding"></a>
@@ -721,16 +692,6 @@ Outputs the database platform you are running (MySQL, MS SQL, Postgres, etc...):
 
 $drivers = $this->db->getDrivers();   print_r($drivers);  // Array ( [0] => mssql [1] => mysql [2] => sqlite2 )
 ```
- 
-#### $this->db->getVersion()
-
-Outputs the database version you are running (MySQL, MS SQL, Postgres, etc...):
-
-```php
-<?php
-
-echo $this->db->getVersion(); // output like 5.0.45 or returns to null if server does not support this feature..
-```
 
 #### $this->db->isConnected()
 
@@ -816,9 +777,11 @@ try {
     
     // INSERT statements
     
-    $this->db->query("INSERT INTO persons (person_type, person_name) VALUES ('lazy', 'ersin')");
-    $this->db->query("INSERT INTO persons (person_type, person_name) VALUES ('clever', 'john')");
-    $this->db->query("INSERT INTO persons (person_type, person_name) VALUES ('funny', 'bob')");
+    $col = array('person_type', 'person_name');
+
+    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
+    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
+    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
 
     $this->db->commit();    // commit the transaction
 
@@ -840,11 +803,13 @@ Also you use active record class like this
 ```php
 <?php
 
+$col = array('person_type', 'person_name');
+
 $e = $this->db->transaction(
-    function () {
-        $this->db->insert('persons', array('person_type' => 'lazy', 'person_name' => 'ersin'));
-        $this->db->insert('persons', array('person_type' => 'clever','person_name' => 'john'));
-        $this->db->insert('persons', array('person_type' => 'funny','person_name' => 'bob'));
+    function () use ($col) {
+        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
+        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
+        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
     }
 );
 

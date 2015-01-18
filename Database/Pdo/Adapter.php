@@ -83,22 +83,6 @@ Abstract Class Adapter
     }
 
     /**
-     * Parse array and escape
-     * 
-     * @param array $data values
-     * 
-     * @return array escaped data
-     */
-    protected function escapeArray($data)
-    {
-        $newData = array();
-        foreach ($data as $key => $value) {
-            $newData[$key] = $this->_escape($value);
-        }
-        return $newData;
-    }
-
-    /**
      * Set pdo prepare function
      *
      * @param string $sql     prepared query
@@ -122,13 +106,17 @@ Abstract Class Adapter
 
     /**
      * Prepared or Direct Pdo Query
-     * 
+     *
+     * @param string $sql     query
+     * @param array  $sprintf values
+     * @param array  $values  bind values
+     *
      * @return object pdo
      */
-    public function query()
+    public function query($sql, $sprintf = null, $values = array())
     {
         $this->connect();
-        $data = $this->_prepSqlQuery(func_get_args());
+        $data = $this->_prepSqlQuery($sql, $sprintf, $values);
         $this->lastSql = $data['sql'];
         $this->startQueryTimer = microtime(true);
 
@@ -160,11 +148,7 @@ Abstract Class Adapter
         if (count($array) == 0) {   // If we have no sprintf data
             return $sql;
         }
-        $newArray = array();
-        foreach ($array as $key => $value) {
-            $newArray[$key] = $value;
-        }
-        return vsprintf($sql, $newArray);
+        return vsprintf($sql, $array);
     }
 
     /**
@@ -368,32 +352,13 @@ Abstract Class Adapter
      * Smart Escape String via PDO Escapes data based on type
      * Sets boolean and null types
      *
-     * @param string $str escape value
+     * @param mixed $data escape value(s)
      * 
      * @return mixed
      */
-    public function escape($str)
+    public function escape($data)
     {
-        if (is_string($str)) {
-            return $this->_escape($str);
-        }
-        return $str;
-    }
-
-    /**
-     * Escape LIKE String
-     *
-     * Calls the individual driver for platform
-     * specific escaping for LIKE conditions
-     *
-     * @param string $str  input value
-     * @param string $side direction
-     * 
-     * @return mixed
-     */
-    public function escapeLike($str, $side = 'both')
-    {
-        return $this->_escape($str, true, $side);
+        return $this->_escape($data);
     }
 
     /**
@@ -451,19 +416,6 @@ Abstract Class Adapter
         $this->sqlLog($this->lastSql);
 
         return $affectedRows;
-    }
-
-    /**
-     * Return to last sql query string
-     *
-     * @param string $sqlStr string sql
-     * 
-     * @return void
-     */
-    protected static function getSqlString($sqlStr)
-    {
-        $sql = preg_replace('/\n/', ' ', $sqlStr);
-        return trim($sql, "\n");
     }
 
     /**
@@ -578,31 +530,6 @@ Abstract Class Adapter
         return $this->lastSql;
     }
 
-    // /**
-    //  * Build where conditions
-    //  * 
-    //  * @param array $where conditions
-    //  * 
-    //  * @return void
-    //  */
-    // protected function buildConditions($where) 
-    // {
-    //     if (empty($where)) return;
-    //     $newWhere = array();
-    //     foreach ($where as $key => $value) {
-    //         $newWhere[] = $key.' = '.$value;
-    //     }
-    //     $conditions = array();
-    //     $conditions[] = $newWhere[0];
-    //     if (count($newWhere) > 1) {
-    //         unset($newWhere[0]);
-    //         foreach ($newWhere as $key => $value) {
-    //             $conditions[] = "\nAND ".$value;
-    //         }
-    //     }
-    //     return $conditions;
-    // }
-
     /**
      * Assign all controller objects into db class
      * to available closure $this->object support in transaction() method.
@@ -614,6 +541,19 @@ Abstract Class Adapter
     public function __get($key)
     {
         return Controller::$instance->{$key};
+    }
+
+    /**
+     * Return to last sql query string
+     *
+     * @param string $sqlStr string sql
+     * 
+     * @return void
+     */
+    protected static function getSqlString($sqlStr)
+    {
+        $sql = preg_replace('/\n/', ' ', $sqlStr);
+        return trim($sql, "\n");
     }
 
     /**

@@ -39,17 +39,6 @@ interface HandlerInterface
     public function protect($identifier);
 
     /**
-     * Escape the SQL Identifiers
-     *
-     * This function escapes column and table names
-     * 
-     * @param string $item item
-     * 
-     * @return string
-     */
-    public function _escapeIdentifiers($item);
-
-    /**
      * Escape string
      * 
      * @param string $str string
@@ -69,13 +58,37 @@ interface HandlerInterface
     public function quote($str, $type = null);
 
     /**
-     * Builds insert / update values
+     * Resolve insert, update, delete, replace modifiers 
      * 
-     * @param array $data values array
+     * @param string $sprintf format
      * 
      * @return array
      */
-    public function buildValues(array $data);
+    public function resolveModifiers($sprintf);
+
+    /**
+     * From Tables
+     *
+     * This function implicitly groups FROM tables so there is no confusion
+     * about operator precedence in harmony with SQL standards
+     * 
+     * @param array $tables values
+     * 
+     * @return string
+     */
+    public function _fromTables($tables);
+
+    /**
+     * Limit string
+     * Generates a platform-specific LIMIT clause
+     * 
+     * @param string  $sql    query
+     * @param integer $limit  number limit
+     * @param integer $offset number offset
+     * 
+     * @return string
+     */
+    public function _limit($sql, $limit, $offset);
 
 }
 

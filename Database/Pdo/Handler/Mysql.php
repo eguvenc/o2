@@ -25,6 +25,20 @@ Class Mysql extends Adapter implements HandlerInterface
     public $escapeChar = '`';
 
     /**
+     * Clause and character used for LIKE escape sequences - not used in MySQL
+     * 
+     * @var string
+     */
+    public $likeEscapeStr = '';
+
+    /**
+     * Clause and character used for LIKE escape sequences - not used in MySQL
+     * 
+     * @var string
+     */
+    public $likeEscapeChr = '';
+
+    /**
      * Constructor
      * 
      * @param array $c      container
@@ -74,21 +88,6 @@ Class Mysql extends Adapter implements HandlerInterface
     }
 
     /**
-     * Protect identifiers using your escape character.
-     * 
-     * Escape character able to set using $this->setEscapeChar()
-     * method.
-     * 
-     * @param string $identifier identifier
-     * 
-     * @return string
-     */
-    public function protect($identifier)
-    {
-        return $this->escapeChar . $identifier . $this->escapeChar;
-    }
-
-    /**
      * Escape the SQL Identifiers
      *
      * This function escapes column and table names
@@ -117,21 +116,52 @@ Class Mysql extends Adapter implements HandlerInterface
         // remove duplicates if the user already included the escape
         return preg_replace('/[' . $this->escapeChar . ']+/', $this->escapeChar, $str);
     }
-    
+
     /**
-     * Escape string
+     * Protect identifiers using your escape character.
      * 
-     * @param string $str string
+     * Escape character able to set using $this->setEscapeChar()
+     * method.
+     * 
+     * @param string $identifier identifier
      * 
      * @return string
      */
-    public function _escape($str)
+    public function protect($identifier)
     {
+        return $this->escapeChar . $identifier . $this->escapeChar;
+    }
+
+    /**
+     * Escape string
+     * 
+     * @param string  $str  string
+     * @param boolean $like whether or not the string will be used in a LIKE condition
+     * @param string  $side direction
+     * 
+     * @return string
+     */
+    public function _escape($str, $like = false, $side = 'both')
+    {
+        $this->connect();
         if (is_array($str)) {
             foreach ($str as $key => $val) {
                 $str[$key] = $this->_escape($val);
             }
             return $str;
+        }
+        if ($like === true) {         // escape LIKE condition wildcards
+            $str = str_replace(array('%', '_'), array('\\%', '\\_'), $str);
+            switch ($side) {
+            case 'before':
+                $str = "%{$str}";
+                break;
+            case 'after':
+                $str = "{$str}%";
+                break;
+            default:
+                $str = "%{$str}%";
+            }
         }
         if ($this->prepare === false AND trim($str) != '?') { // Make sure is it bind value, if not ...
             $str = $this->quote($str, PDO::PARAM_STR);
@@ -153,108 +183,26 @@ Class Mysql extends Adapter implements HandlerInterface
     }
 
     /**
-     * Builds insert / update values
+     * Preparation of sql statements
      * 
-     * @param array $data values array
-     * 
+     * @param string $sql     query
+     * @param array  $sprintf values
+     * @param array  $values  bind values
+     *
      * @return array
      */
-    public function buildValues(array $data)
+    public function _prepSqlQuery($sql, $sprintf = null, $values = array())
     {
-        $values = array();
-        foreach ($data as $key => $value) {
-            if (is_null($value)) {
-                $values[$key] = 'NULL';
-            } elseif (is_bool($value)) {
-                $values[$key] = ($value) ? 'TRUE' : 'FALSE';
-            } else {
-                $values[$key] = $value;  // We already do escape in Adapter class not need to escape
-            }
-        }
-        return $values;
-    }
-
-    public function prepFields($fields)
-    {
-
-    }
-
-    /**
-     * Preparation of sql for write statements
-     * 
-     * @param array $args query arguments
-     * 
-     * @return string
-     */
-    public function _prepSqlQuery($args)
-    {
-        $sql = $args[0];
-        $sprintf = isset($args[1]) ? $args[1] : null;
         $exp = explode(' ', $sql);
         $operator = $exp[0];
-        $values = array();
-
-            print_r($sprintf); exit;
-        if ($sprintf != null) {
-            $sprintf = $this->resolveModifiers($sprintf);  // parse : $insert, $update, $in, $multi, $columns, $values
+        if ($operator != 'SELECT' AND $sprintf != null) {
+            $sprintf = $this->resolveModifiers($sprintf);
         }
-
-        switch ($operator) {
-
-        case ($operator == 'SELECT'):
-            if (isset($args[2]) AND is_array($args[2])) {   // bind values
-                $values = $args[2];
-            }
-            $sql = $this->sprintf($sql, $sprintf);
-            break;
-
-        // case ($operator == 'INSERT' || $operator == 'REPLACE '):
-        //     if (isset($args[3]) AND is_array($args[3])) {   // bind values
-        //         $values = $args[3];
-        //     }
-        //     if (isset($args[1]) AND in_array('$multiple', $args[1])) {  //  Multiple operations
-        //         $data = $this->buildValues($args[2]);
-        //         $escapedValues = $this->escapeArray($data);
-        //         $sqlString = " (" . implode(', ', array_keys($data)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
-        //         // exit('multiple');
-        //         // multiple insert
-        //         // $prepColumns = $this->prepFields($args[2]);
-        //         // ....
-        //         // ....
-        //     } else {
-        //         $data = $this->buildValues($args[2]);
-        //         $escapedValues = $this->escapeArray($data);
-        //         $sqlString = " (" . implode(', ', array_keys($data)) . ") VALUES (" . implode(', ', array_values($escapedValues)) . ") ";
-        //     }
-        //     $sql = $this->sprintf($sql, $sprintf);
-
-        //     if (isset($args[2]) AND is_array($args[2])) {   // developer may don't want to send third parameter using "false".
-        //         $sql = str_replace('$'.strtolower($operator), $sqlString, $sql);
-        //         $sql = str_replace('$multiple', $sqlString, $sql);
-        //     }
-        //     break;
-
-        // case ($operator == 'UPDATE'):
-        //     $values = isset($args[3]) ? $args[3] : $values;  // bind values
-        //     $sql = $this->sprintf($sql, $sprintf);
-
-        //     if (isset($args[2]) AND is_array($args[2])) {  // developer may don't want to send third parameter using "false".
-        //         $sqlString = '';
-        //         foreach ($args[2] as $key => $value) {
-        //             $sqlString .= $key."=".$this->escape($value).',';
-        //         }
-        //         $sql = str_replace('$update', rtrim($sqlString, ','), $sql);
-        //     }
-        //     break;
-
-        default:
-            break;
-        }
-        return array('sql' => trim($sql), 'values' => $values);
+        return array('sql' => trim($this->sprintf($sql, $sprintf)), 'values' => $values);
     }
 
     /**
-     * Resovle framework modifiers 
+     * Resolve insert, update, delete, replace modifiers 
      * 
      * @param string $sprintf format
      * 
@@ -267,41 +215,166 @@ Class Mysql extends Adapter implements HandlerInterface
             if (is_array($value)) {
                 $mod = key($value);
                 switch ($mod) {
-                case '$in':
-                    $array[$key] = rtrim(implode(',', $this->escapeArray($value['$in'])), ',');
+                case ($mod == '@insert' || $mod == '@replace'):
+                    $escapedArray = $this->escape($value['@insert']);
+                    $array[$key] = " (" . implode(', ', array_keys($escapedArray)) . ") VALUES (" . implode(', ', array_values($escapedArray)) . ") ";
                     break;
-                case '$col':
-                    $array[$key] = rtrim(implode(',', $value['$col']), ',');
-                    break;
-                case '$val':
-                    $array[$key] = rtrim(implode(',', $this->escapeArray($value['$val'])), ',');
-                    break;
-                case '$and':
-                    $AND = '';
-                    $i = 0;
-                    foreach ($value['$and'] as $key => $value) {
-                        $AND .= $key.' = '.$this->escape($value).' AND ';
-                        ++$i;
+                case ($mod == '@update'):
+                    $escapedArray = $this->escape($value['@update']);
+                    $update = '';
+                    foreach ($escapedArray as $key => $value) {
+                        $update .= $key.'='.$value.',';
                     }
-                    $val = ($i > 1) ? substr($AND, 0, -4) : $AND;
-                    $array[$key] = trim($val);
+                    $array[$key] = substr($update, 0, -1);
                     break;
-                case '$or':
-                    $OR = '';
-                    $i = 0;
-                    foreach ($value['$or'] as $key => $value) {
-                        $OR .= $key.' = '.$this->escape($value).' OR ';
-                        ++$i;
+                case ($mod == '@in'):
+                    $array[$key] = rtrim(implode(',', $this->escape($value['@in'])), ',');
+                    break;
+                case ($mod == '@or'):
+                    $or = '';
+                    foreach ($value['@or'] as $key => $value) {
+                        $or.= $key.'='.$this->escape($value).' OR ';
                     }
-                    $val = substr($OR, 0, -3);
-                    $array[$key] = trim($val);
+                    $array[$key] = trim(substr($or, 0, -3));
+                    break;
+                case ($mod == '@and'):
+                    $and = '';
+                    foreach ($value['@and'] as $key => $value) {
+                        $and.= $key.'='.$this->escape($value).' AND ';
+                    }
+                    $array[$key] = trim(substr($and, 0, -4));
                     break;
                 }
+
             } else {
                 $array[$key] = $value;
             }
         }
         return $array;
+    }
+
+    /**
+     * From Tables
+     *
+     * This function implicitly groups FROM tables so there is no confusion
+     * about operator precedence in harmony with SQL standards
+     * 
+     * @param array $tables values
+     * 
+     * @return string
+     */
+    public function _fromTables($tables)
+    {
+        if ( ! is_array($tables)) {
+            $tables = array($tables);
+        }
+        return '(' . implode(', ', $tables) . ')';
+    }
+
+    /**
+     * Insert statement
+     *
+     * Generates a platform-specific insert string from the supplied data
+     *
+     * @param string $table  the table name
+     * @param array  $keys   the insert keys
+     * @param array  $values the insert values
+     * 
+     * @return string
+     */
+    public function _insert($table, $keys, $values)
+    {
+        return "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
+    }
+
+    /**
+     * Replace statement
+     *
+     * Generates a platform-specific replace string from the supplied data
+     *
+     * @param string $table  the table name
+     * @param array  $keys   the insert keys
+     * @param array  $values the insert values
+     * 
+     * @return string
+     */
+    public function _replace($table, $keys, $values)
+    {
+        return "REPLACE INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
+    }
+
+    /**
+     * Update statement
+     *
+     * Generates a platform-specific update string from the supplied data
+     *
+     * @param string $table   the table name
+     * @param array  $values  the update data
+     * @param array  $where   the where clause
+     * @param array  $orderby the orderby clause
+     * @param int    $limit   the limit clause
+     * 
+     * @return string
+     */
+    public function _update($table, $values, $where, $orderby = array(), $limit = false)
+    {
+        foreach ($values as $key => $val) {
+            $valstr[] = $key . ' = ' . $val;
+        }
+        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
+        $orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
+        $sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
+        $sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
+        $sql .= $orderby.$limit;
+        return $sql;
+    }
+
+    /**
+     * Delete statement
+     *
+     * Generates a platform-specific delete string from the supplied data
+     *
+     * @param string $table the table name
+     * @param array  $where the where clause
+     * @param string $like  the like clause
+     * @param string $limit the limit clause
+     * 
+     * @return string
+     */
+    public function _delete($table, $where = array(), $like = array(), $limit = false)
+    {
+        $conditions = '';
+        if (count($where) > 0 OR count($like) > 0) {
+            $conditions = "\nWHERE ";
+            $conditions .= implode("\n", $where);
+            if (count($where) > 0 AND count($like) > 0) {  // Put and for like
+                $conditions .= " AND ";
+            }
+            $conditions .= implode("\n", $like);
+        }
+        $limit = ( ! $limit) ? '' : ' LIMIT ' . $limit;
+        $sql = "DELETE FROM " . $table . $conditions . $limit;
+        return trim($sql);
+    }
+
+    /**
+     * Limit string
+     * Generates a platform-specific LIMIT clause
+     * 
+     * @param string  $sql    query
+     * @param integer $limit  number limit
+     * @param integer $offset number offset
+     * 
+     * @return string
+     */
+    public function _limit($sql, $limit, $offset)
+    {
+        if ($offset == 0) {
+            $offset = '';
+        } else {
+            $offset .= ", ";
+        }
+        return $sql . "LIMIT " . $offset . $limit;
     }
 
 }
