@@ -64,7 +64,7 @@ Class QueryBuilder
      */
     public function __construct($c)
     {
-        $this->adapter = $c->load('service/provider/db', $c['config']['crud.params.database']);
+        $this->adapter = $c->load('service/provider/db', $c['config']['query.params.database']);
     }
 
     /**
