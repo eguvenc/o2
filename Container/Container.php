@@ -109,13 +109,6 @@ Class Container implements ArrayAccess
         $controllerExists = class_exists('Controller', false);
         $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','httpSanitizer'));
 
-        $keyExists = false;
-        if ($controllerExists
-            AND Controller::$instance != null
-            AND in_array($key, array_keys(get_object_vars(Controller::$instance)))
-        ) {
-            $keyExists = true;
-        }
         // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
         // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
         // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they available.
@@ -131,15 +124,14 @@ Class Container implements ArrayAccess
             || ! is_object($this->values[$cid])
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
-            if ( ! empty($matches['new'])) {  //  If we have new class request ?
-                return $this->runClosure($this->raw[$cid], $params);
+            if ($noReturn AND $controllerExists AND Controller::$instance != null) {
+                return Controller::$instance->{$key} = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
             }
-            if ($noReturn AND $controllerExists AND $keyExists == false AND Controller::$instance != null) {
-                return Controller::$instance->{$key} = $this->values[$cid];
+            if ( ! empty($matches['new'])) {
+                return $this->runClosure($this->raw[$cid], $params);  // Return to new instance if Controller::$instance == null.
             }
             return $this->values[$cid];
-        }             
-
+        }
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
 
@@ -148,7 +140,6 @@ Class Container implements ArrayAccess
         // it says "$this->view" undefined object that's why we need to assign libraries also for sub layers.
         if ($controllerExists
             AND $noReturn  //  Store class into controller instance if return not used.
-            AND $keyExists == false
             AND Controller::$instance != null  // Sometimes in router level controller instance comes null.
             AND $isCoreFile == false  // Ignore core classes which they have already loaded
         ) {
@@ -273,12 +264,12 @@ Class Container implements ArrayAccess
     protected function resolveProvider($data, $map, $matches, $params)
     {
         $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
-        $key = $this->getAlias($data['cid'], lcfirst(substr(implode('', $map), 7)), $matches);  // Converts "serviceProviderCache" to "providerCache"
 
-        $newMatches['return'] = 'return'; // Provider must be return to closure.
-        $newMatches['new'] = $matches['new'];
-        $newMatches['key'] = $key;
-        $instance = $this->offsetGet($cid, $params, $newMatches);
+        // $key = lcfirst(substr(implode('', $map), 7));
+        $key = $this->getAlias($data['cid'], strtolower(end($map)), $matches);  // Converts "serviceProviderCache" to "providerCache"
+
+        $matches['key'] = $key; // Override to key
+        $instance = $this->offsetGet($cid, $params, $matches);
 
         if ( ! empty($matches['return'])) {
             return $instance;
@@ -323,7 +314,7 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Serach "as" keyword
+     * Search "as" keyword
      * 
      * @param string $key     class key
      * @param array  $matches loader command matches
@@ -333,7 +324,8 @@ Class Container implements ArrayAccess
     protected function searchAs($key, $matches)
     {
         if ( ! empty($matches['last'])) {  // Replace key with alias if we have it
-            $key = preg_replace('#(as)\b#i', '', trim($matches['last']));  // as "name"
+            // $key = preg_replace('#(as)\b#i', '', trim($matches['last']));  // as "name"
+            $key = substr(trim($matches['last']), 3);
         }
         return trim($key);
     }
@@ -405,10 +397,14 @@ Class Container implements ArrayAccess
             'new' => '',
             'model' => '',
             'class' => $class,
-            'last' => ''
+            'last' => '',
+            'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
             preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<model>(?:)model|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
+            if ( ! empty($matches['last'])) {
+                $matches['as'] = substr(trim($matches['last']), 3);
+            }
         }
         $this->resolvedCommand[$class] = $matches;
         return $matches;

@@ -230,20 +230,6 @@ Class Mysql extends Adapter implements HandlerInterface
                 case ($mod == '@in'):
                     $array[$key] = rtrim(implode(',', $this->escape($value['@in'])), ',');
                     break;
-                case ($mod == '@or'):
-                    $or = '';
-                    foreach ($value['@or'] as $key => $value) {
-                        $or.= $key.'='.$this->escape($value).' OR ';
-                    }
-                    $array[$key] = trim(substr($or, 0, -3));
-                    break;
-                case ($mod == '@and'):
-                    $and = '';
-                    foreach ($value['@and'] as $key => $value) {
-                        $and.= $key.'='.$this->escape($value).' AND ';
-                    }
-                    $array[$key] = trim(substr($and, 0, -4));
-                    break;
                 }
 
             } else {

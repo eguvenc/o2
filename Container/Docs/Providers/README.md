@@ -26,7 +26,7 @@ In order to load and use a service provider you need call "load" command.
 ```php
 <?php
 $c->load('service/provider/mongo');
-$this->providerMongo->method();
+$this->mongo->method();
 ```
 
 ### Using "As" Command
@@ -35,8 +35,8 @@ As command helps to assign objects to controller.
 
 ```php
 <?php
-$c->load('service/provider/database as db', 'db');
-$this->db->tablename->insert(array $data);
+$this->c->load('service/provider/db as stats', array('db' => 'stats'));
+$this->stats->tablename->insert(array $data);
 ```
 
 ### Using "Return" Command
@@ -47,8 +47,8 @@ Below the example we select the mongo collection after that we assign mongo obje
 
 ```php
 <?php
-$c->load('service/provider/mongo as mongo', 'db');
-$this->mongo->test->insert();
+$mongo = $this->c->load('return service/provider/mongo');
+$mongo->test->insert();
 ```
 
 Your provider folder looks like below.
@@ -69,10 +69,9 @@ Example provider
 ```php
 <?php
 
-namespace Provider;
+namespace Service\Provider;
 
-use MongoClient,
-    Obullo\Mongo\MongoConnection;
+use Obullo\Mongo\Connection;
 
 /**
  * Mongo Provider
@@ -95,17 +94,7 @@ Class Mongo implements ProviderInterface
      */
     public function register($c)
     {
-        $c['provider:mongo'] = function ($db = 'db') use ($c) {
-
-            $host     = $c->load('config')['nosql']['mongo'][$db]['host'];
-            $username = $c->load('config')['nosql']['mongo'][$db]['username'];
-            $password = $c->load('config')['nosql']['mongo'][$db]['password'];
-            $port     = $c->load('config')['nosql']['mongo'][$db]['port'];
-            
-            $dsn = "mongodb://$username:$password@$host:$port/$db";
-            $mongo = new MongoConnection($dsn);
-            return $mongo->connect();
-        };
+        // ...
     }
 }
 
@@ -125,14 +114,14 @@ You can set parameters any time after the provider is registered. Because of pro
 <?php
 $app = new Controller(
     function () use ($c) {
-        $c->load('view');
-        $c->load('service/provider/mongo', 'db');
+        $this->c->load('view');
+        $this->c->load('service/provider/mongo')->database = 'db';
     }
 );
 $app->func(
     'index',
     function () {;
-        $cursor = $this->mongoProvider->users->find();
+        $cursor = $this->mongo->users->find();
         foreach ($cursor as $docs) {
             echo $docs['email'].'<br />';
         }
@@ -149,8 +138,8 @@ $app->func(
 <?php
 $app = new Controller(
     function () use ($c) {
-        $c->load('view');
-        $c->load('service/provider/mongo as mongo');
+        $this->c->load('view');
+        $this->c->load('service/provider/mongo')->database = 'test';
     }
 );
 $app->func(
@@ -174,17 +163,17 @@ New command creates new object of instance otherwise container cache the old ins
 ```php
 <?php
 
-$c->load('service/provider/db', 'test');
+$this->c->load('service/provider/db')->database = 'test';
 
 // $this->db->query('test database query');
 
-$c->load('service/provider/db as db', 'jobs'); // test db instance
-$c->load('service/provider/db as db', 'jobs'); // test db instance
-$c->load('service/provider/db as db', 'jobs'); // test db instance
+$this->c->load('service/provider/db as db', 'jobs'); // test db instance
+$this->c->load('service/provider/db as db', 'jobs'); // test db instance
+$this->c->load('service/provider/db as db', 'jobs'); // test db instance
 
 // $this->db->query('test database query');
 
-$c->load('new service/provider/db as db', 'jobs'); // jobs db instance
+$this->c->load('new service/provider/db as db', 'jobs'); // jobs db instance
 
 // $this->db->query('jobs database query');
 ```
@@ -234,8 +223,8 @@ Sometimes we may want to <b>same instance</b> of the provider. Forexample we wan
  */
 $app = new Controller(
     function ($c) {
-        $c->load('view');
-        $c->load('service/provider/mongo', 'db');
+        $this->c->load('view');
+        $this->c->load('service/provider/mongo', 'db');
     }
 );
 ```

@@ -466,31 +466,14 @@ $this->db->query("DELETE FROM table WHERE id IN (%s)", array(['@in' => [1,2,3]])
 
 // query: DELETE FROM users WHERE id IN ('1','2','3')
 ```
-AND example
 
 ```php
 <?php
-$this->db->query(
-    "DELETE FROM users WHERE id = ? AND (%s)", 
-    array(['@and' => ['a' => 'b', 'c' => 'd']]), 
-    array(5)
-);
+$this->db->query("DELETE FROM table WHERE id = ? OR username = ?", array(), [1, 'john']);
 
-// query: DELETE FROM users WHERE id = 5 AND (a = 'b' AND c = 'd')
+// query: DELETE FROM users WHERE id = 1 OR username = 'john'
 ```
 
-OR example
-
-```php
-<?php
-$this->db->query(
-    "DELETE FROM users WHERE OR %s", 
-    array(['@or' => ['a' => 'b', 'c' => "d's"]]), 
-    array(4)
-);
-
-// query: DELETE FROM users WHERE id = 4 OR a = 'b' OR c = 'd\'s'
-```
 
 #### Testing Results
 

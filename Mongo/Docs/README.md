@@ -1,19 +1,20 @@
 
-## Mongo Db Class
+## Mongo Query Class
 
 Mongo Db Class is a full featured <kbd>( CRUD based )</kbd> database management library for popular NoSQL database <b>Mongodb</b>.
 
-### Initializing Mongo Db Class
+### Initializing Mongo Provider
 
 ------
 
 ```php
 <?php
-$this->c->load('service/mongo');
-$this->mongo->method();
+$this->c->load('service/provider/mongo')->db('name');
+$this->mongo->collection->method();
 ```
 
 Once loaded, the Mongo object will be available using: <kbd>$this->mongo->method();</kbd>
+
 
 ### Configuring Mongodb Options
 
@@ -27,8 +28,8 @@ return array(
     'mongo' => array(
         'db' => array(
             'host' => 'localhost',
-            'username' => env('MONGO_USERNAME'),
-            'password' => env('MONGO_PASSWORD'),
+            'username' => $c['env']['MONGO_USERNAME'],
+            'password' => $c['env']['MONGO_PASSWORD'],
             'port' => '27017',
         ),
     ),
@@ -39,7 +40,41 @@ return array(
 
 ```php
 <?php
-$this->c->load('service/mongo', 'db');
+$this->c->load('service/provider/mongo')->db('stats');
+
+foreach ($this->mongo->users->find() as $val) {
+    echo $val['_id'].'<br>';
+}
+```
+
+Changing the database
+
+
+```php
+$this->c->load('service/provider/mongo')->db('db');  // change database
+
+foreach ($this->mongo->logs->find() as $val) {
+    echo $val['message'].'<br>';
+}
+```
+
+
+### Initializing Mongo Query Service
+
+
+------
+
+```php
+<?php
+$this->c->load('service/mongo')->db('name');
+$this->mongo->get('collection')->method();
+```
+
+### Connection for Mongo Query Service
+
+```php
+<?php
+$this->c->load('service/mongo')->db('test');
 
 $this->mongo->get('users');
 $row = $this->mongo->rowArray();
@@ -51,13 +86,8 @@ if($row) {
 }
 ```
 
-### Active Record Functions Are Available
-
 ```php
-<?php
-$this->mongo->select();
-$this->mongo->where('username', 'bob');
-
+$this->mongo->select()->where('username', 'bob')->get('users');
 $row = $this->mongo->row();
 
 if ($row) {
@@ -102,8 +132,7 @@ $this->mongo->update('users', array('username' => 'bob', 'ts' => new MongoDate()
 
 ```php
 <?php
-$this->mongo->where('_id', new MongoId('50a39b5e1657ae3817000000'));
-$this->mongo->delete('users')
+$this->mongo->where('_id', new MongoId('50a39b5e1657ae3817000000'))->delete('users');
 ```
 
 #### $this->mongo->get()
@@ -123,17 +152,13 @@ foreach($this->mongo->resultArray() as $row) {
 
 ```php
 <?php
-$this->mongo->get('users');
-$row = $this->mongo->row();
-
+$row = $this->mongo->get('users')->row();
 echo $row->username;
 ```
 
 ```php
 <?php
-$this->mongo->select('username,  user_firstname');
-
-$docs = $this->mongo->get('users');
+$docs = $this->mongo->select('username,  user_firstname')->get('users');
 $row  = $docs->nextRow();
 
 echo $row['username'];
@@ -157,8 +182,7 @@ $this->mongo->result();
 
 ```php
 <?php
-$this->mongo->where('username', 'bob');
-$this->mongo->get('users');
+$this->mongo->where('username', 'bob')->get('users');
 
 $row = $this->mongo->row();
 echo $row['username'];
@@ -483,10 +507,6 @@ $gridFS->remove(array('user_id' => new MongoId($this->auth->getIdentity('_id')),
 
 -----
 
-#### $this->mongo->useMongoId(bool $bool = true);
-
-Mongo id switch
-
 #### $this->mongo->select(mixed $includes = '');
 
 Determine which fields to include OR which to exclude during the query process.
@@ -603,10 +623,6 @@ Delete all documents from the passed collection based upon certain criteria.
 
 Establish a connection to MongoDB using the connection string generated in the setConnectionString() method.
 
-#### $this->mongo->getInstance();
-
-Returns to Mongodb instance of object.
-
 #### $this->mongo->setConnectionString() ;
 
 Build the connection string from the config file.
@@ -621,7 +637,12 @@ Auto add mongo id if "_id" used  .
 
 #### $this->mongo->lastError();
 
-Get last occurence error
+Get last occurence error.
+
+#### $this->mongo->getInstance();
+
+Returns to Mongodb instance of object.
+
 
 ### Function Reference of Query Results
 

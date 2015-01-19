@@ -71,10 +71,10 @@ Class Connection
             AND isset($this->params['provider'])
             AND isset($this->params['serializer']) // Is this provider request ?
             AND empty($this->commands['new']) 
-            AND $this->params['provider'] == $this->c['config']['cache']['default']['provider']
+            AND $this->provider == $this->c['config']['cache']['default']['provider']
             AND $this->params['serializer'] == $this->c['config']['cache']['default']['serializer']
         ) {
-            return $this->c->load('return service/cache'); // return to current mongo instance
+            return $this->c->load('return service/cache'); // return to shared cache service
         }
 
         $handlers = $this->c['config']['cache']['handlers'];
