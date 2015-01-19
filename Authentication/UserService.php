@@ -52,6 +52,15 @@ Class UserService
         $this->c['user.model'] = function () use ($params) {
             return new $this->config['user']['model']($this->c, $params);
         };
+        $this->c['auth.identity'] = function () use ($params) {
+            return new UserIdentity($this->c, $this);
+        };
+        $this->c['auth.activity'] = function () use ($params) {
+            return new UserActivity($this->c, $this);
+        };
+        $this->c['auth.user'] = function () use ($params) {
+            return new UserLogin($this->c, $this);
+        };
     }
 
     /**
