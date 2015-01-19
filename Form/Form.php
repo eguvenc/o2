@@ -260,7 +260,7 @@ Class Form
      */    
     public function setValue($field = '', $default = '')
     {
-        return $this->value($field, $default);
+        return $this->getValue($field, $default);
     }
 
     /**
