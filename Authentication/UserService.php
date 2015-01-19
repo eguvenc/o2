@@ -58,7 +58,7 @@ Class UserService
         $this->c['auth.activity'] = function () use ($params) {
             return new UserActivity($this->c, $this);
         };
-        $this->c['auth.user'] = function () use ($params) {
+        $this->c['auth.login'] = function () use ($params) {
             return new UserLogin($this->c, $this);
         };
     }
