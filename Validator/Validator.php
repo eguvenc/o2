@@ -30,6 +30,7 @@ Class Validator
     public $validation = false;
     public $callbackFunctions = array();
     public $c;
+    public $filters = array();
 
     /**
      * Constructor
@@ -70,16 +71,20 @@ Class Validator
      * This function takes an array of field names and validation
      * rules as input, validates the info, and stores it
      *
-     * @param mixed  $field input fieldname
-     * @param string $label input label
-     * @param mixed  $rules rules string
+     * @param mixed  $field   input fieldname
+     * @param string $label   input label
+     * @param mixed  $rules   rules string
+     * @param mixed  $filters php5 filters array
      * 
      * @return void
      */
-    public function setRules($field, $label = '', $rules = '')
+    public function setRules($field, $label = '', $rules = '', $filters = array())
     {        
         if (count($_REQUEST) == 0) {  // No reason to set rules if we have no POST or GET data
             return;
+        }
+        if ( ! empty($filters)) {
+            $this->filters[$field] = $filters;
         }
                                  // If an array was passed via the first parameter instead of indidual string
         if (is_array($field)) {  // values we cycle through it and recursively call this function.
@@ -161,6 +166,9 @@ Class Validator
                 $this->execute($row, explode('|', $row['rules']), $this->fieldData[$field]['postdata']);       
             } 
         }
+
+        $this->validateInputFilters();  // Execute the filters.
+
         $totalErrors = sizeof($this->errorArray);         // Did we end up with any errors?
         if ($totalErrors > 0) {
             $this->safeFormData = true;
@@ -632,19 +640,16 @@ Class Validator
     }
 
     /**
-     * Assign all controller objects
-     * into validator class
+     * Assign all controller objects into validator class
      * to callback closure $this->object support.
+     *
+     * @param string $key key
      * 
      * @return void
      */
-    public function assignObjects()
+    public function __get($key)
     {
-        foreach (get_object_vars(Controller::$instance) as $k => $v) {  // Get object variables
-            if (is_object($v)) { // Do not assign again reserved variables
-                $this->{$k} = Controller::$instance->{$k};
-            }
-        }
+        return Controller::$instance->{$key};
     }
 
     /**
@@ -663,6 +668,29 @@ Class Validator
             $label = implode(' ', $ucwords);
         }
         return $label;
+    }
+
+    /**
+     * Validate input filters
+     * 
+     * @return Just empty the filters returns a null
+     */
+    protected function validateInputFilters()
+    {
+        if (empty($this->filters)) {
+            return;
+        }
+        $inputArray = filter_input_array(INPUT_POST, $this->filters);   // http://php.net/manual/en/function.filter-input-array.php
+
+        foreach ($inputArray as $field => $val) {
+            if ($val === false) {
+                if (! isset($this->errorArray[$field])) {               // Bu alanda ilgili bir validator hatası yoksa filter hatasını tanımlıyoruz.
+                    $this->setError($field, $this->translator['OBULLO:VALIDATOR:INPUT_FILTER']);
+                }
+            } elseif (isset($this->fieldData[$field]['postdata'])) {    // Filtrelenmiş veriyi post verisiyle değiştiriyoruz.
+                $this->fieldData[$field]['postdata'] = $val;
+            }
+        }
     }
 
 }

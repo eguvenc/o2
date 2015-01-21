@@ -79,8 +79,6 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
      */
     public function clear()
     {
-        $this->logo();
-
         /**
          * Clear File handler data
          */

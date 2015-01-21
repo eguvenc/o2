@@ -2,6 +2,8 @@
 
 namespace Obullo\Database;
 
+use Obullo\Container\Container;
+
 /**
  * Database Connection Manager
  *
@@ -38,16 +40,15 @@ Class Connection
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param array  $params   configuration array
-     * @param array  $commands possible command parameters ( new, return, as .. )
+     * @param object $c      container
+     * @param array  $params configuration array
      */
-    public function __construct($c, $params, $commands = array())
+    public function __construct($c, $params)
     {
         $this->c = $c;
         $this->c['config']->load('database');
         $this->params = $params;
-        $this->commands = $commands;
+        $this->commands = $c['config']['provider:db.commands'];  // Get command parameters
     }
 
     /**
@@ -56,8 +57,7 @@ Class Connection
      * @return void
      */
     public function connect()
-    {
-        $handlers = $this->c['config']['database']['handlers'];
+    { 
         $defaultDb = $this->c['config']['database']['default']['database'];
         $defaultProvider = $this->c['config']['database']['default']['provider'];
         $provider = empty($this->params['provider']) ? $defaultProvider : $this->params['provider'];
@@ -70,15 +70,17 @@ Class Connection
         * But if new keyword used in loader $this->c->load('new service/provider/db'); this time we cannot
         * return to old instance.
         */ 
-        if ($this->c->exists('db')  //  Is service available ?
-            AND isset($this->params['db'])      // Is this provider request ?
+        if ($this->c->exists('db')  //  Is service available, is it loaded before the declaration of provider ?
+            AND isset($this->params['db'])      // Do we have a db parameter ?
             AND isset($this->params['provider'])
             AND empty($this->commands['new']) 
             AND $this->params['db'] == $defaultDb 
             AND $this->params['provider'] == $defaultProvider
         ) {
-            return $this->c->load('return service/db'); // return to current database instance
+            return $this->c->load('return service/db'); // return to shared database instance
         }
+        
+        $handlers = $this->c['config']['database']['handlers'];
         $Class = $handlers[$provider];
         return new $Class($this->c, $this->params);
     }

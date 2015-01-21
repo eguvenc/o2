@@ -35,7 +35,6 @@ Class Container implements ArrayAccess
     protected $keys = array();
     protected $aliases = array();
     protected $unset = array();         // Stores classes we want to remove
-    protected $registered = array();    // Stores registered services
     protected $unRegistered = array();  // Whether to stored in controller instance
     protected $return = array();        // Stores return requests
     protected $resolved = array();      // Stores resolved class names
@@ -119,6 +118,7 @@ Class Container implements ArrayAccess
         ) {
             $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
         }
+
 
         if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
@@ -226,27 +226,22 @@ Class Container implements ArrayAccess
             $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'service');
             $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'provider');
 
-            if (isset($this->registered[$data['cid']])) {  // If service registered before don't register it again.
-                $service = $this->registered[$data['cid']];
-            } else {
-                $service = new $serviceClass($this);
-                $service->register($this, $matches);
-                $this->registered[$data['cid']] = $service;
-            }
-            $implements = key(class_implements($service));
-            $key = $this->getAlias($data['cid'], $data['key'], $matches);
+            $service = new $serviceClass($this);    // WARNING: Don't do lazy loading for services
+            $return = $service->register($this, $params, $matches);
 
-            if ($implements == 'Service\Provider\ProviderInterface') {
-                return $this->resolveProvider($data, $map, $matches, $params);
+            if (key(class_implements($service)) == 'Service\Provider\ProviderInterface') {
+                return $return;
+                // return $this->resolveProvider($data, $map, $matches, $params);
             }
+            // $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
 
-        if ($isService == false) {  // Load none service libraries
+        // if ($isService == false) {  // Load none service libraries
             $key = $this->getAlias($data['cid'], $data['key'], $matches);
-        }
+        // }
         $matches['key'] = $key;
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
-            $this->register($data['cid'], $key, $matches, $data['class'], $params);
+            $this->_register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches, $isService);
     }
@@ -261,21 +256,22 @@ Class Container implements ArrayAccess
      * 
      * @return object
      */
-    protected function resolveProvider($data, $map, $matches, $params)
-    {
-        $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
+    // protected function resolveProvider($data, $map, $matches, $params)
+    // {
+    //     $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
 
-        // $key = lcfirst(substr(implode('', $map), 7));
-        $key = $this->getAlias($data['cid'], strtolower(end($map)), $matches);  // Converts "serviceProviderCache" to "providerCache"
+    //     $key = lcfirst(substr(implode('', $map), 7));
+    //     $key = $this->getAlias($data['cid'], $key, $matches);  // Converts "serviceProviderCache" to "providerCache"
 
-        $matches['key'] = $key; // Override to key
-        $instance = $this->offsetGet($cid, $params, $matches);
+    //     $matches['key'] = $key; // Override to key
+    //     $this->values['config'][$cid.'.commands'] = $matches; //  Store resolved commands parameters
+    //     $instance = $this->offsetGet($cid, $params, $matches);
 
-        if ( ! empty($matches['return'])) {
-            return $instance;
-        }
-        return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
-    }
+    //     if ( ! empty($matches['return'])) {
+    //         return $instance;
+    //     }
+    //     return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
+    // }
 
     /**
      * Define service with an alias
@@ -360,7 +356,7 @@ Class Container implements ArrayAccess
      * 
      * @return mixed object or null
      */
-    protected function register($cid, $key, $matches, $ClassName, $params, $lastKey = null)
+    protected function _register($cid, $key, $matches, $ClassName, $params, $lastKey = null)
     {
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
 
@@ -454,7 +450,6 @@ Class Container implements ArrayAccess
         if ($implode) {
             $exp = $this->mapName($exp);   // Converts "utils/uri" to "utilsUri"
             $key = lcfirst(implode('', $exp));  // First letter must be lowercase
-            // echo $key.'<br />';
         }
         if ($separator == '/') { // Shared type service
             return $this->resolved[$key] = array('key' => $key, 'cid' => $Class, 'class' => $Class);
@@ -561,7 +556,7 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Bind class into the controller if it not exists.
+     * Bind classes into the container if it not exists.
      * 
      * @param string $cid       class id
      * @param string $namespace class
@@ -594,7 +589,7 @@ Class Container implements ArrayAccess
             if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
                 Controller::$instance->{$bindKey} = new stdClass;
             }
-            $this->register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
+            $this->_register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
         }
         if (empty($matches['new']) AND isset($this->frozen[$cid])) {
             return $this->values[$cid];

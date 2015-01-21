@@ -179,6 +179,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function quote($str, $type = null)
     {
+        $this->connect();
         return $this->connection->quote($str, $type);
     }
 

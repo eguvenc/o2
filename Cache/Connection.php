@@ -2,6 +2,8 @@
 
 namespace Obullo\Cache;
 
+use Obullo\Container\Container;
+
 /**
  * Database Connection Manager
  *
@@ -36,20 +38,26 @@ Class Connection
     protected $provider;
 
     /**
+     * Container loader commands
+     * 
+     * @var array
+     */
+    protected $commands;
+
+    /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param array  $params   configuration array
-     * @param array  $commands loader command parameters ( new, return, as, class .. )
+     * @param object $c      container
+     * @param array  $params configuration array
      */
-    public function __construct($c, $params, $commands = array())
+    public function __construct(Container $c, $params)
     {
         $this->c = $c;
         $this->c['config']->load('cache');  // Load cache configuration file
 
         $this->provider = empty($params['provider']) ? $c['config']['cache']['default']['provider'] : $params['provider'];
         $this->params = $params;
-        $this->commands = $commands;
+        $this->commands = $c['config']['provider:cache.commands'];
     }
 
     /**
@@ -76,7 +84,6 @@ Class Connection
         ) {
             return $this->c->load('return service/cache'); // return to shared cache service
         }
-
         $handlers = $this->c['config']['cache']['handlers'];
         
         $Class = $handlers[$this->provider];

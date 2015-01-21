@@ -2,6 +2,8 @@
 
 namespace Obullo\Mail\Transport;
 
+use Obullo\Container\Container;
+
 /**
  * Queue Mailer Transport
  *
@@ -59,19 +61,18 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     /**
      * Create a Queue transport instance.
      *
-     * @param object $c      container
-     * @param array  $config configuration array
+     * @param object $c container
      * 
      * @return void
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c)
     {
-        $this->config = $config;
+        $this->config = $c['config']->load('mail');
         $this->queue = $c->load('return service/queue');
         $this->logger = $c->load('service/logger');
         $this->logger->debug('Mailer Class Initialized');
 
-        parent::__construct($c, $config);
+        parent::__construct($c, $this->config);
     }
 
     /**

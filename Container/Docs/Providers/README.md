@@ -25,7 +25,7 @@ In order to load and use a service provider you need call "load" command.
 
 ```php
 <?php
-$c->load('service/provider/mongo');
+$c->load('service/provider/mongo as mongo');
 $this->mongo->method();
 ```
 

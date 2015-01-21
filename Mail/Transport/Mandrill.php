@@ -2,6 +2,8 @@
 
 namespace Obullo\Mail\Transport;
 
+use Obullo\Container\Container;
+
 /**
  * Mandrill Transactional Email Api Client
  *
@@ -60,13 +62,14 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
     /**
      * Create a new Mandrill transport instance.
      *
-     * @param object $c      container
-     * @param array  $config configuration array
+     * @param object $c container
      * 
      * @return void
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c)
     {
+        $config = $c['config']->load('mail');
+
         $this->key = $config['send']['transport']['mandrill']['key'];
         $this->ipPool = $config['send']['transport']['mandrill']['ip_pool'];
 

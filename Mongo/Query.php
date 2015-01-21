@@ -50,7 +50,7 @@ Class Query
     */
     public function __construct($c)
     {
-        $this->c  = $c;   
+        $this->c = $c;   
     }
 
     /**
@@ -62,7 +62,8 @@ Class Query
      */
     public function db($db)
     {
-        $this->db = $this->c->load('service/provider/mongo')->db($db);
+        $this->db = $this->c->load('return service/provider/mongo')->db($db);  // 
+        return $this;
     }
 
     /**
