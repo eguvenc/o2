@@ -3,6 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use Obullo\Cache\ArrayContainer,
+    Obullo\Container\Container,
     RunTimeException;
 
 /**
@@ -32,7 +33,7 @@ Class Apc implements HandlerInterface
      * @param array $c          container
      * @param array $serializer serializer type
      */
-    public function __construct($c, $serializer = null)
+    public function __construct(Container $c, $serializer = null)
     {
         $c = null;
         $serializer = null;

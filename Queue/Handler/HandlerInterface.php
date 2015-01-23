@@ -15,8 +15,7 @@ namespace Obullo\Queue\Handler;
 interface HandlerInterface
 {
     /**
-     * Create exchange object if not exists 
-     * otherswise returns to instance of it
+     * Create exchange object if not exists otherwise returns to instance of it
      * 
      * @param string $name exchange
      * @param mixed  $type type 

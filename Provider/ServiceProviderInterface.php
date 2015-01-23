@@ -1,6 +1,6 @@
 <?php
 
-namespace Service\Provider;
+namespace Obullo\Provider;
 
 use Obullo\Container\Container;
 
@@ -25,7 +25,7 @@ interface ServiceProviderInterface
      * 
      * @return void
      */
-    public function register(Container $c, $params = array(), $matches = array())
+    public function register(Container $c, $params = array(), $matches = array());
 }
 
 // END ServiceProviderInterface class

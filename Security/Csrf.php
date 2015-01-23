@@ -54,7 +54,7 @@ Class Csrf
     {
         $this->c = $c;
         $this->config = $c['config']['security'];
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         $this->response = $c['response'];
 
         $this->logger->channel('security');

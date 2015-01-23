@@ -2,8 +2,9 @@
 
 namespace Obullo\Cache\Handler;
 
-use Obullo\Cache\ArrayContainer,
-    RunTimeException;
+use RunTimeException,
+    Obullo\Cache\ArrayContainer,
+    Obullo\Container\Container;
 
 /**
  * Redis Caching Class
@@ -67,7 +68,7 @@ Class Redis implements HandlerInterface
      * @param array $c          container
      * @param array $serializer serializer type
      */
-    public function __construct($c, $serializer = null)
+    public function __construct(Container $c, $serializer = null)
     {
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['redis'];

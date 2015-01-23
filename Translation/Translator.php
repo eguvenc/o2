@@ -3,7 +3,8 @@
 namespace Obullo\Translation;
 
 use ArrayAccess, 
-    LogicException;
+    LogicException,
+    Obullo\Container\Container;
 
 /**
  * Translator Class
@@ -97,7 +98,7 @@ Class Translator implements ArrayAccess
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
 
@@ -116,7 +117,7 @@ Class Translator implements ArrayAccess
 
         $this->setDefault(); // Initialize to default language
 
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('Translator Class Initialized');
     }
 

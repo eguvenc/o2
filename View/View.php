@@ -4,7 +4,8 @@ namespace Obullo\View;
 
 use Closure,
     Controller,
-    Obullo\Layer\Layer;
+    Obullo\Layer\Layer,
+    Obullo\Container\Container;
 
 /**
  * View Class
@@ -37,22 +38,33 @@ Class View
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params configuration array
+     * @param array $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->response = $this->c['response'];
-        $this->_layoutArray = $params['layouts'];
-
+        
         $this->_staticVars = array(
             '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
             '@ASSETS'  => rtrim($c['config']['url']['assets'], '/')
         );
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('View Class Initialized');
+    }
+
+    /**
+     * Set layout configuration
+     * 
+     * @param array $layouts layout data
+     *
+     * @return object
+     */
+    public function setLayouts($layouts = array())
+    {
+        $this->_layoutArray = $layouts;
+        return ($this);
     }
 
     /**
@@ -111,18 +123,21 @@ Class View
     /**
      * Set variables
      * 
-     * @param string $key view key data
-     * @param mixed  $val mixed
+     * @param string $key    view key data
+     * @param mixed  $val    mixed
+     * @param string $filter set filter or on / off all filters
      * 
      * @return void
      */
-    public function assign($key, $val)
+    public function assign($key, $val, $filter = null)
     {
         if (is_int($val)) {
             $this->_stringStack[$key] = $val;
             return;
         }
         if (is_string($val)) {
+            //  do filter
+            
             $this->parseString($key, $val);
             return;
         }
@@ -132,11 +147,15 @@ Class View
                 $this->_arrayStack[$key] = array();
             } else {
                 foreach ($val as $array_key => $value) {
+                    
+                    //  do filter
+                    //  
                     $this->_arrayStack[$key][$array_key] = $value;
                 }
             }
         }
         if (is_object($val)) {
+            //  do filter
             $this->_objectStack[$key] = $val;
             $this->_arrayStack = array();
             return;
@@ -161,12 +180,6 @@ Class View
      */
     protected function parseString($key, $val)
     {
-        if (strpos($val, '@layer') === 0 ) {    // Layer request
-            $matches = explode('.', $val);
-            $uri     = $matches[1];
-            $param = (isset($matches[2])) ? $matches[2] : '';
-            $val   = $this->c['layer']->get($uri, $param);
-        }
         $this->_stringStack[$key] = $val;
         if (strpos($key, '@') === 0) {
             $this->setVar($key, $val);

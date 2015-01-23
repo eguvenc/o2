@@ -128,7 +128,7 @@ Class Rate
     {
         $this->c = $c;
         $this->cache = $c->load('service/cache');
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
 
         $this->config = new Config($c);
         $this->config->identifier($identifier);
@@ -407,7 +407,6 @@ Class Rate
     {
         $this->run();  // Read configuration from cache
 
-        $data = $this->getRequestData();
         /**
          * If the service request disabled it always returns to true.
          */
@@ -419,6 +418,9 @@ Class Rate
             $this->logger->notice('User is banned.', array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
             return false;
         }
+        
+        $data = $this->getRequestData();
+
         /**
          * Daily Limit
          */
@@ -463,12 +465,23 @@ Class Rate
     {
         if ($this->config->getBanStatus() == true) {
             $this->addBan();
+            $this->deleteRequestData();  // Remove request data after ban
             $this->logger->notice(ucfirst($type).' ban.', array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
             return;
         }
         $error = 'Maximum connection limit reached for '. $type .' period.';
         $this->setError($error);
         $this->logger->notice($error, array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
+    }
+
+    /**
+     * Removes request data of valid user
+     * 
+     * @return boolean
+     */
+    public function deleteRequestData()
+    {
+        return $this->cache->delete(static::RATE_LIMITER_DATA.':'. $this->getChannel() . ':' . $this->getIdentifier());
     }
 
     /**
@@ -518,7 +531,7 @@ Class Rate
         $this->cache->set(
             static::RATE_LIMITER_DATA .':'. $this->getChannel() . ':' . $this->getIdentifier(),
             $data,
-            static::CACHE_DATA_EXPIRATION
+            $this->settings['ban']['expiration']
         );
         $this->resetPeriod();    // Period reset
 

@@ -167,7 +167,7 @@ Class Router
         $this->router = $params;
         $this->uri    = $this->c['uri'];
         $this->config = $this->c['config'];
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
         if (defined('STDIN')) {
@@ -592,7 +592,7 @@ Class Router
         if ( ! is_callable($closure)) {
             return;
         }
-        if (is_object(Controller::$instance)) {
+        if (Controller::$instance != null) {
             $closure = Closure::bind($closure, Controller::$instance, 'Controller');
         }
         if ($useCallUserFunc) {

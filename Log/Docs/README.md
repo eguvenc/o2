@@ -13,7 +13,7 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
 
 ```php
 <?php
-$this->c->load('service/logger');
+$this->c->load('logger');
 $this->logger->method();
 ```
 

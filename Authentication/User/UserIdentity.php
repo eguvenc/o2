@@ -123,7 +123,7 @@ Class UserIdentity extends AuthorizedUser
         }
 
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->config['security']['cookie']['refresh'].' seconds');
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
 
         register_shutdown_function(array($this, 'writeClose'));
     }

@@ -26,7 +26,7 @@ Class Error
     {
         $this->c = $c;
         $this->response = $response;
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
     }
 
     /**

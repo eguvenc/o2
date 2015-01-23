@@ -40,7 +40,7 @@ Class Alpha
             $lang = 'L';    // auto
         }
         if (defined('PCRE_VERSION') AND intval(PCRE_VERSION) < 7) {
-            $this->c->load('return service/logger')->notice('Unicode support disabled your PCRE_VERSION must be >= 7.');
+            $this->c->load('logger')->notice('Unicode support disabled your PCRE_VERSION must be >= 7.');
             return ( ! preg_match("/^([-a-z0-9_\-])+$/i", $str)) ? false : true;
         }
         return ( ! preg_match('/^[\p{'.$lang.'}_\-\d]+$/u', $str)) ? false : true;

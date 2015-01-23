@@ -49,7 +49,7 @@ Class Mysql extends Adapter implements HandlerInterface
         $c['config']->load('database');
         $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
 
-        parent::__construct($c, $c['config']['database']['key'][$default]);
+        parent::__construct($c, $c['config']['database']['connections'][$default]);
     }
 
     /**
@@ -65,26 +65,10 @@ Class Mysql extends Adapter implements HandlerInterface
         $port = empty($this->port) ? '' : ';port=' . $this->port;
         $dsn  = empty($this->dsn) ? 'mysql:host=' . $this->host . $port . ';dbname=' . $this->database : $this->dsn;
 
-        $this->initialize();
         $this->connection($dsn, $this->username, $this->password, $this->options);
 
         // We set exception attribute for always showing the pdo exceptions errors.
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
-    }
-
-    /**
-     * Initialize to attributes
-     * 
-     * @return void
-     */
-    protected function initialize()
-    {
-        if ($this->autoinit['bufferedQuery'] AND defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) { // Automatically use buffered queries.
-            $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = true;
-        }
-        if ($this->autoinit['charset']) {
-            $this->options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES $this->charset";
-        }   
     }
 
     /**
@@ -181,63 +165,6 @@ Class Mysql extends Adapter implements HandlerInterface
     {
         $this->connect();
         return $this->connection->quote($str, $type);
-    }
-
-    /**
-     * Preparation of sql statements
-     * 
-     * @param string $sql     query
-     * @param array  $sprintf values
-     * @param array  $values  bind values
-     *
-     * @return array
-     */
-    public function _prepSqlQuery($sql, $sprintf = null, $values = array())
-    {
-        $exp = explode(' ', $sql);
-        $operator = $exp[0];
-        if ($operator != 'SELECT' AND $sprintf != null) {
-            $sprintf = $this->resolveModifiers($sprintf);
-        }
-        return array('sql' => trim($this->sprintf($sql, $sprintf)), 'values' => $values);
-    }
-
-    /**
-     * Resolve insert, update, delete, replace modifiers 
-     * 
-     * @param string $sprintf format
-     * 
-     * @return array
-     */
-    public function resolveModifiers($sprintf)
-    {
-        $array = array();
-        foreach ($sprintf as $key => $value) {
-            if (is_array($value)) {
-                $mod = key($value);
-                switch ($mod) {
-                case ($mod == '@insert' || $mod == '@replace'):
-                    $escapedArray = $this->escape($value['@insert']);
-                    $array[$key] = " (" . implode(', ', array_keys($escapedArray)) . ") VALUES (" . implode(', ', array_values($escapedArray)) . ") ";
-                    break;
-                case ($mod == '@update'):
-                    $escapedArray = $this->escape($value['@update']);
-                    $update = '';
-                    foreach ($escapedArray as $key => $value) {
-                        $update .= $key.'='.$value.',';
-                    }
-                    $array[$key] = substr($update, 0, -1);
-                    break;
-                case ($mod == '@in'):
-                    $array[$key] = rtrim(implode(',', $this->escape($value['@in'])), ',');
-                    break;
-                }
-
-            } else {
-                $array[$key] = $value;
-            }
-        }
-        return $array;
     }
 
     /**

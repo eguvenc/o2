@@ -59,22 +59,6 @@ $c['env'] = function () {
 $c['config'] = function () use ($c) {
     return new Obullo\Config\Config($c);
 };
-
-function env($key, $default = '', $required = false)
-    {
-        $empty = empty($_ENV[$key]);
-        if ($required AND $empty) {
-            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.ENV.'.php file array.');
-        }
-        if ($empty AND $default != '') {     // default value
-            return $default;
-        }
-        if ( ! isset($_ENV[$key])) {
-            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.ENV.'.php file array.');
-        }
-        return $_ENV[$key];
-    }
-
 /*
 |--------------------------------------------------------------------------
 | Disable / Ebable Php Native Errors
@@ -104,6 +88,28 @@ date_default_timezone_set($c['config']['locale']['date']['php_date_default_timez
 if ($c['config']['error']['debug'] AND $c['config']['error']['reporting'] == false) {
     Obullo\Error\Debug::enable(E_ALL | E_NOTICE | E_STRICT);
 }
+/*
+|--------------------------------------------------------------------------
+| Controller
+|--------------------------------------------------------------------------
+*/
+require OBULLO_CONTROLLER;
+/*
+|--------------------------------------------------------------------------
+| Components
+|--------------------------------------------------------------------------
+*/
+require OBULLO_COMPONENTS;
+require OBULLO_EVENTS;
+require OBULLO_ROUTES;
+/*
+|--------------------------------------------------------------------------
+| Initialize Routes
+|--------------------------------------------------------------------------
+*/
+$c['router']->init();
+
+require OBULLO_FILTERS;
 
 // END Core.php File
 /* End of file Core.php

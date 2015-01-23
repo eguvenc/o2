@@ -49,7 +49,7 @@ Class Request
     public function __construct($c)
     {
         $this->c = $c;
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('Request Class Initialized');
     }
 

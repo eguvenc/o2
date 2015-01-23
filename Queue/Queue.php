@@ -2,6 +2,8 @@
 
 namespace Obullo\Queue;
 
+use Obullo\Container\Container;
+
 /**
  * Abstract Queue Class
  * 
@@ -18,10 +20,9 @@ Abstract class Queue
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params configuration
+     * @param object $c container
      */
-    abstract function __construct($c, $params = array());
+    abstract function __construct(Container $c);
 
     /**
      * Create exchange if not exists

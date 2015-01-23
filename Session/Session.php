@@ -2,8 +2,9 @@
 
 namespace Obullo\Session;
 
-use Obullo\Session\MetaData\MetaData;
-use Obullo\Session\MetaData\Disabled;
+use Obullo\Container\Container,
+    Obullo\Session\MetaData\MetaData,
+    Obullo\Session\MetaData\Disabled;
 
 /**
  * Session Class
@@ -55,17 +56,16 @@ Class Session
     /**
      * Constructor
      *
-     * @param array $c      container
-     * @param array $params configuration
+     * @param array $c container
      */
-    public function __construct($c, $params = array()) 
+    public function __construct(Container $c) 
     {
-        $handlerClass = $params['handlers'][$params['default']['handler']];
+        $this->params = $c['config']->load('session');
+        $handlerClass = $this->params['handlers'][$this->params['default']['handler']];
 
-        $this->params = $params;        
-        $this->handler = new $handlerClass($c, $params);
+        $this->handler = new $handlerClass($c, $this->params);
         $this->config = $c['config'];
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
 
         ini_set('session.cookie_domain', $this->params['cookie']['domain']);
 
@@ -77,7 +77,7 @@ Class Session
             array($this->handler, 'destroy'),
             array($this->handler, 'gc')
         );
-        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $params, $this) : new Disabled;
+        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $this->params, $this) : new Disabled;
         register_shutdown_function(array($this, 'close'));
 
         session_set_cookie_params(

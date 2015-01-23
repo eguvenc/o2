@@ -25,14 +25,14 @@ To load a view file from your <kbd>public/directory/view</kbd> folder call follo
 
 ```php
 <?php
-$this->c['view']->load('filename');
+$this->view->load('filename');
 ```
 
 **Tip**: This function normally include a view file. If you want to load file as string use <b>false</b> parameter.
 
 ```php
 <?php
-echo $this->c['view']->load('filename', false);
+echo $this->view->load('filename', false);
 ```
 
 ### Templates
@@ -43,14 +43,14 @@ To load a template file as string from <kbd>app/templates</kbd> folder you need 
 
 ```php
 <?php
-echo $this->c['view']->template('filename');
+echo $this->view->template('filename');
 ```
 
 To include it as file use <b>true</b> parameter.
 
 ```php
 <?php
-$this->c['view']->template('filename', false);
+$this->view->template('filename', false);
 ```
 
 ### Dynamic Variables <a name="dynamic-variables"></a>
@@ -61,7 +61,7 @@ To create view variables shown as below:
 
 ```php
 <?php
-$this->c['view']->load('hello_world', function() {
+$this->view->load('hello_world', function() {
     $this->assign('name', 'Obullo');
     $this->assign('footer', $this->template('footer'));
 });
@@ -162,7 +162,7 @@ Then in your controller file you can call your layout using $this->layout() func
 ```php
 <?php
 
-$this->c['view']->load(
+$this->view->load(
   'hello_world',
     function () {
       $this->assign('title', 'Hello World !');
@@ -252,7 +252,7 @@ Data is passed from the controller to the view by an <strong>array</strong> in t
 ```php
 <?php
 
-$this->c['view']->load(
+$this->view->load(
   'welcome', 
   function () {
     $data = array(
@@ -279,7 +279,7 @@ $anotherData = array(
                   'title' => 'Hello World !';
                 );
 
-$this->c['view']->load(
+$this->view->load(
    'hello_world', 
     function () use ($data, $anotherData) {
         $this->assign('mydata', $data);
@@ -313,7 +313,7 @@ $app->func(
             'message' => 'My Message'
           );
 
-        $this->c['view']->load(
+        $this->view->load(
             'hello_world',
             function () use ($data) {
                 $this->assign('title', 'Hello World !');
@@ -369,13 +369,13 @@ There is a second optional parameter that lets you change the behavior of the fu
 
 ```php
 <?php
-echo $this->c['view']->load('myfile', false);  
+echo $this->view->load('myfile', false);  
 ```
 ### Loading view as File
 
 ```php
 <?php
-$this->c['view']->load('myfile');  // default behaviour
+$this->view->load('myfile');  // default behaviour
 ```
 
 ### Templates
@@ -384,21 +384,21 @@ $this->c['view']->load('myfile');  // default behaviour
 
 ```php
 <?php
-echo $this->c['view']->template('header');
-echo $this->c['view']->template('footer');
+echo $this->view->template('header');
+echo $this->view->template('footer');
 ```
 
-Then in your controller file you can call your scheme using $this->getScheme() function.
+Then in your controller file you can call your layouts using last parameter.
 
 ```php
 <?php
 
-$this->c['view']->load(
+$this->view->load(
   'hello_world',
-  function () {
-      $this->assign('title', 'Hello World !');
-      $this->layout()
-  }
+  [
+      'title' => 'Hello World'
+  ]
+  'welcome'
 );
 ```
 
@@ -480,7 +480,7 @@ Finally calling Header View Controller using <b>"Layers"</b> gives below the out
 
 ```php
 <?php
-$c->load('layer');
+$this->c->load('layer');
 echo $this->layer->get('views/header');
 ```
 Gives 
@@ -530,7 +530,11 @@ $this->request->router->method();
 
 ------
 
-#### $this->c['view']->load('filename', $include = true, $data = array());
+#### $this->view->setLayouts($layours = array());
+
+Sets layout configuration.
+
+#### $this->view->load('filename', $include = true, $data = array());
 
 Gets the file from local directory e.g. <kbd>public/welcome/view</kbd>
 
@@ -543,9 +547,5 @@ Gets the file from templates directory e.g. <kbd>app/templates</kbd>
 Assign a view variable ( Variable types can be String, Array or Object ), this method <kbd>automatically detects</kbd> the variable types.
 
 #### $this->view->assign('@VARIABLE', 'value');
-
-Assign static variables to available them in your views.
-
-#### $this->view->layout('name');
 
 Uses the layout configuration that is defined in your <kbd>app/config/env/view.php</kbd>.

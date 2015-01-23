@@ -360,7 +360,7 @@ Konfigürasyon dosyaları load metodu ile yüklendiğinde çevre ortamı ne olur
 <?php
 $c['config']->load('database');
 
-echo $c['config']['database']['key']['db']['host'];  // Çıktı localhost
+echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
 ```
 
 

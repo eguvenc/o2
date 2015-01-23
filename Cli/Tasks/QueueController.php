@@ -26,7 +26,7 @@ Class QueueController extends Controller
      */
     public function load()
     {
-        $this->c->load('service/queue');
+        $this->c->load('queue');
         $this->c->load('cli/parser as parser');
     }
 

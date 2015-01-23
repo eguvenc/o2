@@ -2,9 +2,10 @@
 
 namespace Obullo\Cache\Handler;
 
-use Obullo\Cache\ArrayContainer,
-    RunTimeException,
-    ReflectionClass;
+use RunTimeException,
+    ReflectionClass,
+    Obullo\Container\Container,
+    Obullo\Cache\ArrayContainer;
     
 /**
  * Memcached Caching Class
@@ -70,7 +71,7 @@ Class Memcached implements HandlerInterface
      * @param array $c          container
      * @param array $serializer serializer type
      */
-    public function __construct($c, $serializer = null)
+    public function __construct(Container $c, $serializer = null)
     {
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcached'];

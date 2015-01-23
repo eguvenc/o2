@@ -68,8 +68,8 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     public function __construct(Container $c)
     {
         $this->config = $c['config']->load('mail');
-        $this->queue = $c->load('return service/queue');
-        $this->logger = $c->load('service/logger');
+        $this->queue = $c->load('return queue');
+        $this->logger = $c->load('logger');
         $this->logger->debug('Mailer Class Initialized');
 
         parent::__construct($c, $this->config);

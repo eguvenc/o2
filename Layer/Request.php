@@ -3,7 +3,8 @@
 namespace Obullo\Layer;
 
 use Obullo\Layer\Json,
-    Obullo\Layer\Error;
+    Obullo\Layer\Error,
+    Obullo\Container\Container;
 
 /**
  * Request Class
@@ -27,13 +28,12 @@ Class Request
     /**
      * Constructor
      *
-     * @param array $c      container
-     * @param array $params configuration array
+     * @param object $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c)
     {   
         $this->c = $c;
-        $this->params = $params;
+        $this->params = $c['config']['layer'];
     }
 
     /**

@@ -64,7 +64,7 @@ Abstract Class Adapter
             $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
         }
         $this->config = $c['config'];
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
     }
 
     /**
@@ -116,15 +116,12 @@ Abstract Class Adapter
     public function query($sql, $sprintf = null, $values = array())
     {
         $this->connect();
-        $data = $this->_prepSqlQuery($sql, $sprintf, $values);
-        $this->lastSql = $data['sql'];
+        $this->lastSql = $this->sprintf($sql, $sprintf);
         $this->startQueryTimer = microtime(true);
 
-        exit($this->lastSql);
-
-        if (count($data['values']) > 0) {
+        if (count($values) > 0) {
             $this->prepare($this->lastSql);
-            $this->execute($data['values']);
+            $this->execute($values);
             return $this;
         } else {
             $this->stmt = $this->connection->query($this->lastSql);

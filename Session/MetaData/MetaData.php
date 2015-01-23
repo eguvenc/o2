@@ -78,7 +78,7 @@ Class MetaData
         $this->ipAddress = $c['request']->ip();
         $this->userAgent = $c['request']->server('HTTP_USER_AGENT');
         $this->cache = $c->load('service/provider/cache', array('serializer' => 'SERIALIZER_NONE'));
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
     }
 
     /**

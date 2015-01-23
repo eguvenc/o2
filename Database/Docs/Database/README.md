@@ -89,13 +89,13 @@ Class Db implements ProviderInterface
 /* Location: .classes/Service/Provider/Db.php */
 ```
 
-### Using Database Provider
+### Using Database Service
 
 In your controller
 
 ```php
 <?php
-$this->c->load('service/db');
+$this->c->load('db');
 $this->db->query('...');
 ```
 
@@ -103,16 +103,16 @@ In your classes
 
 ```php
 <?php
-$this->db = $this->c->load('return service/db');
+$this->db = $this->c->load('return db');
 
 $this->db->query('...');
 ```
 
-Creating new instance
+Creating new Pdo provider
 
 ```php
 <?php
-$this->c->load('new service/provider/db as anydb', array('db' => 'anydb'));
+$this->c->load('new service provider pdo as anydb', array('db' => 'anydb'));
 
 $this->anydb->query('...');
 ```
@@ -160,7 +160,6 @@ return array(
             'database' => 'test',
             'port'     => '',
             'charset'  => 'utf8',
-            'autoinit' => array('charset' => true, 'bufferedQuery' => true),
             'dsn'      => '',
             'pdo'      => array(
                 'options'  => array()
@@ -249,7 +248,7 @@ If you want to add a second or third database connection <strong>copy/paste</str
 ```php
 <?php
 
-    'key' => array(
+    'connections' => array(
 
         'db' => array(
             'host' => 'localhost',
@@ -258,7 +257,6 @@ If you want to add a second or third database connection <strong>copy/paste</str
             'database' => 'test',
             'port'     => '',
             'charset'  => 'utf8',
-            'autoinit' => array('charset' => true, 'bufferedQuery' => true),
             'dsn'      => '',
             'pdo'      => array(
                 'options'  => array()
@@ -344,7 +342,7 @@ Class Welcome extends \Controller
     public function load()
     {
         $this->c->load('view');
-        $this->c->load('service/db');   // create a database connection
+        $this->c->load('db');   // create a database connection
     }
 
     /**
@@ -535,6 +533,18 @@ echo $affectedRows;   //output  1
 <?php
 $this->db->query("SELECT * FROM %s LIMIT ?", array('users'), array(10));
 ```
+
+### Insert
+
+$this->db->query(
+    'INSERT INTO users (%s,%s,%s) VALUES (?,?,?)', ['username','email', $this->db->protect('date')],
+    [
+        $this->username, 
+        $this->email, 
+        $this->date
+    ]
+);
+
 
 ### Manually Escaping Queries
 
@@ -760,11 +770,19 @@ try {
     
     // INSERT statements
     
-    $col = array('person_type', 'person_name');
 
-    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
-    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
-    $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
+        $this->db->query(
+            'INSERT INTO users (%s,%s,%s) VALUES (?,?,?)', ['username','email', $this->db->protect('date')],
+            [
+                $this->username, 
+                $this->email, 
+                $this->date
+            ]
+        );
+
+    // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
+    // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
+    // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
 
     $this->db->commit();    // commit the transaction
 
@@ -790,9 +808,9 @@ $col = array('person_type', 'person_name');
 
 $e = $this->db->transaction(
     function () use ($col) {
-        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
-        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
-        $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
+        // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
+        // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
+        // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
     }
 );
 

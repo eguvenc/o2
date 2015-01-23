@@ -48,7 +48,7 @@ Class Parser
      */
     public function __construct($c)
     {
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         if ($this->logger instanceof Logger) {  // We need to sure logger object is available
             $this->logger->debug('Cli Parser Class Initialized');
         }

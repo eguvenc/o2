@@ -37,11 +37,11 @@ Class Container implements ArrayAccess
     protected $unset = array();         // Stores classes we want to remove
     protected $unRegistered = array();  // Whether to stored in controller instance
     protected $return = array();        // Stores return requests
-    protected $resolved = array();      // Stores resolved class names
+    protected $resolved = array();         // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
-    protected $bindNamespaces = array(); // Stores bind method namespaces
-
-    const PROVIDER_SIGN = ':';  // To protect providers we use a sign.
+    protected $bindNamespaces = array();   // Stores bind method namespaces
+    protected $services = array();         // Defined services
+    protected $registeredService = array();  // Lazy loading for service wrapper class
 
     /**
      * Constructor
@@ -49,6 +49,8 @@ Class Container implements ArrayAccess
     public function __construct() 
     {
         $this->aliases = new SplObjectStorage;
+        $this->services = array_flip(scandir(APP. 'classes'. DS. 'Service'));  // Scan services
+        unset($this->services['Provider']);
     }
 
     /**
@@ -60,9 +62,6 @@ Class Container implements ArrayAccess
      */
     public function exists($cid) 
     {
-        if (strpos($cid, 'provider/') === 0) {  //  If we have provider alias replace provider path with sign ":".
-            $cid = str_replace('provider/', 'provider'.static::PROVIDER_SIGN, $cid);
-        }
         return $this->offsetExists($cid);
     }
 
@@ -92,16 +91,15 @@ Class Container implements ArrayAccess
     /**
      * Gets a parameter or an object.
      *
-     * @param string $cid       The unique identifier for the parameter or object
-     * @param string $params    The construct arguments
-     * @param string $matches   Registry Command requests
-     * @param string $isService class is service
+     * @param string $cid     The unique identifier for the parameter or object
+     * @param string $params  The construct arguments
+     * @param string $matches Registry Command requests
      *
      * @return mixed The value of the parameter or an object
      *
      * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function offsetGet($cid, $params = array(), $matches = array(), $isService = false)
+    public function offsetGet($cid, $params = array(), $matches = array())
     {
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
@@ -118,7 +116,6 @@ Class Container implements ArrayAccess
         ) {
             $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
         }
-
 
         if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
@@ -208,70 +205,34 @@ Class Container implements ArrayAccess
     {
         $matches = $this->resolveCommand($classString);
         $class = $matches['class'];
-        
-        $isService = false;
-        $provider = strpos($class, 'service/provider');
-        $data = $this->getClassInfo($matches['class'], ($provider !== false) ? true : false);
+        $serviceName = ucfirst($class);
 
-        if (strpos($class, 'service/') === 0) {  // Resolve services & service providers
+        if ( ! empty($matches['provider'])) {  // Resolve provider
+            $serviceClass = '\Obullo\Provider\\'.ucfirst($matches['class']).'ServiceProvider';
+            $service = new $serviceClass($this);
+            return $service->register($this, $params, $matches);  // Run every time register method.
+        }
+        $isService = false;
+        if (isset($this->services[$serviceName]) OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
 
             $isService = true;
-            $exp = explode('/', $class);
-            $map = $this->mapName($exp);  // Converts "utils/uri" to "utilsUri"
-            $serviceClass = '\\'.implode('\\', $map);
+            $data['cid'] = $data['key'] = strtolower($class);
+            $serviceClass = $this->resolveServiceClass($serviceName, $data['key']);
 
-            $data['key'] = end($exp);
-            $data['cid'] = substr($class, 8); // Remove "service/" word
-
-            $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'service');
-            $serviceClass = $this->resolveServiceClass($serviceClass, $data['key'], 'provider');
-
-            $service = new $serviceClass($this);    // WARNING: Don't do lazy loading for services
-            $return = $service->register($this, $params, $matches);
-
-            if (key(class_implements($service)) == 'Service\Provider\ProviderInterface') {
-                return $return;
-                // return $this->resolveProvider($data, $map, $matches, $params);
+            if ( ! isset($this->registeredService[$serviceName])) {
+                $service = new $serviceClass($this);
+                $service->register($this, $params, $matches);
+                $this->registeredService[$serviceName] = true;
             }
-            // $key = $this->getAlias($data['cid'], $data['key'], $matches);
         }
+        $data = $this->getClassInfo($class);
 
-        // if ($isService == false) {  // Load none service libraries
-            $key = $this->getAlias($data['cid'], $data['key'], $matches);
-        // }
-        $matches['key'] = $key;
+        $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
             $this->_register($data['cid'], $key, $matches, $data['class'], $params);
         }
-        return $this->offsetGet($data['cid'], $params, $matches, $isService);
+        return $this->offsetGet($data['cid'], $params, $matches);
     }
-
-    /**
-     * Resolve provider and return to provider instance
-     * 
-     * @param array $data    getClassInfo data
-     * @param array $map     map data
-     * @param array $matches commands
-     * @param array $params  parameters
-     * 
-     * @return object
-     */
-    // protected function resolveProvider($data, $map, $matches, $params)
-    // {
-    //     $cid = strtolower(str_replace('\\', static::PROVIDER_SIGN, substr($data['class'], 8))); // Protect providers from services
-
-    //     $key = lcfirst(substr(implode('', $map), 7));
-    //     $key = $this->getAlias($data['cid'], $key, $matches);  // Converts "serviceProviderCache" to "providerCache"
-
-    //     $matches['key'] = $key; // Override to key
-    //     $this->values['config'][$cid.'.commands'] = $matches; //  Store resolved commands parameters
-    //     $instance = $this->offsetGet($cid, $params, $matches);
-
-    //     if ( ! empty($matches['return'])) {
-    //         return $instance;
-    //     }
-    //     return (Controller::$instance != null) ? Controller::$instance->{$key} = $instance : $instance;
-    // }
 
     /**
      * Define service with an alias
@@ -298,9 +259,6 @@ Class Container implements ArrayAccess
      */
     protected function getAlias($cid, $key, $matches) 
     {   
-        if (strpos($cid, 'provider/') === 0) {  //  If we have provider alias replace provider path with sign ":".
-            $cid = str_replace('provider/', 'provider'.static::PROVIDER_SIGN, $cid);
-        }
         $callable = $this->raw($cid);
 
         if ( ! is_null($callable) AND $this->aliases->contains($callable)) {
@@ -397,7 +355,8 @@ Class Container implements ArrayAccess
             'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            preg_match('#^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<model>(?:)model|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$#', $class, $matches);
+            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<model>(?:)model|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
+            preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);
             }
@@ -409,12 +368,11 @@ Class Container implements ArrayAccess
     /**
      * Get class name and key
      * 
-     * @param string  $cid      identifier
-     * @param boolean $provider is it provider
+     * @param string $cid identifier
      *
      * @return array data
      */
-    public function getClassInfo($cid, $provider = false)
+    public function getClassInfo($cid)
     {
         if (isset($this->resolved[$cid])) {
             return $this->resolved[$cid];
@@ -422,12 +380,8 @@ Class Container implements ArrayAccess
         $Class = ucfirst($cid);
         $Class = str_replace('/', '\\', trim($Class));  // Replace  all forward slashes "/" to backslashes "\\".
 
-        if ($this->exists($cid) || $this->exists(strtolower($cid)) AND strpos($cid, '/') > 0) {  // If its a provider "/"
-            $Class = $cid;
-            return $this->resolveNamespace($Class, $cid, '/', true, $provider);
-        }
         if (strpos($Class, '\\') > 0) {
-            return $this->resolveNamespace($Class, $cid, '\\', true, $provider);
+            return $this->resolveNamespace($Class, $cid, '\\', true);
         }
         return $this->resolveNamespace($Class.'\\'.$Class, strtolower($cid), '\\', false);
     }
@@ -439,11 +393,10 @@ Class Container implements ArrayAccess
      * @param stirng $key       store key
      * @param string $separator path sign
      * @param string $implode   whether to implode namespaces
-     * @param bool   $provider  is it provider
      * 
      * @return string
      */
-    protected function resolveNamespace($Class, $key, $separator = '\\', $implode = true, $provider = false)
+    protected function resolveNamespace($Class, $key, $separator = '\\', $implode = true)
     {
         $exp = explode($separator, $Class);
         $ClassName = end($exp);
@@ -451,14 +404,8 @@ Class Container implements ArrayAccess
             $exp = $this->mapName($exp);   // Converts "utils/uri" to "utilsUri"
             $key = lcfirst(implode('', $exp));  // First letter must be lowercase
         }
-        if ($separator == '/') { // Shared type service
-            return $this->resolved[$key] = array('key' => $key, 'cid' => $Class, 'class' => $Class);
-        }
         array_pop($exp);
         $nameSpace = 'Obullo' .$separator. implode($separator, $exp).$separator. ucfirst($ClassName);
-        if ($provider) {   // Remove Obullo from namepspaces e.g. "Obullo/Service/Provider/Class" => "Service/Provider/Class"
-            $nameSpace = substr($nameSpace, 7);
-        }
         return $this->resolved[$key] = array('key' => $key, 'cid' => $key, 'class' => $nameSpace);
     }
 
@@ -542,17 +489,15 @@ Class Container implements ArrayAccess
      */
     protected function resolveServiceClass($serviceClass, $class, $service = 'service')
     {
-        $config = $this->values['config'];
-        if (isset($config->env[$service][$class]['env'])) {   // Check environment based services
-
-            $attributes = $config->env[$service][$class]['env'];
-            $serviceClass = '\\'.str_replace('/', '\\', $attributes['http']);
-
-            if (isset($attributes['cli']) AND defined('STDIN')) {
-                $serviceClass = '\\'.str_replace('/', '\\', $attributes['cli']);
+        if (isset($this->values['config']->env[$service][$class]['env']['http'])) {   // Check environment based services
+            $envItem = $this->values['config']->env[$service][$class]['env'];
+            $serviceClass = '\\'.str_replace('/', '\\', $envItem['http']);
+            if (isset($envItem['cli']) AND defined('STDIN')) {
+                $serviceClass = '\\'.str_replace('/', '\\', $envItem['cli']);
             }
+            return $serviceClass;
         };
-        return $serviceClass;
+        return '\Service\\'.$serviceClass;
     }
 
     /**
@@ -621,7 +566,7 @@ Class Container implements ArrayAccess
         }
         return $key;
     }
-
+    
     /**
      * Bind object
      * 

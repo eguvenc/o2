@@ -1,21 +1,21 @@
 <?php
 
-namespace Obullo\Mongo;
+namespace Obullo\Provider;
 
-use Obullo\Provider\MongoConnector,
+use Obullo\Provider\MongoConnectionProvider,
     Obullo\Container\Container;
 
 /**
- * Mongo Provider
+ * Mongo Service Provider
  *
  * @category  Provider
  * @package   Mongo
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/providers
+ * @link      http://obullo.com/docs/service_providers
  */
-Class MongoProvider
+Class MongoServiceProvider
 {
     /**
      * Registry
@@ -28,23 +28,23 @@ Class MongoProvider
      */
     public function register(Container $c, $params = array(), $matches = array())
     {
-        if ( ! Connector::isRegistered()) {  // Just one time register the shared objects
+        if ( ! MongoConnectionProvider::isRegistered()) {  // Just one time register the shared objects
             
-            $connector = Connector::getInstance($c);
-            $connector->register();          // Register all Connectors as shared services
-            return $connector->getConnection($params);
+            $connector = MongoConnectionProvider::getInstance($c);  // Register all Connectors as shared services
+            $connector->register();                     
+            return $connector->getConnection($params);  // Get connection
         }
 
-        $connector = Connector::getInstance($c);
+        $connector = MongoConnectionProvider::getInstance($c);
 
-        if ( ! empty($matches['new'])) {   // Do factory ( create new Connector ) if we have new match
-            return $connector->factory($params);  // dynamically creates new mongo config
+        if ( ! empty($matches['new'])) {          // Do factory ( creates new connection ) if we have new match
+            return $connector->factory($params);
         }      
-        return $connector->getConnection($params);   // get a Connector instance before we registered
+        return $connector->getConnection($params);   // Get a Connector instance before we registered
     }
 }
 
-// END MongoProvider Class
+// END MongoServiceProvider Class
 
-/* End of file MongoProvider.php */
-/* Location: .Obullo/Provider/MongoProvider.php */
+/* End of file MongoServiceProvider.php */
+/* Location: .Obullo/Provider/MongoServiceProvider.php */

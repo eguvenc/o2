@@ -192,14 +192,12 @@ Class Worker
     public function __construct($c, array $arguments = array())
     {
         $this->c = $c;
-
-        $this->queue = $c->load('service/queue');
-        $this->logger = $c->load('service/logger');
-        $this->parser = $c->load('cli/parser');
-
-        $this->parser->parse($arguments);
-
         $this->c['config']->load('queue');  // Load queue configuration
+        $this->queue = $this->c->load('queue');
+        $this->logger = $this->c->load('logger');
+
+        $this->parser = $this->c->load('cli/parser');
+        $this->parser->parse($arguments);
 
         Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
         Logger::unregisterExceptionHandler(); // logger error handlers.

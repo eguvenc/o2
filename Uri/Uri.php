@@ -2,7 +2,8 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Http\Sanitizer;
+use Obullo\Http\Sanitizer,
+    Obullo\Container\Container;
 
 /**
  * Uri Class
@@ -36,11 +37,11 @@ Class Uri
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         $this->logger->debug('Uri Class Initialized', array(), 9); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
@@ -373,14 +374,14 @@ Class Uri
             $uriExtension = end($extension);
             if (in_array('.' . $uriExtension, $this->config['uri']['extensions'])) {
                 $this->uriExtension = $uriExtension;  // set extension 
-                return preg_replace('#\.' . $uriExtension . '$#', '', $segment); // remove extension from end of the uri segment
+                return substr($segment, 0, -strlen($uriExtension)); // remove extension from end of the uri segment
             }
         }
         return $segment;
     }
 
     /**
-     * When we use Lvc we need to Clean
+     * When we use Layers we need to Clean
      * all data.
      *
      * @return  void
