@@ -176,7 +176,7 @@ Class Config
      */
     public function read()
     {
-        $config = $this->cache->get(Rate::RATE_LIMITER_CONFIG .':'. $this->channel .':'. $this->getIdentifier());
+        $config = $this->cache->get('Rate:Config:'. $this->channel .':'. $this->getIdentifier());
 
         if ($config == false) { // If not exist in the cache
             $config = $this->save();
@@ -210,7 +210,7 @@ Class Config
             ),
             'enabled' => $this->isEnabled()
         );
-        $this->cache->set(Rate::RATE_LIMITER_CONFIG .':'. $this->channel .':'. $this->getIdentifier(), $config, Rate::CACHE_CONFIG_EXPIRATION);
+        $this->cache->set('Rate:Config:'. $this->channel .':'. $this->getIdentifier(), $config, Rate::CONFIG_EXPIRATION);
 
         return $config;
     }

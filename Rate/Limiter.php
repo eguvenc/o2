@@ -41,7 +41,7 @@ Class Limiter
      * 
      * @return void
      */
-    public function load($identifier = 'ip', $params = array())
+    public function set($identifier = 'ip', $params = array())
     {
         if (count($params) == 0) {
             $params = $this->c['config']->load('rate');  // Load from file

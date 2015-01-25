@@ -21,7 +21,6 @@ Class View
 {
     protected $logger;   // Logger instance
     protected $response; // Response instance
-
     /**
      * Protected variables
      * 
@@ -44,7 +43,6 @@ Class View
     {
         $this->c = $c;
         $this->response = $this->c['response'];
-        
         $this->_staticVars = array(
             '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
@@ -94,8 +92,6 @@ Class View
         include $obulloViewFilePath . $obulloViewFilename . $ext;
         $output = ob_get_clean();
         $output = str_replace(array_keys($this->_staticVars), array_values($this->_staticVars), $output);
-
-        $this->logger->debug('View file loaded: ' . $obulloViewFilePath . $obulloViewFilename . $ext);
         
         if ($obulloViewData === false OR $obulloViewInclude === false) {
             return $output;

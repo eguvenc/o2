@@ -179,7 +179,7 @@ Class Router
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
         $this->httpMethod = strtolower($method);
 
-        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST));
+        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 7);
     }
 
     /**

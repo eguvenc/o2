@@ -37,7 +37,6 @@ Class QueueController extends Controller
      */
     public function index()
     {
-        $this->logo();
         $this->help();
     }
 
@@ -49,14 +48,12 @@ Class QueueController extends Controller
     public function logo()
     {
         echo "\33[1;36m".'
-            ______  _            _  _
-           |  __  || |__  _   _ | || | ____
-           | |  | ||  _ || | | || || ||  _ |
-           | |__| || |_||| |_| || || || |_||
-           |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
 
-
-            Welcome to Task Manager (c) 2015
+        Welcome to Task Manager (c) 2015
     You are running $php task queue command. For help type php task queue --help.'."\n\033[0m\n";
     }
 
@@ -67,6 +64,7 @@ Class QueueController extends Controller
      */
     public function help()
     {
+        $this->logo();
         echo "\33[0;36m".'
 '."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
 
@@ -109,7 +107,7 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
     /**
      * List ( debug ) queue data
      *
-     * php task queue show --route=Server1.Logger clear=1
+     * Example : php task queue show --route=Server1.Logger clear=1
      * 
      * @return string
      */
@@ -163,7 +161,8 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
     /**
      * Listen Queue
      *
-     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --debug=0 --env=prod
+     * Example : 
+     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --debug=0 --env=production
      * 
      * @return void
      */
@@ -177,7 +176,7 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
         $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
         $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
+        $sleep = $this->parser->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
         $tries = $this->parser->argument('tries', 0);     // If job attempt failed we push back on to queue and increase attempt number.
         $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
         $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
@@ -191,8 +190,7 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
             echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
             exit;
         }
-
-        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
+        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
 
         $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
@@ -205,7 +203,7 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
 
 }
 
-// END LogController class
+// END QueueController class
 
-/* End of file LogController.php */
-/* Location: .Obullo/Cli/Tasks/LogController.php */
+/* End of file QueueController.php */
+/* Location: .Obullo/Cli/Tasks/QueueController.php */

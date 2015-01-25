@@ -33,7 +33,6 @@ Class ServiceController extends Controller
      */
     public function index()
     {
-        $this->logo();
         $this->help();
     }
 
@@ -45,13 +44,12 @@ Class ServiceController extends Controller
     public function logo()
     {
         echo "\33[1;36m".'
-            ______  _            _  _
-           |  __  || |__  _   _ | || | ____
-           | |  | ||  _ || | | || || ||  _ |
-           | |__| || |_||| |_| || || || |_||
-           |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
 
-            Welcome to Task Manager (c) 2015
+        Welcome to Task Manager (c) 2015
     You are running $php task service command. For help type php task service --help.'."\n\033[0m\n";
     }
 

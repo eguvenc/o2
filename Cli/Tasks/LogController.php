@@ -57,14 +57,12 @@ Class LogController extends Controller
      */
     public function logo() 
     {
-        echo "\33[1;36m".'
-
-        ______  _            _  _
-       |  __  || |__  _   _ | || | ____
-       | |  | ||  _ || | | || || ||  _ |
-       | |__| || |_||| |_| || || || |_||
-       |______||____||_____||_||_||____|
-
+        echo "\33[1;36m".'   
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
+                                     
         Welcome to Log Manager v2.0 (c) 2015
 You are displaying logs. For more help type $php task help.'."\n\033[0m";
 

@@ -10,7 +10,7 @@ The URI Class provides functions that help you retrieve information from your UR
 
 ```php
 <?php
-$this->c['uri']->method();
+$this->uri->method();
 ```
 
 #### $this->uri->segment(n)

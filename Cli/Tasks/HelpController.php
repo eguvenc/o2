@@ -24,11 +24,10 @@ Class HelpController extends Controller
     public function index()
     {
         echo "\33[1;36m".'
-        ______  _            _  _
-       |  __  || |__  _   _ | || | ____
-       | |  | ||  _ || | | || || ||  _ |
-       | |__| || |_||| |_| || || || |_||
-       |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|                       
 
         Welcome to Task Manager (c) 2014
 You are running $php task help command. For more help type php task [command] --help.'."\n\033[0m\n";

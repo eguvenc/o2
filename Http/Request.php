@@ -171,7 +171,7 @@ Class Request
      * 
      * @return string
      */
-    public function ip()
+    public function getIpAddress()
     {
         static $ipAddress = '';
         $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';

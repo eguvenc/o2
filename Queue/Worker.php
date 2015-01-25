@@ -2,10 +2,11 @@
 
 namespace Obullo\Queue;
 
-use Obullo\Queue\Job,
+use Exception,
+    ErrorException,
+    Obullo\Queue\Job,
     Obullo\Log\Logger,
-    Exception,
-    ErrorException;
+    Obullo\Container\Container;
 
 /**
  * Queue Worker Class
@@ -189,7 +190,7 @@ Class Worker
      * @param object $c         container
      * @param array  $arguments array cli args
      */
-    public function __construct($c, array $arguments = array())
+    public function __construct(Container $c, array $arguments = array())
     {
         $this->c = $c;
         $this->c['config']->load('queue');  // Load queue configuration
@@ -227,7 +228,7 @@ Class Worker
         $this->memory = $this->parser->argument('memory', 128);
         $this->delay  = $this->parser->argument('delay', 0);
         $this->timeout = $this->parser->argument('timeout', 0);
-        $this->sleep = $this->parser->argument('sleep', 0);
+        $this->sleep = $this->parser->argument('sleep', 3);
         $this->tries = $this->parser->argument('tries', 0);
         $this->debug = $this->parser->argument('debug', 0);
         $this->env = $this->parser->argument('env', 'local');

@@ -5,7 +5,7 @@ namespace Obullo\Queue\JobHandler;
 use AMQPQueue,
     AMQPEnvelope,
     Obullo\Queue\Job,
-    Obullo\Container\Container,
+    Obullo\Container\Container;
 
 /**
  * AMQPJob Handler

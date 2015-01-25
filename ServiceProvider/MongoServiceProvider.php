@@ -1,8 +1,8 @@
 <?php
 
-namespace Obullo\Provider;
+namespace Obullo\ServiceProvider;
 
-use Obullo\Provider\MongoConnectionProvider,
+use Obullo\ServiceProvider\MongoConnectionProvider,
     Obullo\Container\Container;
 
 /**
@@ -34,7 +34,6 @@ Class MongoServiceProvider
             $connector->register();                     
             return $connector->getConnection($params);  // Get connection
         }
-
         $connector = MongoConnectionProvider::getInstance($c);
 
         if ( ! empty($matches['new'])) {          // Do factory ( creates new connection ) if we have new match
@@ -47,4 +46,4 @@ Class MongoServiceProvider
 // END MongoServiceProvider Class
 
 /* End of file MongoServiceProvider.php */
-/* Location: .Obullo/Provider/MongoServiceProvider.php */
+/* Location: .Obullo/ServiceProvider/MongoServiceProvider.php */

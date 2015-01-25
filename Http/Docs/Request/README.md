@@ -96,13 +96,13 @@ print_r(getallheaders());
 // Connection: keep-alive 
 ```
 
-#### $this->request->ip();
+#### $this->request->getIpAddress();
 
 Returns the IP address for the current user. If the IP address is not valid, the function will return an IP of: 0.0.0.0
 
 ```php
 <?php
-echo $this->request->ip();  // 216.185.81.90
+echo $this->request->getIpAddress();  // 216.185.81.90
 ```
 
 #### $this->request->server($key);
@@ -143,7 +143,7 @@ if ( ! $this->request->isValidIp($ip)) {
 
 #### $this->request->method();
 
-#### $this->request->ip();
+#### $this->request->getIpAddress();
 
 #### $this->request->isValidIp();
 

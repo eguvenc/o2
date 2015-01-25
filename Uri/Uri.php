@@ -42,7 +42,7 @@ Class Uri
         $this->c = $c;
         $this->config = $c['config'];
         $this->logger = $c->load('logger');
-        $this->logger->debug('Uri Class Initialized', array(), 9); // Warning : Don't load any library in __construct level you may get a Fatal Error.
+        $this->logger->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
     /**
@@ -162,10 +162,10 @@ Class Uri
         // Convert programatic characters to entities and return
         return str_replace(
             array(
-        '$', '(', ')', '%28', '%29'
+                '$', '(', ')', '%28', '%29'
             ), // Bad
             array(
-        '&#36;', '&#40;', '&#41;', '&#40;', '&#41;'
+                '&#36;', '&#40;', '&#41;', '&#40;', '&#41;'
             ), // Good
             $str
         );
@@ -187,7 +187,7 @@ Class Uri
      * Explode the URI Segments. The individual segments will
      * be stored in the $this->segments array.
      *
-     * @return    void
+     * @return void
      */
     public function explodeSegments()
     {
@@ -352,7 +352,7 @@ Class Uri
     /**
      * Get extension of uri
      *
-     * @return  string
+     * @return string
      */
     public function extension()
     {
@@ -381,10 +381,9 @@ Class Uri
     }
 
     /**
-     * When we use Layers we need to Clean
-     * all data.
+     * When we use Layers we need to clean all data.
      *
-     * @return  void
+     * @return void
      */
     public function clear()
     {

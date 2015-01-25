@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Provider;
+namespace Obullo\ServiceProvider;
 
 use RuntimeException,
     UnexpectedValueException,
@@ -86,14 +86,14 @@ Class MongoConnectionProvider
     {
         $this->c = $c;
         $this->params = $params;
-        $this->config = $c['config']->load('mongo');  // Load nosql configuration file
+        $this->config = $this->c['config']->load('mongo');  // Load nosql configuration file
         $this->mongoClass = (version_compare(phpversion('mongo'), '1.3.0', '<')) ? '\Mongo' : '\MongoClient';
 
         if ( ! class_exists($this->mongoClass, false)) {
             throw new RuntimeException(
                 sprintf(
                     'The %s extension has not been installed or enabled.', 
-                    $this->mongoClass
+                    trim($this->mongoClass, '\\')
                 )
             );
         }
@@ -192,4 +192,4 @@ Class MongoConnectionProvider
 // END MongoConnectionProvider.php class
 /* End of file MongoConnectionProvider.php */
 
-/* Location: .Obullo/Provider/MongoConnectionProvider.php */
+/* Location: .Obullo/ServiceProvider/MongoConnectionProvider.php */

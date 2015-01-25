@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Provider;
+namespace Obullo\ServiceProvider;
 
 use Obullo\Container\Container;
 
@@ -31,4 +31,4 @@ interface ServiceProviderInterface
 // END ServiceProviderInterface class
 
 /* End of file ServiceProviderInterface.php */
-/* Location: .Obullo/Provider/ServiceProviderInterface.php */
+/* Location: .Obullo/ServiceProvider/ServiceProviderInterface.php */

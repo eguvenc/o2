@@ -279,7 +279,7 @@ Class QueueController implements CliInterface
         $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
         $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
         $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->parser->argument('sleep', 0);        // If we have not job on the queue sleep the script for a given number of seconds.
+        $sleep = $this->parser->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
         $tries = $this->parser->argument('tries', 0);        // If job attempt failed we push and increase attempt number.
         $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
         $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.

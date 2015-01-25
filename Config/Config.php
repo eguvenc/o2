@@ -52,12 +52,10 @@ Class Config implements ArrayAccess
         $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
         $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
         $this->file  = $this->path .'config.env';
-
+        
         ini_set('display_errors', 1);
         $this->env = include $this->file;
-
         $this->assignEnvironments();
-
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
 
         if (ENV != 'local') { // Merge config variables if env not local.
