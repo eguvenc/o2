@@ -44,7 +44,7 @@ Class Page extends AbstractOperationType implements ArrayAccess
      */
     protected function getPermissions()
     {
-        return $this->c['rbac.resource']->page->getPermission($this->getOperationName());
+        return $this->c['rbac.resource']->page->getPermissions($this->getOperationName());
     }
 
     /**

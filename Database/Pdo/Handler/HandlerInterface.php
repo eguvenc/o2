@@ -58,15 +58,6 @@ interface HandlerInterface
     public function quote($str, $type = null);
 
     /**
-     * Resolve insert, update, delete, replace modifiers 
-     * 
-     * @param string $sprintf format
-     * 
-     * @return array
-     */
-    public function resolveModifiers($sprintf);
-
-    /**
      * From Tables
      *
      * This function implicitly groups FROM tables so there is no confusion

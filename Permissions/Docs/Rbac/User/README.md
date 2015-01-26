@@ -11,7 +11,7 @@ The Rbac User object control the permission access, permission assignments and a
 
 ```php
 <?php
-$c->load('service/rbac');
+$this->c->load('service/rbac');
 $this->rbac->user->method();
 ```
 
@@ -127,17 +127,114 @@ Array
 */
 ```
 Otherwise returns to false.
-#### $this->rbac->user->setRoles(array $roleIds);
 
-Set roles.
+## Yetkiler
+
+Yetkiler 
+
+### Kaynak ( Resource )
+
+-----
+
+Benzer isimde ki form elementlerin de birbirinden ayırıcı özellik olarak form adları kullanılmaktadır. Örnek verecek olursak, iki ayrı (ekleme ve düzenleme) formumuzda "user_username" input adını form adları yardımıyla birbirlerinden bağımsız çalıştırabilmekteyiz.
+
+Aynı zamanda formlarında karışıklığa sebep vermemesi için birbirlerinden ayırıcı özellik olarak "kaynak kimlikleri" (resource id) kullanılmaktadır.
+
+### Kaynak kimliği (Resource id) nedir?
+
+Kaynak kimlikleri aslında nesnelerimizin çalışacağı sayfalardır. <kbd>http://www.example.com/user/create</kbd> bir kaynak kimliği (resoure id) 'dir.
+
+### Sınıfın kullanımı
 
 ```php
-<?php
-$this->rbac->user->setId(1);
-$this->rbac->user->setRoles($roleIds = array(2,5,7,8,11,12));
-// OR
-$this->rbac->user->setRoles($this->rbac->user->getRoles());
+<?php $this->rbac->resource->method();
 ```
+Bir kaynak kimliği tanımlamak;
+
+```php
+<?php $this->rbac->resource->setId('user/create');
+```
+### Sayfa Yetkilerini Almak
+
+#### $this->rbac->resource->page->getPermissions();
+```php
+<?php
+$operations = array('view', 'insert'); // Eğer birden fazla operasyon kontrolü yapılacaksa
+                                       // dizi olarak göndermemiz gerekmektedir.
+$this->rbac->user->setId(1);
+$this->rbac->user->setRoleIds(1);
+$this->rbac->resource->setId('user/create');
+
+var_dump($this->rbac->resource->page->getPermissions($operations));
+
+// Çıktı
+
+array (size=2)
+  0 => 
+    array (size=5)
+      'rbac_permission_name'     => string 'User Create Page' (length=16)
+      'rbac_permission_id'       => string '7' (length=1)
+      'rbac_roles_rbac_role_id'  => string '1' (length=1)
+      'rbac_permission_resource' => string 'user/create' (length=11)
+      'rbac_operation_name'      => string 'view' (length=4)
+  1 => 
+    array (size=5)
+      'rbac_permission_name'     => string 'User Create Page' (length=16)
+      'rbac_permission_id'       => string '7' (length=1)
+      'rbac_roles_rbac_role_id'  => string '1' (length=1)
+      'rbac_permission_resource' => string 'user/create' (length=11)
+      'rbac_operation_name'      => string 'insert' (length=6)
+```
+
+#### $this->rbac->resource->page['kaynak kimliği']->getPermissions();
+
+Aynı kontroller içerisinde başka sayfa kontrolü yapılması gereken durumlarda, sürekli <kbd>resource->setId()</kbd> yazarak kod tekrarı olmaması ve pratiklik sağlamak adına, <kbd>page->getPermissions()</kbd> metodunun başka bir kullanım şeklidir. Bu kullanımı bir örnekle gösterelim.
+```php
+<?php
+$operations = array('view', 'insert'); // Eğer birden fazla operasyon kontrolü yapılacaksa
+                                       // dizi olarak göndermemiz gerekmektedir.
+$this->rbac->user->setId(1);
+$this->rbac->user->setRoleIds(1);
+// $this->rbac->resource->setId('user/create'); Artık kullanmamız gerekmiyor.
+
+var_dump($this->rbac->resource->page['user/create']->getPermissions($operations));
+```
+Bu kullanım bize yukarıda ki çıktının aynısını verecektir.
+
+<blockquote>Bu örneklerden de anlayacağınız üzere, "User" sınıfı kesinlikle resource id'ye ihtiyaç duyar.</blockquote>
+
+### Sayfaya Ait Nesnelerin Yetkilerini Almak
+
+#### $this->rbac->resource->object['form adı']->getPermission();
+```php
+<?php
+$operations = array('view', 'insert'); // Eğer birden fazla operasyon kontrolü yapılacaksa
+                                       // dizi olarak göndermemiz gerekmektedir.
+$this->rbac->user->setId(1);
+$this->rbac->user->setRoleIds(1);
+$this->rbac->resource->setId('user/create');
+
+var_dump($this->rbac->resource->object['addNewUserForm']->getPermissions($operations));
+
+// Çıktı
+
+array (size=2)
+  0 => 
+    array (size=5)
+      'rbac_permission_name'     => string 'addNewUserForm' (length=14)
+      'rbac_permission_id'       => string '2' (length=1)
+      'rbac_roles_rbac_role_id'  => string '1' (length=1)
+      'rbac_permission_resource' => string 'user/create' (length=11)
+      'rbac_operation_name'      => string 'view' (length=4)
+  1 => 
+    array (size=5)
+      'rbac_permission_name'     => string 'addNewUserForm' (length=14)
+      'rbac_permission_id'       => string '2' (length=1)
+      'rbac_roles_rbac_role_id'  => string '1' (length=1)
+      'rbac_permission_resource' => string 'user/create' (length=11)
+      'rbac_operation_name'      => string 'insert' (length=6)
+```
+
 ## Yetki kontrolü ve Operasyonlar ( Operations )
 
 Kullanıcının sayfa veya nesnelere olan erişim kontrolü <b>Operation</b> sınıfı tarafından yapılmaktadır.
@@ -162,13 +259,24 @@ $this->user->operasyonAdi->operasyonTipi->method();
 
 ### Operasyon Tipi ( Page )
 
-#### $this->rbac->user->view->page['kaynak kimliği']->isAllowed();
-```php
-$this->user->view->page['admin/marketing/index']->isAllowed();
-```
-Geriye doğru ya da yanlış cevabı döner.
 
+#### $this->rbac->user->operasyon->page['kaynak kimliği']->isAllowed();
+
+Kişinin belirtilen "operasyona" yetkisinin olup olmadığını kontrol eder. Geriye doğru ya da yanlış cevabı döner.
+
+```php
+<?php
+$this->rbac->user->setId(1);
+$this->rbac->user->setRoleIds($this->rbac->user->getRoles());
+
+if (! $this->user->view->page['user/create']->isAllowed()) { // false
+    exit('Bu sayfaya giriş izniniz bulunmamaktadır.');
+} else {
+    // kodlar
+}
+```
 <blockquote>Örnekte ki "view" yerine kullanabileceğiniz operasyonlar için "<a href="#operasyonlar">Operasyonlar</a>" kısmına göz atabilirsiniz.</blockquote>
+
 
 ### Operasyon Tipi ( Object )
 
@@ -176,7 +284,14 @@ Form nesnesi kontrolü;
 
 #### $this->rbac->user->view->object['form adı']->isAllowed();
 ```php
-$this->user->view->object['addNewUser']->isAllowed();
+<?php if ($this->user->view->object['addNewUser']->isAllowed()) : ?>
+    <form action="admin/user/create" name="addNewUser" method="post" accept-charset="utf-8">
+        <input type="text" name="user_username" />
+        <input type="text" name="user_email" />
+        <input type="password" name="user_password" />
+        <input type="submit" name="Kullanıcı Ekle" />
+    </form>
+<?php endif; ?>
 ```
 Geriye doğru ya da yanlış cevabı döner.
 
@@ -193,121 +308,6 @@ Geriye doğru ya da yanlış cevabı döner.
 <blockquote>Örnekte ki "view" yerine kullanabileceğiniz operasyonlar için "<a href="#operasyonlar">Operasyonlar</a>" kısmına göz atabilirsiniz.</blockquote>
 
 
-
-
-#### $this->rbac->user->getPermissions(string $permName);
-
-Get all permissions.
-
-```php
-<?php
-$this->rbac->user->setId(1);
-$this->rbac->user->getPermissions($permName = 'foo');
-```
-Gives
-
-```php
-<?php
-/*
-Array
-(
-    [0] => Array
-        (
-            [perm_name] => foo
-            [role_type] => page
-            [perm_id] => 1
-            [role_id] => 1
-            [perm_resource] => admin/advertising
-        )
-    [1] => Array
-        (
-            [perm_name] => bar
-            [role_type] => object
-            [perm_id] => 2
-            [role_id] => 2
-            [perm_resource] => admin/advertising
-        )
-)
-*/
-```
-
-#### $this->rbac->user->isAllowed(string $permName, array $permissions)
-
-
-```php
-<?php
-$this->rbac->user->isAllowed('deleteMember', $perms = array('deleteMember', 'updateMember')); // true
-```
-
-#### $this->rbac->user->hasPagePermission(string $permResource, $expiration = 7200);
-
-Returns true if has page permission allowed for given resource id otherwise false.
-
-```php
-<?php
-$this->rbac->user->setId(1);
-$this->rbac->user->setRoleId(1);
-$this->rbac->user->setResourceId('admin/marketing');
-
-if ($this->rbac->user->hasPagePermission())) {
-
-    // .. go
-} 
-```
-
-Returns to true or false.
-
-#### $this->rbac->user->hasObjectPermission(string $permName, string $operationName, $expiration = 7200);
-
-Returns array if has object permission allowed for given operation name otherwise false.
-
-```php
-<?php
-$this->rbac->user->setId(1);
-$this->rbac->user->setRoleId(1);
-$this->rbac->user->setResourceId('admin/marketing/index');
-
-
-$this->rbac->user->hasPermission();  // Page access permission
-
-$permissions = $this->rbac->user->object->getPermission('form', 'view');  // hasObjectPermission()
-
-// veya
-
-$permissions = $this->rbac->user->object->form->getPermissions(array('input1', 'input2'), array('view'));  // hasChildPermission()
-
-
-// $this->rbac->user->hasPagePermission();
-
-// $permissions = $this->rbac->user->hasObjectPermission('foo', 'view');
-
-if ($this->rbac->user->isAllowed('foo', $permissions)) {
-
-    // .. go
-}
-```
-
-Returns to true or false.
-
-#### $this->rbac->user->hasChildPermission(string $objectName, string $permName, string $operationName, $expiration = 7200);
-
-Returns array if has object permission allowed for given operation name otherwise false.
-
-```php
-<?php
-$this->rbac->user->setId(1);
-$this->rbac->user->setRoleId(1);
-$this->rbac->user->hasPagePermission('admin/marketing');
-
-$permissions = $this->rbac->user->hasChildPermission($objectName = 'foo', $permName = 'bar', $operationName = 'view');
-
-if ($this->rbac->user->isAllowed('bar', $permissions)) {
-
-    // go ..
-}
-```
-
-Returns to true or false.
 
 #### $this->rbac->user->getStatement();
 
@@ -342,10 +342,6 @@ Assign user to role.
 
 Remove user from role.
 
-#### $this->rbac->user->hasRole(int $userId, int $roleId);
-
-Returns to true if user has role otherwise false.
-
 #### $this->rbac->user->roleCount(int $userId, int $roleId);
 
 Gives number of roles of user.
@@ -366,22 +362,39 @@ Sets id of user to comfortable permission check operations.
 
 Sets role id of user to comfortable permission check operations.
 
-#### $this->rbac->user->getPermissions(string $permName);
-
-Get all permissions of given permission name.
-
 #### $this->rbac->user->isAllowed(string $permName, array $permissions);
 
 Checks permission name is allowed in your permission list.
 
-#### $this->rbac->user->hasPagePermission(string $permResource, int $expiration = 7200);
-
-Has page permission.
-
-#### $this->rbac->user->hasObjectPermission(string $permName, $elementName = array(), int $expiration = 7200);
-
-Has object permission.
-
 #### $this->rbac->user->getStatement();
 
 Returns to PDO Statement Object.
+
+
+
+
+
+
+#################### Taşınacak Başlangıç.
+Kaynak kimliklerini otomatik olarak tanımlayıp bunun ilgili bir filtre oluşturarak tüm sayfaların izin kontrollerini yapabilirsiniz.
+
+```php
+$c['router']->createFilter(
+    'rbac.user',
+    function () use ($c) {
+        $c->load('rbac');
+
+        $this->rbac->user->setId($this->user->identity->user_id);   // Yetkilendirme ( Authentication ) sınıfı yardımıyla
+                                                                    // "user_id" 'yi Yetkiler sınıfına tanımlıyoruz.
+        $this->rbac->user->setRoleIds($this->user->getRoles());     // Kullanıcı rolleri tanımlıyoruz.
+
+        $url = $this->router->fetchTopDirectory() . '/' . $this->router->fetchDirectory() . '/' . $this->router->fetchClass();
+        $this->rbac->resource->setId($url);                         // Kaynak kimliğini tanımlıyoruz.
+
+        if (! $this->user->view->page['admin/marketing/index']->isAllowed()) {
+            return $c->load('response')->show404();
+        }
+    }
+);
+```
+#################### Taşınacak Son.

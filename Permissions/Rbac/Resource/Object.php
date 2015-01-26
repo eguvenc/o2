@@ -53,6 +53,14 @@ Class Object implements ArrayAccess
      */
     public function __call($func, $arguments)
     {
+        $argsCount = count($arguments);
+
+        if (empty($this->objectName)) {
+            throw new RuntimeException('Missing form name. You need to use "$this->rbac->resource->object[\'FormName\']->getPermissions(\'view\')"');
+        }
+        if ($argsCount == 0) {
+            throw new RuntimeException('Missing parameter. You need to use element or operation name.');
+        }
         /**
          * $arguments
          * 
@@ -70,7 +78,7 @@ Class Object implements ArrayAccess
          * )
          * @var array
          */
-        if (count($arguments) > 1) { // If that argument is greater than 1 we understand desired permission is element.
+        if ($argsCount > 1) { // If that argument is greater than 1 we understand desired permission is element.
 
             if (! method_exists($this->c['rbac.resource.object.element'], $func)) { // If method exists in "Element" class
                 throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
@@ -82,6 +90,10 @@ Class Object implements ArrayAccess
         }
         if (! method_exists($this, $func)) {
             throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
+        }
+        
+        if ($arguments[0] == 0) {
+            throw new RuntimeException('Missing parameter. You need to use element or operation name.');
         }
         /**
          * $arguments
@@ -169,12 +181,14 @@ Class Object implements ArrayAccess
         $permName    = Utils::arrayConvert($permName);
 
         $key         = User::CACHE_HAS_OBJECT_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($permName) .':'. Utils::hash($opName);
-        $resultArray = $this->c['rbac.user']->cache->get($key);
+        // $resultArray = $this->c['rbac.user']->cache->get($key);
+        $resultArray = false;
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasObjectPermissionSqlQuery($permName, $opName);  // do sql query
+            echo $this->c['model.user']->db->lastQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
+            // $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
         }
         if ($resultArray == 'empty') {
             return false;

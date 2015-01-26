@@ -2,6 +2,8 @@
 
 namespace Obullo\Permissions\Rbac\Operation;
 
+use Obullo\Permissions\Rbac\Resource;
+
 /**
  * Abstract Operation
  * 
@@ -29,6 +31,14 @@ abstract class AbstractOperationType
      * @var string
      */
     protected $permissionName = '';
+
+    protected $allowedOperations = array(
+        'view',
+        'update',
+        'delete',
+        'insert',
+        'save'
+    );
 
     /**
      * Constructor

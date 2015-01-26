@@ -33,25 +33,25 @@ Aşağıda verilen örnek prototipler size yetkiler sınıfı metodlarına <b>rb
 $this->rbac->user->method();
 ```
 
-User sınıfının kullanımı ve metod örnekleri için [Permissions/Docs/Rbac/User/README.md](User/README.md)'ye bakabilirsiniz.
+User sınıfının kullanımı ve metot örnekleri için [Permissions/Docs/Rbac/User/README.md]'ye bakabilirsiniz.
 
 <b>Roles</b> için bir örnek
 
 ```php
 $this->rbac->roles->method();
 ```
-Roles sınıfının kullanımı ve metod örnekleri için [Permissions/Docs/Rbac/Roles/README.md](User/README.md)'ye bakabilirsiniz.
+Roles sınıfının kullanımı ve metot örnekleri için [Permissions/Docs/Rbac/Roles/README.md]'ye bakabilirsiniz.
 
 <b>Permissions</b> için bir örnek
 
 ```php
 $this->rbac->permissions->method();
 ```
-Permissions sınıfının kullanımı ve metod örnekleri için [Permissions/Docs/Rbac/Permissions/README.md](User/README.md)'ye bakabilirsiniz.
+Permissions sınıfının kullanımı ve metot örnekleri için [Permissions/Docs/Rbac/Permissions/README.md]'ye bakabilirsiniz.
 
 <b>Resource</b> için bir örnek
 
 ```php
 $this->rbac->resource->method();
 ```
-Resource sınıfının kullanımı ve metod örnekleri için [Permissions/Docs/Rbac/Resource/README.md](User/README.md)'ye bakabilirsiniz.
+Resource sınıfının kullanımı ve metot örnekleri için [Permissions/Docs/Rbac/Resource/README.md]'ye bakabilirsiniz.
