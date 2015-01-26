@@ -11,7 +11,7 @@ The Rbac User object control the permission access, permission assignments and a
 
 ```php
 <?php
-$c->load('service/rbac', $c->load('return service/db'));
+$c->load('service/rbac');
 $this->rbac->user->method();
 ```
 
@@ -59,13 +59,13 @@ PDOStatement Object
 */
 ```
 
-#### $this->rbac->user->setUserId(int $userId);
+#### $this->rbac->user->setId(int $userId);
 
 Set user id.
 
 ```php
 <?php
-$this->rbac->user->setUserId($userId = 1);
+$this->rbac->user->setId($userId = 1);
 ```
 
 #### $this->rbac->user->setRoleIds(mixed $roleIds);
@@ -78,11 +78,11 @@ $this->rbac->user->setRoleIds(1);
 ```
 And we propose other methods;
 
-<kbd>$this->getRoles()</kbd> In order to use getRoles, you must set user id first using <b>setUserId()</b> method.
+<kbd>$this->getRoles()</kbd> In order to use getRoles, you must set user id first using <b>setId()</b> method.
 
 ```php
 <?php
-$this->rbac->user->setUserId($userId = 1);
+$this->rbac->user->setId($userId = 1);
 $this->rbac->user->setRoleIds($this->rbac->user->getRoles()); // getRoles() returns all roles for a specific user
 ```
 
@@ -101,26 +101,15 @@ Gives
 ```
 Otherwise returns to false.
 
-#### $this->rbac->user->setRoles(array $roleIds);
-
-Set roles.
-
-```php
-<?php
-$this->rbac->user->setUserId(1);
-$this->rbac->user->setRoles($roleIds = array(2,5,7,8,11,12));
-```
-
 #### $this->rbac->user->getRoles(int $userId);
 
 Get the roles.
 
 ```php
 <?php
-$this->rbac->user->setUserId(1);
-echo $this->rbac->user->getRoles();
+$this->rbac->user->setId(1);
+print_r($this->rbac->user->getRoles());
 ```
-
 Gives
 
 ```php
@@ -138,6 +127,73 @@ Array
 */
 ```
 Otherwise returns to false.
+#### $this->rbac->user->setRoles(array $roleIds);
+
+Set roles.
+
+```php
+<?php
+$this->rbac->user->setId(1);
+$this->rbac->user->setRoles($roleIds = array(2,5,7,8,11,12));
+// OR
+$this->rbac->user->setRoles($this->rbac->user->getRoles());
+```
+## Yetki kontrolü ve Operasyonlar ( Operations )
+
+Kullanıcının sayfa veya nesnelere olan erişim kontrolü <b>Operation</b> sınıfı tarafından yapılmaktadır.
+
+```php
+<?php
+$this->user->operasyonAdi->operasyonTipi->method();
+```
+
+#### Operasyonlar: <a name='#operasyonlar'></a>
+
+* view
+* delete
+* update
+* insert
+* save (insert, update)
+
+#### Operasyon Tipleri:
+
+1. page
+2. object
+
+### Operasyon Tipi ( Page )
+
+#### $this->rbac->user->view->page['kaynak kimliği']->isAllowed();
+```php
+$this->user->view->page['admin/marketing/index']->isAllowed();
+```
+Geriye doğru ya da yanlış cevabı döner.
+
+<blockquote>Örnekte ki "view" yerine kullanabileceğiniz operasyonlar için "<a href="#operasyonlar">Operasyonlar</a>" kısmına göz atabilirsiniz.</blockquote>
+
+### Operasyon Tipi ( Object )
+
+Form nesnesi kontrolü;
+
+#### $this->rbac->user->view->object['form adı']->isAllowed();
+```php
+$this->user->view->object['addNewUser']->isAllowed();
+```
+Geriye doğru ya da yanlış cevabı döner.
+
+<blockquote>Örnekte ki "view" yerine kullanabileceğiniz operasyonlar için "<a href="#operasyonlar">Operasyonlar</a>" kısmına göz atabilirsiniz.</blockquote>
+
+Form element nesnesi kontrolü;
+
+#### $this->rbac->user->view->object['form adı']->isAllowed();
+```php
+$this->user->view->object['addNewUser']->isAllowed();
+```
+Geriye doğru ya da yanlış cevabı döner.
+
+<blockquote>Örnekte ki "view" yerine kullanabileceğiniz operasyonlar için "<a href="#operasyonlar">Operasyonlar</a>" kısmına göz atabilirsiniz.</blockquote>
+
+
+
 
 #### $this->rbac->user->getPermissions(string $permName);
 
@@ -145,7 +201,7 @@ Get all permissions.
 
 ```php
 <?php
-$this->rbac->user->setUserId(1);
+$this->rbac->user->setId(1);
 $this->rbac->user->getPermissions($permName = 'foo');
 ```
 Gives
@@ -189,7 +245,7 @@ Returns true if has page permission allowed for given resource id otherwise fals
 
 ```php
 <?php
-$this->rbac->user->setUserId(1);
+$this->rbac->user->setId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->setResourceId('admin/marketing');
 
@@ -207,7 +263,7 @@ Returns array if has object permission allowed for given operation name otherwis
 
 ```php
 <?php
-$this->rbac->user->setUserId(1);
+$this->rbac->user->setId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->setResourceId('admin/marketing/index');
 
@@ -239,7 +295,7 @@ Returns array if has object permission allowed for given operation name otherwis
 
 ```php
 <?php
-$this->rbac->user->setUserId(1);
+$this->rbac->user->setId(1);
 $this->rbac->user->setRoleId(1);
 $this->rbac->user->hasPagePermission('admin/marketing');
 
@@ -302,7 +358,7 @@ Set role ids for user class.
 
 Get all roles of given user id.
 
-#### $this->rbac->user->setUserId(int $userId);
+#### $this->rbac->user->setId(int $userId);
 
 Sets id of user to comfortable permission check operations.
 
