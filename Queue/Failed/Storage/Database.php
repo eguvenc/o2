@@ -2,8 +2,10 @@
 
 namespace Obullo\Queue\Failed\Storage;
 
-use Obullo\Queue\Failed\FailedJob,
-    SimpleXMLElement;
+use Pdo,
+    Container,
+    SimpleXMLElement,
+    Obullo\Queue\Failed\FailedJob,
 
 /**
  * FailedJob Database Handler
@@ -22,7 +24,7 @@ Class Database extends FailedJob implements StorageInterface
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         parent::__construct($c);
     }
@@ -67,8 +69,8 @@ Class Database extends FailedJob implements StorageInterface
     public function dailyExists($file, $line)
     {
         $this->db->prepare('SELECT id, failure_first_date FROM %s WHERE error_file = ? AND error_line = ? LIMIT 1', array($this->db->protect($this->table)));
-        $this->db->bindValue(1, $file, PARAM_STR);
-        $this->db->bindValue(2, $line, PARAM_INT);
+        $this->db->bindValue(1, $file, PDO::PARAM_STR);
+        $this->db->bindValue(2, $line, PDO::PARAM_INT);
         $this->db->execute();
         $row = $this->db->row();
         if ($row == false) {
@@ -90,8 +92,8 @@ Class Database extends FailedJob implements StorageInterface
     public function updateRepeat($id)
     {
         $this->db->prepare('UPDATE %s SET failure_repeat = failure_repeat + 1, failure_last_date = ? WHERE id = ?', array($this->db->protect($this->table)));
-        $this->db->bindValue(1, time(), PARAM_INT);
-        $this->db->bindValue(2, $id, PARAM_INT);
+        $this->db->bindValue(1, time(), PDO::PARAM_INT);
+        $this->db->bindValue(2, $id, PDO::PARAM_INT);
         $this->db->execute();
     }
 

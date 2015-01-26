@@ -7,7 +7,7 @@ use Obullo\Captcha\CaptchaResult,
     Obullo\Captcha\AdapterInterface;
 
 /**
- * o2 Captcha - ReCaptcha
+ * O2 Captcha - ReCaptcha
  * 
  * The new reCAPTCHA is here. A significant number of your users can now attest they are human without having to solve a CAPTCHA 
  * Insteadwith just a single click they’ll confirm they are not a robot. We’re calling it the No CAPTCHA reCAPTCHA experience.
@@ -99,7 +99,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function init()
     {
         if ($this->config['user']['autoSendIp']) {
-            $this->setUserIp($this->c->load('request')->ip());
+            $this->setUserIp($this->c->load('request')->getIpAddress());
         }
         $this->buildHtml();
     }
@@ -326,7 +326,6 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected function buildAttributes(array $attributes)
     {
         $html = array();
-
         foreach ($attributes as $key => $value) {
             $html[] = $key.'="'.$value.'"';
         }

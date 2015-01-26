@@ -42,7 +42,7 @@ Abstract Class FailedJob
 
         $provider = $queue['failed']['provider'];
 
-        if ( ! isset($database['key'][$provider['db']])) {
+        if ( ! isset($database['connections'][$provider['db']])) {
             throw new RuntimeException(
                 sprintf(
                     'Failed job database "%s" is not defined in your config database.php',
@@ -50,16 +50,7 @@ Abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c->load('return new service/provider/'.$provider['name'], array('db' => $provider['db'], 'provider' => $provider['provider']));
-
-        if ( ! $c->exists('provider:'.strtolower($provider['name']))) {  // If provider not exists ! Alert to developer
-            throw new RuntimeException(
-                sprintf(
-                    'FailedJob class requires %s service provider but it is not defined in your app/classes/Service/Provider folder.', 
-                    $provider['name']
-                )
-            );
-        }
+        $this->db = $c->load('service provider '.$provider['name'], array('db' => $provider['db'], 'provider' => $provider['provider']));
         $this->table = $queue['failed']['table'];
     }
 

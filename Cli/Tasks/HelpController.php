@@ -1,6 +1,8 @@
 <?php
 
-namespace Obullo\Cli\Controller;
+namespace Obullo\Cli\Tasks;
+
+use Controller;
 
 /**
  * Help Controller
@@ -12,38 +14,20 @@ namespace Obullo\Cli\Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class HelpController implements CliInterface
+Class HelpController extends Controller
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
     /**
      * Execute command
      * 
      * @return void
      */
-    public function run()
+    public function index()
     {
         echo "\33[1;36m".'
-        ______  _            _  _
-       |  __  || |__  _   _ | || | ____
-       | |  | ||  _ || | | || || ||  _ |
-       | |__| || |_||| |_| || || || |_||
-       |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|                       
 
         Welcome to Task Manager (c) 2014
 You are running $php task help command. For more help type php task [command] --help.'."\n\033[0m\n";
@@ -72,4 +56,4 @@ php task [command] --help\n\33[0m\n";
 // END HelpController class
 
 /* End of file HelpController.php */
-/* Location: .Obullo/Cli/Controller/HelpController.php */
+/* Location: .Obullo/Cli/Tasks/HelpController.php */

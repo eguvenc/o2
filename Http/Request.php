@@ -49,7 +49,7 @@ Class Request
     public function __construct($c)
     {
         $this->c = $c;
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('Request Class Initialized');
     }
 
@@ -171,7 +171,7 @@ Class Request
      * 
      * @return string
      */
-    public function ip()
+    public function getIpAddress()
     {
         static $ipAddress = '';
         $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';

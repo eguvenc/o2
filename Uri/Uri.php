@@ -2,7 +2,8 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Http\Sanitizer;
+use Obullo\Http\Sanitizer,
+    Obullo\Container\Container;
 
 /**
  * Uri Class
@@ -36,12 +37,12 @@ Class Uri
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->logger = $c->load('service/logger');
-        $this->logger->debug('Uri Class Initialized', array(), 9); // Warning : Don't load any library in __construct level you may get a Fatal Error.
+        $this->logger = $c->load('logger');
+        $this->logger->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
     /**
@@ -161,10 +162,10 @@ Class Uri
         // Convert programatic characters to entities and return
         return str_replace(
             array(
-        '$', '(', ')', '%28', '%29'
+                '$', '(', ')', '%28', '%29'
             ), // Bad
             array(
-        '&#36;', '&#40;', '&#41;', '&#40;', '&#41;'
+                '&#36;', '&#40;', '&#41;', '&#40;', '&#41;'
             ), // Good
             $str
         );
@@ -186,7 +187,7 @@ Class Uri
      * Explode the URI Segments. The individual segments will
      * be stored in the $this->segments array.
      *
-     * @return    void
+     * @return void
      */
     public function explodeSegments()
     {
@@ -304,7 +305,7 @@ Class Uri
      */
     public function getBaseUrl($uri = '')
     {
-        return rtrim($this->config['url']['base'], '/') .'/'. ltrim($uri, '/');
+        return rtrim($this->config['url']['baseurl'], '/') .'/'. ltrim($uri, '/');
     }
 
     /**
@@ -313,7 +314,7 @@ Class Uri
      * @param string  $uri_str the URI string
      * @param boolean $suffix  switch off suffix by manually
      * 
-     * @return   string
+     * @return string
      */
     public function getSiteUrl($uri_str = '', $suffix = true)
     {
@@ -351,7 +352,7 @@ Class Uri
     /**
      * Get extension of uri
      *
-     * @return  string
+     * @return string
      */
     public function extension()
     {
@@ -373,17 +374,16 @@ Class Uri
             $uriExtension = end($extension);
             if (in_array('.' . $uriExtension, $this->config['uri']['extensions'])) {
                 $this->uriExtension = $uriExtension;  // set extension 
-                return preg_replace('#\.' . $uriExtension . '$#', '', $segment); // remove extension from end of the uri segment
+                return substr($segment, 0, -strlen($uriExtension)); // remove extension from end of the uri segment
             }
         }
         return $segment;
     }
 
     /**
-     * When we use Lvc we need to Clean
-     * all data.
+     * When we use Layers we need to clean all data.
      *
-     * @return  void
+     * @return void
      */
     public function clear()
     {

@@ -2,6 +2,8 @@
 
 namespace Obullo\Cache\Handler;
 
+use Obullo\Container\Container;
+
 /**
  * Cache Handler Interface
  * 
@@ -20,7 +22,7 @@ interface HandlerInterface
      * @param array $c      container
      * @param array $params connection parameters
      */
-    public function __construct($c, $params = array());
+    public function __construct(Container $c, $params = array());
 
     /**
      * Sets serializer options 

@@ -43,7 +43,7 @@ Class Session
     public function __construct($c) 
     {
         $this->session = $c->load('session');
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         $this->flash = $c->load('config')->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)

@@ -6,7 +6,7 @@ use RunTimeException,
     Exception;
 
 /**
- * CRUD ( CREATE - READ - UPDATE - DELETE ) Class
+ * Query Builder
  * 
  * Borrowed from Codeigniter Active Record
  * 
@@ -14,7 +14,7 @@ use RunTimeException,
  * @package   Crud
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/database
  */
 Class QueryBuilder
@@ -60,17 +60,11 @@ Class QueryBuilder
     /**
      * Constructor
      *
-     * @param object $c  container
-     * @param object $db database object
+     * @param object $c container
      */
-    public function __construct($c, $db)
+    public function __construct($c)
     {
-        $c['config']->load('database');
-
-        if ( ! is_object($db)) {
-            throw new RunTimeException('Crud class requires database object.');
-        }
-        $this->adapter = $db;  // load pdo adapter object.
+        $this->adapter = $c->load('service/provider/db', $c['config']['query.params.database']);
     }
 
     /**
@@ -507,7 +501,7 @@ Class QueryBuilder
      * @param string $type   type
      * @param string $escape whether to escape
      * 
-     * @return   object
+     * @return object
      */
     public function _having($key, $value = '', $type = 'AND ', $escape = true)
     {
@@ -535,7 +529,7 @@ Class QueryBuilder
     }
 
     /**
-     * orHaving description
+     * OrHaving description
      * 
      * @param string  $key    key
      * @param string  $value  value
@@ -671,7 +665,6 @@ Class QueryBuilder
                 $sql .= implode(', ', $this->arSelect);
             }
         }
-
         // Write the "FROM" portion of the query
 
         if (count($this->arFrom) > 0) {
@@ -773,7 +766,7 @@ Class QueryBuilder
     /**
      * Resets the active record values.  Called by the get() function
      *
-     * @return    void
+     * @return void
      */
     public function _resetSelect()
     {
@@ -801,7 +794,7 @@ Class QueryBuilder
      *
      * Called by the insert() update() and delete() functions
      *
-     * @return    void
+     * @return void
      */
     public function _resetWrite()
     {
@@ -864,7 +857,6 @@ Class QueryBuilder
         if ( ! is_bool($protectIdentifiers)) {
             $protectIdentifiers = $this->adapter->protectIdentifiers;
         }
-
         if (is_array($item)) {
             $escaped_array = array();
             foreach ($item as $k => $v) {
@@ -1005,19 +997,17 @@ Class QueryBuilder
         return $this;
     }
 
-    /**
+     /**
      * Delete
      *
      * Compiles a delete string and runs the query
      *
-     * @param mixed   $table      the table(s) to delete from. String or array
-     * @param mixed   $where      the where clause
-     * @param mixed   $limit      the limit clause
-     * @param boolean $reset_data feature
+     * @param mixed   $table the table(s) to delete from. String or array
+     * @param boolean $reset feature
      * 
      * @return object
      */
-    public function delete($table = '', $where = '', $limit = null, $reset_data = true)
+    public function delete($table = '', $reset = true)
     {
         $this->_mergeCache();   // Combine any cached components with the current statements
         if ($table == '') {
@@ -1025,49 +1015,12 @@ Class QueryBuilder
         } else {
             $table = $this->_protectIdentifiers($table, true, null, false);
         }
-        if ($where != '') {
-            $this->where($where);
-        }
-        if ($limit != null) {
-            $this->limit($limit);
-        }
-        if (sizeof($this->arWhere) == 0 AND sizeof($this->arWherein) == 0 AND sizeof($this->arLike) == 0) {
-            throw new Exception('Deletes are not allowed unless they contain a "where" or "like" clause.');
-        }
         $this->from($table); // set tablename for set() function.
         $sql = $this->adapter->_delete($table, $this->arWhere, $this->arLike, $this->arLimit);
-
-        if ($reset_data) {
+        if ($reset) {
             $this->_resetWrite();
         }
         return $this->adapter->exec($sql); // return number of  affected rows
-    }
-
-    /**
-     * The "set" function.  Allows key / value pairs to be set for inserting or updating
-     *
-     * @param mixed   $key    array or string
-     * @param string  $value  update string
-     * @param boolean $escape whether to escape
-     * 
-     * @return   void
-     */
-    public function set($key, $value = '', $escape = true)
-    {
-        if ( ! is_array($key)) {
-            $key = array($key => $value);
-        }
-        foreach ($key as $k => $v) {
-            if ($escape === false) {
-                if (is_string($v)) {
-                    $v = "{$v}";  // PDO changes.
-                }
-                $this->arSet[$this->_protectIdentifiers($k)] = $v;
-            } else {
-                $this->arSet[$this->_protectIdentifiers($k)] = $this->adapter->escape($v);
-            }
-        }
-        return $this;
     }
 
     /**
@@ -1078,7 +1031,7 @@ Class QueryBuilder
      * @param string $table the table to replace data into
      * @param array  $set   an associative array of insert values
      * 
-     * @return  object
+     * @return object
      */
     public function replace($table = '', $set = null)
     {
@@ -1100,22 +1053,19 @@ Class QueryBuilder
      *
      * Compiles an update string and runs the query
      *
-     * @param string $table   the table to retrieve the results from
-     * @param array  $set     an associative array of update values
-     * @param array  $options update options
+     * @param string $table the table to retrieve the results from
+     * @param array  $set   an associative array of update values
      * 
-     * @return   PDO exec number of affected rows
+     * @return PDO exec number of affected rows
      */
-    public function update($table = '', $set = null, $options = array())
+    public function update($table = '', $set = null)
     {
-        $options = array();     // Update options.
         if ($table == '') {     // Set table
             $table = $this->arFrom[0];
         } else {
             $this->from($table); // set tablename for set() function.
         }
         $this->_mergeCache();  // Combine any cached components with the current statements
-
         if ( ! is_null($set)) {
             $this->set($set);
         }
@@ -1130,15 +1080,13 @@ Class QueryBuilder
      *
      * Compiles an insert string and runs the query
      *
-     * @param string $table   the table to retrieve the results from
-     * @param array  $set     an associative array of insert values
-     * @param array  $options insert options
+     * @param string $table the table to retrieve the results from
+     * @param array  $set   an associative array of insert values
      * 
      * @return PDO exec number of affected rows.
      */
-    public function insert($table = '', $set = null, $options = array())
+    public function insert($table = '', $set = null)
     {
-        $options = array();
         if ($table == '') {  // Set table
             $table = $this->arFrom[0];
         } else {
@@ -1149,8 +1097,34 @@ Class QueryBuilder
         }
         $sql = $this->adapter->_insert($this->_protectIdentifiers($table, true, null, false), array_keys($this->arSet), array_values($this->arSet));
         $this->_resetWrite();
-
         return $this->adapter->exec($sql);  // return affected rows ( PDO support )
+    }
+
+    /**
+     * The "set" function.  Allows key / value pairs to be set for inserting or updating
+     *
+     * @param mixed   $key    array or string
+     * @param string  $value  update string
+     * @param boolean $escape whether to escape
+     * 
+     * @return object
+     */
+    public function set($key, $value = '', $escape = true)
+    {
+        if ( ! is_array($key)) {
+            $key = array($key => $value);
+        }
+        foreach ($key as $k => $v) {
+            if ($escape === false) {
+                if (is_string($v)) {
+                    $v = "{$v}";  // PDO changes.
+                }
+                $this->arSet[$this->_protectIdentifiers($k)] = $v;
+            } else {
+                $this->arSet[$this->_protectIdentifiers($k)] = $this->adapter->escape($v);
+            }
+        }
+        return $this;
     }
 
     /**
@@ -1158,7 +1132,7 @@ Class QueryBuilder
      *
      * Starts AR caching
      *
-     * @return    void
+     * @return void
      */
     public function startCache()
     {
@@ -1170,7 +1144,7 @@ Class QueryBuilder
      *
      * Stops AR caching
      *
-     * @return    void
+     * @return void
      */
     public function stopCache()
     {
@@ -1182,7 +1156,7 @@ Class QueryBuilder
      *
      * Empties the AR cache
      *
-     * @return    void
+     * @return void
      */
     public function flushCache()
     {
@@ -1208,7 +1182,7 @@ Class QueryBuilder
      * When called, this function merges any cached AR arrays with 
      * locally called ones.
      *
-     * @return    void
+     * @return void
      */
     private function _mergeCache()
     {
@@ -1227,7 +1201,7 @@ Class QueryBuilder
 
 }
 
-// END Query
-/* End of file Query.php
+// END QueryBuilder
+/* End of file QueryBuilder.php
 
 /* Location: .Obullo/Database/Pdo/QueryBuilder.php */

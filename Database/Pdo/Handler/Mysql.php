@@ -49,7 +49,7 @@ Class Mysql extends Adapter implements HandlerInterface
         $c['config']->load('database');
         $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
 
-        parent::__construct($c, $c['config']['database']['key'][$default]);
+        parent::__construct($c, $c['config']['database']['connections'][$default]);
     }
 
     /**
@@ -65,41 +65,10 @@ Class Mysql extends Adapter implements HandlerInterface
         $port = empty($this->port) ? '' : ';port=' . $this->port;
         $dsn  = empty($this->dsn) ? 'mysql:host=' . $this->host . $port . ';dbname=' . $this->database : $this->dsn;
 
-        $this->initialize();
         $this->connection($dsn, $this->username, $this->password, $this->options);
 
         // We set exception attribute for always showing the pdo exceptions errors.
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
-    }
-
-    /**
-     * Initialize to attributes
-     * 
-     * @return void
-     */
-    protected function initialize()
-    {
-        if ($this->autoinit['bufferedQuery'] AND defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) { // Automatically use buffered queries.
-            $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = true;
-        }
-        if ($this->autoinit['charset']) {
-            $this->options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES $this->charset";
-        }   
-    }
-
-    /**
-     * Protect identifiers using your escape character.
-     * 
-     * Escape character able to set using $this->setEscapeChar()
-     * method.
-     * 
-     * @param string $identifier identifier
-     * 
-     * @return string
-     */
-    public function protect($identifier)
-    {
-        return $this->escapeChar . $identifier . $this->escapeChar;
     }
 
     /**
@@ -131,7 +100,22 @@ Class Mysql extends Adapter implements HandlerInterface
         // remove duplicates if the user already included the escape
         return preg_replace('/[' . $this->escapeChar . ']+/', $this->escapeChar, $str);
     }
-    
+
+    /**
+     * Protect identifiers using your escape character.
+     * 
+     * Escape character able to set using $this->setEscapeChar()
+     * method.
+     * 
+     * @param string $identifier identifier
+     * 
+     * @return string
+     */
+    public function protect($identifier)
+    {
+        return $this->escapeChar . $identifier . $this->escapeChar;
+    }
+
     /**
      * Escape string
      * 
@@ -143,29 +127,27 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function _escape($str, $like = false, $side = 'both')
     {
+        $this->connect();
         if (is_array($str)) {
             foreach ($str as $key => $val) {
-                $str[$key] = $this->_escape($val, $like);
+                $str[$key] = $this->_escape($val);
             }
             return $str;
         }
         if ($like === true) {         // escape LIKE condition wildcards
             $str = str_replace(array('%', '_'), array('\\%', '\\_'), $str);
-
             switch ($side) {
             case 'before':
                 $str = "%{$str}";
                 break;
-
             case 'after':
                 $str = "{$str}%";
                 break;
-
             default:
                 $str = "%{$str}%";
             }
         }
-        if ($this->prepare === false) {          // make sure is it bind value, if not ...
+        if ($this->prepare === false AND trim($str) != '?') { // Make sure is it bind value, if not ...
             $str = $this->quote($str, PDO::PARAM_STR);
         }
         return $str;
@@ -181,71 +163,9 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function quote($str, $type = null)
     {
+        $this->connect();
         return $this->connection->quote($str, $type);
     }
-
-    /**
-     * Builds insert / update values
-     * 
-     * @param array $data values array
-     * 
-     * @return array
-     */
-    public function buildValues(array $data)
-    {
-        $values = array();
-        foreach ($data as $key => $value) {
-            if (is_null($value)) {
-                $values[$key] = 'NULL';
-            } elseif (is_bool($value)) {
-                $values[$key] = ($value) ? 'TRUE' : 'FALSE';
-            } elseif (is_string($value)) {
-                $values[$key] = $this->escape($value);  // We already do escape in Adapter class not need to escape
-            }
-        }
-        return $values;
-    }
-
-    public function prepFields($fields)
-    {
-
-    }
-
-    /**
-     * Preparation of sql for write statements
-     * 
-     * @param string $sql    sql string
-     * @param array  $fields sprintf values
-     * @param array  $values [description]
-     * 
-     * @return [type]         [description]
-     */
-    public function _prepSQL($sql, $fields, $values = array())
-    {
-        $exp = explode(' ', $sql);
-        switch ($exp[0]) {
-            case 'INSERT':
-                $escapedValues = $this->buildValues($values);
-                $prepFields = $this->prepFields($fields);
-
-                if ($this->isMultiArray($values)) {
-
-                } else {
-                    $sql = $sql . " (" . implode(', ', $prepFields['array']) . ") VALUES (" . implode(', ', $escapedValues) . ") ";
-                }
-                
-                unset($prepFields['array']);
-                return $this->sprintf($sql, $prepFields);
-                break;
-            
-            default:
-                # code...
-                break;
-        }
-        return $sql;
-    }
-
-
 
     /**
      * From Tables
@@ -270,18 +190,15 @@ Class Mysql extends Adapter implements HandlerInterface
      *
      * Generates a platform-specific insert string from the supplied data
      *
-     * @param string $table    the table name
-     * @param array  $keys     the insert keys
-     * @param array  $values   the insert values
-     * @param array  $extraSql extra sql 
+     * @param string $table  the table name
+     * @param array  $keys   the insert keys
+     * @param array  $values the insert values
      * 
      * @return string
      */
-    public function _insert($table, $keys, $values, $extraSql = null)
+    public function _insert($table, $keys, $values)
     {
-        $values = $this->buildValues($values);
-        $sql = "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ") ".$extraSql;
-        return trim($sql);
+        return "INSERT INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
     }
 
     /**
@@ -297,7 +214,6 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function _replace($table, $keys, $values)
     {
-        $values = $this->buildValues($values);
         return "REPLACE INTO " . $table . " (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $values) . ")";
     }
 
@@ -306,33 +222,25 @@ Class Mysql extends Adapter implements HandlerInterface
      *
      * Generates a platform-specific update string from the supplied data
      *
-     * @param string $table    the table name
-     * @param array  $values   the update data
-     * @param array  $where    the where clause
-     * @param array  $orderby  the orderby clause
-     * @param int    $limit    the limit clause
-     * @param int    $extraSql add extra sql end of your query
+     * @param string $table   the table name
+     * @param array  $values  the update data
+     * @param array  $where   the where clause
+     * @param array  $orderby the orderby clause
+     * @param int    $limit   the limit clause
      * 
      * @return string
      */
-    public function _update($table, $values, $where, $orderby = array(), $limit = false, $extraSql = '')
+    public function _update($table, $values, $where, $orderby = array(), $limit = false)
     {
-        $values = $this->buildValues($values);
         foreach ($values as $key => $val) {
-            $valstr[] = $key . " = " . $val;
+            $valstr[] = $key . ' = ' . $val;
         }
-        $limit = ( ! $limit) ? '' : ' LIMIT ' . $limit;
-        $orderby = (count($orderby) >= 1) ? ' ORDER BY ' . implode(", ", $orderby) : '';
-
-        $sql = "UPDATE " . $table . " SET " . implode(', ', $valstr);
-
-        if (is_array($where)) {
-            $sql .= (count($where) >= 1) ? " WHERE " . implode(" ", $where) : '';
-        } elseif (is_string($where)) {
-            $sql .= $where;
-        }
-        $sql .= $orderby . $limit .' '.trim($extraSql);
-        return trim($sql);
+        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
+        $orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
+        $sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
+        $sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
+        $sql .= $orderby.$limit;
+        return $sql;
     }
 
     /**
@@ -340,18 +248,17 @@ Class Mysql extends Adapter implements HandlerInterface
      *
      * Generates a platform-specific delete string from the supplied data
      *
-     * @param string $table    the table name
-     * @param array  $where    the where clause
-     * @param string $like     the like clause
-     * @param string $limit    the limit clause
-     * @param string $extraSql add extra sql end of your query
+     * @param string $table the table name
+     * @param array  $where the where clause
+     * @param string $like  the like clause
+     * @param string $limit the limit clause
      * 
      * @return string
      */
-    public function _delete($table, $where = null, $like = array(), $limit = false, $extraSql = '')
+    public function _delete($table, $where = array(), $like = array(), $limit = false)
     {
-        $conditions = $where;
-        if (is_array($where) AND count($where) > 0 OR count($like) > 0) {
+        $conditions = '';
+        if (count($where) > 0 OR count($like) > 0) {
             $conditions = "\nWHERE ";
             $conditions .= implode("\n", $where);
             if (count($where) > 0 AND count($like) > 0) {  // Put and for like
@@ -360,7 +267,7 @@ Class Mysql extends Adapter implements HandlerInterface
             $conditions .= implode("\n", $like);
         }
         $limit = ( ! $limit) ? '' : ' LIMIT ' . $limit;
-        $sql = "DELETE FROM " . $table . $conditions . $limit .' '.trim($extraSql);
+        $sql = "DELETE FROM " . $table . $conditions . $limit;
         return trim($sql);
     }
 

@@ -50,7 +50,7 @@ Returns true or false (boolean) if the user agent is a known mobile device.
 ```php
 <?php
 if ($this->agent->isMobile()) {
-    $this->view->load(
+    $this->c['view']->load(
         'mobile/home',
         function () {
             $this->assign('name', 'Obullo');

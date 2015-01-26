@@ -2,6 +2,8 @@
 
 namespace Obullo\Mail\Transport;
 
+use Obullo\Container\Container;
+
 /**
  * Mail Transport Interface
  * 
@@ -17,10 +19,9 @@ interface TransportInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c container
      */
-    public function __construct($c, $params = array());
+    public function __construct(Container $c);
 
     /**
      * Get the API key being used by the transport.

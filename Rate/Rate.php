@@ -2,7 +2,8 @@
 
 namespace Obullo\Rate;
 
-use RuntimeException;
+use RuntimeException,
+    Obullo\Container\Container;
 
 /**
  * Rate Limiter
@@ -16,28 +17,8 @@ use RuntimeException;
  */
 Class Rate
 {
-    const CACHE_CONFIG_EXPIRATION = 604800; // 1 Week (second).
-    const CACHE_DATA_EXPIRATION   = 604800; // 1 Week (second).
-
-    // Cache main constants
-    const RATE_LIMITER_DATA = 'Rate_Limiter_Data';
-    const RATE_LIMITER_CONFIG = 'Rate_Limiter_Config';
-    const RATE_LIMITER_BANNED_USERS = 'Rate_Limiter_Banned_Users';
-
-    // Cache parent constants
-    const TOTAL_REQUEST_COUNT  = 'totalRequest';
-    const INTERVAL_LIMIT       = 'intervalLimit';
-    const INTERVAL_MAX_REQUEST = 'intervalMaxRequest';
-    const HOURLY_LIMIT         = 'hourlyLimit';
-    const HOURLY_MAX_REQUEST   = 'hourlyMaxRequest';
-    const DAILY_LIMIT          = 'dailyLimit';
-    const DAILY_MAX_REQUEST    = 'dailyMaxRequest';
-    const LABEL                = 'label';
-    const PERIOD               = 'period';
-    const LAST_DATE            = 'lastDate';
-    const INTERVAL_DATE        = 'intervalDate';
-    const HOURLY_DATE          = 'hourlyDate';
-    const DAILY_DATE           = 'dailyDate';
+    const CONFIG_EXPIRATION = 604800; // 1 Week (second).
+    const DATA_EXPIRATION   = 604800; // 1 Week (second).
 
     /**
      * Container
@@ -75,8 +56,7 @@ Class Rate
     protected $expiration = 7200;
 
     /**
-     * This period reduceLimit()
-     * function update the date.
+     * This period reduceLimit() function update the date.
      * 
      * @var array
      */
@@ -118,17 +98,24 @@ Class Rate
     protected $logger;
 
     /**
+     * Request data
+     * 
+     * @var array
+     */
+    protected $data;
+
+    /**
      * Constructor
      * 
      * @param object $c          container
      * @param object $identifier limiter name
      * @param array  $params     config
      */
-    public function __construct($c, $identifier = 'ip', $params = array())
+    public function __construct(Container $c, $identifier = 'ip', $params = array())
     {
         $this->c = $c;
-        $this->cache = $c->load('service/cache');
-        $this->logger = $c->load('service/logger');
+        $this->cache = $this->c->load('service/cache');
+        $this->logger = $this->c->load('logger');
 
         $this->config = new Config($c);
         $this->config->identifier($identifier);
@@ -149,15 +136,8 @@ Class Rate
             throw new RuntimeException("Identifier or channel can't be empty.");
         }
         $this->config->channel($channel);
-        /**
-         * Read the configuration of current channel
-         */
-        $this->settings = $this->config->read();
-
-        /**
-         * Read request data of current identifier
-         */
-        $this->requestData = $this->cache->get(static::RATE_LIMITER_DATA .':'. $channel . ':' . $identifier);
+        $this->settings = $this->config->read();  // Get configuration
+        $this->data = $this->cache->get('Rate:Data:'.$channel.':'.$identifier); // Read request data
     }
 
     /**
@@ -325,49 +305,67 @@ Class Rate
     /**
      * Reduce interval limit.,
      * 
-     * @param array $requestData request data
+     * @param array $data request data
      * 
      * @return void
      */
-    protected function reduceIntervalLimit($requestData)
+    protected function reduceIntervalLimit($data)
     {
-        if (strtotime(' - ' . $this->config->getIntervalLimit() . ' second ') < $requestData[static::PERIOD][static::INTERVAL_DATE]) {
-            return $this->config->setIntervalLimit($this->settings['limit']['interval']['amount'], $requestData[static::INTERVAL_MAX_REQUEST] - 1);
+        if (strtotime(' - ' . $this->config->getIntervalLimit() . ' second ') < $data['period']['intervalDate']) {
+            return $this->config->setIntervalLimit(
+                $this->settings['limit']['interval']['amount'], 
+                $data['intervalMaxRequest'] - 1
+            );
         }
         $this->period['interval'] = array('date' => time(), 'update' => true);
-        $this->config->setIntervalLimit($this->settings['limit']['interval']['amount'], $this->settings['limit']['interval']['maxRequest'] - 1);
+        $this->config->setIntervalLimit(
+            $this->settings['limit']['interval']['amount'], 
+            $this->settings['limit']['interval']['maxRequest'] - 1
+        );
     }
 
     /**
      * Reduce daily limit.
      * 
-     * @param array $requestData request data
+     * @param array $data request data
      * 
      * @return void
      */
-    protected function reduceHourlyLimit($requestData)
+    protected function reduceHourlyLimit($data)
     {
-        if (strtotime(' - ' . $this->config->getHourlyLimit() . ' second ') < $requestData[static::PERIOD][static::HOURLY_DATE]) {
-            return $this->config->setHourlyLimit($this->settings['limit']['hourly']['amount'], $requestData[static::HOURLY_MAX_REQUEST] - 1);
+        if (strtotime(' - ' . $this->config->getHourlyLimit() . ' second ') < $data['period']['hourlyDate']) {
+            return $this->config->setHourlyLimit(
+                $this->settings['limit']['hourly']['amount'], 
+                $data['hourlyMaxRequest'] - 1
+            );
         }
         $this->period['hourly'] = array('date' => time(), 'update' => true);
-        $this->config->setHourlyLimit($this->settings['limit']['hourly']['amount'], $this->settings['limit']['hourly']['maxRequest'] - 1);
+        $this->config->setHourlyLimit(
+            $this->settings['limit']['hourly']['amount'], 
+            $this->settings['limit']['hourly']['maxRequest'] - 1
+        );
     }
 
     /**
      * Reduce daily limit.
      * 
-     * @param array $requestData request data
+     * @param array $data request data
      * 
      * @return void
      */
-    protected function reduceDailyLimit($requestData)
+    protected function reduceDailyLimit($data)
     {
-        if (strtotime(' - ' . $this->config->getHourlyLimit() . ' second ') < $requestData[static::PERIOD][static::DAILY_DATE]) {
-            return $this->config->setDailyLimit($this->settings['limit']['daily']['amount'], $requestData[static::DAILY_MAX_REQUEST] - 1);
+        if (strtotime(' - ' . $this->config->getHourlyLimit() . ' second ') < $data['period']['dailyDate']) {
+            return $this->config->setDailyLimit(
+                $this->settings['limit']['daily']['amount'],
+                $data['dailyMaxRequest'] - 1
+            );
         }
         $this->period['daily'] = array('date' => time(), 'update' => true);
-        $this->config->setDailyLimit($this->settings['limit']['daily']['amount'], $this->settings['limit']['daily']['maxRequest'] - 1);
+        $this->config->setDailyLimit(
+            $this->settings['limit']['daily']['amount'],
+            $this->settings['limit']['daily']['maxRequest'] - 1
+        );
     }
 
     /**
@@ -378,9 +376,9 @@ Class Rate
     public function increase()
     {
         $data = $this->getRequestData();
-        $this->increaseIntervalLimit($data[static::INTERVAL_MAX_REQUEST]);
-        $this->increaseHourlyLimit($data[static::HOURLY_MAX_REQUEST]);
-        $this->increaseDailyLimit($data[static::DAILY_MAX_REQUEST]);
+        $this->increaseIntervalLimit($data['intervalMaxRequest']);
+        $this->increaseHourlyLimit($data['hourlyMaxRequest']);
+        $this->increaseDailyLimit($data['dailyMaxRequest']);
         $this->saveRequest();
     }
 
@@ -406,50 +404,82 @@ Class Rate
     public function isAllowed()
     {
         $this->run();  // Read configuration from cache
-
-        $data = $this->getRequestData();
-        /**
-         * If the service request disabled it always returns to true.
-         */
         if ($this->config->isEnabled() == false) {
             return true;
         }
         if ($this->isBanned()) {
             $this->setError('User is banned.');
-            $this->logger->notice('User is banned.', array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
+            $this->logger->notice(
+                'User is banned.', 
+                array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier())
+            );
             return false;
         }
-        /**
-         * Daily Limit
-         */
-        if (strtotime('- ' . $this->config->getDailyLimit() . ' second') >= $data[static::PERIOD][static::LAST_DATE]) {
-            return true;
-        }
-        if ($data[static::DAILY_MAX_REQUEST] < 1) {
-            $this->execBan('Daily');
+        $data = $this->getRequestData();
+        if ( ! $this->checkDailyLimit($data)) {   // Check daily limit is reached
             return false;
         }
-        /**
-         * Hourly limit
-         */
-        if (strtotime('- ' . $this->config->getHourlyLimit() . ' second') >= $data[static::PERIOD][static::LAST_DATE]) {
-            return true;
-        }
-        if ($data[static::HOURLY_MAX_REQUEST] < 1) {
-            $this->execBan('Hourly');
+        if ( ! $this->checkHourlyLimit($data)) {
             return false;
         }
-        /**
-         * Interval limit
-         */
-        if (strtotime('- ' . $this->config->getIntervalLimit() . ' second') >= $data[static::PERIOD][static::LAST_DATE]) {
-            return true;
-        }
-        if ($data[static::INTERVAL_MAX_REQUEST] < 1) {
-            $this->execBan('Interval');
+        if ( ! $this->checkIntervalLimit($data)) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Check daily limit is reached
+     * 
+     * @param array $data request data
+     * 
+     * @return boolean
+     */
+    public function checkDailyLimit($data)
+    {
+        if (strtotime('- ' .$this->config->getDailyLimit().' second') >= $data['period']['lastDate']) {
+            return true;
+        }
+        if ($data['dailyMaxRequest'] < 1) {
+            $this->execBan('Daily');
+            return false;
+        }
+    }
+
+    /**
+     * Check hourly limit is reached,
+     * 
+     * @param array $data request data
+     * 
+     * @return boolean
+     */
+    public function checkHourlyLimit($data)
+    {
+        if (strtotime('- '.$this->config->getHourlyLimit().' second') >= $data['period']['lastDate']) {
+            return true;
+        }
+        if ($data['hourlyMaxRequest'] < 1) {
+            $this->execBan('Hourly');
+            return false;
+        }
+    }
+
+    /**
+     * Check interval limit is reached
+     *
+     * @param array $data request data
+     * 
+     * @return boolean
+     */
+    public function checkIntervalLimit($data)
+    {
+        if (strtotime('- '.$this->config->getIntervalLimit(). ' second') >= $data['period']['lastDate']) {
+            return true;
+        }
+        if ($data['intervalMaxRequest'] < 1) {
+            $this->execBan('Interval');
+            return false;
+        }
     }
 
     /**
@@ -463,12 +493,29 @@ Class Rate
     {
         if ($this->config->getBanStatus() == true) {
             $this->addBan();
-            $this->logger->notice(ucfirst($type).' ban.', array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
+            $this->deleteRequestData();  // Remove request data after ban
+            $this->logger->notice(
+                ucfirst($type).' ban.', 
+                array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier())
+            );
             return;
         }
         $error = 'Maximum connection limit reached for '. $type .' period.';
         $this->setError($error);
-        $this->logger->notice($error, array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier()));
+        $this->logger->notice(
+            $error, 
+            array('channel' => $this->getChannel(), 'identifier' => $this->getIdentifier())
+        );
+    }
+
+    /**
+     * Removes request data of valid user
+     * 
+     * @return boolean
+     */
+    public function deleteRequestData()
+    {
+        return $this->cache->delete('Rate:Data:'.$this->getChannel().':'.$this->getIdentifier());
     }
 
     /**
@@ -479,49 +526,31 @@ Class Rate
     protected function saveRequest()
     {
         $time = time();
-        $period[static::PERIOD] = array(static::LAST_DATE => $time);
+        $period['period'] = array('lastDate' => $time);
 
-        /**
-         * If request date not empty we update to old request date.
-         */
-        if ($this->requestData == false) {
-
-            $period[static::PERIOD][static::INTERVAL_DATE] = $time;
-            $period[static::PERIOD][static::HOURLY_DATE]   = $time;
-            $period[static::PERIOD][static::DAILY_DATE]    = $time;
-
+        if ($this->data == false) {  // If request date not empty we update to old request date.
+            $period['period']['intervalDate'] = $time;
+            $period['period']['hourlyDate'] = $time;
+            $period['period']['dailyDate'] = $time;
         } else {
-            /**
-             * An example.
-             * 
-             * $this->period = array(
-             *     'interval' => array(
-             *         'date'   => 1400167967, // time()
-             *         'update' => true,
-             *     ),
-             * );
-             * 
-             * If update key equal to "true" then we understand that we need to update time.
-             */
-            $period[static::PERIOD][static::INTERVAL_DATE] = ($this->getPeriod('interval')) ? $time : $this->requestData[static::PERIOD][static::INTERVAL_DATE];
-            $period[static::PERIOD][static::HOURLY_DATE]   = ($this->getPeriod('hourly')) ? $time : $this->requestData[static::PERIOD][static::HOURLY_DATE];
-            $period[static::PERIOD][static::DAILY_DATE]    = ($this->getPeriod('daily')) ? $time : $this->requestData[static::PERIOD][static::DAILY_DATE];;
+            $period['period']['intervalDate'] = ($this->getPeriod('interval')) ? $time : $this->data['period']['intervalDate'];
+            $period['period']['hourlyDate'] = ($this->getPeriod('hourly')) ? $time : $this->data['period']['hourlyDate'];
+            $period['period']['dailyDate'] = ($this->getPeriod('daily')) ? $time : $this->data['period']['dailyDate'];
         }
         $data = array(
-            static::INTERVAL_MAX_REQUEST => $this->config->getIntervalMaxRequest(),
-            static::HOURLY_MAX_REQUEST   => $this->config->getHourlyMaxRequest(),
-            static::DAILY_MAX_REQUEST    => $this->config->getDailyMaxRequest(),
-            static::TOTAL_REQUEST_COUNT  => $this->config->getTotalRequest() + 1,
-            static::LABEL                => $this->getLabel(),
+            'intervalMaxRequest' => $this->config->getIntervalMaxRequest(),
+            'hourlyMaxRequest' => $this->config->getHourlyMaxRequest(),
+            'dailyMaxRequest' => $this->config->getDailyMaxRequest(),
+            'totalRequest'  => $this->config->getTotalRequest() + 1,
+            'label' => $this->getLabel(),
         );
         $data = array_merge($data, $period);
         $this->cache->set(
-            static::RATE_LIMITER_DATA .':'. $this->getChannel() . ':' . $this->getIdentifier(),
+            'Rate:Data:'.$this->getChannel().':'.$this->getIdentifier(),
             $data,
-            static::CACHE_DATA_EXPIRATION
+            $this->settings['ban']['expiration']
         );
         $this->resetPeriod();    // Period reset
-
         return $data;
     }
 
@@ -532,18 +561,29 @@ Class Rate
      */
     public function getRequestData()
     {
-        if (empty($this->requestData)) {
-            $this->requestData = $this->saveRequest();
+        if (empty($this->data)) {
+            $this->data = $this->saveRequest();
         }
         $this->config->resetLimits();
-        $this->config->setIntervalLimit($this->settings['limit']['interval']['amount'], $this->requestData[static::INTERVAL_MAX_REQUEST]);
-        $this->config->setHourlyLimit($this->settings['limit']['hourly']['amount'], $this->requestData[static::HOURLY_MAX_REQUEST], true);
-        $this->config->setDailyLimit($this->settings['limit']['daily']['amount'], $this->requestData[static::DAILY_MAX_REQUEST], true);
+        $this->config->setIntervalLimit(
+            $this->settings['limit']['interval']['amount'], 
+            $this->data['intervalMaxRequest']
+        );
+        $this->config->setHourlyLimit(
+            $this->settings['limit']['hourly']['amount'], 
+            $this->data['hourlyMaxRequest'],
+            true
+        );
+        $this->config->setDailyLimit(
+            $this->settings['limit']['daily']['amount'],
+            $this->data['dailyMaxRequest'],
+            true
+        );
         $this->config->setBanStatus($this->settings['ban']['status']);
         $this->config->setEnable($this->settings['enabled']);
-        $this->config->setTotalRequest($this->requestData[static::TOTAL_REQUEST_COUNT]);
+        $this->config->setTotalRequest($this->data['totalRequest']);
 
-        return $this->requestData;
+        return $this->data;
     }
 
     /**
@@ -553,7 +593,11 @@ Class Rate
      */
     public function addBan()
     {
-        $this->cache->set(static::RATE_LIMITER_BANNED_USERS .':'. $this->getChannel() . ':' . $this->getIdentifier(), time(), $this->config->getBanExpiration());
+        $this->cache->set(
+            'Rate:Banlist:'.$this->getChannel().':'.$this->getIdentifier(), 
+            time(), 
+            $this->config->getBanExpiration()
+        );
     }
 
     /**
@@ -563,7 +607,8 @@ Class Rate
      */
     public function isBanned()
     {
-        if ( ! $this->cache->get(static::RATE_LIMITER_BANNED_USERS.':'. $this->getChannel() . ':' . $this->getIdentifier())) {
+        $banlist = $this->cache->get('Rate:Banlist:'. $this->getChannel().':'.$this->getIdentifier());
+        if ( ! $banlist) {
             return false;
         }
         return true;
@@ -576,7 +621,7 @@ Class Rate
      */
     public function removeBan()
     {
-        $this->cache->delete(static::RATE_LIMITER_BANNED_USERS .':'. $this->getChannel() . ':' . $this->getIdentifier());
+        $this->cache->delete('Rate:Banlist:'.$this->getChannel().':'.$this->getIdentifier());
     }
 
 }

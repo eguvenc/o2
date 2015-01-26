@@ -37,7 +37,7 @@ Class DebugOutput
     {
         global $c;
         $this->config = $c->load('config');
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         if ($this->logger instanceof Logger) {
             $this->logger->debug('Debug Output Class Initialized');
         }

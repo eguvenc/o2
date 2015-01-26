@@ -4,7 +4,8 @@ namespace Obullo\View;
 
 use Closure,
     Controller,
-    Obullo\Layer\Layer;
+    Obullo\Layer\Layer,
+    Obullo\Container\Container;
 
 /**
  * View Class
@@ -18,77 +19,50 @@ use Closure,
  */
 Class View
 {
+    protected $logger;   // Logger instance
+    protected $response; // Response instance
     /**
-     * Dynamic variable types
+     * Protected variables
      * 
      * @var array
      */
-    public $bool = array(); // Boolean type view variables
-    public $array = array(); // Array type view variables
-    public $string = array(); // String type view variables
-    public $object = array(); // Object type view variables
-
-    /**
-     * Static variables ( @BASE, @WEBHOST , @ASSETS )
-     * 
-     * @var array
-     */
-    public $variables = array();
-
-    /**
-     * Logger instance
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
-     * Router instance
-     * 
-     * @var object
-     */
-    public $router = null;
-    
-    /**
-     * Response instance
-     * 
-     * @var object
-     */
-    public $response;
-
-    /**
-     * Layouts array
-     * 
-     * @var array
-     */
-    protected $layouts;
-
-    /**
-     * Nested Controller
-     * 
-     * @var object
-     */
-    protected $nestedController = null;
+    protected $_boolStack   = array();    // Boolean type view variables
+    protected $_arrayStack  = array();    // Array type view variables
+    protected $_stringStack = array();    // String type view variables
+    protected $_objectStack = array();    // Object type view variables
+    protected $_staticVars  = array();    // Static variables ( @BASE, @WEBHOST , @ASSETS )
+    protected $_layoutArray;              // Layouts array
+    protected $_nestedController = null;  // Nested Controller
 
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params configuration array
+     * @param array $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c)
     {
-        $this->variables = array(
-            '@BASE' => rtrim($c['config']['url']['base'], '/'),
-            '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
-            '@ASSETS' => rtrim($c['config']['url']['assets'], '/')
-        );
         $this->c = $c;
-        $this->layouts = $params['layouts'];
-        $this->logger = $this->c->load('service/logger');
-        $this->response = $this->c->load('response');
-
+        $this->response = $this->c['response'];
+        $this->_staticVars = array(
+            '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
+            '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
+            '@ASSETS'  => rtrim($c['config']['url']['assets'], '/')
+        );
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('View Class Initialized');
+    }
+
+    /**
+     * Set layout configuration
+     * 
+     * @param array $layouts layout data
+     *
+     * @return object
+     */
+    public function setLayouts($layouts = array())
+    {
+        $this->_layoutArray = $layouts;
+        return ($this);
     }
 
     /**
@@ -104,29 +78,20 @@ Class View
     public function fetch($obulloViewFilePath, $obulloViewFilename, $obulloViewData = null, $obulloViewInclude = true)
     {
         $obulloViewInclude = ($obulloViewData === false) ? false : $obulloViewInclude;
-        $fileExtension = substr($obulloViewFilename, strrpos($obulloViewFilename, '.')); 	// Detect the file extension ( e.g. '.tpl' )
+        $fileExtension = substr($obulloViewFilename, strrpos($obulloViewFilename, '.')); // Detect extension ( e.g. '.tpl' )
         $ext = (strpos($fileExtension, '.') === 0) ? '' : '.php';
 
-        if (class_exists('Controller', false) AND is_object(Controller::$instance)) {
-            foreach (array_keys(get_object_vars(Controller::$instance)) as $key) {	 // This allows to using "$this" variable in all views files.
-                $this->{$key} = Controller::$instance->{$key}; 	// e.g. $this->config->getItem('myitem')
-            }
-        }
-        if (is_callable($obulloViewData)) {
-            $this->bind($obulloViewData);
-        }
-        extract($this->string, EXTR_SKIP);
-        extract($this->array, EXTR_SKIP);
-        extract($this->object, EXTR_SKIP);
-        extract($this->bool, EXTR_SKIP);
+        $this->assignVariables($obulloViewData);
+
+        extract($this->_stringStack, EXTR_SKIP);
+        extract($this->_arrayStack, EXTR_SKIP);
+        extract($this->_objectStack, EXTR_SKIP);
+        extract($this->_boolStack, EXTR_SKIP);
 
         ob_start();   // Please open short tags in your php.ini file. ( it must be short_tag = On ).
         include $obulloViewFilePath . $obulloViewFilename . $ext;
         $output = ob_get_clean();
-
-        $this->logger->debug('View file loaded: ' . $obulloViewFilePath . $obulloViewFilename . $ext);
-
-        $output = str_replace(array_keys($this->variables), array_values($this->variables), $output);
+        $output = str_replace(array_keys($this->_staticVars), array_values($this->_staticVars), $output);
         
         if ($obulloViewData === false OR $obulloViewInclude === false) {
             return $output;
@@ -136,56 +101,85 @@ Class View
     }
 
     /**
-     * Set variables
+     * Assign view variables
      * 
-     * @param string $key view key data
-     * @param mixed  $val mixed
+     * @param array $obulloViewData view data
      * 
      * @return void
      */
-    public function assign($key, $val)
+    protected function assignVariables($obulloViewData)
+    {
+        if (is_array($obulloViewData)) {
+            foreach ($obulloViewData as $key => $value) {
+                $this->assign($key, $value);
+            }
+        }
+    }
+
+    /**
+     * Set variables
+     * 
+     * @param string $key    view key data
+     * @param mixed  $val    mixed
+     * @param string $filter set filter or on / off all filters
+     * 
+     * @return void
+     */
+    public function assign($key, $val, $filter = null)
     {
         if (is_int($val)) {
-            $this->string[$key] = $val;
+            $this->_stringStack[$key] = $val;
             return;
         }
         if (is_string($val)) {
-            if (strpos($val, '@layer') === 0 ) {
-                $matches = explode('.', $val);
-                $uri     = $matches[1];
-                $param = (isset($matches[2])) ? $matches[2] : '';
-                $val   = $this->c->load('layer')->get($uri, $param);
-            }
-            $this->string[$key] = $val;
-            if (strpos($key, '@') === 0) {
-                $this->setVar($key, $val);
-            }
+            //  do filter
+            
+            $this->parseString($key, $val);
             return;
         }
-        $this->array[$key] = array();
-
+        $this->_arrayStack[$key] = array();  // Create empty array
         if (is_array($val)) {
             if (count($val) == 0) {
-                $this->array[$key] = array();
+                $this->_arrayStack[$key] = array();
             } else {
                 foreach ($val as $array_key => $value) {
-                    $this->array[$key][$array_key] = $value;
+                    
+                    //  do filter
+                    //  
+                    $this->_arrayStack[$key][$array_key] = $value;
                 }
             }
         }
         if (is_object($val)) {
-            $this->object[$key] = $val;
-            $this->array = array();
+            //  do filter
+            $this->_objectStack[$key] = $val;
+            $this->_arrayStack = array();
             return;
         }
         if (is_bool($val)) {
-            $this->bool[$key] = $val;
-            $this->array = array();
+            $this->_boolStack[$key] = $val;
+            $this->_arrayStack = array();
             return;
         }
-        $this->string[$key] = $val;
-        $this->array = array();
+        $this->_stringStack[$key] = $val;
+        $this->_arrayStack = array();
         return;
+    }
+
+    /**
+     * Parse string type variables
+     * 
+     * @param string $key key
+     * @param string $val value
+     * 
+     * @return void
+     */
+    protected function parseString($key, $val)
+    {
+        $this->_stringStack[$key] = $val;
+        if (strpos($key, '@') === 0) {
+            $this->setVar($key, $val);
+        }
     }
 
     /**
@@ -197,8 +191,8 @@ Class View
      */
     public function layout($name = 'default')
     {
-        if (isset($this->layouts[$name]) AND is_callable($this->layouts[$name])) {
-            $this->bind($this->layouts[$name]);
+        if (isset($this->_layoutArray[$name]) AND is_callable($this->_layoutArray[$name])) {
+            $this->bind($this->_layoutArray[$name]);
         }
         return $this;
     }
@@ -225,7 +219,7 @@ Class View
      */
     public function nested(Controller $controller)
     {
-        $this->nestedController = $controller;
+        $this->_nestedController = $controller;
         return $this;
     }
 
@@ -234,11 +228,12 @@ Class View
      * 
      * @param string  $filename        filename
      * @param mixed   $dataOrNoInclude closure data, array data or boolean ( fetch as string )
+     * @param string  $layout          fetch layout data
      * @param boolean $include         no include ( fetch as string )
      * 
      * @return string                      
      */
-    public function load($filename, $dataOrNoInclude = null, $include = true)
+    public function load($filename, $dataOrNoInclude = null, $layout = null, $include = true)
     {
         /**
          * IMPORTANT:
@@ -246,14 +241,14 @@ Class View
          * Router may not available in some levels, we need to always use container object.
          * Forexample if we define a closure route which contains the view class, 
          * it will not work if router not available in the controller.
-         * So first we need check router is available if not we use container->router otherwise Controller->router.
+         * So first we need check Controller is available if not we use container->router.
          */
         $router = (Controller::$instance == null) ? $this->c['router'] : Controller::$instance->router;
         /**
          * Is there any nested layer ?
          */
-        if (is_object($this->nestedController)) {
-            $router = $this->nestedController->router;
+        if (is_object($this->_nestedController)) {
+            $router = $this->_nestedController->router;
         }
         /**
          * Fetch view ( also it can be nested )
@@ -264,7 +259,13 @@ Class View
             $dataOrNoInclude,
             $include
         );
-        $this->nestedController = null; // Reset nested controller object.
+        /**
+         * Fetch layout
+         */
+        if ( ! empty($layout)) {
+            $this->layout($layout);
+        }
+        $this->_nestedController = null; // Reset nested controller object.
         return $return;
     }
 
@@ -283,6 +284,20 @@ Class View
     }
 
     /**
+     * Make available controller variables in view files
+     * 
+     * @param string $key Controller variable name
+     * 
+     * @return void
+     */
+    public function __get($key)
+    {
+        if (class_exists('Controller', false) AND Controller::$instance != null) {
+            return Controller::$instance->{$key};
+        }
+    }
+
+    /**
      * Assign static variables
      * 
      * @param string $name    key
@@ -294,7 +309,7 @@ Class View
     {
         $name = strtoupper($name);
         $name = str_replace('@', '', $name);
-        $this->variables['@'.$name] = $replace;
+        $this->_staticVars['@'.$name] = $replace;
     }
 
 }

@@ -11,7 +11,7 @@ namespace Obullo\Cli\Log\Printer;
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/cli
  */
 Class Colorful
 {
@@ -25,6 +25,7 @@ Class Colorful
      */
     public function printLine($i, $line)
     {
+        // $break = "";
         $break = "\n------------------------------------------------------------------------------------------";
         if ($i == 0) {
             $line = str_replace("\n", '', $line);
@@ -44,7 +45,7 @@ Class Colorful
                 $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
 
                 if (strpos($messageBody, '$_REQUEST_URI') !== false) {
-                    $line  = "\033[1;36m".$break."\n".$line.$break."\n\033[0m";
+                    $line  = "\033[1;36m".$break."\n".$line.$break."\033[0m";
                 } elseif (strpos($messageBody, '$_LAYER') !== false) {
                     $line = "\033[1;34m".strip_tags($line)."\033[0m";
                 } else {
@@ -59,10 +60,10 @@ Class Colorful
             }
             if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
                 if (strpos($messageBody, '--> Final output sent') !== false) {
-                    $line = "\033[0m"."\033[1;36m".$line."\033[0m";
+                    $line = "\033[0m"."\033[1;35m".$line."\033[0m";
                 }
                 if (strpos($messageBody, '--> Header redirect') !== false) {
-                    $line = "\033[0m"."\033[1;33m".$line."\033[0m";
+                    $line = "\033[0m"."\033[1;35m".$line."\033[0m";
                 }
                 $line = "\033[0;35m".$line."\033[0m";
                 if ( ! isset($lines[$i])) {

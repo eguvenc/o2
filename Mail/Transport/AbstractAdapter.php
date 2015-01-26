@@ -5,6 +5,7 @@ namespace Obullo\Mail\Transport;
 use Obullo\Mail\Text,
     Obullo\Mail\Validator,
     Obullo\Mail\File,
+    Obullo\Container\Container,
     RuntimeException;
 
 /**
@@ -52,7 +53,7 @@ Abstract Class AbstractAdapter
      * @param object $c      container
      * @param array  $config preferences
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c, $config = array())
     {
         $this->c = $c;
         $this->init($config['send']['settings']);

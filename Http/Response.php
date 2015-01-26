@@ -70,7 +70,7 @@ Class Response
     {
         $this->c = $c;
         $this->finalOutput = '';
-        $this->logger = $this->c->load('return service/logger');
+        $this->logger = $this->c->load('return logger');
         $this->logger->debug('Response Class Initialized');
     }
 

@@ -232,7 +232,7 @@ Class Db
     public function truncateTable()
     {
         $this->loadDb();
-        return $this->db->exec('TRUNCATE TABLE %s', array($this->tableName));
+        return $this->db->exec('TRUNCATE TABLE %s', array($this->db->protect($this->tableName)));
     }
 
     /**
@@ -262,7 +262,6 @@ Class Db
             $this->lft      => (isset($result[$this->lft])) ? $result[$this->lft] + 1 : 0 + 1,
             $this->rgt      => (isset($result[$this->lft])) ? $result[$this->lft] + 2 : 0 + 2,
         );
-        
         $data = $this->appendExtraData($data, $extra);
 
         $this->insert($this->tableName, $data);
@@ -278,23 +277,22 @@ Class Db
      */
     public function insert($tableName, $data)
     {
-        // $this->db->prepare(
-        //     "INSERT INTO %s ( %s ) VALUES ( %s )",
-        //     array(
-        //         $tableName,
-        //         implode(',', array_keys($data)),
-        //         str_repeat("?,", count($data)-1) . '?'
-        //     )
-        // );
-        // $i = 0;
-        // foreach ($data as $value) {
-        //     $i++;
-        //     $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
-        //     $this->db->bindValue($i, $value, $param);
-        // }
-        
         $this->loadDb();
-        return $this->db->insert($tableName, $data);
+        $this->db->prepare(
+            "INSERT INTO %s ( %s ) VALUES ( %s )",
+            array(
+                $tableName,
+                implode(',', array_keys($data)),
+                str_repeat("?,", count($data)-1) . '?'
+            )
+        );
+        $i = 0;
+        foreach ($data as $value) {
+            $i++;
+            $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
+            $this->db->bindValue($i, $value, $param);
+        }
+        return $this->db->execute();
     }
 
     /**
@@ -316,7 +314,6 @@ Class Db
         );
         $this->db->bindValue(1, $category_id, PARAM_INT);
         $this->db->execute();
-        
         return $this->db->rowArray();
     }
 
@@ -342,9 +339,7 @@ Class Db
         $data[$this->text]     = $text;
         $data[$this->lft]      = $lftValue + 1;
         $data[$this->rgt]      = $lftValue + 2;
-
         $data = $this->appendExtraData($data, $extra);
-
         $this->insert($this->tableName, $data);
     }
 
@@ -372,7 +367,6 @@ Class Db
         $data[$this->rgt]      = $rgtValue + 1;
 
         $data = $this->appendExtraData($data, $extra);
-
         $this->insert($this->tableName, $data);
     }
 
@@ -400,7 +394,6 @@ Class Db
         $data[$this->rgt]      = $lftValue + 1;
 
         $data = $this->appendExtraData($data, $extra);
-
         $this->insert($this->tableName, $data);
     }
 
@@ -428,7 +421,6 @@ Class Db
         $data[$this->rgt]      = $rgtValue + 2;
 
         $data = $this->appendExtraData($data, $extra);
-
         $this->insert($this->tableName, $data);
     }
 
@@ -460,7 +452,6 @@ Class Db
 
         $this->updateLeft(($lftValue - $rgtValue - 1), $rgtValue + 1);
         $this->updateRight(($lftValue - $rgtValue - 1), $rgtValue + 1);
-
         return $this->db->getStatement();
     }
 
@@ -493,7 +484,6 @@ Class Db
             )
         );
         $this->db->bindValue(1, $category_id, PARAM_INT);
-
         return $this->db->execute();
     }
 
@@ -538,7 +528,6 @@ Class Db
         );
         $this->db->bindValue(1, $category_id, PARAM_INT);
         $this->db->bindValue(2, $source[$this->primaryKey], PARAM_INT);
-
         return $this->db->execute();
     }
 
@@ -559,13 +548,11 @@ Class Db
         $value = $target[$this->lft] + 1;
 
         $this->updateParentId($source, $target[$this->primaryKey]);
-
         /**
          * Modify Node
          */
         $this->updateLeft($sizeOfTree, $value);
         $this->updateRight($sizeOfTree, $value);
-
         /**
          * Extend current tree values
          */
@@ -573,13 +560,11 @@ Class Db
             $source[$this->lft] += $sizeOfTree;
             $source[$this->rgt] += $sizeOfTree;
         }
-
         /**
          * Modify Range
          */
         $this->updateLeft($value - $source[$this->lft], $source[$this->lft], "AND $this->lft <= ". $source[$this->rgt]);
         $this->updateRight($value - $source[$this->lft], $source[$this->lft], "AND $this->rgt <= " .$source[$this->rgt]);
-
         /**
          * Modify Node
          */
@@ -610,7 +595,6 @@ Class Db
          */
         $this->updateLeft($sizeOfTree, $value);
         $this->updateRight($sizeOfTree, $value);
-
         /**
          * Extend current tree values
          */
@@ -618,13 +602,11 @@ Class Db
             $source[$this->lft] += $sizeOfTree;
             $source[$this->rgt] += $sizeOfTree;
         }
-
         /**
          * Modify Range
          */
         $this->updateLeft($value - $source[$this->lft], $source[$this->lft], "AND $this->lft <= " .$source[$this->rgt]);
         $this->updateRight($value - $source[$this->lft], $source[$this->lft], "AND $this->rgt <= " .$source[$this->rgt]);
-
         /**
          * Modify Node
          */
@@ -655,7 +637,6 @@ Class Db
          */
         $this->updateLeft($sizeOfTree, $value);
         $this->updateRight($sizeOfTree, $value);
-
         /**
          * Extend current tree values
          */
@@ -663,13 +644,11 @@ Class Db
             $source[$this->lft] += $sizeOfTree;
             $source[$this->rgt] += $sizeOfTree;
         }
-
         /**
          * Modify Range
          */
         $this->updateLeft($value - $source[$this->lft], $source[$this->lft], "AND $this->lft <= " .$source[$this->rgt]);
         $this->updateRight($value - $source[$this->lft], $source[$this->lft], "AND $this->rgt <= " .$source[$this->rgt]);
-
         /**
          * Modify Node
          */
@@ -700,7 +679,6 @@ Class Db
          */
         $this->updateLeft($sizeOfTree, $value);
         $this->updateRight($sizeOfTree, $value);
-
         /**
          * Extend current tree values
          */
@@ -708,13 +686,11 @@ Class Db
             $source[$this->lft] += $sizeOfTree;
             $source[$this->rgt] += $sizeOfTree;
         }
-
         /**
          * Modify Range
          */
         $this->updateLeft($value - $source[$this->lft], $source[$this->lft], "AND $this->lft <= " .$source[$this->rgt]);
         $this->updateRight($value - $source[$this->lft], $source[$this->lft], "AND $this->rgt <= " .$source[$this->rgt]);
-
         /**
          * Modify Node
          */
@@ -774,7 +750,6 @@ Class Db
         );
         $this->db->bindValue(1, $setValue, PARAM_INT);
         $this->db->bindValue(2, $whereValue, PARAM_INT);
-
         return $this->db->execute();
     }
 
@@ -837,7 +812,6 @@ Class Db
         );
         $this->db->bindValue(1, $nodeId, PARAM_INT);
         $this->db->execute();
-        
         return $this->db->resultArray();
     }
 
@@ -960,7 +934,6 @@ Class Db
             )
         );
         $this->db->execute();
-
         return $this->db->resultArray();
     }
 
@@ -1013,7 +986,6 @@ Class Db
         );
         $this->db->bindValue(1, $parent_id[$this->parentId], PARAM_INT);
         $this->db->execute();
-
         return $this->db->resultArray();
     }
 
@@ -1037,7 +1009,6 @@ Class Db
         );
         $this->db->bindValue(1, $category_id, PARAM_INT);
         $this->db->execute();
-
         return $this->db->rowArray();
     }
 

@@ -23,7 +23,7 @@ Class Element
     {
         $this->c = $c;
         $this->translator = $c->load('translator');
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         $this->logger->debug('Form Element Class Initialized');
     }
 

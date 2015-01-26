@@ -34,7 +34,7 @@ Konfigürasyon dosyaları load metodu ile yüklendiğinde çevre ortamı ne olur
 <?php
 $c['config']->load('database');
 
-echo $c['config']['database']['key']['db']['host'];  // Çıktı localhost
+echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
 ```
 
 
@@ -297,15 +297,14 @@ echo $this->config['database']['db']['host'];  // gives test.example.com
 
 ```php
 <?php
-echo $this->config->env['application']['site']['label']; // gives "Web Server"
+echo $this->config->env['domain']['sub.domain.com']['maintenance']; // gives "up" value
 ```
 
 #### Saving Config.env Variables
 
 ```php
 <?php
-$this->config->env['application']['site']['label'] = 'Test Server';
-$this->config->env['application']['site']['maintenance'] = 'down';
+$this->config->env['domain']['root']['maintenance'] = 'down';
 $this->config->write();
 ```
 
@@ -317,30 +316,31 @@ Now your config.env file updated as below.
 return array(
 
     'service' => array(
-
         'logger' => array(
             'env' => array(
                 'cli' => 'Service/Log/Env/Cli',
                 'http' => 'Service/Log/Env/Local',
-            )
+            ),
+        ),
+        'queue' => array(
+            'maintenance' => 'up',
+            'env' => array()
         ),
     ),
-
-    'application' => array(
-
-        'all' => array(
-            'maintenance' => 'up',
-            'label' => 'All Application',
-        ),
-        'site' => array(
+    'domain' => array(
+        'root' => array(
             'maintenance' => 'down',
-            'label' => 'Test Server',
+            'regex' => null,
+        ),
+        'sub.domain.com' => array(
+            'maintenance' => 'up',
             'regex' => '^framework$',
         ),
-    ),
+    )
+);
 
 /* End of file config.env */
-/* Location: .app/env/local/config.env */
+/* Location: .app/config/env/local/config.env */
 ```
 
 ### Function Reference

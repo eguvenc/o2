@@ -9,7 +9,7 @@ Queues allow you to defer the processing of a time consuming task, such as sendi
 
 ```php
 <?php
-$this->c->load('service/queue');
+$this->c->load('queue');
 $this->queue->method();
 ```
 
@@ -113,7 +113,7 @@ This tutorial simply demonstrate <b>pushing your data</b> to queue using your qu
  */
 $app = new Controller(
     function ($c) {
-        $c->load('service/queue');
+        $c->load('queue');
         
         $this->queue->channel('Log');
         $this->queue->push('Workers/Logger', 'Server1.logger', array('log' => array('debug' => 'Test')));
@@ -268,7 +268,7 @@ Push examle
 
 ```php
 <?php
-$c->load('service/queue');
+$c->load('queue');
 
 $this->queue->channel('Logs');
 $this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', array('log' => array('debug' => 'Test')));
@@ -279,7 +279,7 @@ Push example with delivery mode
 
 ```php
 <?php
-$c->load('service/queue');
+$c->load('queue');
 
 $this->queue->channel('Logs');
 $this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', 

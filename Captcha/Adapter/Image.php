@@ -19,177 +19,31 @@ use RuntimeException,
  */
 Class Image extends AbstractAdapter implements AdapterInterface
 {
-    /**
-     * Actual fonts
-     * 
-     * @var array
-     */
-    public $fonts;
-
-    /**
-     * Driver type
-     * 
-     * @var string
-     */
-    public $driver;
-
-    /**
-     * Image dir
-     * 
-     * @var string
-     */
-    public $imgPath;
-
-    /**
-     * Captcha image display
-     * url with base url
-     * 
-     * @var string
-     */
-    public $imageUrl;
-
-    /**
-     * Image raw url
-     * 
-     * @var string
-     */
-    public $imgRawUrl;
-
-    /**
-     * Image width
-     * 
-     * @var integer
-     */
-    public $width;
-
-    /**
-     * Font path
-     * 
-     * @var string
-     */
-    public $configFontPath;
-
-    /**
-     * Default font path
-     * 
-     * @var string
-     */
-    public $defaultFontPath;
-
-    /**
-     * Noise color
-     * 
-     * @var string
-     */
-    public $noiseColor;
-
-    /**
-     * Text color
-     * 
-     * @var string
-     */
-    public $textColor;
-
-    /**
-     * Image name
-     * 
-     * @var string
-     */
-    public $imgName;
-
-    /**
-     * Captcha html
-     * 
-     * @var string
-     */
-    protected $html = '';
-
-    /**
-     * Configuration data
-     * 
-     * @var array
-     */
-    protected $config = array();
-
-    /**
-     * Configuration temp data
-     * 
-     * @var array
-     */
-    protected $tempConfig = array();
-
-    /**
-     * Image unique id
-     * 
-     * @var string
-     */
-    protected $imageId = '';
-
-    /**
-     * Image captcha drivers
-     * 
-     * @var array
-     */
-    protected $drivers = array(
-        'cool',
-        'secure'
-    );
-
-    /**
-     * Wave Y axis
-     * 
-     * @var integer
-     */
-    protected $yPeriod = 12;
-
-    /**
-     * Wave Y amplitude
-     * 
-     * @var integer
-     */
-    protected $yAmplitude = 14;
-
-    /**
-     * Wave X axis
-     * 
-     * @var integer
-     */
-    protected $xPeriod = 11;
-
-    /**
-     * Wave Y amplitude
-     * 
-     * @var integer
-     */
-    protected $xAmplitude = 5;
-
-    /**
-     * Wave default scale
-     * 
-     * @var integer
-     */
-    protected $scale = 2;
-
-    /**
-     * Gd image content
-     * 
-     * @var string
-     */
-    protected $image;
-
-    /**
-     * Generated image code
-     * 
-     * @var string
-     */
-    protected $code;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
+    public $fonts;      // Actual fonts
+    public $driver;     // Driver type
+    public $imgPath;    // Image dir
+    public $imageUrl;   // Captcha image display url with base url
+    public $imgRawUrl;  // Image raw url
+    public $width;      // Image width
+    public $configFontPath;     // Font path
+    public $defaultFontPath;    // Default font path
+    public $noiseColor;         // Noise color
+    public $textColor;          // Text color
+    public $imgName;            // Image name
+    
+    protected $html = '';       // Captcha html
+    protected $config = array();   // Configuration data
+    protected $tempConfig = array();    // Configuration temp data
+    protected $imageId = '';        // Image unique id
+    protected $drivers = array();   // Image captcha drivers
+    protected $yPeriod = 12;    // Wave Y axis
+    protected $yAmplitude = 14; // Wave Y amplitude
+    protected $xPeriod = 11;    // Wave X axis
+    protected $xAmplitude = 5;  // Wave Y amplitude
+    protected $scale = 2;       // Wave default scale
+    protected $image;           // Gd image content
+    protected $code;            // Generated image code
+    protected $c;               // Container
 
     /**
      * Constructor
@@ -205,6 +59,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
         $this->c          = $c;
         $this->config     = $params;
         $this->tempConfig = $params;
+        $this->drivers    = array('cool', 'secure');
 
         parent::__construct($c);
     }
@@ -507,7 +362,6 @@ Class Image extends AbstractAdapter implements AdapterInterface
                 $invalidColors[] = $val;
             }
         }
-
         if (isset($invalidColors)) {
             throw new RuntimeException(
                 sprintf(

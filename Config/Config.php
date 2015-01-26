@@ -52,12 +52,10 @@ Class Config implements ArrayAccess
         $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
         $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
         $this->file  = $this->path .'config.env';
-
+        
         ini_set('display_errors', 1);
         $this->env = include $this->file;
-
         $this->assignEnvironments();
-
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
 
         if (ENV != 'local') { // Merge config variables if env not local.
@@ -77,7 +75,7 @@ Class Config implements ArrayAccess
         $dotenv = '.env.'. ENV .'.php';
         $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
         if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
-            configurationError();
+            $this->configurationError();
         }
         $_ENV = $envVariables;
     }
@@ -186,6 +184,20 @@ Class Config implements ArrayAccess
     public function offsetUnset($key)
     {
         unset($this->array[$key]);
+    }
+
+    /**
+     * Include file errors
+     * 
+     * @param string $errorStr message
+     * 
+     * @return void exit
+     */
+    protected function configurationError($errorStr = null)
+    {
+        $error = error_get_last();
+        $message = (is_null($errorStr)) ? $error['message'] : $errorStr;
+        die('<b>Configuration error:</b> '.$message. ' line: '.$error['line']);
     }
 
 }

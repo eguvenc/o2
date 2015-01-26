@@ -56,7 +56,7 @@ Class Form
     {
         $this->c = $c;
         $this->params = (count($params) == 0) ? $c['config']->load('form') : $params;
-        $this->logger = $this->c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('Form Class Initialized');
     }
 
@@ -260,7 +260,7 @@ Class Form
      */    
     public function setValue($field = '', $default = '')
     {
-        return $this->value($field, $default);
+        return $this->getValue($field, $default);
     }
 
     /**

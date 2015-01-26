@@ -43,44 +43,14 @@ $c['app']->detectEnvironment();
 */
 define('ENV', $c['app']->getEnv());
 define('ENV_PATH', APP .'config'. DS . ENV . DS);
-
-/**
- * Gets environment variable from $_ENV global
- * 
- * @param string $key      key
- * @param string $default  default value
- * @param string $required if true people know any explicit required variables that your app will not work without
- * 
- * @return string value
- */
-function env($key, $default = '', $required = false)
-{
-    $empty = empty($_ENV[$key]);
-    if ($required AND $empty) {
-        die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.ENV.'.php file array.');
-    }
-    if ($empty AND $default != '') {     // default value
-        return $default;
-    }
-    if ( ! isset($_ENV[$key])) {
-        die('<b>Configuration error: </b>'.$key.' key not found in .env.'.ENV.'.php file array.');
-    }
-    return $_ENV[$key];
-}
-
-/**
- * Startup Configuration Error
- * 
- * @param string $errorStr optional message
- * 
- * @return void exit
- */
-function configurationError($errorStr = null)
-{
-    $error = error_get_last();
-    $message = (is_null($errorStr)) ? $error['message'] : $errorStr;
-    die('<b>Configuration error:</b> '.$message. ' line: '.$error['line']);
-}
+/*
+|--------------------------------------------------------------------------
+| Environment Component
+|--------------------------------------------------------------------------
+*/
+$c['env'] = function () {
+    return new Obullo\Config\Env;
+};
 /*
 |--------------------------------------------------------------------------
 | Config Component
@@ -118,6 +88,28 @@ date_default_timezone_set($c['config']['locale']['date']['php_date_default_timez
 if ($c['config']['error']['debug'] AND $c['config']['error']['reporting'] == false) {
     Obullo\Error\Debug::enable(E_ALL | E_NOTICE | E_STRICT);
 }
+/*
+|--------------------------------------------------------------------------
+| Controller
+|--------------------------------------------------------------------------
+*/
+require OBULLO_CONTROLLER;
+/*
+|--------------------------------------------------------------------------
+| Components
+|--------------------------------------------------------------------------
+*/
+require OBULLO_COMPONENTS;
+require OBULLO_EVENTS;
+require OBULLO_ROUTES;
+/*
+|--------------------------------------------------------------------------
+| Initialize Routes
+|--------------------------------------------------------------------------
+*/
+$c['router']->init();
+
+require OBULLO_FILTERS;
 
 // END Core.php File
 /* End of file Core.php

@@ -2,15 +2,16 @@
 
 namespace Obullo\Queue\Handler;
 
-use Obullo\Queue\Queue,
-    Obullo\Queue\JobHandler\AMQPJob,
-    AMQPChannel, 
-    AMQPConnection,
+use AMQPQueue,
+    AMQPChannel,
     AMQPEnvelope,
-    AMQPException,
     AMQPExchange,
-    AMQPQueue,
-    RunTimeException;
+    AMQPException,
+    AMQPConnection,
+    RuntimeException,
+    Obullo\Queue\Queue,
+    Obullo\Container\Container,
+    Obullo\Queue\JobHandler\AMQPJob;
 
 /**
  * AMQP Handler
@@ -64,17 +65,16 @@ Class AMQP extends Queue implements HandlerInterface
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params configuration
+     * @param object $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $params['server'];
-        $this->logger = $c->load('service/logger');
+        $this->config = $this->c['config']->load('queue')['server'];
+        $this->logger = $this->c->load('logger');
 
         if ( ! extension_loaded('AMQP')) {
-            throw new RunTimeException('AMQP extension required but not installed.');
+            throw new RuntimeException('AMQP extension required but not installed.');
         }
         $this->connection = new AMQPConnection; 
         $this->connection->setHost($this->config['host']); 

@@ -2,6 +2,8 @@
 
 namespace Obullo\Session\MetaData;
 
+use Obullo\Container\Container;
+
 /**
  * MetaData Storage
  * 
@@ -57,6 +59,13 @@ Class MetaData
     public $cache;
 
     /**
+     * Container 
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Meta data stack
      * 
      * @var array
@@ -70,15 +79,16 @@ Class MetaData
      * @param object $params  parameters
      * @param object $session session object
      */
-    public function __construct($c, $params, $session)
+    public function __construct(Container $c, $params, $session)
     {
+        $this->c = $c;
         $this->params = $params;
         $this->session = $session;
         $this->now = $this->session->getTime();
-        $this->ipAddress = $c['request']->ip();
-        $this->userAgent = $c['request']->server('HTTP_USER_AGENT');
-        $this->cache = $c->load('service/provider/cache', array('serializer' => 'SERIALIZER_NONE'));
-        $this->logger = $c->load('service/logger');
+        $this->ipAddress = $this->c['request']->getIpAddress();
+        $this->userAgent = $this->c['request']->server('HTTP_USER_AGENT');
+        $this->cache = $this->c->load('service/provider/cache', array('serializer' => 'SERIALIZER_NONE'));
+        $this->logger = $this->c->load('logger');
     }
 
     /**

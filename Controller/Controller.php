@@ -23,7 +23,7 @@ Class Controller
         global $c;
         $this->c = &$c;
         self::$instance = &$this;
-        $logger = $c->load('service/logger');  // Assign Default Loaded Packages
+        $logger = $c->load('logger');  // Assign Default Loaded Packages
                                                // NOTICE:
         $this->config = &$c['config'];         // If we don't use assign by reference this will cause some errors in "Layers".
         $this->uri    = &$c['uri'];            // The bug is insteresting, when we work with multiple page not found requests

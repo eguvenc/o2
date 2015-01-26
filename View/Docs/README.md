@@ -113,8 +113,8 @@ Some variables pre defined in view file and automatically replaced when you use 
 <tbody>
 
 <tr>
-<td>@BASE</td>
-<td><b>echo $this->config['url']['base'];</b></td>
+<td>@BASEURL</td>
+<td><b>echo $this->config['url']['baseurl'];</b></td>
 <td>Generally "/" a trailing slash</td>
 </tr>
 
@@ -388,17 +388,17 @@ echo $this->view->template('header');
 echo $this->view->template('footer');
 ```
 
-Then in your controller file you can call your scheme using $this->getScheme() function.
+Then in your controller file you can call your layouts using last parameter.
 
 ```php
 <?php
 
 $this->view->load(
   'hello_world',
-  function () {
-      $this->assign('title', 'Hello World !');
-      $this->layout()
-  }
+  [
+      'title' => 'Hello World'
+  ]
+  'welcome'
 );
 ```
 
@@ -428,7 +428,6 @@ $app = new Controller(
     function ($c) {
         $c->load('url');
         $c->load('request');
-        $c->load('view');
     }
 );
 
@@ -481,7 +480,7 @@ Finally calling Header View Controller using <b>"Layers"</b> gives below the out
 
 ```php
 <?php
-$c->load('layer');
+$this->c->load('layer');
 echo $this->layer->get('views/header');
 ```
 Gives 
@@ -531,6 +530,10 @@ $this->request->router->method();
 
 ------
 
+#### $this->view->setLayouts($layours = array());
+
+Sets layout configuration.
+
 #### $this->view->load('filename', $include = true, $data = array());
 
 Gets the file from local directory e.g. <kbd>public/welcome/view</kbd>
@@ -544,9 +547,5 @@ Gets the file from templates directory e.g. <kbd>app/templates</kbd>
 Assign a view variable ( Variable types can be String, Array or Object ), this method <kbd>automatically detects</kbd> the variable types.
 
 #### $this->view->assign('@VARIABLE', 'value');
-
-Assign static variables to available them in your views.
-
-#### $this->view->layout('name');
 
 Uses the layout configuration that is defined in your <kbd>app/config/env/view.php</kbd>.

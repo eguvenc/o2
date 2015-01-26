@@ -3,7 +3,8 @@
 namespace Obullo\Layer;
 
 use stdClass,
-    Controller;
+    Controller,
+    Obullo\Container\Container;
 
 /**
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
@@ -146,11 +147,11 @@ Class Layer
      * @param array $c      container
      * @param array $params config 
      */
-    public function __construct($c, $params)
+    public function __construct(Container $c, $params)
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $c->load('service/logger');
+        $this->logger = $c->load('logger');
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
@@ -230,7 +231,7 @@ Class Layer
      */
     public function execute($expiration = '')
     {
-        $KEY = $this->id();         // Get layer id
+        $KEY = $this->getId();         // Get layer id
         $start = microtime(true);   // Start query timer 
 
         if ($this->params['cache']) {
@@ -385,7 +386,7 @@ Class Layer
      * 
      * @return string
      */
-    public function id()
+    public function getId()
     {
         $id = trim($this->hashString);
         return self::CACHE_KEY. (int)sprintf("%u", crc32((string)$id));

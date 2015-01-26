@@ -5,7 +5,7 @@ namespace Obullo\Mongo;
 use LogicException;
 
 /**
- * Mongo Db "CRUD" Class
+ * Mongo Db Query Class
  *
  * Borrowed from www.alexbilbie.com | alex@alexbilbie.com ( Original Library )
  *
@@ -19,171 +19,53 @@ use LogicException;
  */
 Class Query
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * MongoDb instance
-     * 
-     * @var object
-     */
-    public $db;
-
-    /**
-     * Mongo Connection
-     * 
-     * @var object
-     */
-    public $connection = null;
-
-    /**
-     * Connection
-     * 
-     * @var string
-     */
-    public $connectionString = '';
-
-    /**
-     * Hostname
-     * 
-     * @var string
-     */
-    public $host = '';
-
-    /**
-     * Db connection port
-     * 
-     * @var integer
-     */
-    public $port = 0;
-
-    /**
-     * Db connection username
-     * 
-     * @var string
-     */
-    public $user = '';
-
-    /**
-     * Db connection password
-     * 
-     * @var string
-     */
-    public $pass = '';
-
-    /**
-     * Database name
-     * 
-     * @var string
-     */
-    public $dbname = '';
-
-    /**
-     * Selects
-     * 
-     * @var array
-     */
-    public $selects  = array();
-
-    /**
-     * Wheres
-     * Public to make debugging easier
-     * 
-     * @var array
-     */
-    public $wheres   = array();
-
-    /**
-     * Sorts
-     * 
-     * @var array
-     */
+    protected $c;                   // Container
+    public $db;                     // Mongo client instance
+    public $connection = null;      // Mongo Connection
+    public $connectionString = '';  // Connection
+    public $host = '';              // Hostname
+    public $port = 0;               // Db connection port/
+    public $user = '';              // Db connection username
+    public $pass = '';              // Db connection password
+    public $dbname = '';            // Database name
+    public $selects  = array();     // Select array
+    public $wheres   = array();     // Where array
     public $sorts    = array();
-
-    /**
-     * Updates
-     * Public to make debugging easier
-     * 
-     * @var array
-     */
     public $updates  = array();
-
-    /**
-     * Group by 
-     * Public to make debugging easier
-     * 
-     * @var array
-     */
     public $groupBy  = array();
-
-    /**
-     * Limit
-     * 
-     * @var integer
-     */
     public $limit = 999999;
-
-    /**
-     * Offset
-     * 
-     * @var integer
-     */
     public $offset = 0;
-
-    /**
-     * Last inserted id.
-     * 
-     * @var string
-     */
-    public $insertId = '';
-    
-    /**
-     * Set collection name using $this->db->from() ?
-     * 
-     * @var string
-     */
-    public $collection = ''; 
-
-    /**
-     * Use or not use mongoid object
-     * 
-     * @var boolean
-     */
-    public $mongoId = true;
-
-    /**
-     * Database result object
-     * 
-     * @var object
-     */
-    public $resultObject = null;
-
-    /**
-     * Set operation type for latest query
-     * 
-     * @var string
-     */
-    public $operation = '';
+    public $insertId = '';          // Last inserted id
+    public $collection = '';        // Set collection name using $this->db->from()
+    public $mongoId = true;         // Use or not use mongoid object
+    public $resultObject = null;    // Database result object
+    public $operation = '';         // Set operation type for latest query
 
     /**
     * Constructor
     * 
-    * @param object $c      container
-    * @param object $db     mongo connection instance
-    * @param object $dbName database name
+    * @param object $c container
     * 
     * @throws Exception 
     */
-    public function __construct($c, $db, $dbName)
+    public function __construct($c)
     {
-        $this->c  = $c;
-        $this->db = $db->{$dbName};
+        $this->c = $c;   
     }
-    
+
+    /**
+     * Set database
+     * 
+     * @param string $db name
+     *
+     * @return void
+     */
+    public function db($db)
+    {
+        $this->db = $this->c->load('return service/provider/mongo')->db($db);  // 
+        return $this;
+    }
+
     /**
      * Call method
      * 
@@ -227,7 +109,6 @@ Class Query
     public function select($includes = '')
     {
         $includes = explode(',', $includes);
-
         if ( ! is_array($includes)) {
             $includes = array($includes);
         }
@@ -554,7 +435,6 @@ Class Query
     public function get($collection = '')
     {
         $this->operation = 'read';  // Set operation for lastQuery output.
-      
         $collection = (empty($this->collection)) ? $collection :  $this->collection;
         
         if (empty($collection)) {
@@ -963,7 +843,6 @@ Class Query
         if (isset($this->wheres['_id']) AND ! ($this->wheres['_id'] instanceof MongoId)) {
             $this->wheres['_id'] = new MongoId($this->wheres['_id']);
         }
-        
         $this->db->{$collection}->remove($this->wheres, array_merge($defaultOptions, $options));
 
         $this->resetSelect();

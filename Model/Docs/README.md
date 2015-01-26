@@ -89,14 +89,9 @@ Class Entry extends Model
     public $content;
     public $date;
 
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
-        $this->c->load('service/db');  // Load database object
+        $this->c->load('db');  // Load database object
     }
 
     /**
@@ -106,7 +101,7 @@ Class Entry extends Model
      */
     public function getOne($id = 1)
     {
-    	$this->db->query("SELECT * FROM %s WHERE id = ?", array('users'), array($id));
+    	$this->db->query("SELECT * FROM %s WHERE id = ?", array('entries'), array($id));
 
     	return $this->db->rowArray();
     }
@@ -118,7 +113,7 @@ Class Entry extends Model
      */
     public function getAll($limit = 10)
     {
-    	$this->db->query("SELECT * FROM %s LIMIT %d", array('users', $limit));
+    	$this->db->query("SELECT * FROM %s LIMIT %d", array('entries', $limit));
 
     	return $this->db->resultArray();
     }
@@ -130,15 +125,19 @@ Class Entry extends Model
      */
     public function insert()
     {
-    	$data = array(
-            'title' => $this->title,
-            'content' => $this->content,
-            'date' => (int)$this->date,
-            );
-
-        // $this->db->query("INSERT INTO %s", array('users'), $data);
-
-    	$this->db->insert('users', $data);
+        $this->db->query(
+            'INSERT INTO entries (%s,%s,%s) VALUES (?,?,?)', 
+            [
+                'title',
+                'content', 
+                $this->db->protect('date')  // example protection for identifiers
+            ],
+            [
+                $this->title, 
+                $this->content, 
+                (int)$this->date
+            ]
+        );
     }
 
     /**
@@ -150,20 +149,23 @@ Class Entry extends Model
      */
     public function update($id)
     {
-    	$data = array(
-            'title' => $this->title,
-            'content' => $this->content,
-            'date' => (int)$this->date,
-            );
-
-        $this->db->query("UPDATE %s WHERE user_id = ?", array('users'), $data);
-        // $this->db->query("DELETE FROM %s WHERE user_id = ?", array('users'), $data);
-
-    	// $this->db->update('entries', $data, array('entry_id' => $id));
+        $this->db->query(
+            "UPDATE entries SET %s=?,%s=?,%s=? WHERE entry_id = ?", 
+            [
+                'title',
+                'content',
+                'date'
+            ],
+            [
+                $this->title,
+                $this->content,
+                (int)$this->date,
+                (int)$id
+            ]
+        );
     }
 
 }
-
 
 /* End of file entry.php */
 /* Location: .models/Blog/Entry.php */
@@ -179,26 +181,36 @@ namespace Welcome;
 
 Class Welcome extends \Controller
 {
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
         $this->c->bind('model entry', 'Blog\Entry');
     }
 
-    /**
-     * Index
-     * 
-     * @return void
-     */
     public function index()
     {
     	$rowArray = $this->model->entry->getOne(1);     // Modeller ile çalışmaktan çok mutluyum !
 
 		print_r($rowArray);
+    }
+
+    public function insert()
+    {
+        $this->model->entry->title = 'Insert Test';
+        $this->model->entry->content = 'Hello World';
+        $this->model->entry->date = time();
+        $this->model->entry->insert();
+
+        echo 'New entry added.';
+    }
+
+    public function update($id)
+    {
+        $this->model->entry->title = 'Update Test';
+        $this->model->entry->content = 'Welcome to my world';
+        $this->model->entry->date = time();
+        $this->model->entry->update($id);
+
+        echo 'Entry updated.';
     }
 }
 

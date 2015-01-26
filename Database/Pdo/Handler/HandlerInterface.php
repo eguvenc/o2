@@ -39,26 +39,13 @@ interface HandlerInterface
     public function protect($identifier);
 
     /**
-     * Escape the SQL Identifiers
-     *
-     * This function escapes column and table names
-     * 
-     * @param string $item item
-     * 
-     * @return string
-     */
-    public function _escapeIdentifiers($item);
-
-    /**
      * Escape string
      * 
-     * @param string  $str  string
-     * @param boolean $like whether or not the string will be used in a LIKE condition
-     * @param string  $side direction
+     * @param string $str string
      * 
      * @return string
      */
-    public function _escape($str, $like = false, $side = 'both');
+    public function _escape($str);
 
     /**
      * Platform specific pdo quote function.
@@ -71,13 +58,13 @@ interface HandlerInterface
     public function quote($str, $type = null);
 
     /**
-     * Builds insert / update values
+     * Resolve insert, update, delete, replace modifiers 
      * 
-     * @param array $data values array
+     * @param string $sprintf format
      * 
      * @return array
      */
-    public function buildValues(array $data);
+    public function resolveModifiers($sprintf);
 
     /**
      * From Tables
@@ -90,63 +77,6 @@ interface HandlerInterface
      * @return string
      */
     public function _fromTables($tables);
-
-    /**
-     * Insert statement
-     *
-     * Generates a platform-specific insert string from the supplied data
-     *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
-     * 
-     * @return   string
-     */
-    public function _insert($table, $keys, $values);
-
-    /**
-     * Replace statement
-     *
-     * Generates a platform-specific replace string from the supplied data
-     *
-     * @param string $table  the table name
-     * @param array  $keys   the insert keys
-     * @param array  $values the insert values
-     * 
-     * @return  string
-     */
-    public function _replace($table, $keys, $values);
-
-    /**
-     * Update statement
-     *
-     * Generates a platform-specific update string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $values   the update data
-     * @param array  $where    the where clause
-     * @param array  $orderby  the orderby clause
-     * @param int    $limit    the limit clause
-     * @param int    $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _update($table, $values, $where, $orderby = array(), $limit = false, $extraSql = '');
-
-    /**
-     * Delete statement
-     *
-     * Generates a platform-specific delete string from the supplied data
-     *
-     * @param string $table    the table name
-     * @param array  $where    the where clause
-     * @param string $like     the like clause
-     * @param string $limit    the limit clause
-     * @param string $extraSql add extra sql end of your query
-     * 
-     * @return string
-     */
-    public function _delete($table, $where = array(), $like = array(), $limit = false, $extraSql = '');
 
     /**
      * Limit string

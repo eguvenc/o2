@@ -22,7 +22,7 @@ Rate limiter class uses service cache object like a database. The following pict
 ```php
 <?php
 $this->c->load('rate/limiter as limiter');
-$this->limiter->load($identifier, $params = array());
+$this->limiter->select($identifier, $params = array());
 $this->limiter->identifier->method();
 ```
 
@@ -68,9 +68,9 @@ Aşağıda <b>ip</b> tanımlayıcısına ait örnek bir kullanım gösteriliyor.
 <?php
 $this->c->load('rate/limiter as limiter');
 
-$this->limiter->load('ip');                                     // load ip configuration
+$this->limiter->set('ip');                                     // load ip configuration
 $this->limiter->ip->channel('login');                           // create a login channel
-$this->limiter->ip->identifier($this->request->ip()); // set user ip
+$this->limiter->ip->identifier($this->request->getIpAddress()); // set user ip
 
 if ($this->limiter->ip->isAllowed()) {
 
@@ -140,7 +140,7 @@ return array(
 <?php
 $this->c->load('rate/limiter as limiter');
 
-$this->limiter->load('username');        
+$this->limiter->set('username');        
 $this->limiter->username->channel('login');
 $this->limiter->username->identifier('user@example.com');
 
@@ -227,7 +227,7 @@ Eğer kullanıcı banlama özelliği kapatılmak isteniyorsa bu değer false ola
 
 ```php
 <?php
-$this->limiter->load('username');        
+$this->limiter->set('username');        
 $this->limiter->username->channel('login');
 $this->limiter->username->identifier('user@example.com');
 

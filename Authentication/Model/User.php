@@ -2,8 +2,10 @@
 
 namespace Obullo\Authentication\Model;
 
-use Auth\Identities\GenericUser,
+use Pdo,
+    Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
+    Obullo\Container\Container,
     Obullo\Authentication\UserProviderInterface;
 
 /**
@@ -36,7 +38,7 @@ Class User implements UserInterface
      * @param object $db     db object
      * @param array  $params array
      */
-    public function __construct($c, $db, $params = array())
+    public function __construct(Container $c, $db, $params = array())
     {
         $this->tablename = $params['tablename'];  // Db users tablename
         
@@ -63,7 +65,7 @@ Class User implements UserInterface
     public function execQuery(GenericUser $user)
     {
         $this->db->prepare($this->sqlUser, array($this->tablename, $this->columnId));
-        $this->db->bindValue(1, $user->getIdentifier(), PARAM_STR);
+        $this->db->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR);
         $this->db->execute();
 
         return $this->db->rowArray();  // returns to false if fail
@@ -79,7 +81,7 @@ Class User implements UserInterface
     public function execRecallerQuery($token)
     {
         $this->db->prepare($this->sqlRecalledUser, array($this->tablename, $this->columnRememberToken));
-        $this->db->bindValue(1, $token, PARAM_STR);
+        $this->db->bindValue(1, $token, PDO::PARAM_STR);
         $this->db->execute();
 
         return $this->db->rowArray();  // returns to false if fail
@@ -96,8 +98,8 @@ Class User implements UserInterface
     public function updateRememberToken($token, GenericUser $user)
     {
         $this->db->prepare($this->sqlUpdateRememberToken, array($this->tablename, $this->columnRememberToken, $this->columnIdentifier));
-        $this->db->bindValue(1, $token, PARAM_STR);
-        $this->db->bindValue(2, $user->getIdentifier(), PARAM_STR);
+        $this->db->bindValue(1, $token, PDO::PARAM_STR);
+        $this->db->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR);
         $this->db->execute();
     }
 }

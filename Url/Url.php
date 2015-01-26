@@ -25,7 +25,7 @@ Class Url
     {
         $this->c = $c;
         $this->uri = $c['uri'];
-        $this->c->load('service/logger')->debug('Url Class Initialized');
+        $this->c->load('logger')->debug('Url Class Initialized');
     }
 
     /**

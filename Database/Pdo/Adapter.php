@@ -63,8 +63,8 @@ Abstract Class Adapter
         foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
             $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
         }
-        $this->config = $c->load('config');
-        $this->logger = $c->load('service/logger');
+        $this->config = $c['config'];
+        $this->logger = $c->load('logger');
     }
 
     /**
@@ -80,22 +80,6 @@ Abstract Class Adapter
     public function connection($dsn, $user = null, $pass = null, $options = null)
     {
         $this->connection = new PDO($dsn, $user, $pass, $options);
-    }
-
-    /**
-     * Parse array and escape
-     * 
-     * @param array $data values
-     * 
-     * @return array escaped data
-     */
-    protected function escapeArray($data)
-    {
-        $newData = array();
-        foreach ($data as $key => $value) {
-            $newData[$key] = $this->_escape($value);
-        }
-        return $newData;
     }
 
     /**
@@ -122,14 +106,14 @@ Abstract Class Adapter
 
     /**
      * Prepared or Direct Pdo Query
-     * 
+     *
      * @param string $sql     query
-     * @param array  $sprintf array fields
+     * @param array  $sprintf values
      * @param array  $values  bind values
-     * 
+     *
      * @return object pdo
      */
-    public function query($sql, $sprintf = array(), $values = array())
+    public function query($sql, $sprintf = null, $values = array())
     {
         $this->connect();
         $this->lastSql = $this->sprintf($sql, $sprintf);
@@ -148,39 +132,6 @@ Abstract Class Adapter
         return ($this);
     }
 
-    public function write($sql, $sprintf, $columns = array(), $values = array())
-    {
-        $this->connect();
-        $this->lastSql = $this->_prepSQL($sql, $sprintf, $values);
-
-        if (count($values) > 0) {
-            $this->prepare($this->lastSql);
-            $this->execute($values);
-            return $this;
-        } else {
-            $this->stmt = $this->connection->query($this->lastSql);
-        }
-        ++$this->queryCount;
-        $this->sqlLog($this->lastSql);
-
-        return ($this);
-    }
-
-    /**
-     * Checks array is multidimensional
-     * 
-     * @param array $array array
-     * 
-     * @return boolean
-     */
-    public function isMultiArray($array)
-    {
-        foreach ($array as $value) {
-            if (is_array($value)) return true;
-        }
-        return false;
-    }
-
     /**
      * Protect array values
      * 
@@ -194,11 +145,7 @@ Abstract Class Adapter
         if (count($array) == 0) {   // If we have no sprintf data
             return $sql;
         }
-        $newArray = array();
-        foreach ($array as $key => $value) {
-            $newArray[$key] = $value;
-        }
-        return vsprintf($sql, $newArray);
+        return vsprintf($sql, $array);
     }
 
     /**
@@ -402,32 +349,13 @@ Abstract Class Adapter
      * Smart Escape String via PDO Escapes data based on type
      * Sets boolean and null types
      *
-     * @param string $str escape value
+     * @param mixed $data escape value(s)
      * 
      * @return mixed
      */
-    public function escape($str)
+    public function escape($data)
     {
-        if (is_string($str)) {
-            return $this->_escape($str);
-        }
-        return $str;
-    }
-
-    /**
-     * Escape LIKE String
-     *
-     * Calls the individual driver for platform
-     * specific escaping for LIKE conditions
-     *
-     * @param string $str  input value
-     * @param string $side direction
-     * 
-     * @return mixed
-     */
-    public function escapeLike($str, $side = 'both')
-    {
-        return $this->_escape($str, true, $side);
+        return $this->_escape($data);
     }
 
     /**
@@ -485,19 +413,6 @@ Abstract Class Adapter
         $this->sqlLog($this->lastSql);
 
         return $affectedRows;
-    }
-
-    /**
-     * Return to last sql query string
-     *
-     * @param string $sqlStr string sql
-     * 
-     * @return void
-     */
-    protected static function getSqlString($sqlStr)
-    {
-        $sql = preg_replace('/\n/', ' ', $sqlStr);
-        return trim($sql, "\n");
     }
 
     /**
@@ -613,106 +528,6 @@ Abstract Class Adapter
     }
 
     /**
-     * Insert data to table
-     * 
-     * @param string $table    tablename
-     * @param array  $data     insert data
-     * @param array  $extraSql extra sql 
-     * 
-     * @return integer affected rows
-     */
-    public function insert($table, $data = array(), $extraSql = null)
-    {
-        $this->connect();
-        $data = $this->arrayEscape($data);
-        $sql = $this->_insert($table, array_keys($data), array_values($data), $extraSql);
-        return $this->exec($sql);
-    }
-
-    /**
-     * Replace the in the table
-     * 
-     * @param string $table tablename
-     * @param array  $data  insert data
-     * 
-     * @return integer affected rows
-     */
-    public function replace($table, $data = array())
-    {
-        $this->connect();
-        $data = $this->arrayEscape($data);
-        $sql = $this->_replace($table, array_keys($data), array_values($data));
-        return $this->exec($sql);
-    }
-
-    /**
-     * Update table
-     * 
-     * @param string $table    tablename
-     * @param array  $data     array
-     * @param array  $where    array
-     * @param string $extraSql add extra sql end of your query
-     * @param int    $limit    sql limit
-     *  
-     * @return integer affected rows
-     */
-    public function update($table, $data = array(), $where = array(), $extraSql = '', $limit = false)
-    {     
-        $this->connect();
-        $data = $this->arrayEscape($data);
-        $where = $this->arrayEscape($where);
-        $conditions = $this->buildConditions($where);
-        $sql = $this->_update($table, $data, $conditions, array(), $limit, $extraSql);
-        return $this->exec($sql);
-    }
-
-    /**
-     * Delete data from table
-     * 
-     * @param string $table    tablename
-     * @param array  $where    array
-     * @param string $extraSql add extra sql end of your query
-     * @param int    $limit    sql limit
-     *  
-     * @return integer affected rows
-     */
-    public function delete($table, $extraSql = '', $limit = false)
-    {
-        $this->connect();
-        $where = $this->arrayEscape($where);
-        
-        // $conditions = $this->buildConditions($where);
-
-        $sql = $this->_delete($table, $conditions, array(), $limit, $extraSql);
-        return $this->exec($sql);
-    }
-
-    // /**
-    //  * Build where conditions
-    //  * 
-    //  * @param array $where conditions
-    //  * 
-    //  * @return void
-    //  */
-    // protected function buildConditions($where) 
-    // {
-    //     if (empty($where)) return;
-    //     $newWhere = array();
-    //     foreach ($where as $key => $value) {
-    //         $newWhere[] = $key.' = '.$value;
-    //     }
-    //     $conditions = array();
-    //     $conditions[] = $newWhere[0];
-    //     if (count($newWhere) > 1) {
-    //         unset($newWhere[0]);
-    //         foreach ($newWhere as $key => $value) {
-    //             $conditions[] = "\nAND ".$value;
-    //         }
-    //     }
-    //     return $conditions;
-    // }
-
-    /**
      * Assign all controller objects into db class
      * to available closure $this->object support in transaction() method.
      *
@@ -723,6 +538,19 @@ Abstract Class Adapter
     public function __get($key)
     {
         return Controller::$instance->{$key};
+    }
+
+    /**
+     * Return to last sql query string
+     *
+     * @param string $sqlStr string sql
+     * 
+     * @return void
+     */
+    protected static function getSqlString($sqlStr)
+    {
+        $sql = preg_replace('/\n/', ' ', $sqlStr);
+        return trim($sql, "\n");
     }
 
     /**

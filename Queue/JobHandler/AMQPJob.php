@@ -2,9 +2,10 @@
 
 namespace Obullo\Queue\JobHandler;
 
-use AMQPEnvelope,
-    AMQPQueue,
-    Obullo\Queue\Job;
+use AMQPQueue,
+    AMQPEnvelope,
+    Obullo\Queue\Job,
+    Obullo\Container\Container;
 
 /**
  * AMQPJob Handler
@@ -25,12 +26,12 @@ Class AMQPJob extends Job
      * @param object $queue    AMQPQueue object
      * @param object $envelope AMQPEnvelope object
      */
-    public function __construct($c, AMQPQueue $queue, AMQPEnvelope $envelope)
+    public function __construct(Container $c, AMQPQueue $queue, AMQPEnvelope $envelope)
     {  
         $this->c = $c; 
         $this->queue = $queue;
         $this->envelope = $envelope;
-        $this->logger = $c->load('service/logger');
+        $this->logger = $this->c->load('logger');
         $this->logger->debug('Queue AMQPJob Class Initialized');
     }
 
@@ -89,7 +90,7 @@ Class AMQPJob extends Job
         $body = json_decode($body, true);
         $body['data']['attempts'] = $this->getAttempts() + 1; // Write attempts to body
 
-        $this->c->load('service/queue')->push($body['job'], $this->getName(), $body['data'], $delay);
+        $this->c->load('queue')->push($body['job'], $this->getName(), $body['data'], $delay);
     }
 
     /**
