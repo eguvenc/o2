@@ -68,7 +68,7 @@ Class Redis implements HandlerInterface
      * @param array $c          container
      * @param array $serializer serializer type
      */
-    public function __construct(Container $c, $serializer = null)
+    public function __construct(Container $c)
     {
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['redis'];
@@ -81,8 +81,6 @@ Class Redis implements HandlerInterface
                 )
             );
         }
-
-
         // if ( ! $this->connect()) {
         //     throw new RunTimeException(
         //         sprintf(

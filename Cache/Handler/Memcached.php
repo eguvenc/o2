@@ -365,21 +365,6 @@ Class Memcached implements HandlerInterface
 
     /**
      * Get software information installed on your server.
-     *
-     * Array
-     * (
-     *     [localhost:11211] => Array
-     *     (
-     *         [pid] => 4933
-     *         [uptime] => 786123
-     *         [threads] => 1
-     *         [time] => 1233868010
-     *         [pointer_size] => 32
-     *         [rusage_user_seconds] => 0
-     *         [rusage_user_microseconds] => 140000
-     *         [rusage_system_seconds] => 23
-     *     )
-     * )
      * 
      * @return object
      */

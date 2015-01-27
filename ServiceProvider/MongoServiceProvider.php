@@ -35,10 +35,11 @@ Class MongoServiceProvider
             return $connector->getConnection($params);  // Get connection
         }
         $connector = MongoConnectionProvider::getInstance($c);
-
+  
         if ( ! empty($matches['new'])) {          // Do factory ( creates new connection ) if we have new match
+            $connector = MongoConnectionProvider::getInstance($c);
             return $connector->factory($params);
-        }      
+        }
         return $connector->getConnection($params);   // Get a Connector instance before we registered
     }
 }
