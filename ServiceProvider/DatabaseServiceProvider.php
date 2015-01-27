@@ -31,8 +31,7 @@ Class DatabaseServiceProvider
         $matches = array();
         if ( ! DatabaseConnectionProvider::isRegistered()) {            // Just one time register the shared objects
             $connector = DatabaseConnectionProvider::getInstance($c);   // Register all Connectors as shared services
-            $connector->register($params);
-            return $connector->getConnection($params);                  // Get connection
+            $connector->register();
         }
         $connector = DatabaseConnectionProvider::getInstance($c);       // Register all Connectors as shared services
 
