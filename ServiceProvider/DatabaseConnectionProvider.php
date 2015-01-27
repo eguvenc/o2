@@ -90,7 +90,8 @@ Class DatabaseConnectionProvider
      */
     protected function createConnection($params)
     {
-        return new \Obullo\Database\Pdo\Handler\Mysql($this->c, $params);
+        $Class = '\Obullo\Database\Pdo\Handler\\'.ucfirst($params['driver']);
+        return new $Class($this->c, $params);
     }
 
     /**
