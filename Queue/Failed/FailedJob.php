@@ -42,15 +42,15 @@ Abstract Class FailedJob
 
         $provider = $queue['failed']['provider'];
 
-        if ( ! isset($database['connections'][$provider['db']])) {
+        if ( ! isset($database['connections'][$provider['connection']])) {
             throw new RuntimeException(
                 sprintf(
-                    'Failed job database "%s" is not defined in your config database.php',
-                    $provider['db']
+                    'Failed job database connection "%s" is not defined in your config database.php',
+                    $provider['connection']
                 )
             );
         }
-        $this->db = $c->load('service provider '.$provider['name'], array('db' => $provider['db'], 'provider' => $provider['provider']));
+        $this->db = $c->load('service provider '.$provider['name'], array('connection' => $provider['connection'], 'driver' => $provider['driver']));
         $this->table = $queue['failed']['table'];
     }
 

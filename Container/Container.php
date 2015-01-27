@@ -49,7 +49,7 @@ Class Container implements ArrayAccess
     public function __construct() 
     {
         $this->aliases = new SplObjectStorage;
-        $this->services = array_flip(scandir(APP. 'classes'. DS. 'Service'));  // Scan services
+        $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan services
         unset($this->services['Provider']);
     }
 
@@ -192,9 +192,7 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Class loader
-     * use func_get_args() string $arguments 0 = > class , 
-     * others arguments arg1, arg1.
+     * Class and Sercice loader
      *
      * @param string $classString class command
      * @param mixed  $params      array
@@ -214,7 +212,6 @@ Class Container implements ArrayAccess
         }
         $isService = false;
         if (isset($this->services[$serviceName]) OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
-
             $isService = true;
             $data['cid'] = $data['key'] = strtolower($class);
             $serviceClass = $this->resolveServiceClass($serviceName, $data['key']);
@@ -321,7 +318,6 @@ Class Container implements ArrayAccess
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName, $lastKey) {
 
                 if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
-
                     if (empty($lastKey)) {
                         return Controller::$instance->{$key} = new $ClassName($this, $params);
                     }

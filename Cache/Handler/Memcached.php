@@ -75,7 +75,6 @@ Class Memcached implements HandlerInterface
     {
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcached'];
-
         $this->container = new ArrayContainer;
 
         if ( ! extension_loaded('memcached')) {
@@ -85,13 +84,13 @@ Class Memcached implements HandlerInterface
                 )
             );
         }
-        if ( ! $this->connect()) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s cache connection failed.', get_class()
-                )
-            );
-        }
+        // if ( ! $this->connect()) {
+        //     throw new RunTimeException(
+        //         sprintf(
+        //             ' %s cache connection failed.', get_class()
+        //         )
+        //     );
+        // }
         $this->serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
     }
 
@@ -133,8 +132,8 @@ Class Memcached implements HandlerInterface
      * 
      * @param array $params options
      * 
-     * You can use this options:
-     *     serializer => 'serializer_php'
+     * Options:
+     *      serializer => 'serializer_php'
      *     'serializer_igbinary'
      *     'serializer_json'
      * 

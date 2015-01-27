@@ -101,7 +101,6 @@ Class Translator implements ArrayAccess
     public function __construct(Container $c)
     {
         $this->c = $c;
-
         /**
          * If cookie not exists ( especially in Cli mode ) we cannot get the default locale
          * so first of all we need set default locale code.
@@ -270,8 +269,8 @@ Class Translator implements ArrayAccess
             return;
         }
         $intl = extension_loaded('intl');
-        if ($intl = false) {
-            $this->logger->notice('Load php intl extension to enable language auto detect feature using browser.');
+        if ($intl == false) {
+            $this->logger->notice('Load php intl extension to enable translator auto detect feature.');
         }
         if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $intl) {   // Set via browser default value
             $this->setLocale(\Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']));

@@ -18,33 +18,10 @@ use RuntimeException,
  */
 Class MongoConnectionProvider
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Configuration items
-     * 
-     * @var void
-     */
-    protected $config;
-
-    /**
-     * Mongo extension client name
-     * 
-     * @var string
-     */
-    protected $mongoClass;
-
-    /**
-     * Presence of a static member variable
-     * 
-     * @var null
-     */
-    protected static $instance = null;
+    protected $c;            // Container
+    protected $config;       // Configuration items
+    protected $mongoClass;   // Mongo extension client name
+    protected static $instance = null;  // Presence of a static member variable
 
     /**
      * Checks connector is registered for one time
@@ -79,13 +56,11 @@ Class MongoConnectionProvider
      * 
      * Automatically check if the Mongo PECL extension has been installed / enabled.
      * 
-     * @param string $c      container
-     * @param string $params container parameters
+     * @param string $c container
      */
-    protected function __construct(Container $c, $params = array())
+    protected function __construct(Container $c)
     {
         $this->c = $c;
-        $this->params = $params;
         $this->config = $this->c['config']->load('mongo');  // Load nosql configuration file
         $this->mongoClass = (version_compare(phpversion('mongo'), '1.3.0', '<')) ? '\Mongo' : '\MongoClient';
 
@@ -100,9 +75,7 @@ Class MongoConnectionProvider
     }
 
     /**
-     * Register all connections as shared services 
-     *
-     * Warning : It should be run one time
+     * Register all connections as shared services ( It should be run one time )
      * 
      * @return void
      */
@@ -110,7 +83,7 @@ Class MongoConnectionProvider
     {
         $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $server = 'mongodb://'.$val['username'].':'.$val['password'].'@'.$val['host'].':'.$val['port'];
+            $server = 'mongodb://'.$val['username'].':'.$val['password'].'@'.$val['hostname'].':'.$val['port'];
             $this->c['mongo.connection.'.$key] = function () use ($self, $server, $val) {  //  create shared connections
                 return $self->createConnection($server, $val);
             };
@@ -154,8 +127,7 @@ Class MongoConnectionProvider
     }
 
     /**
-     * Create a new mongo connection if you don't want 
-     * to add config file and you want to create new one connection.
+     * Create a new mongo connection if you don't want to add config file and you want to create new one connection.
      * 
      * @param array $params connection parameters
      * 
@@ -167,8 +139,7 @@ Class MongoConnectionProvider
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
         }
         $options = isset($params['options']) ? $params['options'] : array('connect' => true);
-
-        return new $this->mongoClass($params['connection'], $options);  // Create new connection
+        return $this->createConnection($params['connection'], $options);  // Create new connection
     }
 
     /**

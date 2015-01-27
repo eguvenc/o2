@@ -81,15 +81,17 @@ Class Redis implements HandlerInterface
                 )
             );
         }
-        if ( ! $this->connect()) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s cache connection failed.', get_class()
-                )
-            );
-        }
-        $serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
-        $this->setOption(array('serializer' => $serializer));
+
+
+        // if ( ! $this->connect()) {
+        //     throw new RunTimeException(
+        //         sprintf(
+        //             ' %s cache connection failed.', get_class()
+        //         )
+        //     );
+        // }
+        $this->serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
+        // $this->setOption(array('serializer' => $serializer));
     }
 
     /**
@@ -110,7 +112,7 @@ Class Redis implements HandlerInterface
                     )
                 );
             }
-            $expiration  = (isset($servers['timeout'])) ? $servers['timeout'] : 0;
+            $expiration = (isset($servers['timeout'])) ? $servers['timeout'] : 0;
             if ($i == 1) {
                 if ($this->params['persistentConnect'] == 1) {
                     $this->redis->pconnect($servers['hostname'], $servers['port'], $expiration, null, $this->params['reconnectionAttemps']);

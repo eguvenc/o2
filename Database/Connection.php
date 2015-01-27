@@ -58,7 +58,7 @@ Class Connection
      */
     public function connect()
     { 
-        $defaultDb = $this->c['config']['database']['default']['database'];
+        $defaultDb = $this->c['config']['database']['default']['connection'];
         $defaultProvider = $this->c['config']['database']['default']['provider'];
         $provider = empty($this->params['provider']) ? $defaultProvider : $this->params['provider'];
 

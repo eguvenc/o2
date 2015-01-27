@@ -2,21 +2,22 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Authentication\User\UserActivity,
+use Obullo\Container\Container,
+    Obullo\Authentication\User\UserActivity,
     Obullo\Authentication\User\UserIdentity,
     Obullo\Authentication\User\UserLogin;
 
 /**
- * O2 Authentication - User Service
+ * O2 Authentication - User Service Provider
  *
  * @category  Authentication
- * @package   UserService
+ * @package   UserServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class UserService
+Class UserServiceProvider
 {
     /**
      * Container
@@ -38,7 +39,7 @@ Class UserService
      * @param object $c      container
      * @param array  $params configuration parameters
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
         $this->config = $c['config']->load('auth');
@@ -77,7 +78,7 @@ Class UserService
 
 }
 
-// END UserService.php File
-/* End of file UserService.php
+// END UserServiceProvider.php File
+/* End of file UserServiceProvider.php
 
-/* Location: .Obullo/Authentication/UserService.php */
+/* Location: .Obullo/Authentication/UserServiceProvider.php */
