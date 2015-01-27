@@ -22,11 +22,10 @@ Class CacheServiceProvider
      *
      * @param object $c       Container
      * @param array  $params  parameters
-     * @param array  $matches loader commands
      * 
      * @return void
      */
-    public function register(Container $c, $params = array(), $matches = array())
+    public function register(Container $c, $params = array())
     {
         $connector = CacheConnectionProvider::getInstance($c);  // Register all Connectors as shared services
         return $connector->getConnection($params);
