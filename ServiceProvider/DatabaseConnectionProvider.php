@@ -17,7 +17,7 @@ use RuntimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class PdoConnectionProvider
+Class DatabaseConnectionProvider
 {
     protected $c;                       // Container
     protected $config;                  // Configuration items
@@ -64,11 +64,6 @@ Class PdoConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
-
-        if (! extension_loaded('PDO')) {
-            throw new RuntimeException('The PDO extension has not been installed or enabled.');
-        }
-        $this->pdoClass = '\PDO';
     }
 
     /**
@@ -80,31 +75,22 @@ Class PdoConnectionProvider
     {
         $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $this->c['pdo.connection.'.$key] = function () use ($self, $val) {  // create shared connections
-                return $self->createConnection($val);
+            $this->c['db.connection.'.$key] = function () use ($self, $key) {  // create shared connections
+                return $self->createConnection(['connection' => $key]);
             };
         }
     }
 
     /**
-     * Creates PDO connections
+     * Creates databse connections
      * 
      * @param array $params connection parameters
      * 
-     * @return void
+     * @return object
      */
     protected function createConnection($params)
     {
-        if (isset($params['dsn']) AND ! empty($params['dsn'])) {
-            $server = $params['dsn'];
-            $options = (isset($params['options'])) ? $params['options'] : '';
-        } else {
-            $port    = empty($params['port']) ? '' : ';port='. $params['port'];
-            $server  = 'mysql:host=' . $params['hostname'] . $port . ';dbname=' . $params['database'];
-            $options = (isset($params['pdo']['options'])) ? $params['pdo']['options'] : '';
-        }
-        var_dump($server);
-        return new $this->pdoClass($server, $params['username'], $params['password'], $options);
+        return new \Obullo\Database\Pdo\Handler\Mysql($this->c, $params);
     }
 
     /**
@@ -127,19 +113,19 @@ Class PdoConnectionProvider
                 )
             );
         }
-        return $this->c['pdo.connection.'.$params['connection']];  // return to shared connection
+        return $this->c['db.connection.'.$params['connection']];  // return to shared connection
     }
 
     /**
-     * Create a new PDO connection if you don't want to add config file and you want to create new one connection.
+     * Create a new database connection if you don't want to add config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
-     * @return object PDO client
+     * @return object database
      */
     public function factory($params = array())
-    {
-        $cid = 'database.connection.'. self::getConnectionId($params);
+    {   
+        $cid = 'db.connection.'. self::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
@@ -147,6 +133,7 @@ Class PdoConnectionProvider
                 return $self->createConnection($params);
             };
         }
+        // var_dump($this->c[$cid]);
         return $this->c[$cid];
     }
 

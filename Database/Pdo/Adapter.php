@@ -92,10 +92,7 @@ Abstract Class Adapter
      */
     public function connection()
     {
-        $new = ( ! isset($this->params['connection'])) ? 'new ' : '';
-        var_dump($new);
-        // var_dump($this->params);
-        $this->connection = $this->c->load($new .'service provider pdo', $this->params);
+        $this->connection = $this->c->load('service provider pdo', $this->params);
     }
 
     /**

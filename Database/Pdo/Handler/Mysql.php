@@ -46,6 +46,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function __construct($c, $params = array())
     {
+        // echo '__construct';
         // $c['config']->load('database');
         // $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
 
@@ -58,9 +59,9 @@ Class Mysql extends Adapter implements HandlerInterface
      * 
      * @return void
      */
-    public function connect()
+    public function connect($ref = '')
     {
-        // var_dump($this->connection);
+        // var_dump($ref);
         if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
             return $this;
         }
@@ -69,9 +70,8 @@ Class Mysql extends Adapter implements HandlerInterface
 
         // $this->connection($dsn, $this->params);
         $this->connection();
-
         // We set exception attribute for always showing the pdo exceptions errors.
-        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
+        // $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT
     }
 
     /**
@@ -130,7 +130,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function _escape($str, $like = false, $side = 'both')
     {
-        $this->connect();
+        // $this->connect();
         if (is_array($str)) {
             foreach ($str as $key => $val) {
                 $str[$key] = $this->_escape($val);
@@ -166,7 +166,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function quote($str, $type = null)
     {
-        $this->connect();
+        // $this->connect();
         return $this->connection->quote($str, $type);
     }
 
