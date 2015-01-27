@@ -125,6 +125,9 @@ Class MongoConnectionProvider
                 )
             );
         }
+
+        // if ()
+
         return $this->c['mongo.connection.'.$params['connection']];  // return to shared connection
     }
 
