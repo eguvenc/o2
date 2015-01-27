@@ -133,7 +133,6 @@ Class DatabaseConnectionProvider
                 return $self->createConnection($params);
             };
         }
-        // var_dump($this->c[$cid]);
         return $this->c[$cid];
     }
 

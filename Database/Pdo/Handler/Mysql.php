@@ -59,9 +59,8 @@ Class Mysql extends Adapter implements HandlerInterface
      * 
      * @return void
      */
-    public function connect($ref = '')
+    public function connect()
     {
-        // var_dump($ref);
         if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
             return $this;
         }
@@ -130,7 +129,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function _escape($str, $like = false, $side = 'both')
     {
-        // $this->connect();
+        $this->connect();
         if (is_array($str)) {
             foreach ($str as $key => $val) {
                 $str[$key] = $this->_escape($val);
@@ -166,7 +165,7 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function quote($str, $type = null)
     {
-        // $this->connect();
+        $this->connect();
         return $this->connection->quote($str, $type);
     }
 
