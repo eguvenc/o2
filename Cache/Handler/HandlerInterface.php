@@ -19,10 +19,9 @@ interface HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param array $c container
      */
-    public function __construct(Container $c, $params = array());
+    public function __construct(Container $c);
 
     /**
      * Sets serializer options 
@@ -31,7 +30,7 @@ interface HandlerInterface
      * 
      * @return boolean true or false
      */
-    public function setOption($params);
+    public function setParameters($params = array());
 
     /**
      * Get current serializer name

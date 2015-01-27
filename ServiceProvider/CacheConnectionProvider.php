@@ -22,7 +22,7 @@ Class CacheConnectionProvider
     protected $c;                          // Container
     protected static $instance = null;     // Presence of a static member variable
     protected static $connected = array(); // Multiton connections
-    
+
     /**
      * Returns the singleton instance of this class.
      *
@@ -96,7 +96,7 @@ Class CacheConnectionProvider
     public function getConnection($params)
     {
         $connection = $this->factory($params);
-        self::connect($connection, $params['driver']); // Run shared connect method
+        self::connect($connection, $params['driver']); // We just one time open the connection for each drivers.
         return $connection;
     }
 

@@ -20,26 +20,20 @@ Class MongoServiceProvider
     /**
      * Registry
      *
-     * @param object $c       Container
-     * @param array  $params  parameters
-     * @param array  $matches loader commands
+     * @param object $c      container
+     * @param array  $params parameters
      * 
      * @return void
      */
-    public function register(Container $c, $params = array(), $matches = array())
+    public function register(Container $c, $params = array())
     {
         if ( ! MongoConnectionProvider::isRegistered()) {  // Just one time register the shared objects
             
-            $connector = MongoConnectionProvider::getInstance($c);  // Register all Connectors as shared services
+            $connector = MongoConnectionProvider::getInstance($c);  // Register all connections as shared services
             $connector->register();                     
         }
         $connector = MongoConnectionProvider::getInstance($c);
-  
-        // if ( ! empty($matches['new'])) {          // Do factory ( creates new connection ) if we have new match
-        //     $connector = MongoConnectionProvider::getInstance($c);
-        //     return $connector->factory($params);
-        // }
-        return $connector->getConnection($params);   // Get a Connector instance before we registered
+        return $connector->getConnection($params);   // Get a connection instance before we registered into container
     }
 }
 

@@ -114,6 +114,9 @@ Class MongoConnectionProvider
      */
     public function getConnection($params = array())
     {
+        if (isset($params['server'])) {  // create new none config connection
+            return $this->factory($params);
+        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = $this->c['config']['mongo']['default']['connection'];  //  Set default connection
         }
@@ -125,9 +128,6 @@ Class MongoConnectionProvider
                 )
             );
         }
-
-        // if ()
-
         return $this->c['mongo.connection.'.$params['connection']];  // return to shared connection
     }
 

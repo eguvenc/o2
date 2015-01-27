@@ -68,10 +68,9 @@ Class Memcached implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c          container
-     * @param array $serializer serializer type
+     * @param array $c container
      */
-    public function __construct(Container $c, $serializer = null)
+    public function __construct(Container $c)
     {
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcached'];
@@ -84,14 +83,6 @@ Class Memcached implements HandlerInterface
                 )
             );
         }
-        // if ( ! $this->connect()) {
-        //     throw new RunTimeException(
-        //         sprintf(
-        //             ' %s cache connection failed.', get_class()
-        //         )
-        //     );
-        // }
-        $this->serializer = empty($serializer) ? $this->params['serializer'] : $serializer;
     }
 
     /**
@@ -125,6 +116,19 @@ Class Memcached implements HandlerInterface
             }
         }
         return true;
+    }
+
+
+    /**
+     * Set parameters
+     * 
+     * @param array $options array
+     *
+     * @return void
+     */
+    public function setParameters($options = array())
+    {
+        $this->setOption($options);
     }
 
     /**
@@ -162,7 +166,8 @@ Class Memcached implements HandlerInterface
             break;
         default:
             $this->serializer = $params['serializer'];
-            return false;
+            return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[]);
+            return true;
             break;
         }
     }

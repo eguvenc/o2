@@ -44,12 +44,10 @@ Class File implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c          container
-     * @param array $serializer serializer type
+     * @param array $c container
      */
-    public function __construct(Container $c, $serializer = null)
+    public function __construct(Container $c)
     {
-        $serializer = null;
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['file'];
         $this->container = new ArrayContainer;
@@ -65,13 +63,13 @@ Class File implements HandlerInterface
     }
 
     /**
-     * Set options fake function
+     * Set parameters fake function
      * 
      * @param array $params config
      *
      * @return void
      */
-    public function setOption($params = array()) 
+    public function setParameters($params = array()) 
     {
         $params = null;
     }

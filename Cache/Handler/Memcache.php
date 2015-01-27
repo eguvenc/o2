@@ -41,16 +41,13 @@ Class Memcache implements HandlerInterface
      */
     protected $container;
 
-
     /**
      * Constructor
      * 
-     * @param array $c          container
-     * @param array $serializer serializer type
+     * @param array $c container
      */
-    public function __construct(Container $c, $serializer = null)
+    public function __construct(Container $c)
     {
-        $serializer = null;
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcache'];
         $this->container = new ArrayContainer;
@@ -72,13 +69,13 @@ Class Memcache implements HandlerInterface
     }
 
     /**
-     * Set options fake function
+     * Set parameters fake function
      * 
      * @param array $params config
      *
      * @return void
      */
-    public function setOption($params = array()) 
+    public function setParameters($params = array()) 
     {
         $params = null;
     }
