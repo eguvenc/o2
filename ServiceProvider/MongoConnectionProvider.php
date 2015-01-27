@@ -21,6 +21,7 @@ Class MongoConnectionProvider
     protected $c;            // Container
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
+    protected $factories = array(); // New connection objects
     protected static $instance = null;  // Presence of a static member variable
 
     /**
@@ -52,7 +53,7 @@ Class MongoConnectionProvider
     }
 
     /**
-     * Constructor
+     * Constructor ( Works one time )
      * 
      * Automatically check if the Mongo PECL extension has been installed / enabled.
      * 
@@ -75,7 +76,7 @@ Class MongoConnectionProvider
     }
 
     /**
-     * Register all connections as shared services ( It should be run one time )
+     * Register all connections as shared services ( Works one time )
      * 
      * @return void
      */
@@ -100,7 +101,8 @@ Class MongoConnectionProvider
      */
     protected function createConnection($server, $params)
     {
-        return new $this->mongoClass($server, $params['options']);
+        $options = isset($params['options']) ? $params['options'] : array('connect' => true);
+        return new $this->mongoClass($server, $options);
     }
 
     /**
@@ -113,21 +115,24 @@ Class MongoConnectionProvider
     public function getConnection($params = array())
     {
         if ( ! isset($params['connection'])) {
-            $params['server'] = $this->c['config']['mongo']['default']['connection'];  //  Set default connection
+            $params['connection'] = $this->c['config']['mongo']['default']['connection'];  //  Set default connection
         }
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
                     'Server key %s not exists in your mongo.php config file.',
-                    $params['server']
+                    $params['connection']
                 )
             );
         }
+
+        // if ()
+
         return $this->c['mongo.connection.'.$params['connection']];  // return to shared connection
     }
 
     /**
-     * Create a new mongo connection if you don't want to add config file and you want to create new one connection.
+     * Create a new mongo connection if you don't want to add config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -135,11 +140,30 @@ Class MongoConnectionProvider
      */
     public function factory($params = array())
     {   
-        if ( ! isset($params['connection'])) {
+        if ( ! isset($params['server'])) {
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
         }
-        $options = isset($params['options']) ? $params['options'] : array('connect' => true);
-        return $this->createConnection($params['connection'], $options);  // Create new connection
+        $cid = 'mongo.connection.'.self::getConnectionId($params);
+
+        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
+            $self = $this;
+            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
+                return $self->createConnection($params['server'], $params);
+            };
+        }
+        return $this->c[$cid];
+    }
+
+    /**
+     * Returns to connection id
+     * 
+     * @param string $string serialized parameters
+     * 
+     * @return integer
+     */
+    protected static function getConnectionId($string)
+    {
+        return sprintf("%u", crc32(serialize($string)));
     }
 
     /**

@@ -28,26 +28,8 @@ Class CacheServiceProvider
      */
     public function register(Container $c, $params = array(), $matches = array())
     {
-        $c = null;
-        if ( ! CacheConnectionProvider::isConnected($params['driver'])) {  // Just one time register the shared objects
-            
-            $connector = CacheConnectionProvider::getInstance();  // Register all Connectors as shared services
-            $connection = $connector->factory($params);
-            $connector->connect();
-            $connection = $connector->getConnection();
-        }
-
-        // if (isset()) {
-
-        // }
-
-
-        if ( ! empty($matches['new'])) {
-            $connector = CacheConnectionProvider::getInstance();  // Register all Connectors as shared services
-            $connection = $connector->getConnection($params);
-            $connection = $connection->setParameters();
-        }      
-        return $connection;
+        $connector = CacheConnectionProvider::getInstance($c);  // Register all Connectors as shared services
+        return $connector->getConnection($params);
     }
 }
 
