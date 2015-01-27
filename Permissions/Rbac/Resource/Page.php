@@ -91,16 +91,17 @@ Class Page implements ArrayAccess
      * 
      * @return boolean
      */
-    public function getPermission($opName, $expiration = 7200)
+    public function getPermissions($opName, $expiration = 7200)
     {
         $opName      = Utils::arrayConvert($opName);
         $key         = User::CACHE_HAS_PAGE_PERMISSION . $this->c['rbac.user']->getId() .':'. Utils::hash($this->c['rbac.resource']->getId()) .':'. Utils::hash($opName);
-        $resultArray = $this->c['rbac.user']->cache->get($key);
+        // $resultArray = $this->c['rbac.user']->cache->get($key);
+        $resultArray = false;
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasPagePermissionSqlQuery($opName);  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
-            $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
+            // $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
         }
         if ($resultArray == 'empty') {
             return false;

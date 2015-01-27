@@ -2,6 +2,8 @@
 
 namespace Obullo\Permissions\Rbac\Model;
 
+use Pdo;
+
 /**
  * Model User
  * 
@@ -21,7 +23,7 @@ Class User
      * 
      * @var object
      */
-    protected $db;
+    public $db;
 
     /**
      * Permissions\Rbac\User instance
@@ -38,7 +40,7 @@ Class User
     public function __construct($c)
     {
         $this->c    = $c;
-        $this->db   = $this->c->load('service/provider/db', $this->c['config']['rbac.params.database']);
+        $this->db   = $this->c->load('db', $this->c['config']['rbac.params.database']);
         $this->user = $this->c['rbac.user'];
     }
 
@@ -61,9 +63,9 @@ Class User
                 $this->user->columnAssignmentDate
             )
         );
-        $this->db->bindValue(1, $userId, PARAM_INT);
-        $this->db->bindValue(2, $roleId, PARAM_INT);
-        $this->db->bindValue(3, time(), PARAM_INT);
+        $this->db->bindValue(1, $userId, Pdo::PARAM_INT);
+        $this->db->bindValue(2, $roleId, Pdo::PARAM_INT);
+        $this->db->bindValue(3, time(), Pdo::PARAM_INT);
 
         return $this->db->execute();
     }
@@ -86,8 +88,8 @@ Class User
                 $this->user->columnUserRolePrimaryKey
             )
         );
-        $this->db->bindValue(1, $userId, PARAM_INT);
-        $this->db->bindValue(2, $roleId, PARAM_INT);
+        $this->db->bindValue(1, $userId, Pdo::PARAM_INT);
+        $this->db->bindValue(2, $roleId, Pdo::PARAM_INT);
 
         return $this->db->execute();
     }
@@ -108,7 +110,7 @@ Class User
                 $this->db->protect($this->user->columnUserPrimaryKey)
             )
         );
-        $this->db->bindValue(1, $userId, PARAM_INT);
+        $this->db->bindValue(1, $userId, Pdo::PARAM_INT);
 
         return $this->db->execute();
     }
@@ -149,9 +151,9 @@ Class User
             )
         );
         $i = 1;
-        $this->db->bindValue($i++, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue($i++, $this->user->getId(), Pdo::PARAM_INT);
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         $this->db->execute();
 
@@ -175,7 +177,7 @@ Class User
                 $this->db->protect($this->user->columnUserPrimaryKey)
             )
         );
-        $this->db->bindValue(1, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue(1, $this->user->getId(), Pdo::PARAM_INT);
         $this->db->execute();
 
         return $this->db->resultArray();
@@ -206,7 +208,7 @@ Class User
         );
         $i = 1;
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnRolePermRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnRolePermRolePrimaryKey], Pdo::PARAM_INT);
         }
         $this->db->execute();
 
@@ -313,18 +315,18 @@ Class User
                 str_repeat('?,', count($opName) - 1) . '?'
             )
         );
-        $this->db->bindValue(1, $this->c['rbac.resource']->getId(), PARAM_STR);
-        $this->db->bindValue(2, 'page', PARAM_STR);
-        $this->db->bindValue(3, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue(1, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
+        $this->db->bindValue(2, 'page', Pdo::PARAM_STR);
+        $this->db->bindValue(3, $this->user->getId(), Pdo::PARAM_INT);
         $i = 4;
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         foreach ($opName as $op) {
-            $this->db->bindValue($i++, $op, PARAM_STR);
+            $this->db->bindValue($i++, $op, Pdo::PARAM_STR);
         }
         $this->db->execute();
         
@@ -438,21 +440,21 @@ Class User
             )
         );
         $i = 1;
-        $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), PARAM_STR);
+        $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
         foreach ($permName as $name) {
-            $this->db->bindValue($i++, $name, PARAM_STR);
+            $this->db->bindValue($i++, $name, Pdo::PARAM_STR);
         }
-        $this->db->bindValue($i++, 'object', PARAM_STR);
-        $this->db->bindValue($i++, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue($i++, 'object', Pdo::PARAM_STR);
+        $this->db->bindValue($i++, $this->user->getId(), Pdo::PARAM_INT);
 
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         foreach ($opName as $op) {
-            $this->db->bindValue($i++, $op, PARAM_STR);
+            $this->db->bindValue($i++, $op, Pdo::PARAM_STR);
         }
         $this->db->execute();
 
@@ -574,23 +576,23 @@ Class User
             )
         );
         $i = 1;
-        $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), PARAM_STR);
+        $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
         foreach ($permName as $name) {
-            $this->db->bindValue($i++, $name, PARAM_STR);
+            $this->db->bindValue($i++, $name, Pdo::PARAM_STR);
         }
-        $this->db->bindValue($i++, 'object', PARAM_STR);
-        $this->db->bindValue($i++, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue($i++, 'object', Pdo::PARAM_STR);
+        $this->db->bindValue($i++, $this->user->getId(), Pdo::PARAM_INT);
 
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
         foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
-        $this->db->bindValue($i++, $objectName, PARAM_STR);
+        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
 
         foreach ($opName as $op) {
-            $this->db->bindValue($i++, $op, PARAM_STR);
+            $this->db->bindValue($i++, $op, Pdo::PARAM_STR);
         }
 
         $this->db->execute();
@@ -612,7 +614,7 @@ Class User
                 $this->user->columnUserPrimaryKey
             )
         );
-        $this->db->bindValue(1, $this->user->getId(), PARAM_INT);
+        $this->db->bindValue(1, $this->user->getId(), Pdo::PARAM_INT);
         $this->db->execute();
         
         return $this->db->count();

@@ -168,6 +168,20 @@ Class Form
     }
 
     /**
+     * Set notification message and status
+     * 
+     * @param string $message form message
+     * @param int    $status  status
+     * 
+     * @return void
+     */
+    public function setMessage($message, $status = NOTICE_ERROR)
+    {
+        $this->status($status);
+        $this->messages[static::MESSAGE] = (string)$message;
+    }
+
+    /**
      * Get notification message for valid post.
      * 
      * @param string $notice notice message
