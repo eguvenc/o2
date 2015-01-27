@@ -97,6 +97,7 @@ Class CacheConnectionProvider
     {
         $connection = $this->factory($params);
         self::connect($connection, $params['driver']); // We just one time open the connection for each drivers.
+
         return $connection;
     }
 
@@ -135,7 +136,9 @@ Class CacheConnectionProvider
     {
         $options = isset($params['options']) ? $params['options'] : array('serializer' => $this->c['config']['cache']['default']['serializer']);
         $driver = '\Obullo\Cache\Handler\\'.ucfirst($class);
-        return new $driver($this->c, $options);  //  Store objects to container
+        $connection = new $driver($this->c);  //  Store objects to container
+        $connection->setParameters($options);
+        return $connection;
     }
 
     /**

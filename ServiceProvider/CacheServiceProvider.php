@@ -6,7 +6,7 @@ use Obullo\ServiceProvider\CacheConnectionProvider,
     Obullo\Container\Container;
 
 /**
- * Mongo Service Provider
+ * Cache Service Provider
  *
  * @category  Provider
  * @package   Mongo
@@ -19,7 +19,7 @@ Class CacheServiceProvider
 {
     /**
      * Registry
-     *
+     * 
      * @param object $c      container
      * @param array  $params parameters
      * 
@@ -32,7 +32,7 @@ Class CacheServiceProvider
     }
 }
 
-// END MongoServiceProvider Class
+// END CacheServiceProvider Class
 
-/* End of file MongoServiceProvider.php */
-/* Location: .Obullo/ServiceProvider/MongoServiceProvider.php */
+/* End of file CacheServiceProvider.php */
+/* Location: .Obullo/ServiceProvider/CacheServiceProvider.php */

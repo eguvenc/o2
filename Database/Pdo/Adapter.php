@@ -59,27 +59,44 @@ Abstract Class Adapter
      */
     public function __construct($c, $params = array())
     {
-        $this->options = array();
-        foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
-            $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
-        }
-        $this->config = $c['config'];
+        $this->c = $c;
+        $this->params = $params;
+        // $this->options = array();
+        // foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
+        //     $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
+        // }
+        $this->config = $this->c['config'];
         $this->logger = $c->load('logger');
     }
+
+    // /*
+    //  * Connect to PDO
+    //  *
+    //  * @param string $dsn     data source name
+    //  * @param string $user    username
+    //  * @param mixed  $pass    password
+    //  * @param array  $options driver options
+    //  * 
+    //  * @return void
+    //  */
+     
+    // public function connection($dsn, $params)
+    // {
+    //     $this->connection = new PDO($dsn, $user, $pass, $options);
+    // }
 
     /**
      * Connect to PDO
      *
-     * @param string $dsn     data source name
-     * @param string $user    username
-     * @param mixed  $pass    password
-     * @param array  $options driver options
-     * 
      * @return void
      */
-    public function connection($dsn, $user = null, $pass = null, $options = null)
+    public function connection()
     {
-        $this->connection = new PDO($dsn, $user, $pass, $options);
+        $this->connection = $this->c->load('service provider pdo', $this->params);
+        
+        // We set exception attribute for always showing the pdo exceptions errors.
+
+        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT 
     }
 
     /**

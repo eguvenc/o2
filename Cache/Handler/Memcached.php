@@ -165,9 +165,7 @@ Class Memcached implements HandlerInterface
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
             break;
         default:
-            $this->serializer = $params['serializer'];
-            return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[]);
-            return true;
+            return false;
             break;
         }
     }
