@@ -77,7 +77,7 @@ Class Connection
             AND $this->params['db'] == $defaultDb 
             AND $this->params['provider'] == $defaultProvider
         ) {
-            return $this->c->load('return service/db'); // return to shared database instance
+            return $this->c->load('return db'); // return to shared database instance
         }
         
         $handlers = $this->c['config']['database']['handlers'];
