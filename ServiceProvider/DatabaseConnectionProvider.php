@@ -75,9 +75,8 @@ Class DatabaseConnectionProvider
     {
         $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $val = null;
-            $this->c['db.connection.'.$key] = function () use ($self, $key) {  // create shared connections
-                return $self->createConnection(['connection' => $key]);
+            $this->c['db.connection.'.$key] = function () use ($self, $val) {  // create shared connections
+                return $self->createConnection($val);
             };
         }
     }
@@ -91,7 +90,16 @@ Class DatabaseConnectionProvider
      */
     protected function createConnection($params)
     {
-        $Class = '\Obullo\Database\Pdo\Handler\\'.ucfirst($params['driver']);
+        $driver = strstr($params['dsn'], ':', true);
+
+        if ( ! isset($this->config['handlers'][$driver])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Undefined handler " %s " in your database.php config file.', $driver
+                )
+            );
+        }
+        $Class = $this->config['handlers'][$driver];
         return new $Class($this->c, $params);
     }
 
@@ -129,9 +137,9 @@ Class DatabaseConnectionProvider
     {   
         $cid = 'db.connection.'. self::getConnectionId($params);
 
-        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
+        if ( ! $this->c->exists($cid)) { // create shared connection if not exists
             $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
+            $this->c[$cid] = function () use ($self, $params) { //  create shared connections
                 return $self->createConnection($params);
             };
         }
@@ -155,10 +163,7 @@ Class DatabaseConnectionProvider
      */
     public function __destruct()
     {
-        foreach ($this->config['connections'] as $key => $val) { //  Close shared connections
-            $val = null;
-            $this->c['pdo.connection.'. $key] = null; // close connection
-        }
+        return; // We already closed the connection to database in the destruction function.
     }
 }
 
