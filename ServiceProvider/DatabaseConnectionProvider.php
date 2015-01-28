@@ -75,9 +75,8 @@ Class DatabaseConnectionProvider
     {
         $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $val = null;
-            $this->c['db.connection.'.$key] = function () use ($self, $key) {  // create shared connections
-                return $self->createConnection(['connection' => $key]);
+            $this->c['db.connection.'.$key] = function () use ($self, $val) {  // create shared connections
+                return $self->createConnection($val);
             };
         }
     }
@@ -91,7 +90,14 @@ Class DatabaseConnectionProvider
      */
     protected function createConnection($params)
     {
-        $Class = '\Obullo\Database\Pdo\Handler\\'.ucfirst($params['driver']);
+        if ( ! isset($this->config['handlers'][$params['driver']])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Undefined handler %s in your database.php config file.', $params['driver']
+                )
+            );
+        }
+        $Class = $this->config['handlers'][$params['driver']];
         return new $Class($this->c, $params);
     }
 
@@ -129,7 +135,7 @@ Class DatabaseConnectionProvider
     {   
         $cid = 'db.connection.'. self::getConnectionId($params);
 
-        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
+        if ( ! $this->c->exists($cid)) { // create shared connection if not exists
             $self = $this;
             $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
                 return $self->createConnection($params);

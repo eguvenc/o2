@@ -66,7 +66,9 @@ Class PdoConnectionProvider
         $this->config = $this->c['config']->load('database');  // Load database configuration file
 
         if (! extension_loaded('PDO')) {
-            throw new RuntimeException('The PDO extension has not been installed or enabled.');
+            throw new RuntimeException(
+                'The PDO extension has not been installed or enabled.'
+            );
         }
         $this->pdoClass = '\PDO';
     }
@@ -95,16 +97,32 @@ Class PdoConnectionProvider
      */
     protected function createConnection($params)
     {
-        if (isset($params['dsn']) AND ! empty($params['dsn'])) {
-            $server = $params['dsn'];
-            $options = (isset($params['options'])) ? $params['options'] : '';
-        } else {
-            $port    = empty($params['port']) ? '' : ';port='. $params['port'];
-            $server  = 'mysql:host=' . $params['hostname'] . $port . ';dbname=' . $params['database'];
-            $options = (isset($params['pdo']['options'])) ? $params['pdo']['options'] : '';
+        $options = '';
+        $server  = $this->dsnCreate($params);
+        
+        if (isset($params['options'])) {
+            $options = $params['options'];
+        } elseif (isset($params['pdo']['options'])) {
+            $options = $params['pdo']['options'];
         }
         var_dump($server);
         return new $this->pdoClass($server, $params['username'], $params['password'], $options);
+    }
+
+    /**
+     * Dsn create ( PDO Connection )
+     * 
+     * @param array $params parameters
+     * 
+     * @return string dsn
+     */
+    protected function dsnCreate($params)
+    {
+        if (isset($params['dsn']) AND ! empty($params['dsn'])) {
+            return $params['dsn'];
+        }
+        $port = empty($params['port']) ? '' : ';port='. $params['port'];
+        return 'mysql:host=' . $params['hostname'] . $port . ';dbname=' . $params['database'];
     }
 
     /**
