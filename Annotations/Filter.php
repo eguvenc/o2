@@ -2,6 +2,8 @@
 
 namespace Obullo\Annotations;
 
+use Obullo\Container\Container;
+
 /**
  * Filter Class
  * 
@@ -68,7 +70,7 @@ Class Filter
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->count = 0;

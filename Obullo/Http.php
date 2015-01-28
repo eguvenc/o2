@@ -37,11 +37,12 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);
 }
 
-$class = new $className;  // Call the controller
+$class 	= new $className;  // Call the controller
+$method = $router->fetchMethod();
 
 $filter = false;
 if ($c['config']['controller']['annotation']['reader']) {
-    $docs = new Obullo\Annotations\Reader\Controller($c, $class);
+    $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
     $filter = $docs->parse();
 }
 /*
@@ -72,10 +73,9 @@ if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() =
 $arguments = array_slice($c['uri']->rsegments, 3);
 
 /**
- * ------------------------------------------------------
- *  Call the requested method. Any URI segments present (besides the directory / class / method)  will be passed to the method for convenience
- *  directory = 0, class = 1,  arguments = 2 (  method always = index )
- *  ------------------------------------------------------
+ *  Call the requested method. Any URI segments present 
+ *  (besides the directory / class / method)  will be passed to the method for convenience
+ *  directory = 0, class = 1,  arguments = 2 , method = 3
  */
 call_user_func_array(array($class, $router->fetchMethod()), $arguments);
 

@@ -2,8 +2,9 @@
 
 namespace Obullo\Annotations\Reader;
 
-use Obullo\Annotations\Filter,
-    ReflectionClass;
+use ReflectionClass,
+    Obullo\Annotations\Filter,
+    Obullo\Container\Container;
 
 /**
  * Annotations Reader for Controller
@@ -36,15 +37,15 @@ Class Controller
     /**
      * Constructor
      *
-     * @param object $c     container
-     * @param string $class called controller object
+     * @param object $c      container
+     * @param string $class  controller object
+     * @param string $method controller method
      */
-    public function __construct($c, $class)
+    public function __construct(Container $c, $class, $method = 'index')
     {
         $this->c = $c;
-
         $reflection = new ReflectionClass($class);
-        $this->blocks = $reflection->getMethod('index')->getDocComment();
+        $this->blocks = $reflection->getMethod($method)->getDocComment();
     }
 
     /**
