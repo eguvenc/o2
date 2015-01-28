@@ -24,15 +24,6 @@ interface HandlerInterface
     public function __construct(Container $c);
 
     /**
-     * Sets serializer options 
-     * 
-     * @param array $params options
-     * 
-     * @return boolean true or false
-     */
-    public function setParameters($params = array());
-
-    /**
      * Get current serializer name
      * 
      * @return string serializer name

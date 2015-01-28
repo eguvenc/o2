@@ -2,8 +2,10 @@
 
 namespace Obullo\Log;
 
+use Obullo\Container\Container;
+
 /**
- * LogService Class
+ * LogServiceProviderProvider Class
  * 
  * @category  Log
  * @package   Debug
@@ -12,21 +14,21 @@ namespace Obullo\Log;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class LogService
+Class LogServiceProvider
 {
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger;
-    
     /**
      * Container class
      * 
      * @var object
      */
     protected $c;
+
+    /**
+     * Logger class
+     * 
+     * @var object
+     */
+    protected $logger;
 
     /**
      * Config parameters
@@ -41,7 +43,7 @@ Class LogService
      * @param object $c      container
      * @param array  $config configuration
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c, $config = array())
     {
         $this->c = $c;
         $this->config = $config;
@@ -50,6 +52,16 @@ Class LogService
             return;
         }
         $this->logger = new Logger($this->c, $this->c->load('return queue'), $this->config);
+    }
+
+    /**
+     * Returns to logger instance
+     * 
+     * @return object
+     */
+    public function getLogger()
+    {
+        return $this->logger;
     }
 
     /**
@@ -63,7 +75,7 @@ Class LogService
     }
 }
 
-// END LogService class
-/* End of file LogService.php */
+// END LogServiceProvider class
+/* End of file LogServiceProvider.php */
 
-/* Location: .Obullo/Log/LogService.php */
+/* Location: .Obullo/Log/LogServiceProvider.php */

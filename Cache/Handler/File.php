@@ -63,18 +63,6 @@ Class File implements HandlerInterface
     }
 
     /**
-     * Set parameters fake function
-     * 
-     * @param array $params config
-     *
-     * @return void
-     */
-    public function setParameters($params = array()) 
-    {
-        $params = null;
-    }
-
-    /**
      * Get current serializer name
      * 
      * @return string serializer name

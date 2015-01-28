@@ -20,6 +20,7 @@ use RuntimeException,
 Class CacheConnectionProvider
 {
     protected $c;                          // Container
+    protected $config = array();           // Cache config
     protected static $instance = null;     // Presence of a static member variable
     protected static $connected = array(); // Multiton connections
 
@@ -46,44 +47,7 @@ Class CacheConnectionProvider
     protected function __construct(Container $c)
     {
         $this->c = $c;
-    }
-
-    /**
-     * Creates cache connections ( Works one time foreach drivers )
-     * 
-     * @param object $connection driver object
-     * @param string $name       driver name   ( redis, memcached )
-     * 
-     * @return void
-     */
-    public static function connect(HandlerInterface $connection, $name)
-    {  
-        if ( ! self::isConnected($name)) {  // Just one time run connect method
-
-            if ( ! $connection->connect()) {
-                throw new RuntimeException(
-                    sprintf(
-                        ' %s cache connection failed.', $name
-                    )
-                );
-            }
-            self::$connected[$name] = true;
-        }
-    }
-
-    /**
-     * Check is connected
-     * 
-     * @param string $name driver
-     * 
-     * @return boolean
-     */
-    protected static function isConnected($name)
-    {
-        if (isset(self::$connected[$name])) {
-            return true;
-        }
-        return false;
+        $this->config = $this->c['config']->load('cache');
     }
 
     /**
@@ -96,8 +60,6 @@ Class CacheConnectionProvider
     public function getConnection($params)
     {
         $connection = $this->factory($params);
-        self::connect($connection, $params['driver']); // We just one time open the connection for each drivers.
-
         return $connection;
     }
 
@@ -135,9 +97,16 @@ Class CacheConnectionProvider
     protected function createConnection($class, $params)
     {
         $options = isset($params['options']) ? $params['options'] : array('serializer' => $this->c['config']['cache']['default']['serializer']);
-        $driver = '\Obullo\Cache\Handler\\'.ucfirst($class);
-        $connection = new $driver($this->c);  //  Store objects to container
-        $connection->setParameters($options);
+        $handler = strtolower($class);
+
+        if ( ! isset($this->config['handlers'][$handler])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Undefined handler %s in your cache.php config file.', $params['driver']
+                )
+            );
+        }
+        $connection = new $this->config['handlers'][$handler]($this->c, $options);  //  Store objects to container
         return $connection;
     }
 

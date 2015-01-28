@@ -62,22 +62,10 @@ Class Memcache implements HandlerInterface
         if ( ! $this->connect()) {
             throw new RunTimeException(
                 sprintf(
-                    ' %s cache connection failed.', get_class()
+                    ' %s connection failed.', get_class()
                 )
             );
         }
-    }
-
-    /**
-     * Set parameters fake function
-     * 
-     * @param array $params config
-     *
-     * @return void
-     */
-    public function setParameters($params = array()) 
-    {
-        $params = null;
     }
 
     /**
@@ -98,7 +86,6 @@ Class Memcache implements HandlerInterface
     public function connect()
     {
         $this->memcache = new \Memcache;
-
         foreach ($this->params['servers'] as $servers) {
             if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
                 throw new RunTimeException(

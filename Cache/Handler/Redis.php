@@ -80,7 +80,13 @@ Class Redis implements HandlerInterface
                 )
             );
         }
-        $this->serializer = $this->params['serializer'];
+        if ( ! $this->connect()) {
+            throw new RunTimeException(
+                sprintf(
+                    ' %s cache connection failed.', get_class()
+                )
+            );
+        }
     }
 
     /**
@@ -122,18 +128,6 @@ Class Redis implements HandlerInterface
     }
 
     /**
-     * Set parameters
-     * 
-     * @param array $options array
-     *
-     * @return void
-     */
-    public function setParameters($options = array())
-    {
-        $this->setOption($options);
-    }
-
-    /**
      * Sets serializer options 
      *
      * @param array $params options
@@ -142,9 +136,6 @@ Class Redis implements HandlerInterface
      */
     public function setOption($params)
     {
-        if ( ! isset($params['serializer'])) {
-            return false;
-        }
         switch ($params['serializer']) {
         case static::SERIALIZER_NONE: // don't serialize data
             $this->serializer = $params['serializer'];

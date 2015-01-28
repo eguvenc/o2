@@ -19,13 +19,12 @@ interface ServiceProviderInterface
     /**
      * Registry
      *
-     * @param object $c       Container
-     * @param array  $params  parameters
-     * @param array  $matches loader commands
+     * @param object $c      container
+     * @param array  $params parameters
      * 
      * @return void
      */
-    public function register(Container $c, $params = array(), $matches = array());
+    public function register(Container $c, $params = array());
 }
 
 // END ServiceProviderInterface class

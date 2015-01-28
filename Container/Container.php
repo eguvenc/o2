@@ -208,7 +208,7 @@ Class Container implements ArrayAccess
         if ( ! empty($matches['provider'])) {  // Resolve provider
             $serviceClass = '\Obullo\ServiceProvider\\'.ucfirst($matches['class']).'ServiceProvider';
             $service = new $serviceClass($this);
-            return $service->register($this, $params, $matches);  // Run every time register method.
+            return $service->register($this, $params);  // Run every time register method.
         }
         $isService = false;
         if (isset($this->services[$serviceName]) OR isset($this->services[$serviceName.'.php'])) {  // Resolve services

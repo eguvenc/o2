@@ -20,15 +20,13 @@ Class DatabaseServiceProvider
     /**
      * Registry
      *
-     * @param object $c       Container
-     * @param array  $params  parameters
-     * @param array  $matches loader commands
+     * @param object $c      container
+     * @param array  $params parameters
      * 
      * @return void
      */
-    public function register(Container $c, $params = array(), $matches = array())
+    public function register(Container $c, $params = array())
     {
-        $matches = array();
         if ( ! DatabaseConnectionProvider::isRegistered()) {            // Just one time register the shared objects
             $connector = DatabaseConnectionProvider::getInstance($c);   // Register all Connectors as shared services
             $connector->register();
