@@ -43,7 +43,6 @@ Class User implements UserInterface
             'service provider '.$this->c['auth.params']['db.provider'],
             ['connection' => $this->c['auth.params']['db.connection']]
         );
-        
         $this->tablename           = $this->c['auth.params']['db.tablename'];      // Db users tablename
         $this->columnId            = $this->c['auth.params']['db.id'];
         $this->columnIdentifier    = $this->c['auth.params']['db.identifier'];
