@@ -97,32 +97,12 @@ Class PdoConnectionProvider
      */
     protected function createConnection($params)
     {
-        $options = '';
-        $server  = $this->dsnCreate($params);
-        
-        if (isset($params['options'])) {
-            $options = $params['options'];
-        } elseif (isset($params['pdo']['options'])) {
-            $options = $params['pdo']['options'];
+        if ( ! isset($params['dsn']) OR empty($params['dsn'])) {
+            throw new RuntimeException(
+                'In your database configuration "dsn" connection key empty or not found.'
+            );
         }
-        var_dump($server);
-        return new $this->pdoClass($server, $params['username'], $params['password'], $options);
-    }
-
-    /**
-     * Dsn create ( PDO Connection )
-     * 
-     * @param array $params parameters
-     * 
-     * @return string dsn
-     */
-    protected function dsnCreate($params)
-    {
-        if (isset($params['dsn']) AND ! empty($params['dsn'])) {
-            return $params['dsn'];
-        }
-        $port = empty($params['port']) ? '' : ';port='. $params['port'];
-        return 'mysql:host=' . $params['hostname'] . $port . ';dbname=' . $params['database'];
+        return new $this->pdoClass($params['dsn'], $params['username'], $params['password'], $params['options']);
     }
 
     /**
@@ -157,7 +137,7 @@ Class PdoConnectionProvider
      */
     public function factory($params = array())
     {
-        $cid = 'database.connection.'. self::getConnectionId($params);
+        $cid = 'pdo.connection.'. self::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
@@ -185,10 +165,7 @@ Class PdoConnectionProvider
      */
     public function __destruct()
     {
-        foreach ($this->config['connections'] as $key => $val) { //  Close shared connections
-            $val = null;
-            $this->c['pdo.connection.'. $key] = null; // close connection
-        }
+        return; // We already closed the connection to database in the destruction function.
     }
 }
 

@@ -90,14 +90,16 @@ Class DatabaseConnectionProvider
      */
     protected function createConnection($params)
     {
-        if ( ! isset($this->config['handlers'][$params['driver']])) {
+        $driver = strstr($params['dsn'], ':', true);
+
+        if ( ! isset($this->config['handlers'][$driver])) {
             throw new RuntimeException(
                 sprintf(
-                    'Undefined handler %s in your database.php config file.', $params['driver']
+                    'Undefined handler " %s " in your database.php config file.', $driver
                 )
             );
         }
-        $Class = $this->config['handlers'][$params['driver']];
+        $Class = $this->config['handlers'][$driver];
         return new $Class($this->c, $params);
     }
 
@@ -137,7 +139,7 @@ Class DatabaseConnectionProvider
 
         if ( ! $this->c->exists($cid)) { // create shared connection if not exists
             $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
+            $this->c[$cid] = function () use ($self, $params) { //  create shared connections
                 return $self->createConnection($params);
             };
         }
@@ -161,10 +163,7 @@ Class DatabaseConnectionProvider
      */
     public function __destruct()
     {
-        foreach ($this->config['connections'] as $key => $val) { //  Close shared connections
-            $val = null;
-            $this->c['pdo.connection.'. $key] = null; // close connection
-        }
+        return; // We already closed the connection to database in the destruction function.
     }
 }
 

@@ -38,7 +38,7 @@ Class Permissions
     public function __construct($c)
     {
         $this->c     = $c;
-        $this->db    = $this->c->load('provider/db', $this->c['config']['rbac.params.database']);
+        $this->db    = $this->c->load('service provider database', $this->c['config']['rbac.params.database']);
         $this->perms = $this->c['rbac.permissions'];
     }
 
