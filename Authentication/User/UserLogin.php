@@ -98,7 +98,7 @@ Class UserLogin
         }
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
-        $authResult = $this->c['auth.adapter']->login(new GenericUser($credentials));
+        $authResult = $this->c['auth.adapter']->login(new GenericUser($this->c, $credentials));
         
         /**
          * Create Login Attempt Event
@@ -127,7 +127,7 @@ Class UserLogin
      */
     public function validate(array $credentials = array())
     {
-        return $this->c['auth.adapter']->authenticate(new GenericUser($credentials), false);
+        return $this->c['auth.adapter']->authenticate(new GenericUser($this->c, $credentials), false);
     }
 
     /**
@@ -144,7 +144,7 @@ Class UserLogin
     {
         $plain = $credentials[$this->columnPassword];
 
-        return $this->c->load('service/password')->verify($plain, $user->getPassword());
+        return $this->c->load('password')->verify($plain, $user->getPassword());
     }
     
     /**

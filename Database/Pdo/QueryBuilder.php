@@ -60,11 +60,12 @@ Class QueryBuilder
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c	     container
+     * @param array  $params parameters
      */
-    public function __construct($c)
+    public function __construct($c, $params)
     {
-        $this->adapter = $c->load('service/provider/db', $c['config']['query.params.database']);
+        $this->adapter = $c->load('service provider database', $params);
     }
 
     /**

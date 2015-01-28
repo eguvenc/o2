@@ -90,15 +90,36 @@ Class Token
     }
 
     /**
+     * Delete rememberMe cookie
+     * 
+     * @return void
+     */
+    // public function removeCookie()
+    // {
+    //     $cookie = $this->config['security']['cookie']; // Delete rememberMe cookie
+    //     setcookie(
+    //         $cookie['prefix'].$cookie['name'], 
+    //         null,
+    //         -1,
+    //         $cookie['path'],
+    //         $this->c['config']['cookie']['domain'],   //  Get domain from global config
+    //         $cookie['secure'], 
+    //         $cookie['httpOnly']
+    //     );
+    // }
+
+    /**
      * Refresh unique security token
      * 
      * @return void
      */
     public function refresh()
     {
-        $token = $this->generate();
         $cookie = $this->config['security']['cookie'];
-
+        // if (isset($_COOKIE[$cookie['name']])) {
+        //     $this->removeCookie();
+        // }
+        $token = $this->generate();
         setcookie(
             $cookie['prefix'].$cookie['name'], 
             $token, 

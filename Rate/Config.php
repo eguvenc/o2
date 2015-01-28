@@ -112,7 +112,7 @@ Class Config
      */
     public function __construct($c)
     {
-        $this->cache = $c->load('return service/cache');
+        $this->cache = $c->load('cache');
     }
 
     /**

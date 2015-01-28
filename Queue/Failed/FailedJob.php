@@ -50,7 +50,7 @@ Abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c->load('service provider '.$provider['name'], array('connection' => $provider['connection'], 'driver' => $provider['driver']));
+        $this->db = $c->load('service provider '.$provider['name'], ['connection' => $provider['connection']]);
         $this->table = $queue['failed']['table'];
     }
 

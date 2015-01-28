@@ -96,7 +96,7 @@ Class CacheConnectionProvider
      */
     protected function createConnection($class, $params)
     {
-        $options = isset($params['options']) ? $params['options'] : array('serializer' => $this->c['config']['cache']['default']['serializer']);
+        $options = isset($params['serializer']) ? array('serializer' => $params['serializer']) : array('serializer' => $this->c['config']['cache']['default']['serializer']);
         $handler = strtolower($class);
 
         if ( ! isset($this->config['handlers'][$handler])) {

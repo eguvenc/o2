@@ -118,7 +118,7 @@ abstract class AbstractAdapter
     {
         $passwordHash = array();
         $cost = $this->config['security']['passwordNeedsRehash']['cost'];
-        $password = $this->c->load('service/password');
+        $password = $this->c->load('password');
 
         if ($password->verify($plain, $hash)) {
             if ($password->needsRehash($hash, array('cost' => $cost))) {

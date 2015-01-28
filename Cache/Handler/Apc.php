@@ -30,10 +30,12 @@ Class Apc implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param array $c       container
+     * @param array $options options
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, $options = array())
     {
+        $options = array();
         $c = null;
         $this->container = new ArrayContainer;
         

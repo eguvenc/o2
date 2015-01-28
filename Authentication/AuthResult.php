@@ -45,6 +45,11 @@ class AuthResult
     const FAILURE_UNVERIFIED = -5;
 
     /**
+     * Warning already logged in.
+     */
+    const WARNING_ALREADY_LOGIN = -6;
+
+    /**
      * Authentication success.
      */
     const SUCCESS =  1;

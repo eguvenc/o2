@@ -2,7 +2,8 @@
 
 namespace Obullo\Authentication\Model;
 
-use Auth\Identities\GenericUser;
+use Obullo\Container\Container,
+    Auth\Identities\GenericUser;
 
 /**
  * User Provider Interface
@@ -19,10 +20,9 @@ interface UserInterface
     /**
      * Constructor
      * 
-     * @param object $c  container
-     * @param object $db database object
+     * @param object $c container
      */
-    public function __construct($c, $db);
+    public function __construct(Container $c);
 
     /**
      * Execute sql query

@@ -221,7 +221,7 @@ Class Db
         if ($this->db) { // Lazy loading
             return;
         }
-        $this->db = ( ! isset($this->params['db'])) ? $this->c->load('return service/provider/db') : $this->params['db']; // set database object.
+        $this->db = $this->c->load('service provider database', ['connection' => $this->params['connection']]); // set database object.
     }
 
     /**

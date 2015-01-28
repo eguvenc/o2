@@ -44,10 +44,12 @@ Class Memcache implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param array $c       container
+     * @param array $options options
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, $options = array())
     {
+        $options = array();
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcache'];
         $this->container = new ArrayContainer;

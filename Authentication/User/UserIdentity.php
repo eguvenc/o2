@@ -108,12 +108,12 @@ Class UserIdentity extends AuthorizedUser
             $this->recaller->recallUser($token);
         }
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
-            parent::__construct($this->attributes);
+            parent::__construct($this->c, $this->attributes);
             $this->attributes['__isTemporary'] = 0;
             ksort($this->credentials);
 
         } elseif ($this->attributes = $this->credentials = $this->storage->getCredentials('__temporary')) {
-            parent::__construct($this->attributes);
+            parent::__construct($this->c, $this->attributes);
             $this->attributes['__isTemporary'] = 1;
             ksort($this->credentials);
         }
@@ -414,7 +414,7 @@ Class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
             $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $this->refreshRememberToken(new GenericUser(array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+            $this->refreshRememberToken(new GenericUser($this->c, array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
         }
     }
 

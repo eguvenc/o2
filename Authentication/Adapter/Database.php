@@ -95,6 +95,13 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected $columnPassword;
 
     /**
+     * Already logged user
+     * 
+     * @var string
+     */
+    protected $alreadyLoggedIn = false;
+
+    /**
      * Constructor
      * 
      * @param object $c container object
@@ -105,8 +112,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $this->session = $c['session'];
         $this->cache   = $c->load('cache');
 
-        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
-        $this->columnPassword   = $this->c['auth.params']['db.password'];
+        $this->columnIdentifier = $c['auth.params']['db.identifier'];
+        $this->columnPassword   = $c['auth.params']['db.password'];
 
         parent::__construct($c);
     }
@@ -143,10 +150,14 @@ class Database extends AbstractAdapter implements AdapterInterface
     {
         $this->initialize($genericUser);
 
-        if ( ! $this->storage->isEmpty('__temporary')) {
-            $this->isTemporary = true;
-        } else {
-            $this->authenticate($genericUser);  // Perform Query
+        if ($this->c['auth.identity']->guest()) {
+            if ( ! $this->storage->isEmpty('__temporary')) {
+                $this->isTemporary = true;
+            } else {
+                $this->authenticate($genericUser);  // Perform Query
+            }
+        } else {  // Already authenticated
+            $this->alreadyLoggedIn = true;
         }
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
@@ -176,9 +187,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
-
             $plain = $genericUser->getPassword();
-            $hash  = $this->resultRowArray[$this->$this->columnPassword];
+            $hash  = $this->resultRowArray[$this->columnPassword];
 
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
                                                                                 // default is 6 for best performance.
@@ -331,6 +341,11 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function validateResult()
     {
+        if ($this->alreadyLoggedIn) {
+            $this->results['code'] = AuthResult::WARNING_ALREADY_LOGIN;
+            $this->results['messages'][] = 'You have already logged in.';
+            return $this->createResult();
+        }
         if ( ! is_array($this->resultRowArray) OR $this->failure) {   // We set failure variable when user password is fail.
             $this->results['code'] = AuthResult::FAILURE;
             $this->results['messages'][] = 'Supplied credential is invalid.';

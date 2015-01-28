@@ -65,11 +65,13 @@ Class Redis implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param array $c       container
+     * @param array $options options
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, $options = array())
     {
         $c['config']->load('cache');
+        $this->options = $options;
         $this->params = $c['config']['cache']['redis'];
         $this->container = new ArrayContainer;
 
@@ -122,6 +124,9 @@ Class Redis implements HandlerInterface
             }
         }
         if ($this->isConnected()) {
+            if (isset($this->options['serializer'])) {
+                $this->setOption($this->options);
+            }
             return true;
         }
         return false;
@@ -130,24 +135,24 @@ Class Redis implements HandlerInterface
     /**
      * Sets serializer options 
      *
-     * @param array $params options
+     * @param array $options options
      * 
      * @return boolean true or false
      */
-    public function setOption($params)
+    public function setOption($options)
     {
-        switch ($params['serializer']) {
+        switch ($options['serializer']) {
         case static::SERIALIZER_NONE: // don't serialize data
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             return $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_NONE]);
             break;
         case static::SERIALIZER_PHP: // use built-in serialize/unserialize
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_PHP]);
             return true;
             break;
         case static::SERIALIZER_IGBINARY: // use igBinary serialize/unserialize
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             return $this->redis->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
             break;
         default:

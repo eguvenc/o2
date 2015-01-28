@@ -19,9 +19,10 @@ interface HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param array $c       container
+     * @param array $options options
      */
-    public function __construct(Container $c);
+    public function __construct(Container $c, $options = array());
 
     /**
      * Get current serializer name

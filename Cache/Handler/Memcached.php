@@ -67,10 +67,12 @@ Class Memcached implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param array $c       container
+     * @param array $options options
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, $options = array())
     {
+        $this->options = $options;
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcached'];
         $this->container = new ArrayContainer;
@@ -120,13 +122,16 @@ Class Memcached implements HandlerInterface
                 }
             }
         }
+        if (isset($this->options['serializer'])) {
+            $this->setOption($this->options);
+        }
         return true;
     }
 
     /**
      * Set client option.
      * 
-     * @param array $params options
+     * @param array $options options
      * 
      * Options:
      *      serializer => 'serializer_php'
@@ -135,22 +140,22 @@ Class Memcached implements HandlerInterface
      * 
      * @return boolean true or false
      */
-    public function setOption(array $params)
+    public function setOption(array $options)
     {
-        switch ($params['serializer']) {
+        switch ($options['serializer']) {
         case static::SERIALIZER_PHP: // The default PHP serializer.
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_PHP]);
             return true;
             break;
         case static::SERIALIZER_JSON: // The JSON serializer.
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_JSON]);
             break;
         case static::SERIALIZER_IGBINARY: // The igbinary serializer.
                                           // Instead of textual representation it stores PHP data structures in a compact binary form, resulting in space and time gains.
                                           // https://github.com/igbinary/igbinary
-            $this->serializer = $params['serializer'];
+            $this->serializer = $options['serializer'];
             return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
             break;
         default:

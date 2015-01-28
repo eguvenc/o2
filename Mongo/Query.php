@@ -48,22 +48,10 @@ Class Query
     * 
     * @throws Exception 
     */
-    public function __construct($c)
+    public function __construct($c, $params)
     {
-        $this->c = $c;   
-    }
-
-    /**
-     * Set database
-     * 
-     * @param string $db name
-     *
-     * @return void
-     */
-    public function db($db)
-    {
-        $this->db = $this->c->load('return service/provider/mongo')->db($db);  // 
-        return $this;
+        $this->c = $c;
+	$this->db = $this->c->load('service provider mongo', ['connection' => $params['connection']])->selectDb($db);
     }
 
     /**

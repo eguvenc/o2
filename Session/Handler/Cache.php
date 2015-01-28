@@ -64,7 +64,13 @@ Class Cache
     {
         $savePath = null;
         $sessionName = null;
-        $this->cache = $this->c->load('return service/provider/cache', array('serializer' => 'SERIALIZER_NONE'));
+        $this->cache = $this->c->load(
+            'service provider cache',
+            [
+                'driver' => $this->params['cache']['storage'],
+                'serializer' => 'SERIALIZER_NONE'
+            ]
+        );
         return is_object($this->cache) ? true : false;
     }
  
