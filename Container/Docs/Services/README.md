@@ -232,10 +232,8 @@ $c->load('view');       // uses old instance of view component
 Services
 
 ```php
-$c->load('new service/cache');  // creates new service cache instance
-$c->load('service/cache');      // uses old service cache instance
-$c->load('new service/provider/cache'); // creates new cache providers instance
-$c->load('service/provider/cache'); // uses old cache providers instance
+$c->load('cache');  // creates new service cache instance
+$c->load('service provider cache'); // creates new cache providers instance
 ```
 
 #### "Return" Example

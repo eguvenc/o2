@@ -2,7 +2,8 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Authentication\UserService;
+use Obullo\Container\Container,
+    Obullo\Authentication\UserService;
 
 /**
  * O2 Authentication - Online Users Activity Class
@@ -22,13 +23,6 @@ Class UserActivity
      * @var object
      */
     protected $c;
-
-    /**
-     * User service
-     * 
-     * @var object
-     */
-    protected $user;
 
     /**
      * Service cache
@@ -54,21 +48,19 @@ Class UserActivity
     /**
      * Constructor
      *
-     * @param object $c    container
-     * @param object $user user service
+     * @param object $c container
      */
-    public function __construct($c, $user)
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->user = $user;
         $this->storage = $this->c['auth.storage'];
-        $this->config = $this->c['config']->load('auth');
-        $this->cache = $this->c->load('service/cache');
+        $this->config  = $this->c['config']->load('auth');
+        $this->cache   = $this->c->load('cache');
         $this->session = $this->c->load('session');
         $this->request = $this->c->load('request');
 
-        $this->attributes = $this->user->identity->__activity;
-        $this->identifier = $this->user->identity->getIdentifier();
+        $this->attributes = $this->c['auth.identity']->__activity;
+        $this->identifier = $this->c['auth.identity']->getIdentifier();
     }
 
     /**
@@ -110,7 +102,7 @@ Class UserActivity
         if (empty($this->identifier)) {
             return false;
         }
-        unset($this->user->identity->__activity);
+        unset($this->c['auth.identity']->__activity);
         return true;
     }
 
@@ -124,10 +116,10 @@ Class UserActivity
         if (empty($this->identifier)) {
             return false;
         }
-        if ($this->config['activity']['uniqueSession'] AND $this->user->identity->check()) {        // Unique Session is the property whereby a single action of activity
+        if ($this->config['activity']['uniqueSession'] AND $this->c['auth.identity']->check()) {        // Unique Session is the property whereby a single action of activity
             $this->c['event']->fire('auth.unique'); // Listener ( @see app/classes/Event/User.php  )    // terminates access to multiple sessions.
         }
-        $this->user->identity->__activity = $this->attributes;  // Update activity data
+        $this->c['auth.identity']->__activity = $this->attributes;  // Update activity data
     }
 
 }

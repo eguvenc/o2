@@ -40,6 +40,16 @@ You can add new connection in this connections configuration.
 )
 ```
 
+#### Handlers
+
+```php
+'handlers' => array(
+    'mysql' => '\\Obullo\Database\Pdo\Handler\Mysql',
+    'pgsql' => '\\Obullo\Database\Pdo\Handler\Pgsql',
+    'yourhandler' => '\\Obullo\Database\Pdo\Handler\YourHandler',  // create your own using Cache/Handler/HandlerInterface.php
+),
+```
+
 You must send the connection name to the chosen database provider.
 
 ```php

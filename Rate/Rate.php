@@ -114,7 +114,7 @@ Class Rate
     public function __construct(Container $c, $identifier = 'ip', $params = array())
     {
         $this->c = $c;
-        $this->cache = $this->c->load('service/cache');
+        $this->cache = $this->c->load('cache');
         $this->logger = $this->c->load('logger');
 
         $this->config = new Config($c);

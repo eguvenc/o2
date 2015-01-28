@@ -3,7 +3,7 @@
 namespace Obullo\Authentication;
 
 use Auth\Identities\GenericUser,
-    Obullo\Authentication\UserService;
+    Obullo\Container\Container;
 
 /**
  * Adapter Interface
@@ -20,10 +20,9 @@ interface AdapterInterface
     /**
      * Constructor
      * 
-     * @param object $c    container object
-     * @param array  $user user service object
+     * @param object $c container object
      */
-    public function __construct($c, UserService $user);
+    public function __construct(Container $c);
 
     /**
      * Performs an authentication attempt

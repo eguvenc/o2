@@ -5,6 +5,7 @@ namespace Obullo\Authentication\User;
 use Auth\Constant,
     Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
+    Obullo\Container\Container,
     Obullo\Authentication\Token,
     Obullo\Authentication\Recaller,
     Obullo\Authentication\UserService;
@@ -94,18 +95,16 @@ Class UserIdentity extends AuthorizedUser
     /**
      * Constructor
      *
-     * @param object $c    container
-     * @param object $user user service
+     * @param object $c container
      */
-    public function __construct($c, $user)
+    public function __construct(Container $c)
     {
-        $user = null;
         $this->c = $c;
-        $this->config = $this->c['config']->load('auth');
+        $this->config  = $this->c['config']->load('auth');
         $this->storage = $this->c['auth.storage'];
 
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists
-            $this->recaller = new Recaller($this->c, $this->storage);
+            $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($token);
         }
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
@@ -415,7 +414,7 @@ Class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
             $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $this->refreshRememberToken(new GenericUser(array(Constant::IDENTIFIER => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+            $this->refreshRememberToken(new GenericUser(array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
         }
     }
 
