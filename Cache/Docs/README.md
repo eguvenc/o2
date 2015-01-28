@@ -48,7 +48,7 @@ Servis bir kez load komutu ile yüklendiği zaman artık kütüphane metotların
 
 ```php
 <?php
-$this->c->load('service/cache');
+$this->c->load('cache');
 $this->cache->metod();
 ```
 
@@ -56,7 +56,7 @@ Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisin
 
 ```php
 <?php
-$this->cache = $this->c->load('service/cache');
+$this->cache = $this->c->load('cache');
 $this->cache->method();
 ```
 

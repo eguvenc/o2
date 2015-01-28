@@ -34,25 +34,26 @@ Class User implements UserInterface
      /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param object $db     db object
-     * @param array  $params array
+     * @param object $c container
      */
-    public function __construct(Container $c, $db, $params = array())
+    public function __construct(Container $c)
     {
-        $this->tablename = $params['tablename'];  // Db users tablename
+        $this->c = $c;
+        $this->db = $c->load(
+            'service provider '.$this->c['auth.params']['db.provider'],
+            ['connection' => $this->c['auth.params']['db.connection']]
+        );
         
-        $this->columnId = $params['id'];
-        $this->columnIdentifier = $params['identifier'];
-        $this->columnPassword = $params['password'];
-        $this->columnRememberToken = $params['rememberToken'];  // RememberMe token column name
+        $this->tablename           = $this->c['auth.params']['db.tablename'];      // Db users tablename
+        $this->columnId            = $this->c['auth.params']['db.id'];
+        $this->columnIdentifier    = $this->c['auth.params']['db.identifier'];
+        $this->columnPassword      = $this->c['auth.params']['db.password'];
+        $this->columnRememberToken = $this->c['auth.params']['db.rememberToken'];  // RememberMe token column name
 
         $this->sqlUser = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
         $this->sqlRecalledUser = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
         $this->sqlUpdateRememberToken = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
 
-        $this->c = $c;
-        $this->db = $db;
     }
 
     /**

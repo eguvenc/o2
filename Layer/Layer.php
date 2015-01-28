@@ -235,7 +235,7 @@ Class Layer
         $start = microtime(true);   // Start query timer 
 
         if ($this->params['cache']) {
-            $response = $this->c->load('service/cache')->get($KEY);     // This type cache use cache package
+            $response = $this->c->load('cache')->get($KEY);     // This type cache use cache package
             if ( ! empty($response)) {              // If cache exists return to cached string.
                 $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
                 $this->reset();
@@ -282,7 +282,7 @@ Class Layer
         $this->assignObjects($class); // Assign main controller objects to sub layers.
 
         if (is_numeric($expiration)) {
-            $this->c->load('service/cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
+            $this->c->load('cache')->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
         }
         $this->log('$_LAYER:', $this->getUri(), $start, $KEY, $response);
         return $response;

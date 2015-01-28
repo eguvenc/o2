@@ -591,7 +591,7 @@ Abstract Class Adapter
     }
 
     /**
-     * Close the database connetion. 
+     * Close the database connetion.
      */
     public function __destruct()
     {

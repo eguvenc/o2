@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Constant,
-    Auth\Identities\GenericUser,
+use Auth\Identities\GenericUser,
+    Obullo\Container\Container,
     Obullo\Authentication\Token;
 
 /**
@@ -42,14 +42,16 @@ Class Recaller
     /**
      * Constructor
      * 
-     * @param object $c       container
-     * @param object $storage storage
+     * @param object $c container
      */
-    public function __construct($c, $storage)
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->storage = $storage;
-        $this->config = $this->c['config']->load('auth');
+        $this->storage = $this->c['auth.storage'];
+        $this->config  = $this->c['config']->load('auth');
+
+        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
+        $this->rememberToken    = $this->c['auth.params']['db.rememberToken'];
     }
 
     /**
@@ -68,13 +70,13 @@ Class Recaller
             $this->removeCookie();
             return;
         }
-        $id = $resultRowArray[Constant::IDENTIFIER];
+        $id = $resultRowArray[$this->columnIdentifier];
         $this->storage->setIdentifier($id);
 
         $credentials = array(
-            Constant::IDENTIFIER => $id,
+            $this->columnIdentifier => $id,
             '__rememberMe' => 1,
-            '__rememberToken' => $resultRowArray[Constant::REMEMBER_TOKEN]
+            '__rememberToken' => $resultRowArray[$this->rememberToken]
         );
         $genericUser = new GenericUser($credentials);
         $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);

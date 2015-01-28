@@ -4,6 +4,7 @@ namespace Obullo\Authentication\Adapter;
 
 use Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
+    Obullo\Container\Container,
     Obullo\Authentication\Token,
     Obullo\Authentication\AuthResult,
     Obullo\Authentication\UserService,
@@ -23,13 +24,6 @@ use Auth\Identities\GenericUser,
  */
 class Database extends AbstractAdapter implements AdapterInterface
 {
-    /**
-     * User service
-     * 
-     * @var object
-     */
-    public $user;
-
     /**
      * Token
      * 
@@ -103,18 +97,16 @@ class Database extends AbstractAdapter implements AdapterInterface
     /**
      * Constructor
      * 
-     * @param object $c    container object
-     * @param object $user user service object
+     * @param object $c container object
      */
-    public function __construct($c, UserService $user)
+    public function __construct(Container $c)
     {
-        $this->user = $user;
         $this->storage = $c['auth.storage'];
         $this->session = $c['session'];
-        $this->cache = $c->load('service/cache');
+        $this->cache   = $c->load('cache');
 
-        $this->columnIdentifier = '';
-        $this->columnPassword = '';
+        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
+        $this->columnPassword   = $this->c['auth.params']['db.password'];
 
         parent::__construct($c);
     }
@@ -128,7 +120,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function initialize(GenericUser $genericUser)
     {
-        if ($this->user->identity->guest()) {
+        if ($this->c['auth.identity']->guest()) {
             $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
         }
@@ -297,12 +289,12 @@ class Database extends AbstractAdapter implements AdapterInterface
             $attributes['__type'] = static::AUTHORIZED;
             return $attributes;
         }
-        if ($this->user->identity->isVerified() == 0) {  // Otherwise verification enabled we don't do authenticate
+        if ($this->c['auth.identity']->isVerified() == 0) {  // Otherwise verification enabled we don't do authenticate
             $attributes['__isAuthenticated'] = 0;
             $attributes['__type'] = static::UNVERIFIED;
             return $attributes;
         }
-        if ($this->user->identity->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryIdentity() method.
+        if ($this->c['auth.identity']->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryIdentity() method.
             $attributes['__isAuthenticated'] = 1;
             $attributes['__type'] = static::AUTHORIZED;
             return $attributes;

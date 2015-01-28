@@ -6,6 +6,7 @@ use Auth\Constant,
     Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
     Obullo\Utils\Random,
+    Obullo\Container\Container,
     Obullo\Authentication\AuthResult,
     RuntimeException;
 
@@ -38,14 +39,15 @@ Class UserLogin
     /**
      * Constructor
      *
-     * @param object $c    container
-     * @param object $user user service
+     * @param object $c container
      */
-    public function __construct($c, $user)
+    public function __construct(Container $c)
     {
-        $user = null;
         $this->c = $c;
         $this->config = $this->c['config']->load('auth');
+
+        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
+        $this->columnPassword   = $this->c['auth.params']['db.password'];
     }
 
     /**
@@ -80,11 +82,11 @@ Class UserLogin
     {
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
-        if ( ! isset($credentials[Constant::IDENTIFIER]) OR ! isset($credentials[Constant::PASSWORD]) ) {
+        if ( ! isset($credentials[$this->columnIdentifier]) OR ! isset($credentials[$this->columnPassword]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
-                Constant::IDENTIFIER,
-                Constant::PASSWORD
+                $this->columnIdentifier,
+                $this->columnPassword
             );
             return new AuthResult(
                 array(
@@ -140,7 +142,7 @@ Class UserLogin
      */
     public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
-        $plain = $credentials[Constant::PASSWORD];
+        $plain = $credentials[$this->columnPassword];
 
         return $this->c->load('service/password')->verify($plain, $user->getPassword());
     }

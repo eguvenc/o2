@@ -2,7 +2,8 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Utils\Random;
+use Obullo\Utils\Random,
+    Obullo\Container\Container;
 
 /**
  * O2 Authentication - Security Token
@@ -42,7 +43,7 @@ Class Token
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('auth');
@@ -57,9 +58,8 @@ Class Token
     {
         $userAgentMatch = null;
         if ($this->config['security']['cookie']['userAgentMatch']) {
-            $request = $this->c->load('return request');
-            $userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
-            $userAgentMatch = '.' . hash('adler32', trim($userAgent));
+            $userAgent      = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
+            $userAgentMatch = '.'. hash('adler32', trim($userAgent));
         }
         $token = Random::generate('alnum', 16);
         return $this->token = $token.$userAgentMatch;  // Creates smaller token
@@ -132,8 +132,6 @@ Class Token
         );
         return $token;
     }
-
-
 }
 
 // END Token.php File

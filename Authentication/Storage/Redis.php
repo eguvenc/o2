@@ -96,8 +96,8 @@ Class Redis
         $this->c = $c;
         $this->config = $c['config']->load('auth');
         
-        $this->cache = $c->load('service/cache');
-        $this->logger = $c->load('logger');
+        $this->cache   = $c->load('cache');
+        $this->logger  = $c->load('logger');
         $this->session = $c->load('session');
     }
     

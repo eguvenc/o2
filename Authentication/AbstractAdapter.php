@@ -2,7 +2,8 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Identities\GenericUser;
+use Auth\Identities\GenericUser,
+    Obullo\Container\Container;
 
 /**
  * Abstract Adapter
@@ -57,7 +58,7 @@ abstract class AbstractAdapter
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $c->load('config')->load('auth');

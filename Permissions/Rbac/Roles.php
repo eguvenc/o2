@@ -129,7 +129,7 @@ Class Roles
     {
         $this->c      = $c;
         $this->treeDb = new Db($this->c);
-        $this->cache  = $c->load('service/cache');
+        $this->cache  = $c->load('cache');
         $this->c['config']->load('rbac');  // load rbac constants
 
         $this->c['model.roles'] = function () {
