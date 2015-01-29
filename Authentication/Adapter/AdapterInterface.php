@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\Authentication\Adapter;
 
 use Auth\Identities\GenericUser,
     Obullo\Container\Container;

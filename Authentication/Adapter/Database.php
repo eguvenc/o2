@@ -2,14 +2,13 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use Auth\Identities\GenericUser,
+use Obullo\Container\Container,
+    Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
-    Obullo\Container\Container,
     Obullo\Authentication\Token,
     Obullo\Authentication\AuthResult,
     Obullo\Authentication\UserService,
     Obullo\Authentication\AbstractAdapter,
-    Obullo\Authentication\AdapterInterface,
     RuntimeException;
 
 /**

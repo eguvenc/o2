@@ -1,15 +1,12 @@
 
 ## Uygulama Sınıfı ( Application )
 
-------
-
 Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/obullo/core.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam sabiti ( environment constant ) olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile çözümlenir ve ortam sabitine dönüştürülür.
-Ortam değişkeninin ortam sabitine atanmasının nedeni <kbd>$c['app']->getEnv()</kbd> metodunu uygulamanın her yerinde kullanmak yerine ortam değişkenine <b>ENV</b> sabiti ile daha rahat ulaşmaktır.
+Ortam değişkeninin ortam sabitine atanmasının nedeni <kbd>$c['app']->getEnv()</kbd> metodunu uygulamanın her yerinde kullanmak yerine ortam değişkenine <b>ENV</b> sabiti ile daha rahat ulaşabilmektir.
 
 Aşağıda <kbd>o2/obullo/core.php</kbd> dosyasının ilgili içeriği bize uygulama sınıfının konteyner (ioc) içerisine nasıl tanımlandığını ve ortam değişkeninin uygulamanın yüklenme seviyesinde nasıl belirlendiğini gösteriyor.
 
 ```php
-<?php
 $c['app'] = function () use ($c) {
     return new Obullo\Application\Application($c);
 };
@@ -34,7 +31,6 @@ Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve k
 #### constants dosyası
 
 ```php
-<?php
 define('OBULLO_CORE',  OBULLO .'Obullo'. DS .'Core.php');
 define('OBULLO_CONTAINER',  OBULLO .'Container'. DS .'Container.php');
 define('OBULLO_AUTOLOADER', OBULLO .'Obullo'. DS .'Autoloader.php');
@@ -45,8 +41,6 @@ define('OBULLO_AUTOLOADER', OBULLO .'Obullo'. DS .'Autoloader.php');
 #### index.php dosyası
 
 ```php
-<?php
-
 require OBULLO_CONTAINER;
 require OBULLO_AUTOLOADER;
 require OBULLO_CORE;        // İşte tam bu dosyanın içerisinde
@@ -59,7 +53,6 @@ require OBULLO_CORE;        // İşte tam bu dosyanın içerisinde
 Uygulamanızın hangi ortamda çalıştığını belirleyen metottur. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
 
 ```php
-<?php
 return array(
 
     'local' => array (
@@ -94,16 +87,11 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostname array.
 ```
 
-### Metotlar
-
-------
-
 ### $c['app']->getEnv();
 
 Geçerli ortam değişkenine geri döner.
 
 ```php
-<?php
 echo $c['app']->getEnv();  // Çıktı  local
 ```
 
@@ -112,7 +100,6 @@ echo $c['app']->getEnv();  // Çıktı  local
 Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
 
 ```php
-<?php
 print_r($c['app']->getEnvironments());
 
 /* Çıktı
@@ -130,7 +117,6 @@ Array
 Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
 
 ```php
-<?php
 print_r($c['app']->getEnvArray());
 
 /* Çıktı
@@ -148,7 +134,6 @@ Array (
 Geçerli ortam değişkeninin dosya yoluna geri döner.
 
 ```php
-<?php
 echo $c['app']->getEnvPath();  // Çıktı  /var/www/project.com/app/config/local/
 ```
 
@@ -181,11 +166,9 @@ echo $c['app']->getEnvPath();  // Çıktı  /var/www/project.com/app/config/loca
 
 ------
 
-<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas verileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env'][)</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
+<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
 ```php
-<?php
-
 return array(
 
     'DATABASE_USERNAME' => 'root',
@@ -241,19 +224,19 @@ Eğer <b>üçüncü</b> parametre <b>true</b> olarak girildiyse <b>$_ENV</b> de�
 Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin <b>$c['env']</b> sınıfı ile nasıl atandığını görüyorsunuz.
 
 ```php
-<?php
-
 return array(
     'default' => array(
+        'connection'   => 'default',
         'database' => 'db',
     ),
-    'key' => array(
+    'connections' => array(
         
-        'db' => array(
+        'default' => array(
             'host' => $c['env']['MONGO_HOST.REQUIRED'],
             'username' => $c['env']['MONGO_USERNAME.root'],
             'password' => $c['env']['MONGO_PASSWORD.null'],
             'port' => '27017',
+            'options'  => array('connect' => true)
             ),
     ),
 );
@@ -269,7 +252,6 @@ Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adın
 #### environments.php
 
 ```php
-<?php
 return array(
     'local' => array ( ... ),
     'test' => array ( ... ),
@@ -321,8 +303,6 @@ Aşağıdaki örnekte sadece <b>error, log, url</b> ve <b>cookie</b> anahtarlar�
 #### config.php
 
 ```php
-<?php
-
 return array(
                     
     'error' => array(
@@ -357,29 +337,28 @@ return array(
 Konfigürasyon dosyaları load metodu ile yüklendiğinde çevre ortamı ne olursa olsun ortak biri dizi içerisinde kaydedilirler ve config sınıfı ile bu diziden ilgili konfigürasyon dosyası ayarlarına ulaşılır. Lüten aşağıdaki örneğe bir göz atın.
 
 ```php
-<?php
 $c['config']->load('database');
 
 echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
 ```
 
 
-### Metod Referansı
+#### Application Sınıfı Referansı
 
 ------
 
-#### $this->c['app']->getEnv();
+##### $this->c['app']->getEnv();
 
 Geçerli ortam değişkenine geri döner.
 
-#### $this->c['app']->getEnvironments();
+##### $this->c['app']->getEnvironments();
 
 Ortam konfigürasyon dosyasında ( app/environments.php ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
 
-#### $this->c['app']->getEnvArray();
+##### $this->c['app']->getEnvArray();
 
 Ortam konfigürasyon dosyasının ( app/environments.php ) içerisindeki tanımlı tüm diziye geri döner.
 
-#### $this->c['app']->getEnvPath();
+##### $this->c['app']->getEnvPath();
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.

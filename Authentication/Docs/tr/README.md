@@ -424,11 +424,11 @@ Uygulamanın esnek çalışması için kimlik sınıfları <b>app/classes/Auth</
 ```php
 - app
     - classes
-        - Authentication
+        - Auth
             Identities
-                - AuthorizedUser
-                - GenericUser
-        + Provider
+                - AuthorizedUser.php
+                - GenericUser.php
+        + Model
 ```
 
 <b>AuthorizedUser</b> yetkili kullanıcıların kimliklerine ait metodları, <b>GenericUser</b> sınıfı ise yetkisiz yani Guest diye tanımladığımız kullanıcıların kimliklerine ait metodları içerir. Bu sınıflar <b>get</b> metodu kullanıcı kimliklerinden <b>okuma</b>, <b>set</b> metodu ile de kimliklere <b>yazma</b> işlemlerini yürütülerer. Bu sınıflara metodlar ekleyerek ihtiyaçlarınıza göre düzenleme yapabilirsiniz fakat <b>Obullo\Authentication\Identities\IdentityInterface</b> sınıfı içerisindeki tanımlı metodlardan birini bu sınıflar içerisinden silmemeniz gerekir.
@@ -676,7 +676,7 @@ Class User extends ModelUser implements UserInterface
 /* Location: .app/classes/Auth/Model/User.php */
 ```
 
-### Yetki doğrulama paketinin kullandığı rezerve edilmiş anahtarlar :
+### Rezerve edilmiş anahtarlar :
 
 Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
 
@@ -694,11 +694,11 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__isAuthenticated</td>
-            <td>Eğer kullanıcı yetkilendirilmişse bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
+            <td>Eğer kullanıcı yetkisi doğrulanmış ise bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak kullanıcıyı kalıcı olarak yetki doğrulamaniz gerekir.</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
         </tr>
         <tr>
             <td>__isVerified</td>
@@ -706,7 +706,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__lastTokenRefresh</td>
-            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz.</td>
+            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Cookie ) varsayılan olarak kendisini her bir dakika da bir yeniler, oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniye gibi bir süreye düşürebilirsiniz.</td>
         </tr>
         <tr>
             <td>__rememberMe</td>
@@ -714,7 +714,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__token</td>
-            <td>Güvenlik çerezinin ( Security Token ) güncel değerini içerir.</td>
+            <td>Güvenlik çerezinin ( Security Cookie ) güncel değerini içerir.</td>
         </tr>
         <tr>
             <td>__type</td>
@@ -869,7 +869,7 @@ Güvenlik çerezinine geri döner.
 Kullanıcıya ait daha önceden kaydedilmiş rollere geri döner.
 
 
-**Note:** Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine ekleyebilirsiniz.
+>Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine ekleyebilirsiniz.
 
 
 #### Activity Sınıfı Referansı

@@ -72,8 +72,6 @@ Available Commands
 
     show        : Display all queued jobs.
     listen      : Wait and send jobs to job handler.
-    down        : Pause the queue in maintenance mode ( Not implemented will be available on next release ).
-    up          : Release the paused queue ( Not implemented it is available on next release ).
     help        : Display help.
 
 Arguments
@@ -89,6 +87,7 @@ Optional
     --timeout   : Sets time limit execution of the current job.
     --sleep     : If we have not job on the queue sleep the script for a given number of seconds.
     --tries     : Sets the maximum number of times a job should be attempted.
+    --env       : Sets your environment variable to job class.
     --project   : Sets your project name to works with multiple projects.
     --var       : Sets your custom variable if you need.
 
@@ -113,6 +112,7 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
      */
     public function show()
     {
+        $this->logo();
         $this->parser->parse(func_get_args());
 
         $break = "------------------------------------------------------------------------------------------";
@@ -121,8 +121,14 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $route = $this->parser->argument('route', null);  // Sets queue route key ( queue name )
         $clear = $this->parser->argument('clear');
 
-        $this->emptyControl($channel, $route);
-
+        if (empty($channel)) {
+            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
+            exit;
+        }
+        if (empty($route)) {
+            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
+            exit;
+        }
         echo "\33[0;36mFollowing queue data ...\33[0m\n\n";
         echo "\33[1;36mChannel : ".$channel."\33[0m\n";
         echo "\33[1;36mRoute   : ".$route."\33[0m\n";
@@ -177,9 +183,9 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
         $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
         $sleep = $this->parser->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $tries = $this->parser->argument('tries', 0);     // If job attempt failed we push back on to queue and increase attempt number.
+        $tries = $this->parser->argument('tries', 0);        // If job attempt failed we push back on to queue and increase attempt number.
         $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
-        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
+        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker ( This is useful working with multiple projects ). 
         $var = $this->parser->argument('var', null);         // Sets your custom variable
         
         if (empty($channel)) {

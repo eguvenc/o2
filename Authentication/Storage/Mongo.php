@@ -10,7 +10,7 @@ use LogicException,
     Obullo\Authentication\AbstractStorage;
 
 /**
- * O2 Authentication - Memory Storage
+ * O2 Authentication - Mongo Storage
  * 
  * @category  Authentication
  * @package   Storage
@@ -19,7 +19,7 @@ use LogicException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Redis extends AbstractStorage
+Class Mongo extends AbstractStorage
 {
     /**
      * Authentication keys which we get getAllKeys method
@@ -27,13 +27,6 @@ Class Redis extends AbstractStorage
      * @var array
      */
     public $keys;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
 
     /**
      * Cache class
@@ -62,7 +55,7 @@ Class Redis extends AbstractStorage
      * @var array
      */
     protected $data = array();
-
+    
     /**
      * Identify of user ( username, email * .. )
      * 
@@ -85,12 +78,12 @@ Class Redis extends AbstractStorage
     public function __construct(Container $c) 
     {
         $this->c = $c;
-        $this->config  = $c['config']->load('auth');
+        $this->config = $c['config']->load('auth');
         $this->cache   = $this->c->load('cache');
         $this->logger  = $this->c->load('logger');
         $this->session = $this->c->load('session');
     }
-
+    
     /**
      * Check whether to identify exists
      *
@@ -207,6 +200,7 @@ Class Redis extends AbstractStorage
             $this->data[$block] = array_merge($oldCredentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
+
         $this->logger->debug('Auth temporary data redis key.', array('key' => $this->getMemoryBlockKey($block)));
 
         return $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
@@ -265,6 +259,7 @@ Class Redis extends AbstractStorage
     public function getMemoryBlockKey($block = '__temporary')
     {
         $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
+
         $id = $this->getIdentifier();
         $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
@@ -281,6 +276,7 @@ Class Redis extends AbstractStorage
     public function getKey($block = '__temporary')
     {
         $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
+
         return $this->config['cache']['key']. ':' .$block. ':' .$key.$this->getId();
     }
 
@@ -318,8 +314,7 @@ Class Redis extends AbstractStorage
     }
 
     /**
-     * Re authenticate cached permanent identity, we override 
-     * old authentication data that we stored before as permanent
+     * Re authenticate cached permanent identity
      * 
      * @param array  $data  cached auth data
      * @param object $token token \Obullo\Authentication\Token
@@ -328,10 +323,14 @@ Class Redis extends AbstractStorage
      */
     public function authenticatePermanentIdentity($data, Token $token)
     {
+        /**
+         * We override old authentication data
+         * that we stored before as permanent
+         */
         $data['__isAuthenticated'] = 1;
         $data['__isTemporary'] = 0;
         $data['__type'] = 'Authorized';
-        $data['__token'] = $token->get();  // update token
+        $data['__token'] = $token->get();
 
         $this->loginAsPermanent($data);
     }

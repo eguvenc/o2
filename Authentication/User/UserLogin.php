@@ -2,13 +2,12 @@
 
 namespace Obullo\Authentication\User;
 
-use Auth\Constant,
-    Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser,
+use RuntimeException,
     Obullo\Utils\Random,
     Obullo\Container\Container,
-    Obullo\Authentication\AuthResult,
-    RuntimeException;
+    Auth\Identities\GenericUser,
+    Auth\Identities\AuthorizedUser,
+    Obullo\Authentication\AuthResult;
 
 /**
  * O2 Authentication - User Login Class
@@ -45,7 +44,6 @@ Class UserLogin
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('auth');
-
         $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
         $this->columnPassword   = $this->c['auth.params']['db.password'];
     }

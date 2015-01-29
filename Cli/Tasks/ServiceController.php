@@ -126,7 +126,6 @@ Available Commands
 
     down       : Sets service down to enter maintenance mode.
     up         : Sets service up to leaving from maintenance mode.
-    pause      : Sets service pause ( New requests stop but background jobs continue. ).
 
 Available Arguments
 
@@ -134,7 +133,7 @@ Available Arguments
 
 echo "\33[1;36mUsage:\33[0m\33[0;36m
 
-php task service down --name=queue\n\n";
+php task service down --name=name\n\n";
 
 echo "\33[1;36mDescription:\33[0m\33[0;36m
 

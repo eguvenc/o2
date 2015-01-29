@@ -2,11 +2,10 @@
 
 namespace Obullo\Authentication\User;
 
-use Auth\Constant,
+use Obullo\Container\Container,
+    Obullo\Authentication\Token,
     Auth\Identities\GenericUser,
     Auth\Identities\AuthorizedUser,
-    Obullo\Container\Container,
-    Obullo\Authentication\Token,
     Obullo\Authentication\Recaller,
     Obullo\Authentication\UserService;
 
