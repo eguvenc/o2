@@ -49,17 +49,15 @@ Config.php konfigürasyon dosyasını açın ve annotations reader anahtarının
 <?php
 /*
 |--------------------------------------------------------------------------
-| Controller
+| Annotations
 |--------------------------------------------------------------------------
 */
-'controller' => array(
-    'annotation' => array(
-        'reader' => true,
-    )
+'annotation' => array(
+    'controller' => true,
 )
 ```
 
-Artık controller sınıfı index metotları üzerinde dipnotları aşağıdaki gibi kullanabilirsiniz.
+Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi kullanabilirsiniz.
 
 ```php
 <?php

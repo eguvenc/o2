@@ -41,7 +41,7 @@ $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
 $filter = false;
-if ($c['config']['controller']['annotation']['reader']) {
+if ($c['config']['annotation']['controller']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
     $filter = $docs->parse();
 }

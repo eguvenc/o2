@@ -12,7 +12,7 @@ use Pdo,
  * O2 User Model
  * 
  * @category  Authentication
- * @package   Adapter
+ * @package   Model
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
