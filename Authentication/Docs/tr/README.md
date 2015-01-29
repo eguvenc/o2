@@ -18,7 +18,9 @@ O2 yetki doğrulama;
 
 gibi mevcut özellikleri ile size esnek, hızlı ve güvenli bir yetki doğrulama servisi sağlar ayrıca depolama birimi olarak <b>redis</b> kullandığınızda size online kullanıcı kimliklerini görüntüleme ve bu kimliklere ulaşarak çeşitli istatistik verileri oluşturabilmenize de imkan tanır.
 
-## Sınıfı yüklemek
+### Sınıfı yüklemek
+
+------
 
 Yetki doğrulama paketi sınıflarına erişim user servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. Uygulamanınızın sürdürülebilirliği açısından bu servis üzerinde database provider haricinde değişiklilik yapmamanız önerilir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>UserLogin</b>, <b>UserIdentity</b> ve <b>UserActivity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm public sınıf metodlarına tek bir sınıf üzerinden erişim sağlanmış olur.
 
@@ -49,20 +51,25 @@ $this->user->identity->method();
 $this->user->activity->method();
 ```
 
+### Adaptörler
 
-## Adaptörler
+------
 
 Yetki doğrulama adaptörleri yetki doğrulama servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
 
 Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
 
-## Hazıfa Deposu ( Storage )
+### Hazıfa Deposu ( Storage )
+
+------
 
 Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
 
 **Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> sürücüsünü desteklemektedir. Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
 
-## Akış Şeması
+### Akış Şeması
+
+------
 
 Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin nasıl çalıştığı hakkında size bir ön bilgi verecektir:
 
@@ -106,8 +113,9 @@ Diğer bir durum yetki doğrulama onayının kapalı olması yani varsayılan du
 
 Akış şeması üzerinden gidersek yetki doğrulama onayının kapalı olması durumunda varsayılan işlemler devam eder ve kullanıcı kalıcı (__permanent) olarak hafıza bloğuna yazılır. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden sağlanmış olur. Kalıcı önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir.
 
+### Redis Deposu
 
-## Redis Deposu
+------
 
 Yetki doğrulama sınıfı hafıza deposu için varsayılan olarak redis kullanır. Aşağıdaki resim kullanıcı kimliklerinin hafıza deposunda nasıl tutulduğunu göstermektedir.
 
@@ -127,92 +135,13 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 
 Redis dışında bir çözüm kullanıyorsanız kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
 
-### Yetki doğrulama paketinin kullandığı rezerve edilmiş anahtarlar :
+### Paket Konfigürasyonu
 
-Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
-
-<table>
-    <thead>
-        <tr>
-            <th>Anahtar</th>    
-            <th>Açıklama</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>__activity</td>
-            <td>Online kullanıcı aktivite verilerini içerir: Son aktivite zamanı ve diğer eklemek istediğiniz veriler gibi.</td>
-        </tr>
-        <tr>
-            <td>__isAuthenticated</td>
-            <td>Eğer kullanıcı yetkilendirilmişse bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak kullanıcıyı kalıcı olarak yetki doğrulamaniz gerekir.</td>
-        </tr>
-        <tr>
-            <td>__isVerified</td>
-            <td>Yetki doğrulama onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
-        </tr>
-        <tr>
-            <td>__lastTokenRefresh</td>
-            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz.</td>
-        </tr>
-        <tr>
-            <td>__rememberMe</td>
-            <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__token</td>
-            <td>Güvenlik çerezinin ( Security Token ) güncel değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__type</td>
-            <td>Yetki doğrulama tiplerini içerir. Bu tipler sırasıyla şöyledir: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
-        </tr>
-        <tr>
-            <td>__time</td>
-            <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
-        </tr>
-
-    </tbody>
-</table>
-
-Oluşturulan kullanıcı kimliğinin tümüne aşağıdaki yöntemle ulaşabilirsiniz.
-
-```php
-print_r($this->user->identity->getArray()); // Çıktılar
-/*
-Array
-(
-    [__activity] => Array
-        (
-            [last] => 1413454236
-        )
-
-    [__isAuthenticated] => 1
-    [__isTemporary] => 0
-    [__lastTokenRefresh] => 1413454236
-    [__rememberMe] => 0
-    [__token] => 6ODDUT3FtmmXEZ70.86f40e86
-    [__type] => Authorized
-    [__time] => 1414244130.719945
-    [id] => 1
-    [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
-    [remember_token] => bqhiKfIWETlSRo7wB2UByb1Oyo2fpb86
-    [username] => user@example.com
-)
-*/
-```
-
-Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar paket tarafından kullanılan (rezerve) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> anahtarı ise yetkilendirilmiş anlık kullanıcı istatistikleri ile igili veriler için ayrılmış olan size ait bir anahtardır.
-
-## Paket Konfigürasyonu
+------
 
 Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
 
-### Konfigürasyon değerleri tablosu
+#### Konfigürasyon değerleri tablosu
 
 <table>
     <thead>
@@ -222,10 +151,6 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>adapter</td>
-            <td>Yetki doğrulama adaptörleri yetki doğrulama servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.</td>
-        </tr>
         <tr>
             <td>cache[key]</td>
             <td>Bu değer auth paketinin kayıt olacağı anahtarın önekidir. Bu değeri her proje için farlı girmeniz projelerinizin karışmaması için tavsiye edilir. Bu değer "projectameAuth" ( örnek olarak frontendAuth, backendAuth ) olarak girilebilir.</td>
@@ -271,7 +196,55 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
 </table>
 
 
-### Bir Kalıcı Oturum Açma Denemesi
+### Servis Konfigürasyonu
+
+------
+
+Yetki doğrulama servisini kullanmadan önce servis dosyasını konfigüre etmeniz gerekir. Bu dosya database tablo ayarları yetki adaptörleri ve model gibi konfigurasyonları içerir. Aşağıda görüldüğü gibi yetki doğrulama <b>User</b> servisi üzerinden yönetilir <kbd>app/classes/Service/User.php</kbd> dosyasını açarak servisi konfigüre edebilirsiniz.
+
+```php
+Class User implements ServiceInterface
+{
+    public function register(Container $c)
+    {
+        $c['user'] = function () use ($c) {
+            $user = new AuthServiceProvider(
+                $c,
+                array(
+                    'db.adapter'       => '\Obullo\Authentication\Adapter\Database',
+                    'db.model'         => '\Obullo\Authentication\Model\User',
+                    'db.provider'      => 'database',
+                    'db.connection'    => 'default',
+                    'db.tablename'     => 'users', // Database column settings
+                    'db.id'            => 'user_id',
+                    'db.identifier'    => 'email',
+                    'db.password'      => 'password',
+                    'db.rememberToken' => 'remember_token'
+                )
+            );
+            return $user;
+        };
+    }
+}
+
+// END User class
+
+/* End of file User.php */
+/* Location: .app/classes/Service/User.php */
+```
+
+**Adaptörler:** Yetki doğrulama adaptörleri yetki doğrulama servisinde <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
+
+**Model:** Model sınıfı yetki doğrulama sınıfına ait database işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için database sorgularını özelleştirmek bölümüne bakınız.
+
+**Provider:** Database işlemlerinin hangi servis sağlayıcısını kullanması gerektiğini tanımlar.
+
+**Connection:** Database servis sağlayıcısının hangi bağlantıyı seçmesi gerektiğini tanımlar.
+
+**Tablo ayarları:** Database işlemleri sırasında tablo ismi ve sütün isimlerini belirlemenize olanak sağlar. Bu konfigurasyonlar tüm paket içerisinde kullanılır.
+
+
+#### Bir Kalıcı Oturum Açma Denemesi
 
 ```php
 $this->user->login->disableVerification();  // default disabled
@@ -284,9 +257,9 @@ $this->user->login->attempt(
 );
 ```
 
-### Bir Oturum Açma Örneği
+#### Bir Oturum Açma Örneği
 
-Membership adı altında bir dizin açalım be login controller dosyamızı bu dizin içerisinde koyalım.
+Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım.
 
 ```php
 + app
@@ -358,7 +331,7 @@ Class Login extends \Controller
 
 ### Oturum Açma Sonuçları
 
-Oturum açma denemesi yapıldığında AuthResult sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir.
+Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir,  <kbd>$this->user->login->attempt()</kbd> metodu ise sonuçları alabilmemiz için AuthResult nesnesine geri dönmektedir.
 
 ```php
 $result = $this->user->login->attempt(
@@ -444,9 +417,9 @@ if ($result->isValid()) {
 </table>
 
 
-### Yetki doğrulama Sabitleri ve Kimlik Sınıfları 
+#### Yetki Doğrulama Kimlik Sınıfları 
 
-Uygulamanın esnek çalışması için kimlik classları ve sabit (constant) tanımlamaları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketi ile senkron çalışır ve aşağıdaki dizindedir.
+Uygulamanın esnek çalışması için kimlik sınıfları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketi ile senkron çalışır ve aşağıdaki dizindedir.
 
 ```php
 - app
@@ -499,6 +472,35 @@ Kullanıcı kimliği O2 paketi içerisindedir ve <b>app/Auth/Identities</b> içe
 * Kullanıcı kimliğini tamamen yok etme ( destroy )
 * Beni hatırla özelliği kullanılmışsa kullanıcı kimliğini çerezden kalıcı olarak silme forgetMe )
 
+Aşağıda örnek bir kullanıcı kimliğini nasıl görüntüleyebileceğiniz gösteriliyor.
+
+```php
+print_r($this->user->identity->getArray()); // Çıktılar
+/*
+Array
+(
+    [__activity] => Array
+        (
+            [last] => 1413454236
+        )
+
+    [__isAuthenticated] => 1
+    [__isTemporary] => 0
+    [__lastTokenRefresh] => 1413454236
+    [__rememberMe] => 0
+    [__token] => 6ODDUT3FtmmXEZ70.86f40e86
+    [__type] => Authorized
+    [__time] => 1414244130.719945
+    [id] => 1
+    [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
+    [remember_token] => bqhiKfIWETlSRo7wB2UByb1Oyo2fpb86
+    [username] => user@example.com
+)
+*/
+```
+
+Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar yetki doğrulama paketi tarafından kullanılan (rezerve anaharlar) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış anlık kullanıcılar ile igili sayısal yada meta verileri için ayrılmış olan size ait bir anahtardır.
+
 
 ### UserActivity Sınıfı İşlevleri
 
@@ -517,6 +519,8 @@ $this->user->activity->update();
 ```
 
 ### Olaylar ( Events )
+
+------
 
 Yetki doğrulama paketine ait olaylar <b>app/classes/Event/User.php</b> sınıfı tarafından dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <b>onLoginAttempt()</b> olayıdır. Bu olay <b>Obullo/Authentication/User/UserIdentity</b> sınıfı içerisindeki loginAttempt metodu içerisinde <b>login.attempt</b> adı ile ilan edilmiştir. 
 
@@ -574,6 +578,8 @@ Yukarıdaki örnekte <b>onLoginAttempt()</b> metodunu kullanarak oturum açma de
 
 ### Database Sorgularını Özelleştirmek
 
+------
+
 O2 yetki doğrulama paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <kbd>Obullo\Authentication\Model\User</kbd> sınfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından db.model anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirmeniz gerekmektedir.
 
 Daha sonra <b>app/classes/Auth/Model</b> klasörünü içerisine <b>User.php</b> dosyasını yaratarak aşağıdaki gibi User model sınıfı içerisinden <b>Obullo\Authentication\Model\User</b> sınıfına genişlemeniz gerekmektedir. Bunu yaparken <b>UserInterface</b> içerisindeki yazım kurallarına bir göz atın.
@@ -598,17 +604,8 @@ interface UserInterface
 Önce User.php service dosyasından <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirin.
 
 ```php
-namespace Service;
-
 Class User implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
     public function register(Container $c)
     {
         $c['user'] = function () use ($c) {
@@ -636,9 +633,7 @@ Class User implements ServiceInterface
 /* End of file User.php */
 /* Location: .app/classes/Service/User.php */
 ```
-
 Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak güncellediyseniz, aşağıda sizin için bir model örneği yaptık bu örneği değiştererek ihtiyaçlarınıza göre kullanabilirsiniz. Bunun için <b>Obullo\Authentication\Model\User</b> sınıfına bakın ve ezmek ( override ) istediğiniz method yada değişkenleri sınıfınız içerisine dahil edin.
-
 
 ```php
 namespace Auth\Model;
@@ -680,6 +675,58 @@ Class User extends ModelUser implements UserInterface
 
 /* Location: .app/classes/Auth/Model/User.php */
 ```
+
+### Yetki doğrulama paketinin kullandığı rezerve edilmiş anahtarlar :
+
+Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
+
+<table>
+    <thead>
+        <tr>
+            <th>Anahtar</th>    
+            <th>Açıklama</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>__activity</td>
+            <td>Online kullanıcı aktivite verilerini içerir: Son aktivite zamanı ve diğer eklemek istediğiniz veriler gibi.</td>
+        </tr>
+        <tr>
+            <td>__isAuthenticated</td>
+            <td>Eğer kullanıcı yetkilendirilmişse bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
+        </tr>
+        <tr>
+            <td>__isTemporary</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak kullanıcıyı kalıcı olarak yetki doğrulamaniz gerekir.</td>
+        </tr>
+        <tr>
+            <td>__isVerified</td>
+            <td>Yetki doğrulama onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
+        </tr>
+        <tr>
+            <td>__lastTokenRefresh</td>
+            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz.</td>
+        </tr>
+        <tr>
+            <td>__rememberMe</td>
+            <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
+        </tr>
+        <tr>
+            <td>__token</td>
+            <td>Güvenlik çerezinin ( Security Token ) güncel değerini içerir.</td>
+        </tr>
+        <tr>
+            <td>__type</td>
+            <td>Yetki doğrulama tiplerini içerir. Bu tipler sırasıyla şöyledir: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
+        </tr>
+        <tr>
+            <td>__time</td>
+            <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
+        </tr>
+
+    </tbody>
+</table>
 
 
 #### Login Sınıfı Referansı
@@ -809,7 +856,7 @@ Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine ak
 
 Kimliğin ilk yaratılma zamanının verir. ( Php Unix microtime ).
 
-#### $this->user->identity->getArray()
+##### $this->user->identity->getArray()
 
 Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
