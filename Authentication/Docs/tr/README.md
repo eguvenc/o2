@@ -9,7 +9,7 @@ O2 yetki doğrulama;
 * Adaptörler,
 * Olaylar ( Events )
 * Kullanıcı kimlikleri
-* Kullanıcı sorguları arayüzü ( UserProvider class )
+* Kullanıcı sorguları arayüzü ( User model class )
 * Yetki doğrulama onaylandırma ( Verification )
 * Güvenlik çerezi doğrulama önlemi, ( Security token validation )
 * Oturum id sini yeniden yaratma, ( Session regenerate )
@@ -25,7 +25,7 @@ Yetki doğrulama paketi sınıflarına erişim user servisi üzerinden sağlanı
 User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları çalıştırılabilir.
 
 ```php
-$this->c->load('service/user');
+$this->c->load('user');
 $this->user->class->method();
 ```
 
@@ -298,7 +298,6 @@ Membership adı altında bir dizin açalım be login controller dosyamızı bu d
 ```
 
 ```php
-
 namespace Membership;
 
 use Event\User;
@@ -526,7 +525,6 @@ Aşağıdaki örnekte gösterilen <b>app/classes/Event/User.php</b> sınıfı on
 Lütfen takip eden örneğe bir göz atın.
 
 ```php
-
 namespace Event;
 
 use Obullo\Authentication\AuthResult,
@@ -576,27 +574,32 @@ Yukarıdaki örnekte <b>onLoginAttempt()</b> metodunu kullanarak oturum açma de
 
 ### Database Sorgularını Özelleştirmek
 
-O2 yetki doğrulama paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <kbd>Obullo\Authentication\Model\User</kbd> sınfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından db.model anahtarını <kbd>\Auth\User\Model</kbd> olarak değiştirmeniz gerekmektedir.
+O2 yetki doğrulama paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <kbd>Obullo\Authentication\Model\User</kbd> sınfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından db.model anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirmeniz gerekmektedir.
 
-Daha sonra <b>app/classes/Auth/Model</b> klasörünü içerisine User.php dosyasını yaratarak aşağıdaki gibi UserProvider sınıfı içerisinden ObulloUserProvider sınıfına genişlemeniz gerekmektedir. Bunu yaparken UserProviderInterface içerisindeki yazım kurallarına bir göz atın.
+Daha sonra <b>app/classes/Auth/Model</b> klasörünü içerisine <b>User.php</b> dosyasını yaratarak aşağıdaki gibi User model sınıfı içerisinden <b>Obullo\Authentication\Model\User</b> sınıfına genişlemeniz gerekmektedir. Bunu yaparken <b>UserInterface</b> içerisindeki yazım kurallarına bir göz atın.
 
-Aşağıda O2 yetki doğrulama paketi içerisindeki UserProviderInterface sınıfı görülüyor.
+Aşağıda O2 yetki doğrulama paketi içerisindeki <kbd>\Obullo\Authentication\Model\UserInterface</kbd> sınıfı görülüyor.
 
 ```php
 namespace Obullo\Authentication\Model;
 
+use Obullo\Container\Container,
+    Auth\Identities\GenericUser;
+
 interface UserInterface
 {
-    public function __construct($c, $db);
+    public function __construct(Container $c);
     public function execQuery(GenericUser $user);
     public function execRecallerQuery($token);
     public function updateRememberToken($token, GenericUser $user);
 }
 ```
 
-Önce User.php service dosyasından <b>db.model</b> dosyasını <kbd>\Auth\Model\User</kbd> olarak değiştirin.
+Önce User.php service dosyasından <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirin.
 
 ```php
+namespace Service;
+
 Class User implements ServiceInterface
 {
     /**
@@ -634,18 +637,17 @@ Class User implements ServiceInterface
 /* Location: .app/classes/Service/User.php */
 ```
 
-Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirin. Aşağıda sizin için bir model örneği yaptık isterseniz bu örneği değiştererek ihtiyaçlarınıza göre kullanabilirsiniz. Bunun için <b>Obullo\Authentication\Model\User</b> sınıfına bakın ve ezmek ( override ) istediğiniz method yada değişkenleri sınıfınız içerisine dail edin.
+Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak güncellediyseniz, aşağıda sizin için bir model örneği yaptık bu örneği değiştererek ihtiyaçlarınıza göre kullanabilirsiniz. Bunun için <b>Obullo\Authentication\Model\User</b> sınıfına bakın ve ezmek ( override ) istediğiniz method yada değişkenleri sınıfınız içerisine dahil edin.
 
 
 ```php
-
 namespace Auth\Model;
 
-use Obullo\Authentication\Model\UserInterface,
-    Obullo\Authentication\Model\User as ModelUser,
-    Obullo\Container\Container,
+use Obullo\Container\Container,
     Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser;
+    Auth\Identities\AuthorizedUser,
+    Obullo\Authentication\Model\UserInterface,
+    Obullo\Authentication\Model\User as ModelUser;
 
 Class User extends ModelUser implements UserInterface
 {
@@ -680,77 +682,77 @@ Class User extends ModelUser implements UserInterface
 ```
 
 
-### Login Referansı
+### Login Sınıfı Referansı
 
 ------
 
-### $this->user->login->enableVerification();
+#### $this->user->login->enableVerification();
 
 Yetki doğrulama onayını aktif hale getirir.
 
-### $this->user->login->disableVerification();
+#### $this->user->login->disableVerification();
 
 Yetki doğrulama onayını devre dışı bırakır.
 
-### $this->user->login->attemp(array $credentials, $rememberMe = false);
+#### $this->user->login->attemp(array $credentials, $rememberMe = false);
 
 Bu fonksiyon kullanıcı oturumunu açmayı dener ve AuthResult nesnesine döner.
 
-### $this->user->login->authenticateVerifiedIdentity();
+#### $this->user->login->authenticateVerifiedIdentity();
 
 Kullanıcıyı kalıcı olarak yetkilendirir ve kalıcı kimliğe sahip olan kullanıcının geçici kimliğini önbellekten siler.
 
-### $this->user->login->validate(array $credentials);
+#### $this->user->login->validate(array $credentials);
 
 Yetki doğrulama yapmadan kullanıcı Guest kimliği bilgilerine doğrulama işlemi yapar.Bilgiler doğruysa true değerine yanlış ise false değerine döner.
 
-### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
+#### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
 AuthorizedUser kimliğine sahip kullanıcı bilgilerini dışarıdan gelen yeni bilgiler ile karşılaştırarak doğrulama yapar.
 
-### $this->user->login->getAdapter();
+#### $this->user->login->getAdapter();
 
 Serviste kullanılan adaptör nesnesine geri döner.
 
-### $this->user->login->getStorage();
+#### $this->user->login->getStorage();
 
 Serviste kullanılan storage nesnesine geri döner.
 
 
 
-### Identity Referansı
+### Identity Sınıfı Referansı
 
 ------
 
-### $this->user->identity->check();
+#### $this->user->identity->check();
 
 Kullanıcının yetkisinin doğrulununu kontrol eder. Yetkili ise <b>true</b> değilse <b>false</b>değerine döner.
 
-### $this->user->identity->guest();
+#### $this->user->identity->guest();
 
 Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false</b>.
 
-### $this->user->identity->exists();
+#### $this->user->identity->exists();
 
 Kimliğin önbellekte olup olmadığını kotrol eder. Varsa <b>true</b> yoksa <b>false</b>değerine döner.
 
-### $this->user->identity->isVerified();
+#### $this->user->identity->isVerified();
 
 Onaya tabi olan yetki doğrulamada başarılı oturum açma işleminden sonra kullanıcı onaylanıp onaylanmadığını gösterir. Kullanıcı onaylı ise <b>1</b> değerine değilse <b>0</b> değerine döner.
 
-### $this->user->identity->isTemporary();
+#### $this->user->identity->isTemporary();
 
 Onaya tabi olan yetki doğrulamada kullanıcının kimliğinin geçici olup olmadığını gösterir. <b>1</b> yada </b>0</b> değerine döner.
 
-### $this->user->identity->logout();
+#### $this->user->identity->logout();
 
 Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile güncellenir. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kappattı olarak kaydeder.
 
-### $this->user->identity->destroy();
+#### $this->user->identity->destroy();
 
 Önbellekteki kimliği bütünüyle yok eder.
 
-### $this->user->identity->forgetMe();
+#### $this->user->identity->forgetMe();
 
 Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
@@ -759,19 +761,19 @@ Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
 ------
 
-### $this->user->identity->variable = 'value'
+#### $this->user->identity->variable = 'value'
 
 Kimlik dizisine yeni bir değer ekler.
 
-### unset($this->user->identity->variable)
+#### unset($this->user->identity->variable)
 
 Kimlik dizisinde varolan değeri siler.
 
-### $this->user->identity->setRoles(int|string|array $roles);
+#### $this->user->identity->setRoles(int|string|array $roles);
 
 Eğer bir yetki sistemi kullanıyorsanız sisteme kayıtlı rolleri kimliğe bağlayabilirsiniz.
 
-### $this->user->identity->setArray(array $attributes)
+#### $this->user->identity->setArray(array $attributes)
 
 Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
@@ -780,35 +782,35 @@ Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
 ------
 
-### $this->user->identity->getIdentifier();
+#### $this->user->identity->getIdentifier();
 
 Kullanıcın tekil tanımlayıcı sına geri döner. Tanımlayıcı genellikle kullanıcı adı yada id sidir.
 
-### $this->user->identity->getPassword();
+#### $this->user->identity->getPassword();
 
 Kullanıcın hash edilmiş şifresine geri döner.
 
-### $this->user->identity->getType();
+#### $this->user->identity->getType();
 
 Yetki doğrulamasi başarılı olmuş olan kullanıcının yetki durumunu gösterir. Bu tipler : <b>UNVERIFIED, AUTHORIZED</b> dir.
 
-### $this->user->identity->getRememberMe();
+#### $this->user->identity->getRememberMe();
 
 Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine aksi durumda <b>0</b> değerine döner.
 
-### $this->user->identity->getTime();
+#### $this->user->identity->getTime();
 
 Kimliğin ilk yaratılma zamanının verir. ( Php Unix microtime ).
 
-### $this->user->identity->getArray()
+#### $this->user->identity->getArray()
 
 Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
-### $this->user->identity->getToken();
+#### $this->user->identity->getToken();
 
 Güvenlik çerezinine geri döner.
 
-### $this->user->identity->getRoles();
+#### $this->user->identity->getRoles();
 
 Kullanıcıya ait daha önceden kaydedilmiş rollere geri döner.
 
@@ -816,24 +818,24 @@ Kullanıcıya ait daha önceden kaydedilmiş rollere geri döner.
 **Note:** Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine ekleyebilirsiniz.
 
 
-### Activity Referansı
+### Activity Sınıfı Referansı
 
 ------
 
 Activite verileri son aktivite zaman gibi anlık kullanıcı verilerini önbellekte tutubilmenizi sağlayan bir sınıftır.
 
-### $this->user->activity->set($key, $val);
+#### $this->user->activity->set($key, $val);
 
 Aktivite dizininden bir değere geri döner. bir anahtar ve değerini ekler.
 
-### $this->user->activity->get($key);
+#### $this->user->activity->get($key);
 
 Aktivite dizininde anahtarla eşleşen değere geri döner.
 
-### $this->user->activity->update();
+#### $this->user->activity->update();
 
 Daha önce set metodu ile eklenen bütün verileri kaydeder. Bu metot en son çalıştırılmalıdır.
 
-### $this->user->activity->remove();
+#### $this->user->activity->remove();
 
 Tüm aktivite verilerini önbellekten temizler.

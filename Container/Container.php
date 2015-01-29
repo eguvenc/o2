@@ -49,7 +49,7 @@ Class Container implements ArrayAccess
     public function __construct() 
     {
         $this->aliases = new SplObjectStorage;
-        $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan services
+        $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
         unset($this->services['Provider']);
     }
 
