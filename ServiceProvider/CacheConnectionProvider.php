@@ -75,7 +75,7 @@ Class CacheConnectionProvider
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Cache connection provider requires driver parameter.");
         }
-        $cid = 'cache.connection.'.self::getConnectionId($params);
+        $cid = 'cache.connection.'.Utils::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
@@ -108,18 +108,6 @@ Class CacheConnectionProvider
         }
         $connection = new $this->config['handlers'][$handler]($this->c, $options);  //  Store objects to container
         return $connection;
-    }
-
-    /**
-     * Returns to connection id
-     * 
-     * @param string $string serialized parameters
-     * 
-     * @return integer
-     */
-    protected static function getConnectionId($string)
-    {
-        return sprintf("%u", crc32(serialize($string)));
     }
 
 }

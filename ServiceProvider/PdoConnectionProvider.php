@@ -65,7 +65,7 @@ Class PdoConnectionProvider
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
 
-        if (! extension_loaded('PDO')) {
+        if ( ! extension_loaded('PDO')) {
             throw new RuntimeException(
                 'The PDO extension has not been installed or enabled.'
             );
@@ -137,7 +137,7 @@ Class PdoConnectionProvider
      */
     public function factory($params = array())
     {
-        $cid = 'pdo.connection.'. self::getConnectionId($params);
+        $cid = 'pdo.connection.'. Utils::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
@@ -146,18 +146,6 @@ Class PdoConnectionProvider
             };
         }
         return $this->c[$cid];
-    }
-
-    /**
-     * Returns to connection id
-     * 
-     * @param string $string serialized parameters
-     * 
-     * @return integer
-     */
-    protected static function getConnectionId($string)
-    {
-        return sprintf("%u", crc32(serialize($string)));
     }
 
     /**

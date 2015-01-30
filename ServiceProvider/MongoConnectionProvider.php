@@ -84,9 +84,8 @@ Class MongoConnectionProvider
     {
         $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $server = 'mongodb://'.$val['username'].':'.$val['password'].'@'.$val['hostname'].':'.$val['port'];
-            $this->c['mongo.connection.'.$key] = function () use ($self, $server, $val) {  //  create shared connections
-                return $self->createConnection($server, $val);
+            $this->c['mongo.connection.'.$key] = function () use ($self, $val) {  //  create shared connections
+                return $self->createConnection($val['server'], $val);
             };
         }
     }
@@ -123,7 +122,7 @@ Class MongoConnectionProvider
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Server key %s not exists in your mongo.php config file.',
+                    'Connection key %s not exists in your mongo.php config file.',
                     $params['connection']
                 )
             );
@@ -143,7 +142,7 @@ Class MongoConnectionProvider
         if ( ! isset($params['server'])) {
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
         }
-        $cid = 'mongo.connection.'.self::getConnectionId($params);
+        $cid = 'mongo.connection.'.Utils::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
@@ -152,18 +151,6 @@ Class MongoConnectionProvider
             };
         }
         return $this->c[$cid];
-    }
-
-    /**
-     * Returns to connection id
-     * 
-     * @param string $string serialized parameters
-     * 
-     * @return integer
-     */
-    protected static function getConnectionId($string)
-    {
-        return sprintf("%u", crc32(serialize($string)));
     }
 
     /**

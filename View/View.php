@@ -211,19 +211,6 @@ Class View
     }
 
     /**
-     * Set nested type controller object
-     * 
-     * @param Controller $controller nested object reference
-     * 
-     * @return object $this
-     */
-    // public function nested(Controller $controller)
-    // {
-    //     $this->_nestedController = $controller;
-    //     return $this;
-    // }
-
-    /**
      * Load view file from /view folder
      * 
      * @param string  $filename filename
@@ -244,9 +231,8 @@ Class View
         /**
          * IMPORTANT:
          * 
-         * Router may not available in some levels, we need to always use container object.
-         * Forexample if we define a closure route which contains the view class, 
-         * it will not work if router not available in the controller.
+         * Router may not available in some levels, forexample if we define a closure route 
+         * which contains the view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
         if (Controller::$instance == null) {
@@ -254,12 +240,6 @@ Class View
         } else {
             $router = &Controller::$instance->router;
         }
-        /**
-         * Is there any nested layer ?
-         */
-        // if (is_object($this->_nestedController)) {
-        //     $router = $this->_nestedController->router;
-        // }
         /**
          * Fetch view ( also it can be nested )
          */
@@ -269,7 +249,6 @@ Class View
             $data,
             $include
         );
-        // $this->_nestedController = null; // Reset nested controller object.
         return $return;
     }
 

@@ -135,7 +135,7 @@ Class DatabaseConnectionProvider
      */
     public function factory($params = array())
     {   
-        $cid = 'db.connection.'. self::getConnectionId($params);
+        $cid = 'db.connection.'.Utils::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { // create shared connection if not exists
             $self = $this;
@@ -147,23 +147,11 @@ Class DatabaseConnectionProvider
     }
 
     /**
-     * Returns to connection id
-     * 
-     * @param string $string serialized parameters
-     * 
-     * @return integer
-     */
-    protected static function getConnectionId($string)
-    {
-        return sprintf("%u", crc32(serialize($string)));
-    }
-
-    /**
      * Close the connections
      */
     public function __destruct()
     {
-        return; // We already closed the connection to database in the destruction function.
+        return; // We already close the connections in pdo provider.
     }
 }
 
