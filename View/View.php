@@ -265,7 +265,6 @@ Class View
             $dataOrNoInclude,
             $include
         );
-
         $this->_nestedController = null; // Reset nested controller object.
         return $return;
     }
