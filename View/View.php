@@ -251,6 +251,12 @@ Class View
             $router = $this->_nestedController->router;
         }
         /**
+         * Fetch layout
+         */
+        if ( ! empty($layout)) {
+            $this->layout($layout);
+        }
+        /**
          * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
@@ -259,12 +265,6 @@ Class View
             $dataOrNoInclude,
             $include
         );
-        /**
-         * Fetch layout
-         */
-        if ( ! empty($layout)) {
-            $this->layout($layout);
-        }
         $this->_nestedController = null; // Reset nested controller object.
         return $return;
     }

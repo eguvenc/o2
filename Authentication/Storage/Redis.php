@@ -21,61 +21,14 @@ use LogicException,
  */
 Class Redis extends AbstractStorage
 {
-    /**
-     * Authentication keys which we get getAllKeys method
-     * 
-     * @var array
-     */
-    public $keys;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Cache class
-     * 
-     * @var object
-     */
-    protected $cache;
-
-    /**
-     * Session class
-     * 
-     * @var object
-     */
-    protected $session;
-
-    /**
-     * Authentication configuration array
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * User credentials data
-     * 
-     * @var array
-     */
-    protected $data = array();
-
-    /**
-     * Identify of user ( username, email * .. )
-     * 
-     * @var string
-     */
-    protected $identifier;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    protected $logger;
+    public $keys;               // Authentication keys which we get getAllKeys method
+    protected $c;               // Container
+    protected $cache;           // Cache class
+    protected $session;         // Session class
+    protected $config;          // Authentication configuration array
+    protected $data = array();  // User credentials data
+    protected $identifier;      // Identify of user ( username, email * .. )
+    protected $logger;          // Logger
 
     /**
      * Constructor
@@ -86,8 +39,8 @@ Class Redis extends AbstractStorage
     {
         $this->c = $c;
         $this->config  = $c['config']->load('auth');
-        $this->cache   = $this->c->load('cache');
         $this->logger  = $this->c->load('logger');
+        $this->cache   = $this->c->load('cache');
         $this->session = $this->c->load('session');
     }
 

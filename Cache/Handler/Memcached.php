@@ -72,8 +72,8 @@ Class Memcached implements HandlerInterface
      */
     public function __construct(Container $c, $options = array())
     {
-        $this->options = $options;
         $c['config']->load('cache');
+        $this->options = $options;
         $this->params = $c['config']['cache']['memcached'];
         $this->container = new ArrayContainer;
 
@@ -324,6 +324,9 @@ Class Memcached implements HandlerInterface
      */
     public function delete($key)
     {
+        if (is_string($key) AND strpos($key, ':') !== false) {
+            $key = explode(':', $key);
+        }
         if (is_array($key)) {
             return $this->memcached->deleteMulti($key);
         }
