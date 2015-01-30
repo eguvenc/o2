@@ -337,7 +337,6 @@ Class Validator
                 $param   = $matches[2][0];
             }
             if ($callback === true) {    // Call the function that corresponds to the rule
-                $this->assignObjects();  // Assign controller objects
                 if ( ! array_key_exists($rule, $this->callbackFunctions)) {  // Check method exists in callback object.
                     continue;
                 }
