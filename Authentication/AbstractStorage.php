@@ -35,7 +35,7 @@ abstract class AbstractStorage
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__'.$this->config['cache']['key'].'/Identifier', $identifier.':'.$this->getRandomId());
+        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/Identifier', $identifier.':'.$this->getRandomId());
     }
 
     /**
@@ -45,7 +45,7 @@ abstract class AbstractStorage
      */
     public function getIdentifier()
     {
-        return $this->session->get('__'.$this->config['cache']['key'].'/Identifier');
+        return $this->session->get('__'.$this->c['auth.params']['cache.key'].'/Identifier');
     }
 
     /**
@@ -55,7 +55,7 @@ abstract class AbstractStorage
      */
     public function unsetIdentifier()
     {   
-        $this->session->remove('__'.$this->config['cache']['key'].'/Identifier');
+        $this->session->remove('__'.$this->c['auth.params']['cache.key'].'/Identifier');
     }
 
     /**
@@ -80,7 +80,7 @@ abstract class AbstractStorage
      */
     public function getRandomId()
     {
-        $id = $this->session->get('__'.$this->config['cache']['key'].'/RandomId');
+        $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/RandomId');
         if ($id == false) {
             $id = $this->setRandomId();
             return $id;
@@ -100,7 +100,7 @@ abstract class AbstractStorage
         if (empty($id)) {
             $id = Random::generate('alnum.lower', 10);
         }
-        $this->session->set('__'.$this->config['cache']['key'].'/RandomId', $id);
+        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/RandomId', $id);
         return $id;
     }
 }

@@ -129,6 +129,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         if ($this->c['auth.identity']->guest()) {
             $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
+
+            $this->c['logger']->alert($this->storage->getIdentifier());
         }
         $this->results = array(
             'code' => AuthResult::FAILURE,
@@ -231,12 +233,7 @@ class Database extends AbstractAdapter implements AdapterInterface
 
         if ($this->config['login']['session']['regenerateSessionId']) {
             $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
-            $getRandomId = $this->storage->getRandomId();
             $this->regenerateSessionId($deleteOldSession);  // If session data destroyed we need to keep auth ids.
-            if ($deleteOldSession) {  
-                $this->storage->setRandomId($getRandomId);
-                $this->storage->setIdentifier($genericUser->getIdentifier());
-            }
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
@@ -260,7 +257,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function deleteOldAuth()
     {
-        $trashKey = $this->config['cache']['key'].':__permanent:Authorized:'.$this->trashIdentifier;
+        $trashKey = $this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->trashIdentifier;
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {
             $this->storage->deleteCredentials($trashKey);
         }

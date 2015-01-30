@@ -48,18 +48,23 @@ Class AuthServiceProvider
         $this->c['auth.storage'] = function () {
             return new $this->config['cache']['storage']($this->c);
         };
+
         $this->c['auth.adapter'] = function () use ($params) {
             return new $params['db.adapter']($this->c);
         };
+
         $this->c['user.model'] = function () use ($params) {
             return new $params['db.model']($this->c);
         };
+
         $this->c['auth.identity'] = function () {
             return new UserIdentity($this->c);
         };
+
         $this->c['auth.activity'] = function () {
             return new UserActivity($this->c);
         };
+        
         $this->c['auth.login'] = function () {
             return new UserLogin($this->c);
         };

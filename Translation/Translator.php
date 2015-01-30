@@ -51,7 +51,7 @@ Class Translator implements ArrayAccess
      * 
      * @var array
      */
-    public $isLoaded = array();  // Let we know if its loaded
+    public $loaded = array();  // Let we know if its loaded
 
     /**
      * Current locale code ( en, de, es )
@@ -154,6 +154,10 @@ Class Translator implements ArrayAccess
      */
     public function offsetGet($key)
     {
+        if ( ! is_string($key)) {
+            $this->logger->warning('Translate key type error the key must be string.');
+            return $key;
+        }
         if ( ! isset($this->translateArray[$key])) {
             $translateNotice = ($this->translator['notice']) ? static::NOTICE : '';
             return $translateNotice . $key;
@@ -196,22 +200,27 @@ Class Translator implements ArrayAccess
     public function load($filename = '', $return = false)
     {
         $locale = $this->getLocale();
-        if (in_array($filename, $this->isLoaded, true)) {
+        if (in_array($filename, $this->loaded, true)) {
             return $this->translateArray;
         }
         if ( ! is_dir(APP .'translations'. DS .$locale)) {
-            throw new LogicException(sprintf('The translator %s path is not a folder.', APP .'translations'. DS .$locale));
+            throw new LogicException(
+                sprintf(
+                    'The translator %s path is not a folder.', 
+                    APP .'translations'. DS .$locale
+                )
+            );
         }
         $fileUrl = APP .'translations'. DS .$locale. DS .$filename. '.php';
         $translateArray = include $fileUrl;
         if ( ! isset($translateArray)) {
-            $this->logger->error('Translation file does not contain $translate variable: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
+            $this->logger->error('Translation file does not contain valid format: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
             return;
         }
         if ($return) {
             return $translateArray;
         }
-        $this->isLoaded[] = $fileUrl;
+        $this->loaded[] = $fileUrl;
         $this->translateArray = array_merge($this->translateArray, $translateArray);
         unset($translateArray);
 

@@ -64,7 +64,7 @@ Class ExceptionHandler
         $logger  = $c->load('logger');
         if ($logger instanceof Logger) {         // Log for local environment
             $logger->channel($c['config']['log']['default']['channel']);
-            $logger->emergency($message, array('file' => DebugOutput::getSecurePath($file), 'line' => $line));
+            $logger->error($message, array('file' => DebugOutput::getSecurePath($file), 'line' => $line));
         }
         $c->load('exception')->toString($e);
     }
