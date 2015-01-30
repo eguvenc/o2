@@ -236,6 +236,12 @@ Class View
     public function load($filename, $dataOrNoInclude = null, $layout = null, $include = true)
     {
         /**
+         * Fetch layout
+         */
+        if ( ! empty($layout)) {     // Layouts must be run at the top level otherwise layout layer requests cannot
+            $this->layout($layout);  // find the current $router->fetchDirectory().
+        }
+        /**
          * IMPORTANT:
          * 
          * Router may not available in some levels, we need to always use container object.
@@ -251,12 +257,6 @@ Class View
             $router = $this->_nestedController->router;
         }
         /**
-         * Fetch layout
-         */
-        if ( ! empty($layout)) {
-            $this->layout($layout);
-        }
-        /**
          * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
@@ -265,6 +265,7 @@ Class View
             $dataOrNoInclude,
             $include
         );
+
         $this->_nestedController = null; // Reset nested controller object.
         return $return;
     }
