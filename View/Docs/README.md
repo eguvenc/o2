@@ -450,14 +450,11 @@ $app->func(
             $li.= '<li>'.$this->url->anchor($key, $value, " $active ").'</li>';
         }
 
-        // ** View Controller output must be string;
-
-        echo $this->view->nested($this)->load(
+        echo $this->view->->get(   // View Controller output must be string
             'header',
-            function () use ($li) {
-                $this->assign('li', $li);
-            },
-            false
+            [
+              'li' => $li
+            ]
         );
     }
 );
@@ -532,13 +529,17 @@ $this->request->router->method();
 
 #### $this->view->setLayouts($layours = array());
 
-Sets layout configuration.
+Sets layout array, useful in service configuration.
 
-#### $this->view->load('filename', $include = true, $data = array());
+#### $this->view->load('filename', $data = array(), $layout = null);
 
-Gets the file from local directory e.g. <kbd>public/welcome/view</kbd>
+Include the file from local directory e.g. <kbd>public/welcome/view</kbd>
 
-#### $this->view->template('filename', $include = true, $data = array());
+#### $this->view->get('filename', $data = array());
+
+Returns to the view file as string.
+
+#### $this->view->template('filename', $data = array(), $include = true);
 
 Gets the file from templates directory e.g. <kbd>app/templates</kbd>
 

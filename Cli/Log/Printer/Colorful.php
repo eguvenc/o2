@@ -47,7 +47,7 @@ Class Colorful
                 if (strpos($messageBody, '$_REQUEST_URI') !== false) {
                     $line  = "\033[1;36m".$break."\n".$line.$break."\033[0m";
                 } elseif (strpos($messageBody, '$_LAYER') !== false) {
-                    $line = "\033[1;34m".strip_tags($line)."\033[0m";
+                    $line = "\033[1;35m".strip_tags($line)."\033[0m";
                 } else {
                     $line = "\033[1;35m".$line."\033[0m";
                 }

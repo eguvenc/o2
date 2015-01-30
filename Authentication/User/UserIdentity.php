@@ -384,7 +384,6 @@ Class UserIdentity extends AuthorizedUser
         $credentials['__type'] = 'Unauthorized';
 
         $this->updateRememberToken();
-
         $this->storage->setCredentials($credentials, null, '__permanent');
     }
 
@@ -396,7 +395,6 @@ Class UserIdentity extends AuthorizedUser
     public function destroy()
     {
         $this->updateRememberToken();
-
         $this->storage->deleteCredentials('__permanent');
     }
 
@@ -413,7 +411,12 @@ Class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
             $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $this->refreshRememberToken(new GenericUser($this->c, array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)));
+            $this->refreshRememberToken(
+                new GenericUser(
+                    $this->c, 
+                    array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)
+                )
+            );
         }
     }
 
@@ -456,7 +459,7 @@ Class UserIdentity extends AuthorizedUser
     /**
      * Writes identity data to storage at end of the process.
      *
-     * We compare storage and php memory variables if we have any changes we push them to storage.
+     * We compare storage data and variables if we have any changes we push them to storage.
      * 
      * @return void
      */

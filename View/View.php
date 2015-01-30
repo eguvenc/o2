@@ -189,7 +189,7 @@ Class View
      * 
      * @return void
      */
-    public function layout($name = 'default')
+    protected function layout($name = 'default')
     {
         if (isset($this->_layoutArray[$name]) AND is_callable($this->_layoutArray[$name])) {
             $this->bind($this->_layoutArray[$name]);
@@ -204,7 +204,7 @@ Class View
      * 
      * @return mixed
      */
-    public function bind($val)
+    protected function bind($val)
     {
         $closure = Closure::bind($val, $this, get_class());
         return $closure();
@@ -226,14 +226,14 @@ Class View
     /**
      * Load view file from /view folder
      * 
-     * @param string  $filename        filename
-     * @param mixed   $dataOrNoInclude closure data, array data or boolean ( fetch as string )
-     * @param string  $layout          fetch layout data
-     * @param boolean $include         no include ( fetch as string )
+     * @param string  $filename filename
+     * @param mixed   $data     array data
+     * @param string  $layout   fetch layout data
+     * @param boolean $include  no include ( fetch as string )
      * 
      * @return string                      
      */
-    public function load($filename, $dataOrNoInclude = null, $layout = null, $include = true)
+    public function load($filename, $data = null, $layout = null, $include = true)
     {
         /**
          * Fetch layout
@@ -262,7 +262,7 @@ Class View
         $return = $this->fetch(
             CONTROLLERS .$router->fetchModule(DS). $router->fetchDirectory() . DS .'view'. DS,
             $filename,
-            $dataOrNoInclude,
+            $data,
             $include
         );
         $this->_nestedController = null; // Reset nested controller object.
@@ -270,17 +270,30 @@ Class View
     }
 
     /**
+     * Get view as string
+     * 
+     * @param string $filename filename
+     * @param mixed  $data     array data
+     * 
+     * @return string
+     */
+    public function get($filename, $data = null)
+    {
+        return $this->load($filename, $data, null, false);
+    }
+
+    /**
      * Load view file app / templates folder
      * 
-     * @param string  $filename        filename
-     * @param mixed   $dataOrNoInclude closure data, array data or boolean ( fetch as string )
-     * @param boolean $include         no include ( fetch as string )
+     * @param string  $filename filename
+     * @param array   $data     variables
+     * @param boolean $include  no include ( fetch as string )
      * 
      * @return string                      
      */
-    public function template($filename, $dataOrNoInclude = null, $include = false)
+    public function template($filename, $data = null, $include = false)
     {
-        return $this->fetch(APP .'templates'. DS, $filename, $dataOrNoInclude, $include);
+        return $this->fetch(APP .'templates'. DS, $filename, $data, $include);
     }
 
     /**
