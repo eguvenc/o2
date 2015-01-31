@@ -102,8 +102,6 @@ Class UserIdentity extends AuthorizedUser
         $this->config  = $this->c['config']->load('auth');
         $this->storage = $this->c['auth.storage'];
 
-        echo $this->storage->getMemoryBlockKey('__permanent');
-
         if ($token = $this->recallerExists()) {   // Remember the user if recaller cookie exists
             $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($token);
