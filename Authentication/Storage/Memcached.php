@@ -43,10 +43,10 @@ Class Memcached extends AbstractStorage
         $this->session = $this->c->load('session');
 
         $this->cache = $this->c->load(
-            'service provider '.$this->config['cache']['provider']['name'], 
+            'service provider '.$this->config['auth']['provider']['name'], 
             [
-                'driver' => $this->config['cache']['provider']['driver'], 
-                'serializer' => $this->config['cache']['provider']['serializer']
+                'driver' => $this->config['auth']['provider']['driver'], 
+                'serializer' => $this->config['auth']['provider']['serializer']
             ]
         );
     }
