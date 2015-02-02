@@ -348,10 +348,16 @@ Here is an example:
  * 
  * @return void
  */
-public function response($output)
+public function _response($output)
 {
     echo $output;
 }
 ```
 
 Please note that your <kbd>response()</kbd> function will receive the data in its finalized state. For an alternate way to control output <em>before</em> any of the final processing is done, please see the available methods in the Response Class.
+
+
+### Reserved Controller Methods
+
+* load()
+* extend()

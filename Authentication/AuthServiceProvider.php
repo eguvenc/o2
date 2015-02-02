@@ -42,32 +42,17 @@ Class AuthServiceProvider
     public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
-        $this->c['auth.params'] = $params;
         $this->config = $c['config']->load('auth');
-
-        $this->c['auth.storage'] = function () {
-            return new $this->config['cache']['storage']($this->c);
-        };
-
-        $this->c['auth.adapter'] = function () use ($params) {
-            return new $params['db.adapter']($this->c);
-        };
-
-        $this->c['user.model'] = function () use ($params) {
-            return new $params['db.model']($this->c);
-        };
-
-        $this->c['auth.identity'] = function () {
-            return new UserIdentity($this->c);
-        };
-
-        $this->c['auth.activity'] = function () {
-            return new UserActivity($this->c);
-        };
         
-        $this->c['auth.login'] = function () {
-            return new UserLogin($this->c);
-        };
+        $this->c['auth.params'] = $params;
+
+        $this->c['auth.storage'] = new $this->config['cache']['storage']($this->c);
+        $this->c['auth.adapter'] = new $params['db.adapter']($this->c);
+        $this->c['user.model']   = new $params['db.model']($this->c);
+
+        $this->c['auth.login']    = new UserLogin($this->c);
+        $this->c['auth.identity'] = new UserIdentity($this->c);
+        $this->c['auth.activity'] = new UserActivity($this->c);
     }
 
     /**

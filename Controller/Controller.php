@@ -40,8 +40,8 @@ Class Controller
         /**
          * Initialize view trait
          */
-        if (method_exists($this, 'useLayer')) {  // Layouts must be run at the top level otherwise layout view file
-            $this->useLayer();                   // could not load view variables.
+        if (method_exists($this, 'extend')) {  // Layouts must be run at the top level otherwise layout view file
+            $this->extend();                   // could not load view variables.
         }
     }
     

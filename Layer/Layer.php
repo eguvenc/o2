@@ -298,13 +298,9 @@ Class Layer
     protected function assignObjects($class)
     {
         $instance = $this->c['request']->globals->global;  // Assign loaded libraries to called controller.
-        unset(
-            $instance->uri,
-            $instance->router,
-            $instance->config,
-            $instance->logger,
-            $instance->response
-        );
+        
+        unset($instance->uri, $instance->router, $instance->config, $instance->logger, $instance->response);
+
         foreach ($this->c['request']->globals->global as $key => $value) {
             $class->{$key} = $value;
         }

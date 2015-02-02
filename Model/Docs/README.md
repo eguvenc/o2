@@ -8,70 +8,51 @@ Modeller veritabanı ile haberleşmeyi sağlayan ve veritabanı fonksiyonları i
 
 Uygulamanızda model katmanı kullandığınızda <b>sorgu önbellekme</b>, <b>testler</b>, <b>veritabanı kodlarının bakımı</b> gibi problemler kolaylıkla çözülür.
 
-### Modelleri yüklemek
+### Modelleri Yüklemek
 
 ------
 
-```php
-<?php
-$this->c->bind('model bar', 'Foo\Bar');
-$this->model->bar->method();
-```
-Sonraki çağrımda bind metodu singleton yaparak sınıfın ( eski instance ına ) geri dönecektir.
 
 ```php
 <?php
-$this->c->bind('model bar'); // yukarıdaki örnekten hemen sonraki çağrımda singleton uygulanır.
-$this->model->bar->method();
+$this->modelBar = new \Model\Foo\Bar;
+$this->modelBar->method();
 ```
 
-Model yüklemelerinde konteyner komutlarını da kullabilirsiniz. Örnek bir takmaisim kullanımı.
+Framework model sınıflarını <b>app/classes/Model</b> klasöründen yükler.
+
+### Modellere Konteyner ile Her Yerden Ulaşmak
 
 ```php
 <?php
-$this->c->bind('model bar as takmaisim');
-$this->model->takmaisim->method();
+$this->c['model.bar'] = new \Model\Foo\Bar;
+$this->c['model.bar']->method();
 ```
 
-Yada önceden yüklü bir model den yeni bir instance yaratabilirsiniz.
+Bazı durumlarda bir model nesnesini birden fazla kullanmak gerekebilir, uygulama içerisinde model birkaç defa farklı sınıflar içerisinde kullanılıyorsa modellerinizi konteyner nesnesine kaydedebilirsiniz. Bir kez kaydedilen model sınıfına daha sonra dilediğiniz yerden <kbd>$this->c['model.modelismi']</kbd> ile ulaşabilirsiniz.
 
 ```php
 <?php
-$this->c->bind('new model bar', 'Foo\Bar', $params = array());  // yeni instance yaratmak
+$this->modelBar = $this->c['model.bar'];
+$this->modelBar->method();
 ```
 
-Bind metodu modelleri konteyner içerisine kayıt etmenizi sağlar buda uygulamanın her yerinde modellere ulaşabilmeniz anlamına gelir. Container sınıfına kaydedilen modellere direkt olarak konteyner üzerinde de ulaşılabilir.
+Konteyner nesnesi nesneleri kayıt etmenizi sağlar buda uygulamanın her yerinde nesnelere ulaşabilmeniz anlamına gelir. Görüldüğü gibi yüklediğiniz modeller konteyner içerisine kaydedilir ve kayıtlı diğer servislerle karışmaması için <b>model.</b> öneki ile farklılaştırılması gerekir.
 
-Konteyner üzerinden modellere erişime bir örnek.
-
-```php
-$this->c['bind.model.user']->method();
-```
-
-Görüldüğü gibi yüklediğiniz modeller konteyner içerisine kaydedilir ve kayıtlı diğer servislerle karışmaması için <b>bind.</b> öneki ile farklılaştırılır.
-
-> **Note:** Bir modele sadece controller sınıfının yükleme seviyesinde mevcut olmadığı durumlarda konteyner üzerinden erişilmelidir. Controller sınıfının mevcut olduğu durumlarda modellere her zaman aşağıdaki gibi controller üzerinden erişmek gerekir.
-
-Controller üzerinden modellere erişime bir örnek.
-
-```php
-$this->model->bar->method();
-```
-
-Aşağıdaki örnek modellerin nasıl yazılabileceği hakkında size bir fikir verebilir. Bu örnekte gösterilen <b>entry.php</b>  dosyasının yolu <b>/models/blog/</b> klasörüdür.
+Aşağıdaki örnek, modellerin nasıl kullanılabileği hakkında size bir fikir verebilir. Bu örnekte gösterilen <b>entry.php</b> dosyasının yolu <b>/model/blog/</b> klasörüdür.
 
 ```php
 + app
-+ controllers
-- models
-	- Blog
-		Entry.php
-
+ - classes
+    - Model
+	   - Blog
+		  Entry.php
 ```
 
-Model sınıflarını yaratırken aynı sınıf yapılarında olduğu gibi dosya adı ve klasör adı büyük harfle yazılmalıdır. Php namespace özelliği tercihe göre gerek duyulmayan yerlerde kullanılmayabilir.
+Model sınıflarını yaratırken aynı sınıf yapılarında olduğu gibi dosya adı ve klasör adı büyük harfle yazılmalıdır.
 
 
+> Obullo, "Model" kelimesi kullanıldığında bu kütüphaneyi autoloader seviyesinde otomatik olarak yükler. Bu nedenle ana model sınıfına genişlediğinizde Obullo klasörüne ait isim alanını yazmak zorunda kalmazsınız.
 
 
 #### Entry.php
@@ -79,7 +60,7 @@ Model sınıflarını yaratırken aynı sınıf yapılarında olduğu gibi dosya
 ```php
 <?php
 
-namespace Blog;
+namespace Model\Blog;
 
 use Model;
 
@@ -183,32 +164,32 @@ Class Welcome extends \Controller
 {
     public function load()
     {
-        $this->c->bind('model entry', 'Blog\Entry');
+        $this->entry = new \Model\Blog\Entry;
     }
 
     public function index()
     {
-    	$rowArray = $this->model->entry->getOne(1);     // Modeller ile çalışmaktan çok mutluyum !
+    	$rowArray = $this->entry->getOne(1);     // Modeller ile çalışmaktan çok mutluyum !
 
 		print_r($rowArray);
     }
 
     public function insert()
     {
-        $this->model->entry->title = 'Insert Test';
-        $this->model->entry->content = 'Hello World';
-        $this->model->entry->date = time();
-        $this->model->entry->insert();
+        $this->entry->title = 'Insert Test';
+        $this->entry->content = 'Hello World';
+        $this->entry->date = time();
+        $this->entry->insert();
 
         echo 'New entry added.';
     }
 
     public function update($id)
     {
-        $this->model->entry->title = 'Update Test';
-        $this->model->entry->content = 'Welcome to my world';
-        $this->model->entry->date = time();
-        $this->model->entry->update($id);
+        $this->entry->title = 'Update Test';
+        $this->entry->content = 'Welcome to my world';
+        $this->entry->date = time();
+        $this->entry->update($id);
 
         echo 'Entry updated.';
     }

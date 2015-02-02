@@ -85,6 +85,9 @@ Class Container implements ArrayAccess
         if (isset($this->frozen[$cid])) {
             return;
         }
+        if ( ! is_callable($value) AND is_object($value)) {
+            return $this->bind($cid, $value);
+        }
         $this->values[$cid] = $value;
         $this->keys[$cid] = true;
     }
@@ -229,7 +232,7 @@ Class Container implements ArrayAccess
 
         $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
-            $this->_register($data['cid'], $key, $matches, $data['class'], $params);
+            $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);
     }
@@ -310,25 +313,21 @@ Class Container implements ArrayAccess
      * @param string $matches   commands
      * @param string $ClassName classname
      * @param string $params    array
-     * @param string $lastKey   last used key if exists e.g. ( model.user  user is last key )
      * 
      * @return mixed object or null
      */
-    protected function _register($cid, $key, $matches, $ClassName, $params, $lastKey = null)
+    protected function register($cid, $key, $matches, $ClassName, $params = array())
     {
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
 
-            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName, $lastKey) {
+            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
+
+                $Object = is_string($ClassName) ? new $ClassName($this, $params) : $ClassName;
 
                 if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
-                    if (empty($lastKey)) {
-                        return Controller::$instance->{$key} = new $ClassName($this, $params);
-                    }
-                    // echo 'MODELLLLLLLLLLLLLLLLLLL KEY: '.$key.'<br>';
-                    // echo 'MODELLLLLLLLLLLLLLLLLLL LASTKEY: '.$lastKey.'<br>';
-                    return Controller::$instance->{$key}->{$lastKey} = new $ClassName($this, $params);
+                    return Controller::$instance->{$key} = $Object;
                 }
-                return new $ClassName($this, $params);
+                return $Object;
             };
         }
         return null;
@@ -504,85 +503,44 @@ Class Container implements ArrayAccess
      * 
      * @param string $cid       class id
      * @param string $namespace class
-     * @param array  $params    parameters
      * 
      * @return void
      */
-    public function bind($cid, $namespace = null, $params = array())
+    protected function bind($cid, $namespace = null)
     {
-        $matches = $this->resolveCommand($cid);
-
-        $bcid = $matches['class'];
-        if ($namespace == null) {
-            $namespace = isset($this->bindNamespaces[$bcid]) ? $this->bindNamespaces[$bcid] : ucfirst($matches['class']);
-        } else {
-            $this->bindNamespaces[$bcid] = $namespace;
+        if ( ! is_object($namespace)) {
+            throw new InvalidArgumentException('Bind method second parameter must be object.');
         }
-        $cid = $this->_registerModel($cid, $namespace, $matches, $params);
+        // $key = $this->findBindKey($cid);
 
-        if (empty($matches['new']) AND isset($this->frozen[$cid])) {
+        if ( ! $this->exists($cid)) {   // Don't register service again.
+            $this->register($cid, null, array('return' => 'return'), $namespace);
+        }
+        if (isset($this->frozen[$cid])) {
             return $this->values[$cid];
-        }
-        if ( ! empty($matches['new']) AND isset($this->raw[$cid])) {
-            return $this->runClosure($this->raw[$cid], $params);
         }
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
-        return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        return $this->values[$cid] = $this->runClosure($this->values[$cid]);
     }
 
-    /**
-     * Register model into container and controller instance
-     * 
-     * @param string $cid       container id
-     * @param string $namespace model namespace
-     * @param array  $matches   container commands
-     * @param array  $params    construct parameters
-     * 
-     * @return string $cid
-     */
-    protected function _registerModel($cid, $namespace, $matches, $params)
-    {
-        $key = $this->findBindKey($cid, $namespace, $matches);
-        $cid = 'bind.'.$key;  // protect from services
-        $bindKey = $key;
-        $lastKey = null;
-        if ($matches['model'] != '') {
-            $cid = 'bind.model.'.$key;
-            $bindKey = 'model';
-            $lastKey = $key;
-        }
-        if ( ! $this->exists($cid)) {   // Don't register service again.
-            if ($bindKey == 'model' AND ! class_exists('Model', false)) {  //  Include core model if model bind used.
-                include OBULLO .'Model'. DS .'Model.php';
-            }
-            if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
-                Controller::$instance->{$bindKey} = new stdClass;
-            }
-            $this->_register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
-        }
-        return $cid;
-    }
-
-    /**
-     * Find bind key
-     * 
-     * @param string $cid       key
-     * @param string $namespace class namespace
-     * @param array  $matches   array
-     * 
-     * @return void
-     */
-    protected function findBindKey($cid, $namespace, $matches)
-    {
-        $key = $this->searchAs($cid, $matches);
-
-        if (empty($matches['last'])) {  // If "as" not used lets use key end of the namespace 
-            $exp = explode('\\', $namespace);
-            $key = strtolower(end($exp));
-        }
-        return $key;
-    }
+    // /**
+    //  * Find bind key
+    //  * 
+    //  * @param string $cid container id
+    //  * 
+    //  * @return void
+    //  */
+    // protected function findBindKey($cid)
+    // {
+    //     $cid = strtolower($cid);
+    //     if (strpos($cid, ".") > 0) {
+    //         $exp = explode(".", $cid);
+    //         $map = $this->mapName($exp);
+    //         return lcfirst(implode('', $map));
+    //     }
+    //     return $cid;
+    // } 
 
 
 }

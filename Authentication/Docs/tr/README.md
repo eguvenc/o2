@@ -806,7 +806,7 @@ Serviste kullanılan storage nesnesine geri döner.
 
 ##### $result->isValid();
 
-Login adaptöründen geri dönen hata kodu <b>0</b> değerinden büyük ise <b>true</b> küçük ise <b>false</b> değerine döner. Başarılı oturum açma işlermlerinde hata kodu <b>1</b> değerine döner diğer durumlarda negatif değerlere döner.
+Login attempt methodundan geri dönen hata kodu <b>0</b> değerinden büyük ise <b>true</b> küçük ise <b>false</b> değerine döner. Başarılı oturum açma işlermlerinde hata kodu <b>1</b> değerine döner diğer durumlarda negatif değerlere döner.
 
 ##### $result->getCode();
 ##### $result->getIdentifier();

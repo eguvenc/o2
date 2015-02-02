@@ -39,6 +39,10 @@ function Obullo_autoloader($realname)
         include_once OBULLO .substr($fileName, 7). '.php';
         return;
     }
+    if ($fileName == 'Model') {  // Reserved class model
+        include_once OBULLO .'Model'. DS .'Model.php';
+        return;
+    }
     include_once CLASSES .$fileName. '.php'; // Otherwise load it from user directory
 }
 spl_autoload_register('Obullo_autoloader', true);
