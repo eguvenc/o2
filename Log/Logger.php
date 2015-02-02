@@ -175,33 +175,19 @@ Class Logger extends AbstractLogger
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $queue  queue service object
-     * @param array  $config configuration array
+     * @param object $c     container
+     * @param object $queue queue service object
      */
-    public function __construct($c, $queue, $config = array())
+    public function __construct($c, $queue)
     {
         $this->c = $c;
         $this->queue = $queue;
-        $this->config = $config;
+        $this->config = $this->c['config'];
         $this->enabled = $this->config['log']['control']['enabled'];
         $this->debug = $this->config['log']['control']['firelog'];
-        $this->channel = $this->config['log']['default']['channel'];
-        $this->queries = $this->config['log']['extra']['queries'];
-        $this->benchmark = $this->config['log']['extra']['benchmark'];
 
-        $errorDebug = $this->config['error']['debug'];
-        $errorReporting = $this->config['error']['reporting'];
+        $this->configureErrorHandlers();
 
-        if ($errorDebug == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
-            static::registerExceptionHandler($this); 
-            static::registerErrorHandler($this);
-            static::registerFatalErrorHandler($this);
-        }
-        if ($errorReporting == true AND $errorDebug == false) { // If "Php Native Error Reporting" "enabled" from config restore handlers and use native errors.
-            static::unregisterErrorHandler();                   // Also write errors to log file. Especially designed for "local" environment.
-            static::unregisterExceptionHandler();
-        }
         $this->request = 'http';   // Default Http requests
         if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') { // Ajax requests
             $this->request ='ajax';
@@ -216,6 +202,43 @@ Class Logger extends AbstractLogger
             }
         }
         register_shutdown_function(array($this, 'close'));
+    }
+
+    /**
+     * Configure error features
+     * 
+     * @return void
+     */
+    protected function configureErrorHandlers()
+    {
+        $errorDebug = $this->config['error']['debug'];
+        $errorReporting = $this->config['error']['reporting'];
+
+        if ($errorDebug == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
+            static::registerExceptionHandler($this); 
+            static::registerErrorHandler($this);
+            static::registerFatalErrorHandler($this);
+        }
+        if ($errorReporting == true AND $errorDebug == false) { // If "Php Native Error Reporting" "enabled" from config restore handlers and use native errors.
+            static::unregisterErrorHandler();                   // Also write errors to log file. Especially designed for "local" environment.
+            static::unregisterExceptionHandler();
+        }
+    }
+
+    /**
+     * Initialize config parameters
+     * 
+     * @param array $params array
+     * 
+     * @return void
+     */
+    public function initialize(array $params)
+    {
+        $this->config['log'] = array_merge($this->config['log'], $params);
+
+        $this->channel = $this->config['log']['default']['channel'];
+        $this->queries = $this->config['log']['extra']['queries'];
+        $this->benchmark = $this->config['log']['extra']['benchmark'];
     }
 
     /**

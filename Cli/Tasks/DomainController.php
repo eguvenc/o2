@@ -64,12 +64,10 @@ Class DomainController extends Controller
         $name = $this->parser->argument('name', null);
         $this->isEmpty($name);
 
-        $this->config->env['domain'][$name]['maintenance'] = 'down';
-        $this->config->write();
+        $this->config->array['domain'][$name]['maintenance'] = 'down';
+        $this->config->write(APP .'config'. DS . 'env'. DS . ENV . DS .'domain.php', $this->config['domain']);
 
-        $hostname = ucfirst($name);
-
-        echo "\33[1;31mDomain \33[1;37m\33[41m$hostname\33[0m\33[1;31m down for maintenance.\33[0m\n";
+        echo "\33[1;31mDomain \33[1;37m\33[41m".$name."\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
 
     /**
@@ -83,12 +81,10 @@ Class DomainController extends Controller
         $name = $this->parser->argument('name', null);
         $this->isEmpty($name);
 
-        $this->config->env['domain'][$name]['maintenance'] = 'up';
-        $this->config->write();
+        $this->config->array['domain'][$name]['maintenance'] = 'up';
+        $this->config->write(APP .'config'. DS . 'env'. DS . ENV . DS .'domain.php', $this->config['domain']);
 
-        $hostname = ucfirst($name);
-
-        echo "\33[1;32mDomain \33[1;37m\33[42m$hostname\33[0m\33[1;32m up.\33[0m\n";
+        echo "\33[1;32mDomain \33[1;37m\33[42m".$name."\33[0m\33[1;32m up.\33[0m\n";
     }
 
     /**
@@ -104,8 +100,8 @@ Class DomainController extends Controller
             echo "\33[1;36mDomain \"--name\" can't be empty.\33[0m\n";
             exit;
         }
-        if ( ! isset($this->config->env['domain'][$name])) {
-            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($name)."\33[0m\33[1;31m must be defined in your config.env file\33[0m\n";
+        if ( ! isset($this->config['domain'][$name])) {
+            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($name)."\33[0m\33[1;31m must be defined in your domain.php config file\33[0m\n";
             die;
         }
     }
@@ -133,11 +129,11 @@ Available Arguments
 
 echo "\33[1;36mUsage:\33[0m\33[0;36m
 
-php task Domain down --name=site\n\n";
+php task domain down --name=site\n\n";
 
 echo "\33[1;36mDescription:\33[0m\33[0;36m
 
-Manages domain features which are defined in your config.env file.
+Manages domain features which are defined in your domain.php config file.
 \n\33[0m\n";
 
     }

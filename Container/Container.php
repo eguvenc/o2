@@ -50,6 +50,7 @@ Class Container implements ArrayAccess
     {
         $this->aliases = new SplObjectStorage;
         $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
+
         unset($this->services['Provider']);
     }
 
@@ -211,10 +212,12 @@ Class Container implements ArrayAccess
             return $service->register($this, $params);  // Run every time register method.
         }
         $isService = false;
-        if (isset($this->services[$serviceName]) OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
+        $isDirectory = (isset($this->services[$serviceName])) ? true : false;
+
+        if ($isDirectory OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
             $isService = true;
             $data['cid'] = $data['key'] = strtolower($class);
-            $serviceClass = $this->resolveServiceClass($serviceName, $data['key']);
+            $serviceClass = $this->resolveServiceClass($serviceName, $isDirectory);
 
             if ( ! isset($this->registeredService[$serviceName])) {
                 $service = new $serviceClass($this);
@@ -478,21 +481,19 @@ Class Container implements ArrayAccess
      * Resolve environment based services or service providers
      * 
      * @param string $serviceClass namespace
-     * @param string $class        class key
-     * @param string $service      service or provider
+     * @param string $isDirectory  is directory
      * 
      * @return string class namespace
      */
-    protected function resolveServiceClass($serviceClass, $class, $service = 'service')
+    protected function resolveServiceClass($serviceClass, $isDirectory = false)
     {
-        if (isset($this->values['config']->env[$service][$class]['env']['http'])) {   // Check environment based services
-            $envItem = $this->values['config']->env[$service][$class]['env'];
-            $serviceClass = '\\'.str_replace('/', '\\', $envItem['http']);
-            if (isset($envItem['cli']) AND defined('STDIN')) {
-                $serviceClass = '\\'.str_replace('/', '\\', $envItem['cli']);
+        if ($isDirectory) {
+            $namespace = '\\Service\\'.$serviceClass.'\Env\\'. ucfirst(ENV);
+            if (is_dir(APP .'Service'. DS .$serviceClass. DS .'Cli') AND defined('STDIN')) {
+                $namespace = '\\Service\\'.$serviceClass.'\Cli\Cli';
             }
-            return $serviceClass;
-        };
+            return $namespace;
+        }
         return '\Service\\'.$serviceClass;
     }
 
@@ -515,23 +516,8 @@ Class Container implements ArrayAccess
         } else {
             $this->bindNamespaces[$bcid] = $namespace;
         }
-        $key = $this->findBindKey($cid, $namespace, $matches);
+        $cid = $this->_registerModel($cid, $namespace, $matches, $params);
 
-        $cid = 'bind.'.$key;  // protect from services
-        $bindKey = $key;
-        $lastKey = null;
-        if ($matches['model'] != '') {
-            $cid = 'bind.model.'.$key;
-            $bindKey = 'model';
-            $lastKey = $key;
-        }
-        if ( ! $this->exists($cid)) {   // Don't register service again.
-            $this->bindClass($bindKey, $namespace);
-            if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
-                Controller::$instance->{$bindKey} = new stdClass;
-            }
-            $this->_register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
-        }
         if (empty($matches['new']) AND isset($this->frozen[$cid])) {
             return $this->values[$cid];
         }
@@ -562,25 +548,38 @@ Class Container implements ArrayAccess
         }
         return $key;
     }
-    
+
     /**
-     * Bind object
+     * Register model into container and controller instance
      * 
-     * @param string $bindKey   key
-     * @param string $namespace class namespace
+     * @param string $cid       container id
+     * @param string $namespace model namespace
+     * @param array  $matches   container commands
+     * @param array  $params    construct parameters
      * 
-     * @return void
+     * @return string $cid
      */
-    protected function bindClass($bindKey, $namespace)
+    protected function _registerModel($cid, $namespace, $matches, $params)
     {
-        if ($bindKey == 'model') {  //  Include core model if model bind used.
-            if ( ! class_exists('Model', false)) {
+        $key = $this->findBindKey($cid, $namespace, $matches);
+        $cid = 'bind.'.$key;  // protect from services
+        $bindKey = $key;
+        $lastKey = null;
+        if ($matches['model'] != '') {
+            $cid = 'bind.model.'.$key;
+            $bindKey = 'model';
+            $lastKey = $key;
+        }
+        if ( ! $this->exists($cid)) {   // Don't register service again.
+            if ($bindKey == 'model' AND ! class_exists('Model', false)) {  //  Include core model if model bind used.
                 include OBULLO .'Model'. DS .'Model.php';
             }
-            if ( ! class_exists($namespace, false)) {
-                include MODELS .str_replace('\\', DS, ltrim($namespace, '\\')). '.php';
+            if (Controller::$instance != null AND ! isset(Controller::$instance->{$bindKey})) {
+                Controller::$instance->{$bindKey} = new stdClass;
             }
+            $this->_register($cid, $bindKey, $matches, $namespace, $params, $lastKey);
         }
+        return $cid;
     }
 
 }

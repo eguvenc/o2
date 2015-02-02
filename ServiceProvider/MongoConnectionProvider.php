@@ -4,7 +4,8 @@ namespace Obullo\ServiceProvider;
 
 use RuntimeException,
     UnexpectedValueException,
-    Obullo\Container\Container;
+    Obullo\Container\Container,
+    Obullo\Utils\SingletonTrait;
 
 /**
  * Mongo Connection Provider
@@ -22,35 +23,8 @@ Class MongoConnectionProvider
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
     protected $factories = array(); // New connection objects
-    protected static $instance = null;  // Presence of a static member variable
-
-    /**
-     * Checks connector is registered for one time
-     * 
-     * @return boolean
-     */
-    public static function isRegistered()
-    {
-        if (self::$instance == null) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Returns the singleton instance of this class.
-     *
-     * @param object $c Container
-     * 
-     * @return singleton instance.
-     */
-    public static function getInstance(Container $c)
-    {
-        if (null === self::$instance) {
-            self::$instance = new static($c);
-        }
-        return self::$instance;
-    }
+    
+    use SingletonTrait, ConnectionTrait;
 
     /**
      * Constructor ( Works one time )
@@ -142,7 +116,7 @@ Class MongoConnectionProvider
         if ( ! isset($params['server'])) {
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
         }
-        $cid = 'mongo.connection.'.Utils::getConnectionId($params);
+        $cid = 'mongo.connection.'.static::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;

@@ -5,6 +5,7 @@ namespace Obullo\ServiceProvider;
 use RuntimeException,
     UnexpectedValueException,
     Obullo\Container\Container,
+    Obullo\Utils\SingletonTrait,
     Obullo\Cache\Handler\HandlerInterface;
 
 /**
@@ -19,25 +20,10 @@ use RuntimeException,
  */
 Class CacheConnectionProvider
 {
-    protected $c;                          // Container
-    protected $config = array();           // Cache config
-    protected static $instance = null;     // Presence of a static member variable
-    protected static $connected = array(); // Multiton connections
+    protected $c;                // Container
+    protected $config = array(); // Cache config
 
-    /**
-     * Returns the singleton instance of this class.
-     *
-     * @param object $c Container
-     * 
-     * @return singleton instance.
-     */
-    public static function getInstance($c)
-    {
-        if (null === self::$instance) {
-            self::$instance = new static($c);
-        }
-        return self::$instance;
-    }
+    use SingletonTrait, ConnectionTrait;
 
     /**
      * Constructor
@@ -75,7 +61,7 @@ Class CacheConnectionProvider
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Cache connection provider requires driver parameter.");
         }
-        $cid = 'cache.connection.'.Utils::getConnectionId($params);
+        $cid = 'cache.connection.'.static::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;

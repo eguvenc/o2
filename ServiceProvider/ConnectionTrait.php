@@ -6,13 +6,13 @@ namespace Obullo\ServiceProvider;
  * Service Provider Helper
  * 
  * @category  Utilities
- * @package   Uri
+ * @package   ServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/ServiceProvider
  */
-Class Utils
+Trait ConnectionTrait
 {
     /**
      * Returns to connection id
@@ -28,7 +28,7 @@ Class Utils
 
 }
 
-// END Utils class
+// END ConnectionTrait class
 
-/* End of file Utils.php */
-/* Location: .Obullo/ServiceProvider/Utils.php */
+/* End of file ConnectionTrait.php */
+/* Location: .Obullo/ServiceProvider/ConnectionTrait.php */

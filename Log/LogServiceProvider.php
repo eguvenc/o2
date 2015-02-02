@@ -40,13 +40,11 @@ Class LogServiceProvider
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $config configuration
+     * @param object $c container
      */
-    public function __construct(Container $c, $config = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $config;
         if ($this->disabled()) {
             $this->logger = new NullLogger;  // Use null handler if config disabled.
             return;
@@ -71,7 +69,7 @@ Class LogServiceProvider
      */
     public function disabled()
     {
-        return ($this->config['log']['control']['enabled']) ? false : true;
+        return ($this->c['config']['log']['control']['enabled']) ? false : true;
     }
 }
 

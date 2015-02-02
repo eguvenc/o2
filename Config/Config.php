@@ -5,6 +5,7 @@ namespace Obullo\Config;
 use ArrayAccess,
     LogicException,
     RuntimeException,
+    Obullo\Container\Container,
     Obullo\Config\Writer\PhpArray;
 
 /**
@@ -20,25 +21,18 @@ use ArrayAccess,
 Class Config implements ArrayAccess
 {
     /**
-     * Env file array
+     * Array stack
      * 
      * @var array
      */
-    public $env;
+    public $array = array();    // Configuration files stack
 
     /**
-     * Configuration files stack
-     * 
-     * @var array
-     */
-    public $array = array();
-
-    /**
-     * Config folder full path with current environment
+     * Current config folder
      * 
      * @var string
      */
-    protected $path;
+    protected $path;            // Config folder full path with current environment
 
     /**
      * Constructor
@@ -47,21 +41,20 @@ Class Config implements ArrayAccess
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
         $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
-        $this->file  = $this->path .'config.env';
         
         ini_set('display_errors', 1);
-        $this->env = include $this->file;
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
-
-        if (ENV != 'local') { // Merge config variables if env not local.
+        
+        if (ENV != 'local') {
             $envConfig = include $this->path .'config.php';
-            $this->array = array_replace_recursive($this->array, $envConfig);
+            $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
+        $this->array['domain'] = include $this->path .'domain.php';
         ini_set('display_errors', 0);
     }
 
@@ -123,15 +116,18 @@ Class Config implements ArrayAccess
     }
 
     /**
-     * Save to config.env file
+     * Save array data config file
+     *
+     * @param string $filename full path of the file
+     * @param array  $data     config data
      * 
      * @return void
      */
-    public function write()
+    public function write($filename, $data)
     {
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file config.env */\n/* Location: .app/config/env/".ENV."/config.env */");
-        $writer->toFile($this->file, $this->env);
+        $writer->addDoc("\n/* End of file */\n/* Location: .$filename */");
+        $writer->toFile($filename, $data);
     }
 
     /**

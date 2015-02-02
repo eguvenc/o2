@@ -19,6 +19,7 @@ use Closure,
  */
 Class View
 {
+    public $c;           // Container
     protected $logger;   // Logger instance
     protected $response; // Response instance
     /**
@@ -50,19 +51,6 @@ Class View
         );
         $this->logger = $this->c->load('logger');
         $this->logger->debug('View Class Initialized');
-    }
-
-    /**
-     * Set layout configuration
-     * 
-     * @param array $layouts layout data
-     *
-     * @return object
-     */
-    public function setLayouts($layouts = array())
-    {
-        $this->_layoutArray = $layouts;
-        return ($this);
     }
 
     /**
@@ -182,51 +170,51 @@ Class View
         }
     }
 
-    /**
-     * Use a view layout
-     * 
-     * @param string $name layout name
-     * 
-     * @return void
-     */
-    protected function layout($name = 'default')
-    {
-        if (isset($this->_layoutArray[$name]) AND is_callable($this->_layoutArray[$name])) {
-            $this->bind($this->_layoutArray[$name]);
-        }
-        return $this;
-    }
+    // /**
+    //  * Use a view layout
+    //  * 
+    //  * @param string $name layout name
+    //  * 
+    //  * @return void
+    //  */
+    // protected function layout($name = 'default')
+    // {
+    //     if (isset($this->_layoutArray[$name]) AND is_callable($this->_layoutArray[$name])) {
+    //         $this->bind($this->_layoutArray[$name]);
+    //     }
+    //     return $this;
+    // }
 
-    /**
-     * Run Closure
-     *
-     * @param mixed $val closure or string
-     * 
-     * @return mixed
-     */
-    protected function bind($val)
-    {
-        $closure = Closure::bind($val, $this, get_class());
-        return $closure();
-    }
+    // /**
+    //  * Run Closure
+    //  *
+    //  * @param mixed $val closure or string
+    //  * 
+    //  * @return mixed
+    //  */
+    // protected function bind($val)
+    // {
+    //     $closure = Closure::bind($val, $this, get_class());
+    //     return $closure();
+    // }
 
     /**
      * Load view file from /view folder
      * 
      * @param string  $filename filename
      * @param mixed   $data     array data
-     * @param string  $layout   fetch layout data
      * @param boolean $include  no include ( fetch as string )
      * 
      * @return string                      
      */
-    public function load($filename, $data = null, $layout = null, $include = true)
+    public function load($filename, $data = null, $include = true)
     {
         /**
-         * Fetch layout
+         * Fetch layout variables
          */
-        if ( ! empty($layout)) {     // Layouts must be run at the top level otherwise layout layer requests cannot
-            $this->layout($layout);  // find the current $router->fetchDirectory().
+        if (Controller::$instance != null AND method_exists(Controller::$instance, 'useLayer')) {  // Layouts must be run at the top level otherwise layout view file
+                                                                                                   // could not load view variables.
+            Controller::$instance->useLayer();
         }
         /**
          * IMPORTANT:
@@ -262,7 +250,7 @@ Class View
      */
     public function get($filename, $data = null)
     {
-        return $this->load($filename, $data, null, false);
+        return $this->load($filename, $data, false);
     }
 
     /**

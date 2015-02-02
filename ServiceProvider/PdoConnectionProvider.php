@@ -5,7 +5,8 @@ namespace Obullo\ServiceProvider;
 use RuntimeException,
     UnexpectedValueException,
     Obullo\Container\Container,
-    Obullo\Database\Connection;
+    Obullo\Database\Connection,
+    Obullo\Utils\SingletonTrait;
 
 /**
  * Pdo Connection Provider
@@ -19,39 +20,11 @@ use RuntimeException,
  */
 Class PdoConnectionProvider
 {
-    protected $c;                       // Container
-    protected $config;                  // Configuration items
-    protected $prefix;                  // Config prefix
-    protected $pdoClass;                // Pdo extension client name
-    protected static $instance = null;  // Presence of a static member variable
+    protected $c;         // Container
+    protected $config;    // Database configuration items
+    protected $pdoClass;  // Pdo extension client name
 
-    /**
-     * Checks connector is registered for one time
-     * 
-     * @return boolean
-     */
-    public static function isRegistered()
-    {
-        if (self::$instance == null) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Returns the singleton instance of this class.
-     *
-     * @param object $c Container
-     * 
-     * @return singleton instance.
-     */
-    public static function getInstance(Container $c)
-    {
-        if (null === self::$instance) {
-            self::$instance = new static($c);
-        }
-        return self::$instance;
-    }
+    use SingletonTrait, ConnectionTrait;
 
     /**
      * Constructor
@@ -137,7 +110,7 @@ Class PdoConnectionProvider
      */
     public function factory($params = array())
     {
-        $cid = 'pdo.connection.'. Utils::getConnectionId($params);
+        $cid = 'pdo.connection.'. static::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;

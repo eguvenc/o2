@@ -25,7 +25,7 @@ Class Memcached extends AbstractStorage
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $session;         // Session class
-    protected $config;          // Authentication configuration array
+    protected $auth;            // Authentication configuration array
     protected $data = array();  // User credentials data
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
@@ -38,15 +38,15 @@ Class Memcached extends AbstractStorage
     public function __construct(Container $c) 
     {
         $this->c = $c;
-        $this->config = $c['config']->load('auth');
+        $this->auth = $c['config']->load('auth');
         $this->logger = $this->c->load('logger');
         $this->session = $this->c->load('session');
 
         $this->cache = $this->c->load(
-            'service provider '.$this->config['cache']['provider']['name'], 
+            'service provider '.$this->auth['cache']['provider']['name'], 
             [
-                'driver' => $this->config['cache']['provider']['driver'], 
-                'serializer' => $this->config['cache']['provider']['serializer']
+                'driver' => $this->auth['cache']['provider']['driver'], 
+                'serializer' => $this->auth['cache']['provider']['serializer']
             ]
         );
     }
@@ -263,9 +263,9 @@ Class Memcached extends AbstractStorage
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->config['cache']['block']['temporary']['lifetime'];
+            return (int)$this->auth['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->config['cache']['block']['permanent']['lifetime'];
+        return (int)$this->auth['cache']['block']['permanent']['lifetime'];
     }
 
     /**
