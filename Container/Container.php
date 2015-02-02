@@ -324,6 +324,8 @@ Class Container implements ArrayAccess
                     if (empty($lastKey)) {
                         return Controller::$instance->{$key} = new $ClassName($this, $params);
                     }
+                    // echo 'MODELLLLLLLLLLLLLLLLLLL KEY: '.$key.'<br>';
+                    // echo 'MODELLLLLLLLLLLLLLLLLLL LASTKEY: '.$lastKey.'<br>';
                     return Controller::$instance->{$key}->{$lastKey} = new $ClassName($this, $params);
                 }
                 return new $ClassName($this, $params);
@@ -530,26 +532,6 @@ Class Container implements ArrayAccess
     }
 
     /**
-     * Find bind key
-     * 
-     * @param string $cid       key
-     * @param string $namespace class namespace
-     * @param array  $matches   array
-     * 
-     * @return void
-     */
-    protected function findBindKey($cid, $namespace, $matches)
-    {
-        $key = $this->searchAs($cid, $matches);
-
-        if (empty($matches['last'])) {  // If "as" not used lets use key end of the namespace 
-            $exp = explode('\\', $namespace);
-            $key = strtolower(end($exp));
-        }
-        return $key;
-    }
-
-    /**
      * Register model into container and controller instance
      * 
      * @param string $cid       container id
@@ -581,6 +563,27 @@ Class Container implements ArrayAccess
         }
         return $cid;
     }
+
+    /**
+     * Find bind key
+     * 
+     * @param string $cid       key
+     * @param string $namespace class namespace
+     * @param array  $matches   array
+     * 
+     * @return void
+     */
+    protected function findBindKey($cid, $namespace, $matches)
+    {
+        $key = $this->searchAs($cid, $matches);
+
+        if (empty($matches['last'])) {  // If "as" not used lets use key end of the namespace 
+            $exp = explode('\\', $namespace);
+            $key = strtolower(end($exp));
+        }
+        return $key;
+    }
+
 
 }
 

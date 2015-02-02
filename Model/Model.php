@@ -40,7 +40,9 @@ Class Model
      */
     public function __get($key)
     {
-        return Controller::$instance->{$key};
+        if (isset(Controller::$instance->{$key})) {
+            return Controller::$instance->{$key};
+        }
     }
     
 }
