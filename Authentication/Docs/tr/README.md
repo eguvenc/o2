@@ -356,7 +356,7 @@ Class Login extends \Controller
 /* Location: .controllers/membership/login.php */
 ```
 
-### Oturum Açma Sonuçları
+### AuthResult Sınıfı ve Oturum Açma Sonuçları
 
 Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir,  <kbd>$this->user->login->attempt()</kbd> metodu ise sonuçları alabilmemiz için AuthResult nesnesine geri dönmektedir.
 
@@ -370,6 +370,8 @@ $result = $this->user->login->attempt(
 );
 
 if ($result->isValid()) {
+
+    $row = $result->getResultRow();
 
     // Go ..
 
@@ -639,6 +641,7 @@ Class User implements ServiceInterface
             $user = new AuthServiceProvider(
                 $c,
                 array(
+                    'cache.key'        => 'Auth',
                     'db.adapter'       => '\Obullo\Authentication\Adapter\Database',
                     'db.model'         => '\Auth\Model\User', // Değiştirilen bölüm
                     'db.provider'      => 'database',
@@ -793,6 +796,26 @@ Serviste kullanılan adaptör nesnesine geri döner.
 ##### $this->user->login->getStorage();
 
 Serviste kullanılan storage nesnesine geri döner.
+
+
+#### AuthResult Sınıfı Referansı
+
+------
+
+>AuthResult sınıfı login doğrulamasından sonra geri dönen sonuçları elde etmeyi ve hata kodlarını yönetmeyi sağlar.
+
+##### $result->isValid();
+
+Login adaptöründen geri dönen hata kodu <b>0</b> değerinden büyük ise <b>true</b> küçük ise <b>false</b> değerine döner. Başarılı oturum açma işlermlerinde hata kodu <b>1</b> değerine döner diğer durumlarda negatif değerlere döner.
+
+##### $result->getCode();
+##### $result->getIdentifier();
+##### $result->getMessages();
+##### $result->setCode();
+##### $result->setMessage();
+##### $result->getArray();
+##### $result->setResultRow();
+##### $result->getResultRow();
 
 
 #### Identity Sınıfı Referansı

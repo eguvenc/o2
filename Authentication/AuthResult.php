@@ -172,7 +172,7 @@ class AuthResult
     }
 
     /**
-     * Sets database result row
+     * Sets successful login database result row
      * 
      * @param mixed $resultRow results
      *
@@ -184,7 +184,7 @@ class AuthResult
     }
 
     /**
-     * Returns to database result row
+     * Returns to successful login database result row
      * 
      * @return mixed
      */

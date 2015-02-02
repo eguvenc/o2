@@ -56,7 +56,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      *
      * @var array
      */
-    protected $resultRowArray = null;
+    protected $resultRowArray = array();
 
     /**
      * Check temporary identity exists in storage
@@ -151,14 +151,10 @@ class Database extends AbstractAdapter implements AdapterInterface
     {
         $this->initialize($genericUser);
 
-        if ($this->c['auth.identity']->guest()) {
-            if ( ! $this->storage->isEmpty('__temporary')) {
-                $this->isTemporary = true;
-            } else {
-                $this->authenticate($genericUser);  // Perform Query
-            }
-        } else {  // Already authenticated
-            $this->alreadyLoggedIn = true;
+        if ( ! $this->storage->isEmpty('__temporary')) {
+            $this->isTemporary = true;
+        } else {
+            $this->authenticate($genericUser);  // Perform Query
         }
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
@@ -187,6 +183,10 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
+        if ($this->c['auth.identity']->check()) {
+            $this->alreadyLoggedIn = true;
+            return false;
+        }
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
             $plain = $genericUser->getPassword();
             $hash  = $this->resultRowArray[$this->columnPassword];
