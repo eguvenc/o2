@@ -377,7 +377,6 @@ Class UserIdentity extends AuthorizedUser
     public function logout()
     {
         $credentials = $this->storage->getCredentials('__permanent');
-
         $token = new Token($this->c);
         $credentials['__isAuthenticated'] = 0;        // Sets memory auth to "0".
         $credentials['__token'] = $token->refresh();  // Refresh the security token 
