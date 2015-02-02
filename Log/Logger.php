@@ -188,19 +188,6 @@ Class Logger extends AbstractLogger
 
         $this->configureErrorHandlers();
 
-        $this->request = 'http';   // Default Http requests
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') { // Ajax requests
-            $this->request ='ajax';
-        }
-        if (defined('STDIN')) {  // Cli requests
-            $this->request = 'cli';
-        }
-        if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker') {  // Job Server
-            $this->request = 'worker';
-            if ($this->c['config']['log']['queue']['workers']['logging'] == false) {
-                $this->enabled = false;
-            }
-        }
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -239,6 +226,20 @@ Class Logger extends AbstractLogger
         $this->channel = $this->config['log']['default']['channel'];
         $this->queries = $this->config['log']['extra']['queries'];
         $this->benchmark = $this->config['log']['extra']['benchmark'];
+
+        $this->request = 'http';   // Default Http requests
+        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') { // Ajax requests
+            $this->request ='ajax';
+        }
+        if (defined('STDIN')) {  // Cli requests
+            $this->request = 'cli';
+        }
+        if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker') {  // Job Server
+            $this->request = 'worker';
+            if ($this->c['config']['log']['queue']['workers']['logging'] == false) {
+                $this->enabled = false;
+            }
+        }        
     }
 
     /**
