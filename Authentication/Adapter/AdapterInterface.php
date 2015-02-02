@@ -42,7 +42,6 @@ interface AdapterInterface
      * @return object
      */
     public function authenticate(GenericUser $genericUser, $login = true);
-
 }
 
 // END AdapterInterface.php File

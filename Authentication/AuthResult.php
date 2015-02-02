@@ -170,6 +170,29 @@ class AuthResult
             'identifier' => $this->identifier
         );
     }
+
+    /**
+     * Sets database result row
+     * 
+     * @param mixed $resultRow results
+     *
+     * @return void
+     */
+    public function setResultRow($resultRow)
+    {
+        $this->resultRow = $resultRow;
+    }
+
+    /**
+     * Returns to database result row
+     * 
+     * @return mixed
+     */
+    public function getResultRow()
+    {
+        return $this->resultRow;
+    }
+
 }
 
 // END AuthResult.php File

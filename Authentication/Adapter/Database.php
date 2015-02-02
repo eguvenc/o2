@@ -370,11 +370,13 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function createResult()
     {
-        return new AuthResult(
+        $result = new AuthResult(
             $this->results['code'],
             $this->results['identity'],
             $this->results['messages']
         );
+        $result->setResultRow($this->resultRowArray);
+        return $result;
     }
 }
 

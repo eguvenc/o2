@@ -98,11 +98,8 @@ Class UserLogin
         }
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
-
         $authResult = $this->c['auth.adapter']->login(new GenericUser($this->c, $credentials));
-        /**
-         * Create Login Attempt Event
-         */
+
         $eventResult = $this->c['event']->fire('login.afterAttempt', array($authResult));  // Returns to overriden auth result object
                                                                                       // Event fire returns multiple array response but we use one.
         return isset($eventResult[0]) ? current($eventResult) : $authResult;

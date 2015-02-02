@@ -107,21 +107,18 @@ Class View
     /**
      * Set variables
      * 
-     * @param string $key    view key data
-     * @param mixed  $val    mixed
-     * @param string $filter set filter or on / off all filters
+     * @param string $key view key data
+     * @param mixed  $val mixed
      * 
      * @return void
      */
-    public function assign($key, $val, $filter = null)
+    public function assign($key, $val)
     {
         if (is_int($val)) {
             $this->_stringStack[$key] = $val;
             return;
         }
         if (is_string($val)) {
-            //  do filter
-            
             $this->parseString($key, $val);
             return;
         }
@@ -131,9 +128,6 @@ Class View
                 $this->_arrayStack[$key] = array();
             } else {
                 foreach ($val as $array_key => $value) {
-                    
-                    //  do filter
-                    //  
                     $this->_arrayStack[$key][$array_key] = $value;
                 }
             }
@@ -170,34 +164,6 @@ Class View
         }
     }
 
-    // /**
-    //  * Use a view layout
-    //  * 
-    //  * @param string $name layout name
-    //  * 
-    //  * @return void
-    //  */
-    // protected function layout($name = 'default')
-    // {
-    //     if (isset($this->_layoutArray[$name]) AND is_callable($this->_layoutArray[$name])) {
-    //         $this->bind($this->_layoutArray[$name]);
-    //     }
-    //     return $this;
-    // }
-
-    // /**
-    //  * Run Closure
-    //  *
-    //  * @param mixed $val closure or string
-    //  * 
-    //  * @return mixed
-    //  */
-    // protected function bind($val)
-    // {
-    //     $closure = Closure::bind($val, $this, get_class());
-    //     return $closure();
-    // }
-
     /**
      * Load view file from /view folder
      * 
@@ -210,20 +176,13 @@ Class View
     public function load($filename, $data = null, $include = true)
     {
         /**
-         * Fetch layout variables
-         */
-        if (Controller::$instance != null AND method_exists(Controller::$instance, 'useLayer')) {  // Layouts must be run at the top level otherwise layout view file
-                                                                                                   // could not load view variables.
-            Controller::$instance->useLayer();
-        }
-        /**
          * IMPORTANT:
          * 
          * Router may not available in some levels, forexample if we define a closure route 
          * which contains the view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
-        if (Controller::$instance == null) {
+        if ( ! class_exists('Controller', false) OR Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
             $router = &Controller::$instance->router;

@@ -37,6 +37,12 @@ Class Controller
                 $this->{$key} = &$c[$key];          // Register to controller instance
             }
         };
+        /**
+         * Initialize view trait
+         */
+        if (method_exists($this, 'useLayer')) {  // Layouts must be run at the top level otherwise layout view file
+            $this->useLayer();                   // could not load view variables.
+        }
     }
     
     /**
