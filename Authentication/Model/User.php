@@ -67,7 +67,7 @@ Class User implements UserInterface
         $this->db->prepare($this->sqlUser, array($this->tablename, $this->columnIdentifier));
         $this->db->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR);
         $this->db->execute();
-
+        
         return $this->db->rowArray();  // returns to false if fail
     }
 
