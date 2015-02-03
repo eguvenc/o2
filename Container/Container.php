@@ -349,13 +349,12 @@ Class Container implements ArrayAccess
         $matches = array(
             'return' => '',
             'new' => '',
-            'model' => '',
             'class' => $class,
             'last' => '',
             'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<model>(?:)model|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
+            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
             preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);
@@ -511,8 +510,6 @@ Class Container implements ArrayAccess
         if ( ! is_object($namespace)) {
             throw new InvalidArgumentException('Bind method second parameter must be object.');
         }
-        // $key = $this->findBindKey($cid);
-
         if ( ! $this->exists($cid)) {   // Don't register service again.
             $this->register($cid, null, array('return' => 'return'), $namespace);
         }
@@ -523,25 +520,6 @@ Class Container implements ArrayAccess
         $this->raw[$cid] = $this->values[$cid];
         return $this->values[$cid] = $this->runClosure($this->values[$cid]);
     }
-
-    // /**
-    //  * Find bind key
-    //  * 
-    //  * @param string $cid container id
-    //  * 
-    //  * @return void
-    //  */
-    // protected function findBindKey($cid)
-    // {
-    //     $cid = strtolower($cid);
-    //     if (strpos($cid, ".") > 0) {
-    //         $exp = explode(".", $cid);
-    //         $map = $this->mapName($exp);
-    //         return lcfirst(implode('', $map));
-    //     }
-    //     return $cid;
-    // } 
-
 
 }
 

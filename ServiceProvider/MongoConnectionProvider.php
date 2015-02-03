@@ -5,7 +5,7 @@ namespace Obullo\ServiceProvider;
 use RuntimeException,
     UnexpectedValueException,
     Obullo\Container\Container,
-    Obullo\Utils\SingletonTrait;
+    Obullo\Traits\SingletonTrait;
 
 /**
  * Mongo Connection Provider

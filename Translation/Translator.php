@@ -203,18 +203,18 @@ Class Translator implements ArrayAccess
         if (in_array($filename, $this->loaded, true)) {
             return $this->translateArray;
         }
-        if ( ! is_dir(APP .'translations'. DS .$locale)) {
+        if ( ! is_dir(TRANSLATIONS .$locale)) {
             throw new LogicException(
                 sprintf(
                     'The translator %s path is not a folder.', 
-                    APP .'translations'. DS .$locale
+                    TRANSLATIONS .$locale
                 )
             );
         }
-        $fileUrl = APP .'translations'. DS .$locale. DS .$filename. '.php';
+        $fileUrl = TRANSLATIONS .$locale. DS .$filename. '.php';
         $translateArray = include $fileUrl;
         if ( ! isset($translateArray)) {
-            $this->logger->error('Translation file does not contain valid format: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
+            $this->logger->error('Translation file does not contain valid format: ' . TRANSLATIONS .$locale. DS .$filename. '.php');
             return;
         }
         if ($return) {
@@ -224,7 +224,7 @@ Class Translator implements ArrayAccess
         $this->translateArray = array_merge($this->translateArray, $translateArray);
         unset($translateArray);
 
-        $this->logger->debug('Translation file loaded: ' . APP .'translations'. DS .$locale. DS .$filename. '.php');
+        $this->logger->debug('Translation file loaded: ' . TRANSLATIONS .$locale. DS .$filename. '.php');
         return $this;
     }
 

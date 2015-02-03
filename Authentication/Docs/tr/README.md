@@ -809,13 +809,32 @@ Serviste kullanılan storage nesnesine geri döner.
 Login attempt methodundan geri dönen hata kodu <b>0</b> değerinden büyük ise <b>true</b> küçük ise <b>false</b> değerine döner. Başarılı oturum açma işlermlerinde hata kodu <b>1</b> değerine döner diğer durumlarda negatif değerlere döner.
 
 ##### $result->getCode();
+
+Login denemesinden sonra geçerli hata koduna geri döner.
+
 ##### $result->getIdentifier();
+
+Login denemesinden sonra geçerli kullanıcı kimliğine göre döner. ( id, username, email gibi. )
+
 ##### $result->getMessages();
-##### $result->setCode();
-##### $result->setMessage();
+
+Login denemesinden sonra hata mesajlarına geri döner.
+
+##### $result->setCode(int $code);
+
+Login denemesinden varsayılan sonuca hata kodu ekler.
+
+##### $result->setMessage(string $message);
+
+Login denemesinden sonra sonuçlara bir hata mesajı ekler.
+
 ##### $result->getArray();
-##### $result->setResultRow();
+
+Login denemesinden sonra tüm sonuçları bir dizi içerisinde verir.
+
 ##### $result->getResultRow();
+
+Login denemesinden sonra geçerli veritabanı sorgu sonucuna geri döner.
 
 
 #### Identity Sınıfı Referansı

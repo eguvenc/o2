@@ -6,7 +6,7 @@ use RuntimeException,
     UnexpectedValueException,
     Obullo\Container\Container,
     Obullo\Database\Connection,
-    Obullo\Utils\SingletonTrait;
+    Obullo\Traits\SingletonTrait;
 
 /**
  * Pdo Connection Provider

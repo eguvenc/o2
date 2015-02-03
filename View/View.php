@@ -223,7 +223,7 @@ Class View
      */
     public function template($filename, $data = null, $include = false)
     {
-        return $this->fetch(APP .'templates'. DS, $filename, $data, $include);
+        return $this->fetch(TEMPLATES, $filename, $data, $include);
     }
 
     /**
