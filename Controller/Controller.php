@@ -38,9 +38,9 @@ Class Controller
             }
         };
         /**
-         * Initialize view trait
+         * Extend to traits
          */
-        if (method_exists($this, 'extend')) {  // Layouts must be run at the top level otherwise layout view file
+        if (method_exists($this, 'extend')) {  // View traits must be run at the top level otherwise layout view file
             $this->extend();                   // could not load view variables.
         }
     }

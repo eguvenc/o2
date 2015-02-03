@@ -3,6 +3,7 @@
 namespace Obullo\Http;
 
 use stdClass,
+    Obullo\Container\Container,
     Obullo\Http\Sanitizer;
 
 /**
@@ -46,7 +47,7 @@ Class Request
      *
      * @param array $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->logger = $this->c->load('logger');
@@ -80,7 +81,7 @@ Class Request
      * 
      * @param string $key key
      * 
-     * @return void
+     * @return mixed
      */
     public function get($key)
     {
@@ -95,7 +96,7 @@ Class Request
      * 
      * @param string $key key
      * 
-     * @return void
+     * @return mixed
      */
     public function post($key)
     {
@@ -103,6 +104,36 @@ Class Request
             return false;
         }
         return Sanitizer::sanitize($_POST[$key]);
+    }
+
+    /**
+     * REQUEST wrapper
+     * 
+     * @param string $key key
+     * 
+     * @return mixed
+     */
+    public function all($key)
+    {
+        if ( ! isset($_REQUEST[$key])) {
+            return false;
+        }
+        return Sanitizer::sanitize($_REQUEST[$key]);
+    }
+
+    /**
+     * Get $_SERVER variable items
+     * 
+     * @param string $key server key
+     * 
+     * @return void
+     */
+    public function server($key) 
+    {
+        if (isset($_SERVER[$key])) {
+            return $_SERVER[$key];
+        }
+        return null;
     }
 
     /**
@@ -149,21 +180,6 @@ Class Request
             return $headers[$key];
         }
         return false;
-    }
-
-    /**
-     * Get $_SERVER variable items
-     * 
-     * @param string $key server key
-     * 
-     * @return void
-     */
-    public function server($key) 
-    {
-        if (isset($_SERVER[$key])) {
-            return $_SERVER[$key];
-        }
-        return null;
     }
 
     /**

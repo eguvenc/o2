@@ -5,7 +5,7 @@ namespace Obullo\ServiceProvider;
 use RuntimeException,
     UnexpectedValueException,
     Obullo\Container\Container,
-    Obullo\Traits\SingletonTrait,
+    Obullo\Helpers\SingletonTrait,
     Obullo\Cache\Handler\HandlerInterface;
 
 /**

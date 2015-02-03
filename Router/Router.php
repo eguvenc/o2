@@ -5,6 +5,7 @@ namespace Obullo\Router;
 use Controller,
     Closure,
     Obullo\Http\Response,
+    Obullo\Container\Container,
     LogicException;
 
 /**
@@ -161,7 +162,7 @@ Class Router
      * @param array $c      container
      * @param array $params configuration array
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
         $this->router = $params;
@@ -883,18 +884,18 @@ Class Router
     /**
      * Initialize filter
      * 
-     * @param string $direction directions ( before, after, load )
-     * @param object $filter    annotations filter object
+     * @param string $direction        directions ( before, after, load )
+     * @param object $annotationFilter annotations filter object
      * 
      * @return void
      */
-    public function initFilters($direction = 'before', $filter = false)
+    public function initFilters($direction = 'before', $annotationFilter = false)
     {
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
-        if ($filter) {
-            $filter->initFilters($direction);  // Initialize annotation filters
+        if ($annotationFilter) {
+            $annotationFilter->initFilters($direction);  // Initialize annotation filters
         }
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
             return;

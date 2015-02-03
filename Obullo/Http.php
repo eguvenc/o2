@@ -40,17 +40,17 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-$filter = false;
+$annotationFilter = false;
 if ($c['config']['annotation']['controller']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
-    $filter = $docs->parse();
+    $annotationFilter = $docs->parse();
 }
 /*
  * ------------------------------------------------------
- *  Before controller event
+ *  Before controller middleware
  * ------------------------------------------------------
  */
-$c['event']->fire('before.controller', array($class, $filter));
+$router->initFilters('before', $annotationFilter);  // Initialize ( exec ) registered router ( before ) filters
 
 if (method_exists($class, 'load')) {
     $class->load();
@@ -60,8 +60,7 @@ if (method_exists($class, 'load')) {
  *  After controller load method
  * ------------------------------------------------------
  */
-$c['event']->fire('on.load', array($class, $filter));
-
+$router->initFilters('load', $annotationFilter); 
 /*
  * ------------------------------------------------------
  *  Dispatcher
@@ -84,9 +83,7 @@ call_user_func_array(array($class, $router->fetchMethod()), $arguments);
  *  After controller event
  * ------------------------------------------------------
  */
-$c['event']->fire('after.controller', array($class, $filter));
-
-
+$router->initFilters('after', $annotationFilter);
 /*
  * ------------------------------------------------------
  *  Send the final rendered output to the browser

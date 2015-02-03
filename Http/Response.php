@@ -2,7 +2,8 @@
 
 namespace Obullo\Http;
 
-use Controller;
+use Controller,
+    Obullo\Container\Container;
 
 /**
  * Response Class.
@@ -66,7 +67,7 @@ Class Response
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->finalOutput = '';
