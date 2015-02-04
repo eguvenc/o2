@@ -11,19 +11,6 @@
  * @link      http://obullo.com/package/obullo
  */
 
-$_SERVER['REQUEST_TIME_START'] = microtime(true);
-/*
- * ------------------------------------------------------
- *  Before request event
- * ------------------------------------------------------
- */
-$c['event']->fire('before.request');
-
-/*
- * ------------------------------------------------------
- *  Load core components
- * ------------------------------------------------------
- */
 $router     = $c['router'];
 $response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
@@ -40,28 +27,15 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-$filter = false;
+$annotationFilter = false;
 if ($c['config']['annotation']['controller']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
-    $filter = $docs->parse();
+    $annotationFilter = $docs->parse();
 }
-/*
- * ------------------------------------------------------
- *  Before controller event
- * ------------------------------------------------------
- */
-$c['event']->fire('before.controller', array($class, $filter));
 
 if (method_exists($class, 'load')) {
     $class->load();
 }
-/*
- * ------------------------------------------------------
- *  After controller load method
- * ------------------------------------------------------
- */
-$c['event']->fire('on.load', array($class, $filter));
-
 /*
  * ------------------------------------------------------
  *  Dispatcher
@@ -83,25 +57,10 @@ call_user_func_array(array($class, $router->fetchMethod()), $arguments);
 
 /*
  * ------------------------------------------------------
- *  After controller event
- * ------------------------------------------------------
- */
-$c['event']->fire('after.controller', array($class, $filter));
-
-
-/*
- * ------------------------------------------------------
  *  Send the final rendered output to the browser
  * ------------------------------------------------------
  */
-$response->sendOutput();    // Send the final rendered output to the browser
-
-/*
- * ------------------------------------------------------
- *  After controller event
- * ------------------------------------------------------
- */
-$c['event']->fire('after.response');
+$response->output();    // Send ( print ) the final rendered output to the browser
 
 
 // END Obullo.php File

@@ -27,7 +27,7 @@ Class LogController extends Controller
     public function load()
     {
         $this->c->load('cli/parser as parser');
-        $this->c->load('logger');
+        $this->c['logger'];
     }
 
     /**

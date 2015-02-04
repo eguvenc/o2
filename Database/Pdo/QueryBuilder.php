@@ -65,7 +65,7 @@ Class QueryBuilder
      */
     public function __construct($c, $params)
     {
-        $this->adapter = $c->load('service provider database', $params);
+        $this->adapter = $c['service provider database']->get($params);
     }
 
     /**

@@ -109,7 +109,7 @@ class Database extends AbstractAdapter implements AdapterInterface
     {
         $this->storage = $c['auth.storage'];
         $this->session = $c['session'];
-        $this->cache   = $c->load('cache');
+        $this->cache   = $c['cache'];
 
         $this->columnIdentifier = $c['auth.params']['db.identifier'];
         $this->columnPassword   = $c['auth.params']['db.password'];

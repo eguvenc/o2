@@ -49,7 +49,7 @@ Class View
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
             '@ASSETS'  => rtrim($c['config']['url']['assets'], '/')
         );
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('View Class Initialized');
     }
 

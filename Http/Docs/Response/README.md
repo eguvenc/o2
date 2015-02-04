@@ -16,7 +16,7 @@ Under normal circumstances you won't even notice the <b>Response</b> class since
 
 It is possible, however, for you to manually intervene with the <b>Response</b> if you need to, using either of the two following functions:
 
-#### $this->response->setOutput();
+#### $this->response->setOutput(string $data);
 
 Permits you to manually set the final output string. Usage example:
 
@@ -138,24 +138,28 @@ $app->func(
 
 ------
 
-#### $this->response->json(array $data, bool $header = true);
+#### $this->response->output(string $output, $code = null);
+
+Print output to screen and sends http headers.
+
+#### $this->response->json(array $data, $header = 'default');
 
 Returns to json encoded string and creates header if second parameter true.
 
-#### $this->response->show404();
-
-Generates <b>404 Page Not Found</b> errors.
-
-#### $this->response->showError(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
-
-Manually shows an error to users.
-
-#### $this->response->showWarning(string $message);
-
-Generates user friendly warning messsages using <kbd>app/templates/errors/warning.php</kbd> template.
-
-#### $this->response->setHttpResponse($code = 401, 'text');
+#### $this->response->status($code = 401, 'text');
 
 Permits you to manually set a server status header.
 
 [See here](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) for a full list of headers.
+
+#### $this->response->show404();
+
+Generates <b>404 Page Not Found</b> errors using html template file.
+
+#### $this->response->showError(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
+
+Manually shows an error to users using html template file.
+
+#### $this->response->showWarning(string $message);
+
+Generates user friendly warning messsages using <kbd>app/templates/errors/warning.php</kbd> template file.

@@ -2,7 +2,8 @@
 
 namespace Obullo\Mongo;
 
-use LogicException;
+use LogicException,
+    Obullo\Container\Container;
 
 /**
  * Mongo Db Query Class
@@ -44,14 +45,15 @@ Class Query
     /**
     * Constructor
     * 
-    * @param object $c container
+    * @param object $c      container
+    * @param array  $params params
     * 
     * @throws Exception 
     */
-    public function __construct($c, $params)
+    public function __construct(Container $c, $params)
     {
         $this->c = $c;
-	$this->db = $this->c->load('service provider mongo', ['connection' => $params['connection']])->selectDb($db);
+        $this->db = $this->c['service provider mongo']->get(['connection' => $params['connection']])->selectDb($params['db']);
     }
 
     /**

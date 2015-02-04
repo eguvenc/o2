@@ -36,8 +36,8 @@ Class DebugOutput
     public function __construct()
     {
         global $c;
-        $this->config = $c->load('config');
-        $this->logger = $c->load('logger');
+        $this->config = $c['config'];
+        $this->logger = $c['logger'];
         if ($this->logger instanceof Logger) {
             $this->logger->debug('Debug Output Class Initialized');
         }

@@ -7,7 +7,7 @@
 Kullanım Örneği
 
 ```php
-$this->mongo = $this->c->load('service provider mongo', ['connection' => 'default'])->selectDb('db');
+$this->mongo = $this->c['service provider mongo']->get(['connection' => 'default'])->selectDb('db');
 ```
 
 Birkez yüklendikten sonra mongo metodlarına erişebilirsiniz.
@@ -19,10 +19,10 @@ $this->mongo->find();
 Factroy Örneği ( Config te olmayan yeni konnekşın lar üretmek )
 
 ```php
-$this->mongo = $this->c->load(
-	'service provider mongo', 
+$this->mongo = $this->c['service provider mongo']->get(
 	[
-		'server' => 'mongodb://localhost:27017', 'options' => array('connect' => true)
+		'server' => 'mongodb://localhost:27017',
+		'options' => array('connect' => true)
 	]
 );
 ```     

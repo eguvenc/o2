@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Addons\Authentication;
+namespace Obullo\Authentication\Addons;
 
 use RuntimeException,
     Obullo\Container\Container;
@@ -37,4 +37,4 @@ trait UniqueSessionTrait
 // END UniqueSessionTrait.php File
 /* End of file UniqueSessionTrait.php
 
-/* Location: .Obullo/Addons/Authentication/UniqueSessionTrait.php */
+/* Location: .Obullo/Authentication/Addons/UniqueSessionTrait.php */

@@ -133,7 +133,7 @@ Class ErrorHandler
         if (0 === $this->level) {
             return false;
         }
-        $logger = $c->load('logger');
+        $logger = $c['logger'];
         if ($level & (E_USER_DEPRECATED | E_DEPRECATED)) {
             if (is_object($c) AND $logger instanceof Logger) {
                 $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
@@ -176,7 +176,7 @@ Class ErrorHandler
         $exp = explode(DS, $error['file']);
         $filename = end($exp);
         if ($filename != 'Logger.php') {  // Don't log logger class fatal errors.
-            $logger = $c->load('logger');
+            $logger = $c['logger'];
             if ($logger instanceof Logger) {
                 $logger->channel($c['config']['log']['default']['channel']);
                 $logger->error($error['message'], array('level' => $type, 'file' => $error['file'], 'line' => $error['line']));
@@ -186,7 +186,7 @@ Class ErrorHandler
             return;
         }
         $e = new ErrorException($error['message'], $type, 0, $error['file'], $error['line']);
-        $c->load('exception')->toString($e, true);
+        $c['exception']->toString($e, true);
     }
 
 }

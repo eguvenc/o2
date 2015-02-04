@@ -131,11 +131,11 @@ if ( ! $this->request->isValidIp($ip)) {
 }
 ```
 
-#### $this->request->global->object->method();
-
 #### $this->request->get($key);
 
 #### $this->request->post($key);
+
+#### $this->request->all($key);
 
 #### $this->request->server($key);
 
@@ -174,3 +174,5 @@ If http request method equal to PUT returns to true otherwise false.
 #### $this->request->isDelete();
 
 If http request method equal to DELETE returns to true otherwise false.
+
+#### $this->request->global->object->method();

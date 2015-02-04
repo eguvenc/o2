@@ -43,7 +43,7 @@ Class Memory
      */
     public function __construct($c)
     {
-        $this->logger = $c->load('logger');
+        $this->logger = $c['logger'];
         $this->logger->debug('Memory Class Initialized');
     }
 

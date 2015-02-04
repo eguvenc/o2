@@ -42,9 +42,9 @@ Class Session
      */
     public function __construct($c) 
     {
-        $this->session = $c->load('session');
-        $this->logger = $c->load('logger');
-        $this->flash = $c->load('config')->load('flash');
+        $this->session = $c['session'];
+        $this->logger = $c['logger'];
+        $this->flash = $c['config']->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)

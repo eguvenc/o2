@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Addons;
+namespace Obullo\Helpers;
 
 use RuntimeException,
     Obullo\Container\Container;

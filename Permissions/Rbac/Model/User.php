@@ -40,7 +40,7 @@ Class User
     public function __construct($c)
     {
         $this->c    = $c;
-        $this->db   = $this->c->load('service provider database', $this->c['config']['rbac.params.database']);
+        $this->db   = $this->c['service provider database']->get($this->c['config']['rbac.params.database']);
         $this->user = $this->c['rbac.user'];
     }
 

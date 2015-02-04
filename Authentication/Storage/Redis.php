@@ -39,8 +39,8 @@ Class Redis extends AbstractStorage
     {
         $this->c = $c;
         $this->auth  = $c['config']->load('auth');
-        $this->logger  = $this->c->load('logger');
-        $this->session = $this->c->load('session');
+        $this->logger  = $this->c['logger'];
+        $this->session = $this->c['session'];
 
         $this->cache = $this->c->load(
             'service provider '.$this->auth['cache']['provider']['name'], 

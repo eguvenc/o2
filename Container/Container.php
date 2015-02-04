@@ -108,7 +108,7 @@ Class Container implements ArrayAccess
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
         $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error','httpSanitizer'));
+        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error'));
 
         // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
         // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
@@ -119,6 +119,10 @@ Class Container implements ArrayAccess
             AND $isCoreFile == false
         ) {
             $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
+        }
+
+        if ( ! isset($this->values[$cid])) {  // If not exists in container we load it directly.
+            return $this->load($cid);
         }
 
         if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.
@@ -210,10 +214,11 @@ Class Container implements ArrayAccess
         $serviceName = ucfirst($class);
 
         if ( ! empty($matches['provider'])) {  // Resolve provider
-            $serviceClass = '\Obullo\ServiceProvider\\'.ucfirst($matches['class']).'ServiceProvider';
-            $service = new $serviceClass($this);
-            return $service->register($this, $params);  // Run every time register method.
+            $serviceProviderClass = '\Obullo\ServiceProvider\\'.ucfirst($matches['class']).'ServiceProvider';
+            $this->with[] = new $serviceProviderClass($this);
+            return $this;
         }
+
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
@@ -235,6 +240,20 @@ Class Container implements ArrayAccess
             $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);
+    }
+
+    /**
+     * Execute service providers
+     * 
+     * @param array $params parameters
+     * 
+     * @return object closure
+     */
+    public function get($params = array())
+    {
+        $serviceProvider = end($this->with);
+        array_pop($this->with);
+        return $serviceProvider->register($this, $params);
     }
 
     /**

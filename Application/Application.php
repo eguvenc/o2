@@ -2,6 +2,8 @@
 
 namespace Obullo\Application;
 
+use BadMethodCallException;
+
 /**
  * Application Class
  * 
@@ -36,6 +38,13 @@ Class Application
     protected $envArray = array();
 
     /**
+     * Global filters, they works on every http request
+     * 
+     * @var array
+     */
+    protected $filters = array();
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -66,6 +75,54 @@ Class Application
         if (self::$env == null) {
             die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
         }
+    }
+
+    /**
+     * Register global application filter
+     * 
+     * @param string $namespace filter class
+     * @param string $method    before, after, finish
+     * 
+     * @return void
+     */
+    public function filter($namespace, $method = 'before')
+    {
+        $this->filters[$method][] = $namespace;
+    }
+
+    /**
+     * Run filters
+     * 
+     * @param string $method directions ( before, after, finish )
+     * @param array  $params user parameters
+     * 
+     * @return void
+     */
+    public function initFilters($method = 'before', $params = array())
+    {
+        if ( ! isset($this->filters[$method])) {  // Return if filter not exists
+            return;
+        }
+        foreach ($this->filters[$method] as $key => $Class) {
+            $Class = '\\'.ucfirst($this->filters[$method][$key]);
+            $class = new $Class($this->c, $params);
+
+            if ( ! method_exists($class, $method)) {   // Throw exception if filter method not exists.
+                throw new BadMethodCallException(
+                    sprintf(
+                        'Filter class %s requires %s method but not found.',
+                        ltrim($Class, '\\'),
+                        $method
+                    )
+                );
+            }
+            $class->$method();
+        }
+    }
+
+    public function addFilter()
+    {
+        $this->filter();
     }
 
     /**

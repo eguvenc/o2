@@ -57,7 +57,7 @@ abstract Class AbstractAdapter
     public function __construct($c)
     {
         $this->session = $c->load('session');
-        $this->logger  = $c->load('logger');
+        $this->logger  = $c['logger'];
         
         $this->init();
         $this->logger->debug('Captcha Class Initialized');

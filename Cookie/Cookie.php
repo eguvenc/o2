@@ -32,8 +32,8 @@ Class Cookie
     {
         $this->c = $c;
         
-        $this->config = $this->c->load('config');
-        $this->logger = $this->c->load('logger');
+        $this->config = $this->c['config'];
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Cookie Class Initialized');
     }
 

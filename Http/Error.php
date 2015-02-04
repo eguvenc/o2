@@ -26,7 +26,7 @@ Class Error
     {
         $this->c = $c;
         $this->response = $response;
-        $this->logger = $c->load('logger');
+        $this->logger = $c['logger'];
     }
 
     /**
@@ -131,7 +131,8 @@ Class Error
     */
     protected function showHttpError($heading, $message, $template = 'general', $statusCode = 500)
     {
-        $this->response->setHttpResponse($statusCode);
+        $this->response->status($statusCode);
+        
         $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
         $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
 

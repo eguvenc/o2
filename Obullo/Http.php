@@ -10,15 +10,12 @@
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/obullo
  */
-
-$_SERVER['REQUEST_TIME_START'] = microtime(true);
 /*
  * ------------------------------------------------------
- *  Before request event
- * ------------------------------------------------------
+ *  Application before filters
+ * -----------------------------------------------------
  */
-$c['event']->fire('before.request');
-
+$c['app']->initFilters('before');
 /*
  * ------------------------------------------------------
  *  Load core components
@@ -47,7 +44,7 @@ if ($c['config']['annotation']['controller']) {
 }
 /*
  * ------------------------------------------------------
- *  Before controller middleware
+ *  Before controller filters
  * ------------------------------------------------------
  */
 $router->initFilters('before', $annotationFilter);  // Initialize ( exec ) registered router ( before ) filters
@@ -80,23 +77,34 @@ call_user_func_array(array($class, $router->fetchMethod()), $arguments);
 
 /*
  * ------------------------------------------------------
- *  After controller event
+ *  After controller filters
  * ------------------------------------------------------
  */
 $router->initFilters('after', $annotationFilter);
 /*
  * ------------------------------------------------------
+ *  Application after filters
+ * ------------------------------------------------------
+ */
+$c['app']->initFilters('after');
+/*
+ * ------------------------------------------------------
  *  Send the final rendered output to the browser
  * ------------------------------------------------------
  */
-$response->sendOutput();    // Send the final rendered output to the browser
-
+$response->output();    // Send ( print ) the final rendered output to the browser
 /*
  * ------------------------------------------------------
- *  After controller event
+ *  Finish controller filters
  * ------------------------------------------------------
  */
-$c['event']->fire('after.response');
+$router->initFilters('finish', $annotationFilter);
+/*
+ * ------------------------------------------------------
+ *  Application finish filters
+ * ------------------------------------------------------
+ */
+$c['app']->initFilters('finish');
 
 
 // END Obullo.php File

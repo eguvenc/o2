@@ -224,7 +224,7 @@ Sometimes we may want to <b>same instance</b> of the provider. Forexample we wan
 $app = new Controller(
     function ($c) {
         $this->c->load('view');
-        $this->c->load('service/provider/mongo', 'db');
+        $c['return service provider mongo']->get()->selectDb('db');
     }
 );
 ```
@@ -236,7 +236,7 @@ In your libraries you can reach same instance that used in Controller.
 Class Dummy {
 
     public function __construct($c) {
-        $this->mongo = $c->load('return service/provider/mongo');  // same instance and we stop assigning object instance into controller.
+        $this->mongo = $c['return service provider mongo']->get(['connection' => 'default'])->selectDb('test');
     }
 }
 ```

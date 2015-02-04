@@ -39,7 +39,7 @@ Class Memcached extends AbstractStorage
     {
         $this->c = $c;
         $this->auth = $c['config']->load('auth');
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->session = $this->c->load('session');
 
         $this->cache = $this->c->load(

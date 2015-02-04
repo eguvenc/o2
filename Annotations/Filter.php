@@ -45,6 +45,13 @@ Class Filter
     protected $load = array();
 
     /**
+     * Finish filters data
+     * 
+     * @var array
+     */
+    protected $finish = array();
+
+    /**
      * Track of filter names
      * 
      * @var array
@@ -109,6 +116,21 @@ Class Filter
     }
 
     /**
+     * Initialize to finish filters
+     * 
+     * @param string $filter name
+     * 
+     * @return object
+     */
+    public function finish($filter = '')
+    {
+        $this->after[$this->count] = array('name' => $filter);
+        $this->track[] = 'finish';
+        ++$this->count;
+        return $this;
+    }
+
+    /**
      * Initialize to on load filters
      * 
      * @param string $filter name
@@ -153,7 +175,7 @@ Class Filter
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['event']->fire('on.method', array((object)$params, $this->httpMethod));
+        $this->c['event']->fire('on.method', array((object)$params, $this->httpMethod)); // Replace here with RequestMethod Filter.
         return;
     }
 

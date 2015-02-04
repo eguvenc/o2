@@ -46,7 +46,7 @@ Class Flush
     {
         $this->c = $c;
         $this->cache = $c->load('cache');
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Layer Flush Class Initialized');
     }
 

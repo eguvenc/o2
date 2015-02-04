@@ -177,7 +177,7 @@ Class Agent
                 $this->compileData();
             }
         }
-        $this->c->load('logger')->debug('Agent Class Initialized');
+        $this->c['logger']->debug('Agent Class Initialized');
     }
 
     /**

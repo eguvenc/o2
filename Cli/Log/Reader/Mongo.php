@@ -31,7 +31,7 @@ Class Mongo
         
         echo "\n\33[1;36mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
 
-        $mongo = $c->load('service provider mongo', ['connection' => 'default']);  // use default provider
+        $mongo = $c['service provider mongo']->get(['connection' => 'default']);  // use default provider
 
         $mongoCollection = $mongo->{$collection};
         $resultArray = $mongoCollection->find();

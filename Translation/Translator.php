@@ -116,7 +116,7 @@ Class Translator implements ArrayAccess
 
         $this->setDefault(); // Initialize to default language
 
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Translator Class Initialized');
     }
 

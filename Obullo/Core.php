@@ -102,6 +102,7 @@ require OBULLO_CONTROLLER;
 require OBULLO_COMPONENTS;
 require OBULLO_EVENTS;
 require OBULLO_ROUTES;
+require OBULLO_FILTERS;
 /*
 |--------------------------------------------------------------------------
 | Initialize Routes
@@ -109,7 +110,6 @@ require OBULLO_ROUTES;
 */
 $c['router']->init();
 
-require OBULLO_FILTERS;
 
 // END Core.php File
 /* End of file Core.php

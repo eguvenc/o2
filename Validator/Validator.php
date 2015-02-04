@@ -42,7 +42,7 @@ Class Validator
         mb_internal_encoding($c->load('config')['locale']['charset']);
         
         $this->c = $c;
-        $this->logger = $c->load('logger');
+        $this->logger = $c['logger'];
         $this->translator = $c->load('translator');
         $this->translator->load('validator');     // Load validator language file from app/translations.
         $this->logger->debug('Validator Class Initialized');

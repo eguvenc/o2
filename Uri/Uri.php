@@ -41,7 +41,7 @@ Class Uri
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->logger = $c->load('logger');
+        $this->logger = $c['logger'];
         $this->logger->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 

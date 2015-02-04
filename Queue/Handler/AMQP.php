@@ -71,7 +71,7 @@ Class AMQP extends Queue implements HandlerInterface
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('queue')['server'];
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
 
         if ( ! extension_loaded('AMQP')) {
             throw new RuntimeException('AMQP extension required but not installed.');

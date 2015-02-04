@@ -25,6 +25,10 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
             <td><b>filter->after("name");</b></td>
             <td>After filtresini çalıştırırır, after metodu içerisine yazılan filtre controller sınıfının çalışmasından sonraki seviyede çalışır.</td>
         </tr>
+            <tr>
+            <td><b>filter->finish("name");</b></td>
+            <td>Finish filtresini çalıştırırır, finish metodu içerisine yazılan filtre controller çıktısının sayfaya gönderilmesinden sonra çalışır.</td>
+        </tr>
         <tr>
             <td><b>filter->load("name");</b></td>
             <td>Load filtresini çalıştırırır, load metodu içerisine yazılan filtre controller load metodunun çalışmasından sonraki seviyede çalışır.</td>

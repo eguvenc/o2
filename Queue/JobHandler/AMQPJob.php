@@ -31,7 +31,7 @@ Class AMQPJob extends Job
         $this->c = $c; 
         $this->queue = $queue;
         $this->envelope = $envelope;
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Queue AMQPJob Class Initialized');
     }
 

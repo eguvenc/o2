@@ -70,6 +70,8 @@ Class Response
     public function __construct(Container $c)
     {
         $this->c = $c;
+        $this->c['config']->load('response');
+
         $this->finalOutput = '';
         $this->logger = $this->c->load('return logger');
         $this->logger->debug('Response Class Initialized');
@@ -128,6 +130,9 @@ Class Response
      */
     public function compressOutput() 
     {
+        if ($this->c['config']['output']['compress'] == false OR $this->outputCompression == false) {
+            return $this;
+        }
         if (extension_loaded('zlib')
             AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
             AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
@@ -141,28 +146,24 @@ Class Response
      * Display Output
      *
      * This function sends the finalized output data to the browser along
-     * with any server headers and profile data.  It also stops the
-     * benchmark timer so the page rendering speed and memory usage can be shown.
+     * with any server headers and profile data.
      *
      * @param string $output output
+     * @param int    $code   http response code
      * 
      * @return string output
      */
-    public function sendOutput($output = '')
+    public function output($output = '', $code = null)
     {
+        if ($code != null) {
+            $this->status($code);
+        }
         if ($output == '') {                    // Set the output data
             $output = & $this->finalOutput;
         }
-        if ($this->c['config']['output']['compress']  // Is compression requested ?
-            AND $this->outputCompression == true
-        ) {
-            $this->compressOutput();
-        }
-        if (count($this->headers) > 0 AND ! headers_sent()) {  // Are there any server headers to send ?
-            foreach ($this->headers as $header) {
-                header($header[0], $header[1]);
-            }            
-        }
+        $this->compressOutput();
+        $this->sendHeaders();
+
         if (class_exists('Controller', false) AND method_exists(Controller::$instance, '_response')) {    // Does the controller contain a function named _response()?
             Controller::$instance->_response($output);              // If so send the output there.  Otherwise, echo it.
             return;
@@ -171,13 +172,27 @@ Class Response
     }
     
     /**
+     * Send Headers
+     * 
+     * @return void
+     */
+    protected function sendHeaders()
+    {
+        if (count($this->headers) > 0 AND ! headers_sent()) {  // Are there any server headers to send ?
+            foreach ($this->headers as $header) {
+                header($header[0], $header[1]);
+            }            
+        }
+    }
+
+    /**
     * Set HTTP Status Header
     * 
     * @param int $code the status code
     * 
     * @return object
     */    
-    public function setHttpResponse($code = 200)
+    public function status($code = 200)
     {
         http_response_code($code);  // Php >= 5.4.0
         return $this;
@@ -267,19 +282,22 @@ Class Response
     /**
      * Encode json data and set json headers.
      * 
-     * @param array   $data    array data
-     * @param boolean $headers disable json headers
+     * @param array  $data   array data
+     * @param string $header config header
      * 
      * @return string json encoded data
      */
-    public function json(array $data, $headers = true)
+    public function json(array $data, $header = 'default')
     {
         $this->outputCompression = false;  // Default false for json response
-        if ($headers) {
-            header('Cache-Control: no-cache, must-revalidate');
-            header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-            header('Content-type: application/json;charset=UTF-8');
+
+        if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
+            foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
+                $this->setHeader($value);
+            }
         }
+        $this->sendHeaders();
+
         return json_encode($data);
     }
 

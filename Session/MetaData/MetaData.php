@@ -94,7 +94,7 @@ Class MetaData
                 'serializer' => 'SERIALIZER_NONE'
             ]
         );
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
     }
 
     /**

@@ -224,16 +224,16 @@ Sometimes we need to use same instance of object and sometimes same. Let's show 
 
 ```php
 <?php
-$c->load('view');       // use view component instance if component not has an instance creates new one.
-$c->load('new view');   // creates new instance of view component
-$c->load('view');       // uses old instance of view component
+$c['view'];       // use view component instance if component not has an instance creates new one.
+$c['new view'];   // creates new instance of view component
+$c['view'];       // uses old instance of view component
 ```
 
 Services
 
 ```php
-$c->load('cache');  // creates new service cache instance
-$c->load('service provider cache'); // creates new cache providers instance
+$c['cache'];  // creates shared cache instance
+$c['service provider cache']->get(); // creates new cache providers instance
 ```
 
 #### "Return" Example
@@ -242,15 +242,15 @@ Return command returns to instance of class and class name does not stored into 
 
 
 ```php
-$c->load('return service/provider/cache'); // returns service cache provider instance not store into controller
-$c->load('return service/cache');      // returns service cache instance not store into controller
+$c['return service provider cache']; // returns service cache provider instance not store into controller
+$c['return service cache'];      // returns service cache instance not store into controller
 ```
 
 ```php
 <?php
 $app = new Controller(
     function ($c) {
-        $db = $c->load('return service/provider/database');
+        $db = $c['return service provider database']->get();
         $db->query('...');
 
         if ( ! isset($this->db)) {

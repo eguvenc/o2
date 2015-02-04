@@ -22,8 +22,8 @@ Class Element
     public function __construct($c)
     {
         $this->c = $c;
-        $this->translator = $c->load('translator');
-        $this->logger = $c->load('logger');
+        $this->translator = $c['translator'];
+        $this->logger = $c['logger'];
         $this->logger->debug('Form Element Class Initialized');
     }
 

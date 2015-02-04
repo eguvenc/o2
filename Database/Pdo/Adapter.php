@@ -61,29 +61,9 @@ Abstract Class Adapter
     {
         $this->c = $c;
         $this->params = $params;
-        // $this->options = array();
-        // foreach (array('host','username','password','database','prefix','port','charset','autoinit','dsn','pdo') as $key) {
-        //     $this->{$key} = (isset($params[$key]) AND ! empty($params[$key])) ? $params[$key] : $this->{$key}; 
-        // }
         $this->config = $this->c['config'];
-        $this->logger = $c->load('logger');
+        $this->logger = $c['logger'];
     }
-
-    // /*
-    //  * Connect to PDO
-    //  *
-    //  * @param string $dsn     data source name
-    //  * @param string $user    username
-    //  * @param mixed  $pass    password
-    //  * @param array  $options driver options
-    //  * 
-    //  * @return void
-    //  */
-     
-    // public function connection($dsn, $params)
-    // {
-    //     $this->connection = new PDO($dsn, $user, $pass, $options);
-    // }
 
     /**
      * Connect to PDO
@@ -92,7 +72,7 @@ Abstract Class Adapter
      */
     public function connection()
     {
-        $this->connection = $this->c->load('service provider pdo', $this->params);
+        $this->connection = $this->c['service provider pdo']->get($this->params);
         
         // We set exception attribute for always showing the pdo exceptions errors.
 
@@ -554,7 +534,9 @@ Abstract Class Adapter
      */
     public function __get($key)
     {
-        return Controller::$instance->{$key};
+        if (isset(Controller::$instance->{$key})) {
+            return Controller::$instance->{$key};
+        }
     }
 
     /**

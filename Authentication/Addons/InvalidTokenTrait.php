@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Addons\Authentication;
+namespace Obullo\Authentication\Addons;
 
 use RuntimeException,
     Obullo\Container\Container,
@@ -32,4 +32,4 @@ trait InvalidTokenTrait
 // END InvalidTokenTrait.php File
 /* End of file InvalidTokenTrait.php
 
-/* Location: .Obullo/Addons/Authentication/InvalidTokenTrait.php */
+/* Location: .Obullo/Authentication/Addons/InvalidTokenTrait.php */

@@ -5,7 +5,7 @@
 
 ```php
 <?php
-$this->db = $this->c->load('service provider database', 'default');
+$this->db = $this->c['service provider database']->get(['connection' => 'default']);
 $this->db->method();
 ```
 
@@ -52,15 +52,15 @@ You must send the connection name to the chosen database provider.
 
 ```php
 <?php
-$this->c->load('service provider database', ['connection' => 'default']);
+$this->c['service provider database']->get(['connection' => 'default']);
 ```
 Also when you use same parameters, database provider service returns same object.
 
 ```php
 <?php
-$db1 = $this->c->load('service provider database', ['connection' => 'default']); // Creates a new object ($db1)
-$db2 = $this->c->load('service provider database', ['connection' => 'default']); // Returns same object ($db1)
-$db3 = $this->c->load('service provider database', ['connection' => 'test']);	 // Creates a new object
+$db1 = $this->c['service provider database']->get(['connection' => 'default']); // Creates a new object ($db1)
+$db2 = $this->c['service provider database']->get(['connection' => 'default']); // Returns same object ($db1)
+$db3 = $this->c['service provider database']->get(['connection' => 'test']);	 // Creates a new object
 ```
 <blockquote>If you change parameter, database service provider will automatically create a new object..</blockquote>
 
@@ -70,17 +70,16 @@ You can send manually your own configuration. The database service provider crea
 
 ```php
 <?php
-$db = $this->c->load(
-    'service provider database',
-    array(
+$db = $this->c['service provider database']->get(
+    [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
         'username' => 'root',
         'password' => '123456',
-        'options' => [
+        'options' => array(
             \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
             \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
-        ]
-    )
+        )
+    ]
 );
 ```
 

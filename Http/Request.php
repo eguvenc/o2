@@ -50,7 +50,7 @@ Class Request
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Request Class Initialized');
     }
 

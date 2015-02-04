@@ -2,11 +2,12 @@
 
 namespace Obullo\Router;
 
-use Controller,
-    Closure,
+use Closure,
+    Controller,
+    LogicException,
     Obullo\Http\Response,
-    Obullo\Container\Container,
-    LogicException;
+    BadMethodCallException,
+    Obullo\Container\Container;
 
 /**
  * Router Class
@@ -168,7 +169,7 @@ Class Router
         $this->router = $params;
         $this->uri    = $this->c['uri'];
         $this->config = $this->c['config'];
-        $this->logger = $this->c->load('logger');
+        $this->logger = $this->c['logger'];
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
         if (defined('STDIN')) {
@@ -177,9 +178,6 @@ Class Router
         if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['webhost']) === false) {
             $this->c['response']->showError('Your host configuration is not correct in the main config file.');
         }
-        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
-        $this->httpMethod = strtolower($method);
-
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 7);
     }
 
@@ -261,7 +259,7 @@ Class Router
      * 
      * @return object router
      */
-    public function get($match, $rewrite, $closure = null, $group = array())
+    public function get($match, $rewrite = null, $closure = null, $group = array())
     {
         $this->route(array('get'), $match, $rewrite, $closure = null, $group);
         return $this;
@@ -277,7 +275,7 @@ Class Router
      * 
      * @return object router
      */
-    public function post($match, $rewrite, $closure = null, $group = array())
+    public function post($match, $rewrite = null, $closure = null, $group = array())
     {
         $this->route(array('post'), $match, $rewrite, $closure = null, $group);
         return $this;
@@ -293,7 +291,7 @@ Class Router
      * 
      * @return object router
      */
-    public function put($match, $rewrite, $closure = null, $group = array())
+    public function put($match, $rewrite = null, $closure = null, $group = array())
     {
         $this->route(array('put'), $match, $rewrite, $closure = null, $group);
         return $this;
@@ -309,7 +307,7 @@ Class Router
      * 
      * @return object router
      */
-    public function delete($match, $rewrite, $closure = null, $group = array())
+    public function delete($match, $rewrite = null, $closure = null, $group = array())
     {
         $this->route(array('delete'), $match, $rewrite, $closure = null, $group);
         return $this;
@@ -326,7 +324,7 @@ Class Router
      * 
      * @return object router
      */
-    public function match($methods, $match, $rewrite, $closure = null, $group = array())
+    public function match($methods, $match, $rewrite = null, $closure = null, $group = array())
     {
         $this->route($methods, $match, $rewrite, $closure = null, $group);
     }
@@ -342,7 +340,7 @@ Class Router
      * 
      * @return object router
      */
-    public function route($methods = array(), $match, $rewrite, $closure = null, $group = array('domain' => null, 'name' => '*'))
+    public function route($methods = array(), $match, $rewrite = null, $closure = null, $group = array('domain' => null, 'name' => '*'))
     {
         $domainMatch = $this->detectDomain($group);
 
@@ -549,9 +547,10 @@ Class Router
                 }
                 $val['scheme'] = preg_replace('#{(.*?)}#', '', $val['scheme']);
             }
-            if (preg_match('#^' . $val['match'] . '$#', $uri)) {  // Does the RegEx match?
-                if (count($val['when']) > 0) { //  When filter
-                    $this->c['event']->fire('on.method', array((object)$val['when'], $this->httpMethod));
+            if (static::routeMatch($val['match'], $uri)) {  // Does the RegEx match?
+
+                if (count($val['when']) > 0) { //  When http method filter
+                    $this->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $val['when']));
                 }
                 if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
                     $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
@@ -562,6 +561,26 @@ Class Router
             }
         }
         $this->setRequest($this->uri->segments);  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
+    }
+
+    /**
+     * Check route is matched if yes returns to true 
+     * otherwise false
+     * 
+     * @param string $match value
+     * @param string $uri   current uri
+     * 
+     * @return boolean
+     */
+    protected static function routeMatch($match, $uri)
+    {
+        if ($match == $uri) { // Is there any literal match ? 
+            return true;
+        }
+        if (preg_match('#^' . $match . '$#', $uri)) {  // Is there any regex match ?
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -851,12 +870,13 @@ Class Router
      * 
      * @param string $name      filter name
      * @param mixed  $namespace classname with namespace
+     * @param mixed  $method    directions ( before, after, load, finish )
      * 
      * @return void
      */
-    public function filter($name, $namespace)
+    public function filter($name, $namespace, $method = 'before')
     {
-        $this->filters[$name]['class'] = $namespace; // class
+        $this->filters[$method][$name] = $namespace;
         return $this;
     }
 
@@ -884,30 +904,30 @@ Class Router
     /**
      * Initialize filter
      * 
-     * @param string $direction        directions ( before, after, load )
+     * @param string $method           directions ( before, after, load, finish )
      * @param object $annotationFilter annotations filter object
      * 
      * @return void
      */
-    public function initFilters($direction = 'before', $annotationFilter = false)
+    public function initFilters($method = 'before', $annotationFilter = false)
     {
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
         if ($annotationFilter) {
-            $annotationFilter->initFilters($direction);  // Initialize annotation filters
+            $annotationFilter->initFilters($method);  // Initialize annotation filters
         }
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
             return;
         }
         $route = $this->uri->getUriString();        // Get current uri
 
-        if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run with 
+        if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run filters on layers
             foreach ($this->attach[$this->DOMAIN] as $value) {
                 if ($value['route'] == $route) {    // if we have natural route match
-                    $this->runFilter($value['name'], $direction, $value['options']);
+                    $this->runFilter($value['name'], $method, $value['options']);
                 } elseif (preg_match('#^' . $value['attachedRoute'] . '$#', $route)) {
-                    $this->runFilter($value['name'], $direction, $value['options']);
+                    $this->runFilter($value['name'], $method, $value['options']);
                 }
             }
         }
@@ -916,24 +936,29 @@ Class Router
     /**
      * Run filters
      * 
-     * @param array  $name      filter name
-     * @param string $direction directions ( before, after, load )
-     * @param array  $options   route options array
+     * @param array  $name   filter name
+     * @param string $method directions ( before, after, load, finish )
+     * @param array  $params parameters array
      * 
      * @return void
      */
-    public function runFilter($name, $direction = 'before', $options = array())
+    public function runFilter($name, $method = 'before', $params = array())
     {
-        if ( ! is_string($name)) {
-            return;
-        }
-        if (isset($this->filters[$name]['class'])) {
-            $Class = '\\'.ucfirst($this->filters[$name]['class']);
-            $class = new $Class($this->c, $options);
+        if (isset($this->filters[$method][$name])) {  // If filter method exists just run one time for every methods
 
-            if (method_exists($class, $direction)) {   // Check before or after method exists.
-                $class->$direction();
+            $Class = '\\'.ucfirst($this->filters[$method][$name]);
+            $class = new $Class($this->c, $params);
+
+            if ( ! method_exists($class, $method)) {   // Throw exception if filter method not exists.
+                throw new BadMethodCallException(
+                    sprintf(
+                        'Filter class %s requires %s method but not found.',
+                        ltrim($Class, '\\'),
+                        $method
+                    )
+                );
             }
+            $class->$method();
         }
     }
 
