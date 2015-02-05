@@ -205,7 +205,7 @@ Class Layer
         if (empty($data)) {
             $data = array();
         }
-        $this->prepareHash($data); // Set md5 Unique id foreach requests
+        $this->prepareHash($data); // Set unique id foreach requests
         $_SERVER['LAYER_REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
 
         foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
@@ -239,7 +239,7 @@ Class Layer
             if ( ! empty($response)) {              // If cache exists return to cached string.
                 $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
                 $this->reset();
-                return base64_decode($response);    // Encode specialchars
+                return base64_decode($response);
             }
         }
         if ($this->c['response']->getError() != '') {  // If router dispatch fail ?
@@ -262,7 +262,6 @@ Class Layer
         if ( ! class_exists($className, false)) {   // Don't allow multiple include.
             include $controller;                    // Load the controller file.
         }
-
         $class = new $className;  // Call the controller
 
         if (method_exists($class, 'load')) {

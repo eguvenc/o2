@@ -25,13 +25,6 @@ Class UserActivity
     protected $c;
 
     /**
-     * Service cache
-     * 
-     * @var object
-     */
-    protected $cache;
-
-    /**
      * Authentication config
      * 
      * @var array
@@ -46,6 +39,13 @@ Class UserActivity
     protected $identifier;
 
     /**
+     * AuthorizedUserIdentity data
+     * 
+     * @var array
+     */
+    protected $attributes;
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -53,11 +53,7 @@ Class UserActivity
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->storage = $this->c['auth.storage'];
         $this->config  = $this->c['config']->load('auth');
-        $this->cache   = $this->c['cache'];
-        $this->session = $this->c['session'];
-        $this->request = $this->c['request'];
 
         $this->attributes = $this->c['auth.identity']->__activity;
         $this->identifier = $this->c['auth.identity']->getIdentifier();
@@ -93,11 +89,23 @@ Class UserActivity
     }
 
     /**
-     * Remove user activity
+     * Removes one activity item
+     * 
+     * @param string $key key
+     * 
+     * @return void
+     */
+    public function remove($key)
+    {
+        unset($this->attributes[$key]);
+    }
+
+    /**
+     * Removes all user activity
      * 
      * @return boolean
      */
-    public function remove()
+    public function destroy()
     {
         if (empty($this->identifier)) {
             return false;
@@ -111,13 +119,10 @@ Class UserActivity
      * 
      * @return void
      */
-    public function update()
+    public function write()
     {
         if (empty($this->identifier)) {
             return false;
-        }
-        if ($this->config['activity']['uniqueSession'] AND $this->c['auth.identity']->check()) {        // Unique Session is the property whereby a single action of activity
-            $this->c['event']->fire('auth.unique'); // Listener ( @see app/classes/Event/User.php  )    // terminates access to multiple sessions.
         }
         $this->c['auth.identity']->__activity = $this->attributes;  // Update activity data
     }

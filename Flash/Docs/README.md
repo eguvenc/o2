@@ -9,7 +9,7 @@ Framework supports "flashData", or session data that will only be available for 
 
 ```php
 <?php
-$c->load('flash/session as flash');
+$this->c['flash'];
 $this->flash->method();
 ```
 

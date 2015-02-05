@@ -71,6 +71,13 @@ Class UserIdentity extends AuthorizedUser
     protected $tokenRefreshSeconds;
 
     /**
+     * Whether to refresh token
+     * 
+     * @var bool
+     */
+    protected $tokenRefresh = false;
+
+    /**
      * Valid credentails
      * 
      * @var array
@@ -127,7 +134,7 @@ Class UserIdentity extends AuthorizedUser
     }
 
     /**
-     * Check use has identity
+     * Check user has identity
      * 
      * Its ok if returns to true otherwise false
      * 
@@ -141,14 +148,14 @@ Class UserIdentity extends AuthorizedUser
         if ( ! is_null($this->isAuthenticated)) {
             return $this->isAuthenticated;
         }
-        $tokenRefresh = false;
+        $this->tokenRefresh = false;
         if ($this->attributes['__isAuthenticated'] == 1 AND $this->tokenRefreshSeconds > $this->attributes['__lastTokenRefresh']) {  // Secutiry token update
             $token = new Token($this->c);
             $this->attributes['__token'] = $token->get();  // Refresh the token and write it to memory
             $this->attributes['__lastTokenRefresh'] = time();
-            $tokenRefresh = true;
+            $this->tokenRefresh = true;
         }
-        if ($this->attributes['__isAuthenticated'] == 1 AND $this->isValidToken($tokenRefresh)) {
+        if ($this->attributes['__isAuthenticated'] == 1 AND $this->isValidToken()) {
             return $this->isAuthenticated = true;
         }
         return $this->isAuthenticated = false;
@@ -244,46 +251,57 @@ Class UserIdentity extends AuthorizedUser
      * O2 Authentication security token
      * 
      * We generate a uniuqe identity stamp for each users then every auth check operation we check it, 
-     * If the user cookie token does not match the memory token we deny the user.
+     * If the user cookie token does not match the memory token we terminate the user.
      * 
      * @return string unique identity stamp
      */
-    protected function getToken()
+    public function getStorageToken()
     {
         return $this->attributes['__token'];
     }
 
     /**
+     * Read cookie security token
+     * 
+     * @return string|boolean
+     */
+    public function getCookieToken()
+    {
+        $name = $this->config['security']['cookie']['name'];
+        return isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
+    }
+
+    /**
      * Validate security token
      *
-     * @param boolean $tokenRefresh don't do validate if we have token refresh request because of we have no cookie header.
+     * if we have $this->tokenRefresh = false don't do validate because of we have no cookie header.
      * 
      * @return bool
      */
-    public function isValidToken($tokenRefresh)
+    public function isValidToken()
     {
-        if ( ! $this->exists() || $this->tokenIsValid || $tokenRefresh || ! is_null($this->recaller)) { // If identity data does not exists.
+        if ( ! $this->exists() || $this->tokenIsValid || $this->tokenRefresh || ! is_null($this->recaller)) { // If identity data does not exists.
             return $this->tokenIsValid = true;
         }
-        $name = $this->config['security']['cookie']['name'];
-        $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
-        $token = $this->getToken();
-
-        if ($cookie == $token) {
+        if ($this->getCookieToken() == $this->getStorageToken()) {
             return $this->tokenIsValid = true;
         }
         $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
 
         $this->logger->channel('security');
-        $this->logger->notice('Invalid auth token identity destroyed.', array('identifier' => $this->getIdentifier(),'token' => $token,'cookie' => $cookie));
-
-        $this->c['event']->fire('auth.invalidToken', array($this, $cookie));
-    
+        $this->logger->notice(
+            'Invalid auth token identity destroyed.', 
+            [
+                'identifier' => $this->user->identity->getIdentifier(),
+                'token' => $this->user->identity->getStorageToken(),
+                'cookie' => $this->user->identity->getCookieToken()
+            ]
+        );
         return $this->tokenIsValid = false;
     }
 
     /**
-     * Check new identity data available.
+     * Checks new identity data available in storage.
      * 
      * @return boolean
      */

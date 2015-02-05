@@ -190,7 +190,7 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>activity[uniqueSession]</td>
-            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak silinir. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Yetki doğrulama filtresi içerisindeki <b>$this->user->activity->update();</b> metodu kullanıcının en son aktivite zamanı gibi verilerini günceller.UniqueSession özelliği yine bu metod içerisinden tetiklenmektedir ve daha fazla esneklik ve sürdürülebilirlik amacıyla bu metod event yönetimine bağlanmıştır, <b>app/classes/Event/User</b> sınıfı içerisindeki <b>onUniqueSession()</b> fonksiyonu içeriğini güncelleyerek tekil oturum işlevini kendi ihtiyaçlarınıza göre değiştirebilmeniz planlanmıştır.</td>
+            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak silinir. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Yetki doğrulama filtresi içerisindeki <b>$this->user->activity->update();</b> metodu kullanıcının en son aktivite verilerini günceller.UniqueSession özelliği yine bu metod içerisinden tetiklenmektedir ve daha fazla esneklik ve sürdürülebilirlik amacıyla bu metod event yönetimine bağlanmıştır, <b>app/classes/Event/User</b> sınıfı içerisindeki <b>onUniqueSession()</b> fonksiyonu içeriğini güncelleyerek tekil oturum işlevini kendi ihtiyaçlarınıza göre değiştirebilmeniz planlanmıştır.</td>
         </tr>
     </tbody>
 </table>
@@ -311,7 +311,7 @@ Class Login extends \Controller
         $this->c['view'];
         $this->c['request'];
         $this->c['user'];
-        $this->c['flash/session as flash'];
+        $this->c['flash as flash'];
         $this->c['event']->subscribe(new User($this->c));   // Listen user events
     }
 
@@ -955,10 +955,14 @@ Aktivite dizininden bir değere geri döner. bir anahtar ve değerini ekler.
 
 Aktivite dizininde anahtarla eşleşen değere geri döner.
 
-##### $this->user->activity->update();
+##### $this->user->activity->remove($key);
 
-Daha önce set metodu ile eklenen bütün verileri kaydeder. Bu metot en son çalıştırılmalıdır.
+Daha önce set edilen değeri temizler.
 
-##### $this->user->activity->remove();
+##### $this->user->activity->destroy();
 
 Tüm aktivite verilerini önbellekten temizler.
+
+##### $this->user->activity->write();
+
+Daha önce set metodu ile eklenen bütün verileri kaydeder. Bu metot uygulamanın finish filtresi seviyesinde çalıştırılmalıdır.

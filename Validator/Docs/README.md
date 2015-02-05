@@ -95,7 +95,7 @@ Class HelloForm extends \Controller
         $this->c['post'];
         $this->c['form'];
         $this->c['request'];
-        $this->c['flash/session as flash'];
+        $this->c['flash as flash'];
     }
 
     public function index()
