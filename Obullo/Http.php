@@ -52,6 +52,7 @@ $router->initFilters('before', $annotationFilter);  // Initialize ( exec ) regis
 if (method_exists($class, 'load')) {
     $class->load();
 }
+
 /*
  * ------------------------------------------------------
  *  After controller load method
@@ -66,7 +67,7 @@ $router->initFilters('load', $annotationFilter);
 if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() == 'load') { // load method reserved
     $response->show404($pageUri);
 }
-$arguments = array_slice($c['uri']->rsegments, 3);
+$arguments = array_slice($class->uri->rsegments, 3);
 
 /**
  *  Call the requested method. Any URI segments present 

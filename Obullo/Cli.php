@@ -46,7 +46,7 @@ if ( ! method_exists($class, $router->fetchMethod()) OR $router->fetchMethod() =
     $argumentSlice = 2;
     $router->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
 }
-$arguments = array_slice($c['uri']->rsegments, $argumentSlice);
+$arguments = array_slice($class->uri->rsegments, $argumentSlice);
 
 /**
  *  Call the requested method. Any URI segments present 

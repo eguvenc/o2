@@ -190,13 +190,13 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>activity[uniqueSession]</td>
-            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak silinir. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Yetki doğrulama filtresi içerisindeki <b>$this->user->activity->update();</b> metodu kullanıcının en son aktivite verilerini günceller.UniqueSession özelliği yine bu metod içerisinden tetiklenmektedir ve daha fazla esneklik ve sürdürülebilirlik amacıyla bu metod event yönetimine bağlanmıştır, <b>app/classes/Event/User</b> sınıfı içerisindeki <b>onUniqueSession()</b> fonksiyonu içeriğini güncelleyerek tekil oturum işlevini kendi ihtiyaçlarınıza göre değiştirebilmeniz planlanmıştır.</td>
+            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Filtre içerisindeki UniqueLogin özelliği <b>Authentication/Addons</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir bu özellik bir eklenti olduğundan istenilmediği durumlarda kullanılmayabilir. Aynı filtre içerisindeki <b>$this->user->activity->write();</b> metodu ise kullanıcının en son aktivite verilerini günceller.</td> 
         </tr>
     </tbody>
 </table>
 
 
-### Servis Konfigürasyonu
+### Servis Yapılandırılması
 
 ------
 
@@ -235,9 +235,11 @@ Class User implements ServiceInterface
     public function register(Container $c)
     {
         $c['user'] = function () use ($c) {
+
             $user = new AuthServiceProvider(
                 $c,
                 array(
+                	'cache.key'		   => 'Auth',
                     'db.adapter'       => '\Obullo\Authentication\Adapter\Database',
                     'db.model'         => '\Obullo\Authentication\Model\User',
                     'db.provider'      => 'database',
@@ -744,7 +746,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__token</td>
-            <td>Güvenlik çerezinin ( Security Cookie ) güncel değerini içerir.</td>
+            <td>Güvenlik çerezi ( __token bir diğer adıyla Security Cookie ) nin güncel değerini içerir.</td>
         </tr>
         <tr>
             <td>__type</td>
