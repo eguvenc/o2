@@ -11,7 +11,7 @@ The Cookie Class contains functions that assist in working with cookies.
 
 ```php
 <?php
-$this->c->load('cookie');
+$this->c['cookie'];
 $this->cookie->method();
 ```
 

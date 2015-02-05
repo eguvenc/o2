@@ -8,9 +8,10 @@ The Response class is a small class with one main function: To send the finalize
 ------
 
 ```php
-$c->load('response');
 $this->response->method();
 ```
+
+Uygulamada response sınıfı otomatik olarak yüklü gelir.
 
 Under normal circumstances you won't even notice the <b>Response</b> class since it works transparently without your intervention. For example, when you use the <kbd>new keyword</kbd> to load a view file, it's automatically passed to the <b>Reponse</b> class, which will be called automatically by Obullo at the end of system execution.
 
@@ -64,7 +65,7 @@ Class Hello_World extends Controller
      */
     public function load()
     {
-        $this->c->load('view');
+        $this->c['view'];
     }
 
     /**

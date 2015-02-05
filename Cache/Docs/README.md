@@ -48,7 +48,7 @@ Servis bir kez load komutu ile yüklendiği zaman artık kütüphane metotların
 
 ```php
 <?php
-$this->c->load('cache');
+$this->c['cache'];
 $this->cache->metod();
 ```
 
@@ -56,7 +56,7 @@ Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisin
 
 ```php
 <?php
-$this->cache = $this->c->load('cache');
+$this->cache = $this->c['cache'];
 $this->cache->method();
 ```
 
@@ -94,7 +94,7 @@ Bir kez servis sağlayıcı load komutu ile yüklendiği zaman artık kütüphan
 
 ```php
 <?php
-$this->c->load('service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->c['service/provider/cache', array('serializer' => 'SERIZALIZER_NONE')];
 $this->providerCache->metod();
 ```
 
@@ -102,7 +102,7 @@ Fakat daha kısa bir yazım şekli istiyorsanız ve görünürde daha önceden y
 
 ```php
 <?php
-$this->c->load('service/provider/cache as cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->c['service/provider/cache as cache', array('serializer' => 'SERIZALIZER_NONE')];
 $this->cache->metod();
 ```
 
@@ -110,7 +110,7 @@ Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisin
 
 ```php
 <?php
-$this->cache = $this->c->load('return service/provider/cache', array('serializer' => 'SERIZALIZER_NONE'));
+$this->cache = $this->c['return service/provider/cache', array('serializer' => 'SERIZALIZER_NONE')];
 $this->cache->method();
 ```
 
@@ -120,9 +120,9 @@ Servis sağlayıcılara bir kez parametre gönderildiği zaman sonraki çağrım
 
 ```php
 <?php
-$this->c->load('service/provider/cache', array('serializer' => 'SERIALIZER_PHP'));
-$this->c->load('service/provider/cache');  // eski instance
-$this->c->load('new service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY')); // yeni instance
+$this->c['service/provider/cache', array('serializer' => 'SERIALIZER_PHP')];
+$this->c['service/provider/cache'];  // eski instance
+$this->c['new service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY')]; // yeni instance
 ```
 
 ### HandlerInterface

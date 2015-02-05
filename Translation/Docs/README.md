@@ -12,7 +12,7 @@ In your app folder you'll find one called translator containing sets of language
 ------
 
 ```php
-$this->c->load('translator');
+$this->c['translator'];
 
 $this->translator['item'];
 $this->translator->method();

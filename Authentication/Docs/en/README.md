@@ -453,7 +453,7 @@ $this->user->activity->update();
 
 ```php
 <?php
-$this->c->load('service/user');
+$this->c['service/user'];
 $this->user->login->method();
 ```
 
@@ -488,7 +488,7 @@ Validate a user against the given credentials.
 
 ```php
 <?php
-$this->c->load('service/user');
+$this->c['service/user'];
 $this->user->identity->method();
 ```
 
@@ -607,7 +607,7 @@ Activity data contains online user activity data: lastActivity time or and any a
 
 ```php
 <?php
-$this->c->load('service/user');
+$this->c['service/user'];
 $this->user->activity->method();
 ```
 

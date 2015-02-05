@@ -575,7 +575,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
     public function check($code = null)
     {
         if ($code == null) {
-            $code = $this->c->load('request')->post($this->config['form']['input']['attributes']['name']);
+            $code = $this->c['request']->post($this->config['form']['input']['attributes']['name']);
         }
         if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
@@ -680,7 +680,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
      */
     protected function validationSet()
     {
-        $this->c->load('validator')->setRules(
+        $this->c['validator']->setRules(
             $this->config['form']['input']['attributes']['name'],
             'Captcha',
             'required|exact('.$this->config['characters']['length'].')|trim'

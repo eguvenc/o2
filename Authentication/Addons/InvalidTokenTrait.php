@@ -18,14 +18,16 @@ trait InvalidTokenTrait
      */
     public function onInvalidToken(UserIdentity $identity, $cookie)
     {
-        $this->c->load('flash/session')->error(
+        $route = $this->c['config']['auth']['login']['route'];
+
+        $this->c['flash/session']->error(
             sprintf(
                 'Invalid auth token : %s identity %s destroyed',
                 $cookie,
                 $identity->getIdentifier()
             )
         );
-        $this->c->load('url')->redirect($this->c['config']['auth']['login']['route']);
+        $this->c['url']->redirect($route);
     }
 }
 

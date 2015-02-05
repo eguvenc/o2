@@ -73,7 +73,7 @@ Class Response
         $this->c['config']->load('response');
 
         $this->finalOutput = '';
-        $this->logger = $this->c->load('return logger');
+        $this->logger = $this->c['logger'];
         $this->logger->debug('Response Class Initialized');
     }
 

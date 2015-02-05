@@ -42,8 +42,7 @@ Class Redis extends AbstractStorage
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
 
-        $this->cache = $this->c->load(
-            'service provider '.$this->auth['cache']['provider']['name'], 
+        $this->cache = $this->c['service provider '.$this->auth['cache']['provider']['name']]->get(
             [
                 'driver' => $this->auth['cache']['provider']['driver'], 
                 'serializer' => $this->auth['cache']['provider']['serializer']

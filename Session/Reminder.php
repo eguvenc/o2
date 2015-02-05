@@ -36,7 +36,7 @@ Class Reminder
      */
     public function __construct($c, $params = array())
     {
-        $this->session = $c->load('session');
+        $this->session = $c['session'];
         $this->params = (count($params) > 0) ? $params : $c['config']['session'];
     }
 

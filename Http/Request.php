@@ -71,8 +71,8 @@ Class Request
             return $this->globals;
         }
         $this->globals = new stdClass;
-        $this->globals->uri = $this->c->load('uri');
-        $this->globals->router = $this->c->load('router');
+        $this->globals->uri = $this->c['uri'];
+        $this->globals->router = $this->c['router'];
         return $this->globals;
     }
 

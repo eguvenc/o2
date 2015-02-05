@@ -9,7 +9,7 @@ Queues allow you to defer the processing of a time consuming task, such as sendi
 
 ```php
 <?php
-$this->c->load('queue');
+$this->c['queue'];
 $this->queue->method();
 ```
 

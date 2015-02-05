@@ -45,7 +45,7 @@ Class Flush
     public function __construct($c)
     {
         $this->c = $c;
-        $this->cache = $c->load('cache');
+        $this->cache = $c['cache'];
         $this->logger = $this->c['logger'];
         $this->logger->debug('Layer Flush Class Initialized');
     }

@@ -49,7 +49,7 @@ Class Debug
     {
         $this->c = $c;
         $this->logger = $logger;
-        $this->config = $c->load('config');
+        $this->config = $c['config'];
         $this->handler = strtolower($handler);
     }
 

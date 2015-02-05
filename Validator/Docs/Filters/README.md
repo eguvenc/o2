@@ -8,7 +8,7 @@ Doğrulayıcı giriş filtreleri, doğrulayıcı sınıfında çalışmaktadır.
 ## Doğrulayıcı Sınıfını yüklemek
 
 ```php
-$this->c->load('validator');
+$this->c['validator'];
 $this->validator->method();
 ```
 

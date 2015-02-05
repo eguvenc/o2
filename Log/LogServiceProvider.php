@@ -49,7 +49,7 @@ Class LogServiceProvider
             $this->logger = new NullLogger;  // Use null handler if config disabled.
             return;
         }
-        $this->logger = new Logger($this->c, $this->c->load('return queue'), $this->config);
+        $this->logger = new Logger($this->c, $this->c['return queue'], $this->config);
     }
 
     /**

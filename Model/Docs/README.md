@@ -72,7 +72,7 @@ Class Entry extends Model
 
     public function load()
     {
-        $this->c->load('db');  // Load database object
+        $this->c['db'];  // Load database object
     }
 
     /**

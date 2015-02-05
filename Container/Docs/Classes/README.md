@@ -19,7 +19,7 @@ Below the example shows a not defined service. Using namespaces framework do aut
 ```php
 <?php
 
-$this->c->load('tree/db'); // load Obullo/Tree/Db.php class
+$this->c['tree/db']; // load Obullo/Tree/Db.php class
 echo $this->treeDb->addTree(string $text);
 ```
 
@@ -28,7 +28,7 @@ If folder name and class name is same you can call it directly.
 ```php
 <?php
 
-$this->c->load('cookie');   // load  Obullo/Cookie/Cookie.php
+$this->c['cookie'];   // load  Obullo/Cookie/Cookie.php
 echo $this->cookie->get('test');
 ```
 
@@ -61,9 +61,9 @@ $app = new Controller(
 ```php
 <?php
 
-$this->c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
-$this->c->load('new tree/db');   // creates new instance of Obullo/Tree/Db class.
-$this->c->load('tree/db');       // uses old instance of Obullo/Tree/Db class.
+$this->c['tree/db'];       // uses old instance of Obullo/Tree/Db class.
+$this->c['new tree/db'];   // creates new instance of Obullo/Tree/Db class.
+$this->c['tree/db'];       // uses old instance of Obullo/Tree/Db class.
 ```
 
 #### Return Keyword
@@ -73,7 +73,7 @@ Returns class instance otherwise it stores the instance into controller.
 ```php
 <?php
 
-$agent = $this->c->load('return user/agent');
+$agent = $this->c['return user/agent'];
 $agent->getReferer();
 ```
 
@@ -84,7 +84,7 @@ Stores object instance into contoller object using your alias.
 ```php
 <?php
 
-$this->c->load('new user/uid as uid');
+$this->c['new user/uid as uid'];
 
 echo $this->uid->addHostname()->addIp()->addMacAddress()->generateString().'<br>';  // gives  2130706433-bc:ae:c5:39:10:44-obullo-desktop-4213360135
 ```
@@ -104,11 +104,11 @@ $class->method();
 
 ------
 
-#### $this->c->load('servicename');
+#### $this->c['servicename'];
 
 Returns to service instance if service defined otherwise it creates new instance using Obullo classes.
 
-#### $this->c->load('name/space/class');
+#### $this->c['name/space/class'];
 
 In syntax the first word means the folder name, the second word is the class name.
 

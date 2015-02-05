@@ -9,7 +9,7 @@ The User Agent Class provides functions that help identify information about the
 
 ```php
 <?php
-$this->c->load('user/agent as agent');
+$this->c['user/agent as agent'];
 $this->agent->method();
 ```
 <blockquote>When the User Agent class is initialized it will attempt to determine whether the user agent browsing your site is a web browser, a mobile device, or a robot. It will also gather the platform information if it is available.</blockquote>

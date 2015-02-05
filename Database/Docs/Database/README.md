@@ -95,7 +95,7 @@ In your controller
 
 ```php
 <?php
-$this->c->load('db');
+$this->c['db'];
 $this->db->query('...');
 ```
 
@@ -103,7 +103,7 @@ In your classes
 
 ```php
 <?php
-$this->db = $this->c->load('return db');
+$this->db = $this->c['return db'];
 
 $this->db->query('...');
 ```
@@ -112,7 +112,7 @@ Creating new Pdo provider
 
 ```php
 <?php
-$this->c->load('new service provider pdo as anydb', array('db' => 'anydb'));
+$this->c['new service provider pdo as anydb', array('db' => 'anydb')];
 
 $this->anydb->query('...');
 ```
@@ -122,7 +122,7 @@ Using different driver
 
 ```php
 <?php
-$this->c->load('return new service/provider/db as anydb', array('db' => 'anydb', 'provider' => 'pgsql'));
+$this->c['return new service/provider/db as anydb', array('db' => 'anydb', 'provider' => 'pgsql')];
 
 $this->anydb->query('...');
 ```
@@ -341,8 +341,8 @@ Class Welcome extends \Controller
      */
     public function load()
     {
-        $this->c->load('view');
-        $this->c->load('db');   // create a database connection
+        $this->c['view'];
+        $this->c['db'];   // create a database connection
     }
 
     /**

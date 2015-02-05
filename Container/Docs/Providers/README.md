@@ -35,7 +35,7 @@ As command helps to assign objects to controller.
 
 ```php
 <?php
-$this->c->load('service/provider/db as stats', array('db' => 'stats'));
+$this->c['service/provider/db as stats', array('db' => 'stats')];
 $this->stats->tablename->insert(array $data);
 ```
 
@@ -47,7 +47,7 @@ Below the example we select the mongo collection after that we assign mongo obje
 
 ```php
 <?php
-$mongo = $this->c->load('return service/provider/mongo');
+$mongo = $this->c['return service/provider/mongo'];
 $mongo->test->insert();
 ```
 
@@ -114,7 +114,7 @@ You can set parameters any time after the provider is registered. Because of pro
 <?php
 $app = new Controller(
     function () use ($c) {
-        $this->c->load('view');
+        $this->c['view'];
         $this->c->load('service/provider/mongo')->database = 'db';
     }
 );
@@ -138,7 +138,7 @@ $app->func(
 <?php
 $app = new Controller(
     function () use ($c) {
-        $this->c->load('view');
+        $this->c['view'];
         $this->c->load('service/provider/mongo')->database = 'test';
     }
 );
@@ -167,13 +167,13 @@ $this->c->load('service/provider/db')->database = 'test';
 
 // $this->db->query('test database query');
 
-$this->c->load('service/provider/db as db', 'jobs'); // test db instance
-$this->c->load('service/provider/db as db', 'jobs'); // test db instance
-$this->c->load('service/provider/db as db', 'jobs'); // test db instance
+$this->c['service/provider/db as db', 'jobs']; // test db instance
+$this->c['service/provider/db as db', 'jobs']; // test db instance
+$this->c['service/provider/db as db', 'jobs']; // test db instance
 
 // $this->db->query('test database query');
 
-$this->c->load('new service/provider/db as db', 'jobs'); // jobs db instance
+$this->c['new service/provider/db as db', 'jobs']; // jobs db instance
 
 // $this->db->query('jobs database query');
 ```
@@ -223,7 +223,7 @@ Sometimes we may want to <b>same instance</b> of the provider. Forexample we wan
  */
 $app = new Controller(
     function ($c) {
-        $this->c->load('view');
+        $this->c['view'];
         $c['return service provider mongo']->get()->selectDb('db');
     }
 );

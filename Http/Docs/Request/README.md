@@ -9,7 +9,7 @@ Request class detects the server request method, secure connection, ip address, 
 
 ```php
 <?php
-$this->c->load('request');
+$this->c['request'];
 $this->request->method();
 ```
 

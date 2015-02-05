@@ -176,7 +176,7 @@ The function would return this:
 ------
 
 ```php
-$this->c->load('utils/uri');
+$this->c['utils/uri'];
 $this->utilsUri->method();
 ```
 

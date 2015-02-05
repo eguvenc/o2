@@ -87,13 +87,14 @@ Class MetaData
         $this->now = $this->session->getTime();
         $this->ipAddress = $this->c['request']->getIpAddress();
         $this->userAgent = $this->c['request']->server('HTTP_USER_AGENT');
-        $this->cache = $this->c->load(
-            'service provider cache', 
+
+        $this->cache = $this->c['service provider cache']->get(
             [
                 'driver' => $params['cache']['storage'],
                 'serializer' => 'SERIALIZER_NONE'
             ]
         );
+        
         $this->logger = $this->c['logger'];
     }
 

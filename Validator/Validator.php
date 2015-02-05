@@ -3,7 +3,8 @@
 namespace Obullo\Validator;
 
 use Closure,
-    Controller;
+    Controller,
+    Obullo\Container\Container;
 
 /**
  * Validator Class
@@ -37,13 +38,13 @@ Class Validator
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {    
-        mb_internal_encoding($c->load('config')['locale']['charset']);
+        mb_internal_encoding($c['config']['locale']['charset']);
         
         $this->c = $c;
         $this->logger = $c['logger'];
-        $this->translator = $c->load('translator');
+        $this->translator = $c['translator'];
         $this->translator->load('validator');     // Load validator language file from app/translations.
         $this->logger->debug('Validator Class Initialized');
     }

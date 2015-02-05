@@ -39,8 +39,7 @@ Class User implements UserInterface
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->db = $c->load(
-            'service provider '.$this->c['auth.params']['db.provider'],
+        $this->db = $this->c['service provider '.$this->c['auth.params']['db.provider']]->get(
             [
                 'connection' => $this->c['auth.params']['db.connection']
             ]

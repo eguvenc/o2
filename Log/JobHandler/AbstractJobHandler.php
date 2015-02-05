@@ -30,8 +30,7 @@ Abstract Class AbstractJobHandler
     {
         global $c;
         $this->c = $c;
-
-        $this->config = array('log' => $this->c->load('config')['log']);
+        $this->config = array('log' => $this->c['config']['log']);
 
         if ( ! empty($params)) {
             $this->config = array_merge($this->config, $params);

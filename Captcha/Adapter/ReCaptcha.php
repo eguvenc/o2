@@ -99,7 +99,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function init()
     {
         if ($this->config['user']['autoSendIp']) {
-            $this->setUserIp($this->c->load('request')->getIpAddress());
+            $this->setUserIp($this->c['request']->getIpAddress());
         }
         $this->buildHtml();
     }
@@ -242,7 +242,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function check($response = null)
     {
         if ($response == null) {
-            $response = $this->c->load('request')->post($this->config['form']['input']['attributes']['name']);
+            $response = $this->c['request']->post($this->config['form']['input']['attributes']['name']);
         }
         $response = $this->sendVerifyRequest(
             array(

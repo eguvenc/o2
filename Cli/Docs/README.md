@@ -87,7 +87,7 @@ Tüm task controller sınıfları **app/tasks** dizini altında bulunmaktadır. 
 
 ```php
 <?php
-$this->c->load('cli/task as task');
+$this->c['cli/task as task'];
 $this->task->run('controller');
 ```
 
@@ -228,7 +228,7 @@ php task queue listen --channel=Log --route=logger --delay=0 --memory=128 --debu
 ```php
 <?php
 
-$this->c->load('cli/parser as parser');
+$this->c['cli/parser as parser'];
 $this->parser->method();
 ```
 

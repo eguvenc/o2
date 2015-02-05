@@ -27,7 +27,7 @@ Yetki doğrulama paketi sınıflarına erişim user servisi üzerinden sağlanı
 User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları çalıştırılabilir.
 
 ```php
-$this->c->load('user');
+$this->c['user'];
 $this->user->class->method();
 ```
 
@@ -306,20 +306,20 @@ Class Login extends \Controller
 {
     public function load()
     {
-        $this->c->load('url');
-        $this->c->load('form');
-        $this->c->load('view');
-        $this->c->load('request');
-        $this->c->load('user');
-        $this->c->load('flash/session as flash');
-        $this->c->load('event')->subscribe(new User($this->c));   // Listen user events
+        $this->c['url'];
+        $this->c['form'];
+        $this->c['view'];
+        $this->c['request'];
+        $this->c['user'];
+        $this->c['flash/session as flash'];
+        $this->c['event']->subscribe(new User($this->c));   // Listen user events
     }
 
     public function index()
     {
         if ($this->request->isPost()) {
 
-            $this->c->load('validator'); // load validator
+            $this->c['validator']; // load validator
             $this->validator->setRules('email', 'Email', 'required|email|trim');
             $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
 

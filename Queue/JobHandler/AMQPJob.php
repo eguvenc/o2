@@ -90,7 +90,7 @@ Class AMQPJob extends Job
         $body = json_decode($body, true);
         $body['data']['attempts'] = $this->getAttempts() + 1; // Write attempts to body
 
-        $this->c->load('queue')->push($body['job'], $this->getName(), $body['data'], $delay);
+        $this->c['queue']->push($body['job'], $this->getName(), $body['data'], $delay);
     }
 
     /**

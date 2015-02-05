@@ -10,7 +10,7 @@ Password class produces secure password hash using Bcrypt algorithm.
 ```php
 <?php
 
-$this->c->load('password/bcrypt as password');
+$this->c['password/bcrypt as password'];
 $this->password->method();
 ```
 

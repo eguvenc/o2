@@ -12,7 +12,7 @@ The Event class provides a simple observer implementation, allowing you to subsc
 ```php
 <?php
 
-$this->c->load('event');
+$this->c['event'];
 $this->event->method();
 ```
 
@@ -106,7 +106,7 @@ Uygulamaya ait global event lar <b>app/events.php</b> içerisinde tanımlanmşt�
 |--------------------------------------------------------------------------
 */
 
-$c['event']->subscribe(new Event\Request);
+$c['event']->subscribe(new Event\Redirect);
 
 
 /* End of file events.php */
@@ -164,7 +164,7 @@ Event subscribers are classes that may subscribe to multiple events from within 
 ```php
 <?php
 
-namespace Event;
+namespace Event\Login;
 
 /**
  * User event handler
@@ -176,76 +176,9 @@ namespace Event;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/event
  */
-Class User
+Class Attempt
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
 
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
-     * Handle user login attempts
-     *
-     * @param object $authResult AuthResult object
-     * 
-     * @return void
-     */
-    public function onLoginAttempt(AuthResult $authResult)
-    {
-        if ( ! $authResult->isValid()) {
-
-            echo 'Hello Events: Login Invalid !';
-
-        }
-        return $authResult;
-    }
-
-    /**
-     * Handler user login events
-     * 
-     * @return void
-     */
-    public function onUserLogin()
-    {
-        // ..
-    }
-
-    /**
-     * Handle user logout events.
-     *
-     * @return void
-     */
-    public function onUserLogout()
-    {
-        // ..
-    }
-
-    /**
-     * Register the listeners for the subscriber.
-     * 
-     * @param object $event event class
-     * 
-     * @return void
-     */
-    public function subscribe($event)
-    {
-        $event->listen('user.login', 'Event\User.onUserLogin');
-        $event->listen('user.logout', 'Event\User.onUserLogout');
-    }
 
 }
 
@@ -281,12 +214,12 @@ Class Welcome extends Controller
      */
     public function load()
     {
-        $this->c->load('url');
-        $this->c->load('form');
-        $this->c->load('view');
-        $this->c->load('post');
-        $this->c->load('service/user');
-        $this->c->load('event')->subscribe(new Event\User($this->c));        
+        $this->c['url'];
+        $this->c['form'];
+        $this->c['view'];
+        $this->c['post'];
+        $this->c['service/user'];
+        $this->c['event']->subscribe(new Event\Login\Attempt($this->c)];        
     }
 
     /**
@@ -304,7 +237,7 @@ Class Welcome extends Controller
 
                 if ($this->post['dopost']) {
 
-                    $this->c->load('validator');
+                    $this->c['validator'];
 
                     $this->validator->setRules('email', 'Email', 'required|email|trim');
                     $this->validator->setRules('password', 'Password', 'required|min(6)|trim');

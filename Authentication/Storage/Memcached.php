@@ -40,10 +40,9 @@ Class Memcached extends AbstractStorage
         $this->c = $c;
         $this->auth = $c['config']->load('auth');
         $this->logger = $this->c['logger'];
-        $this->session = $this->c->load('session');
+        $this->session = $this->c['session'];
 
-        $this->cache = $this->c->load(
-            'service provider '.$this->auth['cache']['provider']['name'], 
+        $this->cache = $this->c['service provider '.$this->auth['cache']['provider']['name']]->get(
             [
                 'driver' => $this->auth['cache']['provider']['driver'], 
                 'serializer' => $this->auth['cache']['provider']['serializer']

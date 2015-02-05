@@ -52,7 +52,7 @@ Class Welcome extends Controller
      */
     public function load()
     {
-        $this->c->load('view');
+        $this->c['view'];
     }
 
     /**
@@ -137,7 +137,7 @@ Class Cars extends Controller
      */
     public function load()
     {
-        $this->c->load('view');
+        $this->c['view'];
     }
 
     /**

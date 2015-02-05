@@ -2,7 +2,8 @@
 
 namespace Obullo\Application;
 
-use BadMethodCallException;
+use BadMethodCallException,
+    RuntimeException;
 
 /**
  * Application Class
@@ -104,6 +105,10 @@ Class Application
             return;
         }
         foreach ($this->filters[$method] as $key => $Class) {
+
+            if (empty($Class)) {
+                throw new RuntimeException('Filter class %s requires but it is empty.');
+            }
             $Class = '\\'.ucfirst($this->filters[$method][$key]);
             $class = new $Class($this->c, $params);
 
@@ -118,11 +123,6 @@ Class Application
             }
             $class->$method();
         }
-    }
-
-    public function addFilter()
-    {
-        $this->filter();
     }
 
     /**

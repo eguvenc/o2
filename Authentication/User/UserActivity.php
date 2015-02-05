@@ -55,9 +55,9 @@ Class UserActivity
         $this->c = $c;
         $this->storage = $this->c['auth.storage'];
         $this->config  = $this->c['config']->load('auth');
-        $this->cache   = $this->c->load('cache');
-        $this->session = $this->c->load('session');
-        $this->request = $this->c->load('request');
+        $this->cache   = $this->c['cache'];
+        $this->session = $this->c['session'];
+        $this->request = $this->c['request'];
 
         $this->attributes = $this->c['auth.identity']->__activity;
         $this->identifier = $this->c['auth.identity']->getIdentifier();

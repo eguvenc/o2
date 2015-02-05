@@ -21,7 +21,7 @@ Yetkiler paketi sınıflarına erişim rbac servisi üzerinden sağlanır, bu se
 Rbac servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları çalıştırılabilir.
 
 ```php
-$this->c->load('service/rbac');
+$this->c['service/rbac'];
 $this->rbac->class->method();
 ```
 

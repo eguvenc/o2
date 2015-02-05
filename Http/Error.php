@@ -70,7 +70,7 @@ Class Error
             $this->error = $message;
             return $message;
         }
-        header('Content-type: text/html; charset='.$this->c->load('config')['locale']['charset']); // Some times we use utf8 chars in errors.
+        header('Content-type: text/html; charset='.$this->c['config']['locale']['charset']); // Some times we use utf8 chars in errors.
         echo $this->showHttpError($heading, $message, 'general', $statusCode);
         exit();
     }

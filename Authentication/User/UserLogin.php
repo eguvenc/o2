@@ -80,7 +80,7 @@ Class UserLogin
     {
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
-        $this->c['event']->fire('login.beforeAttempt', array($credentials)); 
+        $this->c['event']->fire('login.attempt.before', array($credentials)); 
 
         if ( ! isset($credentials[$this->columnIdentifier]) OR ! isset($credentials[$this->columnPassword]) ) {
             $message = sprintf(
@@ -100,7 +100,7 @@ Class UserLogin
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
         $authResult = $this->c['auth.adapter']->login(new GenericUser($this->c, $credentials));
 
-        $eventResult = $this->c['event']->fire('login.afterAttempt', array($authResult));  // Returns to overriden auth result object
+        $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
                                                                                       // Event fire returns multiple array response but we use one.
         return isset($eventResult[0]) ? current($eventResult) : $authResult;
     }
@@ -141,7 +141,7 @@ Class UserLogin
     {
         $plain = $credentials[$this->columnPassword];
 
-        return $this->c->load('password')->verify($plain, $user->getPassword());
+        return $this->c['password']->verify($plain, $user->getPassword());
     }
     
     /**

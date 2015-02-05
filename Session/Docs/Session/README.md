@@ -12,7 +12,7 @@ For the most part the session class will run unattended in the background, so si
 
 ```php
 <?php
-$this->c->load('session');
+$this->c['session'];
 $this->session->method();
 ```
 

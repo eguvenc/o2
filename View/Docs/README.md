@@ -11,7 +11,7 @@ Views can flexibly be embedded within other views using <b>Nested Layers</b>. ( 
 
 ```php
 <?php
-$this->c->load('view');
+$this->c['view'];
 $this->view->method();
 ```
 Once loaded, the view object will be available using: <dfn>$this->view->method()</dfn>
@@ -477,7 +477,7 @@ Finally calling Header View Controller using <b>"Layers"</b> gives below the out
 
 ```php
 <?php
-$this->c->load('layer');
+$this->c['layer'];
 echo $this->layer->get('views/header');
 ```
 Gives 

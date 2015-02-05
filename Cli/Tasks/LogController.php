@@ -26,7 +26,7 @@ Class LogController extends Controller
      */
     public function load()
     {
-        $this->c->load('cli/parser as parser');
+        $this->c['cli/parser as parser'];
         $this->c['logger'];
     }
 
@@ -100,7 +100,7 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
         /**
          * Clear Queue handler data
          */
-        $queue = $this->c->load('queue');
+        $queue = $this->c['queue'];
         $queue->deleteQueue($this->config['log']['queue']['route']);
         
         echo "\33[1;36mApplication logs deleted.\33[0m\n";

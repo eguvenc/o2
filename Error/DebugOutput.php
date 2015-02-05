@@ -112,14 +112,14 @@ Class DebugOutput
                     if (stream_is_local($file)) { 
                         $file = static::getSecurePath($file);
                     }
-                    return '<small>resource</small><span>(' . $type . ')</span> ' . htmlspecialchars($file, ENT_NOQUOTES, $c->load('config')['locale']['charset']);
+                    return '<small>resource</small><span>(' . $type . ')</span> ' . htmlspecialchars($file, ENT_NOQUOTES, $c['config']['locale']['charset']);
                 }
             } else {
                 return '<small>resource</small><span>(' . $type . ')</span>';
             }
         } elseif (is_string($var)) {
             // Encode the string
-            $str = htmlspecialchars($var, ENT_NOQUOTES, $c->load('config')['locale']['charset']);
+            $str = htmlspecialchars($var, ENT_NOQUOTES, $c['config']['locale']['charset']);
 
             return '<small>string</small><span>(' . strlen($var) . ')</span> "' . $str . '"';
         } elseif (is_array($var)) {
@@ -144,7 +144,7 @@ Class DebugOutput
                     if ($key === $marker)
                         continue;
                     if (!is_int($key)) {
-                        $key = '"' . htmlspecialchars($key, ENT_NOQUOTES, $c->load('config')['locale']['charset']) . '"';
+                        $key = '"' . htmlspecialchars($key, ENT_NOQUOTES, $c['config']['locale']['charset']) . '"';
                     }
                     $output[] = "$space$s$key => " . static::dumpArgument($val, $length, $level + 1);
                 }

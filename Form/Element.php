@@ -22,8 +22,9 @@ Class Element
     public function __construct($c)
     {
         $this->c = $c;
-        $this->translator = $c['translator'];
         $this->logger = $c['logger'];
+        $this->translator = $c['translator'];
+
         $this->logger->debug('Form Element Class Initialized');
     }
 
@@ -110,16 +111,6 @@ Class Element
         if (is_object($selected)) { // $_POST & Db value schema sync
             $selected = $this->getRowValue($selected, $name);
         }
-        if (is_string($options) AND strpos($options, '@') === 0) { // Needs layer or not ?
-            $matches = explode('.', $val);
-            $method = $matches[0];
-            $uri = $matches[1];
-            $param = (isset($matches[2])) ? $matches[2] : null;
-            $r = $this->c->load('layer')->$method($uri, $param);
-            if (isset($r['results']) AND is_array($r['results'])) {
-                $options = $r['results'];
-            }
-        } 
         if ($selected === false) { // False == "0" bug fix, false is not an Integer.
             $selected_option = array_keys($options);
             $selected        = $selected_option[0];
@@ -294,7 +285,7 @@ Class Element
         if ($attributes == '') {
             $attributes = 'method="post"';
         }
-        $action = ( strpos($action, '://') === false) ? $this->c->load('uri')->getSiteUrl($action) : $action;
+        $action = ( strpos($action, '://') === false) ? $this->c['uri']->getSiteUrl($action) : $action;
         $form  = '<form action="'.$action.'"';
         $form .= $this->attributesToString($attributes, true);
         $form .= '>';
@@ -428,7 +419,7 @@ Class Element
      */
     public function submit($data = '', $value = '', $extra = '')
     {
-        $defaults = array('type' => 'submit', 'name' => (( ! is_array($data)) ? $data : ''), 'value' => $this->c->load('translator')[$value]);
+        $defaults = array('type' => 'submit', 'name' => (( ! is_array($data)) ? $data : ''), 'value' => $this->c['translator'][$value]);
         return '<input ' . $this->parseFormAttributes($data, $defaults) . $extra . ' />';
     }
    
@@ -528,7 +519,7 @@ Class Element
                 $attributes.= ' method="post"';
             }
             if (strpos($attributes, 'accept-charset=') === false) {
-                $attributes.= ' accept-charset="'.strtolower($this->c->load('config')['locale']['charset']).'"';
+                $attributes.= ' accept-charset="'.strtolower($this->c['config']['locale']['charset']).'"';
             }
             return ' '.ltrim($attributes);
         }
@@ -541,7 +532,7 @@ Class Element
                 $atts.= ' method="post"';
             }
             if ( ! isset($attributes['accept-charset'])) {
-                $atts.= ' accept-charset="'.strtolower($this->c->load('config')['locale']['charset']).'"';
+                $atts.= ' accept-charset="'.strtolower($this->c['config']['locale']['charset']).'"';
             }
             foreach ($attributes as $key => $val) {
                 $atts.= ' '.$key.'="'.$val.'"';

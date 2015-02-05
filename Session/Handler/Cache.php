@@ -64,8 +64,7 @@ Class Cache
     {
         $savePath = null;
         $sessionName = null;
-        $this->cache = $this->c->load(
-            'service provider cache',
+        $this->cache = $this->c['service provider cache']->get(
             [
                 'driver' => $this->params['cache']['storage'],
                 'serializer' => 'SERIALIZER_NONE'

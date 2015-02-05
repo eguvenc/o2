@@ -23,7 +23,7 @@ Class DomainController extends Controller
      */
     public function load()
     {
-        $this->c->load('cli/parser as parser');
+        $this->c['cli/parser as parser'];
     }
 
     /**

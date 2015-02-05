@@ -153,7 +153,7 @@ Class ErrorHandler
             AND $level
         ) {
             $e = new ErrorException($message, $level, 0, $file, $line);
-            $c->load('exception')->toString($e);
+            $c['exception']->toString($e);
         }
         return false;
     }

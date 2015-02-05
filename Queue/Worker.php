@@ -194,10 +194,11 @@ Class Worker
     {
         $this->c = $c;
         $this->c['config']->load('queue');  // Load queue configuration
-        $this->queue = $this->c->load('queue');
-        $this->logger = $this->c['logger'];
 
-        $this->parser = $this->c->load('cli/parser');
+        $this->queue = $this->c['queue'];
+        $this->logger = $this->c['logger'];
+        $this->parser = $this->c['cli/parser'];
+        
         $this->parser->parse($arguments);
 
         Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it

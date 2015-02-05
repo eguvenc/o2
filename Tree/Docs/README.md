@@ -13,7 +13,7 @@ Tree class use nested set model. It is a particular technique for representing n
 
 ```php
 <?php
-$this->c->load('tree/db as tree');
+$this->c['tree/db as tree'];
 $this->tree->setTablename('categories');
 ```
 
@@ -23,7 +23,7 @@ Using second parameter you can choose a different database object.
 
 ```php
 <?php
-$this->c->load('tree/db', $this->c->load('service/provider/db'));
+$this->c['tree/db'];
 ```
 
 ### Running SQL Code

@@ -89,20 +89,20 @@ Class HelloForm extends \Controller
      */
     public function load()
     {
-        $this->c->load('url');
-        $this->c->load('html');
-        $this->c->load('view');
-        $this->c->load('post');
-        $this->c->load('form');
-        $this->c->load('request');
-        $this->c->load('flash/session as flash');
+        $this->c['url'];
+        $this->c['html'];
+        $this->c['view'];
+        $this->c['post'];
+        $this->c['form'];
+        $this->c['request'];
+        $this->c['flash/session as flash'];
     }
 
     public function index()
     {
         if ($this->request->isPost()) {  // If we have submit post
 
-            $this->c->load('validator');
+            $this->c['validator'];
 
             $this->validator->setRules('email', 'Email', 'required|email');
             $this->validator->setRules('password', 'Password', 'required|min(6)');
@@ -352,11 +352,11 @@ Class HelloForm extends \Controller
      */
     public function load()
     {
-        $this->c->load('url');
-        $this->c->load('view');
-        $this->c->load('post');
-        $this->c->load('form');
-        $this->c->load('session as sess');
+        $this->c['url'];
+        $this->c['view'];
+        $this->c['post'];
+        $this->c['form'];
+        $this->c['session'];
     }
 
     public function index()

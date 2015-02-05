@@ -56,7 +56,7 @@ abstract Class AbstractAdapter
      */
     public function __construct($c)
     {
-        $this->session = $c->load('session');
+        $this->session = $c['session'];
         $this->logger  = $c['logger'];
         
         $this->init();

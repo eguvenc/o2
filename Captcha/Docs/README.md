@@ -19,7 +19,7 @@ Sınıf bir kez load komutu ile yüklendiği zaman artık kütüphane metotları
 ```php
 <?php
 
-$this->c->load('captcha');
+$this->c['captcha'];
 $this->captcha->method();
 ```
 
@@ -53,7 +53,7 @@ Creates captcha on the fly with default settings.
 
 ```php
 <?php
-$this->c->load('service/captcha');
+$this->c['service/captcha'];
 $this->captcha->create();
 ```
 
@@ -313,7 +313,7 @@ $this->captcha->getImageId();  // gives d9f0c551df608146444e5d514bc56777
 ```
 <?php
 
-$this->c->load('captcha');
+$this->c['captcha'];
 
 $this->captcha->setDriver('secure');  // or set to "cool" with no background
 $this->captcha->setPool('alpha');
@@ -344,7 +344,7 @@ In your controller you need to use the code below for checking the captcha answe
 ```php
 <?php
 
-$this->c->load('post');
+$this->c['post'];
 
 $image_id = $this->post['image_id'];
 $code 	  = $this->sess->get($image_id);

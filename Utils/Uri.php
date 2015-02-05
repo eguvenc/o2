@@ -29,7 +29,7 @@ Class Uri
     public function __construct($c)
     {
         $this->c = $c;
-        $this->uri = $c->load('uri');
+        $this->uri = $c['uri'];
     }
 
     /**

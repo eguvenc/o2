@@ -9,8 +9,8 @@ Mongo Db Class is a full featured <kbd>( CRUD based )</kbd> database management 
 
 ```php
 <?php
-$this->c->load('service/provider/mongo')->db('name');
-$this->mongo->collection->method();
+$this->mongo = $this->c['service provider mongo']->get(['connection' => 'default'])->selectDb('collection');
+$this->mongo->method();
 ```
 
 Once loaded, the Mongo object will be available using: <kbd>$this->mongo->method();</kbd>
@@ -40,7 +40,7 @@ return array(
 
 ```php
 <?php
-$this->c->load('service/provider/mongo')->db('stats');
+$this->c['service/provider/mongo']->db('stats');
 
 foreach ($this->mongo->users->find() as $val) {
     echo $val['_id'].'<br>';
@@ -51,7 +51,7 @@ Changing the database
 
 
 ```php
-$this->c->load('service/provider/mongo')->db('db');  // change database
+$this->c['service/provider/mongo')->db('db'];  // change database
 
 foreach ($this->mongo->logs->find() as $val) {
     echo $val['message'].'<br>';
@@ -66,7 +66,7 @@ foreach ($this->mongo->logs->find() as $val) {
 
 ```php
 <?php
-$this->c->load('service/mongo')->db('name');
+$this->c['service/mongo']->db('name'];
 $this->mongo->get('collection')->method();
 ```
 
@@ -74,7 +74,7 @@ $this->mongo->get('collection')->method();
 
 ```php
 <?php
-$this->c->load('service/mongo')->db('test');
+$this->c['service/mongo']->db('test'];
 
 $this->mongo->get('users');
 $row = $this->mongo->rowArray();

@@ -107,7 +107,7 @@ Class Translator implements ArrayAccess
          */
         $this->translator = $this->c['config']->load('translator');  // Get package config file
         $this->locale = $this->translator['locale']['default'];  // Default lang code
-        $this->config = $this->c->load('config');  // Get package config file
+        $this->config = $this->c['config'];  // Get package config file
 
         $this->setFallback($this->locale);
 
@@ -264,7 +264,7 @@ Class Translator implements ArrayAccess
         $cookie = $this->getCookie();
 
         if ($this->translator['uri']['segment']) {         // Set via URI Segment
-            $segment = $this->c->load('uri')->segment($this->translator['uri']['segmentNumber']);
+            $segment = $this->c['uri']->segment($this->translator['uri']['segmentNumber']);
             if ( ! empty($segment)) {
                 $bool = ($cookie == $segment) ? false : true; // Do not write if cookie == segment value same
                 if ($this->setLocale($segment, $bool)) {

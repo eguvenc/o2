@@ -241,7 +241,7 @@ Class Form
     public function getError($field, $prefix = '', $suffix = '')
     {
         if ($this->c->exists('validator')) {  // If we have validator object
-            return $this->c->load('validator')->getError($field, $prefix, $suffix);
+            return $this->c['validator']->getError($field, $prefix, $suffix);
         }
     }
 
@@ -259,7 +259,7 @@ Class Form
     public function getValue($field = '', $default = '')
     {
         if ($this->c->exists('validator')) { // If we have validator object
-            return $this->c->load('validator')->getValue($field, $default);
+            return $this->c['validator']->getValue($field, $default);
         }
         return $default;
     }
@@ -292,7 +292,7 @@ Class Form
      */
     public function setSelect($field = '', $value = '', $default = false, $selectedString = ' selected="selected"')
     {
-        $validator = $this->c->load('validator');
+        $validator = $this->c['validator'];
         if ( ! isset($validator->fieldData[$field]) OR ! isset($validator->fieldData[$field]['postdata'])) {
             if ($default === true AND count($validator->fieldData) === 0) {
                 return $selectedString;
