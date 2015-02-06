@@ -7,7 +7,6 @@ use Container;
 use SimpleXMLElement;
 use Obullo\Queue\Failed\FailedJob;
 
-
 /**
  * FailedJob Database Handler
  * 
