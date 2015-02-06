@@ -547,7 +547,7 @@ Class Router
                 }
                 $val['scheme'] = preg_replace('#{(.*?)}#', '', $val['scheme']);
             }
-            if (static::routeMatch($val['match'], $uri)) {  // Does the RegEx match?
+            if (static::routeMatch($val['match'], $uri)) {  // Does the route match ?
 
                 if (count($val['when']) > 0) { //  When http method filter
                     $this->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $val['when']));

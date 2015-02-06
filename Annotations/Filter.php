@@ -124,7 +124,7 @@ Class Filter
      */
     public function finish($filter = '')
     {
-        $this->after[$this->count] = array('name' => $filter);
+        $this->finish[$this->count] = array('name' => $filter);
         $this->track[] = 'finish';
         ++$this->count;
         return $this;
@@ -175,28 +175,28 @@ Class Filter
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['event']->fire('on.method', array((object)$params, $this->httpMethod)); // Replace here with RequestMethod Filter.
+        $this->c['router']->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $params));
         return;
     }
 
     /**
      * Render filter data
      *
-     * @param string $direction before or after
+     * @param string $method before or after
      * 
      * @return void
      */
-    public function initFilters($direction = 'before')
+    public function initFilters($method = 'before')
     {   
-        if (count($this->{$direction}) == 0) {
+        if (count($this->{$method}) == 0) {
             return;
         }
-        foreach ($this->{$direction} as $val) {
+        foreach ($this->{$method} as $val) {
             if (isset($val['when']) AND in_array($this->httpMethod, $val['when'])) {  // stop filter
-                $this->c['router']->runFilter($val['name'], $direction);
+                $this->c['router']->runFilter($val['name'], $method);
             }
             if ( ! isset($val['when'])) {
-                $this->c['router']->runFilter($val['name'], $direction);
+                $this->c['router']->runFilter($val['name'], $method);
             }
         }
     }
