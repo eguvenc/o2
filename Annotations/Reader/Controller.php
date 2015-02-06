@@ -45,6 +45,9 @@ Class Controller
     {
         $this->c = $c;
         $reflection = new ReflectionClass($class);
+        if ( ! $reflection->hasMethod($method)) {
+            \Controller::$instance->response->show404();
+        }
         $this->blocks = $reflection->getMethod($method)->getDocComment();
     }
 

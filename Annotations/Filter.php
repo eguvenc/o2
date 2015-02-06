@@ -175,7 +175,7 @@ Class Filter
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['router']->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $params));
+        \Controller::$instance->router->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $params));
         return;
     }
 
@@ -193,10 +193,10 @@ Class Filter
         }
         foreach ($this->{$method} as $val) {
             if (isset($val['when']) AND in_array($this->httpMethod, $val['when'])) {  // stop filter
-                $this->c['router']->runFilter($val['name'], $method);
+                \Controller::$instance->router->runFilter($val['name'], $method);
             }
             if ( ! isset($val['when'])) {
-                $this->c['router']->runFilter($val['name'], $method);
+                \Controller::$instance->router->runFilter($val['name'], $method);
             }
         }
     }
