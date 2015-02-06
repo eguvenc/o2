@@ -2,10 +2,10 @@
 
 namespace Obullo\Queue\Failed\Storage;
 
-use Pdo,
-    Container,
-    SimpleXMLElement,
-    Obullo\Queue\Failed\FailedJob,
+use Pdo;
+use Container;
+use SimpleXMLElement;
+use Obullo\Queue\Failed\FailedJob;
 
 /**
  * FailedJob Database Handler

@@ -781,6 +781,7 @@ Class Router
             $this->DOMAIN = $match;
             return true; // Regex match.
         }
+        // var_dump($this->HOST);
         if ($this->ROOT == $this->HOST) {
             $this->DOMAIN = $this->ROOT;
         }
