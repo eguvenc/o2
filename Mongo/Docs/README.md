@@ -3,14 +3,32 @@
 
 Mongo Db Class is a full featured <kbd>( CRUD based )</kbd> database management library for popular NoSQL database <b>Mongodb</b>.
 
-### Initializing Mongo Provider
+### Configuring Mongo Service
 
 ------
 
 ```php
-<?php
-$this->mongo = $this->c['service provider mongo']->get(['connection' => 'default'])->selectDb('collection');
-$this->mongo->method();
+Class Mongo implements ServiceInterface
+{
+    /**
+     * Registry
+     *
+     * @param object $c container
+     * 
+     * @return void
+     */
+    public function register(Container $c)
+    {
+        $c['mongo'] = function () use ($c) {
+            return new Query(
+                $c,
+                [
+                    'connection' => 'default',  //  set your connection name
+                ]
+            );
+        };
+    }
+}
 ```
 
 Once loaded, the Mongo object will be available using: <kbd>$this->mongo->method();</kbd>
@@ -36,29 +54,6 @@ return array(
 );
 ```
 
-### Basic Usage
-
-```php
-<?php
-$this->c['service/provider/mongo']->db('stats');
-
-foreach ($this->mongo->users->find() as $val) {
-    echo $val['_id'].'<br>';
-}
-```
-
-Changing the database
-
-
-```php
-$this->c['service/provider/mongo')->db('db'];  // change database
-
-foreach ($this->mongo->logs->find() as $val) {
-    echo $val['message'].'<br>';
-}
-```
-
-
 ### Initializing Mongo Query Service
 
 
@@ -66,7 +61,7 @@ foreach ($this->mongo->logs->find() as $val) {
 
 ```php
 <?php
-$this->c['service/mongo']->db('name'];
+$this->c['mongo']->selectDb('name');
 $this->mongo->get('collection')->method();
 ```
 
@@ -74,10 +69,9 @@ $this->mongo->get('collection')->method();
 
 ```php
 <?php
-$this->c['service/mongo']->db('test'];
+$this->c['mongo']->selectDb('test'];
 
-$this->mongo->get('users');
-$row = $this->mongo->rowArray();
+$row = $this->mongo->get('users')->rowArray();
 
 if($row) {
     foreach($docs as $row) {
