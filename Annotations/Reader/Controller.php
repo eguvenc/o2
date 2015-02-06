@@ -66,8 +66,6 @@ Class Controller
         $docs = str_replace('*', '', $this->blocks);
         $docs = explode("@", $docs);
 
-        print_r($docs);
-
         $filter = false;
         if (strpos($this->blocks, 'filter->') > 0) {  // If we have @filter blocks
             $filter = new Filter($this->c);
