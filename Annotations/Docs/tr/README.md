@@ -50,7 +50,6 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
 Config.php konfigürasyon dosyasını açın ve annotations reader anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
-<?php
 /*
 |--------------------------------------------------------------------------
 | Annotations
@@ -64,8 +63,6 @@ Config.php konfigürasyon dosyasını açın ve annotations reader anahtarının
 Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi kullanabilirsiniz.
 
 ```php
-<?php
-
 /**
  * Index
  *
@@ -89,7 +86,6 @@ Aşağıdaki örneklere bir göz atın.
 #### Örnekler
 
 ```php
-<?php
 /**
  * Index
  *
@@ -103,7 +99,6 @@ Aşağıdaki örneklere bir göz atın.
 Controller sınıfının çalışma seviyesinden önce <b>csrf</b> filtresini çalıştırır ve sadece <b>get</b> ve <b>post</b> metotlarına erişime izin verir.
 
 ```php
-<?php
 /**
  * Index
  *
@@ -117,7 +112,6 @@ Sadece http <b>post</b> işlemlerinde controller sınıfının çalışma seviye
 
 
 ```php
-<?php
 /**
  * Index
  *
@@ -128,3 +122,22 @@ Sadece http <b>post</b> işlemlerinde controller sınıfının çalışma seviye
 ```
 
 Sadece http <b>post</b> ve <b>get</b> işlemlerinde controller sınıfının çalışma seviyesinden önce <b>auth</b> filtresini çalıştırır.
+
+
+#### Filtreleri tüm sınıf metotlarında geçerli kılmak
+
+Bazı durumlarda yüklenen controller ın tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
+
+```php
+/**
+ * Loader
+ *
+ * @filter->method("post","get");
+ * 
+ * @return void
+ */
+public function load()
+{
+    // ..
+}
+```

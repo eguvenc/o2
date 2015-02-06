@@ -41,6 +41,7 @@ Class Query
     public $mongoId = true;         // Use or not use mongoid object
     public $resultObject = null;    // Database result object
     public $operation = '';         // Set operation type for latest query
+    public $params;                 // Service parameters
 
     /**
     * Constructor
@@ -53,7 +54,19 @@ Class Query
     public function __construct(Container $c, $params)
     {
         $this->c = $c;
-        $this->db = $this->c['service provider mongo']->get(['connection' => $params['connection']])->selectDb($params['db']);
+        $this->params = $params;
+    }
+
+    /**
+     * Select database from current mongo connection
+     * 
+     * @param string $db name
+     * 
+     * @return void
+     */
+    public function selectDb($db)
+    {
+        $this->db = $this->c['service provider mongo']->get(['connection' => $this->params['connection']])->selectDb($db);
     }
 
     /**

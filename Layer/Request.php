@@ -129,7 +129,6 @@ Class Request
         }
         return (string)$rsp;
     }
-
 }
 
 // END Request class

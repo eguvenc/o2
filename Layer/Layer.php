@@ -258,6 +258,8 @@ Class Layer
 
         $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
 
+        $this->makeGlobal(); // Store global objects into request->global variable.
+
                                                     // Check class is exists in the storage
         if ( ! class_exists($className, false)) {   // Don't allow multiple include.
             include $controller;                    // Load the controller file.
@@ -271,8 +273,6 @@ Class Layer
             $this->reset();
             return $this->c['response']->show404($this->layerUri.'/'.$method, false);
         }
-
-        $this->makeGlobal();
 
         ob_start();
         call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 3));
@@ -297,9 +297,13 @@ Class Layer
     protected function assignObjects($class)
     {
         $instance = $this->c['request']->globals->global;  // Assign loaded libraries to called controller.
-        
-        unset($instance->uri, $instance->router, $instance->config, $instance->logger, $instance->response);
-
+        unset(
+            $instance->uri,
+            $instance->router,
+            $instance->config,
+            $instance->logger,
+            $instance->response
+        );
         foreach ($this->c['request']->globals->global as $key => $value) {
             $class->{$key} = $value;
         }

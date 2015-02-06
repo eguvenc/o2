@@ -45,10 +45,15 @@ Class Controller
     {
         $this->c = $c;
         $reflection = new ReflectionClass($class);
-        if ( ! $reflection->hasMethod($method)) {
-            \Controller::$instance->response->show404();
+
+        if ( ! $reflection->hasMethod($method)) {  // Show404 if method not exists
+            $this->c['response']->show404();
         }
-        $this->blocks = $reflection->getMethod($method)->getDocComment();
+        $this->blocks = '';
+        if ($reflection->hasMethod('load')) {
+            $this->blocks = $reflection->getMethod('load')->getDocComment();
+        }
+        $this->blocks.= $reflection->getMethod($method)->getDocComment();
     }
 
     /**
@@ -60,6 +65,8 @@ Class Controller
     {
         $docs = str_replace('*', '', $this->blocks);
         $docs = explode("@", $docs);
+
+        print_r($docs);
 
         $filter = false;
         if (strpos($this->blocks, 'filter->') > 0) {  // If we have @filter blocks
