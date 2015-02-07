@@ -19,7 +19,7 @@ $this->mongo->find();
 Factroy Örneği ( Config te olmayan yeni konnekşın lar üretmek )
 
 ```php
-$this->mongo = $this->c['service provider mongo']->get(
+$this->mongo = $this->c['service provider mongo']->factory(
 	[
 		'server' => 'mongodb://localhost:27017',
 		'options' => array('connect' => true)

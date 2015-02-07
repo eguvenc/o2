@@ -1,12 +1,12 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
 /**
  * Service Provider Helper
  * 
  * @category  Utilities
- * @package   ServiceProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -31,4 +31,4 @@ Trait ConnectionTrait
 // END ConnectionTrait class
 
 /* End of file ConnectionTrait.php */
-/* Location: .Obullo/ServiceProvider/ConnectionTrait.php */
+/* Location: .Obullo/ServiceProviders/ConnectionTrait.php */

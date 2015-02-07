@@ -27,12 +27,6 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-$annotationFilter = false;
-if ($c['config']['annotation']['controller']) {
-    $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
-    $annotationFilter = $docs->parse();
-}
-
 if (method_exists($class, 'load')) {
     $class->load();
 }
@@ -62,8 +56,5 @@ call_user_func_array(array($class, $router->fetchMethod()), $arguments);
  */
 $response->output();    // Send ( print ) the final rendered output to the browser
 
-
-// END Obullo.php File
-/* End of file Obullo.php
 
 /* Location: .Obullo/Obullo.php */

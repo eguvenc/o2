@@ -25,11 +25,14 @@ trait UnderMaintenanceTrait
      */
     public function subDomainIsDown()
     {
+        if ($this->params['domain'] == $this->c['config']['url']['webhost']) {
+            $this->params['domain'] = array('regex' => $this->c['config']['url']['webhost']);
+        }
         if ( ! is_array($this->params['domain']) OR ! isset($this->params['domain']['regex'])) {
             throw new RuntimeException(
                 sprintf(
                     'Correct your routes.php domain value it must be like this <pre>%s</pre>', 
-                    '$c[\'router\']->group( array(\'domain\' => $c[\'config\'][\'domain\'][\'key\'], .., function () { .. }),.'
+                    '$c[\'router\']->group( [\'domain\' => $c[\'config\'][\'domain\'][\'key\'], .., function () { .. }),.'
                 )
             );
         }

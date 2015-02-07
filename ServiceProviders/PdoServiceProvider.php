@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProvider\PdoConnectionProvider,
+use Obullo\ServiceProviders\PdoConnectionProvider,
     Obullo\Container\Container;
 
 /**
  * Mongo Service Provider
  *
- * @category  Provider
- * @package   Mongo
+ * @category  ServiceProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -31,16 +31,16 @@ Class PdoServiceProvider
             $connector = PdoConnectionProvider::getInstance($c);    // Register all Connectors as shared services
             $connector->register();
         }
-        $connector = PdoConnectionProvider::getInstance($c);    // Register all Connectors as shared services
+        $connector = PdoConnectionProvider::getInstance($c); 
 
-        if ( ! isset($params['connection'])) {                        // Do factory ( creates new connection ) if we have new match
+        if ( ! isset($params['connection'])) {                  // Do factory ( creates new connection )
             return $connector->factory($params);
         }
-        return $connector->getConnection($params);              // Get a Connector instance before we registered
+        return $connector->getConnection($params);             // Get existing connection
     }
 }
 
 // END MongoServiceProvider Class
 
 /* End of file MongoServiceProvider.php */
-/* Location: .Obullo/ServiceProvider/MongoServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/MongoServiceProvider.php */

@@ -2,16 +2,16 @@
 
 namespace Obullo\Queue\Handler;
 
-use AMQPQueue,
-    AMQPChannel,
-    AMQPEnvelope,
-    AMQPExchange,
-    AMQPException,
-    AMQPConnection,
-    RuntimeException,
-    Obullo\Queue\Queue,
-    Obullo\Container\Container,
-    Obullo\Queue\JobHandler\AMQPJob;
+use AMQPQueue;
+use AMQPChannel;
+use AMQPEnvelope;
+use AMQPExchange;
+use AMQPException;
+use AMQPConnection;
+use RuntimeException;
+use Obullo\Queue\Queue;
+use Obullo\Container\Container;
+use Obullo\Queue\JobHandler\AMQPJob;
 
 /**
  * AMQP Handler
@@ -35,18 +35,18 @@ Class AMQP extends Queue implements HandlerInterface
     public $c;
 
     /**
+     * AMQP channel name
+     * 
+     * @var string
+     */
+    protected $channel = null;
+
+    /**
      * AMQP connection instance
      * 
      * @var object
      */
-    protected $connection;
-
-    /**
-     * AMQP channel name
-     * 
-     * @var 
-     */
-    protected $channel = null;
+    protected $AMQPconnection;
 
     /**
      * Store declared channels
@@ -70,20 +70,12 @@ Class AMQP extends Queue implements HandlerInterface
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('queue')['server'];
+        $this->config = $this->c['config']->load('queue');
         $this->logger = $this->c['logger'];
 
-        if ( ! extension_loaded('AMQP')) {
-            throw new RuntimeException('AMQP extension required but not installed.');
-        }
-        $this->connection = new AMQPConnection; 
-        $this->connection->setHost($this->config['host']); 
-        $this->connection->setPort($this->config['port']); 
-        $this->connection->setLogin($this->config['user']); 
-        $this->connection->setPassword($this->config['pass']); 
-        $this->connection->setVHost($this->config['vhost']); 
-        $this->connection->connect();
-        $this->channel = new AMQPChannel($this->connection);
+        $this->AMQPconnection = $this->c['service provider AMQP']->get(['connection' => 'default']);
+
+        $this->channel = new AMQPChannel($this->AMQPconnection);
         $this->defaultQueueName = $this->config['default']['queue'];
     }
 
@@ -235,7 +227,7 @@ Class AMQP extends Queue implements HandlerInterface
      */
     public function purgeQueue($name)
     {
-        $channel = new AMQPChannel($this->connection);
+        $channel = new AMQPChannel($this->AMQPconnection);
         $queue = new AMQPQueue($channel);
         $queue->setName($name);
         $queue->purge();
@@ -250,7 +242,7 @@ Class AMQP extends Queue implements HandlerInterface
      */
     public function deleteQueue($name)
     {
-        $channel = new AMQPChannel($this->connection);
+        $channel = new AMQPChannel($this->AMQPconnection);
         $queue = new AMQPQueue($channel);
         $queue->setName($name);
         $queue->delete();

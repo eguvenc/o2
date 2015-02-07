@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
 use RuntimeException,
     UnexpectedValueException,
@@ -11,8 +11,8 @@ use RuntimeException,
 /**
  * Pdo Connection Provider
  * 
- * @category  Pdo
- * @package   Connector
+ * @category  ConnectionProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -88,12 +88,12 @@ Class PdoConnectionProvider
     public function getConnection($params = array())
     {
         if ( ! isset($params['connection'])) {
-            $params['connection'] = $this->c['config']['database']['default']['connection'];  //  Set default connection
+            $params['connection'] = $this->config['default']['connection'];  //  Set default connection
         }
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Server key %s not exists in your database.php config file.',
+                    'Connection key %s not exists in your database.php config file.',
                     $params['connection']
                 )
             );
@@ -133,4 +133,4 @@ Class PdoConnectionProvider
 // END PdoConnectionProvider.php class
 /* End of file PdoConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProvider/PdoConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/PdoConnectionProvider.php */

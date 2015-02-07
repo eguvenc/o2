@@ -344,11 +344,11 @@ Class Router
     {
         $domainMatch = $this->detectDomain($group);
 
-        if ( ! isset($group['domain'])) {
-            $group['domain'] = null;
-        }
+        // if ( ! isset($group['domain'])) {
+        //     $group['domain'] = null;
+        // }
         if ( ! isset($group['name'])) {
-            $group['name'] = '*';
+            $group['name'] = 'UNNAMED';
         }
         if ($domainMatch === false AND $group['domain'] !== null) {
             return;
@@ -773,18 +773,15 @@ Class Router
     */
     public function detectDomain(array $options = array())
     {
-        $domain = (isset($options['domain'])) ? $options['domain'] : '*'; 
-        $domain = isset($domain['regex']) ? $domain['regex'] : $domain;
-        $match = false;
+        $domain = (isset($options['domain']['regex'])) ? $options['domain']['regex'] : $this->ROOT;
 
-        if ($domain != '*' AND $match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
+        if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true; // Regex match.
         }
-        // var_dump($this->HOST);
-        if ($this->ROOT == $this->HOST) {
-            $this->DOMAIN = $this->ROOT;
-        }
+        // if ($this->ROOT == $this->HOST) {
+        //     $this->DOMAIN = $this->ROOT;
+        // }
         return false;  // No regex match.
     }
 
@@ -835,7 +832,7 @@ Class Router
             return;
         }
         if ( ! isset($options['domain'])) {
-            $options['domain'] = '*';
+            $options['domain'] = $this->ROOT;
         }
         if (isset($options['filters'])) {
             $this->configureFilters($options['filters'], $route, $options);

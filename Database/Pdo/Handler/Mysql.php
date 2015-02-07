@@ -46,11 +46,6 @@ Class Mysql extends Adapter implements HandlerInterface
      */
     public function __construct($c, $params = array())
     {
-        // echo '__construct';
-        // $c['config']->load('database');
-        // $default = (isset($params['db'])) ? $params['db'] : $c['config']['database']['default']['database']; 
-
-        // parent::__construct($c, $c['config']['database']['connections'][$default]);
         parent::__construct($c, $params);
     }
 
@@ -64,11 +59,7 @@ Class Mysql extends Adapter implements HandlerInterface
         if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
             return $this;
         }
-        // $port = empty($this->params['port']) ? '' : ';port='. $this->params['port'];
-        // $dsn  = empty($this->params['dsn']) ? 'mysql:host=' . $this->params['hostname'] . $port . ';dbname=' . $this->params['database'] : $this->params['dsn'];
-
-        // $this->connection($dsn, $this->params);
-        $this->connection();
+        $this->createConnection();
     }
 
     /**

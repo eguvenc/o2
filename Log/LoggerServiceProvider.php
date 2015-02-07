@@ -5,7 +5,7 @@ namespace Obullo\Log;
 use Obullo\Container\Container;
 
 /**
- * LogServiceProviderProvider Class
+ * LoggerServiceProviderProvider Class
  * 
  * @category  Log
  * @package   Debug
@@ -14,7 +14,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class LogServiceProvider
+Class LoggerServiceProvider
 {
     /**
      * Container class
@@ -73,7 +73,7 @@ Class LogServiceProvider
     }
 }
 
-// END LogServiceProvider class
-/* End of file LogServiceProvider.php */
+// END LoggerServiceProvider class
+/* End of file LoggerServiceProvider.php */
 
-/* Location: .Obullo/Log/LogServiceProvider.php */
+/* Location: .Obullo/Log/LoggerServiceProvider.php */

@@ -50,8 +50,6 @@ Class Container implements ArrayAccess
     {
         $this->aliases = new SplObjectStorage;
         $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
-
-        unset($this->services['Provider']);
     }
 
     /**
@@ -214,7 +212,7 @@ Class Container implements ArrayAccess
         $serviceName = ucfirst($class);
 
         if ( ! empty($matches['provider'])) {  // Resolve provider
-            $serviceProviderClass = '\Obullo\ServiceProvider\\'.ucfirst($matches['class']).'ServiceProvider';
+            $serviceProviderClass = '\Obullo\ServiceProviders\\'.ucfirst($matches['class']).'ServiceProvider';
             $this->with[] = new $serviceProviderClass($this);
             return $this;
         }
@@ -254,6 +252,18 @@ Class Container implements ArrayAccess
         $serviceProvider = end($this->with);
         array_pop($this->with);
         return $serviceProvider->register($this, $params);
+    }
+
+    /**
+     * Creates new service provider connection
+     * 
+     * @param array $params array
+     * 
+     * @return void
+     */
+    public function factory($params = array())
+    {
+        return $this->get($params);
     }
 
     /**

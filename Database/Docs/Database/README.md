@@ -51,9 +51,7 @@ Open <kbd>Classes/Service/Provider/Db.php</kbd> and set your <u>Database Driver<
 ```php
 <?php
 
-namespace Service\Provider;
-
-use Obullo\Database\Connection;
+namespace Service;
 
 /**
  * Db Provider
@@ -76,10 +74,7 @@ Class Db implements ProviderInterface
      */
     public function register($c)
     {
-        $c['provider:db'] = function ($params = array('db' => 'db', 'provider' => 'mysql')) use ($c) {
-            $connection = new Connection($c, $params);
-            return $connection->connect();
-        };
+        // ....
     }
 }
 

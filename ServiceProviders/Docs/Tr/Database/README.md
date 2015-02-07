@@ -70,7 +70,7 @@ You can send manually your own configuration. The database service provider crea
 
 ```php
 <?php
-$db = $this->c['service provider database']->get(
+$db = $this->c['service provider database']->factory(
     [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
         'username' => 'root',

@@ -19,7 +19,7 @@ $this->pdo->query(" ... ");
 Factory Örneği ( Config te olmayan yeni konnekşın lar üretmek için )
 
 ```php
-$this->pdo = $this->c['service provider pdo']->get( 
+$this->pdo = $this->c['service provider pdo']->factory( 
     [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
         'username' => 'root',

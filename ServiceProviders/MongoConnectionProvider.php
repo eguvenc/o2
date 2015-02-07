@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
 use RuntimeException,
     UnexpectedValueException,
@@ -10,8 +10,8 @@ use RuntimeException,
 /**
  * Mongo Connection Provider
  * 
- * @category  Mongo
- * @package   Connector
+ * @category  ConnectionProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -91,7 +91,7 @@ Class MongoConnectionProvider
             return $this->factory($params);
         }
         if ( ! isset($params['connection'])) {
-            $params['connection'] = $this->c['config']['mongo']['default']['connection'];  //  Set default connection
+            $params['connection'] = $this->config['default']['connection'];  //  Set default connection
         }
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
@@ -148,4 +148,4 @@ Class MongoConnectionProvider
 // END MongoConnectionProvider.php class
 /* End of file MongoConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProvider/MongoConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/MongoConnectionProvider.php */

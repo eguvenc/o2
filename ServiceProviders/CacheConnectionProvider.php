@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
 use RuntimeException,
     UnexpectedValueException,
@@ -11,8 +11,8 @@ use RuntimeException,
 /**
  * Cache Connection Provider
  * 
- * @category  Cache
- * @package   Connector
+ * @category  ConnectionProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -82,17 +82,11 @@ Class CacheConnectionProvider
      */
     protected function createConnection($class, $params)
     {
-        $options = isset($params['serializer']) ? array('serializer' => $params['serializer']) : array('serializer' => $this->c['config']['cache']['default']['serializer']);
-        $handler = strtolower($class);
+        $options = isset($params['serializer']) ? array('serializer' => $params['serializer']) : array('serializer' => $this->config['default']['serializer']);
+        $driver = ucfirst(strtolower($class));
 
-        if ( ! isset($this->config['handlers'][$handler])) {
-            throw new RuntimeException(
-                sprintf(
-                    'Undefined handler %s in your cache.php config file.', $params['driver']
-                )
-            );
-        }
-        $connection = new $this->config['handlers'][$handler]($this->c, $options);  //  Store objects to container
+        $Class = '\\Obullo\Cache\Handler\\'.$driver;
+        $connection = new $Class($this->c, $options);  //  Store objects to container
         return $connection;
     }
 
@@ -101,4 +95,4 @@ Class CacheConnectionProvider
 // END CacheConnectionProvider.php class
 /* End of file CacheConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProvider/CacheConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/CacheConnectionProvider.php */

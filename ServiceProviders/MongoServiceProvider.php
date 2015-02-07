@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProvider\MongoConnectionProvider,
+use Obullo\ServiceProviders\MongoConnectionProvider,
     Obullo\Container\Container;
 
 /**
  * Mongo Service Provider
  *
- * @category  Provider
- * @package   Mongo
+ * @category  ServiceProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -40,4 +40,4 @@ Class MongoServiceProvider
 // END MongoServiceProvider Class
 
 /* End of file MongoServiceProvider.php */
-/* Location: .Obullo/ServiceProvider/MongoServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/MongoServiceProvider.php */

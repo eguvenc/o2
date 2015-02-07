@@ -1,6 +1,18 @@
 
 
+## QueryBuilder Class
 
-$this->db->where('id', 7)->delete('users');
+------
 
-$this->c['service/crud as db', $this->c->load('service/provider/db')];
+
+### Initializing the Class
+
+-------
+
+```php
+$this->c['query as db'];
+
+$array = $this->db->get('users')->resultArray();
+
+var_dump($array);
+```

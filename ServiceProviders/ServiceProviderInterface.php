@@ -1,14 +1,14 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
 
 /**
  * Service Provider Interface
  * 
- * @category  Service
- * @package   Provider
+ * @category  Interface
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -30,4 +30,4 @@ interface ServiceProviderInterface
 // END ServiceProviderInterface class
 
 /* End of file ServiceProviderInterface.php */
-/* Location: .Obullo/ServiceProvider/ServiceProviderInterface.php */
+/* Location: .Obullo/ServiceProviders/ServiceProviderInterface.php */

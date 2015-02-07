@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProvider\DatabaseConnectionProvider,
+use Obullo\ServiceProviders\DatabaseConnectionProvider,
     Obullo\Container\Container;
 
 /**
  * Database Service Provider
  *
- * @category  Provider
- * @package   Database
+ * @category  ServiceProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -31,16 +31,16 @@ Class DatabaseServiceProvider
             $connector = DatabaseConnectionProvider::getInstance($c);   // Register all Connectors as shared services
             $connector->register();
         }
-        $connector = DatabaseConnectionProvider::getInstance($c);       // Register all Connectors as shared services
+        $connector = DatabaseConnectionProvider::getInstance($c);
 
         if ( ! isset($params['connection'])) {  // Just one time register the shared objects
             return $connector->factory($params);
         }
-        return $connector->getConnection($params);
+        return $connector->getConnection($params);  // Get existing connection
     }
 }
 
 // END DatabaseServiceProvider Class
 
 /* End of file DatabaseServiceProvider.php */
-/* Location: .Obullo/ServiceProvider/DatabaseServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/DatabaseServiceProvider.php */

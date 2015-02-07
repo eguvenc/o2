@@ -40,7 +40,7 @@ function Obullo_autoloader($realname)
         return;
     }
     if ($fileName == 'Model') {  // Reserved class model
-        include_once OBULLO .'Model'. DS .'Model.php';
+        include_once OBULLO .'Obullo'. DS .'Model'. DS .'Model.php';
         return;
     }
     include_once CLASSES .$fileName. '.php'; // Otherwise load it from user directory

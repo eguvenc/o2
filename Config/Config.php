@@ -2,11 +2,11 @@
 
 namespace Obullo\Config;
 
-use ArrayAccess,
-    LogicException,
-    RuntimeException,
-    Obullo\Container\Container,
-    Obullo\Config\Writer\PhpArray;
+use ArrayAccess;
+use LogicException;
+use RuntimeException;
+use Obullo\Container\Container;
+use Obullo\Config\Writer\PhpArray;
 
 /**
  * Config Class

@@ -61,7 +61,7 @@ Class Session
     public function __construct(Container $c) 
     {
         $this->params = $c['config']->load('session');
-        $handlerClass = $this->params['handlers'][$this->params['default']['handler']];
+        $handlerClass = $this->params['default']['handler'];
 
         $this->handler = new $handlerClass($c, $this->params);
         $this->config = $c['config'];

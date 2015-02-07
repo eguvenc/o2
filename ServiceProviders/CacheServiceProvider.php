@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\ServiceProvider;
+namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProvider\CacheConnectionProvider,
+use Obullo\ServiceProviders\CacheConnectionProvider,
     Obullo\Container\Container;
 
 /**
  * Cache Service Provider
  *
- * @category  Provider
- * @package   Mongo
+ * @category  CacheServiceProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -28,11 +28,11 @@ Class CacheServiceProvider
     public function register(Container $c, $params = array())
     {
         $connector = CacheConnectionProvider::getInstance($c);  // Register all Connectors as shared services
-        return $connector->getConnection($params);
+        return $connector->getConnection($params);   // Get existing connection
     }
 }
 
 // END CacheServiceProvider Class
 
 /* End of file CacheServiceProvider.php */
-/* Location: .Obullo/ServiceProvider/CacheServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/CacheServiceProvider.php */

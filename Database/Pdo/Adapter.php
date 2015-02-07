@@ -70,7 +70,7 @@ Abstract Class Adapter
      *
      * @return void
      */
-    public function connection()
+    public function createConnection()
     {
         $this->connection = $this->c['service provider pdo']->get($this->params);
         

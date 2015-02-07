@@ -108,7 +108,4 @@ $router->initFilters('finish', $annotationFilter);
 $c['app']->initFilters('finish');
 
 
-// END Obullo.php File
-/* End of file Obullo.php
-
 /* Location: .Obullo/Obullo.php */

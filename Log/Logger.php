@@ -120,20 +120,13 @@ Class Logger extends AbstractLogger
      * @var string
      */
     public $channel = 'system';
-    
-    /**
-     * Registered log handlers
-     * 
-     * @var array
-     */
-    protected $registeredHandlers = array();
 
     /**
-     * Log priority queue objects
+     * Track data for handlers and writers
      * 
      * @var array
      */
-    protected $priorityQueue = array();
+    public $track = array();
 
     /**
      * Priority values
@@ -150,18 +143,25 @@ Class Logger extends AbstractLogger
     protected $push = array();
 
     /**
-     * Track data for handlers and writers
-     * 
-     * @var array
-     */
-    public $track = array();
-
-    /**
      * Payload
      * 
      * @var array
      */
     protected $payload = array();
+
+    /**
+     * Registered log handlers
+     * 
+     * @var array
+     */
+    protected $registeredHandlers = array();
+
+    /**
+     * Log priority queue objects
+     * 
+     * @var array
+     */
+    protected $priorityQueue = array();
 
     /**
      * Registered error handlers
@@ -187,6 +187,7 @@ Class Logger extends AbstractLogger
         $this->debug = $this->config['log']['control']['firelog'];
 
         $this->configureErrorHandlers();
+        $this->initialize();
 
         register_shutdown_function(array($this, 'close'));
     }
@@ -215,13 +216,11 @@ Class Logger extends AbstractLogger
     /**
      * Initialize config parameters
      * 
-     * @param array $params array
-     * 
      * @return void
      */
-    public function initialize(array $params)
+    public function initialize()
     {
-        $this->config['log'] = array_merge($this->config['log'], $params);
+        $this->config['log'] = array_merge($this->config['log'], $this->c['config']->load('logger'));
 
         $this->channel = $this->config['log']['default']['channel'];
         $this->queries = $this->config['log']['extra']['queries'];
