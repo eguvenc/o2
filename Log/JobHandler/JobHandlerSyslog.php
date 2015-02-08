@@ -42,7 +42,7 @@ Class JobHandlerSyslog extends AbstractJobHandler implements JobHandlerInterface
      * 
      * @var string
      */
-    public $name = 'QueueLogger.Handler.Syslog';
+    public $name = 'JobHandler.Syslog';
 
     /**
      * Config Constructor
