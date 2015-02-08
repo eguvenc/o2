@@ -26,6 +26,8 @@ $response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
 $controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
+echo $controller;
+
 require $controller;  // Include the controller file.
 
 $className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
@@ -51,7 +53,6 @@ $router->initFilters('before');  // Initialize ( exec ) registered router ( befo
 if (method_exists($class, 'load')) {
     $class->load();
 }
-
 /*
  * ------------------------------------------------------
  *  After controller load method

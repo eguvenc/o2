@@ -494,11 +494,11 @@ Class Router
         $directory = $this->fetchDirectory();
 
         // if segments[1] exists set first segment as a directory 
-        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .$segments[1].'.php')) {
+        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .ucfirst($segments[1]).'.php')) {
             return $segments;
         }
         // if segments[1] not exists. forexamle http://example.com/welcome
-        if (file_exists(CONTROLLERS .$directory. DS .$directory. '.php')) {
+        if (file_exists(CONTROLLERS .$directory. DS .ucfirst($directory). '.php')) {
             array_unshift($segments, $directory);
             return $segments;
         }
@@ -652,7 +652,7 @@ Class Router
      */
     public function fetchClass()
     {
-        return $this->class;
+        return ucfirst($this->class);
     }
 
     /**
