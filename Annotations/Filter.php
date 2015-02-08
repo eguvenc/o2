@@ -80,8 +80,6 @@ Class Filter
      */
     public function __construct(Container $c)
     {
-        // \Controller::$instance->router;
-
         $this->c = $c;
         $this->count = 0;
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
@@ -178,6 +176,10 @@ Class Filter
         if (is_string($params)) {
             $params = array($params);
         }
+        // WARNING:
+        // We controller instance other wise layer functionalities not works well.
+        // After that the last layer request router instance every time become old.
+        
         Controller::$instance->router->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $params));
         return;
     }
@@ -196,6 +198,11 @@ Class Filter
         }
         foreach ($this->{$method} as $val) {
             if (isset($val['when']) AND in_array($this->httpMethod, $val['when'])) {  // stop filter
+
+                // WARNING:
+                // We controller instance other wise layer functionalities not works well.
+                // After that the last layer request router instance every time become old.
+            
                 Controller::$instance->router->runFilter($val['name'], $method);
             }
             if ( ! isset($val['when'])) {
@@ -209,4 +216,4 @@ Class Filter
 // END Filter.php File
 /* End of file Filter.php
 
-/* Location: .Obullo/Annotations/Filter.php */
+/* Location: .Obullo/Application/Filter.php */

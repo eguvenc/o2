@@ -7,7 +7,7 @@ use AMQPConnection,
     UnexpectedValueException,
     Obullo\Container\Container,
     Obullo\Database\Connection,
-    Obullo\Helpers\SingletonTrait;
+    Obullo\Utils\SingletonTrait;
 
 /**
  * AMQP Connection Provider

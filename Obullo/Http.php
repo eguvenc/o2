@@ -37,17 +37,16 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-$annotationFilter = false;
-if ($c['config']['annotation']['controller']) {
+if ($c['config']['annotation']['filters']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
-    $annotationFilter = $docs->parse();
+    $docs->parse();
 }
 /*
  * ------------------------------------------------------
  *  Before controller filters
  * ------------------------------------------------------
  */
-$router->initFilters('before', $annotationFilter);  // Initialize ( exec ) registered router ( before ) filters
+$router->initFilters('before');  // Initialize ( exec ) registered router ( before ) filters
 
 if (method_exists($class, 'load')) {
     $class->load();
@@ -58,7 +57,7 @@ if (method_exists($class, 'load')) {
  *  After controller load method
  * ------------------------------------------------------
  */
-$router->initFilters('load', $annotationFilter); 
+$router->initFilters('load');
 /*
  * ------------------------------------------------------
  *  Dispatcher
@@ -81,7 +80,7 @@ call_user_func_array(array($class, $router->fetchMethod()), $arguments);
  *  After controller filters
  * ------------------------------------------------------
  */
-$router->initFilters('after', $annotationFilter);
+$router->initFilters('after');
 /*
  * ------------------------------------------------------
  *  Application after filters
@@ -99,7 +98,7 @@ $response->output();    // Send ( print ) the final rendered output to the brows
  *  Finish controller filters
  * ------------------------------------------------------
  */
-$router->initFilters('finish', $annotationFilter);
+$router->initFilters('finish');
 /*
  * ------------------------------------------------------
  *  Application finish filters

@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Helpers;
+namespace Obullo\Utils;
 
 use RuntimeException,
     Obullo\Container\Container;
@@ -61,4 +61,4 @@ trait SingletonTrait
 // END SingletonTrait
 /* End of file SingletonTrait.php
 
-/* Location: .Obullo/Helpers/SingletonTrait.php */
+/* Location: .Obullo/Utils/SingletonTrait.php */

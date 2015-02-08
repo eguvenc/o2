@@ -2,9 +2,9 @@
 
 namespace Obullo\Annotations\Reader;
 
-use ReflectionClass,
-    Obullo\Annotations\Filter,
-    Obullo\Container\Container;
+use ReflectionClass;
+use Obullo\Application\Filter;
+use Obullo\Container\Container;
 
 /**
  * Annotations Reader for Controller
@@ -68,12 +68,12 @@ Class Controller
 
         $filter = false;
         if (strpos($this->blocks, 'filter->') > 0) {  // If we have @filter blocks
-            $filter = new Filter($this->c);
+
             foreach ($docs as $line) {
                 $methods = explode('->', $line);  // explode every methods
                 array_shift($methods);            // remove class name "filter"
                 foreach ($methods as $method) {
-                    $this->callMethod($filter, $method);
+                    $this->callMethod($method);
                 }
             }
         }
@@ -83,12 +83,11 @@ Class Controller
     /**
      * Call filter methods
      * 
-     * @param object $class  \Blocks\Annotations\Filter
      * @param string $method filter method name ( before, after, method or when )
      * 
      * @return void
      */
-    public function callMethod($class, $method)
+    public function callMethod($method)
     {
         $strstr = strstr($method, '(');
         $params = str_replace(array('(',')',';'), '', $strstr);
@@ -99,7 +98,7 @@ Class Controller
         if (strpos($params, ',') > 0) {  // array support
             $parray = explode(',', $params);
         }
-        $class->$method($parray);  // Execute filter methods
+        $this->c['annotation.filter']->$method($parray);  // Execute filter methods
     }
 
 }

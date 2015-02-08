@@ -3,6 +3,8 @@
 namespace Obullo\Application;
 
 use BadMethodCallException;
+use Obullo\Annotations\Filter;
+use Obullo\Container\Container;
 
 /**
  * Application Class
@@ -24,13 +26,6 @@ Class Application
     protected $c;
 
     /**
-     * Current environent
-     * 
-     * @var string
-     */
-    protected static $env;
-
-    /**
      * Environments.php array data
      * 
      * @var array
@@ -45,13 +40,23 @@ Class Application
     protected $filters = array();
 
     /**
+     * Current environent
+     * 
+     * @var string
+     */
+    protected static $env = null;
+
+    /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
+        $this->c['annotation.filter'] = function () use ($c) {
+            return new Filter($c);
+        };
         $this->envArray = include ROOT .'app'. DS .'environments.php';
     }
 

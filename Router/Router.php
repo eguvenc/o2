@@ -902,18 +902,17 @@ Class Router
     /**
      * Initialize filter
      * 
-     * @param string $method           directions ( before, after, load, finish )
-     * @param object $annotationFilter annotations filter object
+     * @param string $method directions ( before, after, load, finish )
      * 
      * @return void
      */
-    public function initFilters($method = 'before', $annotationFilter = false)
+    public function initFilters($method = 'before')
     {
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
-        if ($annotationFilter) {
-            $annotationFilter->initFilters($method);  // Initialize annotation filters
+        if ($this->c['config']['annotation']['filters']) {
+            $this->c['annotation.filter']->initFilters($method);  // Initialize annotation filters
         }
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
             return;
