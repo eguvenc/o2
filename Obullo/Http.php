@@ -26,8 +26,6 @@ $response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
 $controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
-echo $controller;
-
 require $controller;  // Include the controller file.
 
 $className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
