@@ -211,12 +211,14 @@ Class Container implements ArrayAccess
         $class = $matches['class'];
         $serviceName = ucfirst($class);
 
-        if ( ! empty($matches['provider'])) {  // Resolve provider
-            $serviceProviderClass = '\Obullo\ServiceProviders\\'.ucfirst($matches['class']).'ServiceProvider';
-            $this->with[] = new $serviceProviderClass($this);
+        if ( ! empty($matches['provider'])) {
+            $folder = '\Obullo\\';
+            if ( ! empty($matches['app'])) {  // If we have classes/ServiceProviders/x request.
+                $folder = '';
+            }
+            $this->loadServiceProvider($matches, $folder);    // Resolve service providers
             return $this;
         }
-
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
@@ -238,6 +240,20 @@ Class Container implements ArrayAccess
             $this->register($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);
+    }
+
+    /**
+     * Load providers
+     * 
+     * @param array $matches matches
+     * @param array $folder  folder
+     * 
+     * @return void
+     */
+    protected function loadServiceProvider(array $matches, $folder = '\\')
+    {
+        $serviceProviderClass = $folder.'ServiceProviders\\'.ucfirst($matches['class']).'ServiceProvider';
+        $this->with[] = new $serviceProviderClass($this);
     }
 
     /**
@@ -383,7 +399,7 @@ Class Container implements ArrayAccess
             'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
+            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<app>(?:)app|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
             preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);

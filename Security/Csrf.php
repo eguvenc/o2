@@ -122,7 +122,7 @@ Class Csrf
         $secureCookie = ($this->c['config']['cookie']['secure'] === true) ? 1 : 0;
 
         if ($secureCookie) {
-            if ( ! $this->c->load('request')->isSecure()) {
+            if ( ! $this->c['request']->isSecure()) {
                 return false;
             }
         }

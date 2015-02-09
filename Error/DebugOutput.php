@@ -206,7 +206,7 @@ Class DebugOutput
             }
             return '<small>object</small> <span class="object">' . get_class($var) . '(' . count($array) . ')</span> ' . implode("<br />", $output);
         } else {
-            return '<small>' . gettype($var) . '</small> ' . htmlspecialchars(print_r($var, true), ENT_NOQUOTES, $c->load('config')['locale']['charset']);
+            return '<small>' . gettype($var) . '</small> ' . htmlspecialchars(print_r($var, true), ENT_NOQUOTES, $c['config']['locale']['charset']);
         }
     }
 
@@ -242,7 +242,7 @@ Class DebugOutput
                 break;
 
             if ($line >= $range['start']) {
-                $row = htmlspecialchars($row, ENT_NOQUOTES, $c->load('config')['locale']['charset']);  // Make the row safe for output
+                $row = htmlspecialchars($row, ENT_NOQUOTES, $c['config']['locale']['charset']);  // Make the row safe for output
                 $row = '<span class="number">' . sprintf($format, $line) . '</span> ' . $row;  // Trim whitespace and sanitize the row
                 if ($line === $line_number) {
                     $row = '<span class="line highlight">' . $row . '</span>';  // Apply highlighting to this row

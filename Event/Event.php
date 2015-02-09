@@ -3,6 +3,7 @@
 namespace Obullo\Event;
 
 use RuntimeException;
+use Obullo\Container\Container;
 
 /**
  * Event Class
@@ -51,7 +52,7 @@ Class Event
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
