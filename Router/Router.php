@@ -494,11 +494,12 @@ Class Router
         $directory = $this->fetchDirectory();
 
         // if segments[1] exists set first segment as a directory 
-        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .ucfirst($segments[1]).'.php')) {
+        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
+
         // if segments[1] not exists. forexamle http://example.com/welcome
-        if (file_exists(CONTROLLERS .$directory. DS .ucfirst($directory). '.php')) {
+        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {
             array_unshift($segments, $directory);
             return $segments;
         }
@@ -652,7 +653,7 @@ Class Router
      */
     public function fetchClass()
     {
-        return ucfirst($this->class);
+        return self::ucwordsUnderscore($this->class);
     }
 
     /**
@@ -720,7 +721,7 @@ Class Router
     {
         $namespace = self::ucwordsUnderscore($this->fetchModule()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
         $namespace = trim($namespace, '\\');
-        return str_replace(' ', '_', $namespace);
+        return $namespace;
     }
 
     /**
@@ -736,7 +737,8 @@ Class Router
     protected static function ucwordsUnderscore($string)
     {
         $str = str_replace('_', ' ', $string);
-        return ucwords($str);
+        $str = ucwords($str);
+        return str_replace(' ', '_', $str);
     }
 
     /**
