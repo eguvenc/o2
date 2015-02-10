@@ -124,6 +124,7 @@ Class Redis implements HandlerInterface
             }
         }
         if ($this->isConnected()) {
+         
             if (isset($this->options['serializer'])) {
                 $this->setOption($this->options);
             }

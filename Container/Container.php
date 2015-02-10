@@ -128,7 +128,11 @@ Class Container implements ArrayAccess
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
             if ($noReturn AND $controllerExists AND Controller::$instance != null) {
-                return Controller::$instance->{$key} = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
+                $value = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
+
+                if ( ! isset(Controller::$instance->{$key})) {      // If user use $this->c['uri'] in load method 
+                    return Controller::$instance->{$key} = $value;  // its remove instance of the current controller uri
+                }
             }
             if ( ! empty($matches['new'])) {
                 return $this->runClosure($this->raw[$cid], $params);  // Return to new instance if Controller::$instance == null.
