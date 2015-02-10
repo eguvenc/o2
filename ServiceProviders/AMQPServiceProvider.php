@@ -2,8 +2,7 @@
 
 namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProviders\AMQPConnectionProvider,
-    Obullo\Container\Container;
+use Obullo\Container\Container;
 
 /**
  * AMQP Service Provider
@@ -32,10 +31,6 @@ Class AMQPServiceProvider
             $connector->register();
         }
         $connector = AMQPConnectionProvider::getInstance($c);
-
-        if ( ! isset($params['connection'])) {                // Do factory ( creates new connection )
-            return $connector->factory($params);
-        }
         return $connector->getConnection($params);           // Get existing connection
     }
 }

@@ -170,11 +170,10 @@ $php task help
 Yukarıdaki komut **tasks** klasöründen <kbd>app/task/help.php</kbd> dosyasını çalığırır.
 
 ```php
-        ______  _            _  _
-       |  __  || |__  _   _ | || | ____
-       | |  | ||  _ || | | || || ||  _ |
-       | |__| || |_||| |_| || || || |_||
-       |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
 
         Welcome to Task Manager (c) 2014
 Please run [$php task help] You are in [ app / tasks ] folder.
@@ -358,11 +357,10 @@ Aktif komut listesini görmek için.
 ```php
 root@localhost:/var/www/project$ php task
 
-        ______  _            _  _
-       |  __  || |__  _   _ | || | ____
-       | |  | ||  _ || | | || || ||  _ |
-       | |__| || |_||| |_| || || || |_||
-       |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
 
         Welcome to Task Manager (c) 2014
 Please run [$php task help] You are in [ app / tasks ] folder.

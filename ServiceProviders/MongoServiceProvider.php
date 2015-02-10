@@ -2,8 +2,7 @@
 
 namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProviders\MongoConnectionProvider,
-    Obullo\Container\Container;
+use Obullo\Container\Container;
 
 /**
  * Mongo Service Provider

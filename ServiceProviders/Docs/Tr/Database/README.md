@@ -4,7 +4,6 @@
 -----
 
 ```php
-<?php
 $this->db = $this->c['service provider database']->get(['connection' => 'default']);
 $this->db->method();
 ```
@@ -14,7 +13,6 @@ $this->db->method();
 You can add new connection in this connections configuration.
 
 ```php
-<?php
 'connections' => array(
 
     'default' => array(
@@ -51,13 +49,11 @@ You can add new connection in this connections configuration.
 You must send the connection name to the chosen database provider.
 
 ```php
-<?php
 $this->c['service provider database']->get(['connection' => 'default']);
 ```
 Also when you use same parameters, database provider service returns same object.
 
 ```php
-<?php
 $db1 = $this->c['service provider database']->get(['connection' => 'default']); // Creates a new object ($db1)
 $db2 = $this->c['service provider database']->get(['connection' => 'default']); // Returns same object ($db1)
 $db3 = $this->c['service provider database']->get(['connection' => 'test']);	 // Creates a new object
@@ -69,7 +65,6 @@ $db3 = $this->c['service provider database']->get(['connection' => 'test']);	 //
 You can send manually your own configuration. The database service provider creates a new object.
 
 ```php
-<?php
 $db = $this->c['service provider database']->factory(
     [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
@@ -88,11 +83,11 @@ $db = $this->c['service provider database']->factory(
 For MySQL
 
 ```php
-<?php $dsn = 'mysql:host=localhost;port=;dbname=test';
+$dsn = 'mysql:host=localhost;port=;dbname=test';
 ```
 
 For PostgreSQL
 
 ```php
-<?php $dsn = 'pgsql:host=127.0.0.1;port=5432;dbname=anydb';
+$dsn = 'pgsql:host=127.0.0.1;port=5432;dbname=anydb';
 ```

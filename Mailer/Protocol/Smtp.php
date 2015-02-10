@@ -1,40 +1,227 @@
 <?php
 
-namespace Obullo\Mail\Send\Protocol;
+namespace Obullo\Mailer\Protocol;
 
-use Obullo\Mail\Send\Adapter,
-    Obullo\Mail\Text;
+use Obullo\Mailer\Text;
+use Obullo\Container\Container;
 
 /**
- * Sendmail Protocol Class
+ * Smtp Protocol Class
  * 
- * @category  Sendmail
+ * @category  Smtp
  * @package   Mail
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
-Class Sendmail extends Adapter
+Class Smtp extends AbstractAdapter
 {
-    /**
-     * Sendmail path
-     * 
-     * @var string
-     */
-    public $mailpath;
+    public $smtpAuth = false;
+    public $smtpConnect = '';
+    public $smtpHost = '';        // SMTP Server.  Example: mail.earthlink.net
+    public $smtpUser = '';        // SMTP Username
+    public $smtpPass = '';        // SMTP Password
+    public $smtpPort = '25';      // SMTP Port
+    public $smtpTimeout = 5;      // SMTP Timeout in seconds
 
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $config preferences
+     * @param object $c container
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c)
     {
-        parent::__construct($c, $config);
+        parent::__construct($c);
 
-        $this->mailpath = $config['send']['protocol']['sendmail']['mailpath'];
+        $smtp = $this->c['config']['mailer']['protocol']['smtp'];
+        
+        $this->host($smtp['host']);
+        $this->pass($smtp['pass']);
+        $this->port($smtp['port']);
+        $this->timeout($smtp['timeout']);
+
+        $this->smtpAuth = ($this->smtpUser == '' AND $this->smtpPass == '') ? false : true;
+    }
+
+    /**
+     * Set smtp host
+     * 
+     * @param string $host address
+     * 
+     * @return void
+     */
+    public function host($host)
+    {
+        $this->smtpHost = $host;
+    }
+
+    /**
+     * Set smtp password
+     * 
+     * @param string $password password
+     * 
+     * @return void
+     */
+    public function pass($password)
+    {
+        $this->smtpPass = $password;
+    }
+
+    /**
+     * Set port
+     * 
+     * @param int $port port number
+     * 
+     * @return void
+     */
+    public function port($port)
+    {
+        $this->smtpPort = $port;
+    }
+
+    /**
+     * Connection timeout in second(s)
+     * 
+     * @param int $timeout time
+     * 
+     * @return void
+     */
+    public function timeout($timeout)
+    {
+        $this->smtpTimeout = $timeout;
+    }
+
+    /**
+     * SMTP Connect
+     * 
+     * @return string
+     */
+    public function connect()
+    {
+        $this->smtpConnect = fsockopen($this->smtpHost, $this->smtpPort, $errno, $errstr, $this->smtpTimeout);
+        if ( ! is_resource($this->smtpConnect)) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_ERROR', $errno . " " . $errstr);
+            return false;
+        }
+        $this->setErrorMessage($this->getData());
+        return $this->sendCommand('hello');
+    }
+
+    /**
+     * Send SMTP command
+     * 
+     * @param string $cmd  command
+     * @param string $data data
+     * 
+     * @return string
+     */
+    public function sendCommand($cmd, $data = '')
+    {
+        switch ($cmd) {
+        case 'hello' :
+            if ($this->smtpAuth OR $this->getEncoding() == '8bit')
+                $this->sendData('EHLO ' . $this->getHostname());
+            else
+                $this->sendData('HELO ' . $this->getHostname());
+            $resp = 250;
+            break;
+        case 'from' :
+            $this->sendData('MAIL FROM:<' . $data . '>');
+            $resp = 250;
+            break;
+        case 'to' :
+            $this->sendData('RCPT TO:<' . $data . '>');
+            $resp = 250;
+            break;
+        case 'data' :
+            $this->sendData('DATA');
+            $resp = 354;
+            break;
+        case 'quit' :
+            $this->sendData('QUIT');
+            $resp = 221;
+            break;
+        }
+        $reply = $this->getData();
+        $this->debugMsg[] = "<pre>" . $cmd . ": " . $reply . "</pre>";
+
+        if (substr($reply, 0, 3) != $resp) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_ERROR', $reply);
+            return false;
+        }
+        if ($cmd == 'quit') {
+            fclose($this->smtpConnect);
+        }
+        return true;
+    }
+
+    /**
+     * SMTP Authenticate
+     * 
+     * @return  bool
+     */
+    public function authenticate()
+    {
+        if ( ! $this->smtpAuth) {
+            return true;
+        }
+        if ($this->smtpUser == "" AND $this->smtpPass == "") {
+            $this->setErrorMessage('OBULLO:MAILER:NO_SMTP_UNPW');
+            return false;
+        }
+        $this->sendData('AUTH LOGIN');
+        $reply = $this->getData();
+        if (strncmp($reply, '334', 3) != 0) {
+            $this->setErrorMessage('OBULLO:MAILER:FAILED_SMTP_LOGIN', $reply);
+            return false;
+        }
+        $this->sendData(base64_encode($this->smtpUser));
+        $reply = $this->getData();
+        if (strncmp($reply, '334', 3) != 0) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_AUTH_UN', $reply);
+            return false;
+        }
+        $this->sendData(base64_encode($this->smtpPass));
+        $reply = $this->getData();
+        if (strncmp($reply, '235', 3) != 0) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_AUTH_PW', $reply);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Send SMTP data
+     *
+     * @param string $data body
+     * 
+     * @return bool
+     */
+    public function sendData($data)
+    {
+        if ( ! fwrite($this->smtpConnect, $data . $this->newline)) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_DATA_FAILURE', $data);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get SMTP data
+     *
+     * @return string
+     */
+    public function getData()
+    {
+        $data = "";
+        while ($str = fgets($this->smtpConnect, 512)) {
+            $data .= $str;
+            if (substr($str, 3, 1) == " ") {
+                break;
+            }
+        }
+        return $data;
     }
 
     /**
@@ -48,14 +235,14 @@ Class Sendmail extends Adapter
     {
         $to = $this->strToArray($to);
         $to = $this->cleanEmail($to);
-        $this->setHeader('To', implode(", ", $to));
         if ($this->validate) {
             $this->validator->validateEmail($to);
             if ($this->validator->isError()) {
                 $this->setErrorMessage($this->validator->getError(), $this->validator->getValue());
             }
         }
-        $this->recipients = implode(", ", $to);
+        $this->setHeader('To', implode(", ", $to));
+        $this->recipients = $to;
     }
 
     /**
@@ -79,6 +266,7 @@ Class Sendmail extends Adapter
             }
         }
         $this->setHeader('Cc', implode(", ", $cc));
+        $this->ccArray = $cc;
     }
 
     /**
@@ -106,11 +294,7 @@ Class Sendmail extends Adapter
                 $this->setErrorMessage($this->validator->getError(), $this->validator->getValue());
             }
         }
-        if (($this->bccBatchMode && count($bcc) > $this->bccBatchSize)) {
-            $this->bccArray = $bcc;
-        } else {
-            $this->setHeader('Bcc', implode(", ", $bcc));
-        }
+        $this->bccArray = $bcc;
     }
 
     /**
@@ -164,6 +348,7 @@ Class Sendmail extends Adapter
             $hdr .= "Content-Transfer-Encoding: " . $this->getEncoding();
             $hdr .= $this->newline . $this->newline . $this->body;
             $this->finalbody = $hdr;
+            return;
             break;
         case 'html' :
             if ($this->sendMultipart === false) {
@@ -221,7 +406,7 @@ Class Sendmail extends Adapter
             $basename = basename($filename);
             $ctype = $this->attachType[$i];
             if ( ! file_exists($filename)) {
-                $this->setErrorMessage('OBULLO:MAIL:ATTACHMENT_MISSING', $filename);
+                $this->setErrorMessage('OBULLO:MAILER:ATTACHMENT_MISSING', $filename);
                 return false;
             }
             $h = "--" . $this->atcBoundary . $this->newline;
@@ -231,14 +416,15 @@ Class Sendmail extends Adapter
             $h .= "Content-Transfer-Encoding: base64" . $this->newline;
             $attachment[$z++] = $h;
             $file = filesize($filename) + 1;
-            if ( ! $fp = fopen($filename, 'rb')) {
-                $this->setErrorMessage('OBULLO:MAIL:ATTACHMENT_UNREADABLE', $filename);
+            if (!$fp = fopen($filename, 'rb')) {
+                $this->setErrorMessage('OBULLO:MAILER:ATTACHMENT_UNREADABLE', $filename);
                 return false;
             }
             $attachment[$z++] = chunk_split(base64_encode(fread($fp, $file)));
             fclose($fp);
         }
         $this->finalbody = $hdr . implode($this->newline, $attachment) . $this->newline . "--" . $this->atcBoundary . "--";
+        return;
     }
 
     /**
@@ -249,11 +435,11 @@ Class Sendmail extends Adapter
     public function spoolEmail()
     {
         $this->unwrapSpecials();
-        if ( ! $this->_sendWithSendMail()) {
-            $this->setErrorMessage('OBULLO:MAIL:SEND_FAILURE_SENDMAIL');
+        if ( ! $this->_sendWithSmtp()) {
+            $this->setErrorMessage('OBULLO:MAILER:SEND_FAILURE_SMTP');
             return false;
         }
-        $this->setErrorMessage('OBULLO:MAIL:SENT', 'mail');
+        $this->setErrorMessage('OBULLO:MAILER:SENT', 'smtp');
         return true;
     }
 
@@ -262,25 +448,49 @@ Class Sendmail extends Adapter
      * 
      * @return boolean
      */
-    private function _sendWithSendmail()
+    private function _sendWithSmtp()
     {
-        $fp = @popen($this->mailpath . " -oi -f " . $this->cleanEmail($this->headers['From']) . " -t", 'w');
-        if ($fp === false OR $fp === null) { // Server probably has popen disabled, so nothing we can do to get a verbose error.
+        if ($this->smtpHost == '') {
+            $this->setErrorMessage('OBULLO:MAILER:NO_HOSTNAME');
             return false;
         }
-        fputs($fp, $this->headerStr);
-        fputs($fp, $this->finalbody);
-        $status = pclose($fp);
-        if ($status != 0) {
-            $this->setErrorMessage('OBULLO:MAIL:EXIT_STATUS', $status);
-            $this->setErrorMessage('OBULLO:MAIL:NO_SOCKET');
+        $this->connect();
+        $this->authenticate();
+        $this->sendCommand('from', $this->cleanEmail($this->headers['From']));
+
+        foreach ($this->recipients as $val) {
+            $this->sendCommand('to', $val);
+        }
+        if (count($this->ccArray) > 0) {
+            foreach ($this->ccArray as $val) {
+                if ($val != "") {
+                    $this->sendCommand('to', $val);
+                }
+            }
+        }
+        if (count($this->bccArray) > 0) {
+            foreach ($this->bccArray as $val) {
+                if ($val != "") {
+                    $this->sendCommand('to', $val);
+                }
+            }
+        }
+        $this->sendCommand('data');
+        // Perform dot transformation on any lines that begin with a dot
+        $this->sendData($this->headerStr . preg_replace('/^\./m', '..$1', $this->finalbody));
+        $this->sendData('.');
+        $reply = $this->getData();
+        $this->setErrorMessage($reply);
+        if (strncmp($reply, '250', 3) != 0) {
+            $this->setErrorMessage('OBULLO:MAILER:SMTP_ERROR', $reply);
             return false;
         }
+        $this->sendCommand('quit');
         return true;
     }
 
     /**
-     * Batch Bcc Send.  Sends groups of BCCs in batches
+     * Batch Bcc Send. Sends groups of BCCs in batches
      *
      * @return bool
      */
@@ -307,7 +517,7 @@ Class Sendmail extends Adapter
             unset($bcc);
             $bcc = $this->strToArray($chunk[$i]);
             $bcc = $this->cleanEmail($bcc);
-            $this->setHeader('Bcc', implode(", ", $bcc));
+            $this->bccArray = $bcc;
             $this->buildMessage();
             $this->spoolEmail();
         }
@@ -315,7 +525,7 @@ Class Sendmail extends Adapter
 
 }
 
-// END Sendmail class
+// END Smtp class
 
-/* End of file Sendmail.php */
-/* Location: .Obullo/Mail/Send/Protocol/Sendmail.php */
+/* End of file Smtp.php */
+/* Location: .Obullo/Mailer/Protocol/Smtp.php */

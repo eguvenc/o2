@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Mail;
+namespace Obullo\Mailer;
 
 /**
  * Text Class
  * 
  * @category  Text
- * @package   Mail
+ * @package   Mailer
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/mail
+ * @link      http://obullo.com/docs/mailer
  */
 Class Text
 {
@@ -99,4 +99,4 @@ Class Text
 // END Text class
 
 /* End of file Text.php */
-/* Location: .Obullo/Mail/Text.php */
+/* Location: .Obullo/Mailer/Text.php */

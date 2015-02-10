@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Mail;
+namespace Obullo\Mailer;
 
 /**
  * File Class
@@ -10,7 +10,7 @@ namespace Obullo\Mail;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/mail
+ * @link      http://obullo.com/docs/mailer
  */
 Class File
 {
@@ -119,4 +119,4 @@ Class File
 // END File class
 
 /* End of file File.php */
-/* Location: .Obullo/Mail/File.php */
+/* Location: .Obullo/Mailer/File.php */

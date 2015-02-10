@@ -22,7 +22,6 @@ Class MongoConnectionProvider
     protected $c;            // Container
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
-    protected $factories = array(); // New connection objects
     
     use SingletonTrait, ConnectionTrait;
 

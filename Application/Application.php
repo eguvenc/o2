@@ -111,7 +111,8 @@ Class Application
         foreach ($this->filters[$method] as $key => $Class) {
 
             $Class = '\\'.ucfirst($this->filters[$method][$key]);
-            $class = new $Class($this->c, $params);
+            $class = new $Class($this->c);
+            $class->params = $params;    // Inject filter parameters
 
             if ( ! method_exists($class, $method)) {   // Throw exception if filter method not exists.
                 throw new BadMethodCallException(
