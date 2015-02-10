@@ -1,17 +1,17 @@
 
 
-## Mail Class
+## Mailer Class
 
 ------
 
-The Mail class package contains a mail sending functions that assist in working with Mail, Sendmail or SMTP protocols.
+The Mailer package contains a mail sending functions that assist in working with Mail, Sendmail, SMTP protocols and Transports services like Mandrill, Queue and any others.
 
 ### Initializing the Class
 
 ------
 
 ```php
-$c->load('service/mailer');
+$this->c['mailer'];
 $this->mailer->method();
 ```
 
@@ -43,8 +43,6 @@ Here is a basic example demonstrating how you might send email.
 
 namespace Service;
 
-use Obullo\Mail\Transport\Mandrill;
-
 /**
  * Mailer Service
  *
@@ -66,12 +64,7 @@ Class Mailer implements ServiceInterface
      */
     public function register($c)
     {
-        $c['mailer'] = function () use ($c) {
-            $mailer = new Mandrill($c, $c['config']->load('mail'));
-            $mailer->from($c['config']['mail']['send']['from']['address']);
-            return $mailer;
-
-        };
+        // ...
     }
 }
 
@@ -86,7 +79,7 @@ Example code
 
 ```php
 <?php
-$c->load('service/mailer');
+$this->c['mailer'];
 
 // $this->mailer->from('your@example.com', 'Your Name');
 $this->mailer->to('someone@example.com'); 
@@ -97,6 +90,21 @@ $this->mailer->message('Testing the email class.');
 $this->mailer->send();
 
 echo $this->mailer->printDebugger();
+```
+
+#### Using Service Provider
+
+
+```php
+$this->mailer = $this->c['service provider mailer']->get('driver' => 'smtp');
+$this->mailer->method();
+```
+
+#### Using Service Provider Queue Option
+
+```php
+$this->mailer = $this->c['service provider mailer']->get('driver' => 'mandrill', 'options' => ['queue' => true]);
+$this->mailer->method();
 ```
 
 ### Setting Email Preferences
@@ -586,7 +594,7 @@ Class Mailer implements JobInterface
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('mail');
+        $this->config = $c['config']->load('mailer');
     }
 
     /**
@@ -727,11 +735,10 @@ If you set parameter <b>--debug=1</b> this means you can see all outputs of the 
 When you send an email in the application you will get below the output on your console:
 
 ```php
-            ______  _            _  _
-           |  __  || |__  _   _ | || | ____
-           | |  | ||  _ || | | || || ||  _ |
-           | |__| || |_||| |_| || || || |_||
-           |______||____||_____||_||_||____|
+         _____ _____ _____ __    __    _____ 
+        |     | __  |  |  |  |  |  |  |     |
+        |  |  | __ -|  |  |  |__|  |__|  |  |
+        |_____|_____|_____|_____|_____|_____|
 
             Welcome to Task Manager (c) 2014
     You are running $php task queue command which is located in app / tasks folder.

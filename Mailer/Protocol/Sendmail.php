@@ -1,31 +1,39 @@
 <?php
 
-namespace Obullo\Mail\Send\Protocol;
+namespace Obullo\Mailer\Protocol;
 
-use Obullo\Mail\Send\Adapter,
-    Obullo\Mail\Text;
+use Obullo\Mailer\Text;
+use Obullo\Container\Container;
 
 /**
- * Mail Protocol Class
+ * Sendmail Protocol Class
  * 
- * @category  Smtp
+ * @category  Sendmail
  * @package   Mail
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
-Class Mail extends Adapter
+Class Sendmail extends AbstractAdapter
 {
+    /**
+     * Sendmail path
+     * 
+     * @var string
+     */
+    public $mailpath;
+
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $config preferences
+     * @param object $c container
      */
-    public function __construct($c, $config = array())
+    public function __construct(Container $c)
     {
-        parent::__construct($c, $config);
+        parent::__construct($c);
+
+        $this->mailpath = $this->c['config']['mailer']['protocol']['sendmail']['mailpath'];
     }
 
     /**
@@ -35,10 +43,11 @@ Class Mail extends Adapter
      * 
      * @return void
      */
-    public function to($to = null)
+    public function to($to)
     {
         $to = $this->strToArray($to);
         $to = $this->cleanEmail($to);
+        $this->setHeader('To', implode(", ", $to));
         if ($this->validate) {
             $this->validator->validateEmail($to);
             if ($this->validator->isError()) {
@@ -124,8 +133,6 @@ Class Mail extends Adapter
      */
     public function writeHeaders()
     {
-        $this->subject = $this->headers['Subject'];
-        unset($this->headers['Subject']);
         reset($this->headers);
         $this->headerStr = "";
         foreach ($this->headers as $key => $val) {
@@ -134,7 +141,6 @@ Class Mail extends Adapter
                 $this->headerStr .= $key . ": " . $val . $this->newline;
             }
         }
-        $this->headerStr = rtrim($this->headerStr);
     }
 
     /**
@@ -150,13 +156,13 @@ Class Mail extends Adapter
         }
         $this->setBoundaries();
         $this->writeHeaders();
-        $hdr = $this->newline;
+        $hdr = '';
         switch ($this->getContentType()) {
         case 'plain' :
             $hdr .= "Content-Type: text/plain; charset=" . $this->charset . $this->newline;
             $hdr .= "Content-Transfer-Encoding: " . $this->getEncoding();
-            $this->headerStr .= $hdr;
-            $this->finalbody = $this->body;
+            $hdr .= $this->newline . $this->newline . $this->body;
+            $this->finalbody = $hdr;
             break;
         case 'html' :
             if ($this->sendMultipart === false) {
@@ -173,11 +179,12 @@ Class Mail extends Adapter
                 $hdr .= "Content-Transfer-Encoding: quoted-printable";
             }
             $this->body = $this->prepQuotedPrintable($this->body);
-            $this->headerStr .= $hdr;
-            $this->finalbody = $this->body . $this->newline . $this->newline;
+            $hdr .= $this->newline . $this->newline;
+            $hdr .= $this->body . $this->newline . $this->newline;
             if ($this->sendMultipart !== false) {
-                $this->finalbody .= "--" . $this->altBoundary . "--";
+                $hdr .= "--" . $this->altBoundary . "--";
             }
+            $this->finalbody = $hdr;
             return;
             break;
         case 'plain-attach' :
@@ -186,8 +193,6 @@ Class Mail extends Adapter
             $hdr .= "--" . $this->atcBoundary . $this->newline;
             $hdr .= "Content-Type: text/plain; charset=" . $this->charset . $this->newline;
             $hdr .= "Content-Transfer-Encoding: " . $this->getEncoding();
-            $this->headerStr .= $hdr;
-            $body = $this->body . $this->newline . $this->newline;
             $hdr .= $this->newline . $this->newline;
             $hdr .= $this->body . $this->newline . $this->newline;
             break;
@@ -203,11 +208,6 @@ Class Mail extends Adapter
             $hdr .= "Content-Type: text/html; charset=" . $this->charset . $this->newline;
             $hdr .= "Content-Transfer-Encoding: quoted-printable";
             $this->body = $this->prepQuotedPrintable($this->body);
-
-            $this->headerStr .= $hdr;
-            $body = $this->body . $this->newline . $this->newline;
-            $body .= "--" . $this->altBoundary . "--" . $this->newline . $this->newline;
-            
             $hdr .= $this->newline . $this->newline;
             $hdr .= $this->body . $this->newline . $this->newline;
             $hdr .= "--" . $this->altBoundary . "--" . $this->newline . $this->newline;
@@ -220,7 +220,7 @@ Class Mail extends Adapter
             $basename = basename($filename);
             $ctype = $this->attachType[$i];
             if ( ! file_exists($filename)) {
-                $this->setErrorMessage('OBULLO:MAIL:ATTACHMENT_MISSING', $filename);
+                $this->setErrorMessage('OBULLO:MAILER:ATTACHMENT_MISSING', $filename);
                 return false;
             }
             $h = "--" . $this->atcBoundary . $this->newline;
@@ -231,13 +231,13 @@ Class Mail extends Adapter
             $attachment[$z++] = $h;
             $file = filesize($filename) + 1;
             if ( ! $fp = fopen($filename, 'rb')) {
-                $this->setErrorMessage('OBULLO:MAIL:ATTACHMENT_UNREADABLE', $filename);
+                $this->setErrorMessage('OBULLO:MAILER:ATTACHMENT_UNREADABLE', $filename);
                 return false;
             }
             $attachment[$z++] = chunk_split(base64_encode(fread($fp, $file)));
             fclose($fp);
         }
-        $this->finalbody = $body . implode($this->newline, $attachment) . $this->newline . "--" . $this->atcBoundary . "--";
+        $this->finalbody = $hdr . implode($this->newline, $attachment) . $this->newline . "--" . $this->atcBoundary . "--";
     }
 
     /**
@@ -248,11 +248,11 @@ Class Mail extends Adapter
     public function spoolEmail()
     {
         $this->unwrapSpecials();
-        if ( ! $this->_sendWithMail()) {
-            $this->setErrorMessage('OBULLO:MAIL:SEND_FAILURE_PHPMAIL');
+        if ( ! $this->_sendWithSendMail()) {
+            $this->setErrorMessage('OBULLO:MAILER:SEND_FAILURE_SENDMAIL');
             return false;
         }
-        $this->setErrorMessage('OBULLO:MAIL:SENT', 'mail');
+        $this->setErrorMessage('OBULLO:MAILER:SENT', 'mail');
         return true;
     }
 
@@ -261,23 +261,21 @@ Class Mail extends Adapter
      * 
      * @return boolean
      */
-    private function _sendWithMail()
+    private function _sendWithSendmail()
     {
-        if ($this->safeMode == true) {
-            if ( ! mail($this->recipients, $this->subject, $this->finalbody, $this->headerStr)) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            // Most documentation of sendmail using the "-f" flag lacks a space after it, however
-            // we've encountered servers that seem to require it to be in place.
-            if ( ! mail($this->recipients, $this->subject, $this->finalbody, $this->headerStr, "-f " . $this->cleanEmail($this->headers['From']))) {
-                return false;
-            } else {
-                return true;
-            }
+        $fp = @popen($this->mailpath . " -oi -f " . $this->cleanEmail($this->headers['From']) . " -t", 'w');
+        if ($fp === false OR $fp === null) { // Server probably has popen disabled, so nothing we can do to get a verbose error.
+            return false;
         }
+        fputs($fp, $this->headerStr);
+        fputs($fp, $this->finalbody);
+        $status = pclose($fp);
+        if ($status != 0) {
+            $this->setErrorMessage('OBULLO:MAILER:EXIT_STATUS', $status);
+            $this->setErrorMessage('OBULLO:MAILER:NO_SOCKET');
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -316,7 +314,7 @@ Class Mail extends Adapter
 
 }
 
-// END Mail class
+// END Sendmail class
 
-/* End of file Mail.php */
-/* Location: .Obullo/Mail/Protocol/Mail.php */
+/* End of file Sendmail.php */
+/* Location: .Obullo/Mailer/Protocol/Sendmail.php */

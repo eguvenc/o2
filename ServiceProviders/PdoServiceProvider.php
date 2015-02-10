@@ -2,8 +2,7 @@
 
 namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProviders\PdoConnectionProvider,
-    Obullo\Container\Container;
+use Obullo\Container\Container;
 
 /**
  * Mongo Service Provider
@@ -32,10 +31,6 @@ Class PdoServiceProvider
             $connector->register();
         }
         $connector = PdoConnectionProvider::getInstance($c); 
-
-        if ( ! isset($params['connection'])) {                  // Do factory ( creates new connection )
-            return $connector->factory($params);
-        }
         return $connector->getConnection($params);             // Get existing connection
     }
 }

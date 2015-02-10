@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Mail\Transport;
+namespace Obullo\Mailer\Transport;
 
 use Obullo\Container\Container;
 
 /**
- * Mail Transport Interface
+ * Mailer Transport Interface
  * 
  * @category  Transport
  * @package   Log
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/mail
+ * @link      http://obullo.com/docs/mailer
  */
 interface TransportInterface
 {
@@ -95,4 +95,4 @@ interface TransportInterface
 // END TransportInterface class
 
 /* End of file TransportInterface.php */
-/* Location: .Obullo/Mail/TransportInterface.php */
+/* Location: .Obullo/Mailer/TransportInterface.php */

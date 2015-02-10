@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Mail\Send;
+namespace Obullo\Mailer\Protocol;
 
-use Obullo\Mail\Text,
-    Obullo\Mail\Validator;
+use Obullo\Mailer\Text,
+    Obullo\Mailer\Validator;
 
 /**
  * Adapter Class
@@ -17,26 +17,26 @@ use Obullo\Mail\Text,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
-Class Adapter
+abstract class AbstractAdapter
 {
     public $useragent = 'Obullo';
     public $mailpath = '/usr/sbin/sendmail';    // Sendmail path
-    public $wordwrap = true;        // true/false  Turns word-wrap on/off
-    public $mailtype = 'text';    // text/html  Defines email formatting
-    public $charset = 'utf-8';    // Default char set: iso-8859-1 or us-ascii
-    public $multipart = 'mixed';    // "mixed" (in the body) or "related" (separate)
-    public $altMessage = '';        // Alternative message for HTML emails
-    public $validate = false;    // true/false.  Enables email validation
+    public $wordwrap = true;       // true/false  Turns word-wrap on/off
+    public $mailtype = 'text';     // text/html  Defines email formatting
+    public $charset = 'utf-8';     // Default char set: iso-8859-1 or us-ascii
+    public $multipart = 'mixed';   // "mixed" (in the body) or "related" (separate)
+    public $altMessage = '';       // Alternative message for HTML emails
+    public $validate = false;      // true/false.  Enables email validation
     public $priority = '3';        // Default priority (1 - 5)
     public $newline = "\n";        // Default newline. "\r\n" or "\n" (Use "\r\n" to comply with RFC 822)
-    public $crlf = "\n";        // The RFC 2045 compliant CRLF for quoted-printable is "\r\n".  Apparently some servers,
-                                // even on the receiving end think they need to muck with CRLFs, so using "\n", while
-                                // distasteful, is the only thing that seems to work for all environment
+    public $crlf = "\n";           // The RFC 2045 compliant CRLF for quoted-printable is "\r\n".  Apparently some servers,
+                                   // even on the receiving end think they need to muck with CRLFs, so using "\n", while
+                                   // distasteful, is the only thing that seems to work for all environment
     public $wrapchars = 76;
     public $validator;
-    public $sendMultipart = true;        // true/false - Yahoo does not like multipart alternative, so this is an override.  Set to false for Yahoo.
-    public $bccBatchMode = false;    // true/false  Turns on/off Bcc batch feature
-    public $bccBatchSize = 200;        // If bcc_batch_mode = true, sets max number of Bccs in each batch
+    public $sendMultipart = true;   // true/false - Yahoo does not like multipart alternative, so this is an override.  Set to false for Yahoo.
+    public $bccBatchMode = false;   // true/false  Turns on/off Bcc batch feature
+    public $bccBatchSize = 200;     // If bcc_batch_mode = true, sets max number of Bccs in each batch
     public $safeMode = false;
     public $subject = '';
     public $body = '';
@@ -61,31 +61,26 @@ Class Adapter
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $config preferences
+     * @param object $c container
      */
-    public function __construct($c, $config = array())
+    public function __construct($c)
     {
         $this->c = $c;
-        if (count($config) > 0) {
-            $this->init($config);
-        } else {
-            $this->safeMode = ((boolean) @ini_get('safe_mode') === false) ? false : true;
-        }
+        $this->init();
+        
+        $this->safeMode = ((boolean) @ini_get('safe_mode') === false) ? false : true;
         $c['logger']->debug('Mail Class Initialized');
     }
 
     /**
      * Constructor
      * 
-     * @param array $config preferences
-     * 
      * @return object
      */
-    public function init($config = array())
+    public function init()
     {
         $this->clear();
-        foreach ($config as $key => $val) {
+        foreach ($this->c['config']->load('mailer')['settings'] as $key => $val) {
             if (isset($this->$key)) {
                 $methodName = ucfirst($key);
                 $method = 'set'.$methodName;
@@ -639,7 +634,7 @@ Class Adapter
     /**
      * Send Email
      *
-     * @return    bool
+     * @return bool
      */
     public function send()
     {
@@ -647,8 +642,9 @@ Class Adapter
             $this->replyTo($this->headers['From']);
         }
         if (( ! isset($this->recipients) AND ! isset($this->headers['To'])) AND ( ! isset($this->bccArray) AND ! isset($this->headers['Bcc'])) 
-            AND ( ! isset($this->headers['Cc']))) {
-            $this->setErrorMessage('OBULLO:MAIL:NO_RECIPIENTS');
+            AND ( ! isset($this->headers['Cc']))
+        ) {
+            $this->setErrorMessage('OBULLO:MAILER:NO_RECIPIENTS');
             return false;
         }
         $this->buildHeaders();
@@ -726,7 +722,7 @@ Class Adapter
      */
     public function setErrorMessage($msg, $val = '')
     {
-        $this->c['translator']->load('mail');
+        $this->c['translator']->load('mailer');
         $this->debugMsg[] = $this->c['translator']->sprintf($msg, $val) . "<br />";
     }
 
@@ -735,4 +731,4 @@ Class Adapter
 // END Adapter class
 
 /* End of file Adapter.php */
-/* Location: .Obullo/Mail/Send/Adapter.php */
+/* Location: .Obullo/Mailer/Protocol/Adapter.php */

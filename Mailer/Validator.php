@@ -1,16 +1,16 @@
 <?php
 
-namespace Obullo\Mail;
+namespace Obullo\Mailer;
 
 /**
  * Validator Class
  * 
  * @category  Validator
- * @package   Mail
+ * @package   Mailer
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/mail
+ * @link      http://obullo.com/docs/mailer
  */
 Class Validator
 {
@@ -38,12 +38,12 @@ Class Validator
     public function validateEmail($email)
     {
         if ( ! is_array($email)) {
-            $this->setError('OBULLO:MAIL:MUST_BE_ARRAY');
+            $this->setError('OBULLO:MAILER:MUST_BE_ARRAY');
             return false;
         }
         foreach ($email as $val) {
             if ( ! $this->validEmail($val)) {
-                $this->setError('OBULLO:MAIL:INVALID_ADDRESS', $val);
+                $this->setError('OBULLO:MAILER:INVALID_ADDRESS', $val);
                 return false;
             }
         }
@@ -114,4 +114,4 @@ Class Validator
 // END Validator class
 
 /* End of file Validator.php */
-/* Location: .Obullo/Mail/Validator.php */
+/* Location: .Obullo/Mailer/Validator.php */

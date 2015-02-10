@@ -76,4 +76,4 @@ Class Response
 // END Response class
 /* End of file Response.php */
 
-/* Location: .Obullo/Mail/Transport/Response.php */
+/* Location: .Obullo/Mailer/Transport/Response.php */

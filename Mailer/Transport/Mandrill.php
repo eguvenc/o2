@@ -1,11 +1,12 @@
 <?php
 
-namespace Obullo\Mail\Transport;
+namespace Obullo\Mailer\Transport;
 
+use Obullo\Mailer\Response;
 use Obullo\Container\Container;
 
 /**
- * Queue Mailer Transport
+ * Mandrill Transactional Email Api Client
  *
  * @category  Mail
  * @package   Transport
@@ -13,8 +14,9 @@ use Obullo\Container\Container;
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
+ * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-Class Queue extends AbstractAdapter  implements TransportInterface 
+Class Mandrill extends AbstractAdapter  implements TransportInterface 
 {
     /**
      * Logger
@@ -31,35 +33,35 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     public $response;
 
     /**
-     * Queue payload
+     * Curl post body
      * 
      * @var array
      */
     public $message;
 
     /**
-     * Config params
+     * The Mandrill API key.
      *
-     * @var array
+     * @var string
      */
-    protected $config;
+    protected $key;
 
     /**
-     * Queue service
-     * 
-     * @var object
+     * Mandrill dedicated ip pool
+     *
+     * @var string
      */
-    protected $queue;
+    protected $ipPool;
 
     /**
-     * Queue push response array
+     * Mandrill api call response array
      * 
      * @var array
      */
     protected $responseBody = array();
 
     /**
-     * Create a Queue transport instance.
+     * Create a new Mandrill transport instance.
      *
      * @param object $c container
      * 
@@ -67,12 +69,15 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      */
     public function __construct(Container $c)
     {
-        $this->config = $c['config']->load('mail');
-        $this->queue = $c['queue'];
-        $this->logger = $c['logger'];
-        $this->logger->debug('Mailer Class Initialized');
+        $config = $c['config']->load('mailer');
 
-        parent::__construct($c, $this->config);
+        $this->key = $config['transport']['mandrill']['key'];
+        $this->ipPool = $config['transport']['mandrill']['ip_pool'];
+
+        $this->logger = $c['logger'];
+        $this->logger->debug('Madrill Class Initialized');
+
+        parent::__construct($c);
     }
 
     /**
@@ -80,7 +85,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      *
      * @param string $to source emails
      * 
-     * @return void
+     * @return voi
      */
     public function to($to)
     {
@@ -112,6 +117,8 @@ Class Queue extends AbstractAdapter  implements TransportInterface
             return;
         }
         $cc = $this->strToArray($cc);
+        $this->setHeader('Cc', implode(", ", $cc));
+
         $cc = $this->formatEmail($cc);
         if ($this->validate) {
             $this->validator->validateEmail($cc);
@@ -132,12 +139,12 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      * 
      * @return void
      */
-    public function bcc($bcc = null, $limit = '')
+    public function bcc($bcc = null, $limit = null)
     {
         if (empty($bcc)) {
             return;
         }
-        if ($limit != '' && is_numeric($limit)) {
+        if ($limit != null AND is_numeric($limit)) {
             $this->bccBatchMode = true;
             $this->bccBatchSize = $limit;
         }
@@ -151,6 +158,36 @@ Class Queue extends AbstractAdapter  implements TransportInterface
         }
         foreach ($bcc as $value) {
             $this->recipients[] = array('type' => 'bcc', 'email' => $value['email'], 'name' => $value['name']);
+        }
+    }
+
+    /**
+     * Set Email Subject
+     * 
+     * @param string $subject email subject
+     * 
+     * @return void
+     */
+    public function subject($subject)
+    {
+        $this->subject = $subject; // We don't do prep encoding
+        $this->setHeader('Subject', $subject);
+    }
+
+    /**
+     * Write Headers as a string
+     *
+     * @return    void
+     */
+    protected function writeHeaders()
+    {
+        reset($this->headers);
+        $this->headerStr = "";
+        foreach ($this->headers as $key => $val) {
+            $val = trim($val);
+            if ($val != "") {
+                $this->headerStr .= $key . ": " . $val . $this->newline;
+            }
         }
     }
 
@@ -169,6 +206,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
             $this->body = $text->wordWrap($this->body, $this->wrapchars);
             $this->message['text'] = $this->body;
         }
+        $this->writeHeaders();
     }
 
     /**
@@ -187,12 +225,18 @@ Class Queue extends AbstractAdapter  implements TransportInterface
                 if ($value['disposition'] == 'attachment') {
                     $this->message['attachments'][$i]['type'] = $value['type'];
                     $this->message['attachments'][$i]['name'] = $value['name'];
-                    $this->message['attachments'][$i]['fileurl'] = $value['fileurl'];
+                    if ( ! $content = file_get_contents($value['fileurl'])) {
+                        $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
+                    }
+                    $this->message['attachments'][$i]['content'] = ($content == false) ? null : base64_encode($content);
                     ++$i;
                 } else {
                     $this->message['images'][$j]['type'] = $value['type'];
                     $this->message['images'][$j]['name'] = $value['name'];
-                    $this->message['images'][$j]['fileurl'] = $value['fileurl'];
+                    if ( ! $content = file_get_contents($value['fileurl'])) {
+                        $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
+                    }
+                    $this->message['images'][$j]['content']  = ($content == false) ? null : base64_encode($content);
                     ++$j;
                 }
             }
@@ -200,100 +244,12 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     }
 
     /**
-     * Creates message array items
-     * 
-     * @param string $key item
-     * @param mixed  $val value,
-     *
-     * @return void
-     */
-    public function addMessage($key, $val)
-    {
-        $this->message[$key] = $val;
-    }
-    /* PUSH DATA
-    {
-        "message": {
-            "mailer": "mandrill",  // smtp
-            "mailtype" "html"      // text
-            "html": "<p>Example HTML content</p>",
-            "text": "Example text content",
-            "subject": "example subject",
-            "from_email": "message.from_email@example.com",
-            "from_name": "Example Name",
-            "to": [
-                {
-                    "email": "recipient.email@example.com",
-                    "name": "Recipient Name",
-                    "type": "to"
-                }
-            ],
-            "headers": {
-                "Reply-To": "message.reply@example.com"
-            },
-            "important": false,
-            "auto_text": null,
-            "auto_html": null,
-            "inline_css": null,
-            "tags": [
-                "password-resets"
-            ],
-            "attachments": [
-                {
-                    "type": "text/plain",
-                    "name": "myfile.txt",
-                    "fileurl": "/var/www/myfile.text"
-                }
-            ],
-            "images": [
-                {
-                    "type": "image/png",
-                    "name": "file.png",
-                    "fileurl": "http://www.example.com/images/file.png",
-                }
-            ]
-        },
-        "send_at": "example send_at"
-    }
-    */
-    /**
-     * Send new AMQP message
-     *
-     * @param array $payload queue data
-     * 
-     * @return boolean
-     */
-    protected function push(array $payload)
-    {
-        $start = microtime(true);
-
-        $route = $this->config['send']['queue']['route'];
-
-        $this->queue->channel($this->config['send']['queue']['channel']);   // Push
-        $push = $this->queue->push($this->config['send']['queue']['worker'], $route, $payload);
-        $this->debugMsg[] = ($push) ? 'Mailer push success.' : 'Mailer push failed.';
-
-        $time = microtime(true) - $start;
-        $this->logger->debug('Queue mailer push', array('message' => $payload['message'], 'time' => number_format($time * 1000, 2) . 'ms'));
-    
-        if ( ! $push) {
-            $this->logger->error('Queue mailer push failed', array('route' => $route));
-            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAIL:QUEUE_MAILER_PUSH_FAILED', $route);
-        }
-        return $push;
-    }
-
-    /**
-     * Send email with Queue
+     * Send email with curl
      * 
      * @return boelean
      */
     public function spoolEmail()
     {
-        if ( ! isset($this->message['mailer'])) {
-            $this->message['mailer'] = $this->config['send']['queue']['mailer'];
-        }
-        $this->message['mailtype'] = $this->getMailType();
         $this->message['subject'] = $this->subject;
         $this->message['from_email'] = $this->fromEmail;
         $this->message['from_name'] = $this->fromName;
@@ -306,27 +262,52 @@ Class Queue extends AbstractAdapter  implements TransportInterface
                 $this->message['headers'][$key] = $value;
             }
         }
+        // Async defaults to false for messages with no more than 10 recipients; 
+        // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
+        $this->message['async'] = false;   
+        $this->message['ip_pool'] = $this->ipPool;
         $this->message['send_at'] = $this->setDate();
 
         $this->buildAttachments();
 
-        $push = $this->responseBody['array']['push'] = $this->push(array('message' => $this->message));
-        $this->responseBody['info']['body'] = $this->message;
+        $url = 'https://mandrillapp.com/api/1.0/messages/send.json';
 
-        if ( ! $push) {
+        // CURL POST
+
+        $this->responseBody = $this->httpPostRequest(
+            $url,
+            array(
+                'key' => $this->key,
+                'message' => $this->message
+            )
+        );
+
+        // SET YOUR RESPONSE FORMAT ( raw, xml or array )
+        
+        $this->responseBody['array'] = json_decode($this->responseBody['raw'], true);
+
+        if ($this->responseBody['array'] === null) {
+            $this->debugMsg[] = 'We were unable to decode the JSON response from the Mandrill API, Response is: <pre>'.$this->responseBody['raw'].'</pre>';
+            $this->debugMsg[] = $this->responseBody['info'];
             $this->logger->error(
-                'Queue mailer push failed', 
+                'Transactional mail api call failed we were unable to decode the JSON', 
                 array(
-                    'url' => $this->config['send']['queue']['route'],
-                    'body' => $this->message,
-                    'info' => 'Queue push failed'
+                    'url' => $url, 
+                    'body' => $this->responseBody['raw'], 
+                    'info' => $this->responseBody['info']
                     )
             );
+            return false;
+        }
+        if (floor($this->responseBody['info']['http_code'] / 100) >= 4) {
+            $this->debugMsg[] = 'Cast error unexpected response code: '.$this->responseBody['info']['http_code'];
+            $this->debugMsg[] = $this->responseBody['info'];
             return false;
         }
         if (empty($this->debugMsg)) {
             return true;
         }
+        $this->debugMsg[] = $this->responseBody['info'];
         return false;
     }
 
@@ -364,7 +345,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
 
 }
 
-// END Mailer class
-/* End of file Mailer.php */
+// END Mandrill class
+/* End of file Mandrill.php */
 
-/* Location: .Obullo/Mail/Mailer.php */
+/* Location: .Obullo/Mailer/Transport/Mandrill.php */

@@ -87,6 +87,9 @@ Class PdoConnectionProvider
      */
     public function getConnection($params = array())
     {
+        if (isset($params['dsn'])) {       // Creates new unnamed (none config) connection
+            return $this->factory($params);
+        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = $this->config['default']['connection'];  //  Set default connection
         }

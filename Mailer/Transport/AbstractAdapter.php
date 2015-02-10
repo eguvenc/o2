@@ -1,12 +1,12 @@
 <?php
 
-namespace Obullo\Mail\Transport;
+namespace Obullo\Mailer\Transport;
 
-use Obullo\Mail\Text,
-    Obullo\Mail\Validator,
-    Obullo\Mail\File,
-    Obullo\Container\Container,
-    RuntimeException;
+use RuntimeException;
+use Obullo\Mailer\Text;
+use Obullo\Mailer\Validator;
+use Obullo\Mailer\File;
+use Obullo\Container\Container;
 
 /**
  * AbstractAdapter
@@ -50,26 +50,23 @@ Abstract Class AbstractAdapter
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $config preferences
+     * @param object $c container
      */
-    public function __construct(Container $c, $config = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->init($config['send']['settings']);
+        $this->init();
     }
 
     /**
      * Constructor
      * 
-     * @param array $config preferences
-     * 
      * @return object
      */
-    public function init($config = array())
+    public function init()
     {
         $this->clear();
-        foreach ($config as $key => $val) {
+        foreach ($this->c['config']->load('mailer')['settings'] as $key => $val) {
             if (isset($this->$key)) {
                 $this->$key = $val;
             }
@@ -320,7 +317,7 @@ Abstract Class AbstractAdapter
     
         if (curl_errno($ch)) {
             $this->logger->error('Transactional mail api call failed', array('url' => $url, 'error' => curl_error($ch)));
-            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAIL:API_CALL_FAILED', $url, curl_error($ch));
+            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:API_CALL_FAILED', $url, curl_error($ch));
         }
         $result['raw'] = $body;
         $result['info'] = curl_getinfo($ch);
@@ -343,7 +340,7 @@ Abstract Class AbstractAdapter
             AND ( ! isset($this->bccArray) AND ! isset($this->headers['Bcc'])) 
             AND ( ! isset($this->headers['Cc']))
         ) {
-            $this->debugMsg[] = $this->c['translator']['OBULLO:MAIL:NO_RECIPIENTS'];
+            $this->debugMsg[] = $this->c['translator']['OBULLO:MAILER:NO_RECIPIENTS'];
             return false;
         }
         $this->buildMessage();
@@ -457,7 +454,7 @@ Abstract Class AbstractAdapter
      */
     public function printDebugger()
     {
-        $this->c['translator']->load('mail');
+        $this->c['translator']->load('mailer');
         $msg = '';
         if (count($this->debugMsg) > 0) {
             foreach ($this->debugMsg as $val) {
@@ -476,4 +473,4 @@ Abstract Class AbstractAdapter
 // END AbstractAdapter class
 /* End of file AbstractAdapter.php */
 
-/* Location: .Obullo/Mail/Transport/AbstractAdapter.php */
+/* Location: .Obullo/Mailer/Transport/AbstractAdapter.php */

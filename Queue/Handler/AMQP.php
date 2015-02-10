@@ -76,7 +76,7 @@ Class AMQP extends Queue implements HandlerInterface
         $this->AMQPconnection = $this->c['service provider AMQP']->get(['connection' => 'default']);
 
         $this->channel = new AMQPChannel($this->AMQPconnection);
-        $this->defaultQueueName = $this->config['default']['queue'];
+        $this->defaultQueueName = $this->config['default']['queueName'];
     }
 
     /**

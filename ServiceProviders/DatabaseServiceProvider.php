@@ -2,8 +2,7 @@
 
 namespace Obullo\ServiceProviders;
 
-use Obullo\ServiceProviders\DatabaseConnectionProvider,
-    Obullo\Container\Container;
+use Obullo\Container\Container;
 
 /**
  * Database Service Provider
@@ -32,10 +31,6 @@ Class DatabaseServiceProvider
             $connector->register();
         }
         $connector = DatabaseConnectionProvider::getInstance($c);
-
-        if ( ! isset($params['connection'])) {  // Just one time register the shared objects
-            return $connector->factory($params);
-        }
         return $connector->getConnection($params);  // Get existing connection
     }
 }
