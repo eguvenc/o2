@@ -61,6 +61,7 @@ Class CacheConnectionProvider
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Cache connection provider requires driver parameter.");
         }
+        // print_r($params);
         $cid = 'cache.connection.'.static::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
