@@ -131,7 +131,7 @@ Class Container implements ArrayAccess
                 $value = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
 
                 if ( ! isset(Controller::$instance->{$key})) {      // If user use $this->c['uri'] in load method 
-                    return Controller::$instance->{$key} = $value;  // its remove instance of the current controller uri
+                    return Controller::$instance->{$key} = $value;  // it overrides instance of the current controller uri and effect to layers
                 }
             }
             if ( ! empty($matches['new'])) {
@@ -142,9 +142,13 @@ Class Container implements ArrayAccess
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
 
-        // This is assign loaded object container instance into controler instance.
-        // Also assign libraries to all Layers. In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
+        // Below the side If container value not exists in the controller instance
+        // then we assign container object into controler instance.
+    
+        // Also this side assign libraries to all Layers. 
+        // In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
         // it says "$this->view" undefined object that's why we need to assign libraries also for sub layers.
+        
         if ($controllerExists
             AND $noReturn  //  Store class into controller instance if return not used.
             AND Controller::$instance != null  // Sometimes in router level controller instance comes null.

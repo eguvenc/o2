@@ -13,14 +13,15 @@ trait RequestMethodNotAllowedTrait
      */
     public function methodIsAllowed()
     {
-        $currentMethod = strtolower($this->c['request']->method());
+        $method = $this->c['request']->method();
+        $currentMethod = strtolower($method);
 
-        if ( ! in_array($currentMethod, $this->allowedMethods)) {
+        if ( ! in_array($currentMethod, $this->params['allowedMethods'])) {  // Get injected parameters
 
             $this->c['response']->showError(
                 sprintf(
                     "Http %s method not allowed.", 
-                    ucfirst($this->c['request']->method())
+                    ucfirst($currentMethod)
                 ),
                 405
             );

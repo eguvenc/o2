@@ -946,7 +946,8 @@ Class Router
         if (isset($this->filters[$method][$name])) {  // If filter method exists just run one time for every methods
 
             $Class = '\\'.ucfirst($this->filters[$method][$name]);
-            $class = new $Class($this->c, $params);
+            $class = new $Class($this->c);
+            $class->params = $params;  //  Inject Parameters
 
             if ( ! method_exists($class, $method)) {   // Throw exception if filter method not exists.
                 throw new BadMethodCallException(
