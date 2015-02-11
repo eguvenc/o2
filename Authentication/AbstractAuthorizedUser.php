@@ -84,6 +84,7 @@ Class AbstractAuthorizedUser
      */
     public function __set($key, $val)
     {
+        print_r($key);
         return $this->attributes[$key] = $val;
     }
 
