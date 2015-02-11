@@ -563,7 +563,7 @@ Abstract Class Adapter
     {
         $time  = microtime(true) - $this->startQueryTimer;
 
-        if ($this->config['log']['extra']['queries']) {
+        if ($this->c['config']['logger']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Query ):', 
                 array('time' => number_format($time, 4), 'output' => self::getSqlString($sql)), 

@@ -15,19 +15,41 @@ namespace Obullo\Log;
 Abstract Class AbstractLogger
 {
     /**
-     * Namespaces of defined filters
+     * Log priorities
      * 
      * @var array
      */
-    protected $filterNames = array();
+    public static $priorities = array(
+        'emergency' => LOG_EMERG,
+        'alert'     => LOG_ALERT,
+        'critical'  => LOG_CRIT,
+        'error'     => LOG_ERR,
+        'warning'   => LOG_WARNING,
+        'notice'    => LOG_NOTICE,
+        'info'      => LOG_INFO,
+        'debug'     => LOG_DEBUG,
+    );
 
     /**
-     * Registered log handlers
-     * 
+     * Map native PHP errors to priority
+     *
      * @var array
      */
-    protected $registeredHandlers = array();
-
+    public static $errorPriorities = array(
+        E_NOTICE            => LOG_NOTICE,
+        E_USER_NOTICE       => LOG_NOTICE,
+        E_WARNING           => LOG_WARNING,
+        E_CORE_WARNING      => LOG_WARNING,
+        E_USER_WARNING      => LOG_WARNING,
+        E_ERROR             => LOG_ERR,
+        E_USER_ERROR        => LOG_ERR,
+        E_CORE_ERROR        => LOG_ERR,
+        E_RECOVERABLE_ERROR => LOG_ERR,
+        E_STRICT            => LOG_DEBUG,
+        E_DEPRECATED        => LOG_DEBUG,
+        E_USER_DEPRECATED   => LOG_DEBUG,
+    );
+    
     /**
      * Load defined log handler
      * 
@@ -67,10 +89,11 @@ Abstract Class AbstractLogger
      * Add writer
      * 
      * @param string $name handler key
+     * @param string $type writer/handler
      *
      * @return object
      */
-    abstract public function addWriter($name);
+    abstract public function addWriter($name, $type = 'writer');
 
     /**
      * Returns to primary writer name.

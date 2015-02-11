@@ -137,14 +137,14 @@ Class ErrorHandler
         if ($level & (E_USER_DEPRECATED | E_DEPRECATED)) {
             if (is_object($c) AND $logger instanceof Logger) {
                 $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-                $logger->channel($c['config']['log']['default']['channel']);
+                $logger->channel($c['config']['logger']['default']['channel']);
                 $logger->warning($message, array('type' => self::TYPE_DEPRECATION, 'stack' => $stack));
             }
             return true;
         }
         unset($context); // Remove context data 
         if ($logger instanceof Logger) {          // Log for local environment
-            $logger->channel($c['config']['log']['default']['channel']);
+            $logger->channel($c['config']['logger']['default']['channel']);
             $logger->error($message, array('level' => $this->level, 'file' => DebugOutput::getSecurePath($file), 'line' => $line, 'extra' => null));
         }
         if ($this->displayErrors 
@@ -178,7 +178,7 @@ Class ErrorHandler
         if ($filename != 'Logger.php') {  // Don't log logger class fatal errors.
             $logger = $c['logger'];
             if ($logger instanceof Logger) {
-                $logger->channel($c['config']['log']['default']['channel']);
+                $logger->channel($c['config']['logger']['default']['channel']);
                 $logger->error($error['message'], array('level' => $type, 'file' => $error['file'], 'line' => $error['line']));
             }
         }

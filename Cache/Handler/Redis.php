@@ -163,6 +163,19 @@ Class Redis implements HandlerInterface
     }
 
     /**
+     * If method not exists call from Redis class
+     * 
+     * @param string $method    methodname
+     * @param array  $arguments method arguments
+     * 
+     * @return mixed
+     */
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array(array($this->redis, $method), $arguments);
+    }
+
+    /**
      * Get current serializer name
      * 
      * @return string serializer name
@@ -197,20 +210,20 @@ Class Redis implements HandlerInterface
      * 
      * @return string with the last returned script based error message, or NULL if there is no error
      */
-    public function getLastError()
-    {
-        return $this->redis->getLastError();
-    }
+    // public function getLastError()
+    // {
+    //     return $this->redis->getLastError();
+    // }
 
     /**
      * Get last save
      * 
      * @return timestamp the timestamp of the last disk save.
      */
-    public function getLastSave()
-    {
-        return $this->redis->lastSave();
-    }
+    // public function getLastSave()
+    // {
+    //     return $this->redis->lastSave();
+    // }
 
     /**
      * Returns the type of data pointed by a given type key.
@@ -219,10 +232,10 @@ Class Redis implements HandlerInterface
      * 
      * @return Depending on the type of the data pointed by the type key
      */
-    public function type($typeKey)
-    {
-        return $this->redis->type($typeKey);
-    }
+    // public function type($typeKey)
+    // {
+    //     return $this->redis->type($typeKey);
+    // }
 
     /**
      * Sets an expiration date (a timeout) on an item. pexpire requires a TTL in milliseconds.
@@ -259,20 +272,20 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean always true
      */
-    public function flushAll()
-    {
-        return $this->redis->flushAll();
-    }
+    // public function flushAll()
+    // {
+    //     return $this->redis->flushAll();
+    // }
 
     /**
      * Remove all keys from the current database.
      * 
      * @return boolean always true
      */
-    public function flushDB()
-    {
-        return $this->redis->flushDB();
-    }
+    // public function flushDB()
+    // {
+    //     return $this->redis->flushDB();
+    // }
 
     /**
      * Append specified string to the string stored in specified key.
@@ -282,10 +295,10 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean true or false
      */
-    public function append($key, $data)
-    {
-        return $this->redis->append($key, $data);
-    }
+    // public function append($key, $data)
+    // {
+    //     return $this->redis->append($key, $data);
+    // }
 
     /**
      * Verify if the specified key exists.
@@ -322,10 +335,10 @@ Class Redis implements HandlerInterface
      * 
      * @return string the previous value located at this key.
      */
-    public function getSet($key, $data)
-    {
-        return $this->redis->getSet($key, $data);
-    }
+    // public function getSet($key, $data)
+    // {
+    //     return $this->redis->getSet($key, $data);
+    // }
 
     /**
      * Renames a key.
@@ -485,10 +498,10 @@ Class Redis implements HandlerInterface
      * 
      * @return LONG the number of items in a hash, FALSE if the key doesn't exist or isn't a hash.
      */
-    public function hLen($key)
-    {
-        return $this->redis->hLen($key);
-    }
+    // public function hLen($key)
+    // {
+    //     return $this->redis->hLen($key);
+    // }
 
     /**
      * Removes a value from the hash stored at key. If the hash table doesn't exist, or the key doesn't exist, FALSE is returned.
@@ -498,10 +511,10 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean TRUE in case of success, FALSE in case of failure
      */
-    public function hDel($key, $hashKey)
-    {
-        return $this->redis->hDel($key, $hashKey);
-    }  
+    // public function hDel($key, $hashKey)
+    // {
+    //     return $this->redis->hDel($key, $hashKey);
+    // }  
 
     /**
      * Returns the keys in a hash, as an array of strings.
@@ -510,10 +523,10 @@ Class Redis implements HandlerInterface
      * 
      * @return An array of elements, the keys of the hash. This works like PHP's array_keys().
      */
-    public function hKeys($key)
-    {
-        return $this->redis->hKeys($key);
-    }
+    // public function hKeys($key)
+    // {
+    //     return $this->redis->hKeys($key);
+    // }
 
     /**
      * Returns the values in a hash, as an array of strings.
@@ -522,10 +535,10 @@ Class Redis implements HandlerInterface
      * 
      * @return An array of elements, the values of the hash. This works like PHP's array_values().
      */
-    public function hVals($key)
-    {
-        return $this->redis->hVals($key);
-    }
+    // public function hVals($key)
+    // {
+    //     return $this->redis->hVals($key);
+    // }
 
     /**
      * Verify if the specified member exists in a key.
@@ -534,10 +547,10 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean If the member exists in the hash table, return TRUE, otherwise return FALSE.
      */
-    public function hGetAll($key)
-    {
-        return $this->redis->hGetAll($key);
-    }
+    // public function hGetAll($key)
+    // {
+    //     return $this->redis->hGetAll($key);
+    // }
 
     /**
      * Increments the value of a member from a hash by a given amount.
@@ -548,10 +561,10 @@ Class Redis implements HandlerInterface
      * 
      * @return long the new value
      */
-    public function hIncrBy($key, $member, $value)
-    {
-        return $this->redis->hIncrBy($key, $member, $value);
-    }
+    // public function hIncrBy($key, $member, $value)
+    // {
+    //     return $this->redis->hIncrBy($key, $member, $value);
+    // }
 
     /**
      * Increments the value of a hash member by the provided float value
@@ -562,10 +575,10 @@ Class Redis implements HandlerInterface
      * 
      * @return float the new value
      */
-    public function hIncrByFloat($key, $member, $value)
-    {
-        return $this->redis->hIncrByFloat($key, $member, $value);
-    }   
+    // public function hIncrByFloat($key, $member, $value)
+    // {
+    //     return $this->redis->hIncrByFloat($key, $member, $value);
+    // }   
 
     /**
      * Fills in a whole hash. Non-string values are converted to string, using the standard (string) cast. NULL values are stored as empty strings.
@@ -593,10 +606,10 @@ Class Redis implements HandlerInterface
      * 
      * @return Array An array of elements, the values of the specified fields in the hash, with the hash keys as array keys.
      */
-    public function hMGet($key, $memberKeys)
-    {
-        return $this->redis->hMGet($key, $memberKeys);
-    }
+    // public function hMGet($key, $memberKeys)
+    // {
+    //     return $this->redis->hMGet($key, $memberKeys);
+    // }
 
     /**
      * Authenticate the connection using a password. Warning: The password is sent in plain-text over the network.
@@ -605,10 +618,10 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean true or false
      */
-    public function auth($password)
-    {
-        return $this->redis->auth($password);
-    }
+    // public function auth($password)
+    // {
+    //     return $this->redis->auth($password);
+    // }
 
     /**
      * Set Array
@@ -653,12 +666,12 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean
      */
-    public function delete($key)
-    {
-        return $this->redis->delete($key);
-    }
+    // public function delete($key)
+    // {
+    //     return $this->redis->delete($key);
+    // }
 
-    /**
+    /**s
      * Replace key value
      * 
      * @param string $key  redis key
@@ -685,10 +698,10 @@ Class Redis implements HandlerInterface
      * 
      * @return object
      */
-    public function info()
-    {
-        return $this->redis->info();
-    }
+    // public function info()
+    // {
+    //     return $this->redis->info();
+    // }
 
     /**
      * Get Meta Data
@@ -708,10 +721,10 @@ Class Redis implements HandlerInterface
      * 
      * @return void
      */
-    public function close()
-    {
-        $this->redis->close();
-    }
+    // public function close()
+    // {
+    //     $this->redis->close();
+    // }
 
 }
 

@@ -81,9 +81,9 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
          * Clear File handler data
          */
         $files = array(
-            trim($this->config['log']['file']['path']['http'], '/'),
-            trim($this->config['log']['file']['path']['ajax'], '/'),
-            trim($this->config['log']['file']['path']['cli'], '/'),
+            trim($this->c['config']['logger']['file']['path']['http'], '/'),
+            trim($this->c['config']['logger']['file']['path']['ajax'], '/'),
+            trim($this->c['config']['logger']['file']['path']['cli'], '/'),
         );
         foreach ($files as $file) {
             $file = str_replace('/', DS, $file);
@@ -101,7 +101,7 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
          * Clear Queue handler data
          */
         $queue = $this->c['queue'];
-        $queue->deleteQueue($this->config['log']['queue']['route']);
+        $queue->deleteQueue($this->c['config']['logger']['queue']['route']);
         
         echo "\33[1;36mApplication logs deleted.\33[0m\n";
     }

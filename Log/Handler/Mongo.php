@@ -1,21 +1,22 @@
 <?php
 
-namespace Obullo\Log\JobHandler;
+namespace Obullo\Log\Handler;
 
-use MongoDate,
-    InvalidArgumentException;
+use MongoDate;
+use InvalidArgumentException;
+use Obullo\Container\Container;
 
 /**
- * File JobHandler Class
+ * Mongo Log Handler Class
  * 
  * @category  Log
- * @package   JobHandler
+ * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
+Class Mongo extends AbstractHandler implements HandlerInterface
 {
     /**
      * Container
@@ -59,14 +60,14 @@ Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
      * @param object $mongo  $mongo service provider
      * @param array  $params parameters
      */
-    public function __construct($c, $mongo, array $params = array())
+    public function __construct(Container $c, $mongo, array $params = array())
     {
         $this->c = $c;
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : null;
 
-        parent::__construct($params);
+        parent::__construct($c);
 
         if (null === $collection) {
             throw new InvalidArgumentException('The collection parameter cannot be empty');
@@ -74,7 +75,7 @@ Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
         if (null === $database) {
             throw new InvalidArgumentException('The database parameter cannot be empty');
         }
-        if (get_class($mongo) != 'MongoClient') {
+        if (get_class($mongo) != 'MongoClient' OR get_class($mongo) != 'Mongo') {
             throw new InvalidArgumentException(
                 'Parameter of type %s is invalid; must be MongoClient or Mongo instance.', 
                 (is_object($mongo) ? get_class($mongo) : gettype($$mongo))
@@ -93,10 +94,10 @@ Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
     * 
     * @return array formatted record
     */
-    public function format($timestamp, $unformattedRecord)
+    public function arrayFormat($timestamp, $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($this->config['log']['format']['date'], $timestamp))),
+            'datetime' => new MongoDate(strtotime(date($this->c['config']['logger']['format']['date'], $timestamp))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -130,9 +131,15 @@ Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
     {
         $records = array();
         foreach ($data['record'] as $record) {
-            $records[] = $this->format($data['time'], $record);
+            $records[] = $this->arrayFormat($data['time'], $record);
         }
-        $this->mongoCollection->batchInsert($records, array('continueOnError' => true));
+        $this->mongoCollection->batchInsert(
+            $records, 
+            array_merge(
+                $this->saveOptions, 
+                ['continueOnError' => true]
+            )
+        );
     }
 
     /**
@@ -146,7 +153,7 @@ Class JobHandlerMongo extends AbstractJobHandler implements JobHandlerInterface
     }
 }
 
-// END JobHandlerMongo class
+// END Mongo class
 
-/* End of file JobHandlerMongo.php */
-/* Location: .Obullo/Log/JobHandler/JobHandlerMongo.php */
+/* End of file Mongo.php */
+/* Location: .Obullo/Log/Handler/Mongo.php */
