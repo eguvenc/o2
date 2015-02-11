@@ -919,17 +919,19 @@ Class Router
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
             return;
         }
-        $route = $this->uri->getUriString();        // Get current uri
+        $route = $this->c['uri']->getUriString();        // Get current uri
 
-        if ( ! isset($_SERVER['LAYER_REQUEST'])) {  // Don't run filters on layers
-            foreach ($this->attach[$this->DOMAIN] as $value) {
-                if ($value['route'] == $route) {    // if we have natural route match
-                    $this->runFilter($value['name'], $method, $value['options']);
-                } elseif (preg_match('#^' . $value['attachedRoute'] . '$#', $route)) {
-                    $this->runFilter($value['name'], $method, $value['options']);
-                }
+        if ($this->c->isCalled('request')) {
+            $route = $this->c['request']->global->uri->getUriString();
+        }
+        foreach ($this->attach[$this->DOMAIN] as $value) {
+            if ($value['route'] == $route) {    // if we have natural route match
+                $this->runFilter($value['name'], $method, $value['options']);
+            } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
+                $this->runFilter($value['name'], $method, $value['options']);
             }
         }
+
     }
 
     /**

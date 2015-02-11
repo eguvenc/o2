@@ -122,11 +122,15 @@ Class DebugOutput
                     $formatter = new LineFormatter($this->c, $this->logger);
                     foreach ($records as $record) {
                         $lines.= $formatter->format($record);
+                        $raw[] = $record;
                     }
                 } else {
                     $lines = sprintf('There is no data in %s handler.', $this->handler);
                 }
             }
+            
+            $this->initTpl($raw);
+            /*
             return '<div style="
                     overflow-y:scroll;
                     background:#fff;
@@ -141,11 +145,11 @@ Class DebugOutput
                     border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;font-size:12px;"><b>'.sprintf('LOGGER %s', 'DEBUG').'</b>
                     <pre style="
                     white-space: pre-wrap;       /* css-3 */
-                    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-                    white-space: -pre-wrap;      /* Opera 4-6 */
-                    white-space: -o-pre-wrap;    /* Opera 7 */
-                    word-wrap: break-word;       /* Internet Explorer 5.5+ */
-                    background:#fff;
+                    /*white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+                   /* white-space: -pre-wrap;      /* Opera 4-6 */
+                    /*white-space: -o-pre-wrap;    /* Opera 7 */
+                    /*word-wrap: break-word;       /* Internet Explorer 5.5+ */
+                    /*background:#fff;
                     border: none;
                     color:#006857;
                     border-radius:4px;
@@ -156,9 +160,31 @@ Class DebugOutput
                     font-size:12px;
                     padding:0;
                     margin-top:8px;">'.sprintf('%s', $lines).'</pre>
+
                     </div><style>html{position:relative !important;} body{position:static;min-height:100% !important;height: 100% !important;};</style>';
+                    </div><style>html{position:relative !important;} body{position:static;min-height:100% !important;height: 100% !important;};</style>';*/
+
         }
 
+    }
+
+    private function initTpl($raw)
+    {
+        ob_start();
+        include_once 'Template/master.php';
+        $master = ob_get_clean();
+
+        ob_start();
+        include_once 'Template/include/logs.php';
+        $incLog = ob_get_clean();
+
+        $logTpl = '';
+        foreach ($raw as $_raw) {
+            $logTpl .= preg_replace(['/\{\{DATE\}\}/','/\{\{CHANNEL\}\}/','/\{\{DEBUG\}\}/'], [$_raw['datetime'], $_raw['channel'], $_raw['level']], $incLog);
+        }
+        $master = preg_replace('/\{\{LOGS\}\}/', $logTpl, $master);
+
+        echo($master);
     }
 }
 

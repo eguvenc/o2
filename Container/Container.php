@@ -65,6 +65,18 @@ Class Container implements ArrayAccess
     }
 
     /**
+     * Checks package is loaded
+     * 
+     * @param string $cid package id
+     * 
+     * @return boolean
+     */
+    public function isCalled($cid) 
+    {
+        return isset($this->frozen[$cid]);
+    }    
+
+    /**
      * Sets a parameter or an object.
      *
      * Objects must be defined as Closures.
@@ -120,7 +132,7 @@ Class Container implements ArrayAccess
         }
 
         if ( ! isset($this->values[$cid])) {  // If not exists in container we load it directly.
-            return $this->load($cid);
+            return $this->load($cid);        //  Load service providers, services and none component libraries like cookie, url ..
         }
 
         if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.

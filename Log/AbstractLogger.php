@@ -60,6 +60,7 @@ Abstract Class AbstractLogger
     abstract public function load($name);
 
     /**
+     * 
      * Change channel
      * 
      * @param string $channel add a channel
