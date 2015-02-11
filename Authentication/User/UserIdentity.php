@@ -286,17 +286,16 @@ Class UserIdentity extends AuthorizedUser
         if ($this->getCookieToken() == $this->getStorageToken()) {
             return $this->tokenIsValid = true;
         }
-        $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
-
         $this->logger->channel('security');
         $this->logger->notice(
             'Invalid auth token identity destroyed.', 
             [
-                'identifier' => $this->user->identity->getIdentifier(),
-                'token' => $this->user->identity->getStorageToken(),
-                'cookie' => $this->user->identity->getCookieToken()
+                'identifier' => $this->getIdentifier(),
+                'token' => $this->getStorageToken(),
+                'cookie' => $this->getCookieToken()
             ]
         );
+        $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
         return $this->tokenIsValid = false;
     }
 
