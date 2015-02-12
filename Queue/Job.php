@@ -14,7 +14,7 @@ use DateTime;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-Abstract class Job
+abstract class Job
 {
     /**
      * Container

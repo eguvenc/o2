@@ -112,7 +112,7 @@ Class NullLogger extends AbstractLogger
      * 
      * @return string returns to "handler" e.g. "file"
      */
-    public function getWriterName()
+    public function getPrimaryWriter()
     {
         return 'null';
     }

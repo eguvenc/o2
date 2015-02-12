@@ -26,13 +26,6 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
     public $logger;
 
     /**
-     * Response class
-     * 
-     * @var object
-     */
-    public $response;
-
-    /**
      * Curl post body
      * 
      * @var array
@@ -313,12 +306,16 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
 
     /**
      * Returns to response object
+     *
+     * @param string $key response key
      * 
      * @return object
      */
-    public function response()
-    {   
-        return new Response($this->responseBody);
+    public function __get($key)
+    {
+        if ($key == 'response') {
+            return new Response($this->responseBody);
+        }
     }
 
     /**

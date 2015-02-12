@@ -82,13 +82,6 @@ interface TransportInterface
      * @return boelean
      */
     public function spoolEmail();
-
-    /**
-     * Returns to response object
-     * 
-     * @return object
-     */
-    public function response();
     
 }
 

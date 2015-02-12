@@ -19,7 +19,7 @@ use Obullo\Mailer\Text,
  */
 abstract class AbstractAdapter
 {
-    public $useragent = 'Obullo';
+    public $useragent = 'Framework Mailer';
     public $mailpath = '/usr/sbin/sendmail';    // Sendmail path
     public $wordwrap = true;       // true/false  Turns word-wrap on/off
     public $mailtype = 'text';     // text/html  Defines email formatting

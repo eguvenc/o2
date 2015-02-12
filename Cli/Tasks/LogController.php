@@ -45,7 +45,7 @@ Class LogController extends Controller
         if ($this->parser->argument('help')) {
             return $this->help();
         }
-        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getWriterName());
+        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getPrimaryWriter());
         $class = new $Class;
         $class->follow($this->c, $dir, $table);
     }

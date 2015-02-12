@@ -26,12 +26,12 @@ interface JobInterface
     /**
      * Fire the job
      * 
-     * @param object $job  class
+     * @param object $job  class \\Obullo\Queue\Job class
      * @param array  $data payload
      * 
      * @return void
      */
-    public function fire(Job $job, $data);
+    public function fire($job, $data);
 }
 
 // END JobInterface class

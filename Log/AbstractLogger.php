@@ -12,7 +12,7 @@ namespace Obullo\Log;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Abstract Class AbstractLogger
+abstract Class AbstractLogger
 {
     /**
      * Log priorities
@@ -100,7 +100,7 @@ Abstract Class AbstractLogger
      * 
      * @return string returns to "handler" e.g. "file"
      */
-    abstract public function getWriterName();
+    abstract public function getPrimaryWriter();
 
     /**
      * Returns to all writers

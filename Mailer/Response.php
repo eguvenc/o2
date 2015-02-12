@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Mail\Transport;
+namespace Obullo\Mailer;
 
 /**
- * Transport Api Client Response
+ * Mail Api Response
  * 
  * @category  Mail
  * @package   Transport
@@ -26,49 +26,49 @@ Class Response
      *
      * @param array $response array
      */
-    public function __construct($response)
+    public function __construct(array $response)
     {
         $this->response = $response;
     }
 
     /**
-     * Returns to raw output ( json )
+     * Returns to raw output
      * 
      * @return string
      */
     public function getRaw()
     {
-        return $this->response['body'];
+        return isset($this->response['body']) ? $this->response['body'] : false;
     }
 
     /**
-     * Returns to raw output ( json )
+     * Returns to xml output
      * 
-     * @return string
+     * @return mixed
      */
     public function getXml()
     {
-        return $this->response['xml'];
+        return isset($this->response['xml']) ? $this->response['xml'] : false;
     }
 
     /**
-     * Returns to json decoded output
+     * Returns to json decoded array output
      * 
-     * @return array
+     * @return mixed
      */
     public function getArray()
     {
-        return $this->response['array'];
+        return isset($this->response['array']) ? $this->response['array'] : false;
     }
 
     /**
      * Returns to curl info in array format
      * 
-     * @return array
+     * @return mixed
      */
     public function getInfo()
     {
-        return $this->response['info'];
+        return isset($this->response['info']) ? $this->response['info'] : false;
     }
 
 }
@@ -76,4 +76,4 @@ Class Response
 // END Response class
 /* End of file Response.php */
 
-/* Location: .Obullo/Mailer/Transport/Response.php */
+/* Location: .Obullo/Mailer/Response.php */

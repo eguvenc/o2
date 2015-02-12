@@ -17,13 +17,6 @@ use Obullo\Container\Container;
 abstract class AbstractHandler
 {
     /**
-     * Config
-     * 
-     * @var array
-     */
-    public $config = array();
-
-    /**
      * Constructor
      *
      * @param object $c container
@@ -35,19 +28,19 @@ abstract class AbstractHandler
     }
 
     /**
-     * Check log writing is allowed, 
-     * don't allow log writing for cli commands
+     * Check log writing is allowed, deny not allowed
+     * requests.
      *
-     * @param string $request request type
+     * @param string $record log record
      * 
      * @return boolean
      */
-    public function isAllowed($request)
+    public function isAllowed(array $record)
     {
-        if ($request == 'worker') {  //  If worker logs allowed from config file.
-            return $this->c['config']['logger']['queue']['workers']['logging'];
+        if ($record['request'] == 'worker') {
+            return $this->c['config']['logger']['queue']['workers']['logging'];  //  If worker logs allowed from config file.
         }
-        if (in_array($request, array(null, 'http','ajax','cli'))) {
+        if (in_array($record['request'], array(null, 'http','ajax','cli'))) {
             return true;
         }
         return false;
@@ -83,7 +76,7 @@ abstract class AbstractHandler
     }
 
     /**
-     * Write processor output to file
+     * Write log data
      *
      * @param array $records log data
      * 

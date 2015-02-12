@@ -2,6 +2,7 @@
 
 namespace Obullo\Mailer;
 
+use Obullo\Mailer\Response;
 use Obullo\Container\Container;
 use Obullo\Mailer\Transport\AbstractAdapter;
 use Obullo\Mailer\Transport\TransportInterface;
@@ -24,13 +25,6 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      * @var object
      */
     public $logger;
-
-    /**
-     * Response class
-     * 
-     * @var object
-     */
-    public $response;
 
     /**
      * Queue payload
@@ -295,7 +289,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
         $this->debugMsg[] = ($push) ? 'Mailer push success.' : 'Mailer push failed.';
 
         $time = microtime(true) - $start;
-        $this->logger->debug('Queue mailer push', array('message' => $payload['message'], 'time' => number_format($time * 1000, 2) . 'ms'));
+        $this->logger->debug('Queue mailer push', array('payload' => $payload, 'time' => number_format($time * 1000, 2) . 'ms'));
     
         if ( ! $push) {
             $this->logger->error('Queue mailer push failed', array('route' => $route));
@@ -331,7 +325,10 @@ Class Queue extends AbstractAdapter  implements TransportInterface
 
         $this->buildAttachments();
 
-        $push = $this->responseBody['array']['push'] = $this->push(array('message' => $this->message));
+        /**
+         * PUSH DATA TO QUEUE
+         */
+        $push = $this->responseBody['array']['push'] = $this->push($this->message);
         $this->responseBody['info']['body'] = $this->message;
 
         if ( ! $push) {
@@ -353,12 +350,16 @@ Class Queue extends AbstractAdapter  implements TransportInterface
 
     /**
      * Returns to response object
+     *
+     * @param string $key response key
      * 
      * @return object
      */
-    public function response()
-    {   
-        return new Response($this->responseBody);
+    public function __get($key)
+    {
+        if ($key == 'response') {
+            return new Response($this->responseBody);
+        }
     }
 
     /**

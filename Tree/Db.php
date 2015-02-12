@@ -832,7 +832,7 @@ Class Db
         if (is_string($nodeId)) {
             $columnName = $this->text;
         }
-        $this->db->prepare(
+        $this->db->query(
             'SELECT node.%s, (COUNT(parent.%s) - (sub_tree.depth + 1)) AS depth
                 FROM %s AS node,
                 %s AS parent,
@@ -881,8 +881,6 @@ Class Db
                 $this->db->protect($this->lft)
             )
         );
-        $this->db->execute();
-
         return $this->db->resultArray();
     }
 
@@ -933,7 +931,6 @@ Class Db
                 $this->db->protect($this->lft)
             )
         );
-        $this->db->execute();
         return $this->db->resultArray();
     }
 
@@ -999,7 +996,7 @@ Class Db
     public function getParentId($category_id)
     {
         $this->loadDb();
-        $this->db->query(
+        $this->db->prepare(
             'SELECT %s FROM %s WHERE %s = %s LIMIT 1',
             array(
                 $this->db->protect($this->parentId),

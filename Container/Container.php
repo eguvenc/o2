@@ -50,6 +50,7 @@ Class Container implements ArrayAccess
     {
         $this->aliases = new SplObjectStorage;
         $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
+        unset($this->services['Providers']);
     }
 
     /**
@@ -232,9 +233,9 @@ Class Container implements ArrayAccess
         $serviceName = ucfirst($class);
 
         if ( ! empty($matches['provider'])) {
-            $folder = '\Obullo\\';
+            $folder = '\Obullo\\ServiceProviders\\';
             if ( ! empty($matches['app'])) {  // If we have classes/ServiceProviders/x request.
-                $folder = '';
+                $folder = '\Service\Providers\\';
             }
             $this->loadServiceProvider($matches, $folder);    // Resolve service providers
             return $this;
@@ -272,7 +273,7 @@ Class Container implements ArrayAccess
      */
     protected function loadServiceProvider(array $matches, $folder = '\\')
     {
-        $serviceProviderClass = $folder.'ServiceProviders\\'.ucfirst($matches['class']).'ServiceProvider';
+        $serviceProviderClass = $folder.ucfirst($matches['class']).'ServiceProvider';
         $this->with[] = new $serviceProviderClass($this);
     }
 

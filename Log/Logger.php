@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 use Obullo\Log\Debugger\DebugOutput;
 
 /**
- * Logger Class
+ * Standart Logger Class
  * 
  * @category  Log
  * @package   Logger
@@ -29,6 +29,7 @@ Class Logger extends AbstractLogger
     public $channel = 'system';               // Default log channel
     public $track = array();                  // Track data for handlers and writers
 
+    protected $connect = false;               // Lazy connections
     protected $push = array();                // Push data
     protected $payload = array();             // Payload
     protected $priorityQueue = array();       // Log priority queue objects
@@ -63,54 +64,6 @@ Class Logger extends AbstractLogger
         register_shutdown_function(array($this, 'close'));
     }
 
-     /**
-     * Extract queued log handlers data store them into one array
-     * 
-     * @return void
-     */
-    protected function exec()
-    {
-        $i = 0;
-        $this->payload['logger'] = 'Logger';
-        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
-                return;
-            }
-            $this->payload[$i]['request'] = $this->request;
-            $this->payload[$i]['handler'] = $name;
-            $this->payload[$i]['priority'] = $val['priority'];
-            $this->payload[$i]['time'] = time();
-            $this->payload[$i]['record'] = $this->extract($name);  // array
-            ++$i;
-        }
-    }
-
-    /**
-     * Push ( Write log handlers data )
-     * 
-     * @return void
-     */
-    public function push()
-    {        
-        if ($this->debug OR $this->enabled == false) {
-            return;
-        }
-        foreach ($this->writers as $name => $val) {
-            if ($val['type'] == 'handler') {
-                if ( ! isset($this->writers[$name])) {
-                    throw new LogicException(
-                        sprintf(
-                            'The push handler %s not available in log writers please first load it using below the command.
-                            <pre>$this->logger->load("handler");</pre>', 
-                            $name
-                        )
-                    );
-                }
-                $this->push[$name] = 1; // Allow push data to valid push handler.
-            }
-        }
-    }
-
     /**
      * End of the logs and beginning of the handlers.
      *
@@ -119,7 +72,7 @@ Class Logger extends AbstractLogger
     public function close()
     {
         if ($this->debug) {         // Debug output for log data if enabled
-            $primaryWriter = $this->getWriterName();
+            $primaryWriter = $this->getPrimaryWriter();
             $debugger = new DebugOutput($this->c, $this);
             $debugger->setHandler($primaryWriter);
             echo $debugger->printDebugger($this->getQueue($primaryWriter));
@@ -128,15 +81,14 @@ Class Logger extends AbstractLogger
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
-        $this->exec();
-
-        // $this->queue->channel($this->c['config']['logger']['queue']['channel']); // Set channel at top
-        // $this->queue->push(
-        //     $this->c['config']['logger']['queue']['worker'],
-        //     $this->c['config']['logger']['queue']['route'],
-        //     $this->payload,
-        //     $this->c['config']['logger']['queue']['delay']
-        // );
+        if ($this->connect) {    // Lazy loading for Logger service
+                                 // if connect method executed one time then we set to connect true
+                                 // When connect booelan is available we load the worker class
+            
+            $this->exec();       // Set payload data
+            $worker = new \Workers\Logger($this->c); // Excure worker for standart logger
+            $worker->fire(null, $this->payload);
+        }
     }
 
 }

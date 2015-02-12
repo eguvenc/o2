@@ -3,6 +3,7 @@
 namespace Obullo\Log\Handler;
 
 use Obullo\Container\Container;
+use Obullo\Log\Formatter\LineFormatterTrait;
 
 /**
  * File Handler Class
@@ -16,7 +17,7 @@ use Obullo\Container\Container;
  */
 Class File extends AbstractHandler implements HandlerInterface
 {
-    use \Obullo\Log\Formatter\LineFormatterTrait;
+    use LineFormatterTrait;
 
     /**
      * Container

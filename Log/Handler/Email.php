@@ -2,7 +2,9 @@
 
 namespace Obullo\Log\Handler;
 
+use Closure;
 use Obullo\Container\Container;
+use Obullo\Log\Formatter\LineFormatterTrait;
 
 /**
  * Email Handler Class
@@ -16,7 +18,7 @@ use Obullo\Container\Container;
  */
 Class Email extends AbstractHandler implements HandlerInterface
 {
-    use \Obullo\Log\Formatter\LineFormatterTrait;
+    use LineFormatterTrait;
 
     /**
      * Container
@@ -24,40 +26,72 @@ Class Email extends AbstractHandler implements HandlerInterface
      * @var object
      */
     public $c;
-
+    
     /**
-     * Service mailer
-     * 
-     * @var object
-     */
-    public $mailer;
-
-    /**
-     * Message body
+     * Mail message
      * 
      * @var string
      */
-    public $message;
-    
+    protected $message;
+
+    /**
+     * Closure function
+     * 
+     * @var object
+     */
+    protected $closure;
+
+    /**
+     * Newline character
+     * 
+     * @var string
+     */
+    protected $newlineChar = '<br />';
+
     /**
      * Config Constructor
      *
-     * @param object $c      container
-     * @param object $mailer mailer service
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct(Container $c, $mailer, array $params = array())
+    public function __construct(Container $c)
     {
-        $this->mailer = $mailer;
-        $this->message = $params['message'];
-
         parent::__construct($c);
+    }
 
-        $this->mailer->from($params['from']);
-        $this->mailer->to($params['to']);
-        $this->mailer->cc($params['cc']); 
-        $this->mailer->bcc($params['bcc']);
-        $this->mailer->subject($params['subject']);
+    /**
+     * Sets your custom newline character
+     * 
+     * @param string $newline char
+     *
+     * @return void
+     */
+    public function setNewlineChar($newline = '<br />')
+    {
+        $this->newlineChar = $newline;
+    }
+
+    /**
+     * Set mailer message
+     * 
+     * @param string $message message
+     *
+     * @return void
+     */
+    public function setMessage($message)
+    {
+        $this->message = (string)$message;
+    }
+
+    /**
+     * Sets closure function for send method
+     * 
+     * @param Closure $closure closure
+     * 
+     * @return void
+     */
+    public function func(Closure $closure)
+    {
+        $this->closure = $closure;
     }
 
     /**
@@ -65,17 +99,21 @@ Class Email extends AbstractHandler implements HandlerInterface
      *
      * @param array $data log record
      * 
-     * @return boolean
+     * @return void
      */
     public function write(array $data)
     {
         $lines = '';
         foreach ($data['record'] as $record) {
             $record = $this->arrayFormat($data['time'], $record);
-            $lines .= $this->lineFormat($record);
+            $lines .= str_replace("\n", $this->newlineChar, $this->lineFormat($record));
         }
-        $this->mailer->message(sprintf($this->message, $lines));
-        $this->mailer->send();
+        $message = sprintf($this->message, $lines);
+        $closure = $this->closure;
+
+        if (is_callable($closure)) {  // Send formatted message
+            return $closure($message);
+        }
     }
 
     /**

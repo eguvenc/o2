@@ -33,6 +33,7 @@ Class QueueLogger extends AbstractLogger
     public $channel = 'system';               // Default log channel
     public $track = array();                  // Track data for handlers and writers
 
+    protected $connect = false;               // Lazy connections
     protected $push = array();                // Push data
     protected $payload = array();             // Payload
     protected $priorityQueue = array();       // Log priority queue objects
@@ -49,17 +50,14 @@ Class QueueLogger extends AbstractLogger
     protected static $registeredExceptionHandler = false;
     protected static $registeredFatalErrorShutdownFunction = false;
 
-    
     /**
      * Constructor
      *
-     * @param object $c     container
-     * @param object $queue queue service object
+     * @param object $c container
      */
-    public function __construct(Container $c, Queue $queue = null)
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->queue = $queue;
         $this->enabled = $this->c['config']['log']['control']['enabled'];
         $this->debug = $this->c['config']['log']['control']['firelog'];
 
@@ -67,55 +65,6 @@ Class QueueLogger extends AbstractLogger
         $this->initialize();
 
         register_shutdown_function(array($this, 'close'));
-    }
-
-
-     /**
-     * Extract queued log handlers data store them into one array
-     * 
-     * @return void
-     */
-    protected function exec()
-    {
-        $i = 0;
-        $this->payload['logger'] = 'QueueLogger';
-        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
-                return;
-            }
-            $this->payload[$i]['request'] = $this->request;
-            $this->payload[$i]['handler'] = $name;
-            $this->payload[$i]['priority'] = $val['priority'];
-            $this->payload[$i]['time'] = time();
-            $this->payload[$i]['record'] = $this->extract($name);  // array
-            ++$i;
-        }
-    }
-
-    /**
-     * Push ( Write log handlers data )
-     * 
-     * @return void
-     */
-    public function push()
-    {        
-        if ($this->debug OR $this->enabled == false) {
-            return;
-        }
-        foreach ($this->writers as $name => $val) {
-            if ($val['type'] == 'handler') {
-                if ( ! isset($this->writers[$name])) {
-                    throw new LogicException(
-                        sprintf(
-                            'The push handler %s not available in log writers please first load it using below the command.
-                            <pre>$this->logger->load(handler);</pre>', 
-                            $name
-                        )
-                    );
-                }
-                $this->push[$name] = 1; // Allow push data to valid push handler.
-            }
-        }
     }
 
     /**
@@ -126,7 +75,7 @@ Class QueueLogger extends AbstractLogger
     public function close()
     {
         if ($this->debug) {         // Debug output for log data if enabled
-            $primaryWriter = $this->getWriterName();
+            $primaryWriter = $this->getPrimaryWriter();
             $debugger = new DebugOutput($this->c, $this);
             $debugger->setHandler($primaryWriter);
             echo $debugger->printDebugger($this->getQueue($primaryWriter));
@@ -135,15 +84,22 @@ Class QueueLogger extends AbstractLogger
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
-        $this->exec();  // Set payload and
+        // Lazy connection for Queue service,
+        // if connect method executed one time then we set connect variable to true.
+        // When connect booelan is available we open the real connection.
+        
+        if ($this->connect) {    
 
-        $this->queue->channel($this->c['config']['logger']['queue']['channel']); //  Push to Queue
-        $this->queue->push(
-            $this->c['config']['logger']['queue']['worker'],
-            $this->c['config']['logger']['queue']['route'],
-            $this->payload,
-            $this->c['config']['logger']['queue']['delay']
-        );
+            $this->exec();       // Set payload data
+            $queue = $this->c['return '.$this->c['config']['logger']['queue']['service']];  // Connect to Queue service
+            $queue->channel($this->c['config']['logger']['queue']['channel']); // Push to Queue
+            $queue->push(
+                $this->c['config']['logger']['queue']['worker'],
+                $this->c['config']['logger']['queue']['route'],
+                $this->payload,
+                $this->c['config']['logger']['queue']['delay']
+            );
+        }
     }
 
 }

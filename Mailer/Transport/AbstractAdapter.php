@@ -464,8 +464,13 @@ Abstract Class AbstractAdapter
                 $msg .= '<pre>'.var_export($val, true).'</pre>';
             }
         }
-        $msg .= "<pre>Headers: \n" . implode("\n", $this->headers) . "\n\nSubject:  \n" . htmlspecialchars($this->subject) . "\n\nMessage: \n" . htmlspecialchars($this->body) . '</pre>';
-        return $msg;
+        $msg .= "<pre>Headers: \n" . implode("\n", $this->headers) . "\n\nSubject:  \n" . htmlspecialchars($this->subject);
+        $msg .= "\n\nMessage: \n" . htmlspecialchars($this->body);
+
+        if ($this->response->getArray() != false) {
+            $msg .= "\n\nResponse: \n" . var_export($this->response->getArray(), true);
+        }
+        return $msg.'</pre>';
     }
 
 }

@@ -53,6 +53,21 @@ trait LoggerTrait
     }
 
     /**
+     * Lazy connections
+     * 
+     * We execute this method in LoggerTrait sendQueue() method 
+     * then if connect == true we open the connection in close method.
+     *
+     * @param boolean $connect on / off connection
+     * 
+     * @return void
+     */
+    public function connect($connect = true)
+    {
+        $this->connect = $connect;
+    }
+    
+    /**
      * Detect logger type
      * 
      * @return void
@@ -86,7 +101,7 @@ trait LoggerTrait
         if ( ! isset($this->registeredHandlers[$name])) {
             throw new LogicException(
                 sprintf(
-                    'The push handler %s is not defined in your log service.', 
+                    'The push handler %s is not defined in your logger service.', 
                     $name
                 )
             );
@@ -130,7 +145,7 @@ trait LoggerTrait
      * 
      * @return string returns to "xWriter"
      */
-    public function getWriterName()
+    public function getPrimaryWriter()
     {
         $writers = $this->getWriters();
         return array_keys($writers)[0];
@@ -230,12 +245,16 @@ trait LoggerTrait
      */
     public function sendToQueue($recordUnformatted, $messagePriority = null)
     {
+        $connect = false;
         foreach ($this->writers as $name => $val) {
             $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
             if (is_array($filteredRecords) AND count($filteredRecords) > 0) {  // If we have records.
+                $connect = true;
                 $this->priorityQueue[$name]->insert($filteredRecords, (empty($messagePriority)) ? $val['priority'] : $messagePriority);
             }
         }
+        $this->connect($connect); // Lazy connection method
+                                  // If connection open this means we need to run process in Logger class close() method.
     }
 
     /**
@@ -446,6 +465,32 @@ trait LoggerTrait
     }
 
     /**
+     * Push ( Write log handlers data )
+     * 
+     * @return void
+     */
+    public function push()
+    {        
+        if ($this->debug OR $this->enabled == false) {
+            return;
+        }
+        foreach ($this->writers as $name => $val) {
+            if ($val['type'] == 'handler') {
+                if ( ! isset($this->writers[$name])) {
+                    throw new LogicException(
+                        sprintf(
+                            'The push handler %s not available in log writers please first load it using below the command.
+                            <pre>$this->logger->load("handler");</pre>', 
+                            $name
+                        )
+                    );
+                }
+                $this->push[$name] = 1; // Allow push data to valid push handler.
+            }
+        }
+    }
+
+    /**
      * Extract log data
      * 
      * @param object $name PriorityQueue name
@@ -467,6 +512,31 @@ trait LoggerTrait
             }
         }
         return $records;
+    }
+
+     /**
+     * Extract queued log handlers data store them into one array
+     * 
+     * @return void
+     */
+    protected function exec()
+    {
+        $exp = explode('\\', __CLASS__);
+
+        $this->payload['logger'] = end($exp);
+        $this->payload['primary'] = $this->writers[$this->getPrimaryWriter()]['priority'];
+        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
+            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
+                return;
+            }
+            $priority = $val['priority'];
+            $this->payload[$priority]['request'] = $this->request;
+            $this->payload[$priority]['handler'] = $name;
+            $this->payload[$priority]['type'] = $val['type'];
+            $this->payload[$priority]['time'] = time();
+            $this->payload[$priority]['record'] = $this->extract($name); // set record array
+        }
+        asort($this->payload);
     }
 
 }
