@@ -122,6 +122,22 @@ Class Redis extends AbstractStorage
     }
 
     /**
+     * [set description]
+     * 
+     * @param [type] $key [description]
+     * @param [type] $val [description]
+     */
+    public function set($key, $val)
+    {
+        $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
+    }
+
+    public function remove($key)
+    {
+        $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
+    }
+
+    /**
      * Makes temporary credentials as permanent and authenticate the user.
      * 
      * @return mixed false|array
