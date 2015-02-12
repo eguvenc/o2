@@ -666,10 +666,10 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean
      */
-    // public function delete($key)
-    // {
-    //     return $this->redis->delete($key);
-    // }
+    public function delete($key)
+    {
+        return $this->redis->delete($key);
+    }
 
     /**s
      * Replace key value

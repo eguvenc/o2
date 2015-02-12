@@ -575,7 +575,7 @@ Class Validator
             $suffix = $this->errorSuffix;
         }
         if ($this->isError($field)) {
-            return $prefix.$this->fieldData[$field]['error'].$suffix;
+            return $prefix.$this->errorArray[$field].$suffix;
         }
         return '';
     }
