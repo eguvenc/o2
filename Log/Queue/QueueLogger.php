@@ -87,7 +87,7 @@ Class QueueLogger extends AbstractLogger
             $this->payload[$i]['handler'] = $name;
             $this->payload[$i]['priority'] = $val['priority'];
             $this->payload[$i]['time'] = time();
-            $this->payload[$i]['record'] = $this->extract($name);
+            $this->payload[$i]['record'] = $this->extract($name);  // array
             ++$i;
         }
     }

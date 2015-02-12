@@ -80,7 +80,7 @@ Class Logger extends AbstractLogger
             $this->payload[$i]['handler'] = $name;
             $this->payload[$i]['priority'] = $val['priority'];
             $this->payload[$i]['time'] = time();
-            $this->payload[$i]['writer'] = $name;
+            $this->payload[$i]['record'] = $this->extract($name);  // array
             ++$i;
         }
     }
@@ -101,7 +101,7 @@ Class Logger extends AbstractLogger
                     throw new LogicException(
                         sprintf(
                             'The push handler %s not available in log writers please first load it using below the command.
-                            <pre>$this->logger->load(handler);</pre>', 
+                            <pre>$this->logger->load("handler");</pre>', 
                             $name
                         )
                     );
