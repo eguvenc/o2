@@ -84,7 +84,9 @@ Class AbstractAuthorizedUser
      */
     public function __set($key, $val)
     {
+        // $this->c['auth.storage']->set($key, $val);  // save to storage
         return $this->attributes[$key] = $val;
+        // return $this->attributes[$key] = $val;
     }
 
     /**
@@ -109,6 +111,7 @@ Class AbstractAuthorizedUser
     public function __unset($key)
     {
         unset($this->attributes[$key]);
+        // $this->c['auth.storage']->remove($key);
     }
 
 }

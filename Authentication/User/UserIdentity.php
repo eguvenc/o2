@@ -114,8 +114,8 @@ Class UserIdentity extends AuthorizedUser
             $this->recaller->recallUser($token);
         }
         if ($this->attributes = $this->credentials = $this->storage->getCredentials('__permanent')) {
-            parent::__construct($this->c, $this->attributes);
             $this->attributes['__isTemporary'] = 0;
+            parent::__construct($this->c, $this->attributes);
             ksort($this->credentials);
 
         } elseif ($this->attributes = $this->credentials = $this->storage->getCredentials('__temporary')) {
@@ -481,7 +481,13 @@ Class UserIdentity extends AuthorizedUser
      */
     public function writeClose()
     {
-        if ( ! isset($this->attributes['__isTemporary']) OR ! is_array($this->credentials)) {  //  If user not logged in.
+        // var_dump($this->attributes);
+        // var_dump($this->credentials);
+        // die;
+        if (empty($this->credentials)) {  //  If user not logged in.
+            return;
+        }
+        if ($this->credentials['__isTemporary'] == 0 AND $this->credentials['__isAuthenticated'] == 0) {
             return;
         }
         $oldCredentials = json_encode($this->credentials);
