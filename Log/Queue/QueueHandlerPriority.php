@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Log;
+namespace Obullo\Log\Queue;
 
 use Obullo\Log\PriorityQueue;
 
 /**
- * JobHandlerPriority Class - Priority of handlers
+ * QueueHandlerPriority Class - Manages queue handler priorities 
  * 
  * @category  Log
- * @package   Debug
+ * @package   Log
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class JobHandlerPriority
+Class QueueHandlerPriority
 {
     /**
      * Constructor
@@ -33,6 +33,7 @@ Class JobHandlerPriority
      */
     public function insert(array $data)
     {
+        unset($data['logger']);
         array_walk(
             $data, 
             function (&$value) {
@@ -94,7 +95,7 @@ Array
 )
 */
 
-// END JobHandlerPriority class
-/* End of file JobHandlerPriority.php */
+// END QueueHandlerPriority class
+/* End of file QueueHandlerPriority.php */
 
-/* Location: .Obullo/Log/JobHandlerPriority.php */
+/* Location: .Obullo/Log/Queue/QueueHandlerPriority.php */

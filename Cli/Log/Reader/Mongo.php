@@ -2,6 +2,7 @@
 
 namespace Obullo\Cli\Log\Reader;
 
+use Obullo\Container\Container;
 use Obullo\Cli\Log\Printer\Colorful;
 
 /**
@@ -25,14 +26,19 @@ Class Mongo
      * 
      * @return void
      */
-    public function follow($c, $dir = 'http', $collection = 'logs')
+    public function follow(Container $c, $dir = 'http', $collection = 'logs')
     {
-        $dir = null;  // unused
-        
+        $c['config']->load('logger');
+
         echo "\n\33[1;36mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
 
-        $mongo = $c['service provider mongo']->get(['connection' => 'default']);  // use default provider
+        // use default provider
 
+        $mongo = $c['service provider mongo']->get(
+            [
+                'connection' => 'default'
+            ]
+        ); 
         $mongoCollection = $mongo->{$collection};
         $resultArray = $mongoCollection->find();
         
@@ -57,7 +63,7 @@ Class Mongo
                             (is_array($val['context'])) ? json_encode($val['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $val['context'],
                             $val['extra']
                         ),
-                        str_replace('\n', "\n", $c['config']['log']['line'])
+                        str_replace('\n', "\n", $c['config']['logger']['format']['line'])
                     );
                     $printer->printLine($i, $line);
                     $i++;

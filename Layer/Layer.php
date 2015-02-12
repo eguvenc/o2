@@ -150,6 +150,7 @@ Class Layer
     public function __construct(Container $c, $params)
     {
         $this->c = $c;
+        $this->c['request'];      // Initialize request object
         $this->params = $params;
         $this->logger = $c['logger'];
         register_shutdown_function(array($this, 'close'));  // Close current layer

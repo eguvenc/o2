@@ -1,22 +1,23 @@
 <?php
 
-namespace Obullo\Log;
+namespace Obullo\Log\Debugger;
 
-use Obullo\Log\PriorityQueue,
-    Obullo\Log\Formatter\LineFormatter,
-    Obullo\Log\FireLogger;
+use Obullo\Log\PriorityQueue;
+use Obullo\Log\AbstractLogger;
+use Obullo\Container\Container;
+use Obullo\Log\Formatter\LineFormatter;
 
 /**
- * Logger Output Class
+ * Log Debugger Output Class
  * 
  * @category  Log
- * @package   Debug
+ * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class Debug
+Class DebugOutput
 {
     /**
      * Container class
@@ -42,15 +43,25 @@ Class Debug
     /**
      * Constructor
      * 
-     * @param object $c       container
-     * @param object $logger  logger object
-     * @param object $handler current handler constant
+     * @param object $c      container
+     * @param object $logger logger object
      */
-    public function __construct($c, $logger, $handler = 'file')
+    public function __construct(Container $c, AbstractLogger $logger)
     {
         $this->c = $c;
         $this->logger = $logger;
         $this->config = $c['config'];
+    }
+
+    /**
+     * Set debug handler
+     * 
+     * @param string $handler name
+     *
+     * @return void
+     */
+    public function setHandler($handler = 'file')
+    {
         $this->handler = strtolower($handler);
     }
 
@@ -104,7 +115,7 @@ Class Debug
                     $pQ->top();  // Go to Top
                     $records = array();
                     while ($pQ->valid()) {         // Prepare Lines 
-                        $records[$i] = $this->format($this->config['log']['format']['date'], $pQ->current());
+                        $records[$i] = $this->format($this->c['config']['logger']['format']['date'], $pQ->current());
                         $pQ->next();
                         ++$i;                               
                     }
@@ -149,13 +160,13 @@ Class Debug
                     font-size:12px;
                     padding:0;
                     margin-top:8px;">'.sprintf('%s', $lines).'</pre>
+
+                    </div><style>html{position:relative !important;} body{position:static;min-height:100% !important;height: 100% !important;};</style>';
                     </div><style>html{position:relative !important;} body{position:static;min-height:100% !important;height: 100% !important;};</style>';*/
 
         }
 
     }
-
-    
 
     private function initTpl($raw)
     {
@@ -168,17 +179,16 @@ Class Debug
         $incLog = ob_get_clean();
 
         $logTpl = '';
-        foreach($raw as $_raw) {
+        foreach ($raw as $_raw) {
             $logTpl .= preg_replace(['/\{\{DATE\}\}/','/\{\{CHANNEL\}\}/','/\{\{DEBUG\}\}/'], [$_raw['datetime'], $_raw['channel'], $_raw['level']], $incLog);
         }
-
         $master = preg_replace('/\{\{LOGS\}\}/', $logTpl, $master);
 
         echo($master);
     }
 }
 
-// END Debug class
-/* End of file Debug.php */
+// END DebugOutput class
+/* End of file DebugOutput.php */
 
-/* Location: .Obullo/Log/Debug.php */
+/* Location: .Obullo/Log/Debbuger/DebugOutput.php */

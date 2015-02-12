@@ -1,6 +1,8 @@
 <?php
 
-namespace Obullo\Log\Filter;
+namespace Obullo\Log;
+
+use Obullo\Container\Container;
 
 /**
  * Logger Filter Interface
@@ -17,10 +19,9 @@ interface FilterInterface
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params array
+     * @param object $c container
      */
-    public function __construct($c, array $params = array());
+    public function __construct(Container $c);
 
     /**
      * Filter unformatted log records
@@ -35,4 +36,4 @@ interface FilterInterface
 // END FilterInterface class
 
 /* End of file FilterInterface.php */
-/* Location: .Obullo/Log/Filter/FilterInterface.php */
+/* Location: .Obullo/Log/FilterInterface.php */

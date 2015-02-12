@@ -2,35 +2,8 @@
 
 namespace Obullo\Log\Formatter;
 
-/**
- * Line Formatter Class
- * 
- * @category  Log
- * @package   Formatter
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
- */
-Class LineFormatter
+trait LineFormatterTrait
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-    
-    /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
     /**
      * Format the line comes from app/config/$env/config.php
      * 
@@ -40,7 +13,7 @@ Class LineFormatter
      * 
      * @return array
      */
-    public function format($record)
+    public function lineFormat($record)
     {
         if ( ! is_array($record)) {
             return;
@@ -63,13 +36,13 @@ Class LineFormatter
             (empty($record['extra'])) ? '' : $record['extra'],
             $record['extra'],
             ),
-            str_replace('\n', "\n", $this->c['config']['log']['format']['line'])
+            str_replace('\n', "\n", $this->c['config']['logger']['format']['line'])
         );
     }
 
 }
 
-// END LineFormatter class
+// END LineFormatterTrait class
 
-/* End of file LineFormatter.php */
-/* Location: .Obullo/Log/Formatter/LineFormatter.php */
+/* End of file LineFormatterTrait.php */
+/* Location: .Obullo/Log/Formatter/LineFormatterTrait.php */

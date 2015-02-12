@@ -15,8 +15,10 @@ trait LogPriorityFilterTrait
      */
     public function filter(array $record)
     {
-        $priority = Logger::$priorities[$record['level']];
-        if (in_array($priority, $this->priorities)) {
+        $priorities = $this->c['logger']->getPriorities();
+        
+        $priority = $priorities[$record['level']];
+        if (in_array($priority, $this->params)) {
             return $record;
         }
         return array();  // To remove the record we return to empty array.
@@ -31,8 +33,10 @@ trait LogPriorityFilterTrait
      */
     public function notIn(array $record)
     {
-        $priority = Logger::$priorities[$record['level']];
-        if ( ! in_array($priority, $this->priorities)) {
+        $priorities = $this->c['logger']->getPriorities();
+
+        $priority = $priorities[$record['level']];
+        if ( ! in_array($priority, $this->params)) {
             return $record;
         }
         return array();  // To remove the record we return to empty array.

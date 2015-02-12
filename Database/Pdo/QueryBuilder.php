@@ -69,7 +69,7 @@ Class QueryBuilder
     }
 
     /**
-     * If method not exists call from adapter class
+     * If method not exists call from Adapter class
      * 
      * @param string $method    methodname
      * @param array  $arguments method arguments

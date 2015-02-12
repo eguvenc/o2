@@ -2,6 +2,7 @@
 
 namespace Obullo\Cli\Log\Reader;
 
+use Obullo\Container\Container;
 use Obullo\Cli\Log\Printer\Colorful;
 
 /**
@@ -25,14 +26,16 @@ Class File
      * 
      * @return void
      */
-    public function follow($c, $dir = 'http', $table = null)
+    public function follow(Container $c, $dir = 'http', $table = null)
     {
+        $c['config']->load('logger');
+
         $table = null; // unused variable
-        if ( ! isset($c['config']['log']['file']['path'][$dir])) {
-            echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['log']['file']['path'][$dir] array.\033[0m\n");
+        if ( ! isset($c['config']['logger']['file']['path'][$dir])) {
+            echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['logger']['file']['path'][$dir] array.\033[0m\n");
             exit;
         }
-        $path = str_replace('/', DS, trim($c['config']['log']['file']['path'][$dir], '/'));
+        $path = str_replace('/', DS, trim($c['config']['logger']['file']['path'][$dir], '/'));
         $file = $path;
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
             $file = str_replace('data', DS . trim(DATA, DS), $path);

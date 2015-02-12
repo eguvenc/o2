@@ -13,7 +13,7 @@ trait RequestMethodNotAllowedTrait
      */
     public function methodIsAllowed()
     {
-        $method = $this->c['request']->method();
+        $method = $_SERVER['REQUEST_METHOD'];
         $currentMethod = strtolower($method);
 
         if ( ! in_array($currentMethod, $this->params['allowedMethods'])) {  // Get injected parameters

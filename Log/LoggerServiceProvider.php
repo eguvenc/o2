@@ -3,6 +3,7 @@
 namespace Obullo\Log;
 
 use Obullo\Container\Container;
+use Obullo\Log\Queue\QueueLogger;
 
 /**
  * LoggerServiceProviderProvider Class
@@ -24,20 +25,6 @@ Class LoggerServiceProvider
     protected $c;
 
     /**
-     * Logger class
-     * 
-     * @var object
-     */
-    protected $logger;
-
-    /**
-     * Config parameters
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
      * @param object $c container
@@ -45,11 +32,6 @@ Class LoggerServiceProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-        if ($this->disabled()) {
-            $this->logger = new NullLogger;  // Use null handler if config disabled.
-            return;
-        }
-        $this->logger = new Logger($this->c, $this->c['return queue'], $this->config);
     }
 
     /**
@@ -59,7 +41,23 @@ Class LoggerServiceProvider
      */
     public function getLogger()
     {
-        return $this->logger;
+        if ($this->disabled()) {
+            return new NullLogger;  // Use null handler if config disabled.
+        }
+        return new Logger($this->c);
+    }
+
+    /**
+     * Returns to queue logger instance
+     * 
+     * @return object
+     */
+    public function getQueueLogger()
+    {
+        if ($this->disabled()) {
+            return new NullLogger;  // Use null handler if config disabled.
+        }
+        return new QueueLogger($this->c, $this->c['return queue']);
     }
 
     /**
