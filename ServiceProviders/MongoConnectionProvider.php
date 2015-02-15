@@ -2,10 +2,9 @@
 
 namespace Obullo\ServiceProviders;
 
-use RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Utils\SingletonTrait;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
 
 /**
  * Mongo Connection Provider
@@ -23,7 +22,7 @@ Class MongoConnectionProvider
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
     
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor ( Works one time )

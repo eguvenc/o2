@@ -2,12 +2,11 @@
 
 namespace Obullo\ServiceProviders;
 
-use AMQPConnection,
-    RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Database\Connection,
-    Obullo\Utils\SingletonTrait;
+use AMQPConnection;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
+use Obullo\Database\Connection;
 
 /**
  * AMQP Connection Provider
@@ -25,7 +24,7 @@ Class AMQPConnectionProvider
     protected $config;     // AMQP configuration items
     protected $AMQPClass;  // AMQP extension client name
 
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor

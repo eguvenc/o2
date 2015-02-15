@@ -26,12 +26,9 @@ Class PdoServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        if ( ! PdoConnectionProvider::isRegistered()) {         // Just one time register the shared objects
-            $connector = PdoConnectionProvider::getInstance($c);    // Register all Connectors as shared services
-            $connector->register();
-        }
-        $connector = PdoConnectionProvider::getInstance($c); 
-        return $connector->getConnection($params);             // Get existing connection
+        $connector = new PdoConnectionProvider($c);    // Register all Connectors as shared services
+        $connector->register();
+        return $connector->getConnection($params);     // Get existing connection
     }
 }
 

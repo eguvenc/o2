@@ -26,7 +26,7 @@ Class CacheServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        $connector = CacheConnectionProvider::getInstance($c);  // Register all Connectors as shared services
+        $connector = new CacheConnectionProvider($c);  // Register all Connectors as shared services
         return $connector->getConnection($params);   // Get existing connection
     }
 }

@@ -26,12 +26,7 @@ Class MongoServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        if ( ! MongoConnectionProvider::isRegistered()) {  // Just one time register the shared objects
-            
-            $connector = MongoConnectionProvider::getInstance($c);  // Register all connections as shared services
-            $connector->register();                     
-        }
-        $connector = MongoConnectionProvider::getInstance($c);
+        $connector = new MongoConnectionProvider($c);
         return $connector->getConnection($params);   // Get a connection instance before we registered into container
     }
 }

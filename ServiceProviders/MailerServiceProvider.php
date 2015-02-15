@@ -26,7 +26,7 @@ Class MailerServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        $connector = MailerConnectionProvider::getInstance($c);
+        $connector = new MailerConnectionProvider($c);
         return $connector->getFactory($params);   // Get a mailer instance before we registered into container
     }
 }

@@ -2,11 +2,10 @@
 
 namespace Obullo\ServiceProviders;
 
-use RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Database\Connection,
-    Obullo\Utils\SingletonTrait;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
+use Obullo\Database\Connection;
 
 /**
  * Pdo Connection Provider
@@ -23,7 +22,7 @@ Class DatabaseConnectionProvider
     protected $c;         // Container
     protected $config;    // Configuration items
 
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor
