@@ -98,6 +98,7 @@ Class UserLogin
         }
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+
         $authResult = $this->c['auth.adapter']->login(new GenericUser($this->c, $credentials));
 
         $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
@@ -142,30 +143,6 @@ Class UserLogin
         $plain = $credentials[$this->columnPassword];
 
         return $this->c['password']->verify($plain, $user->getPassword());
-    }
-    
-    /**
-     * Returns the authentication adapter
-     *
-     * The adapter does not have a default if the storage adapter has not been set.
-     *
-     * @return Adapter|null
-     */
-    public function getAdapter()
-    {
-        return $this->c['auth.adapter'];
-    }
-
-    /**
-     * Returns the persistent storage handler
-     *
-     * Session storage is used by default unless a different storage adapter has been set.
-     *
-     * @return Storage\StorageInterface
-     */
-    public function getStorage()
-    {
-        return $this->c['auth.storage'];
     }
 
 }

@@ -3,7 +3,6 @@
 namespace Obullo\Application;
 
 use BadMethodCallException;
-use Obullo\Annotations\Filter;
 use Obullo\Container\Container;
 
 /**
@@ -54,9 +53,6 @@ Class Application
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->c['annotation.filter'] = function () use ($c) {
-            return new Filter($c);
-        };
         $this->envArray = include ROOT .'app'. DS .'environments.php';
     }
 
@@ -126,7 +122,7 @@ Class Application
             $class->$method();
         }
     }
-
+    
     /**
      * Returns to detected environment
      * 

@@ -913,7 +913,7 @@ Class Router
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
-        if ($this->c['config']['annotation']['filters']) {
+        if ($this->c['config']['annotations']['enabled']) {
             $this->c['annotation.filter']->initFilters($method);  // Initialize annotation filters
         }
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {

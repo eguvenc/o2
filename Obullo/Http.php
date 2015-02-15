@@ -37,7 +37,7 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-if ($c['config']['annotation']['filters']) {
+if ($c['config']['annotations']['enabled']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
     $docs->parse();
 }

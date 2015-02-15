@@ -100,6 +100,7 @@ require OBULLO_CONTROLLER;
 |--------------------------------------------------------------------------
 */
 require OBULLO_COMPONENTS;
+require OBULLO_PROVIDERS;
 require OBULLO_EVENTS;
 require OBULLO_ROUTES;
 require OBULLO_FILTERS;

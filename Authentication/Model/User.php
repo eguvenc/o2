@@ -65,7 +65,7 @@ Class User implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        $this->db->prepare($this->sqlUser, array($this->tablename, $this->columnIdentifier));
+        $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier));
         $this->db->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR);
         $this->db->execute();
         
@@ -81,7 +81,7 @@ Class User implements UserInterface
      */
     public function execRecallerQuery($token)
     {
-        $this->db->prepare($this->sqlRecalledUser, array($this->tablename, $this->columnRememberToken));
+        $this->db->prepare(sprintf($this->sqlRecalledUser, $this->tablename, $this->columnRememberToken));
         $this->db->bindValue(1, $token, PDO::PARAM_STR);
         $this->db->execute();
 
@@ -98,7 +98,7 @@ Class User implements UserInterface
      */
     public function updateRememberToken($token, GenericUser $user)
     {
-        $this->db->prepare($this->sqlUpdateRememberToken, array($this->tablename, $this->columnRememberToken, $this->columnIdentifier));
+        $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier));
         $this->db->bindValue(1, $token, PDO::PARAM_STR);
         $this->db->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR);
         $this->db->execute();

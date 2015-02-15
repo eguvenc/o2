@@ -4,7 +4,7 @@ namespace Obullo\Session;
 
 use Obullo\Container\Container,
     Obullo\Session\MetaData\MetaData,
-    Obullo\Session\MetaData\Disabled;
+    Obullo\Session\MetaData\NullMetaData;
 
 /**
  * Session Class
@@ -18,13 +18,6 @@ use Obullo\Container\Container,
  */
 Class Session
 {
-    /**
-     * Config class
-     * 
-     * @var object
-     */
-    public $config;
-
     /**
      * Session handler
      * 
@@ -54,17 +47,24 @@ Class Session
     public $meta;
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Constructor
      *
      * @param array $c container
      */
     public function __construct(Container $c) 
     {
+        $this->c = $c;
         $this->params = $c['config']->load('session');
         $handlerClass = $this->params['default']['handler'];
 
         $this->handler = new $handlerClass($c, $this->params);
-        $this->config = $c['config'];
         $this->logger = $c['logger'];
 
         ini_set('session.cookie_domain', $this->params['cookie']['domain']);
@@ -77,8 +77,7 @@ Class Session
             array($this->handler, 'destroy'),
             array($this->handler, 'gc')
         );
-        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $this->params, $this) : new Disabled;
-        register_shutdown_function(array($this, 'close'));
+        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $this->params, $this) : new NullMetaData;
 
         session_set_cookie_params(
             ($this->params['session']['expireOnClose']) ? 0 : $this->params['session']['lifetime'],
@@ -92,7 +91,10 @@ Class Session
         if (session_status() == PHP_SESSION_NONE) { // If another session_start() used before ?
             session_start();
         }
+        register_shutdown_function(array($this, 'close'));
+
         $this->logger->debug('Session Class Initialized');
+        
     }
 
     /**
@@ -238,7 +240,6 @@ Class Session
                 $_SESSION[$prefix . $key] = $val;
             }
         }
-        $this->meta->buildUserData($new);
     }
 
     /**
@@ -273,7 +274,7 @@ Class Session
     public function getTime()
     {
         $time = time();
-        if (strtolower($this->config['locale']['timezone']) == 'gmt') {
+        if (strtolower($this->c['config']['locale']['timezone']) == 'gmt') {
             $now = time();
             $time = mktime(gmdate("H", $now), gmdate("i", $now), gmdate("s", $now), gmdate("m", $now), gmdate("d", $now), gmdate("Y", $now));
         }

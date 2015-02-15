@@ -30,8 +30,8 @@ Class Validator
     public $safeFormData = false;
     public $validation = false;
     public $callbackFunctions = array();
-    public $c;
     public $filters = array();
+    protected $c;
 
     /**
      * Constructor

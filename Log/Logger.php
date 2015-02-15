@@ -30,6 +30,7 @@ Class Logger extends AbstractLogger
     public $track = array();                  // Track data for handlers and writers
 
     protected $connect = false;               // Lazy connections
+    protected $shutdown = false;              // Manually shutdown on off
     protected $push = array();                // Push data
     protected $payload = array();             // Payload
     protected $priorityQueue = array();       // Log priority queue objects

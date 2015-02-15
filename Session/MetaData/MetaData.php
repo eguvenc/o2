@@ -94,7 +94,6 @@ Class MetaData
                 'serializer' => 'SERIALIZER_NONE'
             ]
         );
-        
         $this->logger = $this->c['logger'];
     }
 
@@ -146,41 +145,6 @@ Class MetaData
     }
 
     /**
-     * When first initializiation of session we create the session user 
-     * meta data and we could not reach "user_id" and "username" items from $_SESSION variable.
-     * Thats why we need to use this function in $this->set() method.
-     * 
-     * @param array $new new session set data
-     * 
-     * @return void
-     */
-    public function buildUserData($new = array())
-    {
-        if (isset($new['user_id'])) {
-            $this->meta['uid'] = $new['user_id'];
-        }
-        if (isset($new['username'])) {
-            $this->meta['uname'] = $new['username'];
-        }
-        if ($user_id = $this->session->get('user_id')) {
-            $this->meta['uid'] = $user_id;
-        }
-        if ($username = $this->session->get('username')) {
-            $this->meta['uname'] = $username;
-        }
-    }
-
-    /**
-     * Get latest meta 
-     * 
-     * @return array meta
-     */
-    public function getmeta()
-    {
-        return $this->meta;
-    }
-
-    /**
      * Create meta data
      * 
      * @return void
@@ -188,7 +152,6 @@ Class MetaData
     public function create()
     {
         $this->build();
-        $this->buildUserData();
         $_SESSION['_o2_meta'] = json_encode($this->meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
@@ -202,7 +165,6 @@ Class MetaData
         if (($this->meta['la'] + $this->params['session']['timeToUpdate']) >= $this->now) {  // We only update the session every 5 seconds by default
             return;
         }
-        $this->buildUserData();
         $this->meta['la'] = $this->now; // Update the session ID and la
         $this->create($this->meta);
     }

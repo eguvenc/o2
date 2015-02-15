@@ -122,16 +122,25 @@ Class Redis extends AbstractStorage
     }
 
     /**
-     * [set description]
+     * Update identity value
      * 
-     * @param [type] $key [description]
-     * @param [type] $val [description]
+     * @param string $key string
+     * @param value  $val value
+     *
+     * @return void
      */
-    public function set($key, $val)
+    public function update($key, $val)
     {
         $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
     }
 
+    /**
+     * Remove identity 
+     * 
+     * @param string $key string
+     * 
+     * @return void
+     */
     public function remove($key)
     {
         $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
@@ -157,7 +166,7 @@ Class Redis extends AbstractStorage
             $this->deleteCredentials('__temporary');
             return $credentials;
         }
-        $this->logger->debug('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
+        $this->logger->warning('Auth temporary data could not stored as __permanent.', array('identifier' => $this->getIdentifier()));
         return false;
     }
     
