@@ -2,9 +2,9 @@
 
 namespace Obullo\Layer;
 
-use stdClass,
-    Controller,
-    Obullo\Container\Container;
+use stdClass;
+use Controller;
+use Obullo\Container\Container;
 
 /**
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
@@ -12,25 +12,7 @@ use stdClass,
  * 
  * Derived from HMVC pattern and named as "Layers" in Obullo.
  * 
- * Copyright (c) 2009 - 2014 Ersin Guvenc
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2009 - 2015 Ersin Guvenc
  */
 
 /**
@@ -50,61 +32,11 @@ Class Layer
     const LOG_FOOTER = '</div><div style="clear:both;"></div>';
 
     /**
-     * Layer configuration
-     * 
-     * @var array
-     */
-    public $config = array();
-
-    /**
-     * Uri class
+     * Container
      * 
      * @var object
      */
-    public $uri    = null;
-
-    /**
-     * Router class
-     * 
-     * @var object
-     */
-    public $router = null;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger = null;
-
-    /**
-     * Request method
-     * 
-     * @var string
-     */
-    public $requestMethod = 'GET';    
-
-    /**
-     * Request data
-     * 
-     * @var array
-     */
-    public $requestData = array();
-
-    /**
-     * Process flag
-     * 
-     * @var boolean
-     */
-    public $processDone = false;
-
-    /**
-     * Unique Layer connection string that 
-     * we need to convert it md5.
-     *  
-     * @var string
-     */
-    protected $hashString = null;
+    protected $c = null;
 
     /**
      * Layer uri string
@@ -114,19 +46,33 @@ Class Layer
     protected $layerUri;
 
     /**
-     * Container
-     * 
-     * @var object
+     * Unique connection string.
+     *  
+     * @var string
      */
-    protected $c = null;
+    protected $hashString = null;
 
     /**
-     * Gobal instance of the controller 
-     * we need to clone it.
+     * Process flag
      * 
-     * @var object
+     * @var boolean
      */
-    protected $global = null;
+    protected $processDone = false;
+
+    /**
+     * Request method
+     * 
+     * @var string
+     */
+    protected $requestMethod = 'GET';
+
+    /**
+     * Request data
+     * 
+     * @var array
+     */
+    protected $requestData = array();
+
 
     /**
      * Reset all variables for multiple layer requests.
@@ -150,7 +96,6 @@ Class Layer
     public function __construct(Container $c, $params)
     {
         $this->c = $c;
-        $this->c['request'];      // Initialize request object
         $this->params = $params;
         $this->logger = $c['logger'];
         register_shutdown_function(array($this, 'close'));  // Close current layer
@@ -175,20 +120,13 @@ Class Layer
      */
     public function setUrl($uriString)
     {
-        $this->hashString = '';     // Reset hash string otherwise it causes unique id errors.
+        $this->hashString = '';        // Reset hash string otherwise it causes unique id errors.
         $_SERVER['LAYER_REQUEST_URI'] = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
         $this->prepareHash($_SERVER['LAYER_REQUEST_URI']);
 
-        $this->global = Controller::$instance;     // We need get backup object of main controller
-        $this->uri    = Controller::$instance->uri;     // Create copy of original Uri class.
-        $this->router = Controller::$instance->router;  // Create copy of original Router class.
+        $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
+        $this->c['router']->clear();   // Reset router objects we will reuse it for layer
 
-        $this->originalGlobal = clone $this->global;
-        $this->originalUri = clone $this->uri;
-        $this->originalRouter = clone $this->router;
-
-        $this->c['uri']->clear();           // Reset uri objects we will reuse it for layer
-        $this->c['router']->clear();        // Reset router objects we will reuse it for layer
         $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
         $this->c['router']->init();
     }
@@ -255,11 +193,9 @@ Class Layer
         $method    = $this->c['router']->fetchMethod();
 
         $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
-        $controller = CONTROLLERS .$this->c['router']->fetchModule(DS).$directory. DS .$className. '.php';
+        $controller = CONTROLLERS .$this->c['router']->fetchModule() .DS .$directory. DS .$className. '.php';
 
         $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
-
-        $this->makeGlobal(); // Store global objects into request->global variable.
 
                                                     // Check class is exists in the storage
         if ( ! class_exists($className, false)) {   // Don't allow multiple include.
@@ -279,51 +215,13 @@ Class Layer
         call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 3));
         $response = ob_get_clean();
 
-        $this->assignObjects($class); // Assign main controller objects to sub layers.
+        // $this->assignObjects($class); // Assign main controller objects to sub layers.
 
         if (is_numeric($expiration)) {
             $this->c['cache']->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
         }
         $this->log('$_LAYER:', $this->getUri(), $start, $KEY, $response);
         return $response;
-    }
-
-    /**
-     * Assign libraries to all Layers
-     * 
-     * @param object $class called controller
-     * 
-     * @return void
-     */
-    protected function assignObjects($class)
-    {
-        $instance = $this->c['request']->globals->global;  // Assign loaded libraries to called controller.
-        unset(
-            $instance->uri,
-            $instance->router,
-            $instance->config,
-            $instance->logger,
-            $instance->response
-        );
-        foreach ($this->c['request']->globals->global as $key => $value) {
-            $class->{$key} = $value;
-        }
-    }
-
-    /**
-     * Make global objects in request class
-     * 
-     * @return void
-     */
-    protected function makeGlobal()
-    {
-        $request = $this->c['request'];
-        if ( ! isset($request->globals)) {
-            $request->globals = new stdClass;
-            $request->globals->uri = $this->originalUri;
-            $request->globals->router = $this->originalRouter;
-            $request->globals->global = $this->originalGlobal;
-        }
     }
 
     /**
@@ -339,7 +237,7 @@ Class Layer
         }
         $this->clear();  // Reset all Layer variables.
     }
-    
+
     /**
      * Restore original controller objects
      * 
@@ -356,9 +254,10 @@ Class Layer
             }
         }
         $this->reset();
-        Controller::$instance = $this->global;
-        Controller::$instance->uri = $this->originalUri;
-        Controller::$instance->router = $this->originalRouter;
+
+        Controller::$instance = $this->c['controller'];
+        Controller::$instance->uri = $this->c['request.uri'];
+        Controller::$instance->router = $this->c['request.router'];
         $this->processDone = true;
     }
 
@@ -415,7 +314,7 @@ Class Layer
      */
     public function log($label, $uri, $start, $KEY, $response)
     {
-        $this->logger->debug(
+        $this->c['logger']->debug(
             $label.' '.$uri, 
             array(
                 'time' => number_format(microtime(true) - $start, 4), 

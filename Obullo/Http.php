@@ -24,7 +24,7 @@ $c['app']->initFilters('before');
 $router     = $c['router'];
 $response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
-$controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
+$controller = CONTROLLERS . $router->fetchModule(). DS .$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
 require $controller;  // Include the controller file.
 
