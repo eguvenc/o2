@@ -2,9 +2,9 @@
 
 namespace Obullo\Permissions\Rbac\Operation\Type;
 
-use ArrayAccess,
-    Obullo\Permissions\Rbac\Resource,
-    Obullo\Permissions\Rbac\Operation\AbstractOperationType;
+use ArrayAccess;
+use Obullo\Permissions\Rbac\Resource;
+use Obullo\Permissions\Rbac\Operation\AbstractOperationType;
 
 /**
  * Resource Object Permission

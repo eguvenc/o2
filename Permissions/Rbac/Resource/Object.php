@@ -91,10 +91,9 @@ Class Object implements ArrayAccess
         if (! method_exists($this, $func)) {
             throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
         }
-        
-        if ($arguments[0] == 0) {
-            throw new RuntimeException('Missing parameter. You need to use element or operation name.');
-        }
+        // if ($arguments[0] == 0) {
+        //     throw new RuntimeException('Missing parameter. You need to use element or operation name.');
+        // }
         /**
          * $arguments
          * 
@@ -186,7 +185,7 @@ Class Object implements ArrayAccess
 
         if ($resultArray === false) { // If not exist in the cache
             $queryResultArray = $this->c['model.user']->hasObjectPermissionSqlQuery($permName, $opName);  // do sql query
-            echo $this->c['model.user']->db->lastQuery();  // do sql query
+            // echo $this->c['model.user']->db->lastQuery();  // do sql query
             $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
             // $this->c['rbac.user']->cache->set($key, $resultArray, $expiration);
         }
