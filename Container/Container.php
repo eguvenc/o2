@@ -232,18 +232,9 @@ Class Container implements ArrayAccess
         $class = $matches['class'];
         $serviceName = ucfirst($class);
 
-        if ( ! empty($matches['provider'])) {
-            // $folder = '\Obullo\\ServiceProviders\\';
-            // if ( ! empty($matches['app'])) {  // If we have classes/ServiceProviders/x request.
-            //     $folder = '\Service\Providers\\';
-            // }
-            // $this->loadServiceProvider($matches, $folder);    // Resolve service providers
-            // return $this;
-            
-            if (strpos($classString, 'service provider') === 0) {
-                $this->calledProviders[] = $matches['class'];
-                return $this;
-            }
+        if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
+            $this->calledProviders[] = $matches['class'];
+            return $this;
         }
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
@@ -337,7 +328,6 @@ Class Container implements ArrayAccess
     protected function searchAs($key, $matches)
     {
         if ( ! empty($matches['last'])) {  // Replace key with alias if we have it
-            // $key = preg_replace('#(as)\b#i', '', trim($matches['last']));  // as "name"
             $key = substr(trim($matches['last']), 3);
         }
         return trim($key);
@@ -411,7 +401,6 @@ Class Container implements ArrayAccess
         );
         if (strrpos($class, ' ')) {  // If we have command request
             $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
-            // $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
             preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);
@@ -591,7 +580,6 @@ Class Container implements ArrayAccess
         $classname = explode('\\', get_class($provider));
         $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
 
-        // $provider->register($this);
         $this->registeredProviders[$cid] = $provider;
 
         foreach ($values as $key => $value) {

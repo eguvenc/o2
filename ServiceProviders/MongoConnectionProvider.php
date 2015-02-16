@@ -31,7 +31,7 @@ Class MongoConnectionProvider
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('mongo');  // Load nosql configuration file

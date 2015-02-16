@@ -2,12 +2,12 @@
 
 namespace Obullo\Authentication\Storage;
 
-use LogicException,
-    Obullo\Utils\Random,
-    Obullo\Container\Container,
-    Obullo\Authentication\Token,
-    Obullo\Authentication\AuthResult,
-    Obullo\Authentication\AbstractStorage;
+use LogicException;
+use Obullo\Utils\Random;
+use Obullo\Container\Container;
+use Obullo\Authentication\Token;
+use Obullo\Authentication\AuthResult;
+use Obullo\Authentication\AbstractStorage;
 
 /**
  * O2 Authentication - Memory Storage
