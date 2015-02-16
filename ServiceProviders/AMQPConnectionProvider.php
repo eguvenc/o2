@@ -2,12 +2,11 @@
 
 namespace Obullo\ServiceProviders;
 
-use AMQPConnection,
-    RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Database\Connection,
-    Obullo\Utils\SingletonTrait;
+use AMQPConnection;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
+use Obullo\Database\Connection;
 
 /**
  * AMQP Connection Provider
@@ -25,7 +24,7 @@ Class AMQPConnectionProvider
     protected $config;     // AMQP configuration items
     protected $AMQPClass;  // AMQP extension client name
 
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor
@@ -34,7 +33,7 @@ Class AMQPConnectionProvider
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('queue');  // Load database configuration file

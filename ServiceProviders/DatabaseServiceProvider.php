@@ -26,11 +26,8 @@ Class DatabaseServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        if ( ! DatabaseConnectionProvider::isRegistered()) {            // Just one time register the shared objects
-            $connector = DatabaseConnectionProvider::getInstance($c);   // Register all Connectors as shared services
-            $connector->register();
-        }
-        $connector = DatabaseConnectionProvider::getInstance($c);
+        $connector = new DatabaseConnectionProvider($c);
+        $connector->register();
         return $connector->getConnection($params);  // Get existing connection
     }
 }

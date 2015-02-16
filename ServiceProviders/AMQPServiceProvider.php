@@ -26,12 +26,9 @@ Class AMQPServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        if ( ! AMQPConnectionProvider::isRegistered()) {         // Just one time register the shared objects
-            $connector = AMQPConnectionProvider::getInstance($c); 
-            $connector->register();
-        }
-        $connector = AMQPConnectionProvider::getInstance($c);
-        return $connector->getConnection($params);           // Get existing connection
+        $connector = new AMQPConnectionProvider($c);  // Just one time register the shared objects
+        $connector->register();
+        return $connector->getConnection($params);    // Get existing connection
     }
 }
 

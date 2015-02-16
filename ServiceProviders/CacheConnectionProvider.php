@@ -2,11 +2,10 @@
 
 namespace Obullo\ServiceProviders;
 
-use RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Utils\SingletonTrait,
-    Obullo\Cache\Handler\HandlerInterface;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
+use Obullo\Cache\Handler\HandlerInterface;
 
 /**
  * Cache Connection Provider
@@ -23,14 +22,14 @@ Class CacheConnectionProvider
     protected $c;                // Container
     protected $config = array(); // Cache config
 
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('cache');
@@ -61,7 +60,6 @@ Class CacheConnectionProvider
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Cache connection provider requires driver parameter.");
         }
-        // print_r($params);
         $cid = 'cache.connection.'.static::getConnectionId($params);
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists

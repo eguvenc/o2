@@ -10,7 +10,7 @@ use Controller,
     InvalidArgumentException,
     Exception;
 /*
- * Container for Obullo Ersin Guvenc (c) 2015
+ * Container for Obullo (c) 2015
  * 
  * This file after modeled Pimple Software ( Dependency Container ).
  * 
@@ -141,8 +141,8 @@ Class Container implements ArrayAccess
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
             if ($noReturn AND $controllerExists AND Controller::$instance != null) {
+                
                 $value = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
-
                 if ( ! isset(Controller::$instance->{$key})) {      // If user use $this->c['uri'] in load method 
                     return Controller::$instance->{$key} = $value;  // it overrides instance of the current controller uri and effect to layers
                 }
@@ -232,12 +232,8 @@ Class Container implements ArrayAccess
         $class = $matches['class'];
         $serviceName = ucfirst($class);
 
-        if ( ! empty($matches['provider'])) {
-            $folder = '\Obullo\\ServiceProviders\\';
-            if ( ! empty($matches['app'])) {  // If we have classes/ServiceProviders/x request.
-                $folder = '\Service\Providers\\';
-            }
-            $this->loadServiceProvider($matches, $folder);    // Resolve service providers
+        if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
+            $this->calledProviders[] = strtolower($matches['class']);
             return $this;
         }
         $isService = false;
@@ -258,25 +254,11 @@ Class Container implements ArrayAccess
 
         $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
-            $this->register($data['cid'], $key, $matches, $data['class'], $params);
+            $this->registerClass($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);
     }
-
-    /**
-     * Load providers
-     * 
-     * @param array $matches matches
-     * @param array $folder  folder
-     * 
-     * @return void
-     */
-    protected function loadServiceProvider(array $matches, $folder = '\\')
-    {
-        $serviceProviderClass = $folder.ucfirst($matches['class']).'ServiceProvider';
-        $this->with[] = new $serviceProviderClass($this);
-    }
-
+    
     /**
      * Execute service providers
      * 
@@ -286,9 +268,8 @@ Class Container implements ArrayAccess
      */
     public function get($params = array())
     {
-        $serviceProvider = end($this->with);
-        array_pop($this->with);
-        return $serviceProvider->register($this, $params);
+        $lastCalled = end($this->calledProviders);
+        return $this->registeredProviders[$lastCalled]->register($this, $params);
     }
 
     /**
@@ -347,7 +328,6 @@ Class Container implements ArrayAccess
     protected function searchAs($key, $matches)
     {
         if ( ! empty($matches['last'])) {  // Replace key with alias if we have it
-            // $key = preg_replace('#(as)\b#i', '', trim($matches['last']));  // as "name"
             $key = substr(trim($matches['last']), 3);
         }
         return trim($key);
@@ -382,7 +362,7 @@ Class Container implements ArrayAccess
      * 
      * @return mixed object or null
      */
-    protected function register($cid, $key, $matches, $ClassName, $params = array())
+    protected function registerClass($cid, $key, $matches, $ClassName, $params = array())
     {
         if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
 
@@ -420,7 +400,7 @@ Class Container implements ArrayAccess
             'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<app>(?:)app|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
+            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
             preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);
@@ -577,7 +557,7 @@ Class Container implements ArrayAccess
             throw new InvalidArgumentException('Bind method second parameter must be object.');
         }
         if ( ! $this->exists($cid)) {   // Don't register service again.
-            $this->register($cid, null, array('return' => 'return'), $namespace);
+            $this->registerClass($cid, null, array('return' => 'return'), $namespace);
         }
         if (isset($this->frozen[$cid])) {
             return $this->values[$cid];
@@ -585,6 +565,27 @@ Class Container implements ArrayAccess
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
         return $this->values[$cid] = $this->runClosure($this->values[$cid]);
+    }
+
+    /**
+     * Registers a service provider.
+     *
+     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
+     * @param array                    $values   An array of values that customizes the provider
+     *
+     * @return static
+     */
+    public function register($provider, array $values = array())
+    {
+        $classname = explode('\\', get_class($provider));
+        $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
+
+        $this->registeredProviders[$cid] = $provider;
+
+        foreach ($values as $key => $value) {
+            $this[$key] = $value;
+        }
+        return $this;
     }
 
 }

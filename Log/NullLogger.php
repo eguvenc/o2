@@ -98,12 +98,13 @@ Class NullLogger extends AbstractLogger
      * Add writer
      * 
      * @param string $name handler key
+     * @param string $type writer/handler
      *
      * @return object
      */
-    public function addWriter($name)
+    public function addWriter($name, $type = 'writer')
     {
-        $name = null;
+        $name = $type = null;
         return $this;
     }
 

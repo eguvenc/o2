@@ -2,12 +2,12 @@
 
 namespace Obullo\Authentication\Storage;
 
-use LogicException,
-    Obullo\Utils\Random,
-    Obullo\Container\Container,
-    Obullo\Authentication\Token,
-    Obullo\Authentication\AuthResult,
-    Obullo\Authentication\AbstractStorage;
+use LogicException;
+use Obullo\Utils\Random;
+use Obullo\Container\Container;
+use Obullo\Authentication\Token;
+use Obullo\Authentication\AuthResult;
+use Obullo\Authentication\AbstractStorage;
 
 /**
  * O2 Authentication - Memcached Storage
@@ -106,7 +106,6 @@ Class Memcached extends AbstractStorage
      */
     public function loginAsTemporary(array $credentials)
     {
-        // $this->cache->hMSet($this->getMemoryBlockKey('__temporary'), $credentials, $this->getMemoryBlockLifetime('__temporary'));
         $this->cache->set($this->getMemoryBlockKey('__temporary'), $credentials, $this->getMemoryBlockLifetime('__temporary'));
     }
 
@@ -119,8 +118,32 @@ Class Memcached extends AbstractStorage
      */
     public function loginAsPermanent(array $credentials)
     {
-        // $this->cache->hMSet($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
         $this->cache->set($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
+    }
+
+    /**
+     * Update identity value
+     * 
+     * @param string $key string
+     * @param value  $val value
+     *
+     * @return void
+     */
+    public function update($key, $val)
+    {
+        $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
+    }
+
+    /**
+     * Remove identity 
+     * 
+     * @param string $key string
+     * 
+     * @return void
+     */
+    public function remove($key)
+    {
+        $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
     }
 
     /**
@@ -174,7 +197,6 @@ Class Memcached extends AbstractStorage
 
         $this->logger->debug('Auth temporary data cache key.', array('key' => $this->getMemoryBlockKey($block)));
 
-        // return $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
         return $this->cache->set($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
     }
 
@@ -194,7 +216,6 @@ Class Memcached extends AbstractStorage
         if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
             return $this->data[$block];
         }
-        // return $this->data[$block] = $this->cache->hGetAll($this->getBlock($block));
         return $this->data[$block] = $this->cache->get($this->getBlock($block));
     }
 

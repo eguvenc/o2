@@ -2,10 +2,9 @@
 
 namespace Obullo\ServiceProviders;
 
-use RuntimeException,
-    UnexpectedValueException,
-    Obullo\Container\Container,
-    Obullo\Utils\SingletonTrait;
+use RuntimeException;
+use UnexpectedValueException;
+use Obullo\Container\Container;
 
 /**
  * Mongo Connection Provider
@@ -23,7 +22,7 @@ Class MongoConnectionProvider
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
     
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor ( Works one time )
@@ -32,7 +31,7 @@ Class MongoConnectionProvider
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('mongo');  // Load nosql configuration file

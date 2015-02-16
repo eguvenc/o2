@@ -148,16 +148,6 @@ abstract class AbstractAdapter
     }
 
     /**
-     * Returns to storage instance
-     * 
-     * @return object
-     */
-    public function getStorage()
-    {
-        return $this->c['auth.storage'];
-    }
-
-    /**
      * Sets "isAuthenticated" attribute
      *
      * @param array $attributes identity attributes
