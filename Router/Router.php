@@ -376,7 +376,7 @@ Class Router
             $this->setDirectory($segments[1]);
             array_shift($segments);
         }
-        $module = $this->fetchModule(). DS;
+        $module = $this->fetchModule(DS);
         $directory = $this->fetchDirectory();
 
         // if segments[1] exists set first segment as a directory 
@@ -568,12 +568,14 @@ Class Router
 
     /**
      * Get module directory
+     *
+     * @param string $separator directory seperator
      * 
      * @return void
      */
-    public function fetchModule()
+    public function fetchModule($separator = '')
     {
-        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS) : '';
+        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator : '';
     }
 
     /**

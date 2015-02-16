@@ -2,10 +2,10 @@
 
 namespace Obullo\View;
 
-use Closure,
-    Controller,
-    Obullo\Layer\Layer,
-    Obullo\Container\Container;
+use Closure;
+use Controller;
+use Obullo\Layer\Layer;
+use Obullo\Container\Container;
 
 /**
  * View Class
@@ -19,9 +19,11 @@ use Closure,
  */
 Class View
 {
-    public $c;           // Container
-    protected $logger;   // Logger instance
-    protected $response; // Response instance
+    public $c;                  // Container
+    protected $logger;          // Logger instance
+    protected $response;        // Response instance
+    protected $nestedController = null;
+
     /**
      * Protected variables
      * 
@@ -164,6 +166,12 @@ Class View
         }
     }
 
+    public function nested(Controller $instance)
+    {
+        $this->nestedController = $instance;
+        return $this;
+    }
+
     /**
      * Load view file from /view folder
      * 
@@ -185,13 +193,20 @@ Class View
         if ( ! class_exists('Controller', false) OR Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
+            
             $router = &Controller::$instance->router;
+
+            if (is_object($this->nestedController)) {
+                $router = &$this->nestedController->router;
+            }
+            echo get_class($this->nestedController).'<br />';
+            echo $router->fetchModule();
         }
         /**
          * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
-            CONTROLLERS .$router->fetchModule(). DS . $router->fetchDirectory() . DS .'view'. DS,
+            CONTROLLERS .$router->fetchModule(DS) . $router->fetchDirectory() . DS .'view'. DS,
             $filename,
             $data,
             $include
