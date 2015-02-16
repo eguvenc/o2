@@ -38,8 +38,8 @@ Class Roles
     public function __construct($c)
     {
         $this->c     = $c;
-        $this->db    = $this->c['service provider database']->get($this->c['config']['rbac.params.database']);
         $this->roles = $this->c['rbac.roles'];
+        $this->db    = $this->c['service provider database']->get(['connection' => 'rbac']);
     }
 
     /**
