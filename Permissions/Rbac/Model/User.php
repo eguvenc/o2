@@ -596,7 +596,7 @@ Class User
         }
 
         $this->db->execute();
-        // echo $this->db->lastQuery();
+        echo $this->db->lastQuery();
         return $this->db->resultArray();
     }
 
