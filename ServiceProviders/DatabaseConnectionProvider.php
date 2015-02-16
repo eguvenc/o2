@@ -6,6 +6,7 @@ use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
 use Obullo\Database\Connection;
+use Obullo\Utils\SingletonTrait;
 
 /**
  * Pdo Connection Provider
@@ -23,6 +24,7 @@ Class DatabaseConnectionProvider
     protected $config;    // Configuration items
 
     use ConnectionTrait;
+    use SingletonTrait;
 
     /**
      * Constructor
@@ -31,7 +33,7 @@ Class DatabaseConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    protected function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
