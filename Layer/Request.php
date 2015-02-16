@@ -2,9 +2,10 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Layer\Json,
-    Obullo\Layer\Error,
-    Obullo\Container\Container;
+use Controller;
+use Obullo\Layer\Json;
+use Obullo\Layer\Error;
+use Obullo\Container\Container;
 
 /**
  * Request Class
@@ -107,18 +108,31 @@ Class Request
      * Send Request
      * 
      * @param string  $method     request method
-     * @param string  $uri        uri string
+     * @param string  $uriString  uri string
      * @param array   $data       request data
      * @param integer $expiration ttl
      * 
      * @return string
      */
-    public function raw($method, $uri, $data = array(), $expiration = '')
+    public function raw($method, $uriString, $data = array(), $expiration = '')
     {
+        $uri = clone Controller::$instance->uri;
+        $router = clone Controller::$instance->router;
+        $controller = clone Controller::$instance;
+
+        $this->c['controller'] = function () use ($controller) {
+            return $controller;
+        };
+        $this->c['request.uri'] = function () use ($uri) {
+            return $uri;
+        };
+        $this->c['request.router'] = function () use ($router) {
+            return $router;
+        };
         $layer = new Layer($this->c, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
         $layer->setHeaders();  // Headers must be at the top
-        $layer->setUrl($uri);
+        $layer->setUrl($uriString);
         $layer->setMethod($method, $data);
         $rsp = $layer->execute($expiration); // Execute the process
         $layer->restore();  // Restore controller objects

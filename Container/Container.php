@@ -2,13 +2,14 @@
 
 namespace Obullo\Container;
 
-use Controller,
-    ArrayAccess,
-    SplObjectStorage,
-    stdClass,
-    Closure,
-    InvalidArgumentException,
-    Exception;
+use Closure;
+use stdClass;
+use Exception;
+use Controller;
+use ArrayAccess;
+use SplObjectStorage;
+use InvalidArgumentException;
+
 /*
  * Container for Obullo (c) 2015
  * 
@@ -27,7 +28,7 @@ use Controller,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
-Class Container implements ArrayAccess
+class Container implements ArrayAccess
 {
     protected $values = array();
     protected $frozen = array();
@@ -52,6 +53,11 @@ Class Container implements ArrayAccess
         $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
         unset($this->services['Providers']);
     }
+
+    // public function setController()
+    // {
+
+    // }
 
     /**
      * Checks if a parameter or an object is set.

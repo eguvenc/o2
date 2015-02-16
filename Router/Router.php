@@ -376,7 +376,7 @@ Class Router
             $this->setDirectory($segments[1]);
             array_shift($segments);
         }
-        $module = $this->fetchModule(DS);
+        $module = $this->fetchModule(). DS;
         $directory = $this->fetchDirectory();
 
         // if segments[1] exists set first segment as a directory 
@@ -569,13 +569,11 @@ Class Router
     /**
      * Get module directory
      * 
-     * @param string $seperator DS constant
-     * 
      * @return void
      */
-    public function fetchModule($seperator = '')
+    public function fetchModule()
     {
-        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS). $seperator : '';
+        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS) : '';
     }
 
     /**
@@ -804,17 +802,19 @@ Class Router
         }
         $route = $this->c['uri']->getUriString();        // Get current uri
 
-        if ($this->c->isCalled('request')) {
-            $route = $this->c['request']->global->uri->getUriString();
+        if ($this->c->exists('request.uri')) {
+            $route = $this->c['request.uri']->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
+                                                              // Filters always run once
+                                                              // because of we don't init filters in Layer class.
         }
         foreach ($this->attach[$this->DOMAIN] as $value) {
             if ($value['route'] == $route) {    // if we have natural route match
                 $this->runFilter($value['name'], $method, $value['options']);
             } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
+                // echo $value['name'].'----'.$method.'<br>';
                 $this->runFilter($value['name'], $method, $value['options']);
             }
         }
-
     }
 
     /**

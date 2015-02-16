@@ -3,7 +3,6 @@
 namespace Obullo\Authentication\Storage;
 
 use LogicException;
-use Obullo\Utils\Random;
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
@@ -131,7 +130,11 @@ Class Memcached extends AbstractStorage
      */
     public function update($key, $val)
     {
-        $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
+        $data = $this->getCredentials('__permanent');
+        $data[$key] = $val;
+        $this->setCredentials('__permanent', $data);
+
+        // $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
     }
 
     /**
@@ -143,7 +146,11 @@ Class Memcached extends AbstractStorage
      */
     public function remove($key)
     {
-        $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
+        $data = $this->getCredentials('__permanent');
+        unset($data[$key]);
+        $this->setCredentials('__permanent', $data);
+        
+        // $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
     }
 
     /**

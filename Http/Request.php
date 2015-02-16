@@ -2,9 +2,10 @@
 
 namespace Obullo\Http;
 
-use stdClass,
-    Obullo\Container\Container,
-    Obullo\Http\Sanitizer;
+use stdClass;
+use Controller;
+use Obullo\Http\Sanitizer;
+use Obullo\Container\Container;
 
 /**
  * Request Class
@@ -52,28 +53,6 @@ Class Request
         $this->c = $c;
         $this->logger = $this->c['logger'];
         $this->logger->debug('Request Class Initialized');
-    }
-
-    /**
-     * Get global object, we store original global objects( uri and router ) into 
-     * $this->global variable then we able to grab them from all layers.
-     * 
-     * @param string $key variable
-     * 
-     * @return void
-     */
-    public function __get($key)
-    {
-        if ($key != 'global') {
-            return null;
-        }
-        if (is_object($this->globals)) {
-            return $this->globals;
-        }
-        $this->globals = new stdClass;
-        $this->globals->uri = $this->c['uri'];
-        $this->globals->router = $this->c['router'];
-        return $this->globals;
     }
 
     /**

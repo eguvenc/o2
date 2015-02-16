@@ -3,7 +3,6 @@
 namespace Obullo\Authentication\Storage;
 
 use LogicException;
-use Obullo\Utils\Random;
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
