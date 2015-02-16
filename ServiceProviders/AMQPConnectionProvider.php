@@ -33,7 +33,7 @@ Class AMQPConnectionProvider
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('queue');  // Load database configuration file

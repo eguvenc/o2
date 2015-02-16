@@ -27,6 +27,7 @@ Class MongoServiceProvider
     public function register(Container $c, $params = array())
     {
         $connector = new MongoConnectionProvider($c);
+        $connector->register();
         return $connector->getConnection($params);   // Get a connection instance before we registered into container
     }
 }

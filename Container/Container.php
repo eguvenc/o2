@@ -239,7 +239,7 @@ class Container implements ArrayAccess
         $serviceName = ucfirst($class);
 
         if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
-            $this->calledProviders[] = $matches['class'];
+            $this->calledProviders[] = strtolower($matches['class']);
             return $this;
         }
         $isService = false;
