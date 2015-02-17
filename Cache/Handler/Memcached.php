@@ -198,9 +198,6 @@ Class Memcached implements HandlerInterface
      */
     public function get($key)
     {
-        // if ( ! is_array($key) AND strpos($key, ':') !== false) {
-        //     $key = explode(':', $key);
-        // }
         if (is_array($key)) {
             return $this->memcached->getMulti($key);
         }

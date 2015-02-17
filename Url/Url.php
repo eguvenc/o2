@@ -90,7 +90,7 @@ Class Url
             $index = explode('[', $method);
             $param = str_replace(']', '', $index[1]);
             header("Refresh:$param;url=" . $uri);
-            return;
+            exit;
         }
         switch ($method) {
         case 'refresh' : header("Refresh:0;url=" . $uri);

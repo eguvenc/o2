@@ -140,7 +140,6 @@ Class UserIdentity extends AuthorizedUser
         if ($this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
             $token = new Token($this->c);
             $this->__token = $token->get();  // Refresh the token and write it to memory
-            exit;
             $this->__lastTokenRefresh = time();
             $this->tokenRefresh = true;
         }

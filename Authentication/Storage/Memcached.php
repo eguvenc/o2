@@ -56,17 +56,18 @@ Class Memcached extends AbstractStorage
      * 
      * @return array keys if succes otherwise false
      */
-    // public function getAllKeys($block = '__permanent')
-    // {
-    //     if (isset($this->keys[$block])) {
-    //         return $this->keys[$block];
-    //     }
-    //     $this->keys[$block] = $this->cache->getAllKeys($this->getKey($block).':*');
-    //     if (isset($this->keys[$block][0])) {
-    //         return $this->keys[$block];
-    //     }
-    //     return false;
-    // }
+    public function getAllKeys($block = '__permanent')
+    {
+        // if (isset($this->keys[$block])) {
+        //     return $this->keys[$block];
+        // }
+        
+        $this->keys[$block] = $this->cache->getAllKeys('Auth:__permanent:Authorized:user@example.com');
+        if (isset($this->keys[$block][0])) {
+            return $this->keys[$block];
+        }
+        return false;
+    }
 
     /**
      * Returns true if temporary credentials does "not" exists
@@ -133,8 +134,6 @@ Class Memcached extends AbstractStorage
         $data = $this->getCredentials('__permanent');
         $data[$key] = $val;
         $this->setCredentials($data, null, '__permanent');
-
-        // $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
     }
 
     /**
@@ -149,8 +148,6 @@ Class Memcached extends AbstractStorage
         $data = $this->getCredentials('__permanent');
         unset($data[$key]);
         $this->setCredentials($data, null, '__permanent');
-        
-        // $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
     }
 
     /**
@@ -262,6 +259,7 @@ Class Memcached extends AbstractStorage
         $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
 
         $id = $this->getIdentifier();
+        echo $id.'<br>';
         $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
         return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$constant.$identifier;  // Create unique key

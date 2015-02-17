@@ -142,10 +142,10 @@ Class Layer
      */
     public function makeGlobals()
     {
-        $this->c['layer.request.uri'] = function () {
+        $this->c['app.uri'] = function () {
             return $this->uri;
         };
-        $this->c['layer.request.router'] = function () {
+        $this->c['app.router'] = function () {
             return $this->router;
         };
     }

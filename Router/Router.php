@@ -804,8 +804,8 @@ Class Router
         }
         $route = $this->c['uri']->getUriString();        // Get current uri
 
-        if ($this->c->exists('request.uri')) {
-            $route = $this->c['request.uri']->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
+        if ($this->c->exists('app.uri')) {
+            $route = $this->c['app.uri']->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
                                                               // Filters always run once
                                                               // because of we don't init filters in Layer class.
         }

@@ -173,7 +173,7 @@ Class Application
      */
     public function __get($key)
     {
-        $cid = 'layer.request.'.$key;
+        $cid = 'app.'.$key;
         if ( ($key == 'uri' OR $key == 'router') AND $this->c->exists($cid) ) {
             return $this->c[$cid];
         }
