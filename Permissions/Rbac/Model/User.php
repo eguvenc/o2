@@ -16,7 +16,7 @@ use Pdo;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/rbac
  */
-Class User
+class User
 {
     /**
      * Database instance

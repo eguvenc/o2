@@ -18,7 +18,7 @@ use Obullo\Permissions\Rbac\Operation\AbstractOperationType;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/permissions
  */
-Class Object extends AbstractOperationType implements ArrayAccess
+class Object extends AbstractOperationType implements ArrayAccess
 {
     /**
      * Permissions

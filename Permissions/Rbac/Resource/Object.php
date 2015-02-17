@@ -2,11 +2,11 @@
 
 namespace Obullo\Permissions\Rbac\Resource;
 
-use ArrayAccess,
-    RuntimeException,
-    Obullo\Permissions\Rbac\User,
-    Obullo\Permissions\Rbac\Utils,
-    Obullo\Permissions\Rbac\Resource\Object\Element;
+use ArrayAccess;
+use RuntimeException;
+use Obullo\Permissions\Rbac\User;
+use Obullo\Permissions\Rbac\Utils;
+use Obullo\Permissions\Rbac\Resource\Object\Element;
 
 /**
  * Resource Object Permission
@@ -20,7 +20,7 @@ use ArrayAccess,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/permissions
  */
-Class Object implements ArrayAccess
+class Object implements ArrayAccess
 {
     /**
      * Object name
@@ -48,6 +48,9 @@ Class Object implements ArrayAccess
      * 
      * @param string $func      function name
      * @param array  $arguments arguments
+     * 
+     * @example $rbac->resource->object['formName']->getPermissions('view')
+     * @example $rbac->resource->object['formName']->getPermissions(['user_username', 'user_email'], 'view')
      * 
      * @return array
      */
@@ -79,7 +82,6 @@ Class Object implements ArrayAccess
          * @var array
          */
         if ($argsCount > 1) { // If that argument is greater than 1 we understand desired permission is element.
-
             if (! method_exists($this->c['rbac.resource.object.element'], $func)) { // If method exists in "Element" class
                 throw new RuntimeException(sprintf('Method "%s()" not found.', $func));
             }
