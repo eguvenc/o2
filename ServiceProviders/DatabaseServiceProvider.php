@@ -26,8 +26,11 @@ Class DatabaseServiceProvider
      */
     public function register(Container $c, $params = array())
     {
-        $connector = new DatabaseConnectionProvider($c);
-        $connector->register();
+        if ( ! DatabaseConnectionProvider::isRegistered()) {
+            $connector = DatabaseConnectionProvider::getInstance($c);
+            $connector->register();
+        }
+        $connector = DatabaseConnectionProvider::getInstance($c);
         return $connector->getConnection($params);  // Get existing connection
     }
 }

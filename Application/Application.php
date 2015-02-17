@@ -2,6 +2,7 @@
 
 namespace Obullo\Application;
 
+use Controller;
 use BadMethodCallException;
 use Obullo\Container\Container;
 
@@ -161,6 +162,22 @@ Class Application
     public function getEnvPath()
     {
         return ENV_PATH;
+    }
+
+    /**
+     * Returns 
+     * 
+     * @param string $key application object
+     * 
+     * @return object
+     */
+    public function __get($key)
+    {
+        $cid = 'layer.request.'.$key;
+        if ( ($key == 'uri' OR $key == 'router') AND $this->c->exists($cid) ) {
+            return $this->c[$cid];
+        }
+        return Controller::$instance->{$key};
     }
 
 }
