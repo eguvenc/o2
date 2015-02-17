@@ -64,6 +64,9 @@ Class Request
      */
     public function get($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_GET) : $_GET;
+        }
         if ( ! isset($_GET[$key])) {
             return false;
         }
@@ -79,6 +82,9 @@ Class Request
      */
     public function post($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+        }
         if ( ! isset($_POST[$key])) {
             return false;
         }
@@ -94,6 +100,9 @@ Class Request
      */
     public function all($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+        }
         if ( ! isset($_REQUEST[$key])) {
             return false;
         }
