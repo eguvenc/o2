@@ -116,19 +116,6 @@ Class Request
      */
     public function raw($method, $uriString, $data = array(), $expiration = '')
     {
-        $uri = clone Controller::$instance->uri;
-        $router = clone Controller::$instance->router;
-        $controller = clone Controller::$instance;
-
-        $this->c['controller'] = function () use ($controller) {
-            return $controller;
-        };
-        $this->c['request.uri'] = function () use ($uri) {
-            return $uri;
-        };
-        $this->c['request.router'] = function () use ($router) {
-            return $router;
-        };
         $layer = new Layer($this->c, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
         $layer->setHeaders();  // Headers must be at the top

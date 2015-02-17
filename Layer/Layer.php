@@ -73,20 +73,6 @@ Class Layer
      */
     protected $requestData = array();
 
-
-    /**
-     * Reset all variables for multiple layer requests.
-     *
-     * @return void
-     */
-    public function clear()
-    {
-        $this->c['response']->clear();
-        $this->processDone = false;
-        $this->requestMethod = 'GET';
-        unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
-    }
-
     /**
      * Constructor
      * 
@@ -124,11 +110,47 @@ Class Layer
         $_SERVER['LAYER_REQUEST_URI'] = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
         $this->prepareHash($_SERVER['LAYER_REQUEST_URI']);
 
+        $this->cloneObjects();
+        $this->makeGlobals();
+
         $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
 
         $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
         $this->c['router']->init();
+    }
+
+    /**
+     * Clone controller, router and uri objects
+     * 
+     * @return void
+     */
+    protected function cloneObjects()
+    {
+        $this->controller = Controller::$instance;     // We need get backup object of main controller
+        $this->uri = Controller::$instance->uri;     // Create copy of original Uri class.
+        $this->router = Controller::$instance->router;  // Create copy of original Router class.
+
+        $this->uri = clone $this->uri;
+        $this->router = clone $this->router;
+    }
+
+    /**
+     * Make available global objects in the container
+     * 
+     * @return void
+     */
+    public function makeGlobals()
+    {
+        $this->c['controller'] = function () {
+            return $this->controller;
+        };
+        $this->c['request.uri'] = function () {
+            return $this->uri;
+        };
+        $this->c['request.router'] = function () {
+            return $this->router;
+        };
     }
 
     /**
@@ -215,8 +237,6 @@ Class Layer
         call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 3));
         $response = ob_get_clean();
 
-        // $this->assignObjects($class); // Assign main controller objects to sub layers.
-
         if (is_numeric($expiration)) {
             $this->c['cache']->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
         }
@@ -239,6 +259,19 @@ Class Layer
     }
 
     /**
+     * Reset all variables for multiple layer requests.
+     *
+     * @return void
+     */
+    public function clear()
+    {
+        $this->c['response']->clear();
+        $this->processDone = false;
+        $this->requestMethod = 'GET';
+        unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
+    }
+
+    /**
      * Restore original controller objects
      * 
      * @return void
@@ -254,10 +287,9 @@ Class Layer
             }
         }
         $this->reset();
-
-        Controller::$instance = $this->c['controller'];
-        Controller::$instance->uri = $this->c['request.uri'];
-        Controller::$instance->router = $this->c['request.router'];
+        Controller::$instance = $this->controller;
+        Controller::$instance->uri = $this->uri;
+        Controller::$instance->router = $this->router;
         $this->processDone = true;
     }
 
