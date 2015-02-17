@@ -347,6 +347,16 @@ echo $c['config']['database']['connections']['db']['host'];  // Çıktı localho
 
 ------
 
+##### $this->c['app']->router->method();
+
+Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir katman isteği gönderildiğinde router nesnesi değişime uğrayarak istek gönderilen 
+url değerinin yerel değişkenlerine geri döner. Böyle bir durumda bu method sizin gerçek http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
+
+##### $this->c['app']->uri->method();
+
+Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman isteği gönderildiğinde uri nesnesi değişime uğrayarak istek gönderilen 
+url değerinin yerel değişkenlerine geri döner. Böyle bir durumda bu method sizin gerçek http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+
 ##### $this->c['app']->getEnv();
 
 Geçerli ortam değişkenine geri döner.
