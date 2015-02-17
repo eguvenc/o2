@@ -23,12 +23,14 @@ $className = '\\'.$router->fetchNamespace().'\\'.$router->fetchClass();
 if ( ! class_exists($className, false)) {  // Check method exist or not
     $response->show404($pageUri);
 }
-
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
 if (method_exists($class, 'load')) {
     $class->load();
+}
+if (method_exists($class, 'extend')) {  // View traits must be run at the top level otherwise layout view file
+    $class->extend();                    // could not load view variables.
 }
 /*
  * ------------------------------------------------------

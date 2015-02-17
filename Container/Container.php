@@ -4,10 +4,10 @@ namespace Obullo\Container;
 
 use Closure;
 use stdClass;
-use Exception;
 use Controller;
 use ArrayAccess;
 use SplObjectStorage;
+use RuntimeException;
 use InvalidArgumentException;
 
 /*
@@ -35,9 +35,9 @@ class Container implements ArrayAccess
     protected $raw = array();
     protected $keys = array();
     protected $aliases = array();
-    protected $unset = array();         // Stores classes we want to remove
-    protected $unRegistered = array();  // Whether to stored in controller instance
-    protected $return = array();        // Stores return requests
+    protected $unset = array();            // Stores classes we want to remove
+    protected $unRegistered = array();     // Whether to stored in controller instance
+    protected $return = array();           // Stores return requests
     protected $resolved = array();         // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
     protected $bindNamespaces = array();   // Stores bind method namespaces
@@ -275,6 +275,11 @@ class Container implements ArrayAccess
     public function get($params = array())
     {
         $lastCalled = end($this->calledProviders);
+        if ( ! isset($this->registeredProviders[$lastCalled])) {
+            throw new RuntimeException(
+                sprintf('Service provider %s not registered in your providers.php.', $lastCalled)
+            );
+        }
         return $this->registeredProviders[$lastCalled]->register($this, $params);
     }
 

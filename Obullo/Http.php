@@ -47,9 +47,21 @@ if ($c['config']['annotations']['enabled']) {
  * ------------------------------------------------------
  */
 $router->initFilters('before');  // Initialize ( exec ) registered router ( before ) filters
-
+/*
+ * ------------------------------------------------------
+ *  Check load method
+ * ------------------------------------------------------
+ */
 if (method_exists($class, 'load')) {
     $class->load();
+}
+/*
+ * ------------------------------------------------------
+ *  Extend to traits
+ * ------------------------------------------------------
+ */
+if (method_exists($class, 'extend')) {  // View traits must be run at the top level otherwise layout view file
+    $class->extend();                    // could not load view variables.
 }
 /*
  * ------------------------------------------------------

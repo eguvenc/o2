@@ -132,7 +132,7 @@ Class Memcached extends AbstractStorage
     {
         $data = $this->getCredentials('__permanent');
         $data[$key] = $val;
-        $this->setCredentials('__permanent', $data);
+        $this->setCredentials($data, null, '__permanent');
 
         // $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
     }
@@ -148,7 +148,7 @@ Class Memcached extends AbstractStorage
     {
         $data = $this->getCredentials('__permanent');
         unset($data[$key]);
-        $this->setCredentials('__permanent', $data);
+        $this->setCredentials($data, null, '__permanent');
         
         // $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
     }
@@ -303,8 +303,7 @@ Class Memcached extends AbstractStorage
     public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-            // $data = (array)$this->cache->hGetAll($this->getMemoryBlockKey('__permanent'));   // We convert it to object otherwise page loading time 
-                                                                                      //  over 0.1500 seconds ..
+
             $data = (array)$this->cache->get($this->getMemoryBlockKey('__permanent'));  
 
             if (count($data) == 0) {
