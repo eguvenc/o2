@@ -36,6 +36,13 @@ Class UserIdentity extends AuthorizedUser
     protected $config;
 
     /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
      * Memory Storage
      * 
      * @var object
@@ -76,13 +83,6 @@ Class UserIdentity extends AuthorizedUser
      * @var bool
      */
     protected $tokenRefresh = false;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    protected $logger;
 
     /**
      * Recaller
@@ -406,7 +406,6 @@ Class UserIdentity extends AuthorizedUser
         $token = new Token($this->c);
         $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
     }
- 
 
     /**
      * Removes rememberMe cookie from user browser
