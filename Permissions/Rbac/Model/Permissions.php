@@ -14,7 +14,7 @@ namespace Obullo\Permissions\Rbac\Model;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/tree
  */
-Class Permissions
+class Permissions
 {
     /**
      * Database instance
