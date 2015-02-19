@@ -124,10 +124,6 @@ class User
      */
     public function getRootSqlQuery($select)
     {
-        echo '<pre>';
-        var_dump($this->user->rolesTableName);
-        var_dump($this->user->columnRoleParentId);
-        die('die');
         $this->db->query(
             'SELECT %s FROM %s WHERE %s = 0',
             array(
@@ -528,7 +524,7 @@ class User
             'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
                 FROM %s
                 INNER JOIN %s
-                ON %s.%s = %s.%s
+                ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
                 INNER JOIN %s
                 ON %s.%s = %s.%s
                 INNER JOIN %s
@@ -541,7 +537,7 @@ class User
                 AND %s.%s = ?
                 AND %s.%s IN (%s)
                 AND %s.%s IN (%s)
-                AND %s.%s IN (SELECT %s FROM %s WHERE %s = ?) AND %s.%s IN (%s)',
+                AND %s.%s IN (%s)',
             array(
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
@@ -555,10 +551,17 @@ class User
                 $this->db->protect($this->user->columnOpText),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
                 $this->db->protect($this->user->rolePermTableName),
                 $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // selecti buraya tasidim
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermParentId),
+                $this->db->protect($this->user->columnPermPrimaryKey),
+                $this->db->protect($this->user->permTableName),
+                $this->db->protect($this->user->columnPermText),
+                // selecti buraya tasidim
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->rolePermTableName),
                 $this->db->protect($this->user->columnRolePermRolePrimaryKey),
@@ -589,17 +592,14 @@ class User
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpRolePrimaryKey),
                 str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermParentId),
-                $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermText),
+                // select buradaydı
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 str_repeat('?,', count($opName) - 1) . '?',
             )
         );
         $i = 1;
+        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
         $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
         foreach ($permName as $name) {
             $this->db->bindValue($i++, $name, Pdo::PARAM_STR);
@@ -613,7 +613,7 @@ class User
         foreach ($roleIds as $id) {
             $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
-        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
+        // $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
 
         foreach ($opName as $op) {
             $this->db->bindValue($i++, $op, Pdo::PARAM_STR);

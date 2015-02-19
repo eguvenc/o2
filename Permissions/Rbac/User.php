@@ -146,6 +146,7 @@ Class User
         // RBAC "roles" table variable definitions
         $this->rolesTableName               = RBAC_ROLES_DB_TABLENAME;
         $this->columnRolePrimaryKey         = RBAC_ROLES_COLUMN_PRIMARY_KEY;
+        $this->columnRoleParentId           = RBAC_ROLES_COLUMN_PARENT_ID;
         $this->columnRoleText               = RBAC_ROLES_COLUMN_TEXT;
 
         // RBAC "operations" table variable definitions
