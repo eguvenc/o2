@@ -6,7 +6,7 @@ use AMQPConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
-use Obullo\Database\Connection;
+
 
 /**
  * AMQP Connection Provider

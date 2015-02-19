@@ -20,11 +20,10 @@ use Obullo\Authentication\AbstractStorage;
  */
 Class Redis extends AbstractStorage
 {
-    public $keys;               // Authentication keys which we get getAllKeys method
+    public $keys;               // Authentication keys used in getAllKeys method
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $session;         // Session class
-    protected $auth;            // Authentication configuration array
     protected $data = array();  // User credentials data
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
@@ -36,15 +35,17 @@ Class Redis extends AbstractStorage
      */
     public function __construct(Container $c) 
     {
-        $this->c = $c;
-        $this->auth  = $c['config']->load('auth');
+        parent::__construct($c);
+
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
 
-        $this->cache = $this->c['service provider '.$this->auth['cache']['provider']['name']]->get(
+        $provider = $this->c['config']['auth']['cache']['provider'];
+
+        $this->cache = $this->c['service provider '.$provider['name']]->get(
             [
-                'driver' => $this->auth['cache']['provider']['driver'], 
-                'serializer' => $this->auth['cache']['provider']['serializer']
+                'driver' => $provider['driver'], 
+                'serializer' => $provider['serializer']
             ]
         );
     }
@@ -105,7 +106,7 @@ Class Redis extends AbstractStorage
      */
     public function loginAsTemporary(array $credentials)
     {
-        $this->cache->hMSet($this->getMemoryBlockKey('__temporary'), $credentials, $this->getMemoryBlockLifetime('__temporary'));
+        $this->setCredentials($credentials, null, '__temporary', $this->getMemoryBlockLifetime('__temporary'));
     }
 
     /**
@@ -117,7 +118,7 @@ Class Redis extends AbstractStorage
      */
     public function loginAsPermanent(array $credentials)
     {
-        $this->cache->hMSet($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
+        $this->setCredentials($credentials, null, '__permanent', $this->getMemoryBlockLifetime('__permanent'));
     }
 
     /**
@@ -190,7 +191,6 @@ Class Redis extends AbstractStorage
             $this->data[$block] = array_merge($oldCredentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
-        $this->logger->debug('Auth temporary data redis key.', array('key' => $this->getMemoryBlockKey($block)));
 
         return $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
     }
@@ -277,9 +277,9 @@ Class Redis extends AbstractStorage
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->auth['cache']['block']['temporary']['lifetime'];
+            return (int)$this->c['config']['auth']['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->auth['cache']['block']['permanent']['lifetime'];
+        return (int)$this->c['config']['auth']['cache']['block']['permanent']['lifetime'];
     }
 
     /**
@@ -290,8 +290,9 @@ Class Redis extends AbstractStorage
     public function query()
     {
         if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-            $data = (array)$this->cache->hGetAll($this->getMemoryBlockKey('__permanent'));   // We convert it to object otherwise page loading time 
-                                                                                      //  over 0.1500 seconds ..
+
+            $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
+
             if (count($data) == 0) {
                 return false;
             }
@@ -327,13 +328,18 @@ Class Redis extends AbstractStorage
     public function getAllSessions()
     {
         $sessions = array();
-        $identifier = $this->getId();
+        $identifier = $this->getUserId();
         $key = $this->c['auth.params']['cache.key'].':__permanent:Authorized:';
         
         foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
+
+            $isAuthenticated = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
+            if ($isAuthenticated == false) {
+                break;
+            }
             $exp = explode(':', $val);
             $aid = end($exp);
-            $sessions[$aid]['__isAuthenticated'] = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
+            $sessions[$aid]['__isAuthenticated'] = $isAuthenticated;
             $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
             $sessions[$aid]['id'] = $identifier;
             $sessions[$aid]['key'] = $key.$identifier.':'.$aid;

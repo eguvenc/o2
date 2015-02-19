@@ -703,8 +703,7 @@ Class Router
     {
         $match = $this->detectDomain($options);
 
-        // Domain Regex Support
-        // If we have defined domain and not match with host don't run the filter.
+        // Domain Regex Support, if we have defined domain and not match with host don't run the filter.
         if (isset($options['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the filter.
             return;
         }
@@ -805,7 +804,7 @@ Class Router
         $route = $this->c['uri']->getUriString();        // Get current uri
 
         if ($this->c->exists('app.uri')) {
-            $route = $this->c['app.uri']->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
+            $route = $this->c['app']->uri->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
                                                               // Filters always run once
                                                               // because of we don't init filters in Layer class.
         }

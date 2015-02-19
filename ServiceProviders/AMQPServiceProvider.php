@@ -14,22 +14,40 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/serviceProviders
  */
-Class AMQPServiceProvider
+Class AMQPServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Connector
+     * 
+     * @var object
+     */
+    public $connector;
+
     /**
      * Registry
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array())
+    public function register(Container $c)
     {
-        $connector = new AMQPConnectionProvider($c);  // Just one time register the shared objects
-        $connector->register();
-        return $connector->getConnection($params);    // Get existing connection
+        $this->connector = new AMQPConnectionProvider($c);
+        $this->connector->register();
     }
+
+    /**
+     * Get connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function get($params = array())
+    {
+        return $this->connector->getConnection($params);  // Get existing connection
+    }
+
 }
 
 // END AMQPServiceProvider Class

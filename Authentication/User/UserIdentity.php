@@ -301,7 +301,6 @@ Class UserIdentity extends AuthorizedUser
      */
     public function getArray()
     {
-        ksort($this->attributes);
         return $this->attributes;
     }
 

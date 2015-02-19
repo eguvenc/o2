@@ -3,6 +3,7 @@
 namespace Obullo\Authentication;
 
 use Obullo\Utils\Random;
+use Obullo\Container\Container;
 
 /**
  * Abstract Adapter
@@ -25,6 +26,17 @@ abstract class AbstractStorage
      * Cache storage authorized users key
      */   
     const AUTHORIZED_USERS = 'Authorized:';
+
+    /**
+     * Constructor
+     * 
+     * @param Container $c container
+     */
+    public function __construct(Container $c)
+    {
+        $this->c = $c;
+        $this->c['config']->load('auth');
+    }
 
     /**
      * Sets identifier value to session

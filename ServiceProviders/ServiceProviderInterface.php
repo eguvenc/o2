@@ -19,12 +19,20 @@ interface ServiceProviderInterface
     /**
      * Registry
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array());
+    public function register(Container $c);
+
+    /**
+     * Returns to connection or service provider driver
+     * 
+     * @param array $params array
+     * 
+     * @return void
+     */
+    public function get($params = array());
 }
 
 // END ServiceProviderInterface class
