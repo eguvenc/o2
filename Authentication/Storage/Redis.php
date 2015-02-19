@@ -264,7 +264,7 @@ Class Redis extends AbstractStorage
     public function getKey($block = '__temporary')
     {
         $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
-        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$key.$this->getId();
+        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$key.$this->getUserId();
     }
 
     /**
@@ -337,7 +337,6 @@ Class Redis extends AbstractStorage
             $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
             $sessions[$aid]['id'] = $identifier;
             $sessions[$aid]['key'] = $key.$identifier.':'.$aid;
-            $sessions[$aid]['prefix'] = $key.$identifier;
         }
         return $sessions;
     }
@@ -351,7 +350,7 @@ Class Redis extends AbstractStorage
      */
     public function killSession($aid)
     {
-        $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getId().':'.$aid);
+        $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId().':'.$aid);
     }
 
 }

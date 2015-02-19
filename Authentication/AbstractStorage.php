@@ -35,7 +35,7 @@ abstract class AbstractStorage
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/Identifier', $identifier.':'.$this->getRandomId());
+        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/Identifier', $identifier.':'.$this->getLoginId());
     }
 
     /**
@@ -45,7 +45,9 @@ abstract class AbstractStorage
      */
     public function getIdentifier()
     {
-        return $this->session->get('__'.$this->c['auth.params']['cache.key'].'/Identifier');
+        $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/Identifier');
+
+        return empty($id) ? '__emptyIdentifier' : $id;
     }
 
     /**
@@ -63,7 +65,7 @@ abstract class AbstractStorage
      * 
      * @return string
      */
-    public function getId()
+    public function getUserId()
     {
         $identifier = $this->getIdentifier();
         if (empty($identifier)) {
@@ -78,11 +80,11 @@ abstract class AbstractStorage
      * 
      * @return string
      */
-    public function getRandomId()
+    public function getLoginId()
     {
         $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/RandomId');
         if ($id == false) {
-            $id = $this->setRandomId();
+            $id = $this->setLoginId();
             return $id;
         }
         return $id;
@@ -95,7 +97,7 @@ abstract class AbstractStorage
      * 
      * @return string
      */
-    public function setRandomId($id = null)
+    public function setLoginId($id = null)
     {
         if (empty($id)) {
             $id = Random::generate('alnum.lower', 10);
