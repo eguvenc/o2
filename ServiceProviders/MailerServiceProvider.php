@@ -14,20 +14,37 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/serviceProviders
  */
-Class MailerServiceProvider
+Class MailerServiceProvider implements ServiceProviderInterface
 {
     /**
+     * Connector
+     * 
+     * @var object
+     */
+    public $connector;
+    
+    /**
      * Registry
-     *
-     * @param object $c      container
-     * @param array  $params parameters
+     * 
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array())
+    public function register(Container $c)
     {
-        $connector = new MailerConnectionProvider($c);
-        return $connector->getFactory($params);   // Get a mailer instance before we registered into container
+        $this->connector = new MailConnectionProvider($c);  // Register all Connectors as shared services
+    }
+
+    /**
+     * Get connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function get($params = array())
+    {
+        return $this->connector->getFactory($params);  // Get a mailer instance before we registered into container
     }
 }
 

@@ -40,7 +40,7 @@ Class Error
     public function show404($page = '', $http404 = true)
     {
         if ($this->c->exists('app.uri') AND empty($page)) {
-            $page = $this->c['app.uri']->getUriString();
+            $page = $this->c['app']->uri->getUriString();
         }
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;

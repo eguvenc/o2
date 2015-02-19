@@ -2,6 +2,7 @@
 
 namespace Obullo\Authentication\Storage;
 
+use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 
 /**
@@ -16,6 +17,13 @@ use Obullo\Authentication\Token;
  */
 interface StorageInterface
 {
+    /**
+     * Constructor
+     * 
+     * @param Container $c container
+     */
+    public function __construct(Container $c);
+
     /**
      * Returns true if temporary credentials does "not" exists
      *

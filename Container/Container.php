@@ -9,6 +9,7 @@ use ArrayAccess;
 use SplObjectStorage;
 use RuntimeException;
 use InvalidArgumentException;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /*
  * Container for Obullo (c) 2015
@@ -280,7 +281,8 @@ class Container implements ArrayAccess
                 sprintf('Service provider %s not registered in your providers.php.', $lastCalled)
             );
         }
-        return $this->registeredProviders[$lastCalled]->register($this, $params);
+        $provider = $this->registeredProviders[$lastCalled];
+        return $provider->get($params);
     }
 
     /**
@@ -586,11 +588,12 @@ class Container implements ArrayAccess
      *
      * @return static
      */
-    public function register($provider, array $values = array())
+    public function register(ServiceProviderInterface $provider, array $values = array())
     {
         $classname = explode('\\', get_class($provider));
         $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
 
+        $provider->register($this);
         $this->registeredProviders[$cid] = $provider;
 
         foreach ($values as $key => $value) {
