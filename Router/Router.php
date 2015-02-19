@@ -813,7 +813,6 @@ Class Router
             if ($value['route'] == $route) {    // if we have natural route match
                 $this->runFilter($value['name'], $method, $value['options']);
             } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
-                // echo $value['name'].'----'.$method.'<br>';
                 $this->runFilter($value['name'], $method, $value['options']);
             }
         }
