@@ -75,7 +75,7 @@ Class UserActivity
             return false;
         }
         $this->attributes[$key] = $val;
-        return $this;
+        return $this->c['auth.storage']->update('__activity', $this->attributes);
     }
 
     /**
@@ -87,7 +87,10 @@ Class UserActivity
      */
     public function get($key)
     {
-        return $this->attributes[$key];
+        if (isset($this->attributes[$key])) {
+            $this->attributes = $this->c['auth.identity']->__activity;
+        }
+        return isset($this->attributes[$key]) ? $this->attributes[$key] : false;
     }
 
     /**
@@ -99,7 +102,12 @@ Class UserActivity
      */
     public function remove($key)
     {
+        if (empty($this->identifier)) {
+            return false;
+        }
         unset($this->attributes[$key]);
+        $this->c['auth.storage']->remove('__activity', $key);
+        return true;
     }
 
     /**
@@ -113,22 +121,9 @@ Class UserActivity
             return false;
         }
         unset($this->c['auth.identity']->__activity);
+        $this->c['auth.storage']->remove('__activity');
         return true;
     }
-
-    /**
-     * Update user activity
-     * 
-     * @return void
-     */
-    public function write()
-    {
-        if (empty($this->identifier)) {
-            return false;
-        }
-        $this->c['auth.identity']->__activity = $this->attributes;  // Update activity data
-    }
-
 }
 
 // END UserActivity.php File

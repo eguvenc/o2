@@ -131,7 +131,7 @@ Class Redis extends AbstractStorage
      */
     public function update($key, $val)
     {
-        $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
+        return $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
     }
 
     /**
@@ -143,7 +143,7 @@ Class Redis extends AbstractStorage
      */
     public function remove($key)
     {
-        $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
+        return $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
     }
 
     /**
@@ -356,7 +356,7 @@ Class Redis extends AbstractStorage
      */
     public function killSession($aid)
     {
-        $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId().':'.$aid);
+        return $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId().':'.$aid);
     }
 
 }
