@@ -332,13 +332,13 @@ Class Redis extends AbstractStorage
         $key = $this->c['auth.params']['cache.key'].':__permanent:Authorized:';
         
         foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
+            $exp = explode(':', $val);
+            $aid = end($exp);
 
             $isAuthenticated = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
             if ($isAuthenticated == false) {
                 break;
             }
-            $exp = explode(':', $val);
-            $aid = end($exp);
             $sessions[$aid]['__isAuthenticated'] = $isAuthenticated;
             $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
             $sessions[$aid]['id'] = $identifier;
