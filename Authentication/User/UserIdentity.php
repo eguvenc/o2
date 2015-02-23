@@ -92,6 +92,13 @@ Class UserIdentity extends AuthorizedUser
     protected $recaller = null;
 
     /**
+     * Initialize control
+     * 
+     * @var boolean
+     */
+    protected static $init = false;
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -107,7 +114,7 @@ Class UserIdentity extends AuthorizedUser
             $this->recaller->recallUser($token);
         }
         parent::__construct($c);
-        
+
         $this->initialize();
 
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->c['config']['auth']['security']['cookie']['refresh'].' seconds');
@@ -115,12 +122,15 @@ Class UserIdentity extends AuthorizedUser
     }
 
     /**
-     * Initialize
+     * Initializer
      * 
      * @return void
      */
     public function initialize()
     {
+        if (self::$init) {
+            return;
+        }
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
 
@@ -138,6 +148,7 @@ Class UserIdentity extends AuthorizedUser
 
             // parent::__construct($this->c, $this->attributes);
         }
+        self::$init = true;
     }
 
     /**
