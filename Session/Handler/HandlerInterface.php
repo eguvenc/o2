@@ -2,6 +2,8 @@
 
 namespace Obullo\Session\Handler;
 
+use Obullo\Container\Container;
+
 /**
  * Session Save Handler Interface
  * 
@@ -23,7 +25,7 @@ interface HandlerInterface
      *
      * @return void
      */
-    public function __construct($c, $params);
+    public function __construct(Container $c, $params);
 
     /**
     * Php5 session handler interface open function

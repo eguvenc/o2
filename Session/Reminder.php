@@ -2,6 +2,8 @@
 
 namespace Obullo\Session;
 
+use Obullo\Container\Container;
+
 /**
  * Session Reminder Class
  * 
@@ -34,7 +36,7 @@ Class Reminder
      * @param object $c      container
      * @param array  $params parameters
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->session = $c['session'];
         $this->params = (count($params) > 0) ? $params : $c['config']['session'];

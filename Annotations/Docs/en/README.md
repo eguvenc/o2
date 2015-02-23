@@ -37,6 +37,10 @@ At this time we use annotations just for filters.
             <td><b>@filter->before("name")->when("post","get")</b></td>
             <td>Initialize filter when http methods matched.</td>
         </tr>
+        <tr>
+            <td><b>@event->subscribe("Event\Classname")</b></td>
+            <td>Subscribes the event listener.</td>
+        </tr>
 
     </tbody>
 </table>
@@ -52,10 +56,8 @@ Open main config.php file then update annotations as true.
 | Controller
 |--------------------------------------------------------------------------
 */
-'controller' => array(
-    'annotation' => array(
-        'reader' => true,
-    )
+'annotations' => array(
+    'enabled' => true,
 )
 ```
 

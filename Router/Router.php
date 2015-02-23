@@ -2,12 +2,12 @@
 
 namespace Obullo\Router;
 
-use Closure,
-    Controller,
-    LogicException,
-    Obullo\Http\Response,
-    BadMethodCallException,
-    Obullo\Container\Container;
+use Closure;
+use Controller;
+use LogicException;
+use Obullo\Http\Response;
+use BadMethodCallException;
+use Obullo\Container\Container;
 
 /**
  * Router Class
@@ -23,138 +23,25 @@ use Closure,
  */
 Class Router
 {
-    /**
-     * Uri class
-     * 
-     * @var object
-     */
-    public $uri;
+    public $uri;                            // Uri class
+    public $logger;                         // Logger class
+    public $response;                       // Response class
+    public $routes = array();               // Routes config
+    public $class = '';                     // Controller class name
+    public $method = 'index';               // Default method
+    public $directory = '';                 // Directory name
+    public $module = '';                    // Module name
+    public $filters = array();              // Defined route filters
+    public $attach = array();               // Attached after routes to filters
+    public $defaultController = 'welcome';  // Default controller name
+    public $pageNotFoundController = '';    // Page not found handler ( 404 )
+    public $groupDomain = '*';              // Groupped route domain address
 
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
-     * Config class
-     * 
-     * @var object
-     */
-    public $config;
-
-    /**
-     * Response class
-     * 
-     * @var object
-     */
-    public $response;
-
-    /**
-     * Routes config
-     * 
-     * @var array
-     */
-    public $routes = array();
-
-    /**
-     * Controller class name
-     * 
-     * @var string
-     */
-    public $class = '';
-
-    /**
-     * Default method
-     * 
-     * @var string
-     */
-    public $method = 'index';
-
-    /**
-     * Directory name
-     * 
-     * @var string
-     */
-    public $directory = '';
-
-    /**
-     * Module name
-     * 
-     * @var string
-     */
-    public $module = '';
-
-    /**
-     * Defined route filters
-     * 
-     * @var array
-     */
-    public $filters = array();
-
-    /**
-     * Attached after routes to filters
-     * 
-     * @var array
-     */
-    public $attach = array();
-
-    /**
-     * Default controller name
-     * 
-     * @var string
-     */
-    public $defaultController = 'welcome';
-
-    /**
-     * Page not found handler ( 404 )
-     * 
-     * @var string
-     */
-    public $pageNotFoundController = '';
-
-    /**
-     * Groupped route domain address
-     * 
-     * @var string
-     */
-    public $groupDomain = '*';
-
-    /**
-     * Defined host address in the config file.
-     * 
-     * @var string
-     */
-    protected $ROOT;
-
-    /**
-     * Host address user.example.com
-     * 
-     * @var string
-     */
-    protected $HOST;
-
-    /**
-     * Current domain name
-     * 
-     * @var string
-     */
-    protected $DOMAIN;
-
-    /**
-     * Keeps matched domains in cache
-     * 
-     * @var array
-     */
-    protected $domainMatches = array();
-
-    /**
-     * Http methods ( get, post, put, delete )
-     * 
-     * @var string
-     */
-    protected $httpMethod = 'get';
+    protected $ROOT;                        // Defined host address in the config file.
+    protected $HOST;                        // Host address user.example.com
+    protected $DOMAIN;                      // Current domain name
+    protected $domainMatches = array();     // Keeps matched domains in cache
+    protected $httpMethod = 'get';          // Http methods ( get, post, put, delete )
 
     /**
      * Constructor
@@ -168,14 +55,13 @@ Class Router
         $this->c = $c;
         $this->router = $params;
         $this->uri    = $this->c['uri'];
-        $this->config = $this->c['config'];
         $this->logger = $this->c['logger'];
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
-        if ($this->HOST != 'Cli' AND strpos($this->HOST, $this->config['url']['webhost']) === false) {
+        if ($this->HOST != 'Cli' AND strpos($this->HOST, $c['config']['url']['webhost']) === false) {
             $this->c['response']->showError('Your host configuration is not correct in the main config file.');
         }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 7);
@@ -340,13 +226,10 @@ Class Router
      * 
      * @return object router
      */
-    public function route($methods = array(), $match, $rewrite = null, $closure = null, $group = array('domain' => null, 'name' => '*'))
+    public function route($methods, $match, $rewrite = null, $closure = null, $group = array('domain' => null, 'name' => '*'))
     {
         $domainMatch = $this->detectDomain($group);
 
-        // if ( ! isset($group['domain'])) {
-        //     $group['domain'] = null;
-        // }
         if ( ! isset($group['name'])) {
             $group['name'] = 'UNNAMED';
         }
@@ -415,13 +298,16 @@ Class Router
     {
         $this->uri->fetchUriString();  // Detect the complete URI string
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
+
             if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
                 $message = 'Unable to determine what should be displayed. A default route has not been specified in the routing file.';
                 $this->response = new Response($this->c);
+
                 if (isset($_SERVER['LAYER_REQUEST'])) {  // Returns to false if we have Layer connection error.
                     $this->response->showError($message, false);
                     return false;
                 }
+
                 $this->response->showError($message, 404);
             }
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
@@ -682,14 +568,14 @@ Class Router
 
     /**
      * Get module directory
-     * 
-     * @param string $seperator DS constant
+     *
+     * @param string $separator directory seperator
      * 
      * @return void
      */
-    public function fetchModule($seperator = '')
+    public function fetchModule($separator = '')
     {
-        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS). $seperator : '';
+        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator : '';
     }
 
     /**
@@ -781,9 +667,6 @@ Class Router
             $this->DOMAIN = $match;
             return true; // Regex match.
         }
-        // if ($this->ROOT == $this->HOST) {
-        //     $this->DOMAIN = $this->ROOT;
-        // }
         return false;  // No regex match.
     }
 
@@ -820,8 +703,7 @@ Class Router
     {
         $match = $this->detectDomain($options);
 
-        // Domain Regex Support
-        // If we have defined domain and not match with host don't run the filter.
+        // Domain Regex Support, if we have defined domain and not match with host don't run the filter.
         if (isset($options['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the filter.
             return;
         }
@@ -913,7 +795,7 @@ Class Router
         if (defined('STDIN')) {  // Disable filters for Console commands
             return;
         }
-        if ($this->c['config']['annotation']['filters']) {
+        if ($this->c['config']['annotations']['enabled']) {
             $this->c['annotation.filter']->initFilters($method);  // Initialize annotation filters
         }
         if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
@@ -921,8 +803,10 @@ Class Router
         }
         $route = $this->c['uri']->getUriString();        // Get current uri
 
-        if ($this->c->isCalled('request')) {
-            $route = $this->c['request']->global->uri->getUriString();
+        if ($this->c->exists('app.uri')) {
+            $route = $this->c['app']->uri->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
+                                                              // Filters always run once
+                                                              // because of we don't init filters in Layer class.
         }
         foreach ($this->attach[$this->DOMAIN] as $value) {
             if ($value['route'] == $route) {    // if we have natural route match
@@ -931,7 +815,6 @@ Class Router
                 $this->runFilter($value['name'], $method, $value['options']);
             }
         }
-
     }
 
     /**

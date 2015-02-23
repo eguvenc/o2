@@ -14,7 +14,7 @@ namespace Obullo\Permissions\Rbac\Model;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/tree
  */
-Class Permissions
+class Permissions
 {
     /**
      * Database instance
@@ -38,8 +38,8 @@ Class Permissions
     public function __construct($c)
     {
         $this->c     = $c;
-        $this->db    = $this->c['service provider database']->get($this->c['config']['rbac.params.database']);
         $this->perms = $this->c['rbac.permissions'];
+        $this->db    = $this->c['service provider database']->get(['connection' => 'rbac']);
     }
 
     /**

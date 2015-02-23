@@ -14,7 +14,7 @@ namespace Obullo\Permissions\Rbac\Model;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/tree
  */
-Class Roles
+class Roles
 {
     /**
      * Database instance
@@ -38,8 +38,8 @@ Class Roles
     public function __construct($c)
     {
         $this->c     = $c;
-        $this->db    = $this->c['service provider database']->get($this->c['config']['rbac.params.database']);
         $this->roles = $this->c['rbac.roles'];
+        $this->db    = $this->c['service provider database']->get(['connection' => 'rbac']);
     }
 
     /**

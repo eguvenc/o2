@@ -16,7 +16,7 @@ use Pdo;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/rbac
  */
-Class User
+class User
 {
     /**
      * Database instance
@@ -40,8 +40,8 @@ Class User
     public function __construct($c)
     {
         $this->c    = $c;
-        $this->db   = $this->c['service provider database']->get($this->c['config']['rbac.params.database']);
         $this->user = $this->c['rbac.user'];
+        $this->db   = $this->c['service provider database']->get(['connection' => 'rbac']);
     }
 
     /**
@@ -113,6 +113,26 @@ Class User
         $this->db->bindValue(1, $userId, Pdo::PARAM_INT);
 
         return $this->db->execute();
+    }
+
+    /**
+     * Run sql query
+     * 
+     * @param string $select select fields
+     * 
+     * @return array data otherwise false
+     */
+    public function getRootSqlQuery($select)
+    {
+        $this->db->query(
+            'SELECT %s FROM %s WHERE %s = 0',
+            array(
+                $select,
+                $this->db->protect($this->user->rolesTableName),
+                $this->db->protect($this->user->columnRoleParentId)
+            )
+        );
+        return $this->db->rowArray();
     }
 
     /**
@@ -504,7 +524,7 @@ Class User
             'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
                 FROM %s
                 INNER JOIN %s
-                ON %s.%s = %s.%s
+                ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
                 INNER JOIN %s
                 ON %s.%s = %s.%s
                 INNER JOIN %s
@@ -517,7 +537,7 @@ Class User
                 AND %s.%s = ?
                 AND %s.%s IN (%s)
                 AND %s.%s IN (%s)
-                AND %s.%s IN (SELECT %s FROM %s WHERE %s = ?) AND %s.%s IN (%s)',
+                AND %s.%s IN (%s)',
             array(
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
@@ -531,10 +551,17 @@ Class User
                 $this->db->protect($this->user->columnOpText),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
                 $this->db->protect($this->user->rolePermTableName),
                 $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // selecti buraya tasidim
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermParentId),
+                $this->db->protect($this->user->columnPermPrimaryKey),
+                $this->db->protect($this->user->permTableName),
+                $this->db->protect($this->user->columnPermText),
+                // selecti buraya tasidim
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->rolePermTableName),
                 $this->db->protect($this->user->columnRolePermRolePrimaryKey),
@@ -565,17 +592,14 @@ Class User
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpRolePrimaryKey),
                 str_repeat('?,', count($roleIds) - 1) . '?',
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermParentId),
-                $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermText),
+                // select buradaydı
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 str_repeat('?,', count($opName) - 1) . '?',
             )
         );
         $i = 1;
+        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
         $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
         foreach ($permName as $name) {
             $this->db->bindValue($i++, $name, Pdo::PARAM_STR);
@@ -589,7 +613,7 @@ Class User
         foreach ($roleIds as $id) {
             $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
-        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
+        // $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
 
         foreach ($opName as $op) {
             $this->db->bindValue($i++, $op, Pdo::PARAM_STR);
@@ -597,6 +621,55 @@ Class User
 
         $this->db->execute();
         // echo $this->db->lastQuery();
+        return $this->db->resultArray();
+    }
+
+    /**
+     * Run sql query
+     * 
+     * @return array data otherwise false.
+     */
+    public function getPagePermissionsSqlQuery()
+    {
+        $roleIds = $this->user->getRoleIds();
+        $this->db->prepare(
+            "SELECT
+                node.`rbac_permission_name`,
+                node.`rbac_permission_id`,
+                node.`rbac_permission_parent_id`,
+                rolePerms.`rbac_roles_rbac_role_id`,
+                node.`rbac_permission_resource`,
+                operations.`rbac_operation_name`,
+                (COUNT(parent.`rbac_permission_name`) - 1) AS depth
+            FROM betforyousystem.`rbac_permissions` AS node, betforyousystem.`rbac_permissions` AS parent
+            INNER JOIN betforyousystem.`rbac_role_permissions` AS rolePerms
+            ON parent.`rbac_permission_id` = rolePerms.`rbac_permissions_rbac_permission_id`
+            INNER JOIN betforyousystem.`rbac_user_roles` AS userRoles
+            ON rolePerms.`rbac_roles_rbac_role_id` = userRoles.`rbac_roles_rbac_role_id`
+            INNER JOIN betforyousystem.`rbac_op_permissions` AS opPerms
+            ON parent.`rbac_permission_id` = opPerms.`rbac_permissions_rbac_permission_id`
+            INNER JOIN betforyousystem.`rbac_operations` AS operations
+            ON opPerms.`rbac_operations_rbac_operation_id` = operations.`rbac_operation_id`
+            WHERE node.`rbac_permission_type` = ? AND node.`rbac_permission_menu` = ? AND userRoles.`users_user_id` = ? AND rolePerms.`rbac_roles_rbac_role_id` IN (%s) AND opPerms.`rbac_roles_rbac_role_id` IN (%s) AND operations.`rbac_operation_name` = 'view' AND node.`rbac_permission_lft` BETWEEN parent.`rbac_permission_lft` AND parent.`rbac_permission_rgt` GROUP BY node.`rbac_permission_id` ORDER BY node.`rbac_permission_lft`",
+            array(
+                str_repeat('?,', count($roleIds) - 1) . '?',
+                str_repeat('?,', count($roleIds) - 1) . '?'
+            )
+        );
+        $this->db->bindValue(1, 'page', PARAM_STR);
+        $this->db->bindValue(2, 1, PARAM_INT);
+        $this->db->bindValue(3, $this->user->getId(), PARAM_INT);
+        $i=3;
+        foreach ($roleIds as $id) {
+            $i++;
+            $this->db->bindValue($i, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+        }
+        foreach ($roleIds as $id) {
+            $i++;
+            $this->db->bindValue($i, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+        }
+        $this->db->execute();
+
         return $this->db->resultArray();
     }
 

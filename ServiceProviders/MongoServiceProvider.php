@@ -14,26 +14,40 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class MongoServiceProvider
+Class MongoServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Connector
+     * 
+     * @var object
+     */
+    public $connector;
+
     /**
      * Registry
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array())
+    public function register(Container $c)
     {
-        if ( ! MongoConnectionProvider::isRegistered()) {  // Just one time register the shared objects
-            
-            $connector = MongoConnectionProvider::getInstance($c);  // Register all connections as shared services
-            $connector->register();                     
-        }
-        $connector = MongoConnectionProvider::getInstance($c);
-        return $connector->getConnection($params);   // Get a connection instance before we registered into container
+        $this->connector = new MongoConnectionProvider($c);
+        $this->connector->register();
     }
+
+    /**
+     * Get connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function get($params = array())
+    {
+        return $this->connector->getConnection($params);  // Get existing connection
+    }
+
 }
 
 // END MongoServiceProvider Class

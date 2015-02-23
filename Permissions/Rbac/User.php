@@ -33,6 +33,7 @@ Class User
      * Redis supported key format.
      */
     const CACHE_GET_ROLES               = 'Permissions:Rbac:User:getRoles:';                // Obullo\Permissions\Rbac\User->getRoles();
+    const CACHE_GET_ROOT                = 'Permissions:Rbac:User:getRoot:';                 // Obullo\Permissions\Rbac\User->getRoot();
     const CACHE_ROLE_COUNT              = 'Permissions:Rbac:User:roleCount:';               // Obullo\Permissions\Rbac\User->roleCount();
     const CACHE_HAS_PAGE_PERMISSION     = 'Permissions:Rbac:User:hasPagePermission:';       // Obullo\Permissions\Rbac\Page->getPermissions();
     const CACHE_HAS_OBJECT_PERMISSION   = 'Permissions:Rbac:User:hasObjectPermissions:';    // Obullo\Permissions\Rbac\Object->getPermissions();
@@ -145,6 +146,7 @@ Class User
         // RBAC "roles" table variable definitions
         $this->rolesTableName               = RBAC_ROLES_DB_TABLENAME;
         $this->columnRolePrimaryKey         = RBAC_ROLES_COLUMN_PRIMARY_KEY;
+        $this->columnRoleParentId           = RBAC_ROLES_COLUMN_PARENT_ID;
         $this->columnRoleText               = RBAC_ROLES_COLUMN_TEXT;
 
         // RBAC "operations" table variable definitions
@@ -320,6 +322,53 @@ Class User
             return 0;
         }
         return $resultArray;
+    }
+
+    /**
+     * Get root
+     * 
+     * @param string $select     select column
+     * @param int    $expiration expiration time
+     * 
+     * @return array
+     */
+    public function getRoot($select = null, $expiration = 7200)
+    {
+        $select      = ($select == null) ? $this->columnRolePrimaryKey . ',' . $this->columnRoleText : $select;
+        $key         = static::CACHE_GET_ROOT . Utils::hash($select);
+        $resultArray = $this->cache->get($key);
+
+        if ($resultArray == false) { // If not exist in the cache
+            $queryResultArray = $this->c['model.user']->getRootSqlQuery((string)$select); // do sql query
+            $resultArray      = ($queryResultArray == false) ? 'empty' : $queryResultArray;
+            $this->cache->set($key, $resultArray, $expiration);
+        }
+        if ($resultArray == 'empty') {
+            return null;
+        }
+        return $resultArray;
+    }
+
+    /**
+     * Is Root
+     * 
+     * @param array $roles roles
+     * 
+     * @return boolean
+     */
+    public function isRoot($roles = array())
+    {
+        if ( ! is_array($roles)) {
+            return false;
+        }
+        $root = $this->getRoot();
+
+        foreach ($roles as $val) {
+            if ($root['rbac_role_id'] == $val['rbac_roles_rbac_role_id']) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

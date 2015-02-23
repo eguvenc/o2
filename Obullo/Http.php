@@ -24,7 +24,7 @@ $c['app']->initFilters('before');
 $router     = $c['router'];
 $response   = $c['response'];
 $pageUri    = "{$router->fetchDirectory()} / {$router->fetchClass()} / {$router->fetchMethod()}";
-$controller = CONTROLLERS . $router->fetchModule(DS).$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
+$controller = CONTROLLERS . $router->fetchModule(). DS .$router->fetchDirectory(). DS .$router->fetchClass(). '.php';
 
 require $controller;  // Include the controller file.
 
@@ -37,7 +37,7 @@ if ( ! class_exists($className, false)) {  // Check method exist or not
 $class 	= new $className;  // Call the controller
 $method = $router->fetchMethod();
 
-if ($c['config']['annotation']['filters']) {
+if ($c['config']['annotations']['enabled']) {
     $docs = new Obullo\Annotations\Reader\Controller($c, $class, $method);
     $docs->parse();
 }
@@ -47,9 +47,21 @@ if ($c['config']['annotation']['filters']) {
  * ------------------------------------------------------
  */
 $router->initFilters('before');  // Initialize ( exec ) registered router ( before ) filters
-
+/*
+ * ------------------------------------------------------
+ *  Check load method
+ * ------------------------------------------------------
+ */
 if (method_exists($class, 'load')) {
     $class->load();
+}
+/*
+ * ------------------------------------------------------
+ *  Extend to traits
+ * ------------------------------------------------------
+ */
+if (method_exists($class, 'extend')) {  // View traits must be run at the top level otherwise layout view file
+    $class->extend();                    // could not load view variables.
 }
 /*
  * ------------------------------------------------------

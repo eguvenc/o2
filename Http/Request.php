@@ -2,9 +2,10 @@
 
 namespace Obullo\Http;
 
-use stdClass,
-    Obullo\Container\Container,
-    Obullo\Http\Sanitizer;
+use stdClass;
+use Controller;
+use Obullo\Http\Sanitizer;
+use Obullo\Container\Container;
 
 /**
  * Request Class
@@ -55,28 +56,6 @@ Class Request
     }
 
     /**
-     * Get global object, we store original global objects( uri and router ) into 
-     * $this->global variable then we able to grab them from all layers.
-     * 
-     * @param string $key variable
-     * 
-     * @return void
-     */
-    public function __get($key)
-    {
-        if ($key != 'global') {
-            return null;
-        }
-        if (is_object($this->globals)) {
-            return $this->globals;
-        }
-        $this->globals = new stdClass;
-        $this->globals->uri = $this->c['uri'];
-        $this->globals->router = $this->c['router'];
-        return $this->globals;
-    }
-
-    /**
      * GET wrapper
      * 
      * @param string $key key
@@ -85,6 +64,9 @@ Class Request
      */
     public function get($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_GET) : $_GET;
+        }
         if ( ! isset($_GET[$key])) {
             return false;
         }
@@ -100,6 +82,9 @@ Class Request
      */
     public function post($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+        }
         if ( ! isset($_POST[$key])) {
             return false;
         }
@@ -115,6 +100,9 @@ Class Request
      */
     public function all($key)
     {
+        if (is_bool($key)) {
+            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+        }
         if ( ! isset($_REQUEST[$key])) {
             return false;
         }

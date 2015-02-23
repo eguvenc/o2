@@ -198,9 +198,6 @@ Class Memcached implements HandlerInterface
      */
     public function get($key)
     {
-        // if ( ! is_array($key) AND strpos($key, ':') !== false) {
-        //     $key = explode(':', $key);
-        // }
         if (is_array($key)) {
             return $this->memcached->getMulti($key);
         }
@@ -277,12 +274,6 @@ Class Memcached implements HandlerInterface
      */
     public function set($key = '', $data = 60, $ttl = 60)
     {
-        // if (strpos($key, ':') !== false) {
-        //     $value    = array();
-        //     $explode  = explode(':', $key);
-        //     $firstVal = array_pop($explode);
-        //     $key      = $this->buildKeys($explode, $value, $data, $firstVal);
-        // }
         if (is_array($key)) {
             return $this->memcached->setMulti($key, time() + $ttl);
         }
@@ -324,9 +315,6 @@ Class Memcached implements HandlerInterface
      */
     public function delete($key)
     {
-        // if (is_string($key) AND strpos($key, ':') !== false) {
-        //     $key = explode(':', $key);
-        // }
         if (is_array($key)) {
             return $this->memcached->deleteMulti($key);
         }

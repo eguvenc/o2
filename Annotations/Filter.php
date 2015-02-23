@@ -185,6 +185,19 @@ Class Filter
     }
 
     /**
+     * Subscribe to events
+     *
+     * @param string $namespace event subscribe listener
+     * 
+     * @return void
+     */
+    public function subscribe($namespace)
+    {
+        $Class = '\\'.ltrim($namespace, '\\');
+        $this->c['event']->subscribe(new $Class($this->c));
+    }
+
+    /**
      * Render filter data
      *
      * @param string $method before or after
@@ -200,7 +213,7 @@ Class Filter
             if (isset($val['when']) AND in_array($this->httpMethod, $val['when'])) {  // stop filter
 
                 // WARNING:
-                // We controller instance other wise layer functionalities not works well.
+                // We use controller instance other wise layer functionalities does not work well.
                 // After that the last layer request router instance every time become old.
             
                 Controller::$instance->router->runFilter($val['name'], $method);
@@ -210,6 +223,7 @@ Class Filter
             }
         }
     }
+
     
 }
 

@@ -2,10 +2,10 @@
 
 namespace Obullo\View;
 
-use Closure,
-    Controller,
-    Obullo\Layer\Layer,
-    Obullo\Container\Container;
+use Closure;
+use Controller;
+use Obullo\Layer\Layer;
+use Obullo\Container\Container;
 
 /**
  * View Class
@@ -19,9 +19,10 @@ use Closure,
  */
 Class View
 {
-    public $c;           // Container
-    protected $logger;   // Logger instance
-    protected $response; // Response instance
+    public $c;                  // Container
+    protected $logger;          // Logger instance
+    protected $response;        // Response instance
+
     /**
      * Protected variables
      * 
@@ -33,7 +34,6 @@ Class View
     protected $_objectStack = array();    // Object type view variables
     protected $_staticVars  = array();    // Static variables ( @BASE, @WEBHOST , @ASSETS )
     protected $_layoutArray;              // Layouts array
-    protected $_nestedController = null;  // Nested Controller
 
     /**
      * Constructor
@@ -191,7 +191,7 @@ Class View
          * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
-            CONTROLLERS .$router->fetchModule(DS). $router->fetchDirectory() . DS .'view'. DS,
+            CONTROLLERS .$router->fetchModule(DS) . $router->fetchDirectory() . DS .'view'. DS,
             $filename,
             $data,
             $include

@@ -5,7 +5,7 @@ namespace Obullo\ServiceProviders;
 use Obullo\Container\Container;
 
 /**
- * Mongo Service Provider
+ * Pdo Service Provider
  *
  * @category  ServiceProvider
  * @package   ServiceProviders
@@ -14,28 +14,43 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class PdoServiceProvider
+Class PdoServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Connector
+     * 
+     * @var object
+     */
+    protected $connector;
+
     /**
      * Registry
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array())
+    public function register(Container $c)
     {
-        if ( ! PdoConnectionProvider::isRegistered()) {         // Just one time register the shared objects
-            $connector = PdoConnectionProvider::getInstance($c);    // Register all Connectors as shared services
-            $connector->register();
-        }
-        $connector = PdoConnectionProvider::getInstance($c); 
-        return $connector->getConnection($params);             // Get existing connection
+        $this->connector = new PdoConnectionProvider($c);    // Register all Connectors as shared services
+        $this->connector->register();
     }
+
+    /**
+     * Get connection
+     * 
+     * @param array $params array
+     * 
+     * @return void
+     */
+    public function get($params = array())
+    {
+        return $this->connector->getConnection($params);     // Get existing connection
+    }
+
 }
 
-// END MongoServiceProvider Class
+// END PdoServiceProvider Class
 
-/* End of file MongoServiceProvider.php */
-/* Location: .Obullo/ServiceProviders/MongoServiceProvider.php */
+/* End of file PdoServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/PdoServiceProvider.php */

@@ -37,12 +37,6 @@ Class Controller
                 $this->{$key} = &$c[$key];          // Register to controller instance
             }
         };
-        /**
-         * Extend to traits
-         */
-        if (method_exists($this, 'extend')) {  // View traits must be run at the top level otherwise layout view file
-            $this->extend();                   // could not load view variables.
-        }
     }
     
     /**

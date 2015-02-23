@@ -5,7 +5,6 @@ namespace Obullo\ServiceProviders;
 use RuntimeException;
 use Obullo\Mailer\Queue;
 use Obullo\Container\Container;
-use Obullo\Utils\SingletonTrait;
 
 /**
  * Mongo Connection Provider
@@ -22,7 +21,7 @@ Class MailerConnectionProvider
     protected $c;            // Container
     protected $config;       // Configuration items
     
-    use SingletonTrait, ConnectionTrait;
+    use ConnectionTrait;
 
     /**
      * Constructor ( Works one time )
@@ -31,7 +30,7 @@ Class MailerConnectionProvider
      * 
      * @param string $c container
      */
-    protected function __construct(Container $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('mailer');

@@ -5,16 +5,16 @@ namespace Obullo\Authentication;
 use Obullo\Container\Container;
 
 /**
- * O2 Authentication - Abstract Authorized User
+ * O2 Authentication - Abstract User Identity
  *
  * @category  Authentication
- * @package   AbstractAuthorizedUser
+ * @package   AbstractUserIdentity
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class AbstractAuthorizedUser
+class AbstractUserIdentity
 {
     /**
      * Container
@@ -63,6 +63,26 @@ Class AbstractAuthorizedUser
     }
 
     /**
+     * Returns to "1" user if used remember me
+     * 
+     * @return integer
+     */
+    public function getRememberMe() 
+    {
+        return $this->__rememberMe;
+    }
+    
+    /**
+     * Get all attributes
+     * 
+     * @return array
+     */
+    public function getArray()
+    {
+        return $this->attributes;
+    }
+
+    /**
      * Dynamically access the user's attributes.
      *
      * @param string $key key
@@ -84,9 +104,10 @@ Class AbstractAuthorizedUser
      */
     public function __set($key, $val)
     {
-        // $this->c['auth.storage']->set($key, $val);  // save to storage
+        if ($this->__isAuthenticated == 1) {  // Reserved symbol
+            $this->c['auth.storage']->update($key, $val);  // save to storage
+        }
         return $this->attributes[$key] = $val;
-        // return $this->attributes[$key] = $val;
     }
 
     /**
@@ -110,13 +131,15 @@ Class AbstractAuthorizedUser
      */
     public function __unset($key)
     {
+        if ($this->__isAuthenticated == 1) {
+            $this->c['auth.storage']->remove($key);
+        }
         unset($this->attributes[$key]);
-        // $this->c['auth.storage']->remove($key);
     }
 
 }
 
-// END AbstractAuthorizedUser.php File
-/* End of file AbstractAuthorizedUser.php
+// END AbstractUserIdentity.php File
+/* End of file AbstractUserIdentity.php
 
-/* Location: .Obullo/Authentication/AbstractAuthorizedUser.php */
+/* Location: .Obullo/Authentication/AbstractUserIdentity.php */

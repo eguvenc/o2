@@ -14,21 +14,39 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class CacheServiceProvider
+Class CacheServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Connector
+     * 
+     * @var object
+     */
+    public $connector;
+    
     /**
      * Registry
      * 
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      * 
      * @return void
      */
-    public function register(Container $c, $params = array())
+    public function register(Container $c)
     {
-        $connector = CacheConnectionProvider::getInstance($c);  // Register all Connectors as shared services
-        return $connector->getConnection($params);   // Get existing connection
+        $this->connector = new CacheConnectionProvider($c);  // Register all Connectors as shared services
     }
+
+    /**
+     * Get connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function get($params = array())
+    {
+        return $this->connector->getConnection($params);  // Get existing connection
+    }
+
 }
 
 // END CacheServiceProvider Class

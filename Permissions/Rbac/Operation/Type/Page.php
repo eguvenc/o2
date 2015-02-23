@@ -2,9 +2,9 @@
 
 namespace Obullo\Permissions\Rbac\Operation\Type;
 
-use ArrayAccess,
-    Obullo\Permissions\Rbac\Resource,
-    Obullo\Permissions\Rbac\Operation\AbstractOperationType;
+use ArrayAccess;
+use Obullo\Permissions\Rbac\Resource;
+use Obullo\Permissions\Rbac\Operation\AbstractOperationType;
 
 /**
  * Resource Object Permission
@@ -18,7 +18,7 @@ use ArrayAccess,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/permissions
  */
-Class Page extends AbstractOperationType implements ArrayAccess
+class Page extends AbstractOperationType implements ArrayAccess
 {
     /**
      * Permissions

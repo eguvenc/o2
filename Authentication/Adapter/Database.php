@@ -129,7 +129,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         if ($this->c['auth.identity']->guest()) {
             $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
-            
+        
             $this->c['logger']->debug('User identifier stored into session', array('identifier' => $this->storage->getIdentifier()));
         }
         $this->results = array(

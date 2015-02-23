@@ -32,6 +32,11 @@ abstract class AbstractOperationType
      */
     protected $permissionName = '';
 
+    /**
+     * Allowed operations
+     * 
+     * @var array
+     */
     protected $allowedOperations = array(
         'view',
         'update',
@@ -169,7 +174,6 @@ abstract class AbstractOperationType
     }
 
 }
-
 
 // END AbstractOperationType.php File
 /* End of file AbstractOperationType.php
