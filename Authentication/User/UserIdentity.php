@@ -91,12 +91,7 @@ Class UserIdentity extends AuthorizedUser
      */
     protected $recaller = null;
 
-    /**
-     * Initialize control
-     * 
-     * @var boolean
-     */
-    protected static $init = false;
+    public $i = 0;
 
     /**
      * Constructor
@@ -128,9 +123,6 @@ Class UserIdentity extends AuthorizedUser
      */
     public function initialize()
     {
-        if (self::$init) {
-            return;
-        }
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
 
@@ -148,7 +140,6 @@ Class UserIdentity extends AuthorizedUser
 
             // parent::__construct($this->c, $this->attributes);
         }
-        self::$init = true;
     }
 
     /**
