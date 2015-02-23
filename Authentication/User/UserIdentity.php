@@ -107,6 +107,8 @@ Class UserIdentity extends AuthorizedUser
             $this->recaller->recallUser($token);
         }
         parent::__construct($c);
+        
+        $this->initialize();
 
         $this->tokenRefreshSeconds = strtotime('- '.(int)$this->c['config']['auth']['security']['cookie']['refresh'].' seconds');
         $this->logger = $this->c['logger'];
