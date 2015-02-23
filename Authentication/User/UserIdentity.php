@@ -91,8 +91,6 @@ Class UserIdentity extends AuthorizedUser
      */
     protected $recaller = null;
 
-    public $i = 0;
-
     /**
      * Constructor
      *
