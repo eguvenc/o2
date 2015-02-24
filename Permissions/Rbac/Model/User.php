@@ -405,11 +405,86 @@ class User
     public function hasObjectPermissionSqlQuery($permName, $opName)
     {
         $roleIds = $this->user->getRoleIds();
+        
+
+        // $this->db->prepare(
+        //     'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
+        //         FROM %s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         WHERE %s.%s = ?
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s = ?
+        //         AND %s.%s = ?
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s IN (%s)',
+        //     array(
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermText),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermPrimaryKey),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermResource),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpText),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermPrimaryKey),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermPrimaryKey),
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->columnUserRolePrimaryKey),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermPrimaryKey),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnRolePermPrimaryKey),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnOpPermOpPrimaryKey),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpPrimaryKey),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermResource),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermText),
+        //         str_repeat('?,', count($permName) - 1) . '?',
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermType),
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->columnUserPrimaryKey),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         str_repeat('?,', count($roleIds) - 1) . '?',
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnOpRolePrimaryKey),
+        //         str_repeat('?,', count($roleIds) - 1) . '?',
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpText),
+        //         str_repeat('?,', count($opName) - 1) . '?'
+        //     )
+        // );
         $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
+            'SELECT
+                %s.%s,
+                %s.%s,
+                %s.%s,
+                %s.%s,
+                %s.%s
                 FROM %s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
                 INNER JOIN %s
                 ON %s.%s = %s.%s
                 INNER JOIN %s
@@ -421,55 +496,65 @@ class User
                 AND %s.%s = ?
                 AND %s.%s = ?
                 AND %s.%s IN (%s)
-                AND %s.%s IN (%s)
                 AND %s.%s IN (%s)',
             array(
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                $this->db->protect($this->user->opPermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                $this->db->protect($this->user->columnOpRolePrimaryKey),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermResource),
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // INNER JOIN start
+                $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermPrimaryKey),
+                $this->db->protect($this->user->opPermTableName),
+                $this->db->protect($this->user->columnOpPermPrimaryKey),
+                // INNER JOIN 2
                 $this->db->protect($this->user->userRolesTableName),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                $this->db->protect($this->user->opPermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                $this->db->protect($this->user->columnOpRolePrimaryKey),
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->columnUserRolePrimaryKey),
-                $this->db->protect($this->user->opPermTableName),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->opPermTableName),
-                $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // INNER JOIN 3
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpPermOpPrimaryKey),
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpPrimaryKey),
+                // INNER JOIN end
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermResource),
+
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
                 str_repeat('?,', count($permName) - 1) . '?',
+
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermType),
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->columnUserPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // str_repeat('?,', count($roleIds) - 1) . '?',
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpRolePrimaryKey),
                 str_repeat('?,', count($roleIds) - 1) . '?',
+
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 str_repeat('?,', count($opName) - 1) . '?'
@@ -483,9 +568,9 @@ class User
         $this->db->bindValue($i++, 'object', Pdo::PARAM_STR);
         $this->db->bindValue($i++, $this->user->getId(), Pdo::PARAM_INT);
 
-        foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
-        }
+        // foreach ($roleIds as $id) {
+        //     $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
+        // }
         foreach ($roleIds as $id) {
             $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
@@ -536,22 +621,102 @@ class User
     public function hasElementPermissionSqlQuery($objectName, $permName, $opName)
     {
         $roleIds = $this->user->getRoleIds();
+        // $this->db->prepare(
+        //     'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
+        //         FROM %s
+        //         INNER JOIN %s
+        //         ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         INNER JOIN %s
+        //         ON %s.%s = %s.%s
+        //         WHERE %s.%s = ?
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s = ?
+        //         AND %s.%s = ?
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s IN (%s)
+        //         AND %s.%s IN (%s)',
+        //     array(
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermText),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermPrimaryKey),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermResource),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpText),
+        //         $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->rolePermTableName),
+                // // $this->db->protect($this->user->permTableName),
+                // // $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // // selecti buraya tasidim
+                // // $this->db->protect($this->user->permTableName),
+                // // $this->db->protect($this->user->columnPermParentId),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->permTableName),
+                // $this->db->protect($this->user->columnPermText),
+                // selecti buraya tasidim
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->columnUserRolePrimaryKey),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermPrimaryKey),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnRolePermPrimaryKey),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnOpPermOpPrimaryKey),
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpPrimaryKey),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermResource),
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermText),
+        //         str_repeat('?,', count($permName) - 1) . '?',
+        //         $this->db->protect($this->user->permTableName),
+        //         $this->db->protect($this->user->columnPermType),
+        //         $this->db->protect($this->user->userRolesTableName),
+        //         $this->db->protect($this->user->columnUserPrimaryKey),
+        //         $this->db->protect($this->user->rolePermTableName),
+        //         $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+        //         str_repeat('?,', count($roleIds) - 1) . '?',
+        //         $this->db->protect($this->user->opPermTableName),
+        //         $this->db->protect($this->user->columnOpRolePrimaryKey),
+        //         str_repeat('?,', count($roleIds) - 1) . '?',
+        //         // select buradaydı
+        //         $this->db->protect($this->user->opTableName),
+        //         $this->db->protect($this->user->columnOpText),
+        //         str_repeat('?,', count($opName) - 1) . '?',
+        //     )
+        // );
         $this->db->prepare(
-            'SELECT %s.%s,%s.%s,%s.%s,%s.%s,%s.%s
+            'SELECT
+                %s.%s,
+                %s.%s,
+                %s.%s,
+                %s.%s,
+                %s.%s
                 FROM %s
                 INNER JOIN %s
-                ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
+                    ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
                 INNER JOIN %s
-                ON %s.%s = %s.%s
+                    ON %s.%s = %s.%s
                 INNER JOIN %s
-                ON %s.%s = %s.%s
-                INNER JOIN %s
-                ON %s.%s = %s.%s
+                    ON %s.%s = %s.%s
                 WHERE %s.%s = ?
                 AND %s.%s IN (%s)
                 AND %s.%s = ?
                 AND %s.%s = ?
-                AND %s.%s IN (%s)
                 AND %s.%s IN (%s)
                 AND %s.%s IN (%s)',
             array(
@@ -559,59 +724,67 @@ class User
                 $this->db->protect($this->user->columnPermText),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                $this->db->protect($this->user->opPermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                $this->db->protect($this->user->columnOpRolePrimaryKey),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermResource),
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->rolePermTableName),
                 // $this->db->protect($this->user->permTableName),
                 // $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermPrimaryKey),
-                // selecti buraya tasidim
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // INNER JOIN start
+                $this->db->protect($this->user->opPermTableName),
                 // $this->db->protect($this->user->permTableName),
-                // $this->db->protect($this->user->columnPermParentId),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
+                $this->db->protect($this->user->opPermTableName),
+                $this->db->protect($this->user->columnOpPermPrimaryKey),
+                // select query
                 $this->db->protect($this->user->columnPermPrimaryKey),
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
-                // selecti buraya tasidim
+                // select query
+                // INNER JOIN 2
                 $this->db->protect($this->user->userRolesTableName),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // $this->db->protect($this->user->rolePermTableName),
+                $this->db->protect($this->user->opPermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                $this->db->protect($this->user->columnOpRolePrimaryKey),
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->columnUserRolePrimaryKey),
-                $this->db->protect($this->user->opPermTableName),
-                $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermPrimaryKey),
-                $this->db->protect($this->user->opPermTableName),
-                $this->db->protect($this->user->columnRolePermPrimaryKey),
+                // INNER JOIN 3
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpPermOpPrimaryKey),
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpPrimaryKey),
+                // INNER JOIN end
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermResource),
+
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermText),
                 str_repeat('?,', count($permName) - 1) . '?',
+
                 $this->db->protect($this->user->permTableName),
                 $this->db->protect($this->user->columnPermType),
                 $this->db->protect($this->user->userRolesTableName),
                 $this->db->protect($this->user->columnUserPrimaryKey),
-                $this->db->protect($this->user->rolePermTableName),
-                $this->db->protect($this->user->columnRolePermRolePrimaryKey),
-                str_repeat('?,', count($roleIds) - 1) . '?',
+                // $this->db->protect($this->user->rolePermTableName),
+                // $this->db->protect($this->user->columnRolePermRolePrimaryKey),
+                // str_repeat('?,', count($roleIds) - 1) . '?',
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpRolePrimaryKey),
                 str_repeat('?,', count($roleIds) - 1) . '?',
-                // select buradaydı
+
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
-                str_repeat('?,', count($opName) - 1) . '?',
+                str_repeat('?,', count($opName) - 1) . '?'
             )
         );
         $i = 1;
@@ -623,9 +796,9 @@ class User
         $this->db->bindValue($i++, 'object', Pdo::PARAM_STR);
         $this->db->bindValue($i++, $this->user->getId(), Pdo::PARAM_INT);
 
-        foreach ($roleIds as $id) {
-            $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
-        }
+        // foreach ($roleIds as $id) {
+        //     $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
+        // }
         foreach ($roleIds as $id) {
             $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
