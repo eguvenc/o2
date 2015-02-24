@@ -708,7 +708,7 @@ class User
                 %s.%s
                 FROM %s
                 INNER JOIN %s
-                    ON %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
+                    ON %s.%s = %s.%s
                 INNER JOIN %s
                     ON %s.%s = %s.%s
                 INNER JOIN %s
@@ -718,6 +718,7 @@ class User
                 AND %s.%s = ?
                 AND %s.%s = ?
                 AND %s.%s IN (%s)
+                AND %s.%s IN (SELECT %s FROM %s WHERE %s = ?)
                 AND %s.%s IN (%s)',
             array(
                 $this->db->protect($this->user->permTableName),
@@ -745,9 +746,9 @@ class User
                 $this->db->protect($this->user->opPermTableName),
                 $this->db->protect($this->user->columnOpPermPrimaryKey),
                 // select query
-                $this->db->protect($this->user->columnPermPrimaryKey),
+                // $this->db->protect($this->user->columnPermPrimaryKey),
                 $this->db->protect($this->user->permTableName),
-                $this->db->protect($this->user->columnPermText),
+                $this->db->protect($this->user->columnPermPrimaryKey),
                 // select query
                 // INNER JOIN 2
                 $this->db->protect($this->user->userRolesTableName),
@@ -782,13 +783,21 @@ class User
                 $this->db->protect($this->user->columnOpRolePrimaryKey),
                 str_repeat('?,', count($roleIds) - 1) . '?',
 
+                // select query
+                $this->db->protect($this->user->permTableName),
+                $this->db->protect($this->user->columnPermParentId),
+                $this->db->protect($this->user->columnPermPrimaryKey),
+                $this->db->protect($this->user->permTableName),
+                $this->db->protect($this->user->columnPermText),
+                // select query
+
                 $this->db->protect($this->user->opTableName),
                 $this->db->protect($this->user->columnOpText),
                 str_repeat('?,', count($opName) - 1) . '?'
             )
         );
         $i = 1;
-        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
+        // $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
         $this->db->bindValue($i++, $this->c['rbac.resource']->getId(), Pdo::PARAM_STR);
         foreach ($permName as $name) {
             $this->db->bindValue($i++, $name, Pdo::PARAM_STR);
@@ -802,7 +811,7 @@ class User
         foreach ($roleIds as $id) {
             $this->db->bindValue($i++, $id[$this->user->columnUserRolePrimaryKey], Pdo::PARAM_INT);
         }
-        // $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
+        $this->db->bindValue($i++, $objectName, Pdo::PARAM_STR);
 
         foreach ($opName as $op) {
             $this->db->bindValue($i++, $op, Pdo::PARAM_STR);
