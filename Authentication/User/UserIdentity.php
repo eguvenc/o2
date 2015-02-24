@@ -106,19 +106,38 @@ Class UserIdentity extends AuthorizedUser
             $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($token);
         }
+        parent::__construct($c);
+
+        $this->initialize();
+
+        $this->tokenRefreshSeconds = strtotime('- '.(int)$this->c['config']['auth']['security']['cookie']['refresh'].' seconds');
+        $this->logger = $this->c['logger'];
+    }
+
+    /**
+     * Initializer
+     * 
+     * @return void
+     */
+    public function initialize()
+    {
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
-            parent::__construct($this->c, $this->attributes);
+
+            $this->setCredentials($this->attributes);
+
+            // parent::__construct($this->c, $this->attributes);
 
             if ( ! isset($this->__lastTokenRefresh)) { // Create default token refresh value
                 $this->__lastTokenRefresh = time();
             }
 
         } elseif ($this->attributes = $this->storage->getCredentials('__temporary')) {
-            parent::__construct($this->c, $this->attributes);
+
+            $this->setCredentials($this->attributes);
+
+            // parent::__construct($this->c, $this->attributes);
         }
-        $this->tokenRefreshSeconds = strtotime('- '.(int)$this->c['config']['auth']['security']['cookie']['refresh'].' seconds');
-        $this->logger = $this->c['logger'];
     }
 
     /**
@@ -384,12 +403,10 @@ Class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->c['config']['auth']['login']['rememberMe']['cookie']['name'];
             $rememberToken = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $this->refreshRememberToken(
-                new GenericUser(
-                    $this->c, 
-                    array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken)
-                )
-            );
+            $genericUser = new GenericUser($this->c);
+            $genericUser->setCredentials(array($this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken));
+
+            $this->refreshRememberToken($genericUser);
         }
     }
 

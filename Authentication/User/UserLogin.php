@@ -99,7 +99,12 @@ Class UserLogin
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-        $authResult = $this->c['auth.adapter']->login(new GenericUser($this->c, $credentials));
+        $genericUser = new GenericUser($this->c);
+        $genericUser->setCredentials($credentials);
+
+        $authResult = $this->c['auth.adapter']->login($genericUser);
+
+        $this->c['user']->identity->initialize();
 
         $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
                                                                                       // Event fire returns multiple array response but we use one.
@@ -125,7 +130,9 @@ Class UserLogin
      */
     public function validate(array $credentials = array())
     {
-        return $this->c['auth.adapter']->authenticate(new GenericUser($this->c, $credentials), false);
+        $genericUser = new GenericUser($this->c);
+        $genericUser->setCredentials($credentials);
+        return $this->c['auth.adapter']->authenticate($genericUser, false);
     }
 
     /**
