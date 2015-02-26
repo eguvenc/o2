@@ -104,7 +104,7 @@ class Cli extends Obullo
         include OBULLO_ROUTES;
         include OBULLO_MIDDLEWARES;
         
-        $this->c['translator']->setLocale($this->c['translator']->getDefault());
+        $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
 
         $this->exec();
     }
@@ -137,8 +137,6 @@ class Cli extends Obullo
         }
         $this->class = new $className;  // Call the controller
         $this->method = $method;
-        $this->parseDocComments();
-        $this->dispatchMethods();
 
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         $middleware->load();
@@ -160,7 +158,7 @@ class Cli extends Obullo
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
         }
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
-
+        
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
     }
 

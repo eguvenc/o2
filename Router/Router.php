@@ -659,7 +659,6 @@ Class Router
     public function detectDomain(array $options = array())
     {
         $domain = (isset($options['domain']['regex'])) ? $options['domain']['regex'] : $this->ROOT;
-
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true; // Regex match.
@@ -679,11 +678,12 @@ Class Router
         if ($domain == $this->HOST) {
             return $domain;
         }
-        if (isset($this->domainMatches[$domain.'#'.$this->HOST])) {
-            return $this->domainMatches[$domain.'#'.$this->HOST];
+        $key = $domain.$this->HOST;
+        if (isset($this->domainMatches[$key])) {
+            return $this->domainMatches[$key];
         }
         if (preg_match('#'.$domain.'#', $this->HOST, $matches)) {
-            return $this->domainMatches[$domain.'#'.$this->HOST] = $matches[0];
+            return $this->domainMatches[$key] = $matches[0];
         }
         return false;
     }
@@ -716,10 +716,10 @@ Class Router
             $options['domain'] = $this->ROOT;
         }
         if (isset($options['middleware'])) {
-            $this->configureMiddlewares($options['middleware'], $route, $options);
+            $this->setMiddlewares($options['middleware'], $route, $options);
             return $this;
         }
-        $this->configureMiddlewares($options, $route, $options);
+        $this->setMiddlewares($options, $route, $options);
         return $this;
     }
 
@@ -732,7 +732,7 @@ Class Router
      * 
      * @return void
      */
-    protected function configureMiddlewares($middlewares, $route, $options)
+    protected function setMiddlewares($middlewares, $route, $options)
     {
         foreach ($middlewares as $value) {
             $this->attach[$this->DOMAIN][] = array(

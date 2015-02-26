@@ -46,12 +46,8 @@ Class LoggerServiceProvider
         if ($this->disabled()) {
             return new NullLogger;  // Use null handler if config disabled.
         }
-        if ($params['driver'] == 'Logger') {
-            return new Logger($this->c);
-        }
-        if ($params['driver'] == 'QueueLogger') {
-            return new QueueLogger($this->c);
-        }
+        if ($params['driver'] == 'Logger') return new Logger($this->c);
+        if ($params['driver'] == 'QueueLogger') return new QueueLogger($this->c);
     }
 
     /**
