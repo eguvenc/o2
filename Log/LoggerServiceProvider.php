@@ -50,7 +50,7 @@ Class LoggerServiceProvider
             return new Logger($this->c);
         }
         if ($params['driver'] == 'QueueLogger') {
-            return new QueueLogger($this->c, $this->c['return queue']);
+            return new QueueLogger($this->c);
         }
     }
 

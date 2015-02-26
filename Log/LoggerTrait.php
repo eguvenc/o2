@@ -245,16 +245,13 @@ trait LoggerTrait
      */
     public function sendToQueue($recordUnformatted, $messagePriority = null)
     {
-        $connect = false;
         foreach ($this->writers as $name => $val) {
             $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
             if (is_array($filteredRecords) AND count($filteredRecords) > 0) {  // If we have records.
-                $connect = true;
+                $this->connect(true);
                 $this->priorityQueue[$name]->insert($filteredRecords, (empty($messagePriority)) ? $val['priority'] : $messagePriority);
             }
         }
-        $this->connect($connect); // Lazy connection method
-                                  // If connection open this means we need to run process in Logger class close() method.
     }
 
     /**
