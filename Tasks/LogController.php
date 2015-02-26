@@ -1,17 +1,16 @@
 <?php
 
-namespace Obullo\Cli\Tasks;
+namespace Obullo\Tasks;
 
-use Controller,
-    Obullo\Cli\LogFollower;
+use Controller;
 
 /**
  * Log Controller
  *
  * Follow log data
  * 
- * @category  Cli
- * @package   Controller
+ * @category  Console
+ * @package   Tasks
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -45,7 +44,7 @@ Class LogController extends Controller
         if ($this->parser->argument('help')) {
             return $this->help();
         }
-        $Class = '\\Obullo\Cli\Log\Reader\\'.ucfirst($this->logger->getPrimaryWriter());
+        $Class = '\\Obullo\Log\Console\Reader\\'.ucfirst($this->logger->getPrimaryWriter());
         $class = new $Class;
         $class->follow($this->c, $dir, $table);
     }
@@ -147,4 +146,4 @@ echo "\33[1;36mDescription:\33[0m\33[0;36m\n\nRead log data from app/data/logs f
 // END LogController class
 
 /* End of file LogController.php */
-/* Location: .Obullo/Cli/Tasks/LogController.php */
+/* Location: .Obullo/Tasks/LogController.php */

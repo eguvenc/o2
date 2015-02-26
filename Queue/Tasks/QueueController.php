@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Cli\Tasks;
+namespace Obullo\Queue\Tasks;
 
-use Controller,
-    Obullo\Process\Process;
+use Controller;
+use Obullo\Process\Process;
 
 /**
  * Queue Controller
@@ -212,4 +212,4 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
 // END QueueController class
 
 /* End of file QueueController.php */
-/* Location: .Obullo/Cli/Tasks/QueueController.php */
+/* Location: .Obullo/Queue/Tasks/QueueController.php */

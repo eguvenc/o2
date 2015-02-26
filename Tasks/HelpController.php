@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Cli\Tasks;
+namespace Obullo\Tasks;
 
 use Controller;
 
@@ -55,4 +55,4 @@ php task [command] --help\n\33[0m\n";
 // END HelpController class
 
 /* End of file HelpController.php */
-/* Location: .Obullo/Cli/Tasks/HelpController.php */
+/* Location: .Obullo/Tasks/HelpController.php */

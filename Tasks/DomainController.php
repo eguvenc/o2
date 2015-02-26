@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Cli\Tasks;
+namespace Obullo\Tasks;
 
 use Controller;
 
@@ -142,4 +142,4 @@ Manages domain features which are defined in your domain.php config file.
 // END DomainController class
 
 /* End of file DomainController.php */
-/* Location: .Obullo/Cli/Tasks/DomainController.php */
+/* Location: .Obullo/Tasks/DomainController.php */

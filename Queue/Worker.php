@@ -2,11 +2,11 @@
 
 namespace Obullo\Queue;
 
-use Exception,
-    ErrorException,
-    Obullo\Queue\Job,
-    Obullo\Log\Logger,
-    Obullo\Container\Container;
+use Exception;
+use ErrorException;
+use Obullo\Queue\Job;
+use Obullo\Log\Logger;
+use Obullo\Container\Container;
 
 /**
  * Queue Worker Class

@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Cli\Tasks;
+namespace Obullo\Queue\Tasks;
 
-use Controller,
-    Obullo\Queue\Worker;
+use Controller;
+use Obullo\Queue\Worker;
 
 /**
  * Worker Controller ( Private controller )
@@ -35,4 +35,4 @@ Class WorkerController extends Controller
 // END WorkerController class
 
 /* End of file WorkerController.php */
-/* Location: .Obullo/Cli/Tasks/WorkerController.php */
+/* Location: .Obullo/Queue/Tasks/WorkerController.php */

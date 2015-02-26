@@ -248,7 +248,7 @@ trait LoggerTrait
         foreach ($this->writers as $name => $val) {
             $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
             if (is_array($filteredRecords) AND count($filteredRecords) > 0) {  // If we have records.
-                $this->connect(true);
+                $this->connect(true);  // Lazy connections ...
                 $this->priorityQueue[$name]->insert($filteredRecords, (empty($messagePriority)) ? $val['priority'] : $messagePriority);
             }
         }

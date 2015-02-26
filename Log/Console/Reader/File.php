@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\Cli\Log\Reader;
+namespace Obullo\Log\Console\Reader;
 
 use Obullo\Container\Container;
-use Obullo\Cli\Log\Printer\Colorful;
+use Obullo\Log\Console\Printer\Colorful;
 
 /**
  * File Reader
  * 
- * @category  Cli
- * @package   Log
+ * @category  Log
+ * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -76,4 +76,4 @@ Class File
 // END File class
 
 /* End of file File.php */
-/* Location: .Obullo/Cli/Log/Reader/File.php */
+/* Location: .Obullo/Log/Console/Reader/File.php */

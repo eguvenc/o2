@@ -1,19 +1,19 @@
 <?php
 
-namespace Obullo\Cli\Log\Reader;
+namespace Obullo\Log\Console\Reader;
 
 use Obullo\Container\Container;
-use Obullo\Cli\Log\Printer\Colorful;
+use Obullo\Log\Console\Printer\Colorful;
 
 /**
  * Mongo Reader
  * 
- * @category  Cli
- * @package   Log
+ * @category  Log
+ * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/log
  */
 Class Mongo
 {
@@ -77,4 +77,4 @@ Class Mongo
 // END Mongo class
 
 /* End of file Mongo.php */
-/* Location: .Obullo/Cli/Log/Reader/Mongo.php */
+/* Location: .Obullo/Log/Console/Reader/Mongo.php */

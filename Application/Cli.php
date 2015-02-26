@@ -156,7 +156,10 @@ class Cli extends Obullo
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
             $argumentSlice = 2;
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
+            $this->method = 'index';
         }
+        $this->dispatchMethods();  // Display 404 error if method not exists also runs extend() method.
+
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
