@@ -31,15 +31,27 @@ class AbstractUserIdentity
     protected $attributes = array();
 
     /**
-     * Constructor
+     * Set container
      * 
-     * @param object $c          container
-     * @param array  $attributes attributes
-         */
-    public function __construct(Container $c, $attributes = array())
+     * @param Container $c container
+     * 
+     * @return void
+     */
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->attributes = $attributes;
+    }
+
+    /**
+     * Set credentials
+     * 
+     * @param array $credentials credentials
+     * 
+     * @return void
+     */
+    public function setCredentials($credentials = array())
+    {
+        $this->attributes = $credentials;
     }
 
     /**

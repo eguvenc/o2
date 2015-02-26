@@ -128,7 +128,7 @@ Class Roles
     public function __construct($c)
     {
         $this->c      = $c;
-        $this->treeDb = new Db($this->c);
+        $this->treeDb = new Db($this->c, ['connection' => 'rbac']);
         $this->cache  = $c['cache'];
         $this->c['config']->load('rbac');  // load rbac constants
 
