@@ -87,6 +87,7 @@ Class Uri
             return;
         }
         $uri = strtoupper($protocol);
+
         if ($uri == 'REQUEST_URI') {
             $this->setUriString($this->detectUri());
             return;
@@ -372,9 +373,10 @@ Class Uri
         if (strpos($segment, '.') !== false) {
             $extension = explode('.', $segment);
             $uriExtension = end($extension);
+
             if (in_array('.' . $uriExtension, $this->config['uri']['extensions'])) {
-                $this->uriExtension = $uriExtension;  // set extension 
-                return substr($segment, 0, -strlen($uriExtension)); // remove extension from end of the uri segment
+                $this->uriExtension = $uriExtension;  // Set extension 
+                return rtrim(strstr($segment, $uriExtension, true), '.');  // Remove extension from end of the uri segment
             }
         }
         return $segment;

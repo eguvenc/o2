@@ -21,4 +21,3 @@ trait RewriteHttpsTrait
 /* End of file RewriteHttpsTrait.php
 
 /* Location: .Obullo/Application/Addons/RewriteHttpsTrait.php */
-

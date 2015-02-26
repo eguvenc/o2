@@ -18,11 +18,11 @@ $this->translator['item'];
 $this->translator->method();
 ```
 
-Controller sınıfı mevcut değilse
+Controller sınıfının mevcut olmadığı bir yükleme seviyesinde iseniz translator sınfına konteyner içerisinden aşağıdaki gibi erişebilirsiniz.
 
 ```php
-$c['translator']['item'];
-$c['translator']->method();
+$this->c['translator']['item'];
+$this->c['translator']->method();
 ```
 
 ### Create Your Translation File
@@ -191,12 +191,18 @@ echo $this->translator->sprintf('There are %d monkeys in the %s.', 5, 'tree');
 // Gives There are *5* monkeys in the *tree*.
 ```
 
-### Setting Locale
+### Translation Middleware
 
-Translator class construct method set default locale code to your cookie using below the methods
+Translator middleware setLocale method sets locale cookie value like below.
 
 ```php
 http://example.com/en/home
+```
+
+But it should be loaded in middleware.php
+
+```php
+$c['app']->middleware(new Http\Middlewares\Translation);
 ```
 
 Translator config should be like this
@@ -220,17 +226,6 @@ if URI Segment and Http GET not provided  It sets locale code reading http COOKI
 
 It sets cookie using <b>locale_accept_from_http($_SERVER['HTTP_ACCEPT_LANGUAGE'])</b> function if language code not provided with any of above the methods : 
 
-Translator file config should be like this
-
-```php
-<?php
-// Locale Settings
-'locale' => array(
-    'setCookie' => true,  // Write to cookie or not
-),
-
-```
-
 **Note:** locale_accept_from_http() function requires php <b>intl</b> extension.
 
 ### Updating your routes
@@ -248,6 +243,19 @@ Below the route sets your default controller for http://example.com/en/.
 <?php
 $c['router']->route('get', '(en|es|de)', 'home/index');
 ```
+
+### Fallback Translations
+
+Mevcut yüklü dil dosyanızda bir çeviri metni bulunamazsa fallback dil dosyanız devreye girer ve fallback dosyası yüklenerek mevcut olmayan çeviri bu dosya içerisinden çağrılır.
+Bu özelliği kullanabilmek translator.php config dosyasınızdaki fallback değerinin <b>true</b> olması gereklidir.
+
+```php
+'fallback' => array(
+    'enabled' => false,
+    'locale' => 'es',
+),
+```
+
 
 ### Function Reference
 
@@ -268,6 +276,11 @@ Checks a translation key of text.
 #### $this->translator->sprintf(string $line, args ... );
 
 Offers same functionality of php sprintf.
+
+#### $this->translator->setDefault(string $locale);
+
+
+#### $this->translator->getDefault(string $locale);
 
 #### $this->translator->setLocale(string $locale);
 

@@ -7,6 +7,17 @@ use RuntimeException;
 trait UnderMaintenanceTrait
 {
     /**
+     * Domain is down
+     * 
+     * @return void
+     */
+    public function domainIsDown()
+    {
+        $this->rootDomainIsDown();
+        $this->subDomainIsDown();
+    }
+
+    /**
      * Check root domain is down
      * 
      * @return boolean
@@ -50,10 +61,8 @@ trait UnderMaintenanceTrait
      */
     public function showMaintenance()
     {
-        $this->c['response']->output(
-            $this->c['view']->template('errors/maintenance'), 
-            503
-        );
+        $this->c['response']->status(503)->write($this->c['view']->template('errors/maintenance'));
+        $this->c['response']->sendOutput();
         die;
     }
 

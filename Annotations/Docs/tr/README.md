@@ -18,30 +18,22 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
     </thead>
     <tbody>
         <tr>
-            <td><b>filter->before("name");</b></td>
-            <td>Before filtresini çalıştırırır, before metodu içerisine yazılan filtre controller sınıfının çalışmasından önceki seviyede çalışır.</td>
-        </tr>
-        <tr>
-            <td><b>filter->after("name");</b></td>
-            <td>After filtresini çalıştırırır, after metodu içerisine yazılan filtre controller sınıfının çalışmasından sonraki seviyede çalışır.</td>
-        </tr>
-            <tr>
-            <td><b>filter->finish("name");</b></td>
-            <td>Finish filtresini çalıştırırır, finish metodu içerisine yazılan filtre controller çıktısının sayfaya gönderilmesinden sonra çalışır.</td>
-        </tr>
-        <tr>
-            <td><b>filter->load("name");</b></td>
-            <td>Load filtresini çalıştırırır, load metodu içerisine yazılan filtre controller load metodunun çalışmasından sonraki seviyede çalışır.</td>
-        </tr>
-        <tr>
-            <td><b>filter->method("post","get");</b></td>
-            <td>Http protokolü tarafından gönderilen istek metodu bu metot içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez. Erişim yasağı hallinde meydana gelen durum bir olaya bağlanmıştır. Olay metodu <b>app/classes/Event/Request</b> sınıfından özelleştirilebilir.</td>
-        </tr>
-         <tr>
-            <td><b>filter->before("name")->when("post","get")</b></td>
-            <td>Filtreyi çalıştırır eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+            <td><b>@middleware->assign("name");</b></td>
+            <td>Bir middleware filtresini app->middleware metodu ile dinamik olarak uygulamaya ekler.</td>
         </tr>
 
+        <tr>
+            <td><b>@middleware->method("post","get");</b></td>
+            <td>Http protokolü tarafından gönderilen istek metodu bu metot içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+        </tr>
+         <tr>
+            <td><b>@middleware->when("post","get")->assign("name")</b></td>
+            <td>Filtreyi çalıştırır eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+        </tr>
+        <tr>
+            <td><b>@event->subscribe("Class");</b></td>
+            <td>Event sınıfını çağırarak subscribe metodu ile varsayılan controller için dinleyici atamanızı sağlar.</td>
+        </tr>
     </tbody>
 </table>
 
@@ -50,13 +42,8 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
 Config.php konfigürasyon dosyasını açın ve annotations reader anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
-/*
-|--------------------------------------------------------------------------
-| Annotations
-|--------------------------------------------------------------------------
-*/
-'annotation' => array(
-    'controller' => true,
+'annotations' => array(
+    'enabled' => true,
 )
 ```
 
@@ -66,7 +53,7 @@ Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi k
 /**
  * Index
  *
- * @filter->before("activity")->when("get", "post");
+ * @middleware->when("get", "post")->assign("Activity")
  * 
  * @return void
  */
@@ -89,20 +76,20 @@ Aşağıdaki örneklere bir göz atın.
 /**
  * Index
  *
- * @filter->before("csrf");
- * @filter->method("post","get");
+ * @middleware->assign("Csrf");
+ * @middleware->method("get", "post");
  *
  * @return void
  */
 ```
 
-Controller sınıfının çalışma seviyesinden önce <b>csrf</b> filtresini çalıştırır ve sadece <b>get</b> ve <b>post</b> metotlarına erişime izin verir.
+Controller sınıfı metodunun çalışma seviyesinden önce <b>csrf</b> filtresini çalıştırır ve sadece <b>get</b> ve <b>post</b> metotlarına erişime izin verir.
 
 ```php
 /**
  * Index
  *
- * @filter->before("csrf")->when("post");
+ * @middleware->when("post")->assign("Csrf");
  * 
  * @return void
  */
@@ -115,7 +102,8 @@ Sadece http <b>post</b> işlemlerinde controller sınıfının çalışma seviye
 /**
  * Index
  *
- * @filter->before("auth")->when("get", "post");
+ * @middleware->when("get", "post")->assign("Csrf");
+ * @middleware->when("get", "post")->assign("Auth");
  *
  * @return void
  */
@@ -132,7 +120,7 @@ Bazı durumlarda yüklenen controller ın tüm metodlarında geçerli olabilecek
 /**
  * Loader
  *
- * @filter->method("post","get");
+ * @middleware->method("post","get");
  * 
  * @return void
  */
@@ -140,4 +128,44 @@ public function load()
 {
     // ..
 }
+```
+
+
+#### Dipnotları kullanmadan middleware tanımlamak
+
+```php
+namespace Welcome;
+
+Class Welcome extends \Controller
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c['url'];
+        $this->c['app']->middleware(new Http\Middlewares\MyMiddleware, $params = array());
+    }
+
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        $this->view->load(
+            'welcome',
+            [
+                'title' => 'Welcome to Obullo !',
+            ]
+        );
+    }
+
+}
+
+/* End of file welcome.php */
+/* Location: .controllers/welcome/welcome.php */
 ```

@@ -2,8 +2,8 @@
 
 namespace Obullo\Database\Pdo\Handler;
 
-use PDO,
-    Obullo\Database\Pdo\Adapter;
+use PDO;
+use Obullo\Database\Pdo\Adapter;
 
 /**
  * Pdo Mysql Driver

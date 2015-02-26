@@ -2,8 +2,9 @@
 
 namespace Obullo\Error;
 
-use Obullo\Logger\Logger,
-    Controller;
+use Controller;
+use Obullo\Log\Logger;
+use Obullo\Container\Container;
 
 /**
  * Exception Class
@@ -29,7 +30,7 @@ Class Exception
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
@@ -44,7 +45,7 @@ Class Exception
      */
     public function toString($e, $fatalError = false)
     {
-        if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide memory package errors in debug mode.
+        if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
             return;
         }
         if ($fatalError == false) { 

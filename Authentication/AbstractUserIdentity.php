@@ -24,7 +24,7 @@ class AbstractUserIdentity
     protected $c;
 
     /**
-     * Service configuration parameters
+     * Credentials
      * 
      * @var array
      */

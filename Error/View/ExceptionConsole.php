@@ -16,10 +16,6 @@ if (isset($lastQuery) AND ! empty($lastQuery)) {
 }
 echo $e->getCode().' '.DebugOutput::getSecurePath($e->getFile()). ' Line : ' . $e->getLine() . "\n";
 
-$eTrace = array();
-$eTrace['file'] = $e->getFile();
-$eTrace['line'] = $e->getLine();
-
 echo "\33[0;36m".strip_tags(DebugOutput::debugFileSource($eTrace))."\33[0m";
 echo "\33[1;36mDetails: \33[0m\n\33[0;36m";
 $fullTraces  = $e->getTrace();
@@ -30,14 +26,8 @@ foreach ($fullTraces as $key => $val) {
         $debugTraces[] = $val;
     }
 }
-
 if (isset($debugTraces[0]['file']) AND isset($debugTraces[0]['line'])) {
-    if ($debugTraces[0]['file'] == $e->getFile() AND $debugTraces[0]['line'] == $e->getLine()) {
-        unset($debugTraces[0]);
-        $unset = true;
-    } else {
-        $unset = false;
-    }
+
     if (isset($debugTraces[1]['file']) AND isset($debugTraces[1]['line'])) {    
         $output = '';
         $i = 0;
@@ -54,9 +44,9 @@ if (isset($debugTraces[0]['file']) AND isset($debugTraces[0]['line'])) {
                 $output.= (isset($trace['function'])) ? '()' : '';
                 echo $output;
             }
-            if ($unset == false) {
-                ++$key;
-            }
+
+            ++$key;
+            
             if ($i == 1)  // Just show the head file
             echo "\n".DebugOutput::getSecurePath($trace['file']).' Line : ' . $trace['line'] . "\n";
 

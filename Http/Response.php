@@ -2,8 +2,8 @@
 
 namespace Obullo\Http;
 
-use Controller,
-    Obullo\Container\Container;
+use Controller;
+use Obullo\Container\Container;
 
 /**
  * Response Class.
@@ -35,6 +35,13 @@ Class Response
     public $error;
 
     /**
+     * Status code
+     * 
+     * @var int
+     */
+    public $status = 200;
+
+    /**
      * Logger
      * 
      * @var object
@@ -42,11 +49,11 @@ Class Response
     public $logger;
 
     /**
-     * Final output
+     * Final output string
      * 
      * @var string
      */
-    public $finalOutput;
+    public $output;
 
     /**
      * Compression switch
@@ -72,7 +79,7 @@ Class Response
         $this->c = $c;
         $this->c['config']->load('response');
 
-        $this->finalOutput = '';
+        $this->output = '';
         $this->logger = $this->c['logger'];
         $this->logger->debug('Response Class Initialized');
     }
@@ -88,26 +95,7 @@ Class Response
     */    
     public function setOutput($output)
     {
-        $this->finalOutput = $output;
-        return $this;
-    }
-
-    /**
-     * Append Output
-     *
-     * Appends data onto the output string
-     *
-     * @param string $output output
-     * 
-     * @return object response
-     */
-    public function appendOutput($output)
-    {
-        if ($this->finalOutput == '') {
-            $this->finalOutput = $output;
-        } else {
-            $this->finalOutput.= $output;
-        }
+        $this->output = $output;
         return $this;
     }
 
@@ -120,69 +108,74 @@ Class Response
     */    
     public function getOutput()
     {
-        return $this->finalOutput;
+        return $this->output;
     }
 
     /**
-     * Enable Compress Output Header
+     * Append HTTP response body
      * 
-     * @return object response
-     */
-    public function compressOutput() 
-    {
-        if ($this->c['config']['output']['compress'] == false OR $this->outputCompression == false) {
-            return $this;
-        }
-        if (extension_loaded('zlib')
-            AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
-            AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
-        ) {
-            ob_start('ob_gzhandler');
-        }
-        return $this;
-    }
-
-    /**
-     * Display Output
-     *
-     * This function sends the finalized output data to the browser along
-     * with any server headers and profile data.
-     *
      * @param string $output output
-     * @param int    $code   http response code
      * 
      * @return string output
      */
-    public function output($output = '', $code = null)
+    public function write($output = '')
     {
-        if ($code != null) {
-            $this->status($code);
+        if ($this->output == '') {
+            $this->output = $output;
+        } else {
+            $this->output.= $output;
         }
-        if ($output == '') {                    // Set the output data
-            $output = & $this->finalOutput;
-        }
-        $this->compressOutput();
-        $this->sendHeaders();
-
-        if (class_exists('Controller', false) AND method_exists(Controller::$instance, '_response')) {    // Does the controller contain a function named _response()?
-            Controller::$instance->_response($output);              // If so send the output there.  Otherwise, echo it.
-            return;
-        } 
-        echo $output;  // Send it to the browser!
+        $this->length = strlen($this->output);
+        return $this->output;
     }
     
     /**
-     * Send Headers
+     * Get page output length
      * 
-     * @return void
+     * @return int
      */
-    protected function sendHeaders()
+    public function getLength()
     {
-        if (count($this->headers) > 0 AND ! headers_sent()) {  // Are there any server headers to send ?
-            foreach ($this->headers as $header) {
-                header($header[0], $header[1]);
-            }            
+        return $this->length;
+    }
+
+    /**
+     * Finalize
+     *
+     * This prepares this response and returns an array
+     * of (status, headers, body).
+     *
+     * @return array[int status, array headers, string body]
+     */
+    public function finalize()
+    {
+        if (in_array($this->status, array(204, 304))) {
+            unset($this->headers['Content-Type']);
+            unset($this->headers['Content-Length']);
         }
+        return array($this->status, $this->headers, $this->getOutput());
+    }
+
+    /**
+     * Send headers and echo output
+     * 
+     * @return string
+     */
+    public function sendOutput()
+    {
+        list($status, $headers, $output) = $this->finalize(); // Fetch status, header, and body
+
+        if (headers_sent() === false) {   // Send headers
+
+            http_response_code($status);
+
+            if (count($headers) > 0) {  // Are there any server headers to send ?
+                foreach ($headers as $header => $params) {
+                    header($header, $params['replace']);
+                }            
+            }
+        }
+        echo $output;  // Send output
     }
 
     /**
@@ -194,8 +187,18 @@ Class Response
     */    
     public function status($code = 200)
     {
-        http_response_code($code);  // Php >= 5.4.0
+        $this->status = $code;
         return $this;
+    }
+
+    /**
+     * Returns to response status
+     * 
+     * @return int
+     */
+    public function getStatus()
+    {
+        return $this->status;
     }
 
     /**
@@ -220,7 +223,7 @@ Class Response
         if (@ini_get('zlib.output_compression') AND strncasecmp($header, 'content-length', 14) == 0) {
             return;
         }
-        $this->headers[] = array($header, $replace);
+        $this->headers[$header] = array('replace' => $replace);
         return $this;
     }
 
@@ -289,15 +292,13 @@ Class Response
      */
     public function json(array $data, $header = 'default')
     {
-        $this->outputCompression = false;  // Default false for json response
+        // $this->outputCompression = false;  // Default false for json response
 
         if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
             foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
                 $this->setHeader($value);
             }
         }
-        $this->sendHeaders();
-
         return json_encode($data);
     }
 

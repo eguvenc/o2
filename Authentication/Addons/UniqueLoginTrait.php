@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication\Addons;
 
-use RuntimeException,
-    Obullo\Container\Container;
+use RuntimeException;
+use Obullo\Container\Container;
 
 trait UniqueLoginTrait
 {

@@ -26,13 +26,13 @@ Class Router
     public $uri;                            // Uri class
     public $logger;                         // Logger class
     public $response;                       // Response class
-    public $routes = array();               // Routes config
     public $class = '';                     // Controller class name
+    public $routes = array();               // Routes config
     public $method = 'index';               // Default method
     public $directory = '';                 // Directory name
     public $module = '';                    // Module name
-    public $filters = array();              // Defined route filters
-    public $attach = array();               // Attached after routes to filters
+    public $middlewares = array();          // Defined route middlewares
+    public $attach = array();               // Attached after routes to middlewares
     public $defaultController = 'welcome';  // Default controller name
     public $pageNotFoundController = '';    // Page not found handler ( 404 )
     public $groupDomain = '*';              // Groupped route domain address
@@ -47,13 +47,11 @@ Class Router
      * Constructor
      * Runs the route mapping function.
      * 
-     * @param array $c      container
-     * @param array $params configuration array
+     * @param array $c container
      */
-    public function __construct(Container $c, $params = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->router = $params;
         $this->uri    = $this->c['uri'];
         $this->logger = $this->c['logger'];
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
@@ -237,6 +235,7 @@ Class Router
             return;
         }
         $scheme = (strpos($match, '}') !== false) ? $match : null;
+
         if ($this->isSubDomain($this->DOMAIN)) {
             $this->routes[$this->DOMAIN][] = array(
                 'group' => $group['name'],
@@ -370,7 +369,7 @@ Class Router
         }
         $this->setDirectory($segments[0]); // Set first segment as default "top" directory 
 
-        if (isset($segments[1]) AND is_dir(CONTROLLERS .$segments[0]. DS . $segments[1]. DS)  // Detect Top Directory and change directory !!
+        if (isset($segments[1]) AND is_dir(CONTROLLERS .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
         ) {
             $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);
@@ -383,9 +382,7 @@ Class Router
         if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
-
-        // if segments[1] not exists. forexamle http://example.com/welcome
-        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {
+        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {         // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }
@@ -436,8 +433,8 @@ Class Router
             }
             if (static::routeMatch($val['match'], $uri)) {  // Does the route match ?
 
-                if (count($val['when']) > 0) { //  When http method filter
-                    $this->runFilter('methodNotAllowed', 'before', array('allowedMethods' => $val['when']));
+                if (count($val['when']) > 0) { //  Dynamically add methot not allowed middleware
+                    $this->c['app']->middleware('MethodNotAllowed', $val['when']);
                 }
                 if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
                     $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
@@ -692,9 +689,9 @@ Class Router
     }
 
     /**
-     * Attach route to filter
+     * Attach route to middleware
      * 
-     * @param string $route   filter route
+     * @param string $route   middleware route
      * @param array  $options attach options
      * 
      * @return object
@@ -703,8 +700,8 @@ Class Router
     {
         $match = $this->detectDomain($options);
 
-        // Domain Regex Support, if we have defined domain and not match with host don't run the filter.
-        if (isset($options['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the filter.
+        // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
+        if (isset($options['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }
         // Attach Regex Support
@@ -718,26 +715,26 @@ Class Router
         if ( ! isset($options['domain'])) {
             $options['domain'] = $this->ROOT;
         }
-        if (isset($options['filters'])) {
-            $this->configureFilters($options['filters'], $route, $options);
+        if (isset($options['middleware'])) {
+            $this->configureMiddlewares($options['middleware'], $route, $options);
             return $this;
         }
-        $this->configureFilters($options, $route, $options);
+        $this->configureMiddlewares($options, $route, $options);
         return $this;
     }
 
     /**
-     * Configure attached filters
+     * Configure attached middleware
      * 
-     * @param array  $filters arguments
-     * @param string $route   route
-     * @param array  $options arguments
+     * @param array  $middlewares arguments
+     * @param string $route       route
+     * @param array  $options     arguments
      * 
      * @return void
      */
-    protected function configureFilters($filters, $route, $options)
+    protected function configureMiddlewares($middlewares, $route, $options)
     {
-        foreach ($filters as $value) {
+        foreach ($middlewares as $value) {
             $this->attach[$this->DOMAIN][] = array(
                 'name' => $value, 
                 'options' => $options,
@@ -748,24 +745,9 @@ Class Router
     }
 
     /**
-     * Creates route filter
+     * Create grouped routes or route middlewares
      * 
-     * @param string $name      filter name
-     * @param mixed  $namespace classname with namespace
-     * @param mixed  $method    directions ( before, after, load, finish )
-     * 
-     * @return void
-     */
-    public function filter($name, $namespace, $method = 'before')
-    {
-        $this->filters[$method][$name] = $namespace;
-        return $this;
-    }
-
-    /**
-     * Create grouped routes or route filters
-     * 
-     * @param array  $options domain, directions and filter name
+     * @param array  $options domain, directions and middleware name
      * @param object $closure which contains $this->attach(); methods
      * 
      * @return void
@@ -784,68 +766,16 @@ Class Router
     }
 
     /**
-     * Initialize filter
-     * 
-     * @param string $method directions ( before, after, load, finish )
+     * Returns attached middlewares of current domain
      * 
      * @return void
      */
-    public function initFilters($method = 'before')
+    public function getAttachedRoutes()
     {
-        if (defined('STDIN')) {  // Disable filters for Console commands
-            return;
+        if (defined('STDIN') OR ! isset($this->attach[$this->DOMAIN])) {  // Disable middlewares for CLI interface
+            return array();
         }
-        if ($this->c['config']['annotations']['enabled']) {
-            $this->c['annotation.filter']->initFilters($method);  // Initialize annotation filters
-        }
-        if (count($this->attach) == 0 OR ! isset($this->attach[$this->DOMAIN])) {
-            return;
-        }
-        $route = $this->c['uri']->getUriString();        // Get current uri
-
-        if ($this->c->exists('app.uri')) {
-            $route = $this->c['app']->uri->getUriString(); // If layer used use global request uri object, otherwise we get layered route.
-                                                              // Filters always run once
-                                                              // because of we don't init filters in Layer class.
-        }
-        foreach ($this->attach[$this->DOMAIN] as $value) {
-            if ($value['route'] == $route) {    // if we have natural route match
-                $this->runFilter($value['name'], $method, $value['options']);
-            } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
-                // echo $value['name'].'----'.$method.'<br>';
-                $this->runFilter($value['name'], $method, $value['options']);
-            }
-        }
-    }
-
-    /**
-     * Run filters
-     * 
-     * @param array  $name   filter name
-     * @param string $method directions ( before, after, load, finish )
-     * @param array  $params parameters array
-     * 
-     * @return void
-     */
-    public function runFilter($name, $method = 'before', $params = array())
-    {
-        if (isset($this->filters[$method][$name])) {  // If filter method exists just run one time for every methods
-
-            $Class = '\\'.ucfirst($this->filters[$method][$name]);
-            $class = new $Class($this->c);
-            $class->params = $params;  //  Inject Parameters
-
-            if ( ! method_exists($class, $method)) {   // Throw exception if filter method not exists.
-                throw new BadMethodCallException(
-                    sprintf(
-                        'Filter class %s requires %s method but not found.',
-                        ltrim($Class, '\\'),
-                        $method
-                    )
-                );
-            }
-            $class->$method();
-        }
+        return $this->attach[$this->DOMAIN];
     }
 
     /**
@@ -856,16 +786,6 @@ Class Router
     public function getDomain()
     {
         return $this->DOMAIN;
-    }
-
-    /**
-     * Retutns registered filters
-     * 
-     * @return array
-     */
-    public function getFilters()
-    {
-        return $this->filters;
     }
 
 }

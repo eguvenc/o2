@@ -65,7 +65,7 @@ Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtem
 
 Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
 
-**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> sürücüsünü desteklemektedir. Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
+**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> ve <b>Memcached</b> sürücülerini desteklemektedir. Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
 
 ### Akış Şeması
 
@@ -124,14 +124,33 @@ Yetki doğrulama sınıfı hafıza deposu için varsayılan olarak redis kullan�
 Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 
 ```php
-'cache' => array( 
-        'key' => 'Auth',
-        'storage' => '\Obullo\Authentication\Storage\Redis',
-        'block' => array(
+'cache' => array(
 
-        )
+    'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
+    'provider' => array(
+        'driver' => 'redis',
+        'serializer' => 'SERIALIZER_PHP',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
     ),
+)
 ```
+
+### Memcached Deposu
+
+Eğer memcached kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
+
+```php
+'cache' => array(
+
+    'storage' => '\Obullo\Authentication\Storage\Memcached',   // Storage driver uses cache package
+    'provider' => array(
+        'driver' => 'memcached',
+        'serializer' => 'SERIALIZER_PHP',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
+    ),
+)
+```
+
+> Provider ayarlarından driver sekmesini memcached olarak değiştirmeyi unutmayın.
+
 
 Redis dışında bir çözüm kullanıyorsanız kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
 
@@ -964,7 +983,3 @@ Daha önce set edilen değeri temizler.
 ##### $this->user->activity->destroy();
 
 Tüm aktivite verilerini önbellekten temizler.
-
-##### $this->user->activity->write();
-
-Daha önce set metodu ile eklenen bütün verileri kaydeder. Bu metot uygulamanın finish filtresi seviyesinde çalıştırılmalıdır.

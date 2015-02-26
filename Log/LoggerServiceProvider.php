@@ -36,28 +36,22 @@ Class LoggerServiceProvider
 
     /**
      * Returns to logger instance
+     *
+     * @param array $params driver ( Logger or QueueLogger )
      * 
      * @return object
      */
-    public function getLogger()
+    public function get($params = array('driver' => 'Logger'))
     {
         if ($this->disabled()) {
             return new NullLogger;  // Use null handler if config disabled.
         }
-        return new Logger($this->c);
-    }
-
-    /**
-     * Returns to queue logger instance
-     * 
-     * @return object
-     */
-    public function getQueueLogger()
-    {
-        if ($this->disabled()) {
-            return new NullLogger;  // Use null handler if config disabled.
+        if ($params['driver'] == 'Logger') {
+            return new Logger($this->c);
         }
-        return new QueueLogger($this->c, $this->c['return queue']);
+        if ($params['driver'] == 'QueueLogger') {
+            return new QueueLogger($this->c, $this->c['return queue']);
+        }
     }
 
     /**

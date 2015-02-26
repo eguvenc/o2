@@ -16,7 +16,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class Mongo extends AbstractHandler implements HandlerInterface
+class Mongo extends AbstractHandler implements HandlerInterface
 {
     /**
      * Container
@@ -65,7 +65,7 @@ Class Mongo extends AbstractHandler implements HandlerInterface
         $this->c = $c;
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
-        $saveOptions = isset($params['save_options']) ? $params['save_options'] : null;
+        $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
 
         parent::__construct($c);
 
@@ -75,10 +75,12 @@ Class Mongo extends AbstractHandler implements HandlerInterface
         if (null === $database) {
             throw new InvalidArgumentException('The database parameter cannot be empty');
         }
-        if (get_class($mongo) != 'MongoClient' OR get_class($mongo) != 'Mongo') {
+        if (get_class($mongo) != 'MongoClient' AND get_class($mongo) != 'Mongo') {
             throw new InvalidArgumentException(
-                'Parameter of type %s is invalid; must be MongoClient or Mongo instance.', 
-                (is_object($mongo) ? get_class($mongo) : gettype($$mongo))
+                sprintf(
+                    'Parameter of type %s is invalid; must be MongoClient or Mongo instance.', 
+                    is_object($mongo) ? get_class($mongo) : gettype($mongo)
+                )
             );
         }
         $this->mongoClient = $mongo;

@@ -150,7 +150,7 @@ If you do not wish to use the default handle method, you may specify the method 
 ```php
 <?php
 
-$this->event->listen('user.login', 'Event\Login.onLogin');
+$this->event->listen('user.login', 'Event\Login@onLogin');
 ```
 
 ## Event Subscribers

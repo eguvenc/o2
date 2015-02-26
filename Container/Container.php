@@ -9,7 +9,6 @@ use ArrayAccess;
 use SplObjectStorage;
 use RuntimeException;
 use InvalidArgumentException;
-use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /*
  * Container for Obullo (c) 2015
@@ -269,11 +268,11 @@ class Container implements ArrayAccess
     /**
      * Execute service providers
      * 
-     * @param array $params parameters
+     * @param mixed $params parameters
      * 
      * @return object closure
      */
-    public function get($params = array())
+    public function get($params = null)
     {
         $lastCalled = end($this->calledProviders);
         if ( ! isset($this->registeredProviders[$lastCalled])) {
@@ -282,6 +281,10 @@ class Container implements ArrayAccess
             );
         }
         $provider = $this->registeredProviders[$lastCalled];
+
+        if ( ! method_exists($provider, 'get')) {
+            return $this[$lastCalled];              // Silex providers support
+        }
         return $provider->get($params);
     }
 
@@ -581,14 +584,14 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Registers a service provider.
+     * Registers a service provider. ( Also supports silex providers )
      *
-     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
-     * @param array                    $values   An array of values that customizes the provider
+     * @param object $provider A Service Provider instance
+     * @param array  $values   An array of values that customizes the provider
      *
      * @return static
      */
-    public function register(ServiceProviderInterface $provider, array $values = array())
+    public function register($provider, array $values = array())
     {
         $classname = explode('\\', get_class($provider));
         $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));

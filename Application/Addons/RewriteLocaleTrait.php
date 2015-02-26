@@ -7,19 +7,23 @@ trait RewriteLocaleTrait
     /**
      * Http locale Rewrite trait
      *
-     * Send 302 Header
+     * This feature sends redirect header if we get a request without locale code.
+     *
+     * Example wrong request: http://example.com/welcome
+     * Example redirect     : http://example.com/en/welcome  Send 302 Redirect Header
      * 
      * @return void
      */
     public function rewrite()
     {
-        $locale = $this->c['cookie']->get('locale');
-        $languages = $this->c['config']->load('translator')['languages'];
+        $config = $this->c['config']->load('translator');
 
-        if ( ! isset($languages[$locale]) OR $locale == false) {
-            $locale = $this->c['translator']->getLocale();
+        $locale = $this->c['uri']->segment($config['uri']['segmentNumber']);  // Check the segment http://examples.com/en/welcome
+        $languages = $config['languages'];
+
+        if ( ! isset($languages[$locale])) {
+            $this->c['url']->redirect($this->c['translator']->getLocale() . $this->c['uri']->getRequestUri());
         }
-        $this->c['url']->redirect($locale. '/' . $this->c['uri']->getUriString());
     }
 }
 

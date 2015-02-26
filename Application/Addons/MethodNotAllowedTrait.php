@@ -2,7 +2,7 @@
 
 namespace Obullo\Application\Addons;
 
-trait RequestMethodNotAllowedTrait
+trait MethodNotAllowedTrait
 {
     /**
      * Check valid route request method is allowed
@@ -16,7 +16,7 @@ trait RequestMethodNotAllowedTrait
         $method = $_SERVER['REQUEST_METHOD'];
         $currentMethod = strtolower($method);
 
-        if ( ! in_array($currentMethod, $this->params['allowedMethods'])) {  // Get injected parameters
+        if ( ! in_array($currentMethod, $this->params)) {  // Get injected parameters
 
             $this->c['response']->showError(
                 sprintf(
@@ -29,7 +29,7 @@ trait RequestMethodNotAllowedTrait
     }
 }
 
-// END RequestMethodNotAllowedTrait File
-/* End of file RequestMethodNotAllowedTrait.php
+// END MethodNotAllowedTrait File
+/* End of file MethodNotAllowedTrait.php
 
-/* Location: .Obullo/Application/Addons/RequestMethodNotAllowedTrait.php */
+/* Location: .Obullo/Application/Addons/MethodNotAllowedTrait.php */

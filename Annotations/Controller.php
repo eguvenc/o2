@@ -1,9 +1,8 @@
 <?php
 
-namespace Obullo\Annotations\Reader;
+namespace Obullo\Annotations;
 
 use ReflectionClass;
-use Obullo\Annotations\Filter;
 use Obullo\Container\Container;
 
 /**
@@ -38,7 +37,7 @@ Class Controller
      * Constructor
      *
      * @param object $c      container
-     * @param string $class  controller object
+     * @param object $class  controller object
      * @param string $method controller method
      */
     public function __construct(Container $c, $class, $method = 'index')
@@ -46,8 +45,8 @@ Class Controller
         $this->c = $c;
         $reflection = new ReflectionClass($class);
 
-        $this->c['annotation.filter'] = function () use ($c) {
-            return new Filter($c);
+        $this->c['annotation.middleware'] = function () use ($c) {
+            return new Middleware($c);
         };
         if ( ! $reflection->hasMethod($method)) {  // Show404 if method not exists
             $this->c['response']->show404();
@@ -68,9 +67,8 @@ Class Controller
     {
         $docs = str_replace('*', '', $this->blocks);
         $docs = explode("@", $docs);
-        $filter = false;
 
-        if (strpos($this->blocks, 'filter->') > 0 OR strpos($this->blocks, 'event->')) {
+        if (strpos($this->blocks, 'middleware->') > 0 OR strpos($this->blocks, 'event->')) {
             foreach ($docs as $line) {
                 $methods = explode('->', $line);  // explode every methods
                 array_shift($methods);            // remove class name "filter"
@@ -80,13 +78,12 @@ Class Controller
                 }
             }
         }
-        return $filter;
     }
 
     /**
      * Call filter methods
      * 
-     * @param string $methodString filter method name ( before, after, method or when )
+     * @param string $methodString filter method name ( when, assign, method )
      * 
      * @return void
      */
@@ -96,12 +93,12 @@ Class Controller
         $params = str_replace(array('(',')',';'), '', $strstr);
         $untrimmed = str_replace($strstr, '', $methodString);
         $method = trim($untrimmed);
-        $parray = $params = str_replace(array('"', "'", '[', ']'), '', trim($params));
+        $parray = $params = str_replace(array(' ', '"', "'", '[', ']'), '', trim($params));
         
         if (strpos($params, ',') > 0) {  // array support
             $parray = explode(',', $params);
         }
-        $this->c['annotation.filter']->$method($parray);  // Execute filter methods
+        $this->c['annotation.middleware']->$method($parray);  // Execute filter methods
     }
 
 }
@@ -109,4 +106,4 @@ Class Controller
 // END Controller Class
 
 /* End of file Controller.php */
-/* Location: .Obullo/Annotations/Reader/Controller.php */
+/* Location: .Obullo/Annotations/Controller.php */

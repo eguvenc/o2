@@ -38,14 +38,11 @@ Class Memcached extends AbstractStorage
         parent::__construct($c);
 
         $this->logger  = $this->c['logger'];
-        $this->session = $this->c['session'];
-
-        $provider = $this->c['config']['auth']['cache']['provider'];
-
-        $this->cache = $this->c['service provider '.$provider['name']]->get(
+        $this->session = $this->c['session'];        
+        $this->cache   = $this->c['service provider cache']->get(
             [
-                'driver' => $provider['driver'], 
-                'serializer' => $provider['serializer']
+                'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
+                'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
             ]
         );
     }
@@ -177,7 +174,7 @@ Class Memcached extends AbstractStorage
     public function deleteCredentials($block = '__temporary')
     {
         $aid  = $this->getLoginId();
-        $data = $this->getCredentials($block);
+        $data = $this->cache->get($this->getBlock($block));
 
         if ( ! isset($data[$aid])) {  // already removed
             return;

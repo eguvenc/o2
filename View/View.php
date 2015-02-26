@@ -19,9 +19,12 @@ use Obullo\Container\Container;
  */
 Class View
 {
-    public $c;                  // Container
-    protected $logger;          // Logger instance
-    protected $response;        // Response instance
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;                  // Container
 
     /**
      * Protected variables
@@ -43,14 +46,12 @@ Class View
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->response = $this->c['response'];
         $this->_staticVars = array(
             '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
             '@ASSETS'  => rtrim($c['config']['url']['assets'], '/')
         );
-        $this->logger = $this->c['logger'];
-        $this->logger->debug('View Class Initialized');
+        $this->c['logger']->debug('View Class Initialized');
     }
 
     /**
@@ -84,7 +85,7 @@ Class View
         if ($obulloViewData === false OR $obulloViewInclude === false) {
             return $output;
         }
-        $this->response->appendOutput($output);
+        $this->c['response']->write($output);
         return;
     }
 
@@ -185,7 +186,7 @@ Class View
         if ( ! class_exists('Controller', false) OR Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
-            $router = &Controller::$instance->router;
+            $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )
         }
         /**
          * Fetch view ( also it can be nested )
@@ -236,7 +237,7 @@ Class View
     public function __get($key)
     {
         if (class_exists('Controller', false) AND Controller::$instance != null) {
-            return Controller::$instance->{$key};
+            return is_object(Controller::$instance->{$key}) ? Controller::$instance->{$key} : null;
         }
     }
 

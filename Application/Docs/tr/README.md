@@ -342,10 +342,19 @@ $c['config']->load('database');
 echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
 ```
 
+## Middleware Yapısı ( Filtreler )
+
 
 #### Application Sınıfı Referansı
 
 ------
+
+
+##### $this->c['app']->middleware();
+
+##### $this->c['app']->method();
+
+Application sınıfında eğer metod tanımlı değilse Controller sınfından çağırır.
 
 ##### $this->c['app']->router->method();
 
