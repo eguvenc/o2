@@ -72,14 +72,10 @@ class Cli extends Obullo
         global $c;
         $this->c = $c;
         $this->envArray = include ROOT .'app'. DS .'environments.php';
-
         $this->detectEnvironment();
 
-        define('ENV', static::getEnv());   // Build environment constants
-        define('ENV_PATH', APP .'config'. DS . ENV . DS);
-
-        $c['env'] = function () {
-            return new Env;
+        $c['env'] = function () use ($c) {
+            return new Env($c);
         };
         $c['config'] = function () use ($c) {
             return new Config($c);

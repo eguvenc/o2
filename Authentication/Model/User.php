@@ -2,11 +2,11 @@
 
 namespace Obullo\Authentication\Model;
 
-use Pdo,
-    Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser,
-    Obullo\Container\Container,
-    Obullo\Authentication\UserProviderInterface;
+use Pdo;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Auth\Identities\AuthorizedUser;
+use Obullo\Authentication\UserProviderInterface;
 
 /**
  * O2 User Model

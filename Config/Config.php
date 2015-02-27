@@ -28,6 +28,13 @@ Class Config implements ArrayAccess
     public $array = array();    // Configuration files stack
 
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Current config folder
      * 
      * @var string
@@ -43,14 +50,15 @@ Class Config implements ArrayAccess
      */
     public function __construct(Container $c)
     {
-        $this->path  = APP .'config'. DS . 'env'. DS . ENV . DS;
+        $this->c = $c;
+        $this->path  = APP .'config'. DS . 'env'. DS . $c['app']->getEnv() . DS;
         $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
         
         ini_set('display_errors', 1);
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
         
-        if (ENV != 'local') {
+        if ($c['app']->getEnv() != 'local') {
             $envConfig = include $this->path .'config.php';
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
@@ -65,7 +73,7 @@ Class Config implements ArrayAccess
      */
     protected function assignEnvironments()
     {
-        $dotenv = '.env.'. ENV .'.php';
+        $dotenv = '.env.'. $this->c['app']->getEnv() .'.php';
         $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
         if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
             $this->configurationError();
@@ -105,7 +113,7 @@ Class Config implements ArrayAccess
         ini_set('display_errors', 1);
         $config = include $file;
 
-        if (ENV != 'local' AND $isEnvFile) { // Merge config variables if env not local.
+        if ($c['app']->getEnv() != 'local' AND $isEnvFile) { // Merge config variables if env not local.
             $localConfig = include $this->local . $fileUrl .'.php';
             return $this->array[$filename] = array_replace_recursive($localConfig, $config);
         } else {

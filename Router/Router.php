@@ -42,6 +42,7 @@ Class Router
     protected $DOMAIN;                      // Current domain name
     protected $domainMatches = array();     // Keeps matched domains in cache
     protected $httpMethod = 'get';          // Http methods ( get, post, put, delete )
+    protected $group = array('name' => 'UNNAMED', 'domain' => null);       // Group configuration array
 
     /**
      * Constructor
@@ -139,13 +140,12 @@ Class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function get($match, $rewrite = null, $closure = null, $group = array())
+    public function get($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('get'), $match, $rewrite, $closure = null, $group);
+        $this->route(array('get'), $match, $rewrite, $closure = null);
         return $this;
     }
 
@@ -220,26 +220,25 @@ Class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function route($methods, $match, $rewrite = null, $closure = null, $group = array('domain' => null, 'name' => '*'))
+    public function route($methods, $match, $rewrite = null, $closure = null)
     {
-        $domainMatch = $this->detectDomain($group);
+        $domainMatch = $this->detectDomain($this->group);
 
-        if ( ! isset($group['name'])) {
-            $group['name'] = 'UNNAMED';
+        if ( ! isset($this->group['name'])) {
+            $this->group['name'] = 'UNNAMED';
         }
-        if ($domainMatch === false AND $group['domain'] !== null) {
+        if ($domainMatch === false AND $this->group['domain'] !== null) {
             return;
         }
         $scheme = (strpos($match, '}') !== false) ? $match : null;
 
         if ($this->isSubDomain($this->DOMAIN)) {
             $this->routes[$this->DOMAIN][] = array(
-                'group' => $group['name'],
-                'sub.domain' => isset($group['domain']['regex']) ? $group['domain']['regex'] : $group['domain'],
+                'group' => $this->group['name'],
+                'sub.domain' => isset($this->group['domain']['regex']) ? $this->group['domain']['regex'] : $this->group['domain'],
                 'when' => $methods, 
                 'match' => $match,
                 'rewrite' => $rewrite,
@@ -248,7 +247,7 @@ Class Router
             );
         } else {
             $this->routes[$this->DOMAIN][] = array(
-                'group' => $group['name'],
+                'group' => $this->group['name'],
                 'sub.domain' => null,
                 'when' => $methods, 
                 'match' => $match,
@@ -661,7 +660,7 @@ Class Router
         $domain = (isset($options['domain']['regex'])) ? $options['domain']['regex'] : $this->ROOT;
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
-            return true; // Regex match.
+            return true;                // Regex match.
         }
         return false;  // No regex match.
     }
@@ -691,17 +690,16 @@ Class Router
     /**
      * Attach route to middleware
      * 
-     * @param string $route   middleware route
-     * @param array  $options attach options
+     * @param string $route middleware route
      * 
      * @return object
      */
-    public function attach($route, array $options = array())
+    public function attach($route)
     {
-        $match = $this->detectDomain($options);
+        $match = $this->detectDomain($this->group);
 
         // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
-        if (isset($options['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the middleware.
+        if (isset($this->group['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }
         // Attach Regex Support
@@ -712,14 +710,13 @@ Class Router
         if ($this->DOMAIN != $host) {
             return;
         }
-        if ( ! isset($options['domain'])) {
-            $options['domain'] = $this->ROOT;
+        if ( ! isset($this->group['domain'])) {
+            $this->group['domain'] = $this->ROOT;
         }
-        if (isset($options['middleware'])) {
-            $this->setMiddlewares($options['middleware'], $route, $options);
+        if (isset($this->group['middleware'])) {
+            $this->setMiddlewares($this->group['middleware'], $route, $this->group);
             return $this;
         }
-        $this->setMiddlewares($options, $route, $options);
         return $this;
     }
 
@@ -745,23 +742,25 @@ Class Router
     }
 
     /**
-     * Create grouped routes or route middlewares
+     * Set grouped routes, options like middleware
      * 
-     * @param array  $options domain, directions and middleware name
+     * @param array  $group   domain, directions and middleware name
      * @param object $closure which contains $this->attach(); methods
      * 
      * @return void
      */
-    public function group(array $options, $closure)
+    public function group(array $group, $closure)
     {
-        if ($this->detectDomain($options) == false) {   // When run the group if domain not match with regex don't run the group function.
-            return;                                     // Forexample we define a sub domain in group but regex does not match with this domain
-        }                                               // we need to stop group process.
-        if ( ! isset($options['name'])) {
+        if ($this->detectDomain($group) == false) {   // When run the group if domain not match with regex don't run the group function.
+            return;                                   // Forexample we define a sub domain in group but regex does not match with this domain
+        }                                             // we need to stop group process.
+        if ( ! isset($group['name'])) {
             throw new LogicException('Please give a name to your route group.');
         }
+        $this->group = $group;
         $closure = Closure::bind($closure, $this, get_class());
-        $closure($options);
+        $closure();
+        $this->group = array('name' => 'UNNAMED', 'domain' => null);  // Reset group variable after foreach group definition
         return $this;
     }
 

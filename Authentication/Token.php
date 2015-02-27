@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Container\Container;
 use Obullo\Utils\Random;
+use Obullo\Container\Container;
 
 /**
  * O2 Authentication - Security Token
@@ -25,18 +25,18 @@ class Token
     protected $c;
 
     /**
-     * Security token cache
-     *
-     * @var string
-     */
-    protected $token = null;
-
-    /**
      * Authentication config
      *
      * @var array
      */
     protected $config;
+
+    /**
+     * Security token cache
+     *
+     * @var string
+     */
+    protected $token = null;
 
     /**
      * Constructor
@@ -76,7 +76,6 @@ class Token
         if ($this->token != null) {  // If we have already token don't regenerate it.
             return $this->token;
         }
-
         return $this->refresh();
     }
 

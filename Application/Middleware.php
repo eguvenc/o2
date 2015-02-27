@@ -44,7 +44,7 @@ abstract class Middleware
      *
      * @return void
      */
-    public function setContainer($c)
+    public function setContainer(Container $c)
     {
         $this->c = $c;
     }

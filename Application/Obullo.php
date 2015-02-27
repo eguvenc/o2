@@ -21,7 +21,7 @@ class Obullo
      * 
      * @var null
      */
-    public static $env = null;
+    public $env = null;
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -31,16 +31,16 @@ class Obullo
     public function detectEnvironment()
     {
         $hostname = gethostname();
-        if (self::$env != null) {
+        if ($this->env != null) {
             return;
         }
         foreach ($this->getEnvironments() as $current) {
             if (in_array($hostname, $this->envArray[$current])) {
-                self::$env = $current;
+                $this->env = $current;
                 break;
             }
         }
-        if (self::$env == null) {
+        if ($this->env == null) {
             die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
         }
     }
@@ -161,7 +161,7 @@ class Obullo
      */
     public function getEnv()
     {
-        return self::$env;
+        return $this->env;
     }
 
     /**
@@ -191,7 +191,7 @@ class Obullo
      */
     public function getEnvPath()
     {
-        return ENV_PATH;
+        return APP .'config'. DS . $this->getEnv() . DS;
     }
 
     /**

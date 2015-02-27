@@ -2,14 +2,14 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use Obullo\Container\Container,
-    Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser,
-    Obullo\Authentication\Token,
-    Obullo\Authentication\AuthResult,
-    Obullo\Authentication\UserService,
-    Obullo\Authentication\AbstractAdapter,
-    RuntimeException;
+use RuntimeException;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Auth\Identities\AuthorizedUser;
+use Obullo\Authentication\Token;
+use Obullo\Authentication\AuthResult;
+use Obullo\Authentication\UserService;
+use Obullo\Authentication\AbstractAdapter;
 
 /**
  * O2 Authentication - Database Adapter

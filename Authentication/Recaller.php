@@ -78,7 +78,8 @@ Class Recaller
             '__rememberMe' => 1,
             '__rememberToken' => $resultRowArray[$this->rememberToken]
         );
-        $genericUser = new GenericUser($this->c);
+        $genericUser = new GenericUser;
+        $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
         $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);
 

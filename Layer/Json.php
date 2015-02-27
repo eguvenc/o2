@@ -3,6 +3,7 @@
 namespace Obullo\Layer;
 
 use Obullo\Layer\Error;
+use Obullo\Container\Container;
 
 /**
  * Json Layer Class
@@ -28,7 +29,7 @@ Class Json
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
@@ -50,7 +51,7 @@ Class Json
         if (isset($r['success'])      // Show exceptional message to developers if environment not LIVE.
             AND $r['success'] == false 
             AND isset($r['e']) AND ! empty($r['e'])
-            AND ENV != 'production'   // Don't send exceptional errors in "production" environment.
+            AND $this->c['app']->getEnv() != 'production'   // Don't send exceptional errors in "production" environment.
         ) { 
             $r['message'] = $r['e'];  // Replace the message with exception
         }

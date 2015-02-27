@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\Container,
-    Obullo\Authentication\UserService;
+use Obullo\Container\Container;
+use Obullo\Authentication\UserService;
 
 /**
  * O2 Authentication - Online Users Activity Class

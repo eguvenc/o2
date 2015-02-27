@@ -3,6 +3,7 @@
 namespace Obullo\Config;
 
 use ArrayAccess;
+use Obullo\Container\Container;
 
 /**
  * Config Object Class
@@ -17,11 +18,28 @@ use ArrayAccess;
 Class Env implements ArrayAccess
 {
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
      * Resolved items
      * 
      * @var array
      */
     protected static $resolvedItems = array();
+
+    /**
+     * Container 
+     * 
+     * @param Container $c object
+     */
+    public function __construct(Container $c)
+    {
+        $this->c = $c;
+    }
 
     /**
      * Sets a parameter or an object.
@@ -101,13 +119,13 @@ Class Env implements ArrayAccess
     {
         $empty = empty($_ENV[$key]);
         if ($required AND $empty) {
-            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.ENV.'.php file array.');
+            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.$this->c['app']->getEnv().'.php file array.');
         }
         if ($empty AND $default != '') {     // default value
             return $default;
         }
         if ( ! isset($_ENV[$key])) {
-            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.ENV.'.php file array.');
+            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.$this->c['app']->getEnv().'.php file array.');
         }
         return $_ENV[$key];
     }

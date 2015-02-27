@@ -1,52 +1,82 @@
 
 ## Uygulama Sınıfı ( Application )
 
-Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/obullo/core.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam sabiti ( environment constant ) olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile çözümlenir ve ortam sabitine dönüştürülür.
-Ortam değişkeninin ortam sabitine atanmasının nedeni <kbd>$c['app']->getEnv()</kbd> metodunu uygulamanın her yerinde kullanmak yerine ortam değişkenine <b>ENV</b> sabiti ile daha rahat ulaşabilmektir.
+Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/Applicaiton/Http.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam değişkeni  olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile ortam çözümlenir.
 
-Aşağıda <kbd>o2/obullo/core.php</kbd> dosyasının ilgili içeriği bize uygulama sınıfının konteyner (ioc) içerisine nasıl tanımlandığını ve ortam değişkeninin uygulamanın yüklenme seviyesinde nasıl belirlendiğini gösteriyor.
+Ortam değişkeninie <kbd>$c['app']->getEnv()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
+
+Obullo da uygulama http ve console isteklerine göre Http ve Cli sınıfları olarak ikiye ayrılır. Http isteğinden sonraki çözümlemede controller dosyası <b>modules/</b> klasöründen çağrılırken Cli istekleri konsoldan <kbd>$php task command</kbd> yöntemi ile <b>modules/tasks</b> klasörüne yönlendirilir.
+
+Aşağıda <kbd>o2/Application/Http.php</kbd> dosyasının ilgili içeriği bize uygulama sınıfının konteyner içerisine nasıl tanımlandığını ve ortam değişkeninin uygulamanın yüklenme seviyesinde nasıl belirlendiğini gösteriyor.
 
 ```php
-$c['app'] = function () use ($c) {
-    return new Obullo\Application\Application($c);
+/**
+ * Container
+ * 
+ * @var object
+ */
+$c = new Container;
+
+$c['app'] = function () {
+    return new Http;
 };
-/*
-|--------------------------------------------------------------------------
-| Detect current environment
-|--------------------------------------------------------------------------
-*/
-$c['app']->detectEnvironment();
-/*
-|--------------------------------------------------------------------------
-| Build environment constants
-|--------------------------------------------------------------------------
-*/
-define('ENV', $c['app']->getEnv());
 
-/* Location: .Obullo/Obullo/Core.php */
+class Htttp extends Obullo {
+
+    /**
+     * Constructor
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $this->envArray = include ROOT .'app'. DS .'environments.php';
+        $this->detectEnvironment();
+    }
+}
+
+/* Location: .Obullo/Application/Http.php */
 ```
 
-Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> dosyalara bir göz atalım.
+>Obullo Http sınıfı konteyner içerisine $c['app'] olarak kaydedilir. Konsol ortamında ise o2/Application/Cli.php çağırıldığı için bu sınıf Http değil artık Cli sınıfıdır.
 
-#### constants dosyası
+Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> index.php dosyasına bir göz atalım.
 
-```php
-define('OBULLO_CORE',  OBULLO .'Obullo'. DS .'Core.php');
-define('OBULLO_CONTAINER',  OBULLO .'Container'. DS .'Container.php');
-define('OBULLO_AUTOLOADER', OBULLO .'Obullo'. DS .'Autoloader.php');
-
-/* Location: .constants */
-```
 
 #### index.php dosyası
 
 ```php
-require OBULLO_CONTAINER;
-require OBULLO_AUTOLOADER;
-require OBULLO_CORE;        // İşte tam bu dosyanın içerisinde
+require 'constants';
+/*
+|--------------------------------------------------------------------------
+| Php startup error handler
+|--------------------------------------------------------------------------
+*/
+if (error_get_last() != null) {
+    include TEMPLATES .'errors'. DS .'startup.php';
+}
+/*
+|--------------------------------------------------------------------------
+| Obullo Http Requests
+|--------------------------------------------------------------------------
+*/
+require OBULLO_HTTP;
+/*
+|--------------------------------------------------------------------------
+| Autoloader
+|--------------------------------------------------------------------------
+*/
+Obullo\Application\Obullo::registerAutoloader();
+/*
+|--------------------------------------------------------------------------
+| Initialize
+|--------------------------------------------------------------------------
+*/
+$c['app']->run();
 
 /* Location: .index.php */
 ```
+
 
 ### $c['app']->detectEnvironment();
 
@@ -213,7 +243,7 @@ Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b
 
 ### $c['env']['key']; 
 
-Env fonksiyonu <b>obullo/core.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env']</b> sınıfı ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+Env fonksiyonu <b>o2/Application/Http.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env']</b> sınıfı ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
 Fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, ikinci parametresi anahtarın varsayılan değerini tayin eder ve üçüncü parametre anahtarın zorunlu olup olmadığını belirler.
 
@@ -342,7 +372,124 @@ $c['config']->load('database');
 echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
 ```
 
-## Middleware Yapısı ( Filtreler )
+## Http Katmanları ( Middlewares ) ( Ya da Http Filtreleri )
+
+Http katmanı Rack protokolünün php ye uyarlanmış bir versiyonudur. Bknz. <a href="http://en.wikipedia.org/wiki/Rack_%28web_server_interface%29">http://en.wikipedia.org/wiki/Rack_%28web_server_interface%29</a>
+
+Http katmanları http filtreleri gibi çalışırlar. Uygulama içerisindeki katmanlar uygulamayı etkilemek, analiz etmek, uygulama ortamını yada request ve response nesnelerini uygulama çalışmasından sonra veya önce araya girerek etkilemek için kullanılırlar.
+
+Katmanlar application paketi içerisinde middleware sınıfına genişleyen basit php sınıflarıdır. Bir katman route yapısında tutturulabilir yada bağımsız olarak uygulamanın her yerinde çalışabilir.
+
+### Katman Mimarisi
+
+Uygulamayı gezegenimizin çekirdeği gibi düşünürsek çekirdeğe doğru gittğimizde dünyanın her bir katmanını bir http katmanı olarak kabul etmeliyiz. Bu çerçevede uygulama index.php dosyasındaki run metodu ile çalıştığında en dışdaki katman ilk olarak çağrılır. Eğer bu katmandan bir next() komutu cevabı elde edilirse bu katman opsiyonel olarak ona en yakın olan bir sonraki katmanı çağırır. Bu aşamalar dünyanın çekirdeğine inilip en içteki katman uygulamayı çalıştırana kadar bir döngü içerisinde kademeli olarak devam eder.
+
+Her katmanda bir <b>load()</b> ve <b>call()</b> metodu olmak zorundadır. Load metodu controller içerisindeki yükleme seviyesine ait katmanları oluştururken call metodu ise controller içerisindeki metodun çalıştırılmasına ait katmanları oluşurulur. Böylelikle load ve call çalıştırılma seviyelerinden önceki ve sonraki işlemler kontrol altına alınmış olur.
+
+Uygulamaya $c['app']->middleware() komutu ile yeni bir katman eklediğimizde eklenen katman en dıştaki yeni katman olur ve varsa bir önceki dış katmanı yada uygulamanın kendisini kuşatır.
+
+
+### Http Katmanları Nasıl Kullanılır ?
+
+Uygulama sınıdı içerisindeki <b>$c['app']->middleware('katman');</b> metodu uygulamaya dinamik olarak bir katman ekler. Yeni katman bir önceki katmanı kuşatır, eğer bir önceki katman yoksa uygulamanın kendisini kuşatılmış olur.
+
+
+Örnek bir katman ile katmanlara merhaba diyelim.
+
+
+```php
+namespace Http\Middlewares;
+
+use Obullo\Application\Middleware;
+
+class Hello extends Middleware
+{
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->c['response']->write('<pre>Hello im a <b>before</b> filter of load() method.</pre>');
+
+        $this->next->load();
+
+        $this->c['response']->write('<pre>Hello im a <b>after</b> filter of load() method.</pre>');
+    }
+
+    /**
+     *  Call action
+     * 
+     * @return void
+     */
+    public function call()
+    {
+        $this->c['response']->write('<pre>Hello im a <b>before</b> filter of call() method.</pre>');
+
+        $this->next->call();
+
+        $this->c['response']->write('<pre>Hello im a <b>after</b> filter of call() method.</pre>');
+    }
+
+}
+
+/* Location: .Http/Middlewares/Hello.php */
+```
+
+Eğer hello katmanını global olarak uygulamanın her yerinde çalıştırmak istiyorsak onu aşağıdaki gibi <b>app/middlewares.php</b> dosyası içerisine eklememiz gerekir.
+
+```php
+$c['app']->middleware(new Http\Middlewares\Hello);
+```
+
+Şimdi uygulamanızın ilk açılış sayfasına gidip çıktıları kontrol edin. Normal şartlarda yukarıdakileri yaptı iseniz 4 adet çıktı almanız gerekir.
+
+
+### Katmanları Route Yapısına Tutturmak
+
+Eğer katmanların sadece belirli url adreslerine özgü olmasını istiyorsanız <b>app/routes.php</b> dosyasında bir route grubu oluşturup katmanları bu gruba atamanız gerekir. Bunun için grup konfigürasyonu içerisinde middleware anahtarı kullanarak mevcut gruba birden fazla katman ekleyebilirsiniz. Unutulmaması gereken en önemli nokta katmanları <b>$this->attach();</b> metodu içerisinde düzenli ifadelerden yaralanarak ( regular expressions ) katmanın çalışması gereken url adresine tutturulması kısmıdır.
+
+Bunun için size aşağıda bir örnek hazırladık.
+
+```php
+$c['router']->group(
+    [
+        'name' => 'GenericUsers',
+        'domain' => $c['config']['domain']['mydomain.com'],
+        'middleware' => array('Maintenance')
+    ],
+    function () {
+        $this->defaultPage('welcome');
+        $this->attach('(.*)'); // Attach middleware to all pages of this group
+    }
+);
+```
+
+Yukarıdaki örnekte maintenance katmanı $this->attach('(.*)'); metodu ile geçerli domain e ait grubun tüm sayfalarına atanmış oldu.
+
+Proje ana dizininde iken konsolunuza <kbd>php task domain down --name=root</kbd> komutunu kullanarak maintenance filtresinin çalışıp çalışmadığını kontrol edebilirsiniz. <kbd>php task domain up --name=root</kbd> komutu ile tekrar web siteniz maintenance modundan çıkıp gezilebilir hale gelecektir.
+
+
+Yetkilendirme kontrolü ile igili diğer bir örneği yine sizin için hazırladık.
+
+```php
+$c['router']->group(
+    [
+        'name' => 'AuthorizedUsers',
+        'domain' => $c['config']['domain']['mydomain.com'], 
+        'middleware' => array('Guest')
+    ],
+    function () {
+        $this->defaultPage('welcome');
+        $this->attach('welcome/restricted'); // Attach middleware just for this url
+    }
+);
+```
+
+Yukarıdaki örnekte de <b>Guest</b> katmanı kullanılarak <b>welcome/restricted</b> sayfasına oturum açmamış kullanıcıların girmesi engellenmiştir. Guest katmanı diğer katmanlar gibi <b>app/classes/Http/Middlewares/</b> klasörü içerisinde yer alır ve call() seviyesinde <b>$this->user->identity->guest()</b> metodu ile kullanıcının yetkisi olup olmadığını kontrol eder.
+
+Kontrol sonucunda yetkisi olmayan kullanıcılar login sayfasına yönlendirilirler.
 
 
 #### Application Sınıfı Referansı
@@ -351,6 +498,8 @@ echo $c['config']['database']['connections']['db']['host'];  // Çıktı localho
 
 
 ##### $this->c['app']->middleware();
+
+
 
 ##### $this->c['app']->method();
 

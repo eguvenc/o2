@@ -88,7 +88,7 @@ Where <var>itemname</var> is the <dfn>$config<dfn> array index you want to retri
 
 Framework ortam sabitini atamak için bilgisayarınıza ait hostname değerine ihtiyaç duymaktadır. <b>Local</b> ortamı için hostname ler her biri yazılımcı için <b>Production</b> ortamı için de bu değerler her bir sunucu için tanımlanmalıdır.
 
-Using your environments array <b>$c->detectEnvironment();</b> method detect your current environment to assign <b>ENV</b> constant. Before this you need to define your hostnames in <kbd>app/environments.php</kbd> file.
+Using your environments array <b>$c['app']->detectEnvironment();</b> method detect your current environment. Before this you need to define your hostnames in <kbd>app/environments.php</kbd> file.
 
 ```php
 <?php
@@ -116,23 +116,6 @@ return array(
 ```
 
 Auto detecting of environment.
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Detect current environment
-|--------------------------------------------------------------------------
-*/
-define('ENV', $c->detectEnvironment());
-
-// END Core.php File
-/* End of file Core.php
-
-/* Location: .Obullo/Obullo/Core.php */
-```
-
-After the definition application can use <b>ENV</b> constant.
 
 
 ### Creating Environment Folders

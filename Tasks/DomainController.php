@@ -65,7 +65,7 @@ Class DomainController extends Controller
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'down';
-        $this->config->write(APP .'config'. DS . 'env'. DS . ENV . DS .'domain.php', $this->config['domain']);
+        $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
 
         echo "\33[1;31mDomain \33[1;37m\33[41m".$name."\33[0m\33[1;31m down for maintenance.\33[0m\n";
     }
@@ -82,7 +82,7 @@ Class DomainController extends Controller
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'up';
-        $this->config->write(APP .'config'. DS . 'env'. DS . ENV . DS .'domain.php', $this->config['domain']);
+        $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
 
         echo "\33[1;32mDomain \33[1;37m\33[42m".$name."\33[0m\33[1;32m up.\33[0m\n";
     }

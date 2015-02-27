@@ -36,6 +36,8 @@ trait UnderMaintenanceTrait
      */
     public function subDomainIsDown()
     {
+        // We inject parameters into $this->params variable in app->middleware() method.
+
         if ($this->params['domain'] == $this->c['config']['url']['webhost']) {
             $this->params['domain'] = array('regex' => $this->c['config']['url']['webhost']);
         }

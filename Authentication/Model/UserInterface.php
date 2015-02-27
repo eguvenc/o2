@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication\Model;
 
-use Obullo\Container\Container,
-    Auth\Identities\GenericUser;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
 
 /**
  * User Provider Interface

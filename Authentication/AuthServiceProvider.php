@@ -2,10 +2,10 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Container\Container,
-    Obullo\Authentication\User\UserActivity,
-    Obullo\Authentication\User\UserIdentity,
-    Obullo\Authentication\User\UserLogin;
+use Obullo\Container\Container;
+use Obullo\Authentication\User\UserActivity;
+use Obullo\Authentication\User\UserIdentity;
+use Obullo\Authentication\User\UserLogin;
 
 /**
  * O2 Authentication - User Service Provider

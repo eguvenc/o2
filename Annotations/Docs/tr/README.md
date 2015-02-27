@@ -146,7 +146,7 @@ Class Welcome extends \Controller
     public function load()
     {
         $this->c['url'];
-        $this->c['app']->middleware(new Http\Middlewares\MyMiddleware, $params = array());
+        $this->c['app']->middleware('MyMiddleware', $params = array());
     }
 
     /**

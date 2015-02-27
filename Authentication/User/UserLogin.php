@@ -2,12 +2,12 @@
 
 namespace Obullo\Authentication\User;
 
-use RuntimeException,
-    Obullo\Utils\Random,
-    Obullo\Container\Container,
-    Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser,
-    Obullo\Authentication\AuthResult;
+use RuntimeException;
+use Obullo\Utils\Random;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Auth\Identities\AuthorizedUser;
+use Obullo\Authentication\AuthResult;
 
 /**
  * O2 Authentication - User Login Class
@@ -99,7 +99,8 @@ Class UserLogin
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-        $genericUser = new GenericUser($this->c);
+        $genericUser = new GenericUser;
+        $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
 
         $authResult = $this->c['auth.adapter']->login($genericUser);
@@ -130,8 +131,10 @@ Class UserLogin
      */
     public function validate(array $credentials = array())
     {
-        $genericUser = new GenericUser($this->c);
+        $genericUser = new GenericUser;
+        $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
+        
         return $this->c['auth.adapter']->authenticate($genericUser, false);
     }
 

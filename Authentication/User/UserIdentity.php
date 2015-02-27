@@ -2,11 +2,11 @@
 
 namespace Obullo\Authentication\User;
 
-use Auth\Identities\AuthorizedUser;
-use Auth\Identities\GenericUser;
-use Obullo\Authentication\Recaller;
-use Obullo\Authentication\Token;
 use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Obullo\Authentication\Token;
+use Auth\Identities\AuthorizedUser;
+use Obullo\Authentication\Recaller;
 
 /**
  * O2 Authentication - User Identity Class
@@ -20,13 +20,6 @@ use Obullo\Container\Container;
  */
 class UserIdentity extends AuthorizedUser
 {
-    /**
-     * Container
-     *
-     * @var object
-     */
-    protected $c;
-
     /**
      * Authentication config
      *
@@ -97,7 +90,7 @@ class UserIdentity extends AuthorizedUser
      */
     public function __construct(Container $c)
     {
-        $this->c = $c;
+        $this->setContainer($c);
         $this->c['config']->load('auth');
         $this->storage = $this->c['auth.storage'];
 
@@ -105,8 +98,6 @@ class UserIdentity extends AuthorizedUser
             $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($token);
         }
-        parent::__construct($c);
-
         $this->initialize();
 
         $this->tokenRefreshSeconds = strtotime('- ' . (int) $this->c['config']['auth']['security']['cookie']['refresh'] . ' seconds');
@@ -122,18 +113,14 @@ class UserIdentity extends AuthorizedUser
     {
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
-
             $this->setCredentials($this->attributes);
-
-            // parent::__construct($this->c, $this->attributes);
 
             if (! isset($this->__lastTokenRefresh)) { // Create default token refresh value
                 $this->__lastTokenRefresh = time();
             }
+
         } elseif ($this->attributes = $this->storage->getCredentials('__temporary')) {
             $this->setCredentials($this->attributes);
-
-            // parent::__construct($this->c, $this->attributes);
         }
     }
 
@@ -152,19 +139,18 @@ class UserIdentity extends AuthorizedUser
         if (! is_null($this->isAuthenticated)) {
             return $this->isAuthenticated;
         }
-        $this->tokenRefresh = false;
-        $tokenRefresh       = false;
-        if ($this->__isAuthenticated == 1 and $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
+        
+        // $this->tokenRefresh = false;
+
+        if ($this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
             $token                    = new Token($this->c);
             $this->__token            = $token->get();  // Refresh the token and write it to memory
             $this->__lastTokenRefresh = time();
             $this->tokenRefresh       = true;
-            $tokenRefresh             = true;
         }
-        if ($this->__isAuthenticated == 1 and $this->isValidToken($tokenRefresh)) {
+        if ($this->__isAuthenticated == 1 and $this->isValidToken()) {
             return $this->isAuthenticated = true;
         }
-
         return $this->isAuthenticated = false;
     }
 
@@ -178,7 +164,6 @@ class UserIdentity extends AuthorizedUser
         if ($this->check()) {
             return false;
         }
-
         return true;
     }
 
@@ -222,10 +207,8 @@ class UserIdentity extends AuthorizedUser
         }
         if (isset($this->__isVerified) and $this->__isVerified == 1) {
             $this->isVerified = 1;
-
             return true;
         }
-
         return false;
     }
 
@@ -262,9 +245,9 @@ class UserIdentity extends AuthorizedUser
      *
      * @return bool
      */
-    public function isValidToken($tokenRefresh)
+    public function isValidToken()
     {
-        if (! $this->exists() || $this->tokenIsValid || $tokenRefresh == true || ! is_null($this->recaller) || ! $this->getSessionToken()) { // If identity data does not exists.
+        if (! $this->exists() || $this->tokenIsValid || $this->tokenRefresh == true || ! is_null($this->recaller) || ! $this->getSessionToken()) { // If identity data does not exists.
             return $this->tokenIsValid = true;
         }
         if ($this->getSessionToken() == $this->getStorageToken()) {
@@ -294,7 +277,6 @@ class UserIdentity extends AuthorizedUser
         if (isset($this->__isTemporary)) {
             return true;
         }
-
         return false;
     }
 
@@ -412,7 +394,8 @@ class UserIdentity extends AuthorizedUser
             $rememberMeCookie = $this->c['config']['auth']['login']['rememberMe']['cookie']['name'];
             $rememberToken    = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
-            $genericUser = new GenericUser($this->c);
+            $genericUser = new GenericUser;
+            $genericUser->setContainer($this->c);
             $genericUser->setCredentials([$this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
 
             $this->refreshRememberToken($genericUser);

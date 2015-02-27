@@ -31,13 +31,13 @@ class AbstractUserIdentity
     protected $attributes = array();
 
     /**
-     * Set container
+     * Set Container
      * 
-     * @param Container $c container
-     * 
+     * @param object $c container
+     *
      * @return void
      */
-    public function __construct(Container $c)
+    public function setContainer(Container $c)
     {
         $this->c = $c;
     }

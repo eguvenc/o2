@@ -2,8 +2,8 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Identities\GenericUser,
-    Obullo\Container\Container;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
 
 /**
  * Abstract Adapter
