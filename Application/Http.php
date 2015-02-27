@@ -139,7 +139,7 @@ class Http extends Obullo
         $this->class = new $className;  // Call the controller
         $this->method = $method;
         $this->parseDocComments();
-        $this->dispatchMethods();
+        $this->dispatchMethod();
 
         foreach ($routes as $value) {
             if ($value['route'] == $route) {     // if we have natural route match
@@ -149,8 +149,11 @@ class Http extends Obullo
             }
         }
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
-        $middleware->load();          
-        $middleware->call();          
+        $middleware->load();
+        if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
+            $this->class->extend();                       // could not load view variables.
+        }
+        $middleware->call();   
 
         $this->c['response']->sendOutput();  //  send headers and echo output
     }
