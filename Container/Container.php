@@ -54,11 +54,6 @@ class Container implements ArrayAccess
         unset($this->services['Providers']);
     }
 
-    // public function setController()
-    // {
-
-    // }
-
     /**
      * Checks if a parameter or an object is set.
      *
