@@ -383,6 +383,19 @@ class UserIdentity extends AuthorizedUser
     }
 
     /**
+     * Update temporary credentials
+     * 
+     * @param string $key key
+     * @param string $val value
+     * 
+     * @return void
+     */
+    public function updateTemporaryCredentials($key, $val)
+    {
+        $this->c['auth.storage']->update($key, $val);
+    }
+
+    /**
      * Update remember token if it exists in the memory and browser header
      *
      * @return void

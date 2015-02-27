@@ -84,7 +84,7 @@ Class Url
         if ( ! preg_match('#^https?://#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
-        $this->c['event']->fire('before.redirect', array($uri, $method));
+        // $this->c['event']->fire('before.redirect', array($uri, $method));
 
         if (strpos($method, '[')) {
             $index = explode('[', $method);

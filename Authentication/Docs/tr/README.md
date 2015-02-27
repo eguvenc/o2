@@ -884,6 +884,10 @@ Onaya tabi olan yetki doğrulamada başarılı oturum açma işleminden sonra ku
 
 Onaya tabi olan yetki doğrulamada kullanıcının kimliğinin geçici olup olmadığını gösterir. <b>1</b> yada </b>0</b> değerine döner.
 
+##### $this->user->identity->updateTemporaryCredentials(string $key, mixed $val);
+
+Geçici olarak oluşturulmuş kimlik bilgilerini güncellemenize olanak tanır.
+
 ##### $this->user->identity->logout();
 
 Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile güncellenir. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kappattı olarak kaydeder.
@@ -954,12 +958,7 @@ Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
 Güvenlik çerezinine geri döner.
 
-##### $this->user->identity->getRoles();
-
-Kullanıcıya ait daha önceden kaydedilmiş rollere geri döner.
-
-
->Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine ekleyebilirsiniz.
+>Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
 
 
 #### Activity Sınıfı Referansı
