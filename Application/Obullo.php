@@ -144,13 +144,10 @@ class Obullo
      * 
      * @return void
      */
-    protected function dispatchMethods()
+    protected function dispatchMethod()
     {
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
             $this->c['response']->show404($this->notFoundUri);
-        }
-        if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
-            $this->class->extend();                       // could not load view variables.
         }
     }
 

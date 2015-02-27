@@ -136,6 +136,9 @@ class Cli extends Obullo
 
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         $middleware->load();
+        if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
+            $this->class->extend();                       // could not load view variables.
+        }
         $middleware->call();          
 
         $this->c['response']->sendOutput();  //  send headers and echo output
