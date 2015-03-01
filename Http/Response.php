@@ -257,32 +257,6 @@ Class Response
     }
 
     /**
-     * Show user friendly n messages
-     * 
-     * @param string $message message
-     * 
-     * @return string error
-     */
-    public function showWarning($message)
-    {
-        $error = new Error($this->c, $this);
-        return $error->showWarning($message);
-    }
-
-    /**
-     * Show user friendly n messages
-     * 
-     * @param string $message message
-     * 
-     * @return string error
-     */
-    public function showNotice($message)
-    {
-        $error = new Error($this->c, $this);
-        return $error->showNotice($message);
-    }
-
-    /**
      * Encode json data and set json headers.
      * 
      * @param array  $data   array data

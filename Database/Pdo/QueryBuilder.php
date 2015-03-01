@@ -2,8 +2,8 @@
 
 namespace Obullo\Database\Pdo;
 
-use RunTimeException,
-    Exception;
+use Exception;
+use RunTimeException;
 
 /**
  * Query Builder

@@ -2,9 +2,9 @@
 
 namespace Obullo\Session;
 
-use Obullo\Container\Container,
-    Obullo\Session\MetaData\MetaData,
-    Obullo\Session\MetaData\NullMetaData;
+use Obullo\Container\Container;
+use Obullo\Session\MetaData\MetaData;
+use Obullo\Session\MetaData\NullMetaData;
 
 /**
  * Session Class

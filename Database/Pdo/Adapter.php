@@ -2,10 +2,10 @@
 
 namespace Obullo\Database\Pdo;
 
-use PDO,
-    Exception,
-    Closure,
-    Controller;
+use PDO;
+use Exception;
+use Closure;
+use Controller;
     
 /**
  * Adapter Class
@@ -63,11 +63,7 @@ Abstract Class Adapter
         $this->params = $params;
         $this->config = $this->c['config'];
         $this->logger = $c['logger'];
-        // $this->provider = $c['service provider '.$params['provider']['name']];
     }
-
-    // public function setLogger(){}
-    // public function setPdo(){}
 
     /**
      * Connect to PDO
@@ -76,7 +72,6 @@ Abstract Class Adapter
      */
     public function createConnection()
     {
-        // $this->connection = $this->provider->get($this->params);
         $this->connection = $this->c['service provider pdo']->get($this->params);
         
         // We set exception attribute for always showing the pdo exceptions errors.

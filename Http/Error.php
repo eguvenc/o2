@@ -74,39 +74,7 @@ Class Error
         echo $this->showHttpError($heading, $message, 'general', $statusCode);
         exit();
     }
-
-    /**
-     * Show user friendly notice messages
-     * 
-     * @param string $message message
-     * 
-     * @return string error
-     */
-    public function showWarning($message)
-    {
-        $message = $this->sanitizeMessage($message);
-        ob_start();
-        include TEMPLATES .'errors'. DS .'warning.php';
-        $buffer = ob_get_clean();
-        return $buffer;
-    }
-
-    /**
-     * Show user friendly notice messages
-     * 
-     * @param string $message message
-     * 
-     * @return string error
-     */
-    public function showNotice($message)
-    {
-        $message = $this->sanitizeMessage($message);
-        ob_start();
-        include TEMPLATES .'errors'. DS .'notice.php';
-        $buffer = ob_get_clean();
-        return $buffer;
-    }
-
+    
     /**
      * Sanitize mesage
      * 
