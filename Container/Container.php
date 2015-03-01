@@ -545,11 +545,7 @@ class Container implements ArrayAccess
     protected function resolveServiceClass($serviceClass, $isDirectory = false)
     {
         if ($isDirectory) {
-            $namespace = '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->getEnv());
-            if (is_dir(APP .'Service'. DS .$serviceClass. DS .'Cli') AND defined('STDIN')) {
-                $namespace = '\\Service\\'.$serviceClass.'\Cli\Cli';
-            }
-            return $namespace;
+            return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->getEnv());
         }
         return '\Service\\'.$serviceClass;
     }
