@@ -3,9 +3,10 @@
 namespace Obullo\Authentication;
 
 use Obullo\Container\Container;
+use Obullo\Authentication\Token;
+use Obullo\Authentication\User\UserLogin;
 use Obullo\Authentication\User\UserActivity;
 use Obullo\Authentication\User\UserIdentity;
-use Obullo\Authentication\User\UserLogin;
 
 /**
  * O2 Authentication - User Service Provider
@@ -53,6 +54,10 @@ Class AuthServiceProvider
                 ]
             );
             return new $this->config['cache']['storage']($this->c, $cache);
+        };
+
+        $this->c['auth.token'] = function () {
+            return new Token($this->c);
         };
 
         $this->c['auth.adapter'] = function () use ($params) {

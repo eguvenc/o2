@@ -132,7 +132,6 @@ class Token
             $cookie['secure'],
             $cookie['httpOnly']
         );
-
         return $token;
     }
 }

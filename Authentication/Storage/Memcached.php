@@ -302,12 +302,11 @@ Class Memcached extends AbstractStorage
     /**
      * Re authenticate cached permanent identity
      * 
-     * @param array  $data  cached auth data
-     * @param object $token token \Obullo\Authentication\Token
+     * @param array $data cached auth data
      * 
      * @return void
      */
-    public function authenticatePermanentIdentity($data, Token $token)
+    public function authenticatePermanentIdentity($data)
     {
         /**
          * We override old authentication data
@@ -316,7 +315,7 @@ Class Memcached extends AbstractStorage
         $data['__isAuthenticated'] = 1;
         $data['__isTemporary'] = 0;
         $data['__type'] = 'Authorized';
-        $data['__token'] = $token->get();
+        $data['__token'] = $this->c['auth.token']->get();
 
         $this->loginAsPermanent($data);
     }

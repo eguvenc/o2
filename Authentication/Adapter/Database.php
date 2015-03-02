@@ -24,13 +24,6 @@ use Obullo\Authentication\AbstractAdapter;
 class Database extends AbstractAdapter implements AdapterInterface
 {
     /**
-     * Token
-     * 
-     * @var object
-     */
-    protected $token;
-
-    /**
      * Session class
      * 
      * @var object
@@ -216,14 +209,12 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     public function generateUser(GenericUser $genericUser, $resultRowArray, $write2Storage = false, $passwordNeedsRehash = array())
     {
-        $token = new Token($this->c);
-
         $attributes = array(
             $this->columnIdentifier => $genericUser->getIdentifier(),
             $this->columnPassword => $resultRowArray[$this->columnPassword],
             '__rememberMe' => $genericUser->getRememberMe(),
             '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
-            '__token' => $token->get(),
+            '__token' => $this->c['auth.token']->get(),
             '__time' => ceil(microtime(true)),
         );
         /**
@@ -235,7 +226,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->regenerateSessionId(true);  // Delete old session after regenerate !
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
+            $this->c['user.model']->updateRememberToken($this->c['auth.token']->getRememberToken(), $genericUser); // refresh rememberToken
         }
         if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
             $this->write2Storage($attributes);  
@@ -244,7 +235,7 @@ class Database extends AbstractAdapter implements AdapterInterface
              * Authenticate cached auth data. We override __isAuthenticated item value as "1"
              * then we update the token.
              */
-            $this->storage->authenticatePermanentIdentity($attributes, $token);
+            $this->storage->authenticatePermanentIdentity($attributes);
         }
         $this->deleteOldAuth();
     }

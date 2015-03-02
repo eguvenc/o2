@@ -111,9 +111,7 @@ class UserIdentity extends AuthorizedUser
      */
     public function initialize()
     {
-        $cookie = $this->c['config']['auth']['security']['cookie'];     // Read cookie token at the top !
-        $key = $cookie['prefix'].$cookie['name'];
-        $this->cookieToken = isset($_COOKIE[$key]) ? $_COOKIE[$key] : false;
+        $this->cookieToken = $this->c['auth.token']->getCookie();
 
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
@@ -144,11 +142,9 @@ class UserIdentity extends AuthorizedUser
             return $this->isAuth;
         }
         if ($this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
-            $token                    = new Token($this->c);
-            $this->__token            = $token->get();  // Refresh the token and write it to memory
+            $this->__token            = $this->c['auth.token']->get();  // Refresh the token and write it to memory
             $this->__lastTokenRefresh = time();
-
-            return true;  // Don't do the token is valid for current request
+            return $this->isAuth = true;  // Don't do the token is valid for current request
         }
         if ($this->__isAuthenticated == 1 AND $this->isValidToken()) {
             return $this->isAuth = true;
@@ -357,9 +353,8 @@ class UserIdentity extends AuthorizedUser
     public function logout()
     {
         $credentials                      = $this->storage->getCredentials('__permanent');
-        $token                            = new Token($this->c);
         $credentials['__isAuthenticated'] = 0;        // Sets memory auth to "0".
-        $credentials['__token']           = $token->refresh();  // Refresh the security token
+        $credentials['__token']           = $this->c['auth.token']->refresh();  // Refresh the security token
         $credentials['__type']            = 'Unauthorized';
 
         $this->updateRememberToken();
@@ -419,8 +414,7 @@ class UserIdentity extends AuthorizedUser
      */
     public function refreshRememberToken(GenericUser $genericUser)
     {
-        $token = new Token($this->c);
-        $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken
+        $this->c['user.model']->updateRememberToken($this->c['auth.token']->getRememberToken(), $genericUser); // refresh rememberToken
     }
 
     /**

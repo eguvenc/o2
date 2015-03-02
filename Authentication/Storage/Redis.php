@@ -298,17 +298,16 @@ Class Redis extends AbstractStorage
      * Re authenticate cached permanent identity, we override 
      * old authentication data that we stored before as permanent
      * 
-     * @param array  $data  cached auth data
-     * @param object $token token \Obullo\Authentication\Token
+     * @param array $data cached auth data
      * 
      * @return void
      */
-    public function authenticatePermanentIdentity($data, Token $token)
+    public function authenticatePermanentIdentity($data)
     {
         $data['__isAuthenticated'] = 1;
         $data['__isTemporary'] = 0;
         $data['__type'] = 'Authorized';
-        $data['__token'] = $token->get();  // update token
+        $data['__token'] = $this->c['auth.token']->get();  // update token
 
         $this->loginAsPermanent($data);
     }
