@@ -134,12 +134,11 @@ class Cli extends Obullo
         $this->class = new $className;  // Call the controller
         $this->method = $method;
 
-        $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
-        $middleware->load();
+        $this->class->load();   // Disabled middlewares in Cli mode.
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }
-        $middleware->call();          
+        $this->call();          
 
         $this->c['response']->sendOutput();  //  send headers and echo output
     }
@@ -158,7 +157,6 @@ class Cli extends Obullo
             $this->method = 'index';
         }
         $this->dispatchMethod();  // Display 404 error if method not exists also runs extend() method.
-
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);

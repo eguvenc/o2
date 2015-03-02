@@ -49,16 +49,17 @@ Class File implements CacheHandlerInterface
      */
     public function __construct(Container $c, $options = array())
     {
-        $options = array();
-        $c['config']->load('cache');
-        $this->params = $c['config']['cache']['file'];
+        $options = array(); // Unset options, no need
+
+        $this->params = $c['config']->load('cache')['file'];
         $this->container = new ArrayContainer;
-        $this->filePath = APP . str_replace('/', DS, trim($this->params['path'], '/')) . DS;
+        $this->filePath = str_replace('/', DS, trim($this->params['path'], '/')) . DS;
 
         if ( ! is_writable($this->filePath)) {
             throw new RunTimeException(
                 sprintf(
-                    ' %s is not writable.', get_class()
+                    'Filepath %s is not writable.',
+                    $this->filePath
                 )
             );
         }
@@ -275,20 +276,22 @@ Class File implements CacheHandlerInterface
      */
     public function flushAll()
     {
-        return delete_files($this->filePath);
+        $dh  = opendir($this->filePath);
+        while (false !== ($fileName = readdir($dh))) {
+            if (substr($fileName, 0, 1) !== '.') {
+                unlink($this->filePath . $fileName);
+            }
+        }
     }
 
     /**
      * Cache Info
      * 
-     * @param string $type type
-     * 
      * @return array
      */
-    public function info($type = null)
+    public function info()
     {
-        $type = null;
-        return get_dir_file_info($this->filePath);
+        return scandir($this->filePath);
     }
 
     /**

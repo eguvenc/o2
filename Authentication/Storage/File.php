@@ -9,7 +9,7 @@ use Obullo\Authentication\AbstractStorage;
 use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
- * O2 Authentication - Memcached Storage
+ * O2 Authentication - File Storage
  * 
  * @category  Authentication
  * @package   Storage
@@ -18,7 +18,7 @@ use Obullo\Cache\Handler\CacheHandlerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Memcached extends AbstractStorage
+Class File extends AbstractStorage
 {
     public $keys;               // Authentication keys used in getAllKeys method
     protected $c;               // Container

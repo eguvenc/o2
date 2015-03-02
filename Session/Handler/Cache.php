@@ -41,6 +41,13 @@ Class Cache implements SessionHandlerInterface
     public $lifetime = 7200; // two hours
  
     /**
+     * Cache provider
+     * 
+     * @var object
+     */
+    protected $provider;
+
+    /**
      * Constructor
      *
      * @param array $c      container
@@ -52,6 +59,7 @@ Class Cache implements SessionHandlerInterface
         $this->params = $params;
         $this->key = $params['session']['key'];
         $this->lifetime = $params['session']['lifetime'];
+        $this->provider = $this->c['service provider cache'];
     }
 
     /**
@@ -66,7 +74,7 @@ Class Cache implements SessionHandlerInterface
     {
         $savePath = null;
         $sessionName = null;
-        $this->cache = $this->c['service provider cache']->get(
+        $this->cache = $this->provider->get(
             [
                 'driver' => $this->params['cache']['storage'],
                 'serializer' => 'none'
