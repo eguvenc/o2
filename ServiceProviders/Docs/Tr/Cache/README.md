@@ -12,7 +12,7 @@ $this->cache = $this->c->load(
     'service provider cache', 
     [
         'driver' => 'redis',
-        'serializer' => 'SERIALIZER_PHP'
+        'serializer' => 'php'
     ]
 );
 ```
@@ -27,4 +27,4 @@ $this->cache->method();
 OPSIYONLAR
 
 Key 			Value
-serializer		SERIALIZER_PHP
+serializer		php

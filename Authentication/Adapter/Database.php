@@ -232,8 +232,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
         if ($this->config['login']['session']['regenerateSessionId']) {
-            $deleteOldSession = $this->config['login']['session']['deleteOldSessionAfterRegenerate'];
-            $this->regenerateSessionId($deleteOldSession);  // If session data destroyed we need to keep auth ids.
+            $this->regenerateSessionId(true);  // Delete old session after regenerate !
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $this->c['user.model']->updateRememberToken($token->getRememberToken(), $genericUser); // refresh rememberToken

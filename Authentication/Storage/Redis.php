@@ -2,11 +2,11 @@
 
 namespace Obullo\Authentication\Storage;
 
-use LogicException;
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
+use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
  * O2 Authentication - Memory Storage
@@ -31,20 +31,16 @@ Class Redis extends AbstractStorage
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c     container
+     * @param object $cache CacheHandlerInterface
      */
-    public function __construct(Container $c) 
+    public function __construct(Container $c, CacheHandlerInterface $cache) 
     {
-        parent::__construct($c);
-
+        $this->c = $c;
+        $this->cache = $cache;
+        $this->c['config']->load('auth');
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
-        $this->cache   = $this->c['service provider cache']->get(
-            [
-                'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
-                'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
-            ]
-        );
     }
 
     /**

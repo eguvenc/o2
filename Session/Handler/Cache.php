@@ -2,6 +2,8 @@
 
 namespace Obullo\Session\Handler;
 
+use Obullo\Container\Container;
+
 /**
  * Cache Session Handler Class 
  * 
@@ -15,7 +17,7 @@ namespace Obullo\Session\Handler;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-Class Cache
+Class Cache implements SessionHandlerInterface
 {
     /**
      * Container
@@ -44,7 +46,7 @@ Class Cache
      * @param array $c      container
      * @param array $params configuration
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
         $this->params = $params;
@@ -67,7 +69,7 @@ Class Cache
         $this->cache = $this->c['service provider cache']->get(
             [
                 'driver' => $this->params['cache']['storage'],
-                'serializer' => 'SERIALIZER_NONE'
+                'serializer' => 'none'
             ]
         );
         return is_object($this->cache) ? true : false;

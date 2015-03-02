@@ -2,9 +2,9 @@
 
 namespace Obullo\Cache\Handler;
 
-use Obullo\Cache\ArrayContainer,
-    Obullo\Container\Container,
-    RunTimeException;
+use RunTimeException;
+use Obullo\Cache\ArrayContainer;
+use Obullo\Container\Container;
 
 /**
  * File Caching Class
@@ -16,9 +16,9 @@ use Obullo\Cache\ArrayContainer,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class File implements HandlerInterface
+Class File implements CacheHandlerInterface
 {
-    const SERIALIZER_NONE = 'SERIALIZER_NONE';
+    const SERIALIZER_NONE = 'none';
 
     /**
      * Uploaded file path

@@ -154,11 +154,10 @@ return array(
         ),
         'session' => array(
             'regenerateSessionId' => true,               // Regenerate session id upon new logins.
-            'deleteOldSessionAfterRegenerate' => false,  // Destroy old session data after regenerate the new session id upon new logins
         )
     ),
     'activity' => array(
-        'singleSignOff' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions.
+        'uniqueLogin' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions.
     )
 );
 
@@ -221,11 +220,6 @@ return array(
         <tr>
             <td>login[session][regenerateSessionId]</td>
             <td>This is a security preacution for session id not to be stolen, if this option is active session id is updated on every login and the user information on the session is not removed.</td>
-        </tr>
-
-        <tr>
-            <td>login[session][deleteOldSessionAfterRegenerate]</td>
-            <td>If this option is active, during a login operation after session is regenerated, all the created information in the user's session is removed.</td>
         </tr>
 
         <tr>

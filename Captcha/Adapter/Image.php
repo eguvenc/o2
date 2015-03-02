@@ -2,10 +2,11 @@
 
 namespace Obullo\Captcha\Adapter;
 
-use RuntimeException,
-    Obullo\Captcha\CaptchaResult,
-    Obullo\Captcha\AbstractAdapter,
-    Obullo\Captcha\AdapterInterface;
+use RuntimeException;
+use Obullo\Container\Container;
+use Obullo\Captcha\CaptchaResult;
+use Obullo\Captcha\AbstractAdapter;
+use Obullo\Captcha\AdapterInterface;
 
 /**
  * Captcha image class.
@@ -51,7 +52,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
      * @param object $c      container
      * @param array  $params parameters
      */
-    public function __construct($c, array $params = array())
+    public function __construct(Container $c, array $params = array())
     {
         if (sizeof($params) == 0) {
             $params = $c['config']->load('captcha/image');

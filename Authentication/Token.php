@@ -61,7 +61,7 @@ class Token
             $userAgent      = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
             $userAgentMatch = '.' . hash('adler32', trim($userAgent));
         }
-        $token              = Random::generate('alnum', 16);
+        $token = Random::generate('alnum', 16);
 
         return $this->token = $token . $userAgentMatch;  // Creates smaller token
     }
@@ -88,8 +88,7 @@ class Token
     {
         $cookie = $this->config['security']['cookie'];
 
-        // return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
-        return $this->c['session']->get($cookie['prefix'] . $cookie['name']);
+        return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
     }
 
     /**
@@ -102,17 +101,15 @@ class Token
         $cookie = $this->config['security']['cookie'];
         $token  = $this->generate();
 
-        $this->c['session']->set($cookie['prefix'] . $cookie['name'], $token);
-        // setcookie(
-        //     $cookie['prefix'] . $cookie['name'],
-        //     $token,
-        //     time() + $cookie['expire'],
-        //     $cookie['path'],
-        //     $this->c['config']['cookie']['domain'],   //  Get domain from global config
-        //     $cookie['secure'],
-        //     $cookie['httpOnly']
-        // );
-
+        setcookie(
+            $cookie['prefix'] . $cookie['name'],
+            $token,
+            time() + $cookie['expire'],
+            $cookie['path'],
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'],
+            $cookie['httpOnly']
+        );
         return $token;
     }
 

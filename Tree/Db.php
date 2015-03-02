@@ -210,7 +210,7 @@ Class Db
     {
         $this->text = $text;
     }
-
+    
     /**
      * Connect to database if its necessary
      * 

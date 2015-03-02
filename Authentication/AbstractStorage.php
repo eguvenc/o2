@@ -28,17 +28,6 @@ abstract class AbstractStorage
     const AUTHORIZED_USERS = 'Authorized:';
 
     /**
-     * Constructor
-     * 
-     * @param Container $c container
-     */
-    public function __construct(Container $c)
-    {
-        $this->c = $c;
-        $this->c['config']->load('auth');
-    }
-
-    /**
      * Sets identifier value to session
      *
      * @param string $identifier user id

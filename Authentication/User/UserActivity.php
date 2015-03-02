@@ -57,8 +57,6 @@ Class UserActivity
 
         $this->attributes = $this->c['auth.identity']->__activity;
         $this->identifier = $this->c['auth.identity']->getIdentifier();
-
-        // register_shutdown_function($this, 'write');
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException,
-    Obullo\Cache\ArrayContainer,
-    Obullo\Container\Container;
+use RunTimeException;
+use Obullo\Container\Container;
+use Obullo\Cache\ArrayContainer;
 
 /**
  * Redis Caching Class
@@ -16,11 +16,11 @@ use RunTimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class Redis implements HandlerInterface
+Class Redis implements CacheHandlerInterface
 {
-    const SERIALIZER_PHP      = 'SERIALIZER_PHP';
-    const SERIALIZER_NONE     = 'SERIALIZER_NONE';
-    const SERIALIZER_IGBINARY = 'SERIALIZER_IGBINARY';
+    const SERIALIZER_PHP      = 'php';
+    const SERIALIZER_NONE     = 'none';
+    const SERIALIZER_IGBINARY = 'igbinary';
     const OPTION_SERIALIZER   = 1;      // Redis::OPT_SERIALIZER
 
     /**
@@ -140,7 +140,7 @@ Class Redis implements HandlerInterface
      * 
      * @return boolean true or false
      */
-    public function setOption($options)
+    public function setOption(array $options)
     {
         switch ($options['serializer']) {
         case static::SERIALIZER_NONE: // don't serialize data

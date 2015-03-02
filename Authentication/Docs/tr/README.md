@@ -129,7 +129,7 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
     'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'redis',
-        'serializer' => 'SERIALIZER_PHP',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
+        'serializer' => 'php',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
     ),
 )
 ```
@@ -144,7 +144,7 @@ Eğer memcached kullanmak istiyorsanız config dosyasından ayarları aşağıda
     'storage' => '\Obullo\Authentication\Storage\Memcached',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'memcached',
-        'serializer' => 'SERIALIZER_PHP',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
+        'serializer' => 'php',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
     ),
 )
 ```
@@ -202,10 +202,6 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         <tr>
             <td>login[session][regenerateSessionId]</td>
             <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
-        </tr>
-        <tr>
-            <td>login[session][deleteOldSessionAfterRegenerate]</td>
-            <td>Eğer bu opsiyon pasif (false) durumda ise oturum açma işleminden sonra yeniden yaratılan session id verileri içerisine kullanıcının oturum açmadan önceki session id verileri kopyalanır. Aksi durumda bu opsiyon açık (true) ise eski session id verileri oturum açılır açılmaz yok edilir.</td>
         </tr>
         <tr>
             <td>activity[uniqueSession]</td>

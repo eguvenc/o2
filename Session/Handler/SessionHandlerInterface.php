@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @link      http://obullo.com/package/session
  * @see       http://php.net/session_set_save_handler
  */
-interface HandlerInterface
+interface SessionHandlerInterface
 {
     /**
      * Constructor
@@ -98,7 +98,7 @@ interface HandlerInterface
     public function getLifetime();
 }
 
-// END HandlerInterface class
+// END SessionHandlerInterface class
 
-/* End of file HandlerInterface.php */
-/* Location: .Obullo/Session/Handler/HandlerInterface.php */
+/* End of file SessionHandlerInterface.php */
+/* Location: .Obullo/Session/Handler/SessionHandlerInterface.php */

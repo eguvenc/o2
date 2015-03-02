@@ -11,7 +11,7 @@ Desteklenen önbellek sürücüleri  <b>Apc, File, Memcache ve Redis</b> dir. He
 
 Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı ayarlarını kurmamız gerekir. Cache servisi nesnesi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de konfigürasyon değişikliği yapılarak ( paylaşımsız ) kullanıldığı için sık sık kullanılır fakat kimi zaman farklı ihtiyaçlara cevap veremez.
 
-Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>PHP_SERIALIZER</b> parametresi ile kullanılmaya konfigure edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>SERIALIZER_NONE</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>SERIALIZER_NONE</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
+Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>PHP_SERIALIZER</b> parametresi ile kullanılmaya konfigure edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>"none"</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>"none"</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
 
 Hem bu nedenle hem de uygulama içerisinde kolaylık ve esneklik gibi avantajlardan yararlanmak için cache kütüphanesini aşağıdaki gibi hem servis hem de servis sağlayıcı ( service provider ) olarak kurmamız gerekir.
 
@@ -75,7 +75,7 @@ Class Cache implements ProviderInterface
 {
     public function register($c)
     {
-        $c['provider:cache'] = function ($params = array('serializer' => 'SERIALIZER_NONE', 'provider' => 'redis')) use ($c) {
+        $c['provider:cache'] = function ($params = array('serializer' => 'none', 'provider' => 'redis')) use ($c) {
             $connection = new Connection($c, $params);
             return $connection->connect();
         };
@@ -94,7 +94,7 @@ Bir kez servis sağlayıcı load komutu ile yüklendiği zaman artık kütüphan
 
 ```php
 <?php
-$this->c['service/provider/cache', array('serializer' => 'SERIZALIZER_NONE')];
+$this->c['service/provider/cache', array('serializer' => 'none')];
 $this->providerCache->metod();
 ```
 
@@ -102,7 +102,7 @@ Fakat daha kısa bir yazım şekli istiyorsanız ve görünürde daha önceden y
 
 ```php
 <?php
-$this->c['service/provider/cache as cache', array('serializer' => 'SERIZALIZER_NONE')];
+$this->c['service/provider/cache as cache', array('serializer' => 'none')];
 $this->cache->metod();
 ```
 
@@ -110,7 +110,7 @@ Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisin
 
 ```php
 <?php
-$this->cache = $this->c['return service/provider/cache', array('serializer' => 'SERIZALIZER_NONE')];
+$this->cache = $this->c['return service/provider/cache', array('serializer' => 'none')];
 $this->cache->method();
 ```
 
@@ -120,9 +120,9 @@ Servis sağlayıcılara bir kez parametre gönderildiği zaman sonraki çağrım
 
 ```php
 <?php
-$this->c['service/provider/cache', array('serializer' => 'SERIALIZER_PHP')];
+$this->c['service/provider/cache', array('serializer' => 'php')];
 $this->c['service/provider/cache'];  // eski instance
-$this->c['new service/provider/cache', array('serializer' => 'SERIALIZER_IGBINARY')]; // yeni instance
+$this->c['new service/provider/cache', array('serializer' => 'igbinary')]; // yeni instance
 ```
 
 ### HandlerInterface
@@ -188,14 +188,14 @@ Anahtarı ve bu anahtara kaydedilen değeri bütünüyle siler.
 $this->cache->delete($key);
 ```
 
-### $this->cache->setOption(array('serializer' => 'SERIALIZER_PHP'));
+### $this->cache->setOption(array('serializer' => 'php'));
 
-Encode ve decode işlemlerini için serileştirici türünü tekrar seçer, varsayılan opsiyon <b>SERIALIZER_PHP</b> dir.
+Encode ve decode işlemlerini için serileştirici türünü tekrar seçer, varsayılan opsiyon <b>php</b> dir.
 
-* **SERIALIZER_NONE**     : Serileştirici kullanılmaz veriler raw biçiminde kaydedilir.
-* **SERIALIZER_PHP**      : Varsayılan serileştirici php serializer fonksiyonudur.
-* **SERIALIZER_JSON**     : Serileştiriciyi JSON encoder fonksiyonu olarak seçer.
-* **SERIALIZER_IGBINARY** : Serileştiriciyi igbinary olarak seçer.
+* **none**     : Serileştirici kullanılmaz veriler raw biçiminde kaydedilir.
+* **php**      : Varsayılan serileştirici php serializer fonksiyonudur.
+* **json**     : Serileştiriciyi JSON encoder fonksiyonu olarak seçer.
+* **igbinary** : Serileştiriciyi igbinary olarak seçer.
 
 
 ### $this->cache->replace(mixed $key, $value, $ttl = 60);
@@ -236,7 +236,7 @@ Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı ve
                     ),
     ),
     'auth' =>  env('REDIS_AUTH'),       // connection password
-    'serializer' =>  'SERIALIZER_PHP',  // SERIALIZER_NONE, SERIALIZER_PHP, SERIALIZER_IGBINARY
+    'serializer' =>  'php',  //  none, php, igbinary
     'persistentConnect' => 0,           // Enable / Disable persistent connection, "1" on "0" off.
     'reconnectionAttemps' => 100,
 ),
@@ -286,7 +286,7 @@ Varsayılan serileştiriciyi değiştirir.
 
 ```php
 <?php
-$this->cache->setOption('SERIALIZER_NONE');
+$this->cache->setOption(array('serializer' => 'none'));
 ```
 
 #### $this->cache->set(mixed $key, mixed $data, int optional $expiration)
@@ -475,7 +475,7 @@ print_r($this->cache->hVals('h'));
 
 Bir hash üyesinin değerini belirli bir miktarda artırır.
 
->**Not:** hIncrBy() metodunu kullanabilmek için serileştirme türü SERIALIZER_NONE olmalıdır.
+>**Not:** hIncrBy() metodunu kullanabilmek için serileştirme türü "none" olmalıdır.
 
 ```php
 <?php
@@ -487,7 +487,7 @@ $this->cache->hIncrBy('h', 'x', 1); // h[x] ← 2 + 1. sonuç 3
 
 Bir hash üyesinin değerini float (ondalıklı) değer olarak artırmayı sağlar.
 
->**Not:** hIncrByFloat() metodunu kullanabilmek için serileştirme türü SERIALIZER_NONE olmalıdır.
+>**Not:** hIncrByFloat() metodunu kullanabilmek için serileştirme türü "none" olmalıdır.
 
 ```php
 <?php
@@ -624,7 +624,7 @@ print_r($this->cache->sort('test')); // 1,2,3
 print_r($this->cache->sort('test', array('sort' => 'desc'))); // 5,4,3,2,1
 print_r($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
 ```
->**Bilgi:** **sort** methodunun kullanılabilmesi için serileştirme tipi **SERIALIZER_NONE** olarak tanımlı olması gerekmektedir.
+>**Bilgi:** **sort** methodunun kullanılabilmesi için serileştirme tipi **"none"** olarak tanımlı olması gerekmektedir.
 
 #### $this->cache->sSize(string $key)
 

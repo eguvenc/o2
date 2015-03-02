@@ -272,7 +272,7 @@ There are a few service providers that you get out of the box. All of these are 
         <tr>
             <td><b>Cache</b></td>
             <td>Creates new Cache instance with your cache driver parameters.</td>
-            <td>array('cache.serializer' => 'SERIALIZER_NONE')</td>
+            <td>array('serializer' => 'none')</td>
         </tr>
         <tr>
             <td><b>Database</b></td>

@@ -14,7 +14,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-interface HandlerInterface
+interface CacheHandlerInterface
 {
     /**
      * Constructor
@@ -89,7 +89,7 @@ interface HandlerInterface
 
 }
 
-// END HandlerInterface class
+// END CacheHandlerInterface class
 
-/* End of file HandlerInterface.php */
-/* Location: .Obullo/Cache/HandlerInterface.php */
+/* End of file CacheHandlerInterface.php */
+/* Location: .Obullo/Cache/CacheHandlerInterface.php */

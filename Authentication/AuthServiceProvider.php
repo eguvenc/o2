@@ -46,7 +46,13 @@ Class AuthServiceProvider
         
         $this->c['auth.params'] = $params;
         $this->c['auth.storage'] = function () {
-            return new $this->config['cache']['storage']($this->c);
+            $cache = $this->c['service provider cache']->get(
+                [
+                    'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
+                    'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
+                ]
+            );
+            return new $this->config['cache']['storage']($this->c, $cache);
         };
 
         $this->c['auth.adapter'] = function () use ($params) {

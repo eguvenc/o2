@@ -2,10 +2,10 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException,
-    ReflectionClass,
-    Obullo\Container\Container,
-    Obullo\Cache\ArrayContainer;
+use RunTimeException;
+use ReflectionClass;
+use Obullo\Container\Container;
+use Obullo\Cache\ArrayContainer;
     
 /**
  * Memcached Caching Class
@@ -17,12 +17,12 @@ use RunTimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class Memcached implements HandlerInterface
+Class Memcached implements CacheHandlerInterface
 {
-    const SERIALIZER_NONE     = 'SERIALIZER_NONE';
-    const SERIALIZER_PHP      = 'SERIALIZER_PHP';
-    const SERIALIZER_JSON     = 'SERIALIZER_JSON';
-    const SERIALIZER_IGBINARY = 'SERIALIZER_IGBINARY';
+    const SERIALIZER_NONE     = 'none';
+    const SERIALIZER_PHP      = 'php';
+    const SERIALIZER_JSON     = 'json';
+    const SERIALIZER_IGBINARY = 'igbinary';
     const OPTION_SERIALIZER   = -1003;  // Memcached::OPT_COMPRESSION
     
     /**

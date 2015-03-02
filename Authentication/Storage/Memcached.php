@@ -2,11 +2,11 @@
 
 namespace Obullo\Authentication\Storage;
 
-use LogicException;
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
+use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
  * O2 Authentication - Memcached Storage
@@ -28,23 +28,20 @@ Class Memcached extends AbstractStorage
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
 
+
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c     container
+     * @param object $cache CacheHandlerInterface
      */
-    public function __construct(Container $c) 
-    {            
-        parent::__construct($c);
-
+    public function __construct(Container $c, CacheHandlerInterface $cache) 
+    {
+        $this->c = $c;
+        $this->cache = $cache;
+        $this->c['config']->load('auth');
         $this->logger  = $this->c['logger'];
-        $this->session = $this->c['session'];        
-        $this->cache   = $this->c['service provider cache']->get(
-            [
-                'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
-                'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
-            ]
-        );
+        $this->session = $this->c['session'];
     }
     
     /**
@@ -116,6 +113,64 @@ Class Memcached extends AbstractStorage
     }
     
     /**
+     * Update identity value
+     * 
+     * @param string $key string
+     * @param value  $val value
+     *
+     * @return void
+     */
+    public function update($key, $val)
+    {
+        $data = $this->getCredentials('__permanent');
+        $data[$key] = $val;
+        $this->setCredentials($data, null, '__permanent');
+    }
+
+    /**
+     * Remove identity 
+     * 
+     * @param string $key string
+     * 
+     * @return void
+     */
+    public function remove($key)
+    {
+        $data = $this->getCredentials('__permanent');
+        unset($data[$key]);
+        $this->setCredentials($data, null, '__permanent');
+    }
+
+    /**
+     * Makes temporary credentials as permanent and authenticate the user.
+     * 
+     * @return mixed false|array
+     */
+    public function authenticateTemporaryIdentity()
+    {
+        if ($this->isEmpty('__temporary')) {
+            $this->logger->debug(
+                'Auth identifier not matched with __temporary cache key.', 
+                ['identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')]
+            );
+            return false;
+        }
+        $aid = $this->getLoginId();
+        $credentials = $this->getCredentials('__temporary');
+
+        $credentials[$aid]['__isAuthenticated'] = 1;
+        $credentials[$aid]['__isVerified'] = 1;
+        $credentials[$aid]['__type'] = 'Authorized';
+
+        if ($this->setCredentials($credentials, null, '__permanent')) {
+            $this->deleteCredentials('__temporary');
+            return $credentials;
+        }
+        $this->logger->debug('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
+        return false;
+    }
+
+    /**
      * Update credentials
      * 
      * @param array  $oldCredentials user identity old data
@@ -184,35 +239,6 @@ Class Memcached extends AbstractStorage
     }
 
     /**
-     * Update identity value
-     * 
-     * @param string $key string
-     * @param value  $val value
-     *
-     * @return void
-     */
-    public function update($key, $val)
-    {
-        $data = $this->getCredentials('__permanent');
-        $data[$key] = $val;
-        $this->setCredentials($data, null, '__permanent');
-    }
-
-    /**
-     * Remove identity 
-     * 
-     * @param string $key string
-     * 
-     * @return void
-     */
-    public function remove($key)
-    {
-        $data = $this->getCredentials('__permanent');
-        unset($data[$key]);
-        $this->setCredentials($data, null, '__permanent');
-    }
-
-    /**
      * Get valid memory segment
      * 
      * @param string $block name
@@ -238,34 +264,6 @@ Class Memcached extends AbstractStorage
         return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$key.$this->getUserId();  // Create unique key
     }
 
-    /**
-     * Makes temporary credentials as permanent and authenticate the user.
-     * 
-     * @return mixed false|array
-     */
-    public function authenticateTemporaryIdentity()
-    {
-        if ($this->isEmpty('__temporary')) {
-            $this->logger->debug(
-                'Auth identifier not matched with __temporary cache key.', 
-                ['identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')]
-            );
-            return false;
-        }
-        $aid = $this->getLoginId();
-        $credentials = $this->getCredentials('__temporary');
-
-        $credentials[$aid]['__isAuthenticated'] = 1;
-        $credentials[$aid]['__isVerified'] = 1;
-        $credentials[$aid]['__type'] = 'Authorized';
-
-        if ($this->setCredentials($credentials, null, '__permanent')) {
-            $this->deleteCredentials('__temporary');
-            return $credentials;
-        }
-        $this->logger->debug('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
-        return false;
-    }
 
     /**
      * Returns to memory block lifetime

@@ -91,7 +91,7 @@ Class MetaData
         $this->cache = $this->c['service provider cache']->get(
             [
                 'driver' => $params['cache']['storage'],
-                'serializer' => 'SERIALIZER_NONE'
+                'serializer' => 'none'
             ]
         );
         $this->logger = $this->c['logger'];
