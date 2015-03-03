@@ -323,11 +323,15 @@ Class Redis extends AbstractStorage
      */
     public function getAllSessions()
     {
-        $sessions = array();
+        $sessions   = array();
         $identifier = $this->getUserId();
-        $key = $this->c['auth.params']['cache.key'].':__permanent:Authorized:';
+        $key        = $this->c['auth.params']['cache.key'].':__permanent:Authorized:';
+        $dbSessions = $this->cache->getAllKeys($key.$identifier.':*');
         
-        foreach ($this->cache->getAllKeys($key.$identifier.':*') as $val) {
+        if ($dbSessions == false) {
+            return $sessions;
+        }
+        foreach ($dbSessions as $val) {
             $exp = explode(':', $val);
             $aid = end($exp);
 

@@ -330,10 +330,14 @@ Class Cache extends AbstractStorage
      */
     public function getAllSessions()
     {
-        $sessions = array();
-        $key = $this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId();
+        $sessions   = array();
+        $key        = $this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId();
+        $dbSessions = $this->cache->get($key);
         
-        foreach ($this->cache->get($key) as $aid => $val) {
+        if ($dbSessions == false) {
+            return $sessions;
+        }
+        foreach ($dbSessions as $aid => $val) {
             if (isset($val['__isAuthenticated']) AND $val['__isAuthenticated'] == 0) {
                 break;
             }
