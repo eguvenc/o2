@@ -253,7 +253,7 @@ class Identity extends AuthorizedUser
                 'cookie'     => $this->getCookieToken(),
             ]
         );
-        $this->storage->deleteCredentials('__permanent'); // Delete user credentials from storage
+        $this->storage->deleteCredentials('__permanent'); // Delete permanent credentials from storage
         return $this->tokenIsValid = false;
     }
 

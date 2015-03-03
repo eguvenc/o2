@@ -22,9 +22,9 @@ gibi mevcut özellikleri ile size esnek, hızlı ve güvenli bir yetki doğrulam
 
 ------
 
-Yetki doğrulama paketi sınıflarına erişim user servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. Uygulamanınızın sürdürülebilirliği açısından bu servis üzerinde database provider haricinde değişiklilik yapmamanız önerilir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>UserLogin</b>, <b>UserIdentity</b> ve <b>UserActivity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm public sınıf metodlarına tek bir sınıf üzerinden erişim sağlanmış olur.
+Yetki doğrulama paketi sınıflarına erişim user servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. Uygulamanınızın sürdürülebilirliği açısından bu servis üzerinde database provider haricinde değişiklilik yapmamanız önerilir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>Login</b>, <b>Identity</b> ve <b>Activity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
 
-User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları çalıştırılabilir.
+User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
 
 ```php
 $this->c['user'];
@@ -33,19 +33,19 @@ $this->user->class->method();
 
 Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.
 
-<b>UserLogin</b> için bir örnek
+<b>Login</b> için bir örnek
 
 ```php
 $this->user->login->method();
 ```
 
-<b>UserIdentity</b> için bir örnek
+<b>Identity</b> için bir örnek
 
 ```php
 $this->user->identity->method();
 ```
 
-<b>UserActivity</b> için bir örnek
+<b>Activity</b> için bir örnek
 
 ```php
 $this->user->activity->method();
@@ -55,7 +55,7 @@ $this->user->activity->method();
 
 ------
 
-Yetki doğrulama adaptörleri yetki doğrulama servisinde esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
+Yetki doğrulama adaptörleri bu serviste esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
 
 Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
 
@@ -106,7 +106,7 @@ Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup bunu
 #### Onaylanmış kimliğin kalıcı hale getirilmesine bir örnek:
 
 ```php
-$this->user->login->authenticateVerifiedIdentity();
+$this->user->login->authenticateTemporaryIdentity();
 ```
 
 Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde yetkili konuma gelir.
@@ -785,7 +785,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateVerifiedIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateTemporaryIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
         </tr>
         <tr>
             <td>__isVerified</td>
@@ -834,7 +834,7 @@ Yetki doğrulama onayını devre dışı bırakır.
 
 Bu fonksiyon kullanıcı oturumunu açmayı dener ve AuthResult nesnesine döner.
 
-##### $this->user->login->authenticateVerifiedIdentity();
+##### $this->user->login->authenticateTemporaryIdentity();
 
 Kullanıcıyı kalıcı olarak yetkilendirir ve kalıcı kimliğe sahip olan kullanıcının geçici kimliğini önbellekten siler.
 

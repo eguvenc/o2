@@ -117,7 +117,7 @@ Class Login
      * 
      * @return void
      */
-    public function authenticateVerifiedIdentity()
+    public function authenticateTemporaryIdentity()
     {
         return $this->c['auth.storage']->authenticateTemporaryIdentity();
     }

@@ -152,24 +152,24 @@ Class Cache extends AbstractStorage
     public function authenticateTemporaryIdentity()
     {
         if ($this->isEmpty('__temporary')) {
-            $this->logger->debug(
-                'Auth identifier not matched with __temporary cache key.', 
-                ['identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')]
-            );
+            $this->logger->debug('Auth identifier not matched with __temporary cache key.', array('identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')));
             return false;
         }
-        $aid = $this->getLoginId();
         $credentials = $this->getCredentials('__temporary');
 
-        $credentials[$aid]['__isAuthenticated'] = 1;
-        $credentials[$aid]['__isVerified'] = 1;
-        $credentials[$aid]['__type'] = 'Authorized';
+        if ($credentials['__isAuthenticated'] == 1) {  // If already permanent
+            return;
+        }
+        $credentials['__isAuthenticated'] = 1;
+        $credentials['__isVerified'] = 1;
+        $credentials['__type'] = 'Authorized';
 
-        if ($this->setCredentials($credentials, null, '__permanent')) {
+        $update = $this->cache->set($this->getMemoryBlockKey('__permanent'), array($this->getLoginId() => $credentials), $this->getMemoryBlockLifetime('__permanent'));    
+        if ($update) {
             $this->deleteCredentials('__temporary');
             return $credentials;
         }
-        $this->logger->debug('Auth temporary data could not authenticated as __permanent.', array('identifier' => $this->getIdentifier()));
+        $this->logger->warning('Auth temporary data could not stored as __permanent.', array('identifier' => $this->getIdentifier()));
         return false;
     }
 
@@ -185,8 +185,7 @@ Class Cache extends AbstractStorage
      */
     public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary', $ttl = null)
     {
-        $identifier = $this->getIdentifier();
-        if (empty($identifier)) {
+        if ($this->getIdentifier() == '__emptyIdentifier') {
             return false;
         }
         $this->data[$block] = array($this->getLoginId() => $oldCredentials);
@@ -194,7 +193,7 @@ Class Cache extends AbstractStorage
             $this->data[$block] = array($this->getLoginId() => array_merge($oldCredentials, $pushData));
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
-        
+
         return $this->cache->set($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
     }
 
@@ -207,8 +206,7 @@ Class Cache extends AbstractStorage
      */
     public function getCredentials($block = '__permanent')
     {
-        $identifier = $this->getIdentifier();
-        if (empty($identifier)) {
+        if ($this->getIdentifier() == '__emptyIdentifier') {
             return false;
         }
         if (isset($this->data[$block][$this->getLoginId()])) {  // Lazy loading ( returns to old records if its already exists ).
@@ -232,13 +230,13 @@ Class Cache extends AbstractStorage
     public function deleteCredentials($block = '__temporary')
     {
         $aid  = $this->getLoginId();
-        $data = $this->cache->get($this->getBlock($block));
+        $credentials = $this->cache->get($this->getBlock($block));
 
-        if ( ! isset($data[$aid])) {  // already removed
+        if ( ! isset($credentials[$aid])) {  // already removed
             return;
         }
-        unset($data[$aid]);
-        $this->setCredentials($data, null, '__permanent');
+        unset($credentials[$aid]);
+        $this->cache->set($this->getMemoryBlockKey($block), $credentials, $this->getMemoryBlockLifetime($block));
     }
 
     /**
@@ -326,7 +324,7 @@ Class Cache extends AbstractStorage
     /**
      * Get multiple authenticated sessions
      * 
-     * @return array|false
+     * @return array
      */
     public function getAllSessions()
     {

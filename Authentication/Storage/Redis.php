@@ -159,7 +159,8 @@ Class Redis extends AbstractStorage
         $credentials['__isVerified'] = 1;
         $credentials['__type'] = 'Authorized';
 
-        if ($this->setCredentials($credentials, null, '__permanent')) {
+        $update = $this->cache->hMSet($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
+        if ($update) {
             $this->deleteCredentials('__temporary');
             return $credentials;
         }
@@ -179,8 +180,7 @@ Class Redis extends AbstractStorage
      */
     public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary', $ttl = null)
     {
-        $identifier = $this->getIdentifier();
-        if (empty($identifier)) {
+        if ($this->getIdentifier() == '__emptyIdentifier') {
             return false;
         }
         $this->data[$block] = $oldCredentials;
@@ -201,8 +201,7 @@ Class Redis extends AbstractStorage
      */
     public function getCredentials($block = '__permanent')
     {
-        $identifier = $this->getIdentifier();
-        if (empty($identifier)) {
+        if ($this->getIdentifier() == '__emptyIdentifier') {
             return false;
         }
         if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
@@ -245,10 +244,8 @@ Class Redis extends AbstractStorage
     public function getMemoryBlockKey($block = '__temporary')
     {
         $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
-        $id = $this->getIdentifier();
-        $identifier = empty($id) ? '__emptyIdentifier' : $id;
 
-        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$constant.$identifier;  // Create unique key
+        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$constant.$this->getIdentifier();  // Create unique key
     }
 
     /**
@@ -261,6 +258,7 @@ Class Redis extends AbstractStorage
     public function getKey($block = '__temporary')
     {
         $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
+
         return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$key.$this->getUserId();
     }
 
@@ -319,7 +317,7 @@ Class Redis extends AbstractStorage
     /**
      * Get multiple authenticated sessions
      * 
-     * @return array|false
+     * @return array
      */
     public function getAllSessions()
     {

@@ -174,7 +174,7 @@ Class MetaData
     public function create()
     {
         $this->build();
-        $_SESSION['_o2_meta'] = json_encode($this->meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $_SESSION['_'.PACKAGE_VERSION.'_meta'] = json_encode($this->meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -198,7 +198,7 @@ Class MetaData
      */
     public function remove()
     {
-        unset($_SESSION['_o2_meta']);
+        unset($_SESSION['_'.PACKAGE_VERSION.'_meta']);
     }
 
     /**
@@ -208,8 +208,8 @@ Class MetaData
      */
     public function read()
     {
-        if (isset($_SESSION['_o2_meta'])) {
-            return json_decode($_SESSION['_o2_meta'], true);
+        if (isset($_SESSION['_'.PACKAGE_VERSION.'_meta'])) {
+            return json_decode($_SESSION['_'.PACKAGE_VERSION.'_meta'], true);
         }
         return array();
     }
