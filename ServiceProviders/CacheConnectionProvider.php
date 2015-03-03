@@ -65,7 +65,7 @@ Class CacheConnectionProvider
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
             $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                return $self->createConnection($params['driver'], $params);
+                return $self->createConnection($params['driver'], $params['options']);
             };
         }
         return $this->c[$cid];
@@ -74,14 +74,13 @@ Class CacheConnectionProvider
     /**
      * Creates cache connections
      * 
-     * @param string $class  name
-     * @param array  $params connection parameters
+     * @param string $class   name
+     * @param array  $options connection options
      * 
      * @return void
      */
-    protected function createConnection($class, $params)
+    protected function createConnection($class, $options)
     {
-        $options = isset($params['serializer']) ? array('serializer' => $params['serializer']) : array('serializer' => $this->config['default']['serializer']);
         $driver = ucfirst(strtolower($class));
 
         $Class = '\\Obullo\Cache\Handler\\'.$driver;

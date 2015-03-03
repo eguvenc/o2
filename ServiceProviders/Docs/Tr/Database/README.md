@@ -36,17 +36,7 @@ You can add new connection in this connections configuration.
 )
 ```
 
-#### Handlers
-
-```php
-'handlers' => array(
-    'mysql' => '\\Obullo\Database\Pdo\Handler\Mysql',
-    'pgsql' => '\\Obullo\Database\Pdo\Handler\Pgsql',
-    'yourhandler' => '\\Obullo\Database\Pdo\Handler\YourHandler',  // create your own using Cache/Handler/HandlerInterface.php
-),
-```
-
-You must send the connection name to the chosen database provider.
+You must send the connection name to the chosen database connection.
 
 ```php
 $this->c['service provider database']->get(['connection' => 'default']);
@@ -58,7 +48,7 @@ $db1 = $this->c['service provider database']->get(['connection' => 'default']); 
 $db2 = $this->c['service provider database']->get(['connection' => 'default']); // Returns same object ($db1)
 $db3 = $this->c['service provider database']->get(['connection' => 'test']);	 // Creates a new object
 ```
-<blockquote>If you change parameter, database service provider will automatically create a new object..</blockquote>
+<blockquote>When you change parameters, database service provider will automatically create a new object..</blockquote>
 
 ### Manuel Configuration
 

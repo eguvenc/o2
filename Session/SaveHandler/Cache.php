@@ -73,7 +73,7 @@ Class Cache implements SaveHandlerInterface
         $this->cache = $this->provider->get(
             [
                 'driver' => $this->config['provider']['driver'],
-                'serializer' => 'none'
+                'options' => array('serializer' => 'none')
             ]
         );
         return is_object($this->cache) ? true : false;

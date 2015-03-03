@@ -131,7 +131,7 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
     'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'redis',
-        'serializer' => 'php',  // json, igbinary
+        'options' => array('serializer' => 'php') // json, igbinary
     ),
 )
 ```
@@ -146,7 +146,7 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
     'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'cache',
-        'serializer' => 'php',  // json, igbinary
+        'options' => array('serializer' => 'php')  // json, igbinary
     ),
 )
 ```

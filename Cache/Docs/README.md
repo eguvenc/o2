@@ -75,10 +75,7 @@ Class Cache implements ProviderInterface
 {
     public function register($c)
     {
-        $c['provider:cache'] = function ($params = array('serializer' => 'none', 'provider' => 'redis')) use ($c) {
-            $connection = new Connection($c, $params);
-            return $connection->connect();
-        };
+
     }
 }
 
@@ -94,7 +91,7 @@ Bir kez servis sağlayıcı load komutu ile yüklendiği zaman artık kütüphan
 
 ```php
 <?php
-$this->c['service/provider/cache', array('serializer' => 'none')];
+$this->c['service provider cache', array('driver' => 'memcached', 'serializer' => 'none')];
 $this->providerCache->metod();
 ```
 

@@ -38,8 +38,8 @@ Class Redis extends AbstractStorage
         $this->c = $c;
         $this->cache = $provider->get(
             [
-                'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
-                'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
+                'driver' => $this->c['config']['auth']['cache']['provider']['driver'],
+                'options' => $this->c['config']['auth']['cache']['provider']['options']
             ]
         );
         $this->c['config']->load('auth');

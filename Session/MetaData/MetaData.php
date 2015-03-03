@@ -87,7 +87,7 @@ Class MetaData
 
         $this->now = $this->session->getTime();
         $this->ipAddress = $this->c['request']->getIpAddress();
-        $this->userAgent = $this->c['request']->server('HTTP_USER_AGENT');
+        $this->userAgent = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);
     }
 
     /**
