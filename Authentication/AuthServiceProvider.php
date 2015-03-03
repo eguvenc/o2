@@ -46,6 +46,11 @@ Class AuthServiceProvider
         $this->config = $c['config']->load('auth');
         
         $this->c['auth.params'] = $params;
+
+        $this->c['auth.container'] = function () {
+            return new ArrayContainer;
+        };
+
         $this->c['auth.storage'] = function () {
             return new $this->config['cache']['storage']($this->c, $this->c['service provider cache']);
         };
@@ -73,6 +78,8 @@ Class AuthServiceProvider
         $this->c['auth.activity'] = function () {
             return new Activity($this->c);
         };
+
+        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -85,6 +92,24 @@ Class AuthServiceProvider
     public function __get($class)
     {
         return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity ..
+    }
+
+    public function close()
+    {
+
+        $cookie = $this->config['security']['cookie'];
+
+        foreach ($this->c['auth.container']->getArray() as $name => $value) {
+            setcookie(
+                $name,
+                $value,
+                time() + $cookie['expire'],
+                $cookie['path'],
+                $this->c['config']['cookie']['domain'],   //  Get domain from global config
+                $cookie['secure'],
+                $cookie['httpOnly']
+            );
+        }
     }
 
 }
