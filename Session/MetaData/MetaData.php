@@ -2,6 +2,7 @@
 
 namespace Obullo\Session\MetaData;
 
+use Obullo\Session\Session;
 use Obullo\Container\Container;
 
 /**
@@ -17,53 +18,18 @@ use Obullo\Container\Container;
 Class MetaData
 {
     /**
-     * Time
-     * 
-     * @var integer
-     */
-    public $now;
-
-    /**
-     * Ip address
-     * 
-     * @var string
-     */
-    public $ipAddress;
-
-    /**
-     * User Agent
-     * 
-     * @var string
-     */
-    public $userAgent;
-
-    /**
-     * Session class instance
-     * 
-     * @var object
-     */
-    public $session;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
-     * Cache provider
-     * 
-     * @var object
-     */
-    public $cache;
-
-    /**
      * Container 
      * 
      * @var object
      */
     protected $c;
+
+    /**
+     * Unix time
+     * 
+     * @var integer
+     */
+    protected $now;
 
     /**
      * Meta data stack
@@ -73,28 +39,55 @@ Class MetaData
     protected $meta;
 
     /**
+     * Cache provider
+     * 
+     * @var object
+     */
+    protected $cache;
+
+    /**
+     * Configurations
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Ip address
+     * 
+     * @var string
+     */
+    protected $ipAddress;
+
+    /**
+     * User Agent
+     * 
+     * @var string
+     */
+    protected $userAgent;
+
+    /**
+     * Meta validation return value
+     * 
+     * @var boolean
+     */
+    protected $return = true;
+
+    /**
      * Constructor
      * 
      * @param object $c       container
-     * @param object $params  parameters
-     * @param object $session session object
+     * @param object $session \Obullo\Session\Session
      */
-    public function __construct(Container $c, $params, $session)
+    public function __construct(Container $c, Session $session)
     {
         $this->c = $c;
-        $this->params = $params;
         $this->session = $session;
+        $this->config = $c['config']->load('session');
+
         $this->now = $this->session->getTime();
         $this->ipAddress = $this->c['request']->getIpAddress();
         $this->userAgent = $this->c['request']->server('HTTP_USER_AGENT');
-
-        $this->cache = $this->c['service provider cache']->get(
-            [
-                'driver' => $params['cache']['storage'],
-                'serializer' => 'none'
-            ]
-        );
-        $this->logger = $this->c['logger'];
     }
 
     /**
@@ -106,29 +99,58 @@ Class MetaData
     public function isValid()
     {
         $this->meta = $this->read();
-        if ( ! isset($this->meta['sid'])
-            OR ! isset($this->meta['ip']) 
-            OR ! isset($this->meta['ua']) 
-            OR ! isset($this->meta['la'])
-        ) {
+
+        if ( ! isset($this->meta['sid'], $this->meta['ip'], $this->meta['ua'], $this->meta['la'])) {
             $this->session->destroy();
             return false;
         }
-        if (($this->meta['la'] + $this->params['session']['lifetime']) < $this->now) {  // Is the session current?
-            $this->logger->notice('Session expired', array('session_id' => session_id()));
+        $this->checkSessionIsExpired();
+        $this->checkSessionIpAddress();
+        $this->checkSessionUserAgent();
+
+        if ($this->return == false) {
             $this->session->destroy();
-            return false;
         }
-        if ($this->params['meta']['matchIp'] == true AND $this->meta['ip'] != $this->ipAddress) {  // Does the IP Match?
-            $this->logger->notice('Session meta data is not valid', $this->meta);
-            $this->session->destroy();
-            return false;
+        return $this->return;
+    }
+
+    /**
+     *  Is the session current ?
+     * 
+     * @return bool|void
+     */
+    protected function checkSessionIsExpired()
+    {
+        if (($this->meta['la'] + $this->config['session']['lifetime']) < $this->now) {
+            $this->c['logger']->notice('Session expired', array('session_id' => session_id()));
+            $this->return = false;
         }
-        if ($this->params['meta']['matchUserAgent'] == true AND trim($this->meta['ua']) != $this->userAgent) {  // Does the User Agent Match?
-            $this->session->destroy();
-            return false;
+    }
+
+    /**
+     * Does the IP Match ?
+     * 
+     * @return bool|void
+     */
+    protected function checkSessionIpAddress()
+    {
+        if ($this->config['meta']['matchIp'] == true AND $this->meta['ip'] != $this->ipAddress) {
+            $this->c['logger']->notice('Session meta data is not valid', $this->meta);
+            $this->return = false;
         }
-        return true;
+    }
+
+    /**
+     * Does the User Agent Match ?
+     * 
+     * @return bool|void
+     */
+    protected function checkSessionUserAgent()
+    {
+        if ($this->config['meta']['matchUserAgent'] == true AND trim($this->meta['ua']) != $this->userAgent) {
+            $this->c['logger']->notice('Session user agent is not valid', array('session_id' => session_id()));
+            $this->return = false;
+        }
     }
 
     /**
@@ -162,7 +184,7 @@ Class MetaData
      */
     public function update()
     {
-        if (($this->meta['la'] + $this->params['session']['timeToUpdate']) >= $this->now) {  // We only update the session every 5 seconds by default
+        if (($this->meta['la'] + $this->config['session']['timeToUpdate']) >= $this->now) {  // We only update the session every 5 seconds by default
             return;
         }
         $this->meta['la'] = $this->now; // Update the session ID and la

@@ -19,39 +19,39 @@ use Obullo\Session\MetaData\NullMetaData;
 Class Session
 {
     /**
-     * Session handler
+     * Container
      * 
      * @var object
      */
-    public $handler;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
-     * Configuration params
-     * 
-     * @var array
-     */
-    public $params;
+    protected $c;
 
     /**
      * MetaData Class
      * 
      * @var object
      */
-    public $meta;
+    protected $meta;
 
     /**
-     * Container
+     * Configurations
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Logger class
      * 
      * @var object
      */
-    protected $c;
+    protected $logger;
+
+    /**
+     * Session handler
+     * 
+     * @var object
+     */
+    protected $saveHandler;
 
     /**
      * Constructor
@@ -61,30 +61,28 @@ Class Session
     public function __construct(Container $c) 
     {
         $this->c = $c;
-        $this->params = $c['config']->load('session');
-        $handlerClass = $this->params['default']['handler'];
-
-        $this->handler = new $handlerClass($c, $this->params);
         $this->logger = $c['logger'];
+        $this->config = $c['config']->load('session');
+        $this->saveHandler = new $this->config['saveHandler']($c);
 
-        ini_set('session.cookie_domain', $this->params['cookie']['domain']);
+        ini_set('session.cookie_domain', $this->config['cookie']['domain']);
 
         session_set_save_handler(
-            array($this->handler, 'open'),
-            array($this->handler, 'close'),
-            array($this->handler, 'read'),
-            array($this->handler, 'write'),
-            array($this->handler, 'destroy'),
-            array($this->handler, 'gc')
+            array($this->saveHandler, 'open'),
+            array($this->saveHandler, 'close'),
+            array($this->saveHandler, 'read'),
+            array($this->saveHandler, 'write'),
+            array($this->saveHandler, 'destroy'),
+            array($this->saveHandler, 'gc')
         );
-        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($c, $this->params, $this) : new NullMetaData;
+        $this->meta = ($this->config['meta']['enabled']) ? new MetaData($c, $this) : new NullMetaData;
 
         session_set_cookie_params(
-            ($this->params['session']['expireOnClose']) ? 0 : $this->params['session']['lifetime'],
-            $this->params['cookie']['path'],
-            $this->params['cookie']['domain'],
-            $this->params['cookie']['secure'], 
-            $this->params['cookie']['httpOnly']
+            ($this->config['session']['expireOnClose']) ? 0 : $this->config['session']['lifetime'],
+            $this->config['cookie']['path'],
+            $this->config['cookie']['domain'],
+            $this->config['cookie']['secure'], 
+            $this->config['cookie']['httpOnly']
         );
         session_name($this->getName());
         
@@ -104,7 +102,7 @@ Class Session
      */
     public function getName()
     {
-        return $this->params['cookie']['prefix'].$this->params['cookie']['name'];
+        return $this->config['cookie']['prefix'].$this->config['cookie']['name'];
     }
 
     /**
@@ -139,8 +137,8 @@ Class Session
     {
         $oldSessionId = session_id();
         session_regenerate_id((bool) $deleteOldSession);
-        $storageLifetime = ($lifetime == null) ? $this->params['session']['lifetime'] : $lifetime;
-        $this->handler->setLifetime($storageLifetime);
+        $storageLifetime = ($lifetime == null) ? $this->config['session']['lifetime'] : $lifetime;
+        $this->saveHandler->setLifetime($storageLifetime);
         $this->remove($oldSessionId);  // Removes old Session id value
         $this->meta->create();
 
@@ -179,10 +177,10 @@ Class Session
                 $this->getName(),                 // session name
                 '',                               // value
                 $_SERVER['REQUEST_TIME'] - 42000, // TTL for cookie
-                $this->params['cookie']['path'],
-                $this->params['cookie']['domain'],
-                $this->params['cookie']['secure'], 
-                $this->params['cookie']['httpOnly']
+                $this->config['cookie']['path'],
+                $this->config['cookie']['domain'],
+                $this->config['cookie']['secure'], 
+                $this->config['cookie']['httpOnly']
             );
         }
     }
@@ -198,7 +196,7 @@ Class Session
         if ( ! isset($meta['la'])) {  // la = meta data last activity.
             return false;
         }
-        $expire = $this->getTime() - $this->params['session']['lifetime'];
+        $expire = $this->getTime() - $this->config['session']['lifetime'];
         if ($meta['la'] <= $expire) {
             return true;
         }
@@ -262,7 +260,7 @@ Class Session
             }
         }
         if (sizeof($_SESSION) == 0) {               // If meta option closed and when we want to unset() data we couldn't remove the last session key from storage.
-            $this->handler->destroy(session_id());  // This solution fix the issue.
+            $this->saveHandler->destroy(session_id());  // This solution fix the issue.
         }
     }
 

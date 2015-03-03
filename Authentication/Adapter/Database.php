@@ -6,7 +6,6 @@ use RuntimeException;
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
-use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\UserService;
 use Obullo\Authentication\AbstractAdapter;
@@ -102,7 +101,6 @@ class Database extends AbstractAdapter implements AdapterInterface
     {
         $this->storage = $c['auth.storage'];
         $this->session = $c['session'];
-        $this->cache   = $c['cache'];
 
         $this->columnIdentifier = $c['auth.params']['db.identifier'];
         $this->columnPassword   = $c['auth.params']['db.password'];

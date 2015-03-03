@@ -21,7 +21,7 @@ Class Reminder
      * 
      * @var array
      */
-    public $params;
+    public $config;
 
     /**
      * Session Class
@@ -33,13 +33,12 @@ Class Reminder
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct(Container $c, $params = array())
+    public function __construct(Container $c)
     {
         $this->session = $c['session'];
-        $this->params = (count($params) > 0) ? $params : $c['config']['session'];
+        $this->config = $c['config']['session'];
     }
 
     /**
@@ -84,10 +83,10 @@ Class Reminder
     {
         session_set_cookie_params(
             $lifetime,
-            $this->params['cookie']['path'],
-            $this->params['cookie']['domain'],
-            $this->params['cookie']['secure'],
-            $this->params['cookie']['httpOnly']
+            $this->config['cookie']['path'],
+            $this->config['cookie']['domain'],
+            $this->config['cookie']['secure'],
+            $this->config['cookie']['httpOnly']
         );
         if ($this->session->exists()) {
             $this->session->regenerateId($deleteOldSession, $lifetime); // There is a running session so we will regenerate id to send a new cookie.

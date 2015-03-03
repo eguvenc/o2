@@ -3,7 +3,7 @@
 namespace Obullo\Authentication\Storage;
 
 use Obullo\Container\Container;
-use Obullo\Authentication\Token;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * Cache storage interface
@@ -20,9 +20,10 @@ interface StorageInterface
     /**
      * Constructor
      * 
-     * @param Container $c container
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c);
+    public function __construct(Container $c, ServiceProviderInterface $provider);
 
     /**
      * Returns true if temporary credentials does "not" exists
@@ -91,12 +92,11 @@ interface StorageInterface
     /**
      * Makes unauthorized permanent credential attributes as permanent
      * 
-     * @param array  $data  array $credentials
-     * @param object $token \Obullo\Authentication\Token
+     * @param array $data array $credentials
      * 
      * @return void
      */
-    public function authenticatePermanentIdentity($data, Token $token);
+    public function authenticatePermanentIdentity($data);
 
     /**
      * Update credentials

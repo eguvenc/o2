@@ -15,7 +15,7 @@ use Obullo\Authentication\UserService;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class UserActivity
+Class Activity
 {
     /**
      * Container
@@ -125,6 +125,6 @@ Class UserActivity
 }
 
 // END UserActivity.php File
-/* End of file UserActivity.php
+/* End of file Activity.php
 
-/* Location: .Obullo/Authentication/User/UserActivity.php */
+/* Location: .Obullo/Authentication/User/Activity.php */

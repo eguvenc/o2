@@ -84,14 +84,14 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
             trim($this->c['config']['logger']['file']['path']['ajax'], '/'),
             trim($this->c['config']['logger']['file']['path']['cli'], '/'),
         );
+
         foreach ($files as $file) {
-            $file = str_replace('/', DS, $file);
-            if (strpos($file, 'data') === 0) { 
-                $file = str_replace('data', rtrim(DATA, DS), $file);
-            } 
+            
+            $file = ROOT. str_replace('/', DS, $file);
             $exp = explode(DS, $file);
             $filename = array_pop($exp);
-            $path= implode(DS, $exp). DS;
+            $path = implode(DS, $exp). DS;
+
             if (is_file($path.$filename)) {
                 unlink($path.$filename);
             }

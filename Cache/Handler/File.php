@@ -53,7 +53,7 @@ Class File implements CacheHandlerInterface
 
         $this->params = $c['config']->load('cache')['file'];
         $this->container = new ArrayContainer;
-        $this->filePath = str_replace('/', DS, trim($this->params['path'], '/')) . DS;
+        $this->filePath = ROOT. str_replace('/', DS, trim($this->params['path'], '/')) . DS;
 
         if ( ! is_writable($this->filePath)) {
             throw new RunTimeException(

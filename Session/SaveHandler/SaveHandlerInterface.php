@@ -1,31 +1,30 @@
 <?php
 
-namespace Obullo\Session\Handler;
+namespace Obullo\Session\SaveHandler;
 
 use Obullo\Container\Container;
 
 /**
- * Session Save Handler Interface
+ * Save Handler Interface
  * 
- * @category  Logger
- * @package   Log
+ * @category  Session
+ * @package   SaveHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  * @see       http://php.net/session_set_save_handler
  */
-interface SessionHandlerInterface
+interface SaveHandlerInterface
 {
     /**
      * Constructor
      *
-     * @param array $c      container
-     * @param array $params configuration
+     * @param array $c container
      *
      * @return void
      */
-    public function __construct(Container $c, $params);
+    public function __construct(Container $c);
 
     /**
     * Php5 session handler interface open function
@@ -98,7 +97,7 @@ interface SessionHandlerInterface
     public function getLifetime();
 }
 
-// END SessionHandlerInterface class
+// END SaveHandlerInterface class
 
-/* End of file SessionHandlerInterface.php */
-/* Location: .Obullo/Session/Handler/SessionHandlerInterface.php */
+/* End of file SaveHandlerInterface.php */
+/* Location: .Obullo/Session/SaveHandler/SaveHandlerInterface.php */

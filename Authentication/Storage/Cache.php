@@ -3,13 +3,12 @@
 namespace Obullo\Authentication\Storage;
 
 use Obullo\Container\Container;
-use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\Cache\Handler\CacheHandlerInterface;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
- * O2 Authentication - Memcached Storage
+ * O2 Authentication - Cache Storage
  * 
  * @category  Authentication
  * @package   Storage
@@ -18,7 +17,7 @@ use Obullo\Cache\Handler\CacheHandlerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Memcached extends AbstractStorage
+Class Cache extends AbstractStorage
 {
     public $keys;               // Authentication keys used in getAllKeys method
     protected $c;               // Container
@@ -31,13 +30,18 @@ Class Memcached extends AbstractStorage
     /**
      * Constructor
      * 
-     * @param object $c     container
-     * @param object $cache CacheHandlerInterface
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c, CacheHandlerInterface $cache) 
+    public function __construct(Container $c, ServiceProviderInterface $provider) 
     {
         $this->c = $c;
-        $this->cache = $cache;
+        $this->cache = $provider->get(
+            [
+                'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
+                'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
+            ]
+        );
         $this->c['config']->load('auth');
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
@@ -359,7 +363,7 @@ Class Memcached extends AbstractStorage
 
 }
 
-// END Redis.php File
-/* End of file Redis.php
+// END Cache.php File
+/* End of file Cache.php
 
-/* Location: .Obullo/Authentication/Storage/Redis.php */
+/* Location: .Obullo/Authentication/Storage/Cache.php */

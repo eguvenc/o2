@@ -98,7 +98,6 @@ class Http extends Obullo
         include OBULLO_PROVIDERS;
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
-        include OBULLO_MIDDLEWARES;
 
         $this->exec();
     }
@@ -113,6 +112,7 @@ class Http extends Obullo
      */
     public function exec()
     {
+        global $c;
         $this->c['router']->init();       // Initialize Routes
 
         $route = $this->c['uri']->getUriString();          // Get current uri
@@ -148,6 +148,8 @@ class Http extends Obullo
                 $this->middleware($value['name'], $value['options']);
             }
         }
+        include OBULLO_MIDDLEWARES;  // Run application middlewares at the top
+
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         $middleware->load();
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file

@@ -65,7 +65,9 @@ Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtem
 
 Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
 
-**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> ve <b>Memcached</b> sürücülerini desteklemektedir. Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
+**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> veritabanı ve <b>Cache</b> sürücüsünü desteklemektedir. Cache sürücüsü seçtiğinizde File, Memcache, Memcached, Apc gibi sürücüleri cache.php konfigurasyon dosyanızdan ayarlamanız gerekmektedir.
+
+Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
 
 ### Akış Şeması
 
@@ -129,30 +131,30 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
     'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'redis',
-        'serializer' => 'php',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
+        'serializer' => 'php',  // json, igbinary
     ),
 )
 ```
 
-### Memcached Deposu
+### Cache Deposu
 
-Eğer memcached kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
+Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
 
 ```php
 'cache' => array(
 
-    'storage' => '\Obullo\Authentication\Storage\Memcached',   // Storage driver uses cache package
+    'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
     'provider' => array(
-        'driver' => 'memcached',
-        'serializer' => 'php',  // SERIALIZER_JSON, SERIALIZER_IGBINARY
+        'driver' => 'cache',
+        'serializer' => 'php',  // json, igbinary
     ),
 )
 ```
 
-> Provider ayarlarından driver sekmesini memcached olarak değiştirmeyi unutmayın.
+> Provider ayarlarından driver sekmesini cache olarak değiştirmeyi unutmayın.
 
 
-Redis dışında bir çözüm kullanıyorsanız kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
+Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
 
 ### Paket Konfigürasyonu
 
@@ -281,11 +283,11 @@ Class User implements ServiceInterface
 
 **Model:** Model sınıfı yetki doğrulama sınıfına ait database işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için database sorgularını özelleştirmek bölümüne bakınız.
 
-**Provider:** Database işlemlerinin hangi servis sağlayıcısını kullanması gerektiğini tanımlar.
+**Provider:** Database servis sağlayıcınızın ismidir. Database işlemlerinin hangi servis sağlayıcısının kullanması gerektiğini tanımlar.
 
 **Connection:** Database servis sağlayıcısının hangi bağlantıyı seçmesi gerektiğini tanımlar.
 
-**Tablo ayarları:** Database işlemleri sırasında tablo ismi ve sütün isimlerini belirlemenize olanak sağlar. Bu konfigurasyonlar tüm paket içerisinde kullanılır.
+**Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütün isimlerini belirlemenize olanak sağlar. Bu konfigurasyonlar database işlemlerinde kullanılır.
 
 
 #### Bir Kalıcı Oturum Açma Denemesi
@@ -308,16 +310,14 @@ Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adı altında b
 ```php
 + app
 + assets
-- controllers 
+- modules
     - membership
         + view
-        login.php
+        Login.php
 ```
 
 ```php
 namespace Membership;
-
-use Event\User;
 
 Class Login extends \Controller
 {
@@ -328,10 +328,16 @@ Class Login extends \Controller
         $this->c['view'];
         $this->c['request'];
         $this->c['user'];
-        $this->c['flash as flash'];
-        $this->c['event']->subscribe(new User($this->c));   // Listen user events
+        $this->c['flash'];
     }
 
+    /**
+     * Index
+     *
+     * @event->subscribe('Event\Login\Attempt');
+     *  
+     * @return void
+     */
     public function index()
     {
         if ($this->request->isPost()) {
@@ -369,8 +375,8 @@ Class Login extends \Controller
     }
 }
 
-/* End of file login.php */
-/* Location: .controllers/membership/login.php */
+/* End of file Login.php */
+/* Location: .modules/membership/Login.php */
 ```
 
 ### AuthResult Sınıfı ve Oturum Açma Sonuçları
@@ -548,7 +554,7 @@ Array
 Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar yetki doğrulama paketi tarafından kullanılan (rezerve anaharlar) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış anlık kullanıcılar ile igili sayısal yada meta verileri için ayrılmış olan size ait bir anahtardır.
 
 
-### UserActivity Sınıfı İşlevleri
+### User Activity Sınıfı İşlevleri
 
 ------
 
@@ -568,32 +574,65 @@ $this->user->activity->update();
 
 ------
 
-Yetki doğrulama paketine ait olaylar <b>app/classes/Event/User.php</b> sınıfı tarafından dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <b>onLoginAttempt()</b> olayıdır. Bu olay <b>Obullo/Authentication/User/UserIdentity</b> sınıfı içerisindeki loginAttempt metodu içerisinde <b>login.attempt</b> adı ile ilan edilmiştir. 
+Yetki doğrulama paketine ait olaylar <b>app/classes/Event/Login</b> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <b>Attempt()</b> olayıdır. Bu olay <b>Obullo/Authentication/User/Login</b> sınıfı içerisindeki <b>attempt()</b> metodu içerisinde <b>login.attempt.before</b> ve b>login.attempt.after</b> isimleriyle ile ilan edilmiştir. 
 
-Aşağıdaki örnekte gösterilen <b>app/classes/Event/User.php</b> sınıfı onLoginAttempt() metodu <b>login.attempt</b> olayını dinleyerek oturum denemeleri anını ve bu andan sonra oluşan sonuçları kontrol edebilmenizi sağlar. 
+Aşağıdaki örnekte gösterilen <b>app/classes/Event/Login/Attempt.php</b> sınıfı subscribe metodu <b>login.attempt.after</b> olayını dinleyerek oturum denemeleri anını ve bu andan sonra oluşan sonuçları kontrol edebilmenizi sağlar. 
 
 Lütfen takip eden örneğe bir göz atın.
 
 ```php
-namespace Event;
+namespace Event\Login;
 
-use Obullo\Authentication\AuthResult,
-    Obullo\Authentication\User\UserIdentity;
+use Obullo\Container\Container;
+use Obullo\Authentication\AuthResult;
+use Obullo\Event\EventListenerInterface;
 
-Class User
+Class Attempt implements EventListenerInterface
 {
     /**
-     * Handle user login attempts
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Constructor
+     *
+     * @param object $c container
+     */
+    public function __construct(Container $c)
+    {
+        $this->c = $c;
+    }
+
+    /**
+     * Before login attempt
+     * 
+     * @param array $credentials user login credentials
+     * 
+     * @return void
+     */
+    public function before($credentials = array())
+    {
+        // ..
+    }
+
+    /**
+     * After login attempts
      *
      * @param object $authResult AuthResult object
      * 
      * @return void
      */
-    public function onLoginAttempt(AuthResult $authResult)
+    public function after(AuthResult $authResult)
     {
         if ( ! $authResult->isValid()) {
 
             // Store attemtps
+            // ...
+        
+            // $row = $authResult->getResultRow();  // Get query results
 
         }
         return $authResult;
@@ -608,18 +647,19 @@ Class User
      */
     public function subscribe($event)
     {
-        $event->listen('login.attempt', 'Event\User.onLoginAttempt');
+        $event->listen('login.attempt.before', 'Event\Login\Attempt@before');
+        $event->listen('login.attempt.after', 'Event\Login\Attempt@after');
     }
 
 }
 
-// END User class
+// END Attempt class
 
-/* End of file User.php */
-/* Location: .Event/User.php */
+/* End of file Attempt.php */
+/* Location: .Event/Login/Attempt.php */
 ```
 
-Yukarıdaki örnekte <b>onLoginAttempt()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetki doğrulama sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
+Yukarıdaki örnekte <b>after()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetki doğrulama sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
 
 
 ### Database Sorgularını Özelleştirmek
@@ -805,14 +845,6 @@ Yetki doğrulama yapmadan kullanıcı Guest kimliği bilgilerine doğrulama işl
 ##### $this->user->login->validateCredentials(AuthorizedUser $user, array $credentials);
 
 AuthorizedUser kimliğine sahip kullanıcı bilgilerini dışarıdan gelen yeni bilgiler ile karşılaştırarak doğrulama yapar.
-
-##### $this->user->login->getAdapter();
-
-Serviste kullanılan adaptör nesnesine geri döner.
-
-##### $this->user->login->getStorage();
-
-Serviste kullanılan storage nesnesine geri döner.
 
 
 #### AuthResult Sınıfı Referansı

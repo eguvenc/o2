@@ -8,7 +8,7 @@ use Obullo\Container\Container;
 trait UniqueLoginTrait
 {
      /**
-     * On unique session addon terminates multiple login sessions.
+     * Terminates multiple login sessions.
      * 
      * @return void
      */

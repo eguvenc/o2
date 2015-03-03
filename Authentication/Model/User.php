@@ -7,6 +7,7 @@ use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\UserProviderInterface;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * O2 User Model
@@ -34,12 +35,13 @@ Class User implements UserInterface
      /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, ServiceProviderInterface $provider)
     {
         $this->c = $c;
-        $this->db = $this->c['service provider '.$this->c['auth.params']['db.provider']]->get(
+        $this->db = $provider->get(
             [
                 'connection' => $this->c['auth.params']['db.connection']
             ]

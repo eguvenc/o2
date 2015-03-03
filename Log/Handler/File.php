@@ -77,11 +77,7 @@ Class File extends AbstractHandler implements HandlerInterface
      */
     protected static function replacePath($path)
     {
-        if (strpos($path, 'data') === 0) {
-            $path = str_replace('/', DS, trim($path, '/'));
-            $path = DATA .substr($path, 5);
-        }
-        return $path;
+        return ROOT .str_replace('/', DS, trim($path, '/'));
     }
 
     /**

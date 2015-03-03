@@ -10,7 +10,7 @@ use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\AuthResult;
 
 /**
- * O2 Authentication - User Login Class
+ * O2 Authentication - Login Class
  *
  * @category  Authentication
  * @package   Login
@@ -19,7 +19,7 @@ use Obullo\Authentication\AuthResult;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class UserLogin
+Class Login
 {
     /**
      * Container
@@ -157,7 +157,7 @@ Class UserLogin
 
 }
 
-// END UserLogin.php File
-/* End of file UserLogin.php
+// END Login.php File
+/* End of file Login.php
 
-/* Location: .Obullo/Authentication/User/UserLogin.php */
+/* Location: .Obullo/Authentication/User/Login.php */

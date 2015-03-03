@@ -234,8 +234,10 @@ class Container implements ArrayAccess
         $serviceName = ucfirst($class);
 
         if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
-            $this->calledProviders[] = strtolower($matches['class']);
-            return $this;
+            // $this->calledProviders[] = strtolower($matches['class']);
+            $provider = strtolower($matches['class']);
+            return $this->registeredProviders[$provider];
+            // return $this;
         }
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
@@ -260,41 +262,6 @@ class Container implements ArrayAccess
         return $this->offsetGet($data['cid'], $params, $matches);
     }
     
-    /**
-     * Execute service providers
-     * 
-     * @param mixed $params parameters
-     * 
-     * @return object closure
-     */
-    public function get($params = null)
-    {
-        $lastCalled = end($this->calledProviders);
-        if ( ! isset($this->registeredProviders[$lastCalled])) {
-            throw new RuntimeException(
-                sprintf('Service provider %s not registered in your providers.php.', $lastCalled)
-            );
-        }
-        $provider = $this->registeredProviders[$lastCalled];
-
-        if ( ! method_exists($provider, 'get')) {
-            return $this[$lastCalled];              // Silex providers support
-        }
-        return $provider->get($params);
-    }
-
-    /**
-     * Creates new service provider connection
-     * 
-     * @param array $params array
-     * 
-     * @return void
-     */
-    public function factory($params = array())
-    {
-        return $this->get($params);
-    }
-
     /**
      * Define service with an alias
      * 

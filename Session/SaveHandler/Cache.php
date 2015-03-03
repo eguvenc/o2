@@ -1,23 +1,20 @@
 <?php
 
-namespace Obullo\Session\Handler;
+namespace Obullo\Session\SaveHandler;
 
 use Obullo\Container\Container;
 
 /**
- * Cache Session Handler Class 
- * 
- * @implements HandlerInterface but we don't declare implementation
- * to consume less memory.
+ * Save Handler Class 
  * 
  * @category  Session
- * @package   Cache
+ * @package   SaveHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-Class Cache implements SessionHandlerInterface
+Class Cache implements SaveHandlerInterface
 {
     /**
      * Container
@@ -50,15 +47,14 @@ Class Cache implements SessionHandlerInterface
     /**
      * Constructor
      *
-     * @param array $c      container
-     * @param array $params configuration
+     * @param array $c container
      */
-    public function __construct(Container $c, $params = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->params = $params;
-        $this->key = $params['session']['key'];
-        $this->lifetime = $params['session']['lifetime'];
+        $this->config = $c['config']->load('session');
+        $this->key = $this->config['session']['key'];
+        $this->lifetime = $this->config['session']['lifetime'];
         $this->provider = $this->c['service provider cache'];
     }
 
@@ -76,7 +72,7 @@ Class Cache implements SessionHandlerInterface
         $sessionName = null;
         $this->cache = $this->provider->get(
             [
-                'driver' => $this->params['cache']['storage'],
+                'driver' => $this->config['provider']['driver'],
                 'serializer' => 'none'
             ]
         );
@@ -178,4 +174,4 @@ Class Cache implements SessionHandlerInterface
 // END Cache.php File
 /* End of file Cache.php
 
-/* Location: .Obullo/Session/Handler/Cache.php */
+/* Location: .Obullo/Session/SaveHandler/Cache.php */

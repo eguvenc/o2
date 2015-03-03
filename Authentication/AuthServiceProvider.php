@@ -4,9 +4,9 @@ namespace Obullo\Authentication;
 
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
-use Obullo\Authentication\User\UserLogin;
-use Obullo\Authentication\User\UserActivity;
-use Obullo\Authentication\User\UserIdentity;
+use Obullo\Authentication\User\Login;
+use Obullo\Authentication\User\Activity;
+use Obullo\Authentication\User\Identity;
 
 /**
  * O2 Authentication - User Service Provider
@@ -47,13 +47,7 @@ Class AuthServiceProvider
         
         $this->c['auth.params'] = $params;
         $this->c['auth.storage'] = function () {
-            $cache = $this->c['service provider cache']->get(
-                [
-                    'driver' => $this->c['config']['auth']['cache']['provider']['driver'], 
-                    'serializer' => $this->c['config']['auth']['cache']['provider']['serializer']
-                ]
-            );
-            return new $this->config['cache']['storage']($this->c, $cache);
+            return new $this->config['cache']['storage']($this->c, $this->c['service provider cache']);
         };
 
         $this->c['auth.token'] = function () {
@@ -65,19 +59,19 @@ Class AuthServiceProvider
         };
 
         $this->c['user.model'] = function () use ($params) {
-            return new $params['db.model']($this->c);
+            return new $params['db.model']($this->c, $this->c['service provider '.$this->c['auth.params']['db.provider']]);
         };
 
         $this->c['auth.login'] = function () {
-            return new UserLogin($this->c);
+            return new Login($this->c);
         };
 
         $this->c['auth.identity'] = function () {
-            return new UserIdentity($this->c);
+            return new Identity($this->c);
         };
 
         $this->c['auth.activity'] = function () {
-            return new UserActivity($this->c);
+            return new Activity($this->c);
         };
     }
 

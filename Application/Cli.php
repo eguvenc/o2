@@ -98,7 +98,6 @@ class Cli extends Obullo
         include OBULLO_PROVIDERS;
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
-        include OBULLO_MIDDLEWARES;
         
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
 

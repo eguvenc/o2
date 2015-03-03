@@ -4,7 +4,6 @@ namespace Obullo\Authentication\User;
 
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
-use Obullo\Authentication\Token;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\Recaller;
 
@@ -18,7 +17,7 @@ use Obullo\Authentication\Recaller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-class UserIdentity extends AuthorizedUser
+class Identity extends AuthorizedUser
 {
     /**
      * Authentication config
@@ -440,7 +439,7 @@ class UserIdentity extends AuthorizedUser
     }
 }
 
-// END UserIdentity.php File
-/* End of file UserIdentity.php
+// END Identity.php File
+/* End of file Identity.php
 
-/* Location: .Obullo/Authentication/User/UserIdentity.php */
+/* Location: .Obullo/Authentication/User/Identity.php */
