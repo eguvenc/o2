@@ -140,9 +140,10 @@ class Identity extends AuthorizedUser
         if ($this->isAuth != null) {  // Cache the auth
             return $this->isAuth;
         }
-        if ($this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
+        if ($this->c['request']->isAjax() == false AND $this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
             $this->__token            = $this->c['auth.token']->get();  // Refresh the token and write it to memory
             $this->__lastTokenRefresh = time();
+            $this->c['logger']->error('Updated Token', $this->__token);
             return $this->isAuth = true;  // Don't do the token is valid for current request
         }
         if ($this->__isAuthenticated == 1 AND $this->isValidToken()) {

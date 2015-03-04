@@ -206,7 +206,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         $lang = $this->getLang();
         $link = static::CLIENT_API;
 
-        if (empty($lang)) {
+        if (! empty($lang)) {
             $link = static::CLIENT_API .'?hl='. $lang;
         }
         print('<script src="'.$link.'" async defer></script>');
@@ -270,8 +270,8 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
             ) {
                 foreach ($response['error-codes'] as $err) {
                     if (isset($this->errorCodes[$err])) {
-                        $this->result['code'] = CaptchaResult::FAILURE;
-                        $this->result['messages'][$err] = $this->errorCodes[$err];
+                        $this->result['code'] = $err;
+                        $this->result['messages'][] = $this->errorCodes[$err];
                     }
                 }
                 return $this->createResult();
