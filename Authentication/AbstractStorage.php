@@ -18,16 +18,6 @@ use Obullo\Container\Container;
 abstract class AbstractStorage
 {
     /**
-     * Cache storage unverified users key
-     */   
-    const UNVERIFIED_USERS = 'Unverified:';
-
-    /**
-     * Cache storage authorized users key
-     */   
-    const AUTHORIZED_USERS = 'Authorized:';
-
-    /**
      * Sets identifier value to session
      *
      * @param string $identifier user id
@@ -48,7 +38,7 @@ abstract class AbstractStorage
     {
         $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/Identifier');
 
-        return empty($id) ? '__emptyIdentifier' : $id;
+        return empty($id) ? '__empty' : $id;
     }
 
     /**
@@ -70,7 +60,7 @@ abstract class AbstractStorage
     {
         $identifier = $this->getIdentifier();
         if (empty($identifier)) {
-            return '__emptyIdentifier';
+            return '__empty';
         }
         $exp = explode(':', $identifier);
         return $exp[0];

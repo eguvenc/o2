@@ -5,7 +5,6 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * O2 Authentication - Memory Storage
@@ -19,24 +18,22 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  */
 Class Redis extends AbstractStorage
 {
-    public $keys;               // Authentication keys used in getAllKeys method
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $session;         // Session class
-    protected $data = array();  // User credentials data
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
+    protected $killSignal = array();  // Unique session login ids
 
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $provider ServiceProviderInterface
+     * @param object $c container
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider) 
+    public function __construct(Container $c) 
     {
         $this->c = $c;
-        $this->cache = $provider->get(
+        $this->cache = $c['service provider cache']->get(
             [
                 'driver' => $this->c['config']['auth']['cache']['provider']['driver'],
                 'options' => $this->c['config']['auth']['cache']['provider']['options']
@@ -45,6 +42,8 @@ Class Redis extends AbstractStorage
         $this->c['config']->load('auth');
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
+
+        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -56,12 +55,9 @@ Class Redis extends AbstractStorage
      */
     public function getAllKeys($block = '__permanent')
     {
-        if (isset($this->keys[$block])) {
-            return $this->keys[$block];
-        }
-        $this->keys[$block] = $this->cache->getAllKeys($this->getKey($block).':*');
-        if (isset($this->keys[$block][0])) {
-            return $this->keys[$block];
+        $data = $this->cache->getAllKeys($this->getKey($block).':*');
+        if (isset($data[0])) {
+            return $data;
         }
         return false;
     }
@@ -155,12 +151,14 @@ Class Redis extends AbstractStorage
             return false;
         }
         $credentials = $this->getCredentials('__temporary');
+        if ($credentials == false) {  // If already permanent
+            return;
+        }
         $credentials['__isAuthenticated'] = 1;
         $credentials['__isVerified'] = 1;
         $credentials['__type'] = 'Authorized';
 
-        $update = $this->cache->hMSet($this->getMemoryBlockKey('__permanent'), $credentials, $this->getMemoryBlockLifetime('__permanent'));
-        if ($update) {
+        if ($this->setCredentials($credentials, null, '__permanent')) {
             $this->deleteCredentials('__temporary');
             return $credentials;
         }
@@ -171,25 +169,25 @@ Class Redis extends AbstractStorage
     /**
      * Update credentials
      * 
-     * @param array  $oldCredentials user identity old data
-     * @param mixed  $pushData       push to identity data
-     * @param string $block          storage persistence type permanent / temporary
-     * @param string $ttl            storage lifetime
+     * @param array  $credentials user identity old data
+     * @param mixed  $pushData    push to identity data
+     * @param string $block       storage persistence type permanent / temporary
+     * @param string $ttl         storage lifetime
      * 
      * @return boolean
      */
-    public function setCredentials(array $oldCredentials, $pushData = null, $block = '__temporary', $ttl = null)
+    public function setCredentials(array $credentials, $pushData = null, $block = '__temporary', $ttl = null)
     {
-        if ($this->getIdentifier() == '__emptyIdentifier') {
+        if ($this->getIdentifier() == '__empty') {
             return false;
         }
-        $this->data[$block] = $oldCredentials;
+        $data = $credentials;
         if ( ! empty($pushData) AND is_array($pushData)) {
-            $this->data[$block] = array_merge($oldCredentials, $pushData);
+            $data = array_merge($credentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
 
-        return $this->cache->hMSet($this->getMemoryBlockKey($block), $this->data[$block], $lifetime);
+        return $this->cache->hMSet($this->getMemoryBlockKey($block), $data, $lifetime);
     }
 
     /**
@@ -201,13 +199,10 @@ Class Redis extends AbstractStorage
      */
     public function getCredentials($block = '__permanent')
     {
-        if ($this->getIdentifier() == '__emptyIdentifier') {
+        if ($this->getIdentifier() == '__empty') {
             return false;
         }
-        if (isset($this->data[$block])) {  // Lazy loading ( returns to old records if its already exists ).
-            return $this->data[$block];
-        }
-        return $this->data[$block] = $this->cache->hGetAll($this->getBlock($block));
+        return $this->cache->hGetAll($this->getBlock($block));
     }
 
     /**
@@ -243,9 +238,7 @@ Class Redis extends AbstractStorage
      */
     public function getMemoryBlockKey($block = '__temporary')
     {
-        $constant = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS; 
-
-        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$constant.$this->getIdentifier();  // Create unique key
+        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$this->getIdentifier();  // Create unique key
     }
 
     /**
@@ -257,9 +250,7 @@ Class Redis extends AbstractStorage
      */
     public function getKey($block = '__temporary')
     {
-        $key = ($block == '__temporary') ? static::UNVERIFIED_USERS : static::AUTHORIZED_USERS;
-
-        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$key.$this->getUserId();
+        return $this->c['auth.params']['cache.key']. ':' .$block. ':'.$this->getUserId();
     }
 
     /**
@@ -323,7 +314,7 @@ Class Redis extends AbstractStorage
     {
         $sessions   = array();
         $identifier = $this->getUserId();
-        $key        = $this->c['auth.params']['cache.key'].':__permanent:Authorized:';
+        $key        = $this->c['auth.params']['cache.key'].':__permanent:';
         $dbSessions = $this->cache->getAllKeys($key.$identifier.':*');
         
         if ($dbSessions == false) {
@@ -331,16 +322,15 @@ Class Redis extends AbstractStorage
         }
         foreach ($dbSessions as $val) {
             $exp = explode(':', $val);
-            $aid = end($exp);
+            $lid = end($exp);
 
-            $isAuthenticated = $this->cache->hGet($key.$identifier.':'.$aid, '__isAuthenticated');
-            if ($isAuthenticated == false) {
-                break;
+            $isAuthenticated = $this->cache->hGet($key.$identifier.':'.$lid, '__isAuthenticated');
+            if ($isAuthenticated == 1) {
+                $sessions[$lid]['__isAuthenticated'] = $isAuthenticated;
+                $sessions[$lid]['__time'] = $this->cache->hGet($key.$identifier.':'.$lid, '__time');
+                $sessions[$lid]['id'] = $identifier;
+                $sessions[$lid]['key'] = $key.$identifier.':'.$lid;
             }
-            $sessions[$aid]['__isAuthenticated'] = $isAuthenticated;
-            $sessions[$aid]['__time'] = $this->cache->hGet($key.$identifier.':'.$aid, '__time');
-            $sessions[$aid]['id'] = $identifier;
-            $sessions[$aid]['key'] = $key.$identifier.':'.$aid;
         }
         return $sessions;
     }
@@ -348,13 +338,28 @@ Class Redis extends AbstractStorage
     /**
      * Kill authority of user using auth id
      * 
-     * @param string $aid auth id (10 chars)  e.g:  ahtrzflp79
+     * @param string $lid login id (10 chars)  e.g:  ahtrzflp79
      * 
      * @return boolean
      */
-    public function killSession($aid)
+    public function killSession($lid)
     {
-        return $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->getUserId().':'.$aid);
+        $this->killSignal[$lid] = $lid;
+    }
+
+    /**
+     * Do finish operations
+     * 
+     * @return void
+     */
+    public function close()
+    {
+        if (empty($this->killSignal)) {
+            return;
+        }
+        foreach ($this->killSignal as $lid) {
+            $this->cache->delete($this->c['auth.params']['cache.key'].':__permanent:'.$this->getUserId().':'.$lid);
+        }
     }
 
 }

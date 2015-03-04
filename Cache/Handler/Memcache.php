@@ -115,20 +115,16 @@ Class Memcache implements CacheHandlerInterface
     /**
      * Get cache data.
      * 
-     * @param string $key cache key.
+     * @param string $key cache key
      * 
      * @return object
      */
     public function get($key)
     {
-        if ($value = $this->container->get($key)) {
-            return $value;
-        }
-        $value = $this->memcache->get($key);
+        $value = $this->memcache->get($key, false);
         if (is_array($value) AND isset($value[0])) {
             $value = $value[0];
         }
-        $this->container->set($key, $value); // Set to array container
         return $value;
     }
 
@@ -141,7 +137,7 @@ Class Memcache implements CacheHandlerInterface
      */
     public function keyExists($key)
     {
-        if ($this->memcache->get($key)) {
+        if ($this->memcache->get($key, false)) {
             return true;
         }
         return false;

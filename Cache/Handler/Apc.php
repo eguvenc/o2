@@ -61,22 +61,17 @@ Class Apc implements CacheHandlerInterface
     /**
      * Get cache data.
      * 
-     * @param string $key cache key.
+     * @param string $key cache key
      * 
-     * @return array
+     * @return object
      */
     public function get($key)
     {
-        if ($value = $this->container->get($key)) {
-            return $value;
-        }
         $value = apc_fetch($key);
         if (is_array($value) AND isset($value[0])) {
-            $value = $value[0];
-            $this->container->set($key, $value); // Set to array container
-            return $value;
+            return $value = $value[0];
         }
-        return false;
+        return $value;
     }
 
     /**

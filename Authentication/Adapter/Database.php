@@ -141,12 +141,8 @@ class Database extends AbstractAdapter implements AdapterInterface
     public function login(GenericUser $genericUser)
     {
         $this->initialize($genericUser);
-
-        if ( ! $this->storage->isEmpty('__temporary')) {
-            $this->isTemporary = true;
-        } else {
-            $this->authenticate($genericUser);  // Perform Query
-        }
+        $this->authenticate($genericUser);  // Perform Query
+        
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
         }
@@ -168,16 +164,17 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     public function authenticate(GenericUser $genericUser, $login = true)
     {
+        if ($this->c['auth.identity']->check()) {
+            $this->alreadyLoggedIn = true;
+            return false;
+        }
         $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
+
         /**
          * If user does not exists in memory do sql query
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
-        if ($this->c['auth.identity']->check()) {
-            $this->alreadyLoggedIn = true;
-            return false;
-        }
         if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
             $plain = $genericUser->getPassword();
             $hash  = $this->resultRowArray[$this->columnPassword];
@@ -245,7 +242,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function deleteOldAuth()
     {
-        $trashKey = $this->c['auth.params']['cache.key'].':__permanent:Authorized:'.$this->trashIdentifier;
+        $trashKey = $this->c['auth.params']['cache.key'].':__permanent:'.$this->trashIdentifier;
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {
             $this->storage->deleteCredentials($trashKey);
         }
@@ -303,11 +300,6 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function validateResultSet()
     {
-        if ($this->isEnabledVerification() AND $this->isTemporary) {
-            $this->results['code'] = AuthResult::FAILURE_UNVERIFIED;
-            $this->results['messages'][] = 'Unverified account.';
-            return $this->createResult();
-        }
         if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
             $this->results['code'] = AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';

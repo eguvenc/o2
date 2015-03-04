@@ -47,7 +47,7 @@ Class AuthServiceProvider
         
         $this->c['auth.params'] = $params;
         $this->c['auth.storage'] = function () {
-            return new $this->config['cache']['storage']($this->c, $this->c['service provider cache']);
+            return new $this->config['cache']['storage']($this->c);
         };
 
         $this->c['auth.token'] = function () {

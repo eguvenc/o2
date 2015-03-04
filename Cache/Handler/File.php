@@ -78,7 +78,7 @@ Class File implements CacheHandlerInterface
     /**
      * Get cache data.
      * 
-     * @param string $key storeage key
+     * @param string $key cache key
      * 
      * @return object
      */
@@ -87,13 +87,8 @@ Class File implements CacheHandlerInterface
         if ( ! file_exists($this->filePath . $key)) {
             return false;
         }
-        if ($value = $this->container->get($key)) {
-            return $value['data'];
-        }
         $data = file_get_contents($this->filePath . $key);
         $data = unserialize($data);
-
-        $this->container->set($key, $data); // Set to array container
 
         if (time() > $data['time'] + $data['ttl']) {
             unlink($this->filePath . $key);

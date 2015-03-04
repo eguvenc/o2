@@ -245,10 +245,10 @@ Class Redis implements CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function setTimeout($key, $ttl)
-    {
-        return $this->redis->setTimeout($key, $ttl);
-    }
+    // public function setTimeout($key, $ttl)
+    // {
+    //     return $this->redis->setTimeout($key, $ttl);
+    // }
 
     /**
      * Get cache data.
@@ -259,12 +259,7 @@ Class Redis implements CacheHandlerInterface
      */
     public function get($key)
     {
-        if ($value = $this->container->get($key)) {
-            return $value;
-        }
-        $value = $this->redis->get($key);
-        $this->container->set($key, $value); // Set to array container
-        return $value;
+        return $this->redis->get($key);
     }
 
     /**
@@ -654,6 +649,7 @@ Class Redis implements CacheHandlerInterface
     public function set($key = '', $data = 60, $ttl = 60) // If empty $ttl default timeout unlimited
     {
         if ( ! is_array($key)) {
+            // print_r($data);
             return $this->redis->set($key, $data, $ttl);
         }
         return $this->setArray($key, $data);

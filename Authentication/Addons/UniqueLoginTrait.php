@@ -14,10 +14,10 @@ trait UniqueLoginTrait
      */
     public function uniqueLoginCheck()
     {
-        if ($this->c['config']['auth']['activity']['uniqueLogin'] AND $this->c['auth.identity']->check()) {  // Unique Session is the property whereby a single action of activity
+        if ($this->c['config']['auth']['activity']['uniqueLogin']) {  // Unique Session is the property whereby a single action of activity
             $sessions = $this->c['auth.storage']->getAllSessions();
 
-            if (sizeof($sessions) < 1) {  // If user have more than one auth session continue to destroy them.
+            if (sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
                 return;
             }
             $sessionKeys = array();  
@@ -28,8 +28,8 @@ trait UniqueLoginTrait
             $protectedSession = $sessionKeys[$lastSession];
             unset($sessions[$protectedSession]);            // Don't touch the current session
 
-            foreach (array_keys($sessions) as $aid) {   // Destroy all other sessions
-                $this->c['auth.storage']->killSession($aid);
+            foreach (array_keys($sessions) as $lid) {   // Destroy all other sessions
+                $this->c['auth.storage']->killSession($lid);
             }
         }
     }
