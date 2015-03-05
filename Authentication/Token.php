@@ -88,9 +88,9 @@ class Token
     {
         $cookie = $this->config['security']['cookie'];
 
-        return $this->c['auth.container']->get($cookie['name']);
+        // return $this->c['auth.container']->get($cookie['name']);
 
-        // return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
+        return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
     }
 
     /**
@@ -115,21 +115,20 @@ class Token
         //     )
         // );
 
-        // setcookie(
-        //     $cookie['prefix'] . $cookie['name'],
-        //     $token,
-        //     time() + $cookie['expire'],
-        //     $cookie['path'],
-        //     $this->c['config']['cookie']['domain'],   //  Get domain from global config
-        //     $cookie['secure'],
-        //     $cookie['httpOnly']
-        // );
+        setcookie(
+            $cookie['prefix'] . $cookie['name'],
+            $token,
+            time() + $cookie['expire'],
+            $cookie['path'],
+            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['secure'],
+            $cookie['httpOnly']
+        );
 
-        $this->c['auth.container']->set($cookie['prefix'].$cookie['name'], $token);
+        // $this->c['auth.container']->set($cookie['prefix'].$cookie['name'], $token);
 
-        // $cookie = isset($_COOKIE[$cookie['prefix'].$cookie['name']]) ? $_COOKIE[$cookie['prefix'].$cookie['name']] : false;
-
-        // $this->c['logger']->error('COOKIE VALUES', array($token, $cookie));
+        $cookie = isset($_COOKIE[$cookie['prefix'].$cookie['name']]) ? $_COOKIE[$cookie['prefix'].$cookie['name']] : false;
+        $this->c['logger']->error('COOKIE VALUES', array($token, $cookie));
 
         return $token;
     }

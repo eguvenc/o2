@@ -846,6 +846,10 @@ Yetki doğrulama yapmadan kullanıcı Guest kimliği bilgilerine doğrulama işl
 
 AuthorizedUser kimliğine sahip kullanıcı bilgilerini dışarıdan gelen yeni bilgiler ile karşılaştırarak doğrulama yapar.
 
+##### $this->user->login->getAllSessions();
+
+Geçerli kullanıcının oturumlarına bir dizi içerisinde geri döner. Her açılan oturuma bir login id verilir kullanıcılar farklı tarayıcılarda veya aygıtlarda birden fazla oturum açmış olabilirler.
+
 
 #### AuthResult Sınıfı Referansı
 
@@ -942,10 +946,6 @@ Kimlik dizisine yeni bir değer ekler.
 ##### unset($this->user->identity->variable)
 
 Kimlik dizisinde varolan değeri siler.
-
-##### $this->user->identity->setRoles(int|string|array $roles);
-
-Eğer bir yetki sistemi kullanıyorsanız sisteme kayıtlı rolleri kimliğe bağlayabilirsiniz.
 
 ##### $this->user->identity->setArray(array $attributes)
 

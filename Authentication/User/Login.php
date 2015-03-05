@@ -99,17 +99,28 @@ Class Login
         $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
         $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
 
+        return $this->createResults($credentials);
+
+    }
+
+    /**
+     * Create login attemt and returns to auth result object
+     * 
+     * @param array $credentials login credentials
+     * 
+     * @return object AuthResult
+     */
+    protected function createResults($credentials)
+    {
         $genericUser = new GenericUser;
         $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
 
         $authResult = $this->c['auth.adapter']->login($genericUser);
-
         $this->c['user']->identity->initialize();
 
         $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
-                                                                                      // Event fire returns multiple array response but we use one.
-        return isset($eventResult[0]) ? current($eventResult) : $authResult;
+        return isset($eventResult[0]) ? current($eventResult) : $authResult;                // Event fire returns multiple array response but we use one.
     }
 
     /**
@@ -153,6 +164,19 @@ Class Login
         $plain = $credentials[$this->columnPassword];
 
         return $this->c['password']->verify($plain, $user->getPassword());
+    }
+
+    /**
+     * Returns to all sessions of valid user
+     *
+     * One user can open multiple login sessions on different 
+     * devices or browsers.
+     * 
+     * @return array
+     */
+    public function getAllSessions()
+    {
+        return $this->c['auth.storage']->getAllSessions();
     }
 
 }
