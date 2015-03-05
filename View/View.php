@@ -85,7 +85,7 @@ Class View
         if ($obulloViewData === false OR $obulloViewInclude === false) {
             return $output;
         }
-        $this->c['response']->write($output);
+        $this->c['response']->append($output);
         return;
     }
 

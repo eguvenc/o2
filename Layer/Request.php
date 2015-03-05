@@ -85,7 +85,7 @@ Class Request
      */
     protected function isJson($uri, $raw)
     {
-        if (strpos(trim($uri, '/'), 'jsons/') === 0) {
+        if (strpos(trim($uri, '/'), 'database/') === 0 OR strpos(trim($uri, '/'), 'jsons/') === 0) {
             return $this->json($raw);
         }
         return $raw;
@@ -121,14 +121,14 @@ Class Request
         $layer->setHeaders();  // Headers must be at the top
         $layer->setUrl($uriString);
         $layer->setMethod($method, $data);
-        $rsp = $layer->execute($expiration); // Execute the process
+        $response = $layer->execute($expiration); // Execute the process
         $layer->restore();  // Restore controller objects
 
-        if (is_string($rsp) AND strpos($rsp, '404') === 0) {  // 404 support
+        if (strpos(trim($response), '@ErrorTemplate@') === 0) {  // Error template support
             $error = new Error($this->c);
-            return $error->get404Error($rsp);
+            return $error->getError(str_replace('@ErrorTemplate@', '', $response));
         }
-        return (string)$rsp;
+        return (string)$response;
     }
 }
 

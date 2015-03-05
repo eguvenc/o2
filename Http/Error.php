@@ -32,12 +32,11 @@ Class Error
     /**
     * 404 Page Not Found Handler
     *
-    * @param string  $page    page name
-    * @param boolean $http404 http 404 or layer 404
+    * @param string $page page name
     * 
     * @return string
     */
-    public function show404($page = '', $http404 = true)
+    public function show404($page = '')
     {
         if ($this->c->exists('app.uri') AND empty($page)) {
             $page = $this->c['app']->uri->getUriString();
@@ -45,10 +44,7 @@ Class Error
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;
         $this->logger->error($message);
-        if ($http404 == false) {
-            $this->error = $message;
-            return $message;
-        }
+
         echo $this->showHttpError('404 Page Not Found', $page, '404', 404);
         exit();
     }
@@ -66,10 +62,7 @@ Class Error
     {
         $message = $this->sanitizeMessage($message);
         $this->logger->error($heading.' --> '.$message, false);
-        if ($statusCode === false) {
-            $this->error = $message;
-            return $message;
-        }
+
         header('Content-type: text/html; charset='.$this->c['config']['locale']['charset']); // Some times we use utf8 chars in errors.
         echo $this->showHttpError($heading, $message, 'general', $statusCode);
         exit();

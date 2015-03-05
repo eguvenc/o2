@@ -2,6 +2,8 @@
 
 namespace Obullo\Utils;
 
+use Obullo\Container\Container;
+
 /**
  * Uri Utilities
  * 
@@ -19,14 +21,14 @@ Class Uri
      *
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->uri = $c['uri'];
@@ -39,7 +41,7 @@ Class Uri
      */
     public function getRoutedUriString()
     {
-        return '/' . implode('/', $this->getRoutedSegmentArray()) . '/';
+        return '/' . implode('/', $this->getRoutedSegments()) . '/';
     }
 
     /**
@@ -47,9 +49,19 @@ Class Uri
      * 
      * @return array
      */
-    public function getSegmentArray()
+    public function getSegments()
     {
         return $this->uri->segments;
+    }
+
+    /**
+     * Returns to routed segment array
+     * 
+     * @return array
+     */
+    public function getRoutedSegments()
+    {
+        return $this->rsegments;
     }
 
     /**
@@ -60,16 +72,6 @@ Class Uri
     public function getTotalSegments()
     {
         return sizeof($this->uri->segments);
-    }
-
-    /**
-     * Routed Segment Array
-     *
-     * @return array
-     */
-    public function getRoutedSegmentArray()
-    {
-        return $this->uri->rsegments;
     }
 
     /**
@@ -203,11 +205,11 @@ Class Uri
     protected function uriToAssoc($number = 3, $default = array(), $which = 'segment')
     {
         if ($which == 'segment') {
-            $totalSegments = 'getTotalSegments';
-            $segmentArray  = 'getSegmentArray';
+            $getTotalSegments = 'getTotalSegments';
+            $getSegmentArray  = 'getSegments';
         } else {
-            $totalSegments = 'getTotalRoutedSegments';
-            $segmentArray  = 'getRoutedSegmentArray';
+            $getTotalSegments = 'getTotalRoutedSegments';
+            $getSegmentArray  = 'getRoutedSegments';
         }
         if ( ! is_numeric($number)) {
             return $default;
@@ -215,7 +217,7 @@ Class Uri
         if (isset($this->uri->keyval[$number])) {
             return $this->uri->keyval[$number];
         }
-        if ($this->$totalSegments() < $number) {
+        if ($this->$getTotalSegments() < $number) {
             if (count($default) == 0) {
                 return array();
             }
@@ -225,7 +227,7 @@ Class Uri
             }
             return $retval;
         }
-        $segments = array_slice($this->$segmentArray(), ($number - 1));
+        $segments = array_slice($this->$getSegmentArray(), ($number - 1));
         $i = 0;
         $lastval = '';
         $retval = array();

@@ -2,8 +2,6 @@
 
 namespace Obullo\Authentication\User;
 
-use RuntimeException;
-use Obullo\Utils\Random;
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;

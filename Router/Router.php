@@ -5,7 +5,6 @@ namespace Obullo\Router;
 use Closure;
 use Controller;
 use LogicException;
-use Obullo\Http\Response;
 use BadMethodCallException;
 use Obullo\Container\Container;
 
@@ -25,7 +24,6 @@ Class Router
 {
     public $uri;                            // Uri class
     public $logger;                         // Logger class
-    public $response;                       // Response class
     public $class = '';                     // Controller class name
     public $routes = array();               // Routes config
     public $method = 'index';               // Default method
@@ -77,7 +75,6 @@ Class Router
         $this->class = '';
         $this->directory = '';
         $this->module = '';
-        $this->response = null;
     }
 
     /**
@@ -299,14 +296,12 @@ Class Router
 
             if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
                 $message = 'Unable to determine what should be displayed. A default route has not been specified in the routing file.';
-                $this->response = new Response($this->c);
 
                 if (isset($_SERVER['LAYER_REQUEST'])) {  // Returns to false if we have Layer connection error.
-                    $this->response->showError($message, false);
+                    $this->c['response']->setError('@ErrorTemplate@'.$message);
                     return false;
                 }
-
-                $this->response->showError($message, 404);
+                $this->c['response']->showError($message, 404);
             }
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
             if (isset($_SERVER['LAYER_REQUEST']) AND $segments === false) {   // Returns to false if we have Layer connection error.
@@ -374,34 +369,27 @@ Class Router
             $this->setDirectory($segments[1]);
             array_shift($segments);
         }
-        $module = $this->fetchModule(DS);
-        $directory = $this->fetchDirectory();
+        $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
 
-        // if segments[1] exists set first segment as a directory 
-        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$module.$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
+        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
-        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {         // if segments[1] not exists. forexamle http://example.com/welcome
+        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }
-        // HTTP 404
-        // If we've gotten this far it means that the URI does not correlate to a valid
-        // controller class.  We will now see if there is an +override
-        if ( ! empty($this->pageNotFoundController)) {
-            $exp = explode('/', $this->pageNotFoundController);
-            $this->setDirectory($exp[0]);
+        if ( ! empty($this->pageNotFoundController)) {            // HTTP 404
+            $exp = explode('/', $this->pageNotFoundController);   // If we've gotten this far it means that the URI does not correlate to a valid
+            $this->setDirectory($exp[0]);                         // controller class.  We will now see if there is an +override
             $this->setClass($exp[1]);
             $this->setMethod(isset($exp[2]) ? $exp[2] : 'index');
             return $exp;
         }
-        $errorPage = (isset($segments[1])) ? $segments[0] . '/' . $segments[1] : $segments[0];
-        $this->response = new Response($this->c); // 404 Response
         if (isset($_SERVER['LAYER_REQUEST'])) {
-            $this->response->show404($errorPage, false);
+            $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
             return false;
         }
-        $this->response->show404($errorPage);
+        $this->c['response']->show404($this->uri->getUriString());
     }
 
     /**

@@ -67,13 +67,13 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Checks package is loaded
+     * Checks package is called before
      * 
      * @param string $cid package id
      * 
      * @return boolean
      */
-    public function isCalled($cid) 
+    public function frozen($cid) 
     {
         return isset($this->frozen[$cid]);
     }    
@@ -230,22 +230,19 @@ class Container implements ArrayAccess
     public function load($classString, $params = array())
     {
         $matches = $this->resolveCommand($classString);
-        $class = $matches['class'];
-        $serviceName = ucfirst($class);
+        $class = strtolower($matches['class']);
+        $serviceName = ucfirst($matches['class']);
 
         if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
-            // $this->calledProviders[] = strtolower($matches['class']);
-            $provider = strtolower($matches['class']);
-            return $this->registeredProviders[$provider];
-            // return $this;
+            return $this->registeredProviders[$class];
         }
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
         if ($isDirectory OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
             $isService = true;
-            $data['cid'] = $data['key'] = strtolower($class);
-            $serviceClass = $this->resolveServiceClass($serviceName, $isDirectory);
+            $data['cid'] = $data['key'] = $class;
+            $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
             if ( ! isset($this->registeredService[$serviceName])) {
                 $service = new $serviceClass($this);
@@ -253,9 +250,9 @@ class Container implements ArrayAccess
                 $this->registeredService[$serviceName] = true;
             }
         }
-        $data = $this->getClassInfo($class);
-
+        $data = $this->getClassInfo($matches['class']);
         $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
+        
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
             $this->registerClass($data['cid'], $key, $matches, $data['class'], $params);
         }
@@ -509,7 +506,7 @@ class Container implements ArrayAccess
      * 
      * @return string class namespace
      */
-    protected function resolveServiceClass($serviceClass, $isDirectory = false)
+    protected function resolveService($serviceClass, $isDirectory = false)
     {
         if ($isDirectory) {
             return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->getEnv());

@@ -30,14 +30,7 @@ class Token
      * @var array
      */
     protected $config;
-
-    /**
-     * Security token cache
-     *
-     * @var string
-     */
-    protected $token = null;
-
+    
     /**
      * Constructor
      *
@@ -61,9 +54,7 @@ class Token
             $userAgent      = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
             $userAgentMatch = '.' . hash('adler32', trim($userAgent));
         }
-        $token = Random::generate('alnum', 16);
-
-        return $this->token = $token . $userAgentMatch;  // Creates smaller token
+        return Random::generate('alnum', 16) . $userAgentMatch;  // Creates smaller token
     }
 
     /**
@@ -73,35 +64,9 @@ class Token
      */
     public function get()
     {
-        if ($this->token != null) {  // If we have already token don't regenerate it.
-            return $this->token;
-        }
-        return $this->refresh();
-    }
-
-    /**
-     * Get token from cookie
-     *
-     * @return string
-     */
-    public function getCookie()
-    {
-        $cookie = $this->config['security']['cookie'];
-
-        // return $this->c['auth.container']->get($cookie['name']);
-
-        return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
-    }
-
-    /**
-     * Refresh unique security token
-     *
-     * @return void
-     */
-    public function refresh()
-    {
         $cookie = $this->config['security']['cookie'];
         $token  = $this->generate();
+        $cookie['value'] = $token;
 
         // $this->setCookie(
         //     $cookie['prefix'] . $cookie['name'],
@@ -114,23 +79,38 @@ class Token
         //         $cookie['httpOnly']
         //     )
         // );
+        $this->c['cookie']->queue($cookie);
 
-        setcookie(
-            $cookie['prefix'] . $cookie['name'],
-            $token,
-            time() + $cookie['expire'],
-            $cookie['path'],
-            $this->c['config']['cookie']['domain'],   //  Get domain from global config
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
+        // setcookie(
+        //     $cookie['prefix'] . $cookie['name'],
+        //     $token,
+        //     time() + $cookie['expire'],
+        //     $cookie['path'],
+        //     $this->c['config']['cookie']['domain'],   //  Get domain from global config
+        //     $cookie['secure'],
+        //     $cookie['httpOnly']
+        // );
 
-        // $this->c['auth.container']->set($cookie['prefix'].$cookie['name'], $token);
+        // // $this->c['auth.container']->set($cookie['prefix'].$cookie['name'], $token);
 
-        $cookie = isset($_COOKIE[$cookie['prefix'].$cookie['name']]) ? $_COOKIE[$cookie['prefix'].$cookie['name']] : false;
-        $this->c['logger']->error('COOKIE VALUES', array($token, $cookie));
+        // $cookie = isset($_COOKIE[$cookie['prefix'].$cookie['name']]) ? $_COOKIE[$cookie['prefix'].$cookie['name']] : false;
+        // $this->c['logger']->error('COOKIE VALUES', array($token, $cookie));
 
         return $token;
+    }
+
+    /**
+     * Get token from cookie
+     *
+     * @return string
+     */
+    public function getCookie()
+    {
+        $cookie = $this->config['security']['cookie'];
+
+        return $this->c['cookie']->queued($cookie['name']);
+
+        // return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
     }
 
     /**

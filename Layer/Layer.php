@@ -84,6 +84,7 @@ Class Layer
         $this->c = $c;
         $this->params = $params;
         $this->logger = $c['logger'];
+        
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
@@ -201,19 +202,18 @@ Class Layer
             }
         }
         if ($this->c['response']->getError() != '') {  // If router dispatch fail ?
+            $error = $this->c['response']->getError();
             $this->reset();
-            return $this->c['response']->getError();
+            return $error;
         }
-
         $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); //  Create Layer ID
         
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
         $method    = $this->c['router']->fetchMethod();
 
-        $this->layerUri = $this->c['router']->fetchModule().'/'.$directory.'/'.$className;
-        $controller = CONTROLLERS .$this->c['router']->fetchModule() .DS .$directory. DS .$className. '.php';
-
+        $this->layerUri = $this->c['router']->fetchModule(DS) .$directory.'/'.$className;
+        $controller = CONTROLLERS .$this->c['router']->fetchModule(DS) .$directory. DS .$className. '.php';
         $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
 
                                                     // Check class is exists in the storage
@@ -227,7 +227,8 @@ Class Layer
         }
         if ( ! method_exists($class, $method)) {  // Check method exist or not
             $this->reset();
-            return $this->c['response']->show404($this->layerUri.'/'.$method, false);
+            $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
+            return $this->c['response']->getError();
         }
 
         ob_start();
@@ -262,7 +263,7 @@ Class Layer
      */
     public function clear()
     {
-        $this->c['response']->clear();
+        $this->c['response']->clear();  // Clear variables otherwise all responses of layer return to same error.
         $this->processDone = false;
         $this->requestMethod = 'GET';
         unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);

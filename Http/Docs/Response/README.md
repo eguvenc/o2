@@ -29,13 +29,13 @@ $this->response->setOutput($data);
 **Important:** If you do set your output manually, it must be the last thing done in the function you call it from. For example, if you build a page in one of your controller functions, don't set the output until the end.
 
 
-#### $this->response->appendOutput();
+#### $this->response->setOutput();
 
 Permits you to manually append to final output string. Usage example:
 
 ```php
 <?php
-$this->response->appendOutput($data);
+$this->response->setOutput($data);
 ```
 
 #### $this->response->getOutput();
@@ -109,7 +109,7 @@ Permits you to manually set a server status header. Example:
 
 ```php
 <?php
-$this->reponse->setHttpResponse('401');  // Sets the header as:  Unauthorized
+$this->reponse->status('401');  // Sets the header as:  Unauthorized
 ```
 
 [See here](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) for a full list of headers.
@@ -139,9 +139,32 @@ $app->func(
 
 ------
 
-#### $this->response->output(string $output, $code = null);
+#### $this->response->show404();
+
+
+
+#### $this->response->setOutput(string $output);
 
 Print output to screen and sends http headers.
+
+#### $this->response->getOutput(string $output);
+
+#### $this->response->append(string $output);
+
+Append output to response body.
+
+#### $this->response->finalize();
+
+#### $this->response->enableOutput();
+
+#### $this->response->disableOutput();
+
+#### $this->response->sendHeaders();
+
+#### $this->response->write();
+
+Writes output to screen.
+
 
 #### $this->response->json(array $data, $header = 'default');
 
@@ -153,6 +176,10 @@ Permits you to manually set a server status header.
 
 [See here](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) for a full list of headers.
 
+
+#### $this->response->getStatus();
+
+
 #### $this->response->show404();
 
 Generates <b>404 Page Not Found</b> errors using html template file.
@@ -160,7 +187,3 @@ Generates <b>404 Page Not Found</b> errors using html template file.
 #### $this->response->showError(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
 
 Manually shows an error to users using html template file.
-
-#### $this->response->showWarning(string $message);
-
-Generates user friendly warning messsages using <kbd>app/templates/errors/warning.php</kbd> template file.

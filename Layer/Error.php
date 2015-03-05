@@ -2,6 +2,8 @@
 
 namespace Obullo\Layer;
 
+use Obullo\Container\Container;
+
 /**
  * Error Class
  * 
@@ -19,14 +21,17 @@ Class Error
     white-space: -moz-pre-wrap;
     white-space: -pre-wrap;
     white-space: -o-pre-wrap;
+    font-size:12px;
+    font-family:Arial,Verdana,sans-serif;
+    font-weight:normal;
     word-wrap: break-word; 
-    background: #fff;
+    background: #FFFAED;
     border: 1px solid #ddd;
     border-radius: 4px;
     -moz-border-radius: 4px;
     -webkit-border-radius:4px;
     padding:5px 10px;
-    color:#069586;
+    color:#E53528;
     font-size:12px;">';
     const ERROR_FOOTER = '</div>';
 
@@ -35,31 +40,31 @@ Class Error
      * 
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
 
     /**
-     * Get lvc error
+     * Format layer errors
      *
      * @param string $response lvc response
      * 
      * @return mixed
      */
-    public function get404Error($response)
+    public function getError($response)
     {
         if ($this->c['request']->isAjax()) {  // Is ajax request ?
             return array(
                 'success' => 0,
-                'message' => $this->c['translator']['e_404'],
+                'message' => $response,
                 'errors' => array()
             );
         }

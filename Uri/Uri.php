@@ -2,8 +2,8 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Http\Sanitizer,
-    Obullo\Container\Container;
+use Obullo\Http\Sanitizer;
+use Obullo\Container\Container;
 
 /**
  * Uri Class
@@ -42,6 +42,7 @@ Class Uri
         $this->c = $c;
         $this->config = $c['config'];
         $this->logger = $c['logger'];
+
         $this->logger->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
@@ -236,9 +237,19 @@ Class Uri
      * 
      * @return array
      */
-    public function segmentArray()
+    public function getSegments()
     {
-        return $this->segments;
+        return $this->uri->segments;
+    }
+
+    /**
+     * Returns to routed segment array
+     * 
+     * @return array
+     */
+    public function getRoutedSegments()
+    {
+        return $this->rsegments;
     }
 
     /**
@@ -253,7 +264,7 @@ Class Uri
      * 
      * @return string
      */
-    public function routedSegment($number, $no_result = false)
+    public function getRoutedSegment($number, $no_result = false)
     {
         return ( ! isset($this->rsegments[$number])) ? $no_result : $this->rsegments[$number];
     }

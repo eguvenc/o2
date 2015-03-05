@@ -2,21 +2,20 @@
 
 namespace Obullo\Http;
 
-use Controller;
+use Closure;
 use Obullo\Container\Container;
 
 /**
- * Response Class.
+ * Http response Class.
  * 
- * Set Http Response, Set Output Errors
- * Get Output
+ * Set Http Response Code, Set Outputs, Send Headers
  * 
  * @category  Http
  * @package   Response
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/http/response
+ * @link      http://obullo.com/package/http
  */
 Class Response
 {
@@ -32,7 +31,7 @@ Class Response
      * 
      * @var string
      */
-    public $error;
+    public $error = null;
 
     /**
      * Status code
@@ -56,18 +55,18 @@ Class Response
     public $output;
 
     /**
-     * Compression switch
-     * 
-     * @var boolean
-     */
-    public $outputCompression = true;
-
-    /**
      * Php headers
      * 
      * @var array
      */
     public $headers = array();
+
+    /**
+     * Enable / Disabled run sendOutput()
+     * 
+     * @var boolean
+     */
+    protected $enabled = true;
 
     /**
      * Constructor
@@ -108,6 +107,7 @@ Class Response
     */    
     public function getOutput()
     {
+        $this->length = strlen($this->output);
         return $this->output;
     }
 
@@ -118,14 +118,13 @@ Class Response
      * 
      * @return string output
      */
-    public function write($output = '')
+    public function append($output = '')
     {
         if ($this->output == '') {
             $this->output = $output;
         } else {
             $this->output.= $output;
         }
-        $this->length = strlen($this->output);
         return $this->output;
     }
     
@@ -157,25 +156,48 @@ Class Response
     }
 
     /**
-     * Send headers and echo output
+     * Send response headers
      * 
-     * @return string
+     * @param integer $status  http response code
+     * @param array   $headers http headers
+     * 
+     * @return void
      */
-    public function sendOutput()
+    public function sendHeaders($status, $headers)
     {
-        list($status, $headers, $output) = $this->finalize(); // Fetch status, header, and body
-
         if (headers_sent() === false) {   // Send headers
 
             http_response_code($status);
 
+            // Write queued cookie headers if cookie package available in 
+            // the application and we have queued cookies.
+        
+            if ($this->c->frozen('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+                foreach ($cookies as $cookie) {
+                    $this->c['cookie']->write($cookie);
+                }
+            }
             if (count($headers) > 0) {  // Are there any server headers to send ?
-                foreach ($headers as $header => $params) {
-                    header($header, $params['replace']);
+                foreach ($headers as $header => $cookie) {
+                    header($header, $cookie['replace']);
                 }            
             }
         }
-        echo $output;  // Send output
+    }
+
+    /**
+     * Send headers and echo output
+     * 
+     * @return string
+     */
+    public function write()
+    {
+        if ($this->enabled) {  // Send output
+            list($status, $headers, $output) = $this->finalize();
+            $this->sendHeaders($status, $headers);
+
+            echo $output;
+        }
     }
 
     /**
@@ -248,12 +270,12 @@ Class Response
     * @param int    $statusCode status
     * @param int    $heading    heading text
     *
-    * @return void
+    * @return void|string
     */
     public function showError($message, $statusCode = 500, $heading = 'An Error Was Encountered')
     {
         $error = new Error($this->c, $this);
-        $error->showError($message, $statusCode, $heading);
+        return $error->showError($message, $statusCode, $heading);
     }
 
     /**
@@ -266,14 +288,49 @@ Class Response
      */
     public function json(array $data, $header = 'default')
     {
-        // $this->outputCompression = false;  // Default false for json response
+        $this->disableOutput(); // Disable output because of we return to json encode and send headers.
 
         if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
             foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
                 $this->setHeader($value);
             }
         }
+        list($status, $headers) = $this->finalize();
+        $this->sendHeaders($status, $headers);
+
         return json_encode($data);
+    }
+
+    /**
+     * Enables write output method
+     * 
+     * @return void
+     */
+    public function enableOutput()
+    {
+        $this->enabled = true;
+    }
+
+    /**
+     * Disables write output method
+     * 
+     * @return void
+     */
+    public function disableOutput()
+    {
+        $this->enabled = false;
+    }
+
+    /**
+     * Set last response error
+     *
+     * @param string $error message
+     * 
+     * @return string
+     */
+    public function setError($error)
+    {
+        $this->error = $error;
     }
 
     /**
@@ -287,7 +344,7 @@ Class Response
     }
 
     /**
-     * Clear variables.
+     * Clear error variables for layer requests
      * 
      * @return void
      */
@@ -295,6 +352,7 @@ Class Response
     {
         $this->error = null;
     }
+
 
 }
 

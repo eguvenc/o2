@@ -5,10 +5,10 @@ namespace Obullo\Log;
 /**
  * Multiple writers raid control.
  *
- * Control log writers log mirroring feature.
+ * Control log mirroring feature.
  * 
  * @category  Log
- * @package   WriterRaidDefinition
+ * @package   LogWriterRaidController
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license

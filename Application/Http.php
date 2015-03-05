@@ -157,7 +157,7 @@ class Http extends Obullo
         }
         $middleware->call();   
 
-        $this->c['response']->sendOutput();  //  send headers and echo output
+        $this->c['response']->write();  // Send headers and echo output if output enabled
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Obullo\Layer;
 
 use Obullo\Layer\Layer;
+use Obullo\Container\Container;
 
 /**
  * Flush Class
@@ -42,11 +43,12 @@ Class Flush
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->cache = $c['cache'];
         $this->logger = $this->c['logger'];
+        
         $this->logger->debug('Layer Flush Class Initialized');
     }
 

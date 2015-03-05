@@ -89,14 +89,26 @@ $this->cookie->delete($name, $domain, $path, $prefix)
 
 ------
 
-#### $this->config->set(mixed $name = '', string $value = '', int $expire = 0, string $domain = '', string $path = '/', string $prefix = '', bool $secure = false);
+#### $this->cookie->set(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', string $prefix = '', bool $secure = false);
 
 Sets a cookie containing the values you specify.
 
-#### $this->config->get(string $name);
+#### $this->cookie->get(string $name);
 
 Fetch a cookie.
 
-#### $this->config->delete(string $name, string $domain = '', string $path = '/', string $prefix = '');
+#### $this->cookie->delete(string $name, string $domain = '', string $path = '/', string $prefix = '');
 
 Delete a cookie.
+
+
+#### $this->c['cookie']->queue(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', string $prefix = '', bool $secure = false);
+
+
+#### $this->c['cookie']->queued(string $name);
+
+
+#### $this->c['cookie']->unqueue(string $name);
+
+
+#### $this->c['cookie']->getQueuedCookies();
