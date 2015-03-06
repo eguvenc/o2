@@ -527,11 +527,15 @@ trait LoggerTrait
                 return;
             }
             $priority = $val['priority'];
+            $records = $this->extract($name);
+            if (empty($records)) {
+                continue;
+            }
             $this->payload[$priority]['request'] = $this->request;
             $this->payload[$priority]['handler'] = $name;
             $this->payload[$priority]['type'] = $val['type'];
             $this->payload[$priority]['time'] = time();
-            $this->payload[$priority]['record'] = $this->extract($name); // set record array
+            $this->payload[$priority]['record'] =  $records;// set record array
         }
         asort($this->payload);
     }
