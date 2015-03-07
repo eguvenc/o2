@@ -94,8 +94,8 @@ Class Login
                 )
             );
         }
-        $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
-        $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+        $rememberMeCookie = $this->config['login']['rememberMe']['cookie'];
+        $credentials['__rememberToken'] = $this->c['cookie']->get($rememberMeCookie['prefix'].$rememberMeCookie['name']);
 
         return $this->createResults($credentials);
 

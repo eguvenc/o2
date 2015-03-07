@@ -130,12 +130,10 @@ return array(
         'cookie' => array(
             'name' => '__token',  // Cookie name, change it if you want
             'refresh' => 60,   // Every 1 minutes do the cookie validation
-            'userAgentMatch' => false,  // Whether to match user agent when reading token
             'path' => '/',
             'secure' => false,
             'httpOnly' => false,
             'prefix' => '',
-            'expire' => 6 * 30 * 24 * 3600,  // Default " 6 Months ". Should be same with rememberMeSeconds value.
         ),
         'passwordNeedsRehash' => array(
             'cost' => 10

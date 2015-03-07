@@ -2,6 +2,7 @@
 
 namespace Obullo\Application;
 
+use Closure;
 use Controller;
 
 /**
@@ -22,6 +23,13 @@ class Obullo
      * @var null
      */
     public $env = null;
+
+    /**
+     * Register shutdown closures
+     * 
+     * @var array
+     */
+    protected $shutdown = array();
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -149,6 +157,30 @@ class Obullo
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
             $this->c['response']->show404($this->notFoundUri);
         }
+    }
+
+    /**
+     * Register shutdown function into application
+     * 
+     * @param object  $callable Closure
+     * @param integer $priority order of shutdown function
+     * 
+     * @return void
+     */
+    public function registerShutdown(Closure $callable, $priority = 0)
+    {
+        $this->shutdown[]['callable'] = $callable;
+        $this->shutdown[]['priority'] = $priority;
+    }
+
+    /**
+     * Returns all registered shutdown methods
+     * 
+     * @return array
+     */
+    public function getShutdownFunctions()
+    {
+        return $this->shutdown;
     }
 
     /**

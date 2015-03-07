@@ -140,10 +140,15 @@ class Identity extends AuthorizedUser
         if ($this->isAuth != null) {  // Cache the auth
             return $this->isAuth;
         }
-        if ($this->c['request']->isAjax() == false AND $this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
+
+        // $this->c['request']->isAjax() == false AND
+
+        if ($this->__isAuthenticated == 1 AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Secutiry token update
             $this->__token            = $this->c['auth.token']->get();  // Refresh the token and write it to memory
             $this->__lastTokenRefresh = time();
+            
             $this->c['logger']->error('Updated Token', $this->__token);
+
             return $this->isAuth = true;  // Don't do the token is valid for current request
         }
         if ($this->__isAuthenticated == 1 AND $this->isValidToken()) {
@@ -354,7 +359,7 @@ class Identity extends AuthorizedUser
     {
         $credentials                      = $this->storage->getCredentials('__permanent');
         $credentials['__isAuthenticated'] = 0;        // Sets memory auth to "0".
-        $credentials['__token']           = $this->c['auth.token']->refresh();  // Refresh the security token
+        $credentials['__token']           = $this->c['auth.token']->get();  // Refresh the security token
         $credentials['__type']            = 'Unauthorized';
 
         $this->updateRememberToken();
@@ -394,8 +399,8 @@ class Identity extends AuthorizedUser
     {
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
 
-            $rememberMeCookie = $this->c['config']['auth']['login']['rememberMe']['cookie']['name'];
-            $rememberToken    = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+            $rememberMeCookie = $this->c['config']['auth']['login']['rememberMe']['cookie'];
+            $rememberToken = $this->c['cookie']->get($rememberMeCookie['prefix'].$rememberMeCookie['name']);
 
             $genericUser = new GenericUser;
             $genericUser->setContainer($this->c);
@@ -425,19 +430,13 @@ class Identity extends AuthorizedUser
     public function forgetMe()
     {
         $cookie = $this->c['config']['auth']['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
-        if (! isset($_COOKIE[$cookie['name']])) {
+
+        if ( ! $this->c['cookie']->get($cookie['prefix'] . $cookie['name'])) {
             return;
         }
-        setcookie(
-            $cookie['prefix'] . $cookie['name'],
-            null,
-            -1,
-            $cookie['path'],
-            $this->c['config']['cookie']['domain'],   //  Get domain from global config
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
+        $this->c['cookie']->delete($cookie['prefix'] . $cookie['name']);
     }
+    
 }
 
 // END Identity.php File

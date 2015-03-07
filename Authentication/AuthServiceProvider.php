@@ -78,8 +78,6 @@ Class AuthServiceProvider
         $this->c['auth.activity'] = function () {
             return new Activity($this->c);
         };
-
-        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -93,25 +91,6 @@ Class AuthServiceProvider
     {
         return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity ..
     }
-
-    public function close()
-    {
-
-        $cookie = $this->config['security']['cookie'];
-
-        foreach ($this->c['auth.container']->getArray() as $name => $value) {
-            setcookie(
-                $name,
-                $value,
-                time() + $cookie['expire'],
-                $cookie['path'],
-                $this->c['config']['cookie']['domain'],   //  Get domain from global config
-                $cookie['secure'],
-                $cookie['httpOnly']
-            );
-        }
-    }
-
 }
 
 // END AuthServiceProvider.php File

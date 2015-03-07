@@ -29,6 +29,8 @@ trait UniqueLoginTrait
             unset($sessions[$protectedSession]);            // Don't touch the current session
 
             foreach (array_keys($sessions) as $lid) {   // Destroy all other sessions
+
+                $this->c['logger']->debug('Unique login addon initialized, user session has been terminated.');
                 $this->c['auth.storage']->killSession($lid);
             }
         }
