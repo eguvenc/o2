@@ -65,7 +65,8 @@ Class CacheConnectionProvider
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $self = $this;
             $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                return $self->createConnection($params['driver'], $params['options']);
+                $options = empty($params['options']) ? array() : $params['options'];
+                return $self->createConnection($params['driver'], $options);
             };
         }
         return $this->c[$cid];

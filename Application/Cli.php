@@ -133,7 +133,10 @@ class Cli extends Obullo
         $this->class = new $className;  // Call the controller
         $this->method = $method;
 
-        $this->class->load();   // Disabled middlewares in Cli mode.
+        if (method_exists($this->class, 'load')) {
+            $this->class->load();
+        }
+
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }
