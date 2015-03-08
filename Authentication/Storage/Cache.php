@@ -155,6 +155,7 @@ Class Cache extends AbstractStorage
             return;
         }
         $credentials['__isAuthenticated'] = 1;
+        $credentials['__isTemporary'] = 0;
         $credentials['__isVerified'] = 1;
         $credentials['__type'] = 'Authorized';
     
