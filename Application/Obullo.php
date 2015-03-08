@@ -4,6 +4,7 @@ namespace Obullo\Application;
 
 use Closure;
 use Controller;
+use SplPriorityQueue;
 
 /**
  * Obullo bootstrap
@@ -169,18 +170,23 @@ class Obullo
      */
     public function registerShutdown(Closure $callable, $priority = 0)
     {
-        $this->shutdown[]['callable'] = $callable;
-        $this->shutdown[]['priority'] = $priority;
+        if ($priority == 0) {
+            ++$this->shutdownPriority;
+        } else {
+            $this->shutdownPriority = $priority;
+        }
+        $this->shutdownQueue = new SplPriorityQueue;
+        $this->shutdownQueue->insert($callable, $this->shutdownPriority);
     }
 
     /**
-     * Returns all registered shutdown methods
+     * Returns to registered shutdown functions
      * 
      * @return array
      */
-    public function getShutdownFunctions()
+    public function getShutdownQueue()
     {
-        return $this->shutdown;
+        return $this->shutdownQueue;
     }
 
     /**

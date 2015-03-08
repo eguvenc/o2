@@ -197,9 +197,6 @@ class Http extends Obullo
         // the application and we have queued cookies.
 
         if ($this->c->loaded('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
-
-            // $this->c['logger']->error('Error:', array('cookies' => $cookies));
-
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }
