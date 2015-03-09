@@ -3,6 +3,7 @@
 namespace Obullo\Tasks;
 
 use Controller;
+use Obullo\Tasks\Helper\Console;
 
 /**
  * Help Controller
@@ -23,30 +24,20 @@ Class HelpController extends Controller
      */
     public function index()
     {
-        echo "\33[1;36m".'
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|                       
+        echo Console::logo("Welcome to Task Manager (c) 2015");
+        echo Console::description("You are running \$php task help command. For more help type php task [command] --help.");
 
-        Welcome to Task Manager (c) 2015
-You are running $php task help command. For more help type php task [command] --help.'."\n\033[0m\n";
-
-echo "\33[1;36mAvailable commands:\33[0m\33[0;36m
-
+echo Console::help("Available commands:\n\n", true);
+echo Console::help("
 log        : Follow the application log file.
-clear      : Clear all log data.
+log clear  : Clear all log data.
 queue      : Queue control functions.
 domain     : Domain maintenance control.
-help       : See list all of available commands.\33[0m\n\n";
-
-echo "\33[1;36mUsage:\33[0m\33[0;36m
-
-php task [command] [arguments]\n\33[0m\n";
-
-echo "\33[1;36mUsage help:\33[0m\33[0;36m
-
-php task [command] --help\n\33[0m\n";
+help       : See list all of available commands.\n\n"
+);
+echo Console::help("Usage:\n\n", true);
+echo Console::help("php task [command] [arguments]\n\n");
+echo Console::help("php task [command] --help\n\n\n");
 
     }
 
