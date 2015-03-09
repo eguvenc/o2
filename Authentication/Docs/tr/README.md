@@ -96,7 +96,7 @@ Kullanıcın onaya düşmesi yani yetki doğrulama onaylama varsayılan olarak k
 #### Yetki doğrulama onayının açılmasına bir örnek:
 
 ```php
-$this->user->login->enableVerification();
+$this->user->login->verification(true);
 ```
 
 Yetkilendirilme onayını aktif hale gelebilmesi için bu fonksiyonun oturum denemesi fonksiyondan önce kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise hafıza bloğunda geçici bir kimlik oluşturulur. Eğer sizin tarafınızdan yaratılıp gönderilecek olan onay kodunu kullanıcı onaylayamaz ise geçici kimlik 300 saniye içerisinde kendiliğinden yok olur. Fonksiyonun kullanılmadığı durumda ise tüm kullanıcılar sistemde kalıcı olarak oturum açmış olurlar.
@@ -350,7 +350,7 @@ Class Login extends \Controller
                 $this->form->setErrors($this->validator);
             } else {
 
-                // $this->user->login->enableVerification();
+                $this->user->login->verification(false);
 
                 $result = $this->user->login->attempt(
                     [
@@ -785,7 +785,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->enableVerification()</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateTemporaryIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->verification(true)</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateTemporaryIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
         </tr>
         <tr>
             <td>__isVerified</td>
@@ -822,13 +822,9 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
 
 >Login sınıfı yetkisi doğrulanmamış (GenericUser) yada doğrulanmış (AuthorizedUser) kullanıcıya ait oturum işlemlerini yönetmenizi sağlar.
 
-##### $this->user->login->enableVerification();
+##### $this->user->login->verification(booelan $bool);
 
-Yetki doğrulama onayını aktif hale getirir.
-
-##### $this->user->login->disableVerification();
-
-Yetki doğrulama onayını devre dışı bırakır.
+Yetki doğrulama onayını aktif yada kapalı hale getirir.
 
 ##### $this->user->login->attemp(array $credentials, $rememberMe = false);
 

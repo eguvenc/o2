@@ -49,21 +49,13 @@ Class Login
     /**
      * Enable verifiation before login
      *
+     * @param boolean $bool on / off verification
+     * 
      * @return void
      */
-    public function enableVerification()
+    public function verification($bool = true)
     {
-        $this->c['auth.adapter']->enableVerification();
-    }
-
-    /**
-     * Disable verifiation
-     *
-     * @return void
-     */
-    public function disableVerification()
-    {
-        $this->c['auth.adapter']->disableVerification();
+        $this->c['auth.adapter']->verification($bool);
     }
 
     /**
