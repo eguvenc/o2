@@ -30,7 +30,7 @@ Class Mongo
     {
         $c['config']->load('logger');
 
-        echo "\n\33[1;36mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
+        echo "\n\33[1;37mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
 
         // use default provider
 

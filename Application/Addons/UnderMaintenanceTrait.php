@@ -63,8 +63,8 @@ trait UnderMaintenanceTrait
      */
     public function showMaintenance()
     {
-        $this->c['response']->status(503)->write($this->c['view']->template('errors/maintenance'));
-        $this->c['response']->sendOutput();
+        $this->c['response']->status(503)->append($this->c['view']->template('errors/maintenance'));
+        $this->c['response']->flush();
         die;
     }
 

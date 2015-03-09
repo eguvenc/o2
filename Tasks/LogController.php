@@ -3,6 +3,7 @@
 namespace Obullo\Tasks;
 
 use Controller;
+use Obullo\Tasks\Helper\Console;
 
 /**
  * Log Controller
@@ -16,7 +17,7 @@ use Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class LogController extends Controller
+class LogController extends Controller
 {
     /**
      * Loader
@@ -56,15 +57,8 @@ Class LogController extends Controller
      */
     public function logo() 
     {
-        echo "\33[1;36m".'   
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
-                                     
-        Welcome to Log Manager v2.0 (c) 2015
-You are displaying logs. For more help type $php task help.'."\n\033[0m";
-
+        echo Console::logo("Welcome to Log Manager (c) 2015");
+        echo Console::description("You are displaying logs. For more help type \$php task log --help.");
     }
 
     /**
@@ -102,7 +96,7 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
         $queue = $this->c['queue'];
         $queue->deleteQueue($this->c['config']['logger']['queue']['route']);
         
-        echo "\33[1;36mApplication logs deleted.\33[0m\n";
+        echo Console::success('Application logs deleted.');
     }
 
     /**
@@ -114,10 +108,9 @@ You are displaying logs. For more help type $php task help.'."\n\033[0m";
     {
         $this->logo();
 
-        echo "\33[0;36m".'
-'."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
-
-Available Commands
+echo Console::help("Help:\n\n", true);
+echo Console::help(
+"Available Commands
 
     clear    : Clear log data ( also removes the queue logs ).
     help     : Help
@@ -125,19 +118,20 @@ Available Commands
 Available Arguments
 
     --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
-    --table  : Collection name if mongo driver used otherwise database table name.'."\n\n\033[0m";
+    --table  : Collection name if mongo driver used otherwise database table name.\n\n");
 
-echo "\33[1;36mUsage:\33[0m\33[0;36m
-
-php task log --dir=value
+echo Console::help("Usage:\n\n",true);
+echo Console::help(
+"php task log --dir=value
 
     php task log 
     php task log --dir=cli
     php task log --dir=ajax
-    php task log --dir=http --table=logs\n\33[0m\n";
+    php task log --dir=http --table=logs\n\n");
 
 
-echo "\33[1;36mDescription:\33[0m\33[0;36m\n\nRead log data from app/data/logs folder.\n\33[0m\n";
+echo Console::help("Description:\n\n", true);
+echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.\n\n");
 
     }
 

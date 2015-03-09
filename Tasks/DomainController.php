@@ -3,6 +3,7 @@
 namespace Obullo\Tasks;
 
 use Controller;
+use Obullo\Tasks\Helper\Console;
 
 /**
  * Domain Controller
@@ -14,7 +15,7 @@ use Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class DomainController extends Controller
+class DomainController extends Controller
 {
     /**
      * Loader
@@ -43,14 +44,8 @@ Class DomainController extends Controller
      */
     public function logo()
     {
-        echo "\33[1;36m".'
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
-
-        Welcome to Task Manager (c) 2015
-    You are running $php task domain command. For help type php task domain --help.'."\n\033[0m\n";
+        echo Console::logo("Welcome to Domain Manager (c) 2015");
+        echo Console::description("You are running \$php task domain command. For help type php task domain --help");
     }
 
     /**
@@ -67,7 +62,7 @@ Class DomainController extends Controller
         $this->config->array['domain'][$name]['maintenance'] = 'down';
         $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
 
-        echo "\33[1;31mDomain \33[1;37m\33[41m".$name."\33[0m\33[1;31m down for maintenance.\33[0m\n";
+        echo Console::fail("Domain ".Console::foreground($name, 'red')." down for maintenance.");
     }
 
     /**
@@ -84,7 +79,7 @@ Class DomainController extends Controller
         $this->config->array['domain'][$name]['maintenance'] = 'up';
         $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
 
-        echo "\33[1;32mDomain \33[1;37m\33[42m".$name."\33[0m\33[1;32m up.\33[0m\n";
+        echo Console::success("Domain ".Console::foreground($name, 'green')." up.");
     }
 
     /**
@@ -97,11 +92,11 @@ Class DomainController extends Controller
     protected function isEmpty($name)
     {
         if (empty($name)) {
-            echo "\33[1;36mDomain \"--name\" can't be empty.\33[0m\n";
+            echo Console::fail('Domain "--name" can\'t be empty.');
             exit;
         }
         if ( ! isset($this->config['domain'][$name])) {
-            echo "\33[1;31m\33[1;37m\33[41m".ucfirst($name)."\33[0m\33[1;31m must be defined in your domain.php config file\33[0m\n";
+            echo Console::fail('Domain name "'.ucfirst($name).'" must be defined in your domain.php config file.');
             die;
         }
     }
@@ -115,9 +110,8 @@ Class DomainController extends Controller
     {
         $this->logo();
 
-        echo "\33[0;36m".'
-'."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
-
+echo Console::help("Help:\n", true);
+echo Console::help("
 Available Commands
 
     down     : Sets domain down to enter maintenance mode.
@@ -125,16 +119,13 @@ Available Commands
 
 Available Arguments
 
-    --name   : Sets domain name.'."\n\033[0m\n";
+    --name   : Sets domain name\n\n"
+);
 
-echo "\33[1;36mUsage:\33[0m\33[0;36m
-
-php task domain down --name=site\n\n";
-
-echo "\33[1;36mDescription:\33[0m\33[0;36m
-
-Manages domain features which are defined in your domain.php config file.
-\n\33[0m\n";
+echo Console::help("Usage:\n\n", true);
+echo Console::help("php task domain down --name=site\n\n");
+echo Console::help("Description:\n\n", true);
+echo Console::help("Manages domain features which are defined in your domain.php config file.\n\n");
 
     }
 }

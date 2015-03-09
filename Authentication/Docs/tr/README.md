@@ -7,14 +7,15 @@ O2 yetki doğrulama;
 
 * Hafıza depoları, ( Storages ) 
 * Adaptörler,
-* Olaylar ( Events )
 * Kullanıcı kimlikleri
-* Kullanıcı sorguları arayüzü ( User model class )
+* Çoklu ve tekil oturum açabilme
+* Kullanıcı kimliklerini önbelleklenme
+* Kullanıcı sorgularını özelleştirebilme ( User model class )
 * Yetki doğrulama onaylandırma ( Verification )
 * Güvenlik çerezi doğrulama önlemi, ( Security token validation )
 * Oturum id sini yeniden yaratma, ( Session regenerate )
 * Tarayıcı türünü doğrulama ( User agent validation )
-* Hatırlatma çerezi ve beni hatırla ( Remember me token )
+* Hatırlatma çerezi ve beni hatırla özellikleri ( Remember me token )
 
 gibi mevcut özellikleri ile size esnek, hızlı ve güvenli bir yetki doğrulama servisi sağlar ayrıca depolama birimi olarak <b>redis</b> kullandığınızda size online kullanıcı kimliklerini görüntüleme ve bu kimliklere ulaşarak çeşitli istatistik verileri oluşturabilmenize de imkan tanır.
 
