@@ -193,9 +193,11 @@ class Translator implements ArrayAccess
         $locale = (empty($fallback)) ? $this->getLocale() : $fallback;  // Get current locale which is set by translation middleware.
 
         if (empty($locale)) {
-            throw new RuntimeException(
-                "Translation code must be set with translator->setLocale() function.<pre>You should use translation middleware in middlewares.php.</pre>"
-            );
+            $this->setLocale($this->getDefault());  // Set default translation
+            // throw new RuntimeException(
+            //     "Translation code must be set with translator->setLocale() function.<pre>You should use translation middleware in middlewares.php.</pre>"
+            // );
+            $locale = $this->getLocale();
         }
         $fileUrl = TRANSLATIONS . $locale . DS . $filename . '.php';
         $fileKey = substr(strstr($fileUrl, $locale), 0, -4);
