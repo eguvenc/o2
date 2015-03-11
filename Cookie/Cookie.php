@@ -57,12 +57,13 @@ Class Cookie
      * @param string  $path     null default "/"
      * @param boolean $secure   whether to https enabled cookie
      * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
+     * @param string  $prefix   cookie prefix
      *
      * @return void
      */
-    public function set($name, $value = '', $expire = '', $domain = '', $path = null, $secure = false, $httpOnly = false)
+    public function set($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
     {
-        $name = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly));
+        $name = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
         return $this->write($name);
     }
     
@@ -75,6 +76,8 @@ Class Cookie
      */
     public function write(array $cookie)
     {
+        $this->c['logger']->alert('Cookie values', array($cookie));
+
         setcookie(
             $cookie['prefix'].$cookie['name'],
             $cookie['value'],
@@ -96,19 +99,21 @@ Class Cookie
      * @param string  $path     null default "/"
      * @param boolean $secure   whether to https enabled cookie
      * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
+     * @param string  $prefix   cookie prefix
      * 
      * @return array
      */
-    protected function buildParameters($name, $value = '', $expire = '', $domain = '', $path = null, $secure = false, $httpOnly = false)
+    protected function buildParameters($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
     {
         if (is_array($name)) {
             $cookie = $name;
-            foreach ($cookie as $key => $value) {
-                if (isset($cookie[$key])) {
-                    $$key = $value;
+            foreach ($cookie as $k => $v) {
+                if (in_array($k, array('name','value','expire','domain','path','secure','httpOnly','prefix'))) {
+                    $$k = $v;
                 }
             }
         }
+        $prefixVal = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
         return array(
             'name' => $name,
             'value' => $value,
@@ -117,7 +122,7 @@ Class Cookie
             'path' => ($path == null) ? $this->config['cookie']['path'] : $path,
             'secure' => $secure,
             'httpOnly' => $httpOnly,
-            'prefix' => ($this->config['cookie']['prefix'] != '') ? $this->config['cookie']['prefix'] : null,
+            'prefix' => $prefixVal,
         );
     }
 
@@ -160,8 +165,6 @@ Class Cookie
         } else {
             if ($expire > 0) {
                 $expire = time() + $expire;
-            } else {
-                $expire = 0;
             }
         }
         return $expire;
@@ -213,12 +216,15 @@ Class Cookie
      * @param string  $path     null default "/"
      * @param boolean $secure   whether to https enabled cookie
      * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
+     * @param string  $prefix   cookie prefix
      *
      * @return void
      */
-    public function queue($name, $value = '', $expire = '', $domain = '', $path = null, $secure = false, $httpOnly = false)
+    public function queue($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
     {
-        $cookie = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly));
+        $cookie = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
+
+        $this->c['logger']->error('Cookie sent to queue', array('cookie' => $cookie));
 
         if (is_string($name)) {
             $this->queued[$name] = $cookie;

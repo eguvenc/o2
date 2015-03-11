@@ -67,21 +67,13 @@ abstract class AbstractAdapter
     /**
      * Enable verifiation of user after successful login
      *
+     * @param boolean $bool on / off verification
+     * 
      * @return void
      */
-    public function enableVerification()
+    public function verification($bool = true)
     {
-        $this->verification = true;
-    }
-
-    /**
-     * Disable verifiation of user after successful login
-     *
-     * @return void
-     */
-    public function disableVerification()
-    {
-        $this->verification = false;
+        $this->verification = $bool;
     }
 
     /**

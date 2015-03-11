@@ -169,14 +169,6 @@ Class Response
 
             http_response_code($status);
 
-            // Write queued cookie headers if cookie package available in 
-            // the application and we have queued cookies.
-        
-            if ($this->c->frozen('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
-                foreach ($cookies as $cookie) {
-                    $this->c['cookie']->write($cookie);
-                }
-            }
             if (count($headers) > 0) {  // Are there any server headers to send ?
                 foreach ($headers as $header => $cookie) {
                     header($header, $cookie['replace']);
@@ -190,7 +182,7 @@ Class Response
      * 
      * @return string
      */
-    public function write()
+    public function flush()
     {
         if ($this->enabled) {  // Send output
             list($status, $headers, $output) = $this->finalize();

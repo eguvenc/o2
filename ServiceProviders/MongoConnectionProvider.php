@@ -89,7 +89,7 @@ Class MongoConnectionProvider
             return $this->factory($params);
         }
         if ( ! isset($params['connection'])) {
-            $params['connection'] = $this->config['default']['connection'];  //  Set default connection
+            $params['connection'] = array_keys($this->config['connections'])[0];  //  Set default connection
         }
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(

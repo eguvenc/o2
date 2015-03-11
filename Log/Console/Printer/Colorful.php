@@ -25,8 +25,6 @@ Class Colorful
      */
     public function printLine($i, $line)
     {
-        // $break = "";
-        $break = "\n------------------------------------------------------------------------------------------";
         if ($i == 0) {
             $line = str_replace("\n", '', $line);
         }
@@ -36,85 +34,134 @@ Class Colorful
             $messageBody = $out[1];
         }
         if (isset($messageBody)) {
-            if (strpos($messageBody, '$_SQL') !== false) {   // Remove unnecessary spaces from sql output
-                $line = "\033[1;32m".preg_replace('/[\s]+/', ' ', $line)."\033[0m";
-                $line = preg_replace('/[\r\n]/', "\n", $line);
-            }
-            if (strpos($messageBody, '$_') !== false) {
-                $line = preg_replace('/\s+/', ' ', $line);
-                $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
+            $line = $this->writeSQL($messageBody, $line);
+            $line = $this->writeHeader($messageBody, $line);
+            $line = $this->writeBody($messageBody, $line);
 
-                if (strpos($messageBody, '$_REQUEST_URI') !== false) {
-                    $line  = "\033[1;36m".$break."\n".$line.$break."\033[0m";
-                } elseif (strpos($messageBody, '$_LAYER') !== false) {
-                    $line = "\033[1;35m".strip_tags($line)."\033[0m";
-                } else {
-                    $line = "\033[1;35m".$line."\033[0m";
-                }
-            }
-            if (strpos($messageBody, '$_TASK') !== false) {
-                $line = "\033[1;34m".$line."\033[0m";
-            }
-            if (strpos($messageBody, 'loaded:') !== false) {
-                $line = "\033[0;35m".$line."\033[0m";
-            }
-            if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
-                if (strpos($messageBody, '--> Final output sent') !== false) {
-                    $line = "\033[0m"."\033[1;35m".$line."\033[0m";
-                }
-                if (strpos($messageBody, '--> Header redirect') !== false) {
-                    $line = "\033[0m"."\033[1;35m".$line."\033[0m";
-                }
-                $line = "\033[0;35m".$line."\033[0m";
-                if ( ! isset($lines[$i])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'info') !== false) {
-                $line = "\033[1;33m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'error') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'alert') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'emergency') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'critical') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'warning') !== false) {
-                $line = "\033[1;31m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
-            if (strpos($messageBody, 'notice') !== false) {
-                $line = "\033[1;35m".$line."\033[0m";
-                if ( ! isset($lines[$line])) {
-                    echo $line."\n";
-                }
-            }
+            $this->writeFinalOutput($messageBody, $line);
+            $this->writeLevels($messageBody, $line);
         }
 
-    } // end function
+    }
+
+    /**
+     * Write header
+     * 
+     * @param string $messageBody text
+     * @param string $line        line
+     * 
+     * @return string line
+     */
+    protected function writeHeader($messageBody, $line)
+    {
+        $break = "\n------------------------------------------------------------------------------------------";
+        if (strpos($messageBody, '$_') !== false) {
+            $line = preg_replace('/\s+/', ' ', $line);
+            $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
+
+            if (strpos($messageBody, '$_REQUEST_URI') !== false) {
+                $line  = "\033[0;37m".$break."\n".$line.$break."\033[0m";
+            } elseif (strpos($messageBody, '$_LAYER') !== false) {
+                $line = "\033[0;37m".strip_tags($line)."\033[0m";
+            } else {
+                $line = "\033[0;37m".$line."\033[0m";
+            }
+        }
+        return $line;
+    }
+
+    /**
+     * Write header
+     * 
+     * @param string $messageBody text
+     * @param string $line        line
+     * 
+     * @return string line
+     */
+    protected function writeBody($messageBody, $line)
+    {        
+        if (strpos($messageBody, '$_TASK') !== false) {
+            $line = "\033[0;37m".$line."\033[0m";
+        }
+        if (strpos($messageBody, 'loaded:') !== false) {
+            $line = "\033[0;37m".$line."\033[0m";
+        }
+        return $line;
+    }
+
+    /**
+     * Write sql
+     * 
+     * @param string $messageBody text
+     * @param string $line        line
+     * 
+     * @return string line
+     */
+    protected function writeSQL($messageBody, $line)
+    {
+        if (strpos($messageBody, '$_SQL') !== false) {   // Remove unnecessary spaces from sql output
+            $line = "\033[1;32m".preg_replace('/[\s]+/', ' ', $line)."\033[0m";
+            $line = preg_replace('/[\r\n]/', "\n", $line);
+        }
+        return $line;
+    }
+
+    /**
+     * Write final response info
+     * 
+     * @param string $messageBody text
+     * @param string $line        line
+     * 
+     * @return void
+     */
+    protected function writeFinalOutput($messageBody, $line)
+    {
+        if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
+            if (strpos($messageBody, '--> Final output sent') !== false) {
+                $line = "\033[0m"."\033[0;37m".$line."\033[0m";
+            }
+            if (strpos($messageBody, '--> Header redirect') !== false) {
+                $line = "\033[0m"."\033[0;35m".$line."\033[0m";
+            }
+            $line = "\033[0;37m".$line."\033[0m";
+            echo $line."\n";
+        }
+    }
+
+    /**
+     * Write log levels
+     * 
+     * @param string $messageBody text
+     * @param string $line        line
+     * 
+     * @return void
+     */
+    protected function writeLevels($messageBody, $line)
+    {
+        if (strpos($messageBody, 'info') !== false) {
+            $line = "\033[1;33m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'error') !== false) {
+            $line = "\033[1;31m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'alert') !== false) {
+            $line = "\033[1;31m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'emergency') !== false) {
+            $line = "\033[1;31m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'critical') !== false) {
+            $line = "\033[1;31m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'warning') !== false) {
+            $line = "\033[1;31m".$line."\033[0m";
+            echo $line."\n";
+        } elseif (strpos($messageBody, 'notice') !== false) {
+            $line = "\033[1;32m".$line."\033[0m";
+            echo $line."\n";
+        }
+    }
+
 
 }
 

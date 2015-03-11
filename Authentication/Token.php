@@ -30,7 +30,7 @@ class Token
      * @var array
      */
     protected $config;
-    
+
     /**
      * Constructor
      *
@@ -38,7 +38,7 @@ class Token
      */
     public function __construct(Container $c)
     {
-        $this->c      = $c;
+        $this->c = $c;
         $this->config = $this->c['config']->load('auth');
     }
 
@@ -49,12 +49,7 @@ class Token
      */
     public function generate()
     {
-        $userAgentMatch = null;
-        if ($this->config['security']['cookie']['userAgentMatch']) {
-            $userAgent      = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
-            $userAgentMatch = '.' . hash('adler32', trim($userAgent));
-        }
-        return Random::generate('alnum', 16) . $userAgentMatch;  // Creates smaller token
+        return Random::generate('alnum', 16);  // Creates smaller token
     }
 
     /**
@@ -65,38 +60,10 @@ class Token
     public function get()
     {
         $cookie = $this->config['security']['cookie'];
-        $token  = $this->generate();
-        $cookie['value'] = $token;
-
-        // $this->setCookie(
-        //     $cookie['prefix'] . $cookie['name'],
-        //     array(
-        //         $token,
-        //         time() + $cookie['expire'],
-        //         $cookie['path'],
-        //         $this->c['config']['cookie']['domain'],   //  Get domain from global config
-        //         $cookie['secure'],
-        //         $cookie['httpOnly']
-        //     )
-        // );
+        $cookie['value'] = $this->generate();
         $this->c['cookie']->queue($cookie);
 
-        // setcookie(
-        //     $cookie['prefix'] . $cookie['name'],
-        //     $token,
-        //     time() + $cookie['expire'],
-        //     $cookie['path'],
-        //     $this->c['config']['cookie']['domain'],   //  Get domain from global config
-        //     $cookie['secure'],
-        //     $cookie['httpOnly']
-        // );
-
-        // // $this->c['auth.container']->set($cookie['prefix'].$cookie['name'], $token);
-
-        // $cookie = isset($_COOKIE[$cookie['prefix'].$cookie['name']]) ? $_COOKIE[$cookie['prefix'].$cookie['name']] : false;
-        // $this->c['logger']->error('COOKIE VALUES', array($token, $cookie));
-
-        return $token;
+        return $cookie['value'];
     }
 
     /**
@@ -107,10 +74,8 @@ class Token
     public function getCookie()
     {
         $cookie = $this->config['security']['cookie'];
-
-        return $this->c['cookie']->queued($cookie['name']);
-
-        // return isset($_COOKIE[$cookie['name']]) ? $_COOKIE[$cookie['name']] : false;
+        
+        return $this->c['cookie']->get($cookie['prefix'].$cookie['name']);
     }
 
     /**
@@ -120,19 +85,12 @@ class Token
      */
     public function getRememberToken()
     {
-        $token  = Random::generate('alnum', 32);
         $cookie = $this->config['login']['rememberMe']['cookie'];
 
-        setcookie(
-            $cookie['prefix'] . $cookie['name'],
-            $token,
-            time() + $cookie['expire'],
-            $cookie['path'],
-            $this->c['config']['cookie']['domain'],   //  Get domain from global config
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
-        return $token;
+        $cookie['value'] = Random::generate('alnum', 32);
+        $this->c['cookie']->queue($cookie);
+
+        return $cookie['value'];
     }
 }
 

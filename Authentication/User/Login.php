@@ -49,21 +49,13 @@ Class Login
     /**
      * Enable verifiation before login
      *
+     * @param boolean $bool on / off verification
+     * 
      * @return void
      */
-    public function enableVerification()
+    public function verification($bool = true)
     {
-        $this->c['auth.adapter']->enableVerification();
-    }
-
-    /**
-     * Disable verifiation
-     *
-     * @return void
-     */
-    public function disableVerification()
-    {
-        $this->c['auth.adapter']->disableVerification();
+        $this->c['auth.adapter']->verification($bool);
     }
 
     /**
@@ -94,8 +86,8 @@ Class Login
                 )
             );
         }
-        $rememberMeCookie = $this->config['login']['rememberMe']['cookie']['name'];
-        $credentials['__rememberToken'] = (isset($_COOKIE[$rememberMeCookie])) ? $_COOKIE[$rememberMeCookie] : false;
+        $rememberMeCookie = $this->config['login']['rememberMe']['cookie'];
+        $credentials['__rememberToken'] = $this->c['cookie']->get($rememberMeCookie['prefix'].$rememberMeCookie['name']);
 
         return $this->createResults($credentials);
 

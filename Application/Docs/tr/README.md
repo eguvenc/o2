@@ -255,10 +255,7 @@ Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV de
 
 ```php
 return array(
-    'default' => array(
-        'connection'   => 'default',
-        'database' => 'db',
-    ),
+
     'connections' => array(
         
         'default' => array(

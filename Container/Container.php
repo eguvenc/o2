@@ -67,13 +67,13 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Checks package is called before
+     * Checks package is on hand
      * 
      * @param string $cid package id
      * 
      * @return boolean
      */
-    public function frozen($cid) 
+    public function loaded($cid) 
     {
         return isset($this->frozen[$cid]);
     }    

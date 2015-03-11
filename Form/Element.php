@@ -108,7 +108,7 @@ Class Element
      */
     public function dropdown($name = '', $options = '', $selected = array(), $extra = '', $data = array())
     {
-        if (is_object($selected)) { // $_POST & Db value schema sync
+        if (is_object($selected)) { // $_POST & Db value
             $selected = $this->getRowValue($selected, $name);
         }
         if ($selected === false) { // False == "0" bug fix, false is not an Integer.
@@ -198,7 +198,7 @@ Class Element
     public function hidden($name, $value = '', $extra = '', $recursing = false)
     {
         static $hiddenTag;
-        if (is_object($value)) { // $_POST & Db value schema sync
+        if (is_object($value)) { // $_POST & Db value
             $value = $this->getRowValue($value, $name); 
         }
         if ($recursing === false) {
@@ -211,7 +211,7 @@ Class Element
             return $hiddenTag;
         }
         if ( ! is_array($value)) {
-            $hiddenTag .= '<input type="hidden" name="' . $name . '" value="'. $this->prep($value, $name) .'"'.  $extra . '/>' . "\n";
+            $hiddenTag .= '<input type="hidden" name="' . $name . '" value="'. $this->prep($value, $name) .'" '.  trim($extra) . '/>' . "\n";
         } else {
             foreach ($value as $k => $v) {
                 $k = (is_int($k)) ? '' : $k;

@@ -26,9 +26,9 @@ If you are new to service containers or Dependency Injection, it would be a good
 
 Paketin konteyner içerisine kayıtlı olup olmadığını kontrol eder.
 
-#### $c->frozen();
+#### $c->loaded();
 
-Paketin daha önceden çağrılıp çağrılmadığını kontrol eder.
+Paketin daha önceden yüklenip yüklenmediğini kontrol eder.
 
 #### $c->raw();
 

@@ -2,6 +2,8 @@
 
 namespace Obullo\Http;
 
+use Obullo\Container\Container;
+
 /**
  * Show http errors
  * 
@@ -22,7 +24,7 @@ Class Error
      * 
      * @return void
      */
-    public function __construct($c, $response)
+    public function __construct(Container $c, Response $response)
     {
         $this->c = $c;
         $this->response = $response;

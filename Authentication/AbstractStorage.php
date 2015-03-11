@@ -26,7 +26,7 @@ abstract class AbstractStorage
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/Identifier', $identifier.':'.$this->getLoginId());
+        $this->session->set($this->getCacheKey().'/Identifier', $identifier.':'.$this->getLoginId());
     }
 
     /**
@@ -36,7 +36,7 @@ abstract class AbstractStorage
      */
     public function getIdentifier()
     {
-        $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/Identifier');
+        $id = $this->session->get($this->getCacheKey().'/Identifier');
 
         return empty($id) ? '__empty' : $id;
     }
@@ -48,7 +48,7 @@ abstract class AbstractStorage
      */
     public function unsetIdentifier()
     {   
-        $this->session->remove('__'.$this->c['auth.params']['cache.key'].'/Identifier');
+        $this->session->remove($this->getCacheKey().'/Identifier');
     }
 
     /**
@@ -63,7 +63,7 @@ abstract class AbstractStorage
             return '__empty';
         }
         $exp = explode(':', $identifier);
-        return $exp[0];
+        return $exp[0];  // user@example.com
     }
 
     /**
@@ -73,7 +73,7 @@ abstract class AbstractStorage
      */
     public function getLoginId()
     {
-        $id = $this->session->get('__'.$this->c['auth.params']['cache.key'].'/RandomId');
+        $id = $this->session->get($this->getCacheKey().'/LoginId');
         if ($id == false) {
             $id = $this->setLoginId();
             return $id;
@@ -83,19 +83,27 @@ abstract class AbstractStorage
 
     /**
      * Set random auth session id to sessions
-     *
-     * @param string $id id
      * 
      * @return string
      */
-    public function setLoginId($id = null)
+    public function setLoginId()
     {
-        if (empty($id)) {
-            $id = Random::generate('alnum.lower', 10);
-        }
-        $this->session->set('__'.$this->c['auth.params']['cache.key'].'/RandomId', $id);
+        $userAgent = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
+        $id = hash('adler32', trim($userAgent));
+        $this->session->set($this->getCacheKey().'/LoginId', $id);
         return $id;
     }
+
+    /**
+     * Gey cache key
+     * 
+     * @return string
+     */
+    public function getCacheKey()
+    {
+        return '__'.$this->c['auth.params']['cache.key'];
+    }
+
 }
 
 // END AbstractStorage.php File

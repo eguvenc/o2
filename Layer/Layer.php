@@ -318,7 +318,7 @@ Class Layer
     public function getId()
     {
         $id = trim($this->hashString);
-        return self::CACHE_KEY. (int)sprintf("%u", crc32((string)$id));
+        return self::CACHE_KEY. sprintf("%u", crc32((string)$id));
     }
 
     /**

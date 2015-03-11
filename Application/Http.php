@@ -64,6 +64,14 @@ class Http extends Obullo
 
     /**
      * Constructor
+     */
+    public function __construct()
+    {
+        register_shutdown_function(array($this, 'close'));
+    }
+
+    /**
+     * Constructor
      *
      * @return void
      */
@@ -157,7 +165,7 @@ class Http extends Obullo
         }
         $middleware->call();   
 
-        $this->c['response']->write();  // Send headers and echo output if output enabled
+        $this->c['response']->flush();  // Send headers and echo output if output enabled
     }
 
     /**
@@ -176,6 +184,23 @@ class Http extends Obullo
             ob_start();
         }
         call_user_func_array(array($this->class, $this->method), array_slice($this->class->uri->rsegments, 3));
+    }
+
+    /**
+     * Register shutdown
+     * 
+     * @return void
+     */
+    public function close()
+    {
+        // Write queued cookie headers if cookie package available in 
+        // the application and we have queued cookies.
+
+        if ($this->c->loaded('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+            foreach ($cookies as $cookie) {
+                $this->c['cookie']->write($cookie);
+            }
+        }
     }
 
 }

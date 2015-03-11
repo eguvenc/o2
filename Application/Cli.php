@@ -142,7 +142,7 @@ class Cli extends Obullo
         }
         $this->call();          
 
-        $this->c['response']->write();  // Send headers and echo output if output enabled
+        $this->c['response']->flush();  // Send headers and echo output if output enabled
     }
 
     /**
