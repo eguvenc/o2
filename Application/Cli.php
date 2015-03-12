@@ -69,6 +69,8 @@ class Cli extends Obullo
      */
     public function run()
     {
+        if (isset($_SERVER['REMOTE_ADDR'])) die('Access denied');
+
         global $c;
         $this->c = $c;
         $this->envArray = include ROOT .'app'. DS .'environments.php';

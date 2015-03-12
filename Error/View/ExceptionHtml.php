@@ -2,13 +2,23 @@
 use Obullo\Error\DebugOutput; 
 
 include_once OBULLO .'Error'. DS .'View'. DS .'ExceptionHtmlHeader.php';
+
+$getError = function ($message) {
+    return str_replace(
+        array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), 
+        array('APP' . DS, 'DATA'. DS, 'CLASSES'. DS, 'ROOT' . DS, 'OBULLO'. DS, 'CONTROLLERS'. DS),
+        $message
+    );
+}
+
 ?>
 <div id="middle">
-<span><?php echo DebugOutput::getSecurePath($e->getMessage()) ?></span>
+
+<span><?php echo $getError($e->getMessage()); ?></span>
 <h2>Details</h2>
 <div><strong>Type:</strong> <?php echo get_class($e) ?></div>
 <div><strong>Code:</strong> <?php echo $e->getCode() ?></div>
-<div><strong>File:</strong> <?php echo $e->getFile() ?></div>
+<div><strong>File:</strong> <?php echo $getError($e->getFile()) ?></div>
 <div><strong>Line:</strong> <?php echo $e->getLine() ?></div>
 </div>
 
@@ -16,8 +26,8 @@ include_once OBULLO .'Error'. DS .'View'. DS .'ExceptionHtmlHeader.php';
     <div id="exceptionContent">
     <?php if (isset($fatalError)) :  ?>
         <h1>Fatal Error</h1>
-        <h2><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage()) ?></h2>
-        <div class="errorFile errorLine"><?php echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . '  Line : ' . $e->getLine() ?>
+        <h2><?php echo $getError($e->getMessage()) ?></h2>
+        <div class="errorFile errorLine"><?php $getError($e->getFile()). '  Line : ' . $e->getLine() ?>
         </div>
     </div>
 <?php
@@ -70,7 +80,7 @@ if (isset($lastQuery) AND ! empty($lastQuery)) {
                                 $html.= '<tr>';
                                 $html.= '<td>' . $arg_key . '</td>';
 
-                                if ($trace['function'] == 'createConnection' AND ($arg_key == 2 OR $arg_key == 1)) { // hides database password for security.
+                                if ($trace['function'] == 'createConnection' AND ($arg_key == 2 OR $arg_key == 1)) { // Hide database password for security.
                                     $html.= '<td>***********</td>';
                                 } else {
                                     $html.= '<td>' . DebugOutput::dumpArgument($arg_val) . '</td>';
@@ -95,13 +105,11 @@ if (isset($lastQuery) AND ! empty($lastQuery)) {
                 
                 ?>
                 <div class="errorFile" style="line-height: 1.8em;">
-                    <a href="javascript:void(0);" style="color:#E53528;" onclick="ExceptionToggle('error_toggle_' + '<?php echo $prefix . $key ?>');"><?php echo addslashes(DebugOutput::getSecurePath($trace['file']));
+                    <a href="javascript:void(0);" style="color:#E53528;" onclick="ExceptionToggle('error_toggle_' + '<?php echo $prefix . $key ?>');"><?php echo addslashes($getError($trace['file']));
                 echo ' ( ' ?><?php echo ' Line : ' . $trace['line'] . ' ) '; ?></a>
                 </div>
 
-                <?php
-                echo DebugOutput::debugFileSource($trace, $key, $prefix);
-                ?>
+                <?php echo DebugOutput::debugFileSource($trace, $key, $prefix) ?>
 
         <?php } // end foreach  ?>
 

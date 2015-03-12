@@ -70,9 +70,6 @@ class LogController extends Controller
      */
     public function clear()
     {
-        /**
-         * Clear File handler data
-         */
         $files = array(
             trim($this->c['config']['logger']['file']['path']['http'], '/'),
             trim($this->c['config']['logger']['file']['path']['ajax'], '/'),
@@ -90,10 +87,7 @@ class LogController extends Controller
                 unlink($path.$filename);
             }
         }
-        /**
-         * Clear Queue handler data
-         */
-        $queue = $this->c['queue'];
+        $queue = $this->c['queue'];   // Clear queue data
         $queue->deleteQueue($this->c['config']['logger']['queue']['route']);
         
         echo Console::success('Application logs deleted.');

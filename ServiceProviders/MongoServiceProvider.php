@@ -48,6 +48,18 @@ Class MongoServiceProvider implements ServiceProviderInterface
         return $this->connector->getConnection($params);  // Get existing connection
     }
 
+    /**
+     * Create unnamed connection
+     *
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function factory($params = array())
+    {
+        return $this->connector->factory($params);  // Get existing connection
+    }
+
 }
 
 // END MongoServiceProvider Class

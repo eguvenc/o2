@@ -42,7 +42,9 @@ class Container implements ArrayAccess
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
     protected $bindNamespaces = array();   // Stores bind method namespaces
     protected $services = array();         // Defined services
-    protected $registeredService = array();  // Lazy loading for service wrapper class
+    protected $registeredServices = array();  // Lazy loading for service wrapper class
+    protected $registeredProviders = array();  // Stack data for service provider wrapper class
+    protected $registeredConnections = array(); // Lazy loading for service provider register method
 
     /**
      * Constructor
@@ -233,8 +235,8 @@ class Container implements ArrayAccess
         $class = strtolower($matches['class']);
         $serviceName = ucfirst($matches['class']);
 
-        if ( ! empty($matches['provider']) AND strpos($classString, 'service provider') === 0) {
-            return $this->registeredProviders[$class];
+        if ( ! empty($matches['provider'])) {
+            return $this->resolveProvider($class);
         }
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
@@ -244,10 +246,10 @@ class Container implements ArrayAccess
             $data['cid'] = $data['key'] = $class;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
-            if ( ! isset($this->registeredService[$serviceName])) {
+            if ( ! isset($this->registeredServices[$serviceName])) {
                 $service = new $serviceClass($this);
                 $service->register($this, $params, $matches);
-                $this->registeredService[$serviceName] = true;
+                $this->registeredServices[$serviceName] = true;
             }
         }
         $data = $this->getClassInfo($matches['class']);
@@ -259,6 +261,32 @@ class Container implements ArrayAccess
         return $this->offsetGet($data['cid'], $params, $matches);
     }
     
+    /**
+     * Returns to provider instance
+     * 
+     * @param string $class provider name
+     * 
+     * @return object \Obullo\ServiceProviders\ServiceProviderInterface
+     */
+    protected function resolveProvider($class)
+    {
+        if ( ! isset($this->registeredProviders[$class])) {
+            throw new RuntimeException(
+                sprintf(
+                    "%s provider is not registered, please register it in providers.php",
+                    ucfirst($class)
+                )
+            );
+        }
+        $providerName = $this->registeredProviders[$class];
+        if ( ! isset($this->registeredConnections[$class])) {
+            $provider = new $providerName;
+            $provider->register($this);
+            $this->registeredConnections[$class] = $provider;
+        }
+        return $this->registeredConnections[$class];
+    }
+
     /**
      * Define service with an alias
      * 
@@ -515,7 +543,7 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Bind classes into the container if it not exists.
+     * Bind classes into the container if its not exists.
      * 
      * @param string $cid       class id
      * @param string $namespace class
@@ -539,24 +567,18 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Registers a service provider. ( Also supports silex providers )
+     * Registers a service provider.
      *
      * @param object $provider A Service Provider instance
-     * @param array  $values   An array of values that customizes the provider
      *
      * @return static
      */
-    public function register($provider, array $values = array())
+    public function register($provider)
     {
-        $classname = explode('\\', get_class($provider));
+        $classname = explode('\\', $provider);
         $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
 
-        $provider->register($this);
         $this->registeredProviders[$cid] = $provider;
-
-        foreach ($values as $key => $value) {
-            $this[$key] = $value;
-        }
         return $this;
     }
 

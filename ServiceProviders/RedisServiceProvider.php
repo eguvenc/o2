@@ -3,10 +3,10 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\Connections\PdoConnectionProvider;
+use Obullo\ServiceProviders\Connections\RedisConnectionProvider;
 
 /**
- * Pdo Service Provider
+ * Redis Service Provider
  *
  * @category  ServiceProvider
  * @package   ServiceProviders
@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\PdoConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class PdoServiceProvider implements ServiceProviderInterface
+Class RedisServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector
@@ -33,7 +33,7 @@ Class PdoServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $c)
     {
-        $this->connector = new PdoConnectionProvider($c);    // Register all Connectors as shared services
+        $this->connector = new RedisConnectionProvider($c);    // Register all Connectors as shared services
         $this->connector->register();
     }
 
@@ -63,7 +63,8 @@ Class PdoServiceProvider implements ServiceProviderInterface
 
 }
 
-// END PdoServiceProvider Class
+// END RedisServiceProvider Class
 
-/* End of file PdoServiceProvider.php */
-/* Location: .Obullo/ServiceProviders/PdoServiceProvider.php */
+/* End of file RedisServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/RedisServiceProvider.php */
+

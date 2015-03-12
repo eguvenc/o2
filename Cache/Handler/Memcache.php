@@ -3,7 +3,6 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Cache\ArrayContainer;
 use Obullo\Container\Container;
 
 /**
@@ -35,13 +34,6 @@ Class Memcache implements CacheHandlerInterface
     public $params = array();
 
     /**
-     * Array container
-     * 
-     * @var object
-     */
-    protected $container;
-
-    /**
      * Constructor
      * 
      * @param array $c       container
@@ -52,7 +44,6 @@ Class Memcache implements CacheHandlerInterface
         $options = array();
         $c['config']->load('cache');
         $this->params = $c['config']['cache']['memcache'];
-        $this->container = new ArrayContainer;
         
         if ( ! extension_loaded('memcache')) {
             throw new RunTimeException(

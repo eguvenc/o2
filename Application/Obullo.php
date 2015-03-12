@@ -4,7 +4,6 @@ namespace Obullo\Application;
 
 use Closure;
 use Controller;
-use SplPriorityQueue;
 
 /**
  * Obullo bootstrap
@@ -24,13 +23,6 @@ class Obullo
      * @var null
      */
     public $env = null;
-
-    /**
-     * Register shutdown closures
-     * 
-     * @var array
-     */
-    protected $shutdown = array();
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -161,32 +153,15 @@ class Obullo
     }
 
     /**
-     * Register shutdown function into application
-     * 
-     * @param object  $callable Closure
-     * @param integer $priority order of shutdown function
-     * 
-     * @return void
+     * Is Cli ?
+     *
+     * Test to see if a request was made from the command line.
+     *
+     * @return  bool
      */
-    public function registerShutdown(Closure $callable, $priority = 0)
+    public function isCli()
     {
-        if ($priority == 0) {
-            ++$this->shutdownPriority;
-        } else {
-            $this->shutdownPriority = $priority;
-        }
-        $this->shutdownQueue = new SplPriorityQueue;
-        $this->shutdownQueue->insert($callable, $this->shutdownPriority);
-    }
-
-    /**
-     * Returns to registered shutdown functions
-     * 
-     * @return array
-     */
-    public function getShutdownQueue()
-    {
-        return $this->shutdownQueue;
+        return (PHP_SAPI === 'cli' OR defined('STDIN'));
     }
 
     /**

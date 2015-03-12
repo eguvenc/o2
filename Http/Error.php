@@ -79,6 +79,7 @@ Class Error
      */
     protected function sanitizeMessage($message)
     {
+        return $message;
         return filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
     }
 

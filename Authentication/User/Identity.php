@@ -116,7 +116,7 @@ class Identity extends AuthorizedUser
             $this->__isTemporary = 0;
             $this->setCredentials($this->attributes);
 
-            if (! isset($this->__lastTokenRefresh)) { // Create default token refresh value
+            if ( ! isset($this->__lastTokenRefresh)) {  // Create default token refresh value
                 $this->__lastTokenRefresh = time();
             }
 

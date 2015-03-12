@@ -156,11 +156,6 @@ Class AMQP extends Queue implements HandlerInterface
     {
         $queue = $this->declareQueue($queueName); // Declare queue if not exists
         $envelope = $queue->get();  // Get envelope
-
-        // if ($envelope instanceof AMQPEnvelope) {
-        //     $output = json_decode($envelope->getBody(), true);
-        //     return $output;
-        // }
     
         if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
             return new AMQPJob($this->c, $queue, $envelope);  // Send incoming message to job class.

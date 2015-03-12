@@ -1,9 +1,8 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
 use RuntimeException;
-use UnexpectedValueException;
 use Obullo\Container\Container;
 use Obullo\Cache\Handler\HandlerInterface;
 
@@ -17,12 +16,9 @@ use Obullo\Cache\Handler\HandlerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class CacheConnectionProvider
+Class CacheConnectionProvider extends AbstractConnectionProvider
 {
-    protected $c;                // Container
-    protected $config = array(); // Cache config
-
-    use ConnectionTrait;
+    protected $c; // Container
 
     /**
      * Constructor
@@ -32,7 +28,8 @@ Class CacheConnectionProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('cache');
+
+        $this->setKey('cache.connection.');  // Set container key
     }
 
     /**
@@ -49,7 +46,9 @@ Class CacheConnectionProvider
     }
 
     /**
-     * Create a new mongo connection if you don't want to add config file and you want to create new one.
+     * Create a new mongo connection
+     * 
+     * if you don't want to add it to config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -57,19 +56,24 @@ Class CacheConnectionProvider
      */
     public function factory($params = array())
     {
-        if ( ! isset($params['driver'])) {
-            throw new UnexpectedValueException("Cache connection provider requires driver parameter.");
+        if (empty($params['driver']) OR empty($params['connection'])) {
+            throw new RuntimeException(
+                sprintf(
+                    "Cache provider requires driver and connection parameters. <pre>%s</pre>",
+                    "\$c['service provider cache']->get(['driver' => 'redis', 'connection' => 'default']);"
+                )
+            );
         }
-        $cid = 'cache.connection.'.static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                $options = empty($params['options']) ? array() : $params['options'];
-                return $self->createConnection($params['driver'], $options);
+        if ( ! $this->c->exists($cid)) {    //  create shared connection if not exists
+            $this->c[$cid] = function () use ($params) {  //  create shared connections
+                $driver = $params['driver'];
+                unset($params['driver']);
+                return $this->createClass($driver, $params);
             };
         }
-        return $this->c[$cid];
+        return $this->c[$cid];  // Get registered connection
     }
 
     /**
@@ -80,7 +84,7 @@ Class CacheConnectionProvider
      * 
      * @return void
      */
-    protected function createConnection($class, $options)
+    protected function createClass($class, $options)
     {
         $driver = ucfirst(strtolower($class));
 
@@ -94,4 +98,4 @@ Class CacheConnectionProvider
 // END CacheConnectionProvider.php class
 /* End of file CacheConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/CacheConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/CacheConnectionProvider.php */

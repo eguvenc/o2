@@ -2,11 +2,12 @@
 
 namespace Obullo\Error;
 
-use Obullo\Log\Logger,
-    ErrorException;
+use ErrorException;
+use Obullo\Log\Logger;
 
 /**
  * Error Handler Class
+ * 
  * Modeled after Symfony ErrorHandler
  * 
  * @category  Error
@@ -16,7 +17,7 @@ use Obullo\Log\Logger,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/error
  */
-Class ErrorHandler
+class ErrorHandler
 {
     /**
      * Deprecated constant

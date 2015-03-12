@@ -85,15 +85,22 @@ This function is otherwise identical to <kbd>$this->cookie->set()</kbd>, except 
 $this->cookie->delete($name, $domain, $path, $prefix)
 ```
 
+#### $this->cookie->queue();
+
+#### $this->cookie->unqueue();
+
+#### $this->cookie->getQueuedCookies();
+
+
 ### Function Reference
 
 ------
 
-#### $this->cookie->set(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', string $prefix = '', bool $secure = false);
+#### $this->cookie->set(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', bool $secure = false, bool $httpOnly = false, string $prefix = '');
 
 Sets a cookie containing the values you specify.
 
-#### $this->cookie->get(string $name);
+#### $this->cookie->get(string $name, string $prefix = '');
 
 Fetch a cookie.
 
@@ -102,7 +109,7 @@ Fetch a cookie.
 Delete a cookie.
 
 
-#### $this->c['cookie']->queue(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', string $prefix = '', bool $secure = false);
+#### $this->c['cookie']->queue(mixed $name, string $value, int $expire = 0, string $domain = '', string $path = '/', bool $secure = false, bool $httpOnly = false, string $prefix = '');
 
 
 #### $this->c['cookie']->queued(string $name);

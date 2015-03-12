@@ -28,7 +28,7 @@ Class Cache implements SaveHandlerInterface
      * 
      * @var string
      */
-    public $key = 'Sessions:';
+    public $key = 'sessions:';
 
     /**
      * Expiration time of current session
@@ -37,13 +37,6 @@ Class Cache implements SaveHandlerInterface
      */
     public $lifetime = 7200; // two hours
  
-    /**
-     * Cache provider
-     * 
-     * @var object
-     */
-    protected $provider;
-
     /**
      * Constructor
      *
@@ -55,7 +48,6 @@ Class Cache implements SaveHandlerInterface
         $this->config = $c['config']->load('session');
         $this->key = $this->config['session']['key'];
         $this->lifetime = $this->config['session']['lifetime'];
-        $this->provider = $this->c['service provider cache'];
     }
 
     /**
@@ -70,10 +62,10 @@ Class Cache implements SaveHandlerInterface
     {
         $savePath = null;
         $sessionName = null;
-        $this->cache = $this->provider->get(
+        $this->cache = $this->c['service provider cache']->get(
             [
-                'driver' => $this->config['provider']['driver'],
-                'options' => array('serializer' => 'none')
+                'driver' => $this->config['cache']['provider']['driver'],
+                'connection' => $this->config['cache']['provider']['connection']
             ]
         );
         return is_object($this->cache) ? true : false;
@@ -97,9 +89,8 @@ Class Cache implements SaveHandlerInterface
      * @return mixed
      */
     public function read($id)
-    {   
-        $key = $this->key . $id;
-        $result = $this->cache->get($key);
+    {
+        $result = $this->cache->get($this->key.$id);
         return $result ?: null;
     }
  
@@ -116,8 +107,7 @@ Class Cache implements SaveHandlerInterface
         if (empty($data)) { // If we have no session data don't write it.
             return false;
         }
-        $key = $this->key . $id;
-        $result = $this->cache->set($key, $data, $this->getLifetime());
+        $result = $this->cache->set($this->key.$id, $data, $this->getLifetime());
         return $result ? true : false;
     }
  
@@ -130,8 +120,7 @@ Class Cache implements SaveHandlerInterface
      */
     public function destroy($id)
     {
-        $key = $this->key . $id;
-        $result = $this->cache->delete($key);
+        $result = $this->cache->delete($this->key.$id);
         return $result ? true : false;
     }
 

@@ -2,8 +2,8 @@
 
 namespace Obullo\Error;
 
-use Obullo\Log\Logger,
-    Exception;
+use Exception;
+use Obullo\Log\Logger;
 
 /**
  * Exception Handler Class
@@ -15,7 +15,7 @@ use Obullo\Log\Logger,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/error
  */
-Class ExceptionHandler
+class ExceptionHandler
 {
     /**
      * Debug on /off variable

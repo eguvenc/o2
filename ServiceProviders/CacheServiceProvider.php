@@ -3,6 +3,7 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
+use Obullo\ServiceProviders\Connections\CacheConnectionProvider;
 
 /**
  * Cache Service Provider
