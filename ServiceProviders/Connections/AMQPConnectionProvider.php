@@ -33,7 +33,7 @@ Class AMQPConnectionProvider extends AbstractConnectionProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('queue');  // Load database configuration file
+        $this->config = $this->c['config']->load('queue/amqp');  // Load database configuration file
 
         $this->setKey('amqp.connection.');
 
@@ -52,7 +52,7 @@ Class AMQPConnectionProvider extends AbstractConnectionProvider
      */
     public function register()
     {
-        foreach ($this->config['AMQP']['connections'] as $key => $val) {
+        foreach ($this->config['connections'] as $key => $val) {
 
             $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
                 return $this->createConnection($val);
@@ -96,7 +96,7 @@ Class AMQPConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0]; //  Set default connection
         }
-        if ( ! isset($this->config['AMQP']['connections'][$params['connection']])) {
+        if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
                     'Connection key %s not exists in your queue.php config file.',
@@ -133,7 +133,7 @@ Class AMQPConnectionProvider extends AbstractConnectionProvider
      */
     public function __destruct()
     {
-        foreach (array_keys($this->config['AMQP']['connections']) as $key) {        // Close the connections
+        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
             if ($this->c->loaded($key)) {
                  $this->c[$key]->disconnect();
             }

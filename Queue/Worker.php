@@ -111,7 +111,7 @@ Class Worker
      * 
      * @var string
      */
-    protected $env = 'prod';
+    protected $env = 'production';
 
     /**
      * Your project name
@@ -193,7 +193,7 @@ Class Worker
     public function __construct(Container $c, array $arguments = array())
     {
         $this->c = $c;
-        $this->c['config']->load('queue');  // Load queue configuration
+        $this->c['config']->load('queue/workers');  // Load queue configuration
 
         $this->queue = $this->c['queue'];
         $this->logger = $this->c['logger'];
@@ -325,7 +325,7 @@ Class Worker
                         $priority = $errorPriorities[$level];
                     } 
                     global $c;
-                    $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
+                    $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                     $data = array(
                         'error_level' => $level,
                         'error_message' => $message,
@@ -339,7 +339,7 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    if ($c['config']['queue']['failed']['enabled']) {
+                    if ($c['config']['queue/workers']['failed']['enabled']) {
                         $storage = new $storageClassName($c);
                         $storage->save($data);
                     }
@@ -385,7 +385,7 @@ Class Worker
                 } while ($exception);
 
                 global $c;
-                $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
+                $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                 foreach (array_reverse($messages) as $message) {
                     global $c;
                     $data = array(
@@ -401,7 +401,7 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    if ($c['config']['queue']['failed']['enabled']) {
+                    if ($c['config']['queue/workers']['failed']['enabled']) {
                         $storage = new $storageClassName($c);
                         $storage->save($data);
                     }
@@ -429,7 +429,7 @@ Class Worker
             function () {
                 if (null != $error = error_get_last()) {
                     global $c;
-                    $storageClassName = '\\'.$c['config']['queue']['failed']['storage'];
+                    $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                     $data = array(
                         'error_level' => $error['type'],
                         'error_message' => $error['message'], 
@@ -443,7 +443,7 @@ Class Worker
                     if ($this->debug) {
                         $this->debugOutput($data);
                     }
-                    if ($c['config']['queue']['failed']['enabled']) {
+                    if ($c['config']['queue/workers']['failed']['enabled']) {
                         $storage = new $storageClassName($c);
                         $storage->save($data);
                     }

@@ -37,10 +37,10 @@ Abstract Class FailedJob
      */
     public function __construct($c)
     {
-        $queue    = $c['config']->load('queue');
+        $workers  = $c['config']->load('queue/workers');
         $database = $c['config']->load('database');
 
-        $provider = $queue['failed']['provider'];
+        $provider = $workers['failed']['provider'];
 
         if ( ! isset($database['connections'][$provider['connection']])) {
             throw new RuntimeException(
@@ -51,7 +51,7 @@ Abstract Class FailedJob
             );
         }
         $this->db = $c['service provider '.$provider['name']]->get(['connection' => $provider['connection']]);
-        $this->table = $queue['failed']['table'];
+        $this->table = $workers['failed']['table'];
     }
 
 }
