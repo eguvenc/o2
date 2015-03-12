@@ -38,10 +38,12 @@ Class Smtp extends AbstractAdapter
         
         $this->host($smtp['host']);
         $this->pass($smtp['pass']);
+        $this->user($smtp['user']);
         $this->port($smtp['port']);
         $this->timeout($smtp['timeout']);
 
         $this->smtpAuth = ($this->smtpUser == '' AND $this->smtpPass == '') ? false : true;
+        
     }
 
     /**
@@ -67,6 +69,19 @@ Class Smtp extends AbstractAdapter
     {
         $this->smtpPass = $password;
     }
+
+    /**
+     * Set user
+     * 
+     * @param string $user user name
+     * 
+     * @return void
+     */
+    public function user($user)
+    {
+        $this->smtpUser = $user;
+    }
+
 
     /**
      * Set port
