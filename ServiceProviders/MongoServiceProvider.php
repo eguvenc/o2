@@ -3,6 +3,7 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
+use Obullo\ServiceProviders\Connections\MongoConnectionProvider;
 
 /**
  * Mongo Service Provider
@@ -14,11 +15,11 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class MongoServiceProvider implements ServiceProviderInterface
+class MongoServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector
-     * 
+     *
      * @var object
      */
     public $connector;
@@ -27,7 +28,7 @@ Class MongoServiceProvider implements ServiceProviderInterface
      * Registry
      *
      * @param object $c container
-     * 
+     *
      * @return void
      */
     public function register(Container $c)
@@ -38,12 +39,12 @@ Class MongoServiceProvider implements ServiceProviderInterface
 
     /**
      * Get connection
-     * 
+     *
      * @param array $params array
-     * 
+     *
      * @return object
      */
-    public function get($params = array())
+    public function get($params = [])
     {
         return $this->connector->getConnection($params);  // Get existing connection
     }
@@ -52,14 +53,13 @@ Class MongoServiceProvider implements ServiceProviderInterface
      * Create unnamed connection
      *
      * @param array $params array
-     * 
+     *
      * @return object
      */
-    public function factory($params = array())
+    public function factory($params = [])
     {
         return $this->connector->factory($params);  // Get existing connection
     }
-
 }
 
 // END MongoServiceProvider Class
