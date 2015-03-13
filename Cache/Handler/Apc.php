@@ -3,7 +3,6 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Cache\ArrayContainer;
 use Obullo\Container\Container,
 
 /**
@@ -21,13 +20,6 @@ Class Apc implements CacheHandlerInterface
     const SERIALIZER_NONE = 'none';
 
     /**
-     * Array container
-     * 
-     * @var object
-     */
-    protected $container;
-
-    /**
      * Constructor
      * 
      * @param array $c       container
@@ -37,7 +29,6 @@ Class Apc implements CacheHandlerInterface
     {
         $options = array();
         $c = null;
-        $this->container = new ArrayContainer;
         
         if ( ! extension_loaded('apc') OR ini_get('apc.enabled') != '1') {
             throw new RunTimeException(

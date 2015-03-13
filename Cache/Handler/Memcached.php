@@ -2,10 +2,9 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException;
 use ReflectionClass;
+use RunTimeException;
 use Obullo\Container\Container;
-use Obullo\Cache\ArrayContainer;
     
 /**
  * Memcached Caching Class
@@ -17,53 +16,41 @@ use Obullo\Cache\ArrayContainer;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class Memcached implements CacheHandlerInterface
+class Memcached implements CacheHandlerInterface
 {
-    const SERIALIZER_NONE     = 'none';
-    const SERIALIZER_PHP      = 'php';
-    const SERIALIZER_JSON     = 'json';
-    const SERIALIZER_IGBINARY = 'igbinary';
-    const OPTION_SERIALIZER   = -1003;  // Memcached::OPT_COMPRESSION
-    
     /**
-     * Serializer types
+     * Container
      * 
-     * @var array
+     * @var object
      */
-    public $serializerTypes = array(
-        self::SERIALIZER_PHP      => 1, // Memcached::SERIALIZER_PHP
-        self::SERIALIZER_IGBINARY => 2, // Memcached::SERIALIZER_IGBINARY
-        self::SERIALIZER_JSON     => 3  // Memcached::SERIALIZER_JSON
-    );
+    protected $c;
 
     /**
-     * Memcache object
+     * Memcached client
      * 
      * @var object
      */
     public $memcached;
 
     /**
-     * Connection settings
+     * Service provider parameters
      * 
      * @var array
      */
-    public $params = array();
+    protected $options = array();
 
     /**
-     * Current serializer name
+     * Available serializers
      * 
-     * @var string
+     * @var array
      */
-    public $serializer;
-
-    /**
-     * Array container
-     * 
-     * @var object
-     */
-    protected $container;
-
+    public $serializers = array(
+        0 => 'none',
+        1 => 'php',         // Memcached::SERIALIZER_PHP
+        2 => 'igbinary',    // Memcached::SERIALIZER_IGBINARY
+        3 => 'json',        // Memcached::SERIALIZER_JSON
+    );
+    
     /**
      * Constructor
      * 
@@ -72,25 +59,11 @@ Class Memcached implements CacheHandlerInterface
      */
     public function __construct(Container $c, $options = array())
     {
-        $c['config']->load('cache');
+        $this->c = $c;
         $this->options = $options;
         $this->params = $c['config']['cache']['memcached'];
-        $this->container = new ArrayContainer;
 
-        if ( ! extension_loaded('memcached')) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s driver is not installed.', get_class()
-                )
-            );
-        }
-        if ( ! $this->connect()) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s cache connection failed.', get_class()
-                )
-            );
-        }
+        $this->connect();
     }
 
     /**
@@ -100,67 +73,33 @@ Class Memcached implements CacheHandlerInterface
      */
     public function connect()
     {
-        $this->memcached = new \Memcached;
-        foreach ($this->params['servers'] as $servers) {
-            if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
-                throw new RunTimeException(
-                    sprintf(
-                        ' %s connection configuration items hostname or port can\'t be empty.', get_class()
-                    )
-                );
-            }
-            if ( ! isset($servers['weight'])) {
-                $servers['weight'] = 1;
-            }
-            if (is_array($servers)) {
-                if ( ! $this->memcached->addServer($servers['hostname'], $servers['port'], $servers['weight'])) {
-                    return false;
-                }
-            } else {
-                if ( ! $this->memcached->addServer($this->params['servers']['hostname'], $this->params['servers']['port'], $this->params['servers']['weight'])) {
-                    return false;
-                }
-            }
-        }
-        if (isset($this->options['serializer'])) {
-            $this->setOption($this->options);
-        }
+        $this->config = $this->c['config']['cache/memcached'];
+        $this->memcached = $this->c['service provider memcached']->get($this->options);
+
+        $this->openNodeConnections();
         return true;
     }
 
     /**
-     * Set client option.
+     * Connect to memcached nodes
      * 
-     * @param array $options options
-     * 
-     * Options:
-     *      serializer => 'serializer_php'
-     *     'serializer_igbinary'
-     *     'serializer_json'
-     * 
-     * @return boolean true or false
+     * @return void
      */
-    public function setOption(array $options)
+    protected function openNodeConnections()
     {
-        switch ($options['serializer']) {
-        case static::SERIALIZER_PHP: // The default PHP serializer.
-            $this->serializer = $options['serializer'];
-            $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_PHP]);
-            return true;
-            break;
-        case static::SERIALIZER_JSON: // The JSON serializer.
-            $this->serializer = $options['serializer'];
-            return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_JSON]);
-            break;
-        case static::SERIALIZER_IGBINARY: // The igbinary serializer.
-                                          // Instead of textual representation it stores PHP data structures in a compact binary form, resulting in space and time gains.
-                                          // https://github.com/igbinary/igbinary
-            $this->serializer = $options['serializer'];
-            return $this->memcached->setOption(static::OPTION_SERIALIZER, $this->serializerTypes[static::SERIALIZER_IGBINARY]);
-            break;
-        default:
-            return false;
-            break;
+        if (empty($this->config['nodes'][0]['host']) OR empty($this->config['nodes'][0]['port'])) {  // If we have no slave servers
+            return;
+        }
+        foreach ($this->config['nodes'] as $servers) {
+            if ( empty($servers['host']) OR empty($servers['port'])) {
+                throw new RunTimeException(
+                    sprintf(
+                        ' %s node configuration error, host or port can\'t be empty.',
+                        get_class()
+                    )
+                );
+            }
+            $this->memcached->addServer($servers['host'], $servers['port'], $servers['weight']);
         }
     }
 
@@ -171,7 +110,9 @@ Class Memcached implements CacheHandlerInterface
      */
     public function getSerializer()
     {
-        return $this->serializer;
+        $number = $this->getOption('OPT_SERIALIZER');
+
+        return $this->serializers[$number];
     }
 
     /**
@@ -182,7 +123,7 @@ Class Memcached implements CacheHandlerInterface
      * 
      * @return string value
      */
-    public function getOption($option = 'OPTION_SERIALIZER')
+    public function getOption($option = 'OPT_SERIALIZER')
     {
         $obj      = new ReflectionClass('Memcached');
         $constant = $obj->getconstant($option);

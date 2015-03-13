@@ -13,7 +13,7 @@
     #middle h1 {font-size:18px;color:#E53528;margin:0;}
     #middle h2 {font-size:18px;margin:0;margin-top:10px;margin-bottom:6px;}
     #middle strong{display:inline-block;width:65px; line-height: 18px; }
-    #middle span { display:block; margin-top:0px !important; }
+    #middle span { font-size:22px; display:block; margin-top:0px !important; }
 
     #headerContent { padding:5px;}
     #headerContent strong{display:inline-block;width:65px;}

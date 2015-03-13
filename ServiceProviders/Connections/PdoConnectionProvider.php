@@ -1,7 +1,8 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
+use Pdo;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
@@ -17,13 +18,11 @@ use Obullo\Database\Connection;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class PdoConnectionProvider
+Class PdoConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;         // Container
     protected $config;    // Database configuration items
     protected $pdoClass;  // Pdo extension client name
-
-    use ConnectionTrait;
 
     /**
      * Constructor
@@ -37,12 +36,14 @@ Class PdoConnectionProvider
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
 
+        $this->setKey('pdo.connection.');  // Set container key
+
         if ( ! extension_loaded('PDO')) {
             throw new RuntimeException(
                 'The PDO extension has not been installed or enabled.'
             );
         }
-        $this->pdoClass = '\PDO';
+        $this->pdoClass = 'PDO';
     }
 
     /**
@@ -52,10 +53,9 @@ Class PdoConnectionProvider
      */
     public function register()
     {
-        $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $this->c['pdo.connection.'.$key] = function () use ($self, $val) {  // create shared connections
-                return $self->createConnection($val);
+            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
+                return $this->createConnection($val);
             };
         }
     }
@@ -86,9 +86,6 @@ Class PdoConnectionProvider
      */
     public function getConnection($params = array())
     {
-        if (isset($params['dsn'])) {       // Creates new unnamed (none config) connection
-            return $this->factory($params);
-        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0];  //  Set default connection
         }
@@ -100,11 +97,13 @@ Class PdoConnectionProvider
                 )
             );
         }
-        return $this->c['pdo.connection.'.$params['connection']];  // return to shared connection
+        return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
     /**
-     * Create a new PDO connection if you don't want to add config file and you want to create new one connection.
+     * Create a new PDO connection
+     * 
+     * if you don't want to add it to config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -112,27 +111,31 @@ Class PdoConnectionProvider
      */
     public function factory($params = array())
     {
-        $cid = 'pdo.connection.'. static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                return $self->createConnection($params);
+            $this->c[$cid] = function () use ($params) {  //  create shared connections
+                return $this->createConnection($params);
             };
         }
         return $this->c[$cid];
     }
 
     /**
-     * Close the connections
+     * Close all "active" connections
      */
     public function __destruct()
     {
-        return; // We already closed the connection to database in the destruction function.
+        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
+            $key = $this->getKey($key);
+            if ($this->c->loaded($key)) {  // Connection is active ? 
+                 unset($this->c[$key]);
+            }
+        }
     }
 }
 
 // END PdoConnectionProvider.php class
 /* End of file PdoConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/PdoConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/PdoConnectionProvider.php */

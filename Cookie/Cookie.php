@@ -173,14 +173,14 @@ Class Cookie
     /**
      * Get cookie
      * 
-     * @param string $key cookie key
+     * @param string $key    cookie key
+     * @param string $prefix cookie prefix
      * 
      * @return string sanizited cookie
      */
-    public function get($key)
+    public function get($key, $prefix = '')
     {
-        $prefix = '';
-        if ( ! isset($_COOKIE[$key]) AND $this->config['cookie']['prefix'] != '') {
+        if ( ! isset($_COOKIE[$key]) AND $prefix == '' AND $this->config['cookie']['prefix'] != '') {
             $prefix = $this->config['cookie']['prefix'];
         }
         if ( ! isset($_COOKIE[$prefix.$key])) {
@@ -224,7 +224,7 @@ Class Cookie
     {
         $cookie = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
 
-        $this->c['logger']->error('Cookie sent to queue', array('cookie' => $cookie));
+        $this->c['logger']->debug('Cookie sent to queue', array('cookie' => $cookie));
 
         if (is_string($name)) {
             $this->queued[$name] = $cookie;

@@ -1,14 +1,13 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
-use Obullo\Database\Connection;
 
 /**
- * Pdo Connection Provider
+ * Database Connection Provider
  * 
  * @category  ConnectionProvider
  * @package   ServiceProviders
@@ -17,12 +16,10 @@ use Obullo\Database\Connection;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class DatabaseConnectionProvider
+Class DatabaseConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;         // Container
     protected $config;    // Configuration items
-
-    use ConnectionTrait;
 
     /**
      * Constructor
@@ -35,6 +32,8 @@ Class DatabaseConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
+
+        $this->setKey('db.connection.');
     }
 
     /**
@@ -44,10 +43,9 @@ Class DatabaseConnectionProvider
      */
     public function register()
     {
-        $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $this->c['db.connection.'.$key] = function () use ($self, $val) {  // create shared connections
-                return $self->createConnection($val);
+            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
+                return $this->createConnection($val);
             };
         }
     }
@@ -62,13 +60,12 @@ Class DatabaseConnectionProvider
     protected function createConnection($params)
     {
         $driver = ucfirst(strstr($params['dsn'], ':', true));
-
         $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
         return new $Class($this->c, $params);
     }
     
     /**
-     * Retrieve shared PDO connection instance from connection pool
+     * Retrieve shared database connection instance from connection pool
      *
      * @param array $params provider parameters
      * 
@@ -76,9 +73,6 @@ Class DatabaseConnectionProvider
      */
     public function getConnection($params = array())
     {
-        if (isset($params['dsn'])) {  // Creates new unnamed (none config) connection
-            return $this->factory($params);
-        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0];  //  Set default connection
         }
@@ -90,7 +84,7 @@ Class DatabaseConnectionProvider
                 )
             );
         }
-        return $this->c['db.connection.'.$params['connection']];  // return to shared connection
+        return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
     /**
@@ -102,12 +96,11 @@ Class DatabaseConnectionProvider
      */
     public function factory($params = array())
     {   
-        $cid = 'db.connection.'.static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
         if ( ! $this->c->exists($cid)) { // create shared connection if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) { //  create shared connections
-                return $self->createConnection($params);
+            $this->c[$cid] = function () use ($params) { //  create shared connections
+                return $this->createConnection($params);
             };
         }
         return $this->c[$cid];
@@ -120,6 +113,7 @@ Class DatabaseConnectionProvider
     {
         return; // We already close the connections in pdo provider.
     }
+
 }
 
 // END DatabaseConnectionProvider.php class

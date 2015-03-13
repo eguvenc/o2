@@ -4,6 +4,7 @@ namespace Obullo\Queue\Tasks;
 
 use Controller;
 use Obullo\Process\Process;
+use Obullo\Tasks\Helper\Console;
 
 /**
  * Queue Controller
@@ -47,14 +48,8 @@ Class QueueController extends Controller
      */
     public function logo()
     {
-        echo "\33[1;36m".'
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
-
-        Welcome to Task Manager (c) 2015
-    You are running $php task queue command. For help type php task queue --help.'."\n\033[0m\n";
+        echo Console::logo("Welcome to Queue Manager (c) 2015");
+        echo Console::description("You are running \$php task queue command. For help type php task queue --help.");
     }
 
     /**
@@ -65,8 +60,9 @@ Class QueueController extends Controller
     public function help()
     {
         $this->logo();
-        echo "\33[0;36m".'
-'."\33[1;36m".'Help:'."\33[0m\33[0;36m".'
+
+echo Console::help("Help: ", true);
+echo Console::help("
 
 Available Commands
 
@@ -89,17 +85,14 @@ Optional
     --tries     : Sets the maximum number of times a job should be attempted.
     --env       : Sets your environment variable to job class.
     --project   : Sets your project name to works with multiple projects.
-    --var       : Sets your custom variable if you need.
+    --var       : Sets your custom variable if you need.\n\n"
+);
 
-'."\n\033[0m";
+echo Console::help("Usage for local: \n\n", true);
+echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=1\n\n");
 
-echo "\33[1;36mUsage for local:\33[0m\33[0;36m
-
-php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=1\n\n";
-
-echo "\33[1;36mUsage for production:\33[0m\33[0;36m
-
-php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\33[0m\n";
+echo Console::help("Usage for production: \n\n", true);
+echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\n");
 
     }
 
@@ -122,22 +115,22 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $clear = $this->parser->argument('clear');
 
         if (empty($channel)) {
-            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
+            echo Console::fail("Queue \"--channel\" can't be empty.");
             exit;
         }
         if (empty($route)) {
-            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
+            echo Console::fail("Queue \"--route\" can't be empty.");
             exit;
         }
-        echo "\33[0;36mFollowing queue data ...\33[0m\n\n";
-        echo "\33[1;36mChannel : ".$channel."\33[0m\n";
-        echo "\33[1;36mRoute   : ".$route."\33[0m\n";
+        echo Console::body("Following queue data ...\n\n");
+        echo Console::body("Channel : ". $channel."\n");
+        echo Console::body("Route   : ". $route."\n\n");
 
         $this->queue->channel($channel);  // Sets queue exchange
         
-        echo "\033[1;36m".$break."\33[0m\n";
-        echo "\033[1;36m".' Job ID | Job Name             | Data '."\33[0m\n";
-        echo "\033[1;36m".$break."\33[0m\n";
+        echo Console::body($break. "\n");
+        echo Console::body("Job ID  | Job Name            | Data \n");
+        echo Console::body($break. "\n");
 
         $lines = '';
         while (true) {
@@ -152,10 +145,10 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
                 if (strlen($raw['job']) > 20) {
                     $jobNameRepeat = 20;
                 }
-                $lines = "\033[1;36m ".$job->getJobId().str_repeat(' ', $jobIdRepeat).' | ';
-                $lines.= $raw['job'].str_repeat(' ', $jobNameRepeat).' | ';
-                $lines.= "\033[0;36m ".json_encode($raw['data'], true)."\33[0m\n";
-                $lines.= "\33[0m\n";
+                $lines = Console::body($job->getJobId().str_repeat(' ', $jobIdRepeat).'  | ');
+                $lines.= Console::body($raw['job'].str_repeat(' ', $jobIdRepeat).' | ');
+                $lines.= Console::text(json_encode($raw['data'], true)."\n", 'yellow');
+                $lines.= "\n";
                 echo $lines;
                 if ($clear == 1) {  // Delete all jobs in the queue
                      $job->delete();
@@ -189,11 +182,11 @@ php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory
         $var = $this->parser->argument('var', null);         // Sets your custom variable
         
         if (empty($channel)) {
-            echo "\33[1;36mQueue \"--channel\" can't be empty.\33[0m\n";
+            echo Console::fail("Queue \"--channel\" can't be empty.");
             exit;
         }
         if (empty($route)) {
-            echo "\33[1;36mQueue \"--route\" can't be empty.\33[0m\n";
+            echo Console::fail("Queue \"--route\" can't be empty.");
             exit;
         }
         $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";

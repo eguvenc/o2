@@ -63,7 +63,7 @@ Class Env implements ArrayAccess
      */
     public function offsetGet($key)
     {
-        return static::get($key);
+        return $this->get($key);
     }
 
     /**
@@ -97,13 +97,13 @@ Class Env implements ArrayAccess
      * 
      * @return mixed
      */
-    public static function get($value)
+    public function get($value)
     {
         if (isset(static::$resolvedItems[$value])) {    // lazy loading
             return static::$resolvedItems[$value];
         }
         $arguments = static::parseArguments($value);
-        return static::$resolvedItems[$value] = static::env($arguments['value'], $arguments['default'], $arguments['required']);
+        return static::$resolvedItems[$value] = $this->env($arguments['value'], $arguments['default'], $arguments['required']);
     }
 
     /**
@@ -115,7 +115,7 @@ Class Env implements ArrayAccess
      * 
      * @return string value
      */
-    protected static function env($key, $default = '', $required = false)
+    protected function env($key, $default = '', $required = false)
     {
         $empty = empty($_ENV[$key]);
         if ($required AND $empty) {

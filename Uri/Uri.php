@@ -2,7 +2,6 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Http\Sanitizer;
 use Obullo\Container\Container;
 
 /**
@@ -17,10 +16,10 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/uri
  */
-Class Uri
+class Uri
 {
     public $c;
-    public $logger;
+    public $config;
     public $keyval = array();
     public $uriString;
     public $segments = array();
@@ -41,9 +40,7 @@ Class Uri
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->logger = $c['logger'];
-
-        $this->logger->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
+        $this->c['logger']->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
     /**
@@ -57,44 +54,49 @@ Class Uri
             return;
         }
         $protocol = $this->config['uri']['protocol'];
-        
-        if (strtoupper($protocol) == 'AUTO') {
-            if ($uri = $this->detectUri()) {           // Let's try the REQUEST_URI first, this will work in most situations
-                $this->uriProtocol = 'REQUEST_URI';
-                $this->setUriString($uri);
-                return;
-            }
-            // Is there a PATH_INFO variable?
-            // Note: some servers seem to have trouble with getenv() so we'll test it two ways
-            $path = (isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : @getenv('PATH_INFO');
+        empty($protocol) && $protocol = 'REQUEST_URI';  // Default protocol REQUEST_URI
 
-            if (trim($path, '/') != '' AND $path != "/" . SELF) {
-                $this->uriProtocol = 'PATH_INFO';
-                $this->setUriString($path);
-                return;
-            }
-            $path = (isset($_SERVER['QUERY_STRING'])) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING'); // No PATH_INFO?... What about QUERY_STRING?
-
-            if (trim($path, '/') != '') {
-                $this->uriProtocol = 'QUERY_STRING';
-                $this->setUriString($path);
-                return;
-            }
-            if (is_array($_GET) AND count($_GET) == 1 AND trim(key($_GET), '/') != '') { // As a last ditch effort lets try using the $_GET array
-                $this->setUriString(key($_GET));
-                return;
-            }
-            $this->uriString = ''; // We've exhausted all our options...
+        if ($this->c['app']->isCli()) {     // Parse console arguments
+            $uri = static::parseArgv();
+            $this->setCliHeaders($uri);
+            $this->setUriString($uri);
             return;
         }
-        $uri = strtoupper($protocol);
+        switch ($protocol)
+        {
+        case 'REQUEST_URI':
+            $uri = $this->parseRequestUri();
+            break;
 
-        if ($uri == 'REQUEST_URI') {
-            $this->setUriString($this->detectUri());
-            return;
+        case 'QUERY_STRING':
+            $uri = $this->parseQueryString();
+            break;
+        case 'PATH_INFO':
+        default:
+            if (isset($_SERVER[$protocol])) {
+                $this->uriProtocol = $protocol;
+                $uri = $_SERVER[$protocol];
+            }
+            $uri = isset($_SERVER[$protocol]) ? $_SERVER[$protocol] : $this->parseRequestUri();
+            break;
         }
-        $path = (isset($_SERVER[$uri])) ? $_SERVER[$uri] : @getenv($uri);
-        $this->setUriString($path);
+        $this->setUriString($uri);
+    }
+
+    /**
+     * Set fake headers for cli
+     *
+     * @param string $uri valid uri
+     * 
+     * @return void
+     */
+    protected function setCliHeaders($uri)
+    {        
+        $_SERVER['HTTP_USER_AGENT'] = 'Cli';       /// Define cli headers for any possible isset errors.
+        $_SERVER['HTTP_ACCEPT_CHARSET'] = 'utf-8';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $_SERVER['HTTP_HOST'] = 'Cli';
+        $_SERVER['ORIG_PATH_INFO'] = $_SERVER['QUERY_STRING'] = $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'] = $uri;
     }
 
     /**
@@ -106,71 +108,108 @@ Class Uri
      *
      * @return string
      */
-    public function detectUri()
+    protected function parseRequestUri()
     {
-        if ( ! isset($_SERVER['REQUEST_URI']) OR ! isset($_SERVER['SCRIPT_NAME'])) {
+        if ( ! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME'])) {
             return '';
         }
-        $uri = $_SERVER['REQUEST_URI'];
+        $uri = parse_url($_SERVER['REQUEST_URI']);
+        $uri = isset($uri['path']) ? $uri['path'] : '';
 
         if (strpos($uri, $_SERVER['SCRIPT_NAME']) === 0) {
             $uri = substr($uri, strlen($_SERVER['SCRIPT_NAME']));
         } elseif (strpos($uri, dirname($_SERVER['SCRIPT_NAME'])) === 0) {
             $uri = substr($uri, strlen(dirname($_SERVER['SCRIPT_NAME'])));
         }
+        $uri = static::detectQueryString($uri);
 
-        if (strncmp($uri, '?/', 2) === 0) {     // This section ensures that even on servers that require the URI to be in the query string (Nginx) a correct
-            $uri = substr($uri, 2);             // URI is found, and also fixes the QUERY_STRING server var and $_GET array.
-        }
-        $parts = preg_split('#\?#i', $uri, 2);
-        $uri = $parts[0];
-
-        if (isset($parts[1])) {
-            $_SERVER['QUERY_STRING'] = $parts[1];
-            parse_str($_SERVER['QUERY_STRING'], $_GET);
-        } else {
-            $_SERVER['QUERY_STRING'] = '';
-            $_GET = array();
-        }
-        if ($uri == '/' || empty($uri)) {
+        if ($uri === '/' OR $uri === '') {
             return '/';
         }
-        $uri = parse_url($uri, PHP_URL_PATH);
-
-        return str_replace(array('//', '../'), '/', trim($uri, '/'));  // Do some final cleaning of the URI and return it
+        if ($this->config['uri']['sanitizer']) {
+            $uri = filter_var(urldecode($uri), FILTER_SANITIZE_URL);  // Filter out control characters
+        }
+        $this->uriProtocol = 'REQUEST_URI';
+        return static::removeRelativeDirectory($uri);  // Do some final cleaning of the URI and return it
     }
 
     /**
-     * Filter segments for malicious characters
+     * Set server query string
      *
-     * @param string $str uri
+     * @param string $uri request uri
      * 
      * @return string
      */
-    public function filterUri($str)
+    protected static function detectQueryString($uri)
     {
-        // defined STDIN FOR task requests
-        // we should not prevent "base64encode" characters in CLI mode
-        // the "sync" task controller and some schema libraries use "base64encode" function
-        if ($str != '' AND $this->config['uri']['permittedChars'] != '' AND $this->config['uri']['queryStrings'] == false AND ! defined('STDIN')) {
-
-            // preg_quote() in PHP 5.3 escapes -, so the str_replace() and addition of - to preg_quote() is to maintain backwards
-            // compatibility as many are unaware of how characters in the permitted_uri_chars will be parsed as a regex pattern
-
-            if ( ! preg_match('|^[' . str_replace(array('\\-', '\-'), '-', preg_quote($this->config['uri']['permittedChars'], '-')) . ']+$|i', $str)) {
-                $this->c['response']->showError('The URI you submitted has disallowed characters.', 400);
-            }
+        // This section ensures that even on servers that require the URI to be in the query string (Nginx) a correct
+        // URI is found, and also fixes the QUERY_STRING server var and $_GET array.
+        
+        $query = isset($uri['query']) ? $uri['query'] : '';
+        if (trim($uri, '/') === '' && strncmp($query, '/', 1) === 0) {
+            $query = explode('?', $query, 2);
+            $uri = $query[0];
+            $_SERVER['QUERY_STRING'] = isset($query[1]) ? $query[1] : '';
+        } else {
+            $_SERVER['QUERY_STRING'] = $query;
         }
-        // Convert programatic characters to entities and return
-        return str_replace(
-            array(
-                '$', '(', ')', '%28', '%29'
-            ), // Bad
-            array(
-                '&#36;', '&#40;', '&#41;', '&#40;', '&#41;'
-            ), // Good
-            $str
-        );
+        parse_str($_SERVER['QUERY_STRING'], $_GET);
+        return $uri;
+    }
+
+    /**
+     * Parse QUERY_STRING
+     *
+     * Will parse QUERY_STRING and automatically detect the URI from it.
+     *
+     * @return  string
+     */
+    protected function parseQueryString()
+    {
+        $uri = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');
+        if (trim($uri, '/') === '') {
+            return '';
+        } elseif (strncmp($uri, '/', 1) === 0) {
+            $uri = explode('?', $uri, 2);
+            $_SERVER['QUERY_STRING'] = isset($uri[1]) ? $uri[1] : '';
+            $uri = $uri[0];
+        }
+        parse_str($_SERVER['QUERY_STRING'], $_GET);
+        $this->uriProtocol = 'QUERY_STRING';
+
+        return static::removeRelativeDirectory($uri);
+    }
+    /**
+     * Remove relative directory (../) and multi slashes (///)
+     *
+     * Do some final cleaning of the URI and return it, currently only used in self::_parse_request_uri()
+     *
+     * @param string $uri uri string
+     * 
+     * @return  string
+     */
+    protected static function removeRelativeDirectory($uri)
+    {
+        $uris = array();
+        $tok = strtok($uri, '/');
+        while ($tok !== false) {
+            if (( ! empty($tok) OR $tok === '0') && $tok !== '..') {
+                $uris[] = $tok;
+            }
+            $tok = strtok('/');
+        }
+        return implode('/', $uris);
+    }
+
+    /**
+     * Parse cli arguments & remove first segment ( task filename )
+     * 
+     * @return string
+     */
+    protected static function parseArgv() 
+    {
+        $args = array_slice($_SERVER['argv'], 1);
+        return $args ? implode('/', $args) : '';
     }
 
     /**
@@ -194,26 +233,22 @@ Class Uri
     public function explodeSegments()
     {
         foreach (explode('/', preg_replace("|/*(.+?)/*$|", "\\1", $this->uriString)) as $val) {
-            $val = trim($this->filterUri($val)); // Filter segments for security
+            $val = trim($val);
             if ($val != '') {
-                $this->segments[] = $this->parseSegmentExtension($val);
+                $this->segments[] = $this->parseExtension($val);
             }
         }
     }
 
     /**
-     * Used in Lvc 
+     * Also used in Layers
      * 
-     * @param string  $str    uri str
-     * @param boolean $filter option on / off
+     * @param string $str uri str
      *
      * @return void
      */
-    public function setUriString($str = '', $filter = true)
+    public function setUriString($str = '')
     {
-        if ($filter) {  // Filter out control characters
-            $str = Sanitizer::sanitizeInvisibleCharacters($str, false);
-        }
         $this->uriString = ($str == '/') ? '' : $str;  // If the URI contains only a slash we'll kill it
     }
 
@@ -253,7 +288,7 @@ Class Uri
     }
 
     /**
-     * Fetch a URI "routed" Segment ( Sub module isn't a rsegment based.)
+     * Fetch a URI "routed" Segment
      *
      * This function returns the re-routed URI segment (assuming routing rules are used)
      * based on the number provided.  If there is no routing this function returns the
@@ -379,7 +414,7 @@ Class Uri
      * 
      * @return string
      */
-    protected function parseSegmentExtension($segment)
+    protected function parseExtension($segment)
     {
         if (strpos($segment, '.') !== false) {
             $extension = explode('.', $segment);

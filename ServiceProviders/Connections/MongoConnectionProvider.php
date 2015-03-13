@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
 use RuntimeException;
 use UnexpectedValueException;
@@ -16,13 +16,11 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class MongoConnectionProvider
+Class MongoConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;            // Container
     protected $config;       // Configuration items
     protected $mongoClass;   // Mongo extension client name
-    
-    use ConnectionTrait;
 
     /**
      * Constructor ( Works one time )
@@ -36,6 +34,8 @@ Class MongoConnectionProvider
         $this->c = $c;
         $this->config = $this->c['config']->load('mongo');  // Load nosql configuration file
         $this->mongoClass = (version_compare(phpversion('mongo'), '1.3.0', '<')) ? '\Mongo' : '\MongoClient';
+
+        $this->setKey('mongo.connection.');
 
         if ( ! class_exists($this->mongoClass, false)) {
             throw new RuntimeException(
@@ -54,10 +54,9 @@ Class MongoConnectionProvider
      */
     public function register()
     {
-        $self = $this;
         foreach ($this->config['connections'] as $key => $val) {
-            $this->c['mongo.connection.'.$key] = function () use ($self, $val) {  //  create shared connections
-                return $self->createConnection($val['server'], $val);
+            $this->c[$this->getKey($key)] = function () use ($val) {  //  create shared connections
+                return $this->createConnection($val['server'], $val);
             };
         }
     }
@@ -85,9 +84,6 @@ Class MongoConnectionProvider
      */
     public function getConnection($params = array())
     {
-        if (isset($params['server'])) {  // create new none config connection
-            return $this->factory($params);
-        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0];  //  Set default connection
         }
@@ -99,11 +95,13 @@ Class MongoConnectionProvider
                 )
             );
         }
-        return $this->c['mongo.connection.'.$params['connection']];  // return to shared connection
+        return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
     /**
-     * Create a new mongo connection if you don't want to add config file and you want to create new one.
+     * Create a new mongo connection
+     * 
+     * if you don't want to add it to config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -114,26 +112,24 @@ Class MongoConnectionProvider
         if ( ! isset($params['server'])) {
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
         }
-        $cid = 'mongo.connection.'.static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                return $self->createConnection($params['server'], $params);
+            $this->c[$cid] = function () use ($params) {  //  create shared connections
+                return $this->createConnection($params['server'], $params);
             };
         }
         return $this->c[$cid];
     }
 
     /**
-     * Close the connections
+     * Close all "active" connections
      */
     public function __destruct()
     {
         foreach ($this->config['connections'] as $key => $val) {  //  Close shared connections
             $val = null;
-            $connection = $this->c['mongo.connection.'.$key];
-            if (is_object($connection)) {
+            if ($connection = $this->c->loaded($this->getKey($key))) {
                 foreach ($connection->getConnections() as $con) {
                     $connection->close($con['hash']);
                 }
@@ -146,4 +142,4 @@ Class MongoConnectionProvider
 // END MongoConnectionProvider.php class
 /* End of file MongoConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/MongoConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/MongoConnectionProvider.php */

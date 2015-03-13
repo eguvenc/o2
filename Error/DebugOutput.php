@@ -57,12 +57,13 @@ Class DebugOutput
         if ($searchPaths) {
             $replace = array(
                 'APP' . DS,
+                'DATA' . DS,
                 'CLASSES' . DS,
                 'ROOT' . DS,
                 'OBULLO' . DS,
                 'CONTROLLERS' . DS,
             );
-            return str_replace(array(APP, CLASSES, ROOT, OBULLO, CONTROLLERS), $replace, $file);
+            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), $replace, $file);
         }
         if (is_string($file)) {
             if (strpos($file, ROOT) === 0) {

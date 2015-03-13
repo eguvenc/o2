@@ -2,9 +2,6 @@
 
 namespace Obullo\Http;
 
-use stdClass;
-use Controller;
-use Obullo\Http\Sanitizer;
 use Obullo\Container\Container;
 
 /**
@@ -20,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http/request
  */
-Class Request
+class Request
 {
     /**
      * Container
@@ -28,13 +25,6 @@ Class Request
      * @var object
      */
     public $c;
-
-    /**
-     * Logger instance 
-     * 
-     * @var object
-     */
-    public $logger;
 
     /**
      * Http request headers
@@ -51,8 +41,7 @@ Class Request
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->logger = $this->c['logger'];
-        $this->logger->debug('Request Class Initialized');
+        $this->c['logger']->debug('Request Class Initialized');
     }
 
     /**
@@ -65,12 +54,12 @@ Class Request
     public function get($key)
     {
         if (is_bool($key)) {
-            return ($key) ? Sanitizer::sanitize($_GET) : $_GET;
+            return $_GET;
         }
         if ( ! isset($_GET[$key])) {
             return false;
         }
-        return Sanitizer::sanitize($_GET[$key]);
+        return $_GET[$key];
     }
 
     /**
@@ -83,12 +72,12 @@ Class Request
     public function post($key)
     {
         if (is_bool($key)) {
-            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+            return $_POST;
         }
         if ( ! isset($_POST[$key])) {
             return false;
         }
-        return Sanitizer::sanitize($_POST[$key]);
+        return $_POST[$key];
     }
 
     /**
@@ -101,12 +90,12 @@ Class Request
     public function all($key)
     {
         if (is_bool($key)) {
-            return ($key) ? Sanitizer::sanitize($_POST) : $_POST;
+            return $_REQUEST;
         }
         if ( ! isset($_REQUEST[$key])) {
             return false;
         }
-        return Sanitizer::sanitize($_REQUEST[$key]);
+        return $_REQUEST[$key];
     }
 
     /**
@@ -182,9 +171,26 @@ Class Request
         if ($ipAddress != '') {
             return $ipAddress;
         }
-        $ipAddress = $REMOTE_ADDR;
+        $ipAddress = $this->getRealIp($REMOTE_ADDR);
+
+        if ( ! $this->isValidIp($ipAddress)) {
+            $ipAddress = '0.0.0.0';
+        }
+        return $ipAddress;
+    }
+
+    /**
+     * Get real ip address if we have proxies in front of the web server
+     * 
+     * @param string $REMOTE_ADDR server remote addr ip
+     * 
+     * @return string
+     */
+    protected function getRealIp($REMOTE_ADDR)
+    {
         $proxyIps  = $this->c['config']['proxy']['ips'];
-        
+        $ipAddress = $REMOTE_ADDR;
+
         if ( ! empty($proxyIps)) {
             $proxyIps = explode(',', str_replace(' ', '', $proxyIps));
             foreach (array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP') as $header) {
@@ -194,7 +200,7 @@ Class Request
                         $spoof = explode(',', $spoof, 2);  // e.g. client_ip, proxy_ip1, proxy_ip2, etc.
                         $spoof = $spoof[0];
                     }
-                    if (!$this->isValidIp($spoof)) {
+                    if ( ! $this->isValidIp($spoof)) {
                         $spoof = false;
                     } else {
                         break;
@@ -203,11 +209,9 @@ Class Request
             }
             $ipAddress = ($spoof !== false AND in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
         }
-        if ( ! $this->isValidIp($ipAddress)) {
-            $ipAddress = '0.0.0.0';
-        }
         return $ipAddress;
     }
+
     
     /**
      * Validate IP adresss
@@ -267,10 +271,14 @@ Class Request
      */
     public function isSecure()
     {
-        if ( ! isset($_SERVER['https']) OR $_SERVER['https'] != 'on') {
-            return false;
+        if ( ! empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+            return true;
+        } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            return true;
+        } elseif ( ! empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') {
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -327,7 +335,6 @@ Class Request
         }
         return false;
     }
-
 }
 
 // END Request class

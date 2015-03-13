@@ -166,9 +166,9 @@ Append output to response body.
 Writes output to screen.
 
 
-#### $this->response->json(array $data, $header = 'default');
+#### $this->response->json(array $data, mixed $header = 'default');
 
-Returns to json encoded string and creates header if second parameter true.
+Returns to json encoded string and sends header if second parameter not false. If you don't want to send headers set second paramater as false.
 
 #### $this->response->status($code = 401, 'text');
 

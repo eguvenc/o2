@@ -70,13 +70,13 @@ Class AMQP extends Queue implements HandlerInterface
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('queue');
+        $this->config = $this->c['config']->load('queue/amqp');
         $this->logger = $this->c['logger'];
 
         $this->AMQPconnection = $this->c['service provider AMQP']->get(['connection' => 'default']);
 
         $this->channel = new AMQPChannel($this->AMQPconnection);
-        $this->defaultQueueName = $this->config['default']['queueName'];
+        $this->defaultQueueName = 'default';
     }
 
     /**
@@ -156,11 +156,6 @@ Class AMQP extends Queue implements HandlerInterface
     {
         $queue = $this->declareQueue($queueName); // Declare queue if not exists
         $envelope = $queue->get();  // Get envelope
-
-        // if ($envelope instanceof AMQPEnvelope) {
-        //     $output = json_decode($envelope->getBody(), true);
-        //     return $output;
-        // }
     
         if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
             return new AMQPJob($this->c, $queue, $envelope);  // Send incoming message to job class.

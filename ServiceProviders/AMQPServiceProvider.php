@@ -3,6 +3,7 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
+use Obullo\ServiceProviders\Connections\AMQPConnectionProvider;
 
 /**
  * AMQP Service Provider
@@ -46,6 +47,18 @@ Class AMQPServiceProvider implements ServiceProviderInterface
     public function get($params = array())
     {
         return $this->connector->getConnection($params);  // Get existing connection
+    }
+
+    /**
+     * Get undefined new connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function factory($params = array())
+    {
+        return $this->connector->factory($params);  // Get new unknown connection
     }
 
 }

@@ -1,12 +1,11 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
 use AMQPConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
-
 
 /**
  * AMQP Connection Provider
@@ -18,13 +17,11 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class AMQPConnectionProvider
+Class AMQPConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;          // Container
     protected $config;     // AMQP configuration items
     protected $AMQPClass;  // AMQP extension client name
-
-    use ConnectionTrait;
 
     /**
      * Constructor
@@ -36,27 +33,29 @@ Class AMQPConnectionProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('queue');  // Load database configuration file
+        $this->config = $this->c['config']->load('queue/amqp');  // Load database configuration file
+
+        $this->setKey('amqp.connection.');
 
         if ( ! extension_loaded('AMQP')) {
             throw new RuntimeException(
                 'The AMQP extension has not been installed or enabled.'
             );
         }
-        $this->AMQPClass = '\AMQPConnection';
+        $this->AMQPClass = 'AMQPConnection';
     }
 
     /**
-     * Register all connections as shared services ( It should be run one time )
+     * Register all connections as shared ( It should run one time )
      * 
      * @return void
      */
     public function register()
     {
-        $self = $this;
-        foreach ($this->config['AMQP']['connections'] as $key => $val) {
-            $this->c['amqp.connection.'.$key] = function () use ($self, $val) {  // create shared connections
-                return $self->createConnection($val);
+        foreach ($this->config['connections'] as $key => $val) {
+
+            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
+                return $this->createConnection($val);
             };
         }
     }
@@ -70,6 +69,11 @@ Class AMQPConnectionProvider
      */
     protected function createConnection($params)
     {
+        if (empty($params['host']) OR empty($params['port'])) {
+            throw new RuntimeException(
+                'Check your queue configuration, "host" or "port" key seems empty.'
+            );
+        }
         $connection = new $this->AMQPClass;
         $connection->setHost($params['host']); 
         $connection->setPort($params['port']); 
@@ -89,13 +93,10 @@ Class AMQPConnectionProvider
      */
     public function getConnection($params = array())
     {
-        if (isset($params['host'])) {                // Creates new unnamed (none config) connection
-            return $this->factory($params);
-        }
         if ( ! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0]; //  Set default connection
         }
-        if ( ! isset($this->config['AMQP']['connections'][$params['connection']])) {
+        if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
                     'Connection key %s not exists in your queue.php config file.',
@@ -103,11 +104,13 @@ Class AMQPConnectionProvider
                 )
             );
         }
-        return $this->c['amqp.connection.'.$params['connection']];  // return to shared connection
+        return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
     /**
-     * Create a new AMQP connection if you don't want to add config file and you want to create new one connection.
+     * Create a new AMQP connection
+     * 
+     * if you don't want to add it config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -115,27 +118,30 @@ Class AMQPConnectionProvider
      */
     public function factory($params = array())
     {
-        $cid = 'amqp.connection.'. static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
         if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared connections
-                return $self->createConnection($params);
+            $this->c[$cid] = function () use ($params) {  //  create shared connections
+                return $this->createConnection($params);
             };
         }
         return $this->c[$cid];
     }
 
     /**
-     * Close the connections
+     * Close all "active" connections
      */
     public function __destruct()
     {
-        return; // We already closed the connection to database in the destruction function.
+        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
+            if ($this->c->loaded($key)) {
+                 $this->c[$key]->disconnect();
+            }
+        }
     }
 }
 
 // END AMQPConnectionProvider.php class
 /* End of file AMQPConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/AMQPConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/AMQPConnectionProvider.php */

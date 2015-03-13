@@ -2,7 +2,6 @@
 
 namespace Obullo\Http;
 
-use Closure;
 use Obullo\Container\Container;
 
 /**
@@ -17,7 +16,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
-Class Response
+class Response
 {
     /**
      * Container
@@ -41,13 +40,6 @@ Class Response
     public $status = 200;
 
     /**
-     * Logger
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
      * Final output string
      * 
      * @var string
@@ -62,7 +54,7 @@ Class Response
     public $headers = array();
 
     /**
-     * Enable / Disabled run sendOutput()
+     * Enable / Disable flush ( send output to browser )
      * 
      * @var boolean
      */
@@ -79,8 +71,7 @@ Class Response
         $this->c['config']->load('response');
 
         $this->output = '';
-        $this->logger = $this->c['logger'];
-        $this->logger->debug('Response Class Initialized');
+        $this->c['logger']->debug('Response Class Initialized');
     }
 
     /**
@@ -282,14 +273,15 @@ Class Response
     {
         $this->disableOutput(); // Disable output because of we return to json encode and send headers.
 
-        if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
-            foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
-                $this->setHeader($value);
+        if ($header != false) {
+            if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
+                foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
+                    $this->setHeader($value);
+                }
             }
+            list($status, $headers) = $this->finalize();
+            $this->sendHeaders($status, $headers);
         }
-        list($status, $headers) = $this->finalize();
-        $this->sendHeaders($status, $headers);
-
         return json_encode($data);
     }
 

@@ -42,7 +42,7 @@ class Translator implements ArrayAccess
      *
      * @var array
      */
-    public $loaded = [];  // Let we know if its loaded
+    public $loaded = array();  // Let we know if its loaded
 
     /**
      * Current locale code ( en, de, es )
@@ -56,14 +56,14 @@ class Translator implements ArrayAccess
      *
      * @var array
      */
-    public $translateArray = [];
+    public $translateArray = array();
 
     /**
      * Fallback translate files
      *
      * @var array
      */
-    public $fallbackArray = [];
+    public $fallbackArray = array();
 
     /**
      * Container

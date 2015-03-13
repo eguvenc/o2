@@ -1,13 +1,13 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\ServiceProviders\Connections;
 
 use RuntimeException;
 use Obullo\Mailer\Queue;
 use Obullo\Container\Container;
 
 /**
- * Mongo Connection Provider
+ * Mailer Connection Provider
  * 
  * @category  ConnectionProvider
  * @package   ServiceProviders
@@ -16,12 +16,10 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class MailerConnectionProvider
+Class MailerConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;            // Container
     protected $config;       // Configuration items
-    
-    use ConnectionTrait;
 
     /**
      * Constructor ( Works one time )
@@ -34,6 +32,9 @@ Class MailerConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('mailer');
+
+        $this->setKey('mailer.factory.');
+
     }
 
     /**
@@ -70,7 +71,7 @@ Class MailerConnectionProvider
      * 
      * @return object MongoClient
      */
-    public function getFactory($params = array())
+    public function getClass($params = array())
     {
         return $this->factory($params);
     }
@@ -87,12 +88,11 @@ Class MailerConnectionProvider
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Mailer driver requires driver parameter.");
         }
-        $cid = 'mailer.factory.'.static::getConnectionId($params);
+        $cid = $this->getKey($this->getConnectionId($params));
 
         if ( ! $this->c->exists($cid)) { //  create shared object if not exists
-            $self = $this;
-            $this->c[$cid] = function () use ($self, $params) {  //  create shared objects
-                return $self->createClass($params);
+            $this->c[$cid] = function () use ($params) {  //  create shared objects
+                return $this->createClass($params);
             };
         }
         return $this->c[$cid];
@@ -103,4 +103,4 @@ Class MailerConnectionProvider
 // END MailerConnectionProvider.php class
 /* End of file MailerConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/MailerConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/MailerConnectionProvider.php */

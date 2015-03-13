@@ -3,6 +3,7 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
+use Obullo\ServiceProviders\Connections\MailerConnectionProvider;
 
 /**
  * Mailer Service Provider
@@ -42,10 +43,23 @@ class MailerServiceProvider implements ServiceProviderInterface
      *
      * @return object
      */
-    public function get($params = [])
+    public function get($params = array())
     {
-        return $this->connector->getFactory($params);  // Get a mailer instance before we registered into container
+        return $this->connector->getClass($params);  // Get a mailer instance before we registered into container
     }
+
+    /**
+     * Create new connection
+     * 
+     * @param array $params array
+     *
+     * @return object
+     */
+    public function factory($params = array())
+    {
+        return $this->connector->factory($params);  // Create new mailer instance
+    }
+
 }
 
 // END MailerServiceProvider Class

@@ -3,7 +3,6 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Cache\ArrayContainer;
 use Obullo\Container\Container;
 
 /**
@@ -35,13 +34,6 @@ Class File implements CacheHandlerInterface
     public $params = array();
 
     /**
-     * Array container
-     * 
-     * @var object
-     */
-    protected $container;
-
-    /**
      * Constructor
      * 
      * @param array $c       container
@@ -50,9 +42,7 @@ Class File implements CacheHandlerInterface
     public function __construct(Container $c, $options = array())
     {
         $options = array(); // Unset options, no need
-
         $this->params = $c['config']->load('cache')['file'];
-        $this->container = new ArrayContainer;
         $this->filePath = ROOT. str_replace('/', DS, trim($this->params['path'], '/')) . DS;
 
         if ( ! is_writable($this->filePath)) {
