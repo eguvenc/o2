@@ -64,7 +64,7 @@ Class QueryBuilder
      * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
      * @param array  $params   parameters
      */
-    public function __construct(ServiceProviderInterface $provider, $params)
+    public function __construct(ServiceProviderInterface $provider, array $params)
     {
         $this->adapter = $provider->get($params);
     }
