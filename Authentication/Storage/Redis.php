@@ -33,13 +33,13 @@ Class Redis extends AbstractStorage
     public function __construct(Container $c) 
     {
         $this->c = $c;
+        $this->c['config']->load('auth');
         $this->cache = $c['service provider cache']->get(
             [
                 'driver' => $this->c['config']['auth']['cache']['provider']['driver'],
-                'options' => $this->c['config']['auth']['cache']['provider']['options']
+                'connection' => $this->c['config']['auth']['cache']['provider']['connection']
             ]
         );
-        $this->c['config']->load('auth');
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
 

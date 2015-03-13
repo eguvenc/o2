@@ -116,6 +116,18 @@ class Memcached implements CacheHandlerInterface
     }
 
     /**
+     * Sets serializer
+     * 
+     * @param string $serializer type
+     *
+     * @return void
+     */
+    public function setSerializer($serializer = 'php')
+    {
+        $this->memcached->setOption(Memcached::OPT_SERIALIZER, $this->serializers[$serializer]);
+    }
+
+    /**
      * Get client option.
      * http://www.php.net/manual/en/memcached.constants.php
      * 
@@ -125,9 +137,26 @@ class Memcached implements CacheHandlerInterface
      */
     public function getOption($option = 'OPT_SERIALIZER')
     {
-        $obj      = new ReflectionClass('Memcached');
+        $obj = new ReflectionClass('Memcached');
         $constant = $obj->getconstant($option);
         return $this->memcached->getOption($constant);
+    }
+
+    /**
+     * Set option
+     * 
+     * @param string $option constant name
+     * @param string $value  constant value name
+     *
+     * @return void
+     */
+    public function setOption($option = 'OPT_SERIALIZER', $value = 'SERIALIZER_PHP')
+    {
+        $obj    = new ReflectionClass('Memcached');
+        $option = $obj->getconstant($option);
+        $value  = $obj->getconstant($value);
+
+        $this->redis->setOption($option, $value); 
     }
 
     /**

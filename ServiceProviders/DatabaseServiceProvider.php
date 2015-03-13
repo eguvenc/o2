@@ -46,7 +46,7 @@ Class DatabaseServiceProvider implements ServiceProviderInterface
      */
     public function get($params = array())
     {
-        return $this->connector->getClass($params);  // Get existing connection
+        return $this->connector->getConnection($params);  // Get existing connection
     }
 
     /**

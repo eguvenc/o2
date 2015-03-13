@@ -698,6 +698,16 @@ print_r($this->cache->sGetMembers('key'));
 
 -----
 
+#### $this->cache->setSerializer('php');
+
+none, php, igbinary, json
+
+#### $this->cache->getSerializer();
+
+#### $this->cache->getOption($key = 'OPT_PREFIX');
+
+#### $this->cache->setOption($key = 'OPT_PREFIX', $value = 'value');
+
 #### $this->cache->keyExists($key);
 
 Belirtilen anahtarın var olup olmadığını kontrol eder.
@@ -733,7 +743,3 @@ Belirtilen anahtara ait değer hakkındaki meta bilgileri döndürür. *(Bu öze
 #### $this->cache->flushAll($key);
 
 Tanımlanmış bütün anahtarları tüm veritabanından siler.
-
-#### $this->cache->isConnected()
-
-Bağlantı aktif ise **true** değerine aksi durumda **false** değerine döner.

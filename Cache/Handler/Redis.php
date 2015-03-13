@@ -168,7 +168,7 @@ class Redis implements CacheHandlerInterface
      */
     public function getOption($option = 'OPT_SERIALIZER')
     {
-        $obj      = new ReflectionClass('Redis');
+        $obj = new ReflectionClass('Redis');
         $constant = $obj->getconstant($option);
         return $this->redis->getOption($constant);
     }

@@ -12,7 +12,7 @@ namespace Obullo\Flash;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/flash
  */
-Class Session
+class Session
 {
     /**
      * Session
@@ -20,13 +20,6 @@ Class Session
      * @var object
      */
     public $session;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    public $logger;
 
     /**
      * Flashdata key
@@ -43,13 +36,12 @@ Class Session
     public function __construct($c) 
     {
         $this->session = $c['session'];
-        $this->logger = $c['logger'];
         $this->flash = $c['config']->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
         
-        $this->logger->debug('Session Flash Class Initialized');
+        $c['logger']->debug('Session Flash Class Initialized');
     }
 
     /**
