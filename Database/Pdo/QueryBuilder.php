@@ -4,6 +4,7 @@ namespace Obullo\Database\Pdo;
 
 use Exception;
 use RunTimeException;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * Query Builder
@@ -60,11 +61,12 @@ Class QueryBuilder
     /**
      * Constructor
      * 
-     * @param array $provider \Obullo\ServiceProviders\ServiceProviderInterface
+     * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
+     * @param array  $params   parameters
      */
-    public function __construct(ServiceProviderInterface $provider)
+    public function __construct(ServiceProviderInterface $provider, $params)
     {
-        $this->adapter = $provider;
+        $this->adapter = $provider->get($params);
     }
 
     /**
