@@ -130,6 +130,7 @@ class Http extends Obullo
             $route = $this->c['app.uri']->getUriString();  // If layer used, use global request uri object instead of layered.
                                                            // Filters always run once because of we don't init filters in Layer class.
         }
+        
         $module = $this->c['router']->fetchModule();
         $directory = $this->c['router']->fetchDirectory();
         $class = $this->c['router']->fetchClass();
