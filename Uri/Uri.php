@@ -62,6 +62,7 @@ class Uri
             $this->setUriString($uri);
             return;
         }
+
         switch ($protocol)
         {
         case 'REQUEST_URI':
@@ -80,6 +81,7 @@ class Uri
             $uri = isset($_SERVER[$protocol]) ? $_SERVER[$protocol] : $this->parseRequestUri();
             break;
         }
+        
         $this->setUriString($uri);
     }
 

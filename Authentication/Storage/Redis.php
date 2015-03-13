@@ -117,14 +117,15 @@ Class Redis extends AbstractStorage
     /**
      * Update identity value
      * 
-     * @param string $key string
-     * @param value  $val value
+     * @param string $key   string
+     * @param value  $val   value
+     * @param string $block block key
      *
      * @return void
      */
-    public function update($key, $val)
+    public function update($key, $val, $block = '__permanent')
     {
-        return $this->cache->hSet($this->getMemoryBlockKey('__permanent'), $key, $val);
+        return $this->cache->hSet($this->getMemoryBlockKey($block), $key, $val);
     }
 
     /**
