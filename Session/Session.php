@@ -26,6 +26,13 @@ Class Session
     protected $c;
 
     /**
+     * Session name
+     * 
+     * @var string
+     */
+    protected $name;
+
+    /**
      * MetaData Class
      * 
      * @var object
@@ -38,13 +45,6 @@ Class Session
      * @var array
      */
     protected $config;
-
-    /**
-     * Logger class
-     * 
-     * @var object
-     */
-    protected $logger;
 
     /**
      * Session handler
@@ -61,11 +61,53 @@ Class Session
     public function __construct(Container $c) 
     {
         $this->c = $c;
-        $this->logger = $c['logger'];
         $this->config = $c['config']->load('session');
-        $this->saveHandler = new $this->config['saveHandler']($c);
 
         ini_set('session.cookie_domain', $this->config['cookie']['domain']);
+        $this->meta = ($this->config['meta']['enabled']) ? new MetaData($c, $this) : new NullMetaData;
+
+        // $this->saveHandler = new $this->config['saveHandler']($c);
+
+        // session_set_save_handler(
+        //     array($this->saveHandler, 'open'),
+        //     array($this->saveHandler, 'close'),
+        //     array($this->saveHandler, 'read'),
+        //     array($this->saveHandler, 'write'),
+        //     array($this->saveHandler, 'destroy'),
+        //     array($this->saveHandler, 'gc')
+        // );
+        // 
+        // $lifetime = ($this->config['cookie']['lifetime']) ? 0 : $this->config['session']['lifetime'];
+        // session_set_cookie_params(
+        //     $lifetime,
+        //     $this->config['cookie']['path'],
+        //     $this->config['cookie']['domain'],
+        //     $this->config['cookie']['secure'], 
+        //     $this->config['cookie']['httpOnly']
+        // );
+        
+        // $this->setName();
+
+        // if (session_status() == PHP_SESSION_NONE) { // If another session_start() used before ?
+        //     session_start();
+        // }
+        register_shutdown_function(array($this, 'close'));
+
+        $this->c['logger']->debug('Session Class Initialized');
+    }
+
+    /**
+     * Register session save handler
+     *
+     * If save handler not provided we call it from config file
+     * 
+     * @param null|object $handler save handler object
+     * 
+     * @return void
+     */
+    public function registerSaveHandler($handler = null)
+    {
+        $this->saveHandler = ($handler == null) ? new $this->config['saveHandler']($this->c) : new $handler($this->c);
 
         session_set_save_handler(
             array($this->saveHandler, 'open'),
@@ -75,24 +117,31 @@ Class Session
             array($this->saveHandler, 'destroy'),
             array($this->saveHandler, 'gc')
         );
-        $this->meta = ($this->config['meta']['enabled']) ? new MetaData($c, $this) : new NullMetaData;
-
+        $lifetime = ($this->config['cookie']['lifetime']) ? 0 : $this->config['session']['lifetime'];
         session_set_cookie_params(
-            ($this->config['session']['expireOnClose']) ? 0 : $this->config['session']['lifetime'],
+            $lifetime,
             $this->config['cookie']['path'],
             $this->config['cookie']['domain'],
             $this->config['cookie']['secure'], 
             $this->config['cookie']['httpOnly']
         );
-        session_name($this->getName());
-        
-        if (session_status() == PHP_SESSION_NONE) { // If another session_start() used before ?
-            session_start();
-        }
-        register_shutdown_function(array($this, 'close'));
+    }
 
-        $this->logger->debug('Session Class Initialized');
-        
+    /**
+     * Set session name
+     * 
+     * @param string $name session name
+     *
+     * @return void
+     */
+    public function setName($name = null)
+    {
+        if ($name == null) {
+            $name = $this->config['cookie']['prefix'].$this->config['cookie']['name'];
+        }
+        $this->name = $name;
+        session_name($name);
+        return $this;
     }
 
     /**
@@ -102,7 +151,22 @@ Class Session
      */
     public function getName()
     {
-        return $this->config['cookie']['prefix'].$this->config['cookie']['name'];
+        if (null === $this->name) {
+            $this->name = session_name();
+        }
+        return $this->name;
+    }
+
+    /**
+     * Session start
+     * 
+     * @return void
+     */
+    public function start()
+    {
+        if ( ! $this->exists()) { // If another session_start() used before ?
+            session_start();
+        }
     }
 
     /**
@@ -259,7 +323,7 @@ Class Session
                 unset($_SESSION[$prefix . $key]);
             }
         }
-        if (sizeof($_SESSION) == 0) {               // If meta option closed and when we want to unset() data we couldn't remove the last session key from storage.
+        if (sizeof($_SESSION) == 0) {                   // If meta option closed and when we want to unset() data we couldn't remove the last session key from storage.
             $this->saveHandler->destroy(session_id());  // This solution fix the issue.
         }
     }

@@ -494,23 +494,25 @@ Kontrol sonucunda yetkisi olmayan kullanıcılar login sayfasına yönlendirilir
 ------
 
 
-##### $this->c['app']->middleware();
+##### $this->c['app']->middleware(string | object $class, $params = array());
 
-
+Uygulamaya dinamik olarak http katmanı ekler. Birinci parametre sınıf ismi veya nesnenin kendisi, ikinci parametre ise sınıf içerisine enjekte edilebilecek parametrelerdir.
 
 ##### $this->c['app']->method();
 
-Application sınıfında eğer metod tanımlı değilse Controller sınfından çağırır.
+Uygulama sınıfında eğer metod tanımlı değilse Controller sınfından çağırır.
 
 ##### $this->c['app']->router->method();
 
-Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir katman isteği gönderildiğinde router nesnesi değişime uğrayarak istek gönderilen 
-url değerinin yerel değişkenlerine geri döner. Böyle bir durumda bu method sizin gerçek http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
 
 ##### $this->c['app']->uri->method();
 
-Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman isteği gönderildiğinde uri nesnesi değişime uğrayarak istek gönderilen 
-url değerinin yerel değişkenlerine geri döner. Böyle bir durumda bu method sizin gerçek http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+
+##### $this->c['app']->isCli();
+
+Uygulamaya eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
 
 ##### $this->c['app']->getEnv();
 

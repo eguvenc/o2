@@ -174,7 +174,7 @@ Class MetaData
     public function create()
     {
         $this->build();
-        $_SESSION[FRAMEWORK.'_meta'] = json_encode($this->meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $_SESSION['o_meta'] = json_encode($this->meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -184,7 +184,7 @@ Class MetaData
      */
     public function update()
     {
-        if (($this->meta['la'] + $this->config['session']['timeToUpdate']) >= $this->now) {  // We only update the session every 5 seconds by default
+        if (($this->meta['la'] + $this->config['meta']['refresh']) >= $this->now) {  // We only update the session every 5 seconds by default
             return;
         }
         $this->meta['la'] = $this->now; // Update the session ID and la
@@ -198,7 +198,7 @@ Class MetaData
      */
     public function remove()
     {
-        unset($_SESSION[FRAMEWORK.'_meta']);
+        unset($_SESSION['o_meta']);
     }
 
     /**
@@ -208,8 +208,8 @@ Class MetaData
      */
     public function read()
     {
-        if (isset($_SESSION[FRAMEWORK.'_meta'])) {
-            return json_decode($_SESSION[FRAMEWORK.'_meta'], true);
+        if (isset($_SESSION['o_meta'])) {
+            return json_decode($_SESSION['o_meta'], true);
         }
         return array();
     }
