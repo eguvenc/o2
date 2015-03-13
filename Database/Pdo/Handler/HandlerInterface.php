@@ -2,6 +2,10 @@
 
 namespace Obullo\Database\Pdo\Handler;
 
+use Obullo\Config\Config;
+use Obullo\Log\LoggerInterface;
+use Obullo\ServiceProviders\ServiceProviderInterface;
+
 /**
  * Database Handler Interface
  * 
@@ -17,10 +21,12 @@ interface HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param object $config   \Obullo\Config\Config
+     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
+     * @param array  $params   parameters
      */
-    public function __construct($c, $params = array());
+    public function __construct(Config $config, LoggerInterface $logger, ServiceProviderInterface $provider, array $params);
 
     /**
      * Connect to pdo

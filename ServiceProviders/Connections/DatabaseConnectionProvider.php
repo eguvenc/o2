@@ -33,7 +33,7 @@ Class DatabaseConnectionProvider extends AbstractConnectionProvider
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
 
-        $this->setKey('db.connection.');
+        $this->setKey('database.connection.');
     }
 
     /**
@@ -43,9 +43,9 @@ Class DatabaseConnectionProvider extends AbstractConnectionProvider
      */
     public function register()
     {
-        foreach ($this->config['connections'] as $key => $val) {
-            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
-                return $this->createConnection($val);
+        foreach (array_keys($this->config['connections']) as $key) {
+            $this->c[$this->getKey($key)] = function () use ($key) {  // create shared connections
+                return $this->createConnection($key);
             };
         }
     }
@@ -53,17 +53,32 @@ Class DatabaseConnectionProvider extends AbstractConnectionProvider
     /**
      * Creates databse connections
      * 
+     * @param array $key database connection name
+     * 
+     * @return object
+     */
+    protected function createConnection($key)
+    {
+        $driver = ucfirst(strstr($this->config['connections'][$key]['dsn'], ':', true));
+        $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
+        return new $Class($this->c['config'], $this->c['logger'], $this->c['service provider pdo'], ['connection' => $key]);
+    }
+    
+    /**
+     * Creates databse connections
+     * 
      * @param array $params connection parameters
      * 
      * @return object
      */
-    protected function createConnection($params)
+    protected function factoryConnection($params)
     {
         $driver = ucfirst(strstr($params['dsn'], ':', true));
         $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
-        return new $Class($this->c, $params);
+        return new $Class($this->c['config'], $this->c['logger'], $this->c['service provider pdo'], $params);
     }
     
+
     /**
      * Retrieve shared database connection instance from connection pool
      *
@@ -100,7 +115,7 @@ Class DatabaseConnectionProvider extends AbstractConnectionProvider
 
         if ( ! $this->c->exists($cid)) { // create shared connection if not exists
             $this->c[$cid] = function () use ($params) { //  create shared connections
-                return $this->createConnection($params);
+                return $this->factoryConnection($params);
             };
         }
         return $this->c[$cid];

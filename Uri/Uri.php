@@ -92,10 +92,12 @@ class Uri
      */
     protected function setCliHeaders($uri)
     {        
+        $HOST = str_replace('--host=', '', strstr($uri, '--host='));
+        
         $_SERVER['HTTP_USER_AGENT'] = 'Cli';       /// Define cli headers for any possible isset errors.
         $_SERVER['HTTP_ACCEPT_CHARSET'] = 'utf-8';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_SERVER['HTTP_HOST'] = 'Cli';
+        $_SERVER['HTTP_HOST'] = $HOST;
         $_SERVER['ORIG_PATH_INFO'] = $_SERVER['QUERY_STRING'] = $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'] = $uri;
     }
 

@@ -16,7 +16,7 @@ use Obullo\Log\Debugger\DebugOutput;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class Logger extends AbstractLogger
+Class Logger extends AbstractLogger implements LoggerInterface
 {
     use LoggerTrait;
 
@@ -61,7 +61,6 @@ Class Logger extends AbstractLogger
 
         $this->configureErrorHandlers();
         $this->initialize();
-
         register_shutdown_function(array($this, 'close'));
     }
 

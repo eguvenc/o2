@@ -46,17 +46,16 @@ Class Task
      */
     public function run($uri, $debug = false)
     {
-        $uri       = explode('/', trim($uri));
+        $uri       = explode('/', trim(static::ucwordsUnderscore($uri)));
         $directory = array_shift($uri);
         foreach ($uri as $i => $section) {
             if ( ! $section) {
                 $uri[$i] = 'false';
             }
         }
-        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-        $shell = PHP_PATH .' '. FPATH .'/'. TASK_FILE .' '.$directory.' '. implode('/', $uri) .' '. $host;
-        // die;
-        // echo $shell;
+        $host = isset($_SERVER['HTTP_HOST']) ? '--host='.$_SERVER['HTTP_HOST'] : '';  // Add http host variable if request comes from http
+        $shell = PHP_PATH .' '. FPATH .'/'. TASK_FILE .' '.$directory.' '. implode('/', $uri) . $host;
+
         if ($debug) {  // Enable debug output to log folder.
             $output = preg_replace(array('/\033\[36m/', '/\033\[31m/', '/\033\[0m/'), array('', '', ''), shell_exec($shell)); // Clean cli color codes
             if ($this->logger instanceof Logger) {
@@ -68,6 +67,23 @@ Class Task
         if ($this->logger instanceof Logger) {
             $this->logger->debug('$_TASK executed', array('shell' => $shell));
         }
+    }
+
+    /**
+     * Replace underscore to spaces to use ucwords
+     * 
+     * Before : widgets\tutorials a  
+     * After  : Widgets\Tutorials_A
+     * 
+     * @param string $string namespace part
+     * 
+     * @return void
+     */
+    protected static function ucwordsUnderscore($string)
+    {
+        $str = str_replace('_', ' ', $string);
+        $str = ucwords($str);
+        return str_replace(' ', '_', $str);
     }
 
 }

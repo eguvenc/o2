@@ -3,7 +3,11 @@
 namespace Obullo\Database\Pdo\Handler;
 
 use PDO;
+use Obullo\Config\Config;
+use Obullo\Container\Container;
+use Obullo\Log\LoggerInterface;
 use Obullo\Database\Pdo\Adapter;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * Pdo Mysql Driver
@@ -41,25 +45,14 @@ Class Mysql extends Adapter implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params connection parameters
+     * @param object $config   \Obullo\Config\Config
+     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
+     * @param array  $params   parameters
      */
-    public function __construct($c, $params = array())
+    public function __construct(Config $config, LoggerInterface $logger, ServiceProviderInterface $provider, array $params)
     {
-        parent::__construct($c, $params);
-    }
-
-    /**
-     * Connect to pdo
-     * 
-     * @return void
-     */
-    public function connect()
-    {
-        if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
-            return $this;
-        }
-        $this->createConnection();
+        parent::__construct($config, $logger, $provider, $params);
     }
 
     /**

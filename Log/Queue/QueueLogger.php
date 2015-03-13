@@ -7,6 +7,7 @@ use Obullo\Queue\Queue;
 use Obullo\Log\LoggerTrait;
 use Obullo\Log\AbstractLogger;
 use Obullo\Container\Container;
+use Obullo\Log\LoggerInterface;
 use Obullo\Log\Debugger\DebugOutput;
 
 /**
@@ -19,7 +20,7 @@ use Obullo\Log\Debugger\DebugOutput;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class QueueLogger extends AbstractLogger
+Class QueueLogger extends AbstractLogger implements LoggerInterface
 {
     use LoggerTrait;
 

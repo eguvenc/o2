@@ -3,9 +3,12 @@
 namespace Obullo\Database\Pdo;
 
 use PDO;
-use Exception;
 use Closure;
+use Exception;
 use Controller;
+use Obullo\Config\Config;
+use Obullo\Log\LoggerInterface;
+use Obullo\ServiceProviders\ServiceProviderInterface;
     
 /**
  * Adapter Class
@@ -50,30 +53,45 @@ Abstract Class Adapter
     public $lastBindParams = array();  // We store binds values to array()
     public $protectIdentifiers = true;
     public $reservedIdentifiers = array('*'); // Identifiers that should NOT be escaped
-
+    
     /**
      * Constructor
-     *
-     * @param array $c      container
-     * @param array $params db array
+     * 
+     * @param object $config   \Obullo\Config\Config
+     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
+     * @param array  $params   parameters
      */
-    public function __construct($c, $params = array())
+    public function __construct(Config $config, LoggerInterface $logger, ServiceProviderInterface $provider, array $params)
     {
-        $this->c = $c;
+        $this->config = $config;
         $this->params = $params;
-        $this->config = $this->c['config'];
-        $this->logger = $c['logger'];
+        $this->logger = $logger;
+        $this->provider = $provider;
+    }
+
+    /**
+     * Connect to pdo
+     * 
+     * @return void
+     */
+    public function connect()
+    {
+        if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
+            return $this;
+        }
+        $this->createConnection();
     }
 
     /**
      * Connect to PDO
-     *
+     * 
      * @return void
      */
     public function createConnection()
     {
-        $this->connection = $this->c['service provider pdo']->get($this->params);
-        
+        $this->connection = (isset($this->params['connection'])) ? $this->provider->get($this->params) : $this->provider->factory($this->params);
+
         // We set exception attribute for always showing the pdo exceptions errors.
 
         $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT 
@@ -563,7 +581,7 @@ Abstract Class Adapter
     {
         $time  = microtime(true) - $this->startQueryTimer;
 
-        if ($this->c['config']['logger']['extra']['queries']) {
+        if ($this->config['logger']['extra']['queries']) {
             $this->logger->debug(
                 '$_SQL '.$this->queryCount.' ( Query ):', 
                 array('time' => number_format($time, 4), 'output' => self::getSqlString($sql)), 
