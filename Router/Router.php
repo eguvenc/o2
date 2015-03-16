@@ -402,7 +402,9 @@ Class Router
      */
     public function parseRoutes()
     {
-        $uri = implode('/', $this->uri->segments);
+        $uri = $this->uri->getUriString();  // Warning !: don't use $this->uri->segments in here instead of use getUriString otherwise
+                                            // we could not get url suffix ".html".
+
         if ( ! isset($this->routes[$this->DOMAIN])) {
             $this->setRequest($this->uri->segments); 
             return;
