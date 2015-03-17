@@ -415,7 +415,7 @@ class Identity extends AuthorizedUser
      */
     public function updateTemporaryCredentials($key, $val)
     {
-        $this->c['auth.storage']->update($key, $val);
+        $this->storage->update($key, $val, '__temporary');
     }
 
     /**

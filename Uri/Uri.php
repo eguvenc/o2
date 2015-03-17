@@ -62,6 +62,7 @@ class Uri
             $this->setUriString($uri);
             return;
         }
+
         switch ($protocol)
         {
         case 'REQUEST_URI':
@@ -80,6 +81,7 @@ class Uri
             $uri = isset($_SERVER[$protocol]) ? $_SERVER[$protocol] : $this->parseRequestUri();
             break;
         }
+        
         $this->setUriString($uri);
     }
 
@@ -115,15 +117,14 @@ class Uri
         if ( ! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME'])) {
             return '';
         }
-        $uri = parse_url($_SERVER['REQUEST_URI']);
-        $uri = isset($uri['path']) ? $uri['path'] : '';
+        list($uri, $query) = $this->parseUrl();
 
         if (strpos($uri, $_SERVER['SCRIPT_NAME']) === 0) {
             $uri = substr($uri, strlen($_SERVER['SCRIPT_NAME']));
         } elseif (strpos($uri, dirname($_SERVER['SCRIPT_NAME'])) === 0) {
             $uri = substr($uri, strlen(dirname($_SERVER['SCRIPT_NAME'])));
         }
-        $uri = static::detectQueryString($uri);
+        $uri = static::detectQueryString($uri, $query);
 
         if ($uri === '/' OR $uri === '') {
             return '/';
@@ -136,18 +137,32 @@ class Uri
     }
 
     /**
+     * Parse server request uri
+     * 
+     * @return array
+     */
+    protected function parseUrl()
+    {
+        $uri = parse_url($_SERVER['REQUEST_URI']);
+        $query = isset($uri['query']) ? $uri['query'] : '';
+        $uri = isset($uri['path']) ? $uri['path'] : '';
+
+        return array($uri, $query);
+    }
+
+    /**
      * Set server query string
      *
-     * @param string $uri request uri
+     * @param string $uri   request uri
+     * @param string $query query
      * 
      * @return string
      */
-    protected static function detectQueryString($uri)
+    protected static function detectQueryString($uri, $query)
     {
         // This section ensures that even on servers that require the URI to be in the query string (Nginx) a correct
         // URI is found, and also fixes the QUERY_STRING server var and $_GET array.
         
-        $query = isset($uri['query']) ? $uri['query'] : '';
         if (trim($uri, '/') === '' && strncmp($query, '/', 1) === 0) {
             $query = explode('?', $query, 2);
             $uri = $query[0];
