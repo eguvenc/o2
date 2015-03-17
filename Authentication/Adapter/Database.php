@@ -206,7 +206,7 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
-        if ($this->config['login']['session']['regenerateSessionId']) {
+        if ($this->config['session']['regenerateSessionId']) {
             $this->regenerateSessionId(true);  // Delete old session after regenerate !
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature

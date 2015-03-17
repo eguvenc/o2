@@ -13,7 +13,7 @@ use Obullo\Authentication\Recaller;
  * @category  Users
  * @package   Identity
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -83,6 +83,14 @@ class Identity extends AuthorizedUser
     protected $cookieToken = false;
 
     /**
+     * Keeps unique session login ids to destroy them
+     * in destruct method.
+     * 
+     * @var array
+     */
+    protected $killSignal = array();
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -98,12 +106,15 @@ class Identity extends AuthorizedUser
             $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($rememberToken);
         }
-        $frequency = $this->config['security']['cookie']['frequency'];
-        $this->tokenFrequency = ($frequency < 3) ? 4 : $frequency + 1;
+        $this->tokenFrequency = 3 + 1;
         $this->tokenRefreshSeconds = strtotime('- ' . (int) $this->config['security']['cookie']['refresh'] . ' seconds');
         $this->logger = $this->c['logger'];
 
         $this->initialize();
+
+        if ($this->config['session']['unique']) {
+            register_shutdown_function(array($this, 'close'));
+        }
     }
 
     /**
@@ -462,6 +473,33 @@ class Identity extends AuthorizedUser
             return;
         }
         $this->c['cookie']->delete($cookie['name'], $cookie['prefix']);
+    }
+
+    /**
+     * Kill authority of user using auth id
+     * 
+     * @param integer $loginId e.g: 87060e89
+     * 
+     * @return boolean
+     */
+    public function killSignal($loginId)
+    {
+        $this->killSignal[$loginId] = $loginId;
+    }
+
+    /**
+     * Do finish operations
+     * 
+     * @return void
+     */
+    public function close()
+    {
+        if (empty($this->killSignal)) {
+            return;
+        }
+        foreach ($this->killSignal as $loginId) {
+            $this->storage->killSession($loginId);
+        }
     }
 
 }

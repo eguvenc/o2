@@ -2,7 +2,6 @@
 
 namespace Obullo\Authentication\Addons;
 
-use RuntimeException;
 use Obullo\Container\Container;
 
 trait UniqueLoginTrait
@@ -14,7 +13,7 @@ trait UniqueLoginTrait
      */
     public function uniqueLoginCheck()
     {
-        if ($this->c['config']['auth']['login']['session']['unique']) {  // Unique Session is the property whereby a single action of activity
+        if ($this->c['config']['auth']['session']['unique']) {  // Unique Session is the property whereby a single action of activity
             $sessions = $this->c['auth.storage']->getAllSessions();
 
             if (sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
@@ -28,11 +27,11 @@ trait UniqueLoginTrait
             $protectedSession = $sessionKeys[$lastSession];
             unset($sessions[$protectedSession]);            // Don't touch the current session
 
-            foreach (array_keys($sessions) as $lid) {   // Destroy all other sessions
-
-                $this->c['logger']->debug('Unique login addon initialized, user session has been terminated.');
-                $this->c['auth.storage']->killSession($lid);
+            foreach (array_keys($sessions) as $lid) {       // Destroy all other sessions
+                $this->c['auth.identity']->killSignal($lid);
             }
+
+            $this->c['logger']->debug('Unique login addon initialized, user session has been terminated.');
         }
     }
 

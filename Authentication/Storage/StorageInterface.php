@@ -35,77 +35,23 @@ interface StorageInterface
     public function isEmpty($block = '__permanent');
 
     /**
-     * Sets identifier value to session
-     *
-     * @param string $identifier user id
-     * 
-     * @return void
-     */
-    public function setIdentifier($identifier);
-
-    /**
-     * Returns to user identifier
-     * 
-     * @return mixed string|id
-     */
-    public function getIdentifier();
-
-    /**
-     * Unset identifier from session
-     * 
-     * @return void
-     */
-    public function unsetIdentifier();
-
-    /**
      * Get credentials and check authority
      * 
      * @return mixed bool
      */
-    public function isAuthenticated();
-
-    /**
-     * Register credentials to temporary block
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function createTemporary(array $credentials);
-
-    /**
-     * Register credentials to permanent block
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function createPermanent(array $credentials);
-
-     /**
-     * Makes temporary credential attributes as permanent and authenticate the user
-     * 
-     * @return void
-     */
-    public function makeTemporary();
-
-    /**
-     * Makes unauthorized permanent credential attributes as permanent and unauthenticate the user
-     * 
-     * @return void
-     */
-    public function makePermanent();
+    public function query();
 
     /**
      * Update credentials
      * 
-     * @param string $oldCredentials user identity old data
-     * @param string $newCredentials user identity new data
-     * @param string $storage        storage persistence type permanent / temporary
+     * @param array  $credentials user identity old data
+     * @param mixed  $pushData    push to identity data
+     * @param string $block       storage persistence type permanent / temporary
+     * @param string $ttl         storage lifetime
      * 
      * @return boolean
      */
-    public function setCredentials(array $oldCredentials, $newCredentials = null, $storage = '__temporary');
+    public function setCredentials(array $credentials, $pushData = null, $block = '__temporary', $ttl = null);
 
     /**
      * Get temporary|permanent credentials Data
@@ -114,7 +60,7 @@ interface StorageInterface
      * 
      * @return void
      */
-    public function getCredentials($storage = '__temporary');
+    public function getCredentials($storage = '__permanent');
 
     /**
      * Delete temporary|permanent credentials Data
@@ -126,23 +72,34 @@ interface StorageInterface
     public function deleteCredentials($storage = '__temporary');
 
     /**
-     * Update identity value
+     * Update identity item value
      * 
-     * @param string $key string
-     * @param value  $val value
+     * @param string $key   string
+     * @param value  $val   value
+     * @param string $block block key
      *
-     * @return void
+     * @return boolean|integer
      */
-    public function update($key, $val);
+    public function update($key, $val, $block = '__permanent');
 
     /**
-     * Remove identity key ( one item )
+     * Unset identity item
      * 
-     * @param string $key string
+     * @param string $key   string
+     * @param string $block block key
      * 
-     * @return void
+     * @return boolean|integer
      */
-    public function remove($key);
+    public function remove($key, $block = '__permanent');
+
+    /**
+     * Check whether to identify exists
+     *
+     * @param string $block __temporary or __permanent
+     * 
+     * @return array keys if succes otherwise false
+     */
+    public function getAllKeys($block = '__permanent');
 
     /**
      * Get multiple authenticated sessions
@@ -152,14 +109,13 @@ interface StorageInterface
     public function getAllSessions();
 
     /**
-     * Kill authority of user using auth id
+     * Kill session using by login id
      * 
-     * @param string $aid auth id (10 chars)  e.g:  ahtrzflp79
+     * @param integer $loginId login id max e.g. 87060e89 ( user[at]example.com:87060e89 )
      * 
-     * @return boolean
+     * @return void
      */
-    public function killSession($aid);
-
+    public function killSession($loginId);
 }
 
 // END StorageInterface.php File

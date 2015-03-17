@@ -21,11 +21,11 @@ Class Cache extends AbstractStorage
 {
     protected $c;               // Container
     protected $cache;           // Cache class
+    protected $cacheKey;        // Cache key
     protected $config;          // Auth config array
     protected $session;         // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
-    protected $killSignal = array();  // Unique session login ids
 
     /**
      * Constructor
@@ -43,25 +43,9 @@ Class Cache extends AbstractStorage
                 'connection' => $this->config['cache']['provider']['connection']
             ]
         );
-        $this->cacheKey = $this->cacheKey;
+        $this->cacheKey = (string)$this->config['cache.key'];
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
-
-        if ($this->config['login']['session']['unique']) {
-            register_shutdown_function(array($this, 'close'));
-        }
-    }
-
-    /**
-     * Check whether to identify exists
-     *
-     * @param string $block __temporary or __permanent
-     * 
-     * @return array keys if succes otherwise false
-     */
-    public function getAllKeys($block = '__permanent')
-    {
-        return $this->cache->get($this->getBlock($block));
     }
 
     /**
@@ -78,99 +62,53 @@ Class Cache extends AbstractStorage
     }
 
     /**
-     * Get credentials and check authority
+     * Match the user credentials.
      * 
-     * @return mixed bool
+     * @return object|false
      */
-    public function isAuthenticated()
+    public function query()
     {
-        $rowArray = $this->getCredentials('__permanent');
-        
-        if (is_array($rowArray) AND isset($rowArray['__isAuthenticated']) AND $rowArray['__isAuthenticated'] == 1) {
-            return $rowArray;
+        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
+
+            $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
+
+            if (count($data) == 0) {
+                return false;
+            }
+            return $data;
         }
         return false;
     }
 
     /**
-     * Register credentials to temporary storage
+     * Update identity item value
      * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function loginAsTemporary(array $credentials)
-    {
-        $this->setCredentials($credentials, null, '__temporary', $this->getMemoryBlockLifetime('__temporary'));
-    }
-
-    /**
-     * Register credentials to permanent storage
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function loginAsPermanent(array $credentials)
-    {
-        $this->setCredentials($credentials, null, '__permanent', $this->getMemoryBlockLifetime('__permanent'));
-    }
-    
-    /**
-     * Update identity value
-     * 
-     * @param string $key string
-     * @param value  $val value
+     * @param string $key   string
+     * @param value  $val   value
+     * @param string $block block key
      *
-     * @return void
+     * @return boolean|integer
      */
-    public function update($key, $val)
+    public function update($key, $val, $block = '__permanent')
     {
-        $data = $this->getCredentials('__permanent');
+        $data = $this->getCredentials($block);
         $data[$key] = $val;
-        $this->setCredentials($data, null, '__permanent');
+        $this->setCredentials($data, null, $block);
     }
 
     /**
-     * Remove identity item
+     * Unset identity item
      * 
-     * @param string $key string
+     * @param string $key   string
+     * @param string $block block key
      * 
-     * @return void
+     * @return boolean|integer
      */
-    public function remove($key)
+    public function remove($key, $block = '__permanent')
     {
-        $data = $this->getCredentials('__permanent');
+        $data = $this->getCredentials($block);
         unset($data[$key]);
-        $this->setCredentials($data, null, '__permanent');
-    }
-
-    /**
-     * Makes temporary credentials as permanent and authenticate the user.
-     * 
-     * @return mixed false|array
-     */
-    public function authenticateTemporaryIdentity()
-    {
-        if ($this->isEmpty('__temporary')) {
-            $this->logger->debug('Auth identifier not matched with __temporary cache key.', array('identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')));
-            return false;
-        }
-        $credentials = $this->getCredentials('__temporary');
-        if ($credentials == false) {  // If already permanent
-            return;
-        }
-        $credentials['__isAuthenticated'] = 1;
-        $credentials['__isTemporary'] = 0;
-        $credentials['__isVerified'] = 1;
-        $credentials['__type'] = 'Authorized';
-    
-        if ($this->setCredentials($credentials, null, '__permanent')) {
-            $this->deleteCredentials('__temporary');
-            return $credentials;
-        }
-        $this->logger->warning('Auth temporary data could not stored as __permanent.', array('identifier' => $this->getIdentifier()));
-        return false;
+        $this->setCredentials($data, null, $block);
     }
 
     /**
@@ -245,15 +183,15 @@ Class Cache extends AbstractStorage
     }
 
     /**
-     * Get valid memory segment
+     * Check whether to identify exists
+     *
+     * @param string $block __temporary or __permanent
      * 
-     * @param string $block name
-     * 
-     * @return string
+     * @return array keys if succes otherwise false
      */
-    protected function getBlock($block)
+    public function getAllKeys($block = '__permanent')
     {
-        return ($block == '__temporary' || $block == '__permanent') ? $this->getMemoryBlockKey($block) : $block;
+        return $this->cache->get($this->getBlock($block));
     }
 
     /**
@@ -268,62 +206,6 @@ Class Cache extends AbstractStorage
         return $this->cacheKey. ':' .$block. ':' .$this->getUserId();  // Create unique key
     }
 
-
-    /**
-     * Returns to memory block lifetime
-     * 
-     * @param array $block __temporary or __permanent
-     * 
-     * @return integer
-     */
-    protected function getMemoryBlockLifetime($block = '__temporary')
-    {
-        if ($block == '__temporary') {
-            return (int)$this->config['cache']['block']['temporary']['lifetime'];
-        }
-        return (int)$this->config['cache']['block']['permanent']['lifetime'];
-    }
-
-    /**
-     * Match the user credentials.
-     * 
-     * @return object|false
-     */
-    public function query()
-    {
-        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-
-            $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
-
-            if (count($data) == 0) {
-                return false;
-            }
-            return $data;
-        }
-        return false;
-    }
-
-    /**
-     * Re authenticate cached permanent identity
-     * 
-     * @param array $data cached auth data
-     * 
-     * @return void
-     */
-    public function authenticatePermanentIdentity($data)
-    {
-        /**
-         * We override old authentication data
-         * that we stored before as permanent
-         */
-        $data['__isAuthenticated'] = 1;
-        $data['__isTemporary'] = 0;
-        $data['__type'] = 'Authorized';
-        $data['__token'] = $this->c['auth.token']->get();
-
-        $this->loginAsPermanent($data);
-    }
-
     /**
      * Get multiple authenticated sessions
      * 
@@ -332,7 +214,7 @@ Class Cache extends AbstractStorage
     public function getAllSessions()
     {
         $sessions   = array();
-        $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'), false);
+        $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'));
         
         if ($dbSessions == false) {
             return $sessions;
@@ -346,35 +228,19 @@ Class Cache extends AbstractStorage
             }
         }
         return $sessions;
-        
-    }
-    
-    /**
-     * Kill authority of user using auth id
-     * 
-     * @param string $lid login id (10 chars)  e.g:  ahtrzflp79
-     * 
-     * @return boolean
-     */
-    public function killSession($lid)
-    {
-        $this->killSignal[$lid] = $lid;
     }
 
     /**
-     * Do finish operations
+     * Kill session using by login id
+     * 
+     * @param integer $loginId login id max e.g. 87060e89 ( user@example.com:87060e89 )
      * 
      * @return void
      */
-    public function close()
+    public function killSession($loginId)
     {
-        if (empty($this->killSignal)) {
-            return;
-        }
         $data = $this->cache->get($this->getMemoryBlockKey('__permanent'));
-        foreach ($this->killSignal as $lid) {
-            unset($data[$lid]);
-        }
+        unset($data[$loginId]);
         $this->cache->set($this->getMemoryBlockKey('__permanent'), $data, $this->getMemoryBlockLifetime('__permanent'));
     }
 

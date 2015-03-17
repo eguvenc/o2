@@ -3,7 +3,6 @@
 namespace Obullo\Authentication\User;
 
 use ArrayAccess;
-use Obullo\Container\Container;
 
 /**
  * O2 Authentication - Control AuthServiceProvider Config Variables
@@ -11,19 +10,12 @@ use Obullo\Container\Container;
  * @category  Authentication
  * @package   AuthServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
 Class Config implements ArrayAccess
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Config array
      * 
@@ -36,12 +28,10 @@ Class Config implements ArrayAccess
      *
      * Sets the $config data from the primary config.php file as a class variable
      * 
-     * @param object $c      container
-     * @param array  $params config
+     * @param array $params config
      */
-    public function __construct(Container $c, $params = array())
+    public function __construct($params = array())
     {
-        $this->c = $c;
         $this->array = $params;
     }
 

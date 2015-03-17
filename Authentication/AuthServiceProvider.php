@@ -15,7 +15,7 @@ use Obullo\Authentication\User\Identity;
  * @category  Authentication
  * @package   AuthServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -39,7 +39,7 @@ Class AuthServiceProvider
         $this->c = $c;
 
         $this->c['auth.config'] = function () use ($params) {
-            return new Config($this->c, array_merge($params, $this->c['config']->load('auth')));
+            return new Config(array_merge($params, $this->c['config']->load('auth')));
         };
 
         $this->c['auth.storage'] = function () {

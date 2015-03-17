@@ -21,11 +21,11 @@ Class Redis extends AbstractStorage implements StorageInterface
 {
     protected $c;               // Container
     protected $cache;           // Cache class
+    protected $cacheKey;        // Cache key
     protected $config;          // Auth config array
     protected $session;         // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
-    protected $killSignal = array();  // Unique session login ids
 
     /**
      * Constructor
@@ -43,29 +43,9 @@ Class Redis extends AbstractStorage implements StorageInterface
                 'connection' => $this->config['cache']['provider']['connection']
             ]
         );
-        $this->cacheKey = $this->config['cache.key'];
+        $this->cacheKey = (string)$this->config['cache.key'];
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
-
-        if ($this->config['login']['session']['unique']) {
-            register_shutdown_function(array($this, 'close'));
-        }
-    }
-
-    /**
-     * Check whether to identify exists
-     *
-     * @param string $block __temporary or __permanent
-     * 
-     * @return array keys if succes otherwise false
-     */
-    public function getAllKeys($block = '__permanent')
-    {
-        $data = $this->cache->getAllKeys($this->getKey($block).':*');
-        if (isset($data[0])) {
-            return $data;
-        }
-        return false;
     }
 
     /**
@@ -82,130 +62,24 @@ Class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Get credentials and check authority
+     * Match the user credentials.
      * 
-     * @return mixed bool
+     * @return object|false
      */
-    public function isAuthenticated()
+    public function query()
     {
-        $rowArray = $this->getCredentials('__permanent');
-        
-        if (is_array($rowArray) AND isset($rowArray['__isAuthenticated']) AND $rowArray['__isAuthenticated'] == 1) {
-            return $rowArray;
+        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
+
+            $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
+
+            if (count($data) == 0) {
+                return false;
+            }
+            return $data;
         }
         return false;
     }
 
-    /**
-     * Register credentials to temporary storage
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function createTemporary(array $credentials)
-    {
-        $credentials['__isAuthenticated'] = 0;
-        $credentials['__isTemporary'] = 1;
-        $credentials['__isVerified'] = 0;
-        $this->setCredentials($credentials, null, '__temporary', $this->getMemoryBlockLifetime('__temporary'));
-    }
-
-    /**
-     * Register credentials to permanent storage
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    public function createPermanent(array $credentials)
-    {
-        $credentials['__isAuthenticated'] = 1;
-        $credentials['__isTemporary'] = 0;
-        $credentials['__isVerified'] = 1;
-        $this->setCredentials($credentials, null, '__permanent', $this->getMemoryBlockLifetime('__permanent'));
-    }
-
-    /**
-     * Update identity item value
-     * 
-     * @param string $key   string
-     * @param value  $val   value
-     * @param string $block block key
-     *
-     * @return void
-     */
-    public function update($key, $val, $block = '__permanent')
-    {
-        return $this->cache->hSet($this->getMemoryBlockKey($block), $key, $val);
-    }
-
-    /**
-     * Unset identity item
-     * 
-     * @param string $key string
-     * 
-     * @return void
-     */
-    public function remove($key)
-    {
-        return $this->cache->hDel($this->getMemoryBlockKey('__permanent'), $key);
-    }
-
-    /**
-     * Makes temporary credentials as permanent and authenticate the user.
-     * 
-     * @return mixed false|array
-     */
-    public function makePermanent()
-    {
-        if ($this->isEmpty('__temporary')) {
-            $this->logger->debug('Auth identifier not matched with __temporary redis key.', array('identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__temporary')));
-            return false;
-        }
-        $credentials = $this->getCredentials('__temporary');
-        if ($credentials == false) {  // If already permanent
-            return;
-        }
-        $credentials['__isAuthenticated'] = 1;
-        $credentials['__isTemporary'] = 0;
-        $credentials['__isVerified'] = 1;
-
-        if ($this->setCredentials($credentials, null, '__permanent')) {
-            $this->deleteCredentials('__temporary');
-            return $credentials;
-        }
-        $this->logger->warning('Auth temporary data could not stored as __permanent.', array('identifier' => $this->getIdentifier()));
-        return false;
-    }
-
-    /**
-     * Makes permanent credentials as temporary and unauthenticate the user.
-     * 
-     * @return mixed false|array
-     */
-    public function makeTemporary()
-    {
-        if ($this->isEmpty('__permanent')) {
-            $this->logger->debug('Auth identifier not matched with __permanent redis key.', array('identifier' => $this->getIdentifier(), 'key' => $this->getMemoryBlockKey('__permanent')));
-            return false;
-        }
-        $credentials = $this->getCredentials('__permanent');
-        if ($credentials == false) {  // If already permanent
-            return;
-        }
-        $credentials['__isAuthenticated'] = 0;
-        $credentials['__isTemporary'] = 1;
-        $credentials['__isVerified'] = 0;
-
-        if ($this->setCredentials($credentials, null, '__temporary')) {
-            $this->deleteCredentials('__permanent');
-            return $credentials;
-        }
-        $this->logger->warning('Auth permanent data could not stored as __temporary.', array('identifier' => $this->getIdentifier()));
-        return false;
-    }
-    
     /**
      * Update credentials
      * 
@@ -258,70 +132,43 @@ Class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Get valid memory segment
+     * Update identity item value
      * 
-     * @param string $block name
-     * 
-     * @return string
-     */
-    protected function getBlock($block)
-    {
-        return ($block == '__temporary' || $block == '__permanent') ? $this->getMemoryBlockKey($block) : $block;
-    }
-
-    /**
-     * Returns to storage full key of identity data
+     * @param string $key   string
+     * @param value  $val   value
+     * @param string $block block key
      *
-     * @param string $block name
-     * 
-     * @return string
+     * @return boolean|integer
      */
-    public function getMemoryBlockKey($block = '__temporary')
+    public function update($key, $val, $block = '__permanent')
     {
-        return $this->cacheKey. ':' .$block. ':' .$this->getIdentifier();  // Create unique key
+        return $this->cache->hSet($this->getMemoryBlockKey($block), $key, $val);
     }
 
     /**
-     * Returns to storage prefix key of identity data
+     * Unset identity item
+     * 
+     * @param string $key   string
+     * @param string $block block key
+     * 
+     * @return boolean|integer
+     */
+    public function remove($key, $block = '__permanent')
+    {
+        return $this->cache->hDel($this->getMemoryBlockKey($block), $key);
+    }
+
+    /**
+     * Check whether to identify exists
      *
-     * @param string $block memory block
+     * @param string $block __temporary or __permanent
      * 
-     * @return string
+     * @return array keys if succes otherwise false
      */
-    public function getKey($block = '__temporary')
+    public function getAllKeys($block = '__permanent')
     {
-        return $this->cacheKey. ':' .$block. ':'.$this->getUserId();
-    }
-
-    /**
-     * Returns to memory block lifetime
-     * 
-     * @param array $block __temporary or __permanent
-     * 
-     * @return integer
-     */
-    protected function getMemoryBlockLifetime($block = '__temporary')
-    {
-        if ($block == '__temporary') {
-            return (int)$this->config['cache']['block']['temporary']['lifetime'];
-        }
-        return (int)$this->config['cache']['block']['permanent']['lifetime'];
-    }
-
-    /**
-     * Match the user credentials.
-     * 
-     * @return object|false
-     */
-    public function query()
-    {
-        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
-
-            $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
-
-            if (count($data) == 0) {
-                return false;
-            }
+        $data = $this->cache->getAllKeys($this->getKey($block).':*');
+        if (isset($data[0])) {
             return $data;
         }
         return false;
@@ -358,30 +205,15 @@ Class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Kill authority of user using auth id
+     * Kill session using by login id
      * 
-     * @param string $lid login id (10 chars)  e.g:  ahtrzflp79
-     * 
-     * @return boolean
-     */
-    public function killSession($lid)
-    {
-        $this->killSignal[$lid] = $lid;
-    }
-
-    /**
-     * Do finish operations
+     * @param integer $loginId login id max e.g. 87060e89 ( user@example.com:87060e89 )
      * 
      * @return void
      */
-    public function close()
+    public function killSession($loginId)
     {
-        if (empty($this->killSignal)) {
-            return;
-        }
-        foreach ($this->killSignal as $lid) {
-            $this->cache->delete($this->cacheKey.':__permanent:'.$this->getUserId().':'.$lid);
-        }
+        $this->deleteCredentials($this->cacheKey.':__permanent:'.$this->getUserId().':'.$loginId);
     }
 
 }

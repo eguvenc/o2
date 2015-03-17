@@ -11,7 +11,7 @@ use Obullo\Container\Container;
  * @category  Authentication
  * @package   Token
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -39,7 +39,7 @@ class Token
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('auth');
+        $this->config = $this->c['auth.config'];
     }
 
     /**
@@ -75,7 +75,7 @@ class Token
     {
         $cookie = $this->config['security']['cookie'];
         
-        return $this->c['cookie']->get($cookie['prefix'].$cookie['name']);
+        return $this->c['cookie']->get($cookie['name'], $cookie['prefix']);
     }
 
     /**

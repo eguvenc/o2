@@ -2,9 +2,9 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Identities\GenericUser,
-    Obullo\Container\Container,
-    Obullo\Authentication\Token;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Obullo\Authentication\Token;
 
 /**
  * O2 Authentication - RememberMe Recaller
@@ -12,7 +12,7 @@ use Auth\Identities\GenericUser,
  * @category  Authentication
  * @package   Token
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -47,11 +47,11 @@ Class Recaller
     public function __construct(Container $c)
     {
         $this->c = $c;
+        $this->config  = $this->c['auth.config'];
         $this->storage = $this->c['auth.storage'];
-        $this->config  = $this->c['config']->load('auth');
 
-        $this->columnIdentifier = $this->c['auth.config']['db.identifier'];
-        $this->rememberToken    = $this->c['auth.config']['db.rememberToken'];
+        $this->columnIdentifier = $this->config['db.identifier'];
+        $this->rememberToken    = $this->config['db.rememberToken'];
     }
 
     /**

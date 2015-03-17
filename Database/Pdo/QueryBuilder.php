@@ -52,7 +52,7 @@ Class QueryBuilder
     public $arCacheSet = array();
 
     /**
-     * Pdo Adapter ( mysql, pgsql .. )
+     * Database Adapter ( mysql, pgsql .. )
      * 
      * @var object
      */

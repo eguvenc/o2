@@ -13,7 +13,7 @@ use Obullo\Authentication\AuthResult;
  * @category  Authentication
  * @package   Login
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -44,18 +44,6 @@ Class Login
         $this->config = $this->c['auth.config'];
         $this->columnIdentifier = $this->config['db.identifier'];
         $this->columnPassword   = $this->config['db.password'];
-    }
-
-    /**
-     * Enable verifiation before login
-     *
-     * @param boolean $bool on / off verification
-     * 
-     * @return void
-     */
-    public function verification($bool = true)
-    {
-        $this->c['auth.adapter']->verification($bool);
     }
 
     /**
@@ -111,16 +99,6 @@ Class Login
 
         $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
         return isset($eventResult[0]) ? current($eventResult) : $authResult;                // Event fire returns multiple array response but we use one.
-    }
-
-    /**
-     * Authenticate temporary identity after verification
-     * 
-     * @return void
-     */
-    public function authenticateTemporaryIdentity()
-    {
-        return $this->c['auth.storage']->authenticateTemporaryIdentity();
     }
 
     /**
