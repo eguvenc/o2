@@ -5,6 +5,7 @@ namespace Obullo\Authentication;
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
 use Obullo\Authentication\User\Login;
+use Obullo\Authentication\User\Config;
 use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
 
@@ -28,13 +29,6 @@ Class AuthServiceProvider
     protected $c;
 
     /**
-     * Service configuration parameters
-     * 
-     * @var array
-     */
-    protected $config = array();
-
-    /**
      * Constructor
      * 
      * @param object $c      container
@@ -43,16 +37,16 @@ Class AuthServiceProvider
     public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
-        $this->config = $c['config']->load('auth');
-        
-        $this->c['auth.params'] = $params;
 
-        $this->c['auth.container'] = function () {
-            return new ArrayContainer;
+        $this->c['auth.config'] = function () use ($params) {
+            return new Config($this->c, array_merge($params, $this->c['config']->load('auth')));
         };
 
         $this->c['auth.storage'] = function () {
-            return new $this->config['cache']['storage']($this->c);
+            return new $this->config['cache']['storage'](
+                $this->c,
+                $this->c['service provider cache']
+            );
         };
 
         $this->c['auth.token'] = function () {
@@ -64,7 +58,7 @@ Class AuthServiceProvider
         };
 
         $this->c['user.model'] = function () use ($params) {
-            return new $params['db.model']($this->c, $this->c['service provider '.$this->c['auth.params']['db.provider']]);
+            return new $params['db.model']($this->c, $this->c['service provider '.$this->config['db.provider']]);
         };
 
         $this->c['auth.login'] = function () {

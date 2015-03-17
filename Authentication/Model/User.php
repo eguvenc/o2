@@ -43,14 +43,14 @@ Class User implements UserInterface
         $this->c = $c;
         $this->db = $provider->get(
             [
-                'connection' => $this->c['auth.params']['db.connection']
+                'connection' => $this->c['auth.config']['db.connection']
             ]
         );
-        $this->tablename           = $this->c['auth.params']['db.tablename'];      // Db users tablename
-        $this->columnId            = $this->c['auth.params']['db.id'];
-        $this->columnIdentifier    = $this->c['auth.params']['db.identifier'];
-        $this->columnPassword      = $this->c['auth.params']['db.password'];
-        $this->columnRememberToken = $this->c['auth.params']['db.rememberToken'];  // RememberMe token column name
+        $this->tablename           = $this->c['auth.config']['db.tablename'];      // Db users tablename
+        $this->columnId            = $this->c['auth.config']['db.id'];
+        $this->columnIdentifier    = $this->c['auth.config']['db.identifier'];
+        $this->columnPassword      = $this->c['auth.config']['db.password'];
+        $this->columnRememberToken = $this->c['auth.config']['db.rememberToken'];  // RememberMe token column name
 
         $this->sqlUser = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
         $this->sqlRecalledUser = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL

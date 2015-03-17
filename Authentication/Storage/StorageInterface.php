@@ -3,6 +3,7 @@
 namespace Obullo\Authentication\Storage;
 
 use Obullo\Container\Container;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * Cache storage interface
@@ -19,18 +20,19 @@ interface StorageInterface
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c);
+    public function __construct(Container $c, ServiceProviderInterface $provider);
 
     /**
-     * Returns true if temporary credentials does "not" exists
+     * Returns true if temporary credentials "not" exists
      *
-     * @param string $storage temporary or permanent
+     * @param string $block __temporary or __permanent | full key
      * 
      * @return bool
      */
-    public function isEmpty($storage);
+    public function isEmpty($block = '__permanent');
 
     /**
      * Sets identifier value to session
@@ -69,7 +71,7 @@ interface StorageInterface
      * 
      * @return void
      */
-    public function loginAsTemporary(array $credentials);
+    public function createTemporary(array $credentials);
 
     /**
      * Register credentials to permanent block
@@ -78,23 +80,21 @@ interface StorageInterface
      * 
      * @return void
      */
-    public function loginAsPermanent(array $credentials);
+    public function createPermanent(array $credentials);
 
      /**
      * Makes temporary credential attributes as permanent and authenticate the user
      * 
      * @return void
      */
-    public function authenticateTemporaryIdentity();
+    public function makeTemporary();
 
     /**
-     * Makes unauthorized permanent credential attributes as permanent
-     * 
-     * @param array $data array $credentials
+     * Makes unauthorized permanent credential attributes as permanent and unauthenticate the user
      * 
      * @return void
      */
-    public function authenticatePermanentIdentity($data);
+    public function makePermanent();
 
     /**
      * Update credentials
@@ -124,6 +124,25 @@ interface StorageInterface
      * @return void
      */
     public function deleteCredentials($storage = '__temporary');
+
+    /**
+     * Update identity value
+     * 
+     * @param string $key string
+     * @param value  $val value
+     *
+     * @return void
+     */
+    public function update($key, $val);
+
+    /**
+     * Remove identity key ( one item )
+     * 
+     * @param string $key string
+     * 
+     * @return void
+     */
+    public function remove($key);
 
     /**
      * Get multiple authenticated sessions

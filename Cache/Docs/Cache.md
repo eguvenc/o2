@@ -91,15 +91,15 @@ Bir kez servis sağlayıcı load komutu ile yüklendiği zaman artık kütüphan
 
 ```php
 <?php
-$this->c['service provider cache', array('driver' => 'memcached', 'serializer' => 'none')];
-$this->providerCache->metod();
+$this->cache = $this->c['service provider cache'->get(['driver' => 'memcached', 'connection' => 'default'];
+$this->cache->metod();
 ```
 
 Fakat daha kısa bir yazım şekli istiyorsanız ve görünürde daha önceden yüklenen bir başka cache servisi de yoksa <b>as</b> komutu kullanabilirsiniz.
 
 ```php
 <?php
-$this->c['service/provider/cache as cache', array('serializer' => 'none')];
+$this->c['service provider cache as cache']->get();
 $this->cache->metod();
 ```
 

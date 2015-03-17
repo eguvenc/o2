@@ -2,7 +2,6 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use RuntimeException;
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
@@ -58,13 +57,6 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected $isTemporary = false;
 
     /**
-     * Old identifier
-     * 
-     * @var string
-     */
-    protected $trashIdentifier;
-
-    /**
      * Failure switch
      * 
      * @var boolean
@@ -102,8 +94,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $this->storage = $c['auth.storage'];
         $this->session = $c['session'];
 
-        $this->columnIdentifier = $c['auth.params']['db.identifier'];
-        $this->columnPassword   = $c['auth.params']['db.password'];
+        $this->columnIdentifier = $c['auth.config']['db.identifier'];
+        $this->columnPassword   = $c['auth.config']['db.password'];
 
         parent::__construct($c);
     }
@@ -118,9 +110,8 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected function initialize(GenericUser $genericUser)
     {
         if ($this->c['auth.identity']->guest()) {
-            $this->trashIdentifier = $this->storage->getIdentifier();     // Set old identifier for trash
+
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
-        
             $this->c['logger']->debug('User identifier stored into session', array('identifier' => $this->storage->getIdentifier()));
         }
         $this->results = array(
@@ -168,10 +159,10 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->alreadyLoggedIn = true;
             return false;
         }
-        $storageResult = $this->storage->query();  // First do query to memory storage if user exists in memory
+        $storageResult = $this->storage->query();  // First do query to permanent memory block if user exists return to cached auth
 
         /**
-         * If user does not exists in memory do sql query
+         * If user auth does not exists in memory do SQL query
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
@@ -182,7 +173,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
                                                                                 // default is 6 for best performance.
                 if ($login) {  // If login process allowed.
-                    $this->generateUser($genericUser, $this->resultRowArray, ($storageResult) ? false : true, $passwordNeedsRehash);
+                    $this->generateUser($genericUser, $this->resultRowArray, $passwordNeedsRehash);
                 }
                 return true;
             }
@@ -197,18 +188,16 @@ class Database extends AbstractAdapter implements AdapterInterface
      * 
      * @param array $genericUser         generic identity array
      * @param array $resultRowArray      success auth query user data
-     * @param array $write2Storage       creates identity on memory storage
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    public function generateUser(GenericUser $genericUser, $resultRowArray, $write2Storage = false, $passwordNeedsRehash = array())
+    public function generateUser(GenericUser $genericUser, $resultRowArray, $passwordNeedsRehash = array())
     {
         $attributes = array(
             $this->columnIdentifier => $genericUser->getIdentifier(),
             $this->columnPassword => $resultRowArray[$this->columnPassword],
             '__rememberMe' => $genericUser->getRememberMe(),
-            '__isTemporary' => ($this->isEnabledVerification()) ? 1 : 0,
             '__token' => $this->c['auth.token']->get(),
             '__time' => ceil(microtime(true)),
         );
@@ -223,28 +212,10 @@ class Database extends AbstractAdapter implements AdapterInterface
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
             $this->c['user.model']->updateRememberToken($this->c['auth.token']->getRememberToken(), $genericUser); // refresh rememberToken
         }
-        if ($write2Storage OR $this->isEnabledVerification()) {   // If we haven't got identity data in memory write database query result to memory storage
-            $this->write2Storage($attributes);  
+        if ($this->storage->isEmpty('__temporary')) {
+            $this->storage->createPermanent($attributes);
         } else {
-            /**
-             * Authenticate cached auth data. We override __isAuthenticated item value as "1"
-             * then we update the token.
-             */
-            $this->storage->authenticatePermanentIdentity($attributes);
-        }
-        $this->deleteOldAuth();
-    }
-
-    /**
-     * If verification enabled we create new temporay auth so we need to delete old credentials.
-     * 
-     * @return void
-     */
-    protected function deleteOldAuth()
-    {
-        $trashKey = $this->c['auth.params']['cache.key'].':__permanent:'.$this->trashIdentifier;
-        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty($trashKey)) {
-            $this->storage->deleteCredentials($trashKey);
+            $this->storage->createTemporary($attributes);
         }
     }
 
@@ -262,34 +233,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             $attributes[$this->columnPassword] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
-        $attributes = $this->setAuthType($attributes);
         return $attributes;
-    }
-
-    /**
-     * Sets "isAuthenticated" attribute
-     *
-     * @param array $attributes identity attributes
-     * 
-     * @return array $attributes
-     */
-    protected function setAuthType($attributes)
-    {
-        if ( ! $this->isEnabledVerification()) {    // If verification disabled we authenticate the user.
-            $attributes['__isAuthenticated'] = 1;
-            $attributes['__type'] = static::AUTHORIZED;
-            return $attributes;
-        }
-        if ($this->c['auth.identity']->isVerified() == 0) {  // Otherwise verification enabled we don't do authenticate
-            $attributes['__isAuthenticated'] = 0;
-            $attributes['__type'] = static::UNVERIFIED;
-            return $attributes;
-        }
-        if ($this->c['auth.identity']->isVerified() == 1) {  // If temporary login verified by $this->storage->authenticateTemporaryIdentity() method.
-            $attributes['__isAuthenticated'] = 1;
-            $attributes['__type'] = static::AUTHORIZED;
-            return $attributes;
-        }
     }
 
     /**
@@ -300,7 +244,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function validateResultSet()
     {
-        if ($this->isEnabledVerification() AND ! $this->storage->isEmpty('__temporary')) {
+        if ( ! $this->storage->isEmpty('__temporary')) {
             $this->results['code'] = AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';
             return $this->createResult();

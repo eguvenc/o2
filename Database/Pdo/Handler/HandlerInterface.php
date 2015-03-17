@@ -24,7 +24,7 @@ interface HandlerInterface
      * @param object $config   \Obullo\Config\Config
      * @param object $logger   \Obullo\Log\LoggerInterface
      * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
-     * @param array  $params   parameters
+     * @param array  $params   service provider parameters
      */
     public function __construct(Config $config, LoggerInterface $logger, ServiceProviderInterface $provider, array $params);
 

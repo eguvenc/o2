@@ -44,7 +44,7 @@ class MongoServiceProvider implements ServiceProviderInterface
      *
      * @return object
      */
-    public function get($params = [])
+    public function get($params = array())
     {
         return $this->connector->getConnection($params);  // Get existing connection
     }
@@ -56,7 +56,7 @@ class MongoServiceProvider implements ServiceProviderInterface
      *
      * @return object
      */
-    public function factory($params = [])
+    public function factory($params = array())
     {
         return $this->connector->factory($params);  // Get existing connection
     }

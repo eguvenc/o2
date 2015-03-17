@@ -157,7 +157,7 @@ Class Colorful
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
         } elseif (strpos($messageBody, 'notice') !== false) {
-            $line = "\033[1;32m".$line."\033[0m";
+            $line = "\033[1;33m".$line."\033[0m";
             echo $line."\n";
         }
     }

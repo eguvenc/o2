@@ -61,7 +61,7 @@ class AbstractUserIdentity
      */
     public function getColumnIdentifier()
     {
-        return $this->c['auth.params']['db.identifier'];
+        return $this->c['auth.config']['db.identifier'];
     }
 
     /**
@@ -71,7 +71,7 @@ class AbstractUserIdentity
      */
     public function getColumnPassword()
     {
-        return $this->c['auth.params']['db.password'];
+        return $this->c['auth.config']['db.password'];
     }
 
     /**

@@ -3,9 +3,9 @@
 namespace Obullo\Tasks\Helper;
 
 /**
- * Tasks Console Helper
+ * Console Helper
  * 
- * @category  Cli
+ * @category  Tasks
  * @package   Helper
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
@@ -15,7 +15,7 @@ namespace Obullo\Tasks\Helper;
 class Console
 {
     /**
-     * Print console logo
+     * Print logo
      * 
      * @param string $info text
      * 

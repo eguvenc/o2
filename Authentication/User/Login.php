@@ -41,9 +41,9 @@ Class Login
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('auth');
-        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
-        $this->columnPassword   = $this->c['auth.params']['db.password'];
+        $this->config = $this->c['auth.config'];
+        $this->columnIdentifier = $this->config['db.identifier'];
+        $this->columnPassword   = $this->config['db.password'];
     }
 
     /**

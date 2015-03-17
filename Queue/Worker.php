@@ -7,6 +7,7 @@ use ErrorException;
 use Obullo\Queue\Job;
 use Obullo\Log\Logger;
 use Obullo\Container\Container;
+use Obullo\Tasks\Helper\Console;
 
 /**
  * Queue Worker Class
@@ -509,12 +510,16 @@ Class Worker
     public function debugOutput($data)
     {
         if (is_string($data)) {
-            echo "\33[1;36mOutput : \n".$data."\n\033[0m\n";
+
+            echo Console::text("Output : \n".$data."\n", 'yellow');
+
         } elseif (is_array($data)) {
+
             unset($data['error_trace']);
             unset($data['error_xdebug']);
             unset($data['error_priority']);
-            echo "\33[1;31mError : \n".print_r($data, true)."\n\033[0m";
+            
+            echo Console::fail("Error : \n".print_r($data, true));
         }
     }
 

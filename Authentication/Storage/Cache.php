@@ -5,6 +5,7 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 /**
  * O2 Authentication - Cache Storage
@@ -20,6 +21,7 @@ Class Cache extends AbstractStorage
 {
     protected $c;               // Container
     protected $cache;           // Cache class
+    protected $config;          // Auth config array
     protected $session;         // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
@@ -28,24 +30,28 @@ Class Cache extends AbstractStorage
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c) 
+    public function __construct(Container $c, ServiceProviderInterface $provider) 
     {
         $this->c = $c;
-        $this->c['config']->load('auth');
-        $this->cache = $c['service provider cache']->get(
+        $this->config = $this->c['auth.config'];
+        $this->cache = $provider->get(
             [
-                'driver' => $this->c['config']['auth']['cache']['provider']['driver'],
-                'connection' => $this->c['config']['auth']['cache']['provider']['connection']
+                'driver' => $this->config['cache']['provider']['driver'],
+                'connection' => $this->config['cache']['provider']['connection']
             ]
         );
+        $this->cacheKey = $this->cacheKey;
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
 
-        register_shutdown_function(array($this, 'close'));
+        if ($this->config['login']['session']['unique']) {
+            register_shutdown_function(array($this, 'close'));
+        }
     }
-    
+
     /**
      * Check whether to identify exists
      *
@@ -259,7 +265,7 @@ Class Cache extends AbstractStorage
      */
     public function getMemoryBlockKey($block = '__temporary')
     {
-        return $this->c['auth.params']['cache.key']. ':' .$block. ':' .$this->getUserId();  // Create unique key
+        return $this->cacheKey. ':' .$block. ':' .$this->getUserId();  // Create unique key
     }
 
 
@@ -273,9 +279,9 @@ Class Cache extends AbstractStorage
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->c['config']['auth']['cache']['block']['temporary']['lifetime'];
+            return (int)$this->config['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->c['config']['auth']['cache']['block']['permanent']['lifetime'];
+        return (int)$this->config['cache']['block']['permanent']['lifetime'];
     }
 
     /**

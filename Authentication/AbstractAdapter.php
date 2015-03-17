@@ -17,21 +17,6 @@ use Auth\Identities\GenericUser;
  */
 abstract class AbstractAdapter
 {
-     /**
-     * None authorized user
-     */
-    const GUEST = 'Guest';
-
-    /**
-     * Login success but verification is not completed ( if verification enabled ).
-     */
-    const UNVERIFIED = 'Unverified';
-
-    /**
-     * Successfully authorized user
-     */
-    const AUTHORIZED = 'Authorized';
-
     /**
      * Container
      * 
@@ -47,13 +32,6 @@ abstract class AbstractAdapter
     protected $config;
 
     /**
-     * Verification switch after successfull login
-     * 
-     * @var string
-     */
-    protected $verification = false;
-
-    /**
      * Constructor
      * 
      * @param object $c container
@@ -61,29 +39,7 @@ abstract class AbstractAdapter
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('auth');
-    }
-
-    /**
-     * Enable verifiation of user after successful login
-     *
-     * @param boolean $bool on / off verification
-     * 
-     * @return void
-     */
-    public function verification($bool = true)
-    {
-        $this->verification = $bool;
-    }
-
-    /**
-     * Returns to user verification status
-     * 
-     * @return boolean
-     */
-    public function isEnabledVerification()
-    {
-        return (bool)$this->verification;
+        $this->config = $c['auth.config'];
     }
 
     /**
@@ -121,32 +77,6 @@ abstract class AbstractAdapter
         }
         return false;
     }
-
-    /**
-     * If we want to use verification methods ( call, sms, email etc. ) we 
-     * use $this->user->login->enableVerification(); before the login method.
-     * 
-     * @param array $credentials user identities
-     * 
-     * @return void
-     */
-    protected function write2Storage(array $credentials)
-    {
-        if ($this->isEnabledVerification()) {
-            $this->storage->loginAsTemporary($credentials);
-        } else {
-            $this->storage->loginAsPermanent($credentials);
-        }
-    }
-
-    /**
-     * Sets "isAuthenticated" attribute
-     *
-     * @param array $attributes identity attributes
-     * 
-     * @return array $attributes
-     */
-    abstract protected function setAuthType($attributes);
 
     /**
      * This method attempts to make

@@ -104,7 +104,7 @@ Sets a cookie containing the values you specify.
 
 Fetch a cookie.
 
-#### $this->cookie->delete(string $name, string $domain = '', string $path = '/', string $prefix = '');
+#### $this->cookie->delete(string $name, string $prefix = '', string $domain = '', string $path = '/');
 
 Delete a cookie.
 

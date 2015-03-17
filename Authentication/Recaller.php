@@ -50,8 +50,8 @@ Class Recaller
         $this->storage = $this->c['auth.storage'];
         $this->config  = $this->c['config']->load('auth');
 
-        $this->columnIdentifier = $this->c['auth.params']['db.identifier'];
-        $this->rememberToken    = $this->c['auth.params']['db.rememberToken'];
+        $this->columnIdentifier = $this->c['auth.config']['db.identifier'];
+        $this->rememberToken    = $this->c['auth.config']['db.rememberToken'];
     }
 
     /**

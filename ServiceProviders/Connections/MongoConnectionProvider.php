@@ -2,9 +2,9 @@
 
 namespace Obullo\ServiceProviders\Connections;
 
-use Obullo\Container\Container;
 use RuntimeException;
 use UnexpectedValueException;
+use Obullo\Container\Container;
 
 /**
  * Mongo Connection Provider
@@ -83,7 +83,7 @@ class MongoConnectionProvider extends AbstractConnectionProvider
      *
      * @return object MongoClient
      */
-    public function getConnection($params = [])
+    public function getConnection($params = array())
     {
         if (! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0];  //  Set default connection
@@ -96,7 +96,6 @@ class MongoConnectionProvider extends AbstractConnectionProvider
                 )
             );
         }
-
         return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
@@ -109,7 +108,7 @@ class MongoConnectionProvider extends AbstractConnectionProvider
      *
      * @return object mongo client
      */
-    public function factory($params = [])
+    public function factory($params = array())
     {
         if (! isset($params['server'])) {
             throw new UnexpectedValueException("Mongo connection provider requires server parameter.");
@@ -132,8 +131,9 @@ class MongoConnectionProvider extends AbstractConnectionProvider
     {
         foreach ($this->config['connections'] as $key => $val) {  //  Close shared connections
             $val = null;
-            if ($this->c->loaded($this->getKey($key))) {
-                $connection = $this->c[$this->getKey($key)];
+            $key = $this->getKey($key);
+            if ($this->c->loaded($key)) {
+                $connection = $this->c[$key];
                 foreach ($connection->getConnections() as $con) {
                     $connection->close($con['hash']);
                 }

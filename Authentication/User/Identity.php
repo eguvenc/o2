@@ -55,18 +55,18 @@ class Identity extends AuthorizedUser
     protected $tokenIsValid = false;
 
     /**
-     * Store if user authenticated
-     *
-     * @var boolean
-     */
-    protected $isAuth = null;
-
-    /**
      * Security token refresh seconds
      *
      * @var int
      */
     protected $tokenRefreshSeconds;
+
+    /**
+     * Security token check frequency request / times
+     * 
+     * @var int
+     */
+    protected $tokenFrequency;
 
     /**
      * Recaller
@@ -90,17 +90,20 @@ class Identity extends AuthorizedUser
     public function __construct(Container $c)
     {
         $this->setContainer($c);
-        $this->c['config']->load('auth');
+
+        $this->config = $this->c['auth.config'];
         $this->storage = $this->c['auth.storage'];
 
         if ($rememberToken = $this->recallerExists()) {   // Remember the user if recaller cookie exists
             $this->recaller = new Recaller($this->c);
             $this->recaller->recallUser($rememberToken);
         }
-        $this->initialize();
-
-        $this->tokenRefreshSeconds = strtotime('- ' . (int) $this->c['config']['auth']['security']['cookie']['refresh'] . ' seconds');
+        $frequency = $this->config['security']['cookie']['frequency'];
+        $this->tokenFrequency = ($frequency < 3) ? 4 : $frequency + 1;
+        $this->tokenRefreshSeconds = strtotime('- ' . (int) $this->config['security']['cookie']['refresh'] . ' seconds');
         $this->logger = $this->c['logger'];
+
+        $this->initialize();
     }
 
     /**
@@ -118,10 +121,42 @@ class Identity extends AuthorizedUser
 
             if ( ! isset($this->__lastTokenRefresh)) {  // Create default token refresh value
                 $this->__lastTokenRefresh = time();
+                $this->__tokenFrequency = 0;
             }
 
         } elseif ($this->attributes = $this->storage->getCredentials('__temporary')) {
             $this->setCredentials($this->attributes);
+        }
+        $this->tokenRefresh();
+    }
+
+    /**
+     * Refresh security cookie
+     *
+     * @return void
+     */
+    protected function tokenRefresh()
+    {
+        if ($this->check()) {
+
+            if ($this->tokenRefreshSeconds > $this->__lastTokenRefresh) {  // Start secutiry token update operation
+                $this->__token = $this->c['auth.token']->get();  // Refresh the token and write it to memory
+                $this->__lastTokenRefresh = time();
+                $this->__tokenFrequency = 0;   // Reset token check
+            } else {
+                /**
+                 * We could not do token validation every time this cause
+                 * cookie read problems and logout the users.
+                 * 
+                 * This solution increase the token frequency value 
+                 * and checks the token for every 3 request.
+                 */
+                $times = $this->__tokenFrequency;
+                if ($times < $this->tokenFrequency) {
+                    $this->__tokenFrequency = $times + 1;
+                }
+                $this->isValidToken();  // Check token validation
+            }
         }
     }
 
@@ -133,26 +168,11 @@ class Identity extends AuthorizedUser
      * @return boolean
      */
     public function check()
-    {
-        if ( ! isset($this->__isAuthenticated)) {
-            return $this->isAuth = false;
+    {        
+        if (isset($this->__isAuthenticated) AND $this->__isAuthenticated == 1) {
+            return true;
         }
-        if ($this->isAuth != null) {  // Cache the auth
-            return $this->isAuth;
-        }
-        if ($this->c['request']->isAjax() == false 
-            AND $this->__isAuthenticated == 1 
-            AND $this->tokenRefreshSeconds > $this->__lastTokenRefresh
-        ) {  // Secutiry token update
-            $this->__token            = $this->c['auth.token']->get();  // Refresh the token and write it to memory
-            $this->__lastTokenRefresh = time();
-
-            return $this->isAuth = true;  // Don't do the token is valid for current request
-        }
-        if ($this->__isAuthenticated == 1 AND $this->isValidToken()) {
-            return $this->isAuth = true;
-        }
-        return $this->isAuth = false;
+        return false;
     }
 
     /**
@@ -176,7 +196,7 @@ class Identity extends AuthorizedUser
     public function recallerExists()
     {
         $id   = $this->storage->getIdentifier();
-        $name = $this->c['config']['auth']['login']['rememberMe']['cookie']['name'];
+        $name = $this->config['login']['rememberMe']['cookie']['name'];
 
         $cookie = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
         if (empty($id) AND $token = $cookie) {
@@ -193,6 +213,26 @@ class Identity extends AuthorizedUser
     public function isTemporary()
     {
         return $this->__isTemporary;
+    }
+
+    /**
+     * Move permanent identity to temporary block
+     * 
+     * @return void
+     */
+    public function makeTemporary() 
+    {
+        $this->storage->makeTemporary();
+    }
+
+    /**
+     * Move temporary identity to permanent block
+     * 
+     * @return void
+     */
+    public function makePermanent() 
+    {
+        $this->storage->makePermanent();
     }
 
     /**
@@ -242,7 +282,7 @@ class Identity extends AuthorizedUser
      */
     public function isValidToken()
     {
-        if ( ! $this->exists() || $this->tokenIsValid || ! is_null($this->recaller)) { // If identity data does not exists.
+        if ( ! $this->exists() || $this->tokenIsValid || $this->__tokenFrequency != $this->tokenFrequency || ! is_null($this->recaller)) { // If identity data does not exists.
             return $this->tokenIsValid = true;
         }
         if ($this->getCookieToken() == $this->getStorageToken()) {
@@ -319,16 +359,6 @@ class Identity extends AuthorizedUser
     }
 
     /**
-     * Get user type : UNVERIFIED, AUTHORIZED, GUEST
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return isset($this->__type) ? $this->__type : 'Guest';
-    }
-
-    /**
      * Returns to "1" user if used remember me
      *
      * @return integer
@@ -397,12 +427,12 @@ class Identity extends AuthorizedUser
     {
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
 
-            $rememberMeCookie = $this->c['config']['auth']['login']['rememberMe']['cookie'];
+            $rememberMeCookie = $this->config['login']['rememberMe']['cookie'];
             $rememberToken = $this->c['cookie']->get($rememberMeCookie['prefix'].$rememberMeCookie['name']);
 
             $genericUser = new GenericUser;
             $genericUser->setContainer($this->c);
-            $genericUser->setCredentials([$this->c['auth.params']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
+            $genericUser->setCredentials([$this->config['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
 
             $this->refreshRememberToken($genericUser);
         }
@@ -427,14 +457,13 @@ class Identity extends AuthorizedUser
      */
     public function forgetMe()
     {
-        $cookie = $this->c['config']['auth']['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
-
-        if ( ! $this->c['cookie']->get($cookie['prefix'] . $cookie['name'])) {
+        $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
+        if ( ! $this->c['cookie']->get($cookie['name'], $cookie['prefix'])) {
             return;
         }
-        $this->c['cookie']->delete($cookie['prefix'] . $cookie['name']);
+        $this->c['cookie']->delete($cookie['name'], $cookie['prefix']);
     }
-    
+
 }
 
 // END Identity.php File

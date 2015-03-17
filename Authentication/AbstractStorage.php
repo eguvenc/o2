@@ -2,7 +2,6 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Utils\Random;
 use Obullo\Container\Container;
 
 /**
@@ -101,7 +100,7 @@ abstract class AbstractStorage
      */
     public function getCacheKey()
     {
-        return '__'.$this->c['auth.params']['cache.key'];
+        return '__'.$this->cacheKey;
     }
 
 }

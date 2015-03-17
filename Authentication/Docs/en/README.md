@@ -152,11 +152,9 @@ return array(
         ),
         'session' => array(
             'regenerateSessionId' => true,               // Regenerate session id upon new logins.
+            'unique' => false, 
         )
     ),
-    'activity' => array(
-        'uniqueLogin' => false,  // Single sign-off is the property whereby a single action of signing out terminates access to multiple sessions.
-    )
 );
 
 /* End of file auth.php */

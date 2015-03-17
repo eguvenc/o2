@@ -1,7 +1,7 @@
 
 ## O2 Yetki Doğrulama ( Authentication )
 
-Yetk doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 yetki doğrulama yalnızca yetki doğrulama ( <b>authentication</b> ) ile ilgilidir ve yetkilendirme ( authorization ) ile ilgili herhangi bir şeyi içermez. Yetkiler ile ilgili daha fazla bilgi için lütfen <b>Permissions</b> paketine bakınız.
+Yetk doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 yetki doğrulama yalnızca yetki doğrulama ( <b>authentication</b> ) ile ilgilidir ve yetkilendirme ( authorization ) ile ilgili herhangi bir şeyi içermez.
 
 O2 yetki doğrulama; 
 
@@ -132,7 +132,7 @@ Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
     'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'redis',
-        'options' => array('serializer' => 'php') // json, igbinary
+        'connection' => 'second'
     ),
 )
 ```
@@ -147,7 +147,7 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
     'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'cache',
-        'options' => array('serializer' => 'php')  // json, igbinary
+            'connection' => 'second'
     ),
 )
 ```
@@ -207,8 +207,8 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
             <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
         </tr>
         <tr>
-            <td>activity[uniqueSession]</td>
-            <td>Tekil oturum opsiyonu aktif olduğunda aynı kimlik bilgileri ile yalnızca bir kullanıcı oturum açabilir. En son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Filters</b> dizinindeki auth filtresi çalıştırıldığı zaman devreye girer. Filtreyi çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Filtreler hakkında daha geniş bilgiye <b>router</b> paketi dökümentasyonunu inceleyerek ulaşabilirsiniz. Filtre içerisindeki UniqueLogin özelliği <b>Authentication/Addons</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir bu özellik bir eklenti olduğundan istenilmediği durumlarda kullanılmayabilir. Aynı filtre içerisindeki <b>$this->user->activity->write();</b> metodu ise kullanıcının en son aktivite verilerini günceller.</td> 
+            <td>login[session][unique]</td>
+            <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Eklentiler klasöründeki kullandığınız eklentinin davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz. Katman içerisindeki unique session özelliği <b>Authentication/Addons</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Aynı katman içerisindeki <b>$this->user->activity->set();</b> metodu ise kullanıcının en son aktivite verilerini güncellemenize yardımcı olur.</td> 
         </tr>
     </tbody>
 </table>
@@ -229,7 +229,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `username` varchar(100) NOT NULL,
   `password` varchar(80) NOT NULL,
   `remember_token` varchar(64) NOT NULL,
-  `date` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `username` (`username`),
   KEY `remember_token` (`remember_token`)
@@ -238,14 +237,13 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 -- Dumping data for table `users`
 --
-INSERT INTO `users` (`id`, `username`, `password`, `remember_token`, `date`) VALUES 
-(1, 'user@example.com', '$2y$06$6k9aYbbOiVnqgvksFR4zXO.kNBTXFt3cl8xhvZLWj4Qi/IpkYXeP.', '', 0);
+INSERT INTO `users` (`id`, `username`, `password`, `remember_token`) VALUES 
+(1, 'user@example.com', '$2y$06$6k9aYbbOiVnqgvksFR4zXO.kNBTXFt3cl8xhvZLWj4Qi/IpkYXeP.', '');
 ```
 
 Yukarıdaki sql kodu için kullanıcı adı <b>user@example.com</b> ve şifre <b>123456</b> dır.
 
-
- Aşağıda görüldüğü gibi yetki doğrulama <b>User</b> servisi üzerinden yönetilir <kbd>app/classes/Service/User.php</kbd> dosyasını açarak servisi konfigüre edebilirsiniz.
+Aşağıda görüldüğü gibi yetki doğrulama <b>User</b> servisi üzerinden yönetilir <kbd>app/classes/Service/User.php</kbd> dosyasını açarak servisi konfigüre edebilirsiniz.
 
 ```php
 Class User implements ServiceInterface
@@ -294,19 +292,18 @@ Class User implements ServiceInterface
 #### Bir Kalıcı Oturum Açma Denemesi
 
 ```php
-$this->user->login->disableVerification();  // default disabled
 $this->user->login->attempt(
     [
-        $this->c['auth.params']['db.identifier'] => $this->request->post('email'), 
-        $this->c['auth.params']['db.password'] => $this->request->post('password')
+        $this->user->config['db.identifier'] => $this->request->post('email'), 
+        $this->user->config['db.password'] => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
 ```
 
-#### Bir Oturum Açma Örneği
+#### Bir Geçici Oturum Açma Örneği
 
-Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım.
+Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım. Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTemporary();</kbd> metodu ile oturum açıldıktan sonra kimliğin geçici hale getirilmesidir.
 
 ```php
 + app
@@ -351,18 +348,20 @@ Class Login extends \Controller
                 $this->form->setErrors($this->validator);
             } else {
 
-                $this->user->login->verification(false);
-
                 $result = $this->user->login->attempt(
                     [
-                        $this->c['auth.params']['db.identifier'] => $this->request->post('email'), 
-                        $this->c['auth.params']['db.password'] => $this->request->post('password')
+                        $this->user->config['db.identifier'] => $this->request->post('email'), 
+                        $this->user->config['db.password'] => $this->request->post('password')
                     ],
                     $this->request->post('rememberMe')
                 );
                 if ($result->isValid()) {
-                    $this->flash->success('You have authenticated successfully.');
-                    $this->url->redirect('membership/login');
+
+                    $this->user->identity->makeTemporary();
+                    $this->flash->success('Verification code has been sent.');
+
+                    $this->url->redirect('membership/confirm_verification_code');
+
                 } else {
                     $this->validator->setError($result->getArray());
                     $this->form->setErrors($this->validator);
@@ -380,6 +379,9 @@ Class Login extends \Controller
 /* Location: .modules/membership/Login.php */
 ```
 
+Yukarıdaki kodları çalıştırdığınıza geçici kimlik oluştu ise bir <b>membership/confirm_verification_code</b> sayfası oluşturun ve bu sayfada kullanıcı onay kodunu doğru girdi ise <kbd>$this->user->identity->makePermanent();</kbd> metodunu kullanarak kullanıcıyı yetkilendirin.
+
+
 ### AuthResult Sınıfı ve Oturum Açma Sonuçları
 
 Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir,  <kbd>$this->user->login->attempt()</kbd> metodu ise sonuçları alabilmemiz için AuthResult nesnesine geri dönmektedir.
@@ -387,8 +389,8 @@ Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar
 ```php
 $result = $this->user->login->attempt(
     [
-        $this->c['auth.params']['db.identifier'] => $this->request->post('email'), 
-        $this->c['auth.params']['db.password'] => $this->request->post('password')
+        $this->user->config['db.identifier'] => $this->request->post('email'), 
+        $this->user->config['db.password'] => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -512,7 +514,21 @@ Uygulamanın esnek çalışması için kimlik sınıfları <b>app/classes/Auth</
 </table>
 
 
-### UserIdentity Sınıfı İşlevleri
+### User Config Sınıfı İşlevleri
+
+------
+
+<kbd>app/Classes/Sevice/User.php</kbd> dosyasında çağrılan AuthServiceProvider sınıfı içerisinden gönderilen parametreleri ve <b>auth.php</b> konfigürasyon dosyasındaki parametreler ile birleştirerek auth paketine ait konfigurasyon ile ilgili tüm dizileri tek bir elden yönetmeye yardımcı olur. Daha iyi anlamak için aşağıdaki örneğe bir gözatabiliriz.
+
+```php
+echo $this->user->config['db.identifier'];   // Çıktı username
+echo $this->user->config['db.password'];     // Çıktı password
+echo $this->user->config['cache.key'];       // Çıktı Auth
+
+echo $this->user->config['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
+```
+
+### User Identity Sınıfı İşlevleri
 
 ------
 
@@ -542,7 +558,6 @@ Array
     [__lastTokenRefresh] => 1413454236
     [__rememberMe] => 0
     [__token] => 6ODDUT3FtmmXEZ70.86f40e86
-    [__type] => Authorized
     [__time] => 1414244130.719945
     [id] => 1
     [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
@@ -805,10 +820,6 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
             <td>Güvenlik çerezi ( __token bir diğer adıyla Security Cookie ) nin güncel değerini içerir.</td>
         </tr>
         <tr>
-            <td>__type</td>
-            <td>Yetki doğrulama tiplerini içerir. Bu tipler sırasıyla şöyledir: <b>Guest, Unverified, Authorized, Unauthorized</b>.</td>
-        </tr>
-        <tr>
             <td>__time</td>
             <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
         </tr>
@@ -822,10 +833,6 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
 ------
 
 >Login sınıfı yetkisi doğrulanmamış (GenericUser) yada doğrulanmış (AuthorizedUser) kullanıcıya ait oturum işlemlerini yönetmenizi sağlar.
-
-##### $this->user->login->verification(booelan $bool);
-
-Yetki doğrulama onayını aktif yada kapalı hale getirir.
 
 ##### $this->user->login->attemp(array $credentials, $rememberMe = false);
 
@@ -904,6 +911,14 @@ Checks if the user is guest, if so, it returns to <b>true</b> otherwise <b>false
 ##### $this->user->identity->exists();
 
 Kimliğin önbellekte olup olmadığını kotrol eder. Varsa <b>true</b> yoksa <b>false</b>değerine döner.
+
+##### $this->user->identity->makeTemporary();
+
+Başarılı giriş yapmış kullanıcıya ait kimliği konfigurasyon dosyasından belirlenmiş sona erme ( expire ) süresine göre geçici hale getirir. Süre sona erdiğinden kimlik hafıza deposundan silinir.
+
+##### $this->user->identity->makePermanent();
+
+Başarılı giriş yapmış kullanıcıya ait geçici kimliği konfigurasyon dosyasından belirlenmiş kalıcı süreye ( lifetime ) göre kalıcı hale getirir. Süre sona erdiğinde veritabanına tekrar sql sorgusu yapılarak kimlik tekrar hafızaya yazılır.
 
 ##### $this->user->identity->isVerified();
 

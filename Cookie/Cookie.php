@@ -76,8 +76,6 @@ Class Cookie
      */
     public function write(array $cookie)
     {
-        $this->c['logger']->alert('Cookie values', array($cookie));
-
         setcookie(
             $cookie['prefix'].$cookie['name'],
             $cookie['value'],
@@ -193,14 +191,15 @@ Class Cookie
     * Delete a cookie
     *
     * @param string $name   cookie
+    * @param string $prefix prefix
     * @param string $domain the cookie domain.  Usually:  ".yourdomain.com"
     * @param string $path   the cookie path     generally "/""
     * 
     * @return   void
     */
-    public function delete($name = '', $domain = '', $path = '/')
+    public function delete($name = '', $prefix = '', $domain = '', $path = '/')
     {
-        $this->set($name, '', '', $domain, $path);
+        $this->set($name, '', 0, $domain, $path, false, false, $prefix);
     }
 
     /**
@@ -223,8 +222,6 @@ Class Cookie
     public function queue($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
     {
         $cookie = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
-
-        $this->c['logger']->debug('Cookie sent to queue', array('cookie' => $cookie));
 
         if (is_string($name)) {
             $this->queued[$name] = $cookie;
