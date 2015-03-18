@@ -109,7 +109,7 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
     'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
     'provider' => array(
         'driver' => 'memcached',
-        'connection' => 'second'
+        'connection' => 'default'
     ),
 )
 ```

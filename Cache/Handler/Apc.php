@@ -3,7 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\Container,
+use Obullo\Container\Container;
 
 /**
  * Apc Caching Class
