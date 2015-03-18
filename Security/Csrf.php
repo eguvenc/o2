@@ -53,7 +53,7 @@ Class Csrf
     public function __construct($c)
     {
         $this->c = $c;
-        $this->config = $c['config']['security'];
+        $this->config = $c['config']->load('security');
         $this->logger = $c['logger'];
         $this->response = $c['response'];
 
