@@ -15,8 +15,8 @@ trait UniqueLoginTrait
     {
         if ($this->c['config']['auth']['session']['unique']) {  // Unique Session is the property whereby a single action of activity
             $sessions = $this->c['auth.storage']->getAllSessions();
-
-            if (sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
+            $this->c['logger']->error('UniqueLoginTrait session', [$sessions]);
+            if (empty($sessions) OR sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
                 return;
             }
             $sessionKeys = array();  
