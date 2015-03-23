@@ -99,7 +99,7 @@ Class AMQPConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Connection key %s not exists in your queue.php config file.',
+                    'Connection key %s does not exist in your queue.php config file.',
                     $params['connection']
                 )
             );

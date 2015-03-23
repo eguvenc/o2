@@ -14,9 +14,10 @@ trait UniqueLoginTrait
     public function uniqueLoginCheck()
     {
         if ($this->c['config']['auth']['session']['unique']) {  // Unique Session is the property whereby a single action of activity
-            $sessions = $this->c['auth.storage']->getAllSessions();
 
-            if (sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
+            $sessions = $this->c['auth.storage']->getUserSessions();
+
+            if (empty($sessions) OR sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
                 return;
             }
             $sessionKeys = array();  
@@ -27,10 +28,9 @@ trait UniqueLoginTrait
             $protectedSession = $sessionKeys[$lastSession];
             unset($sessions[$protectedSession]);            // Don't touch the current session
 
-            foreach (array_keys($sessions) as $lid) {       // Destroy all other sessions
-                $this->c['auth.identity']->killSignal($lid);
+            foreach (array_keys($sessions) as $loginID) {       // Destroy all other sessions
+                $this->c['auth.identity']->killSignal($loginID);
             }
-
             $this->c['logger']->debug('Unique login addon initialized, user session has been terminated.');
         }
     }

@@ -153,10 +153,6 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
             </td>
         </tr>
         <tr>
-            <td>security[cookie]</td>
-            <td>Güvenlik çerezi ( Security Token ) varsayılan olarak kendisini her bir 1 dakika da bir yeniler oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigürasyon dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniyeye düşürebilirsiniz. Bu çereze ait <b>isValidToken()</b> adındaki kontrol fonksiyonu <b>Obullo/Authentication/User/Identity</b> sınıfı içerisinde çalışır.</td>
-        </tr>
-        <tr>
             <td>security[passwordNeedsRehash][cost]</td>
             <td>Bu değer Crypt/Password kütüphanesi tarafından şifre hash işlemi için kullanılır. Varsayılan değer 6 dır fakat maximum 8 ila 12 arasında olmalıdır aksi takdirde uygulamanız yetki doğrulama aşamasında performans sorunları yaşayabilir. 8 veya 10 değerleri orta donanımlı bilgisayarlar için 12 ise güçlü donanımlı ( çekirdek sayısı fazla ) bilgisayarlar için tavsiye edilir.</td>
         </tr>
@@ -807,20 +803,8 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
             <td>Yetki doğrulama onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
         </tr>
         <tr>
-            <td>__lastTokenRefresh</td>
-            <td>Güvenlik çerezindeki token değerinin en son ne zaman güncellendiğini takip eden zaman damgasıdır. Güvenlik çerezi ( Security Cookie ) varsayılan olarak kendisini her bir dakika da bir yeniler, oluşturulan damga kullanıcı tarayıcısına ve önbelleğe (storage) kaydedilir. Kullanıcı sistemi kullanırken sayfa yenilemelerinde ön bellekteki güvenlik damgası ( token ) kullanıcının tarayıcısına kaydedilen çerezin değeri ile eşleşmez ise kullanıcı sistemden dışarı atılır. Böylelikle session hijacking gibi güvenlik tehditlerinin önüne geçilmiş olunur. Yenileme zamanı auth konfigüre dosyasından ayarlanabilir bir değerdir. Eğer daha güçlü bir koruma istiyorsanız bu bu süreyi 30 saniye gibi bir süreye düşürebilirsiniz.</td>
-        </tr>
-        <tr>
             <td>__rememberMe</td>
             <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__token</td>
-            <td>Güvenlik çerezi ( __token bir diğer adıyla Security Cookie ) nin güncel değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__tokenFrequency</td>
-            <td>Güvenlik çerezini belirli bir istek limiti dolduğunda kontrol edilmesini sağlayan doğrulama sıklığıdır.</td>
         </tr>
         <tr>
             <td>__time</td>
@@ -841,6 +825,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
 
 Konfigürasyon dosyası veya user servisi parametrelerine döner.
 
+
 #### Login Sınıfı Referansı
 
 ------
@@ -859,9 +844,9 @@ Yetki doğrulama yapmadan kullanıcı Guest kimliği bilgilerine doğrulama işl
 
 AuthorizedUser kimliğine sahip kullanıcı bilgilerini dışarıdan gelen yeni bilgiler ile karşılaştırarak doğrulama yapar.
 
-##### $this->user->login->getAllSessions();
+##### $this->user->login->getUserSessions();
 
-Geçerli kullanıcının oturumlarına bir dizi içerisinde geri döner. Her açılan oturuma bir login id verilir kullanıcılar farklı tarayıcılarda veya aygıtlarda birden fazla oturum açmış olabilirler.
+Geçerli kullanıcının önbelleğe kaydedilmiş oturumlarına bir dizi içerisinde geri döner. Her açılan oturuma bir login id verilir ve kullanıcılar farklı tarayıcılarda veya aygıtlarda birden fazla oturum açmış olabilirler.
 
 
 #### AuthResult Sınıfı Referansı

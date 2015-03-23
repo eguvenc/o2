@@ -30,14 +30,7 @@ class Memcached implements CacheHandlerInterface
      * 
      * @var object
      */
-    public $memcached;
-
-    /**
-     * Service provider parameters
-     * 
-     * @var array
-     */
-    protected $options = array();
+    protected $memcached;
 
     /**
      * Available serializers
@@ -54,14 +47,14 @@ class Memcached implements CacheHandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c       container
-     * @param array $options options
+     * @param array  $c         container
+     * @param object $memcached Memcached
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(Container $c, \Memcached $memcached)
     {
         $this->c = $c;
-        $this->options = $options;
-        $this->params = $c['config']['cache']['memcached'];
+        $this->memcached = $memcached; 
+        $this->config = $this->c['config']['cache/memcached'];
 
         $this->connect();
     }
@@ -73,9 +66,6 @@ class Memcached implements CacheHandlerInterface
      */
     public function connect()
     {
-        $this->config = $this->c['config']['cache/memcached'];
-        $this->memcached = $this->c['service provider memcached']->get($this->options);
-
         $this->openNodeConnections();
         return true;
     }
@@ -91,7 +81,7 @@ class Memcached implements CacheHandlerInterface
             return;
         }
         foreach ($this->config['nodes'] as $servers) {
-            if ( empty($servers['host']) OR empty($servers['port'])) {
+            if (empty($servers['host']) OR empty($servers['port'])) {
                 throw new RunTimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
@@ -124,7 +114,7 @@ class Memcached implements CacheHandlerInterface
      */
     public function setSerializer($serializer = 'php')
     {
-        $this->memcached->setOption(Memcached::OPT_SERIALIZER, $this->serializers[$serializer]);
+        $this->memcached->setOption(\Memcached::OPT_SERIALIZER, $this->serializers[$serializer]);
     }
 
     /**

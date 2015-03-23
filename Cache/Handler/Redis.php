@@ -26,18 +26,11 @@ class Redis implements CacheHandlerInterface
     protected $c;
 
     /**
-     * Redis client
+     * Php redis client
      * 
      * @var object
      */
     protected $redis;
-
-    /**
-     * Service provider parameters
-     * 
-     * @var array
-     */
-    protected $options = array();
 
     /**
      * Available serializers
@@ -53,13 +46,14 @@ class Redis implements CacheHandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c       container
-     * @param array $options service provider options
+     * @param array  $c     container
+     * @param object $redis Redis
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(Container $c, \Redis $redis)
     {
         $this->c = $c;
-        $this->options = $options;
+        $this->redis = $redis;
+        $this->config = $this->c['config']['cache/redis'];
 
         if ( ! $this->connect()) {
             throw new RunTimeException(
@@ -78,9 +72,6 @@ class Redis implements CacheHandlerInterface
      */
     public function connect()
     {
-        $this->redis = $this->c['service provider redis']->get($this->options);
-        $this->config = $this->c['config']['cache/redis'];
-
         $this->openNodeConnections();
 
         if ($this->isConnected()) {
@@ -113,7 +104,7 @@ class Redis implements CacheHandlerInterface
     }
 
     /**
-     * If method not exists call from Redis class
+     * If method does not exist call from Redis class
      * 
      * @param string $method    methodname
      * @param array  $arguments method arguments

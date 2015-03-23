@@ -51,6 +51,16 @@ abstract class AbstractStorage
     }
 
     /**
+     * Check user has identifier
+     * 
+     * @return bool
+     */
+    public function hasIdentifier()
+    {
+        return ($this->getIdentifier() == '__empty') ? false : true;
+    }
+
+    /**
      * Register credentials to temporary storage
      * 
      * @param array $credentials user identities

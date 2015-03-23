@@ -31,10 +31,9 @@ Class MailerConnectionProvider extends AbstractConnectionProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('mailer');
+        $this->config = $this->c['config']->load('mailer/transport');
 
         $this->setKey('mailer.factory.');
-
     }
 
     /**
@@ -49,31 +48,19 @@ Class MailerConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($this->config['drivers'][$params['driver']])) {
             throw new RuntimeException(
                 sprintf(
-                    'Driver key %s not exists in your mailer.php config file.',
+                    'Driver key %s does not exist in your mailer.php config file.',
                     $params['driver']
                 )
             );
         }
-        if (isset($params['options']['queue']) AND $params['options']['queue'] == true) {   // Queue Mailer Support
-
-            $queue = new Queue($this->c);
+        if ($params['options']['queue']) {   // Queue Mailer Support
+            
+            $queue = new Queue($this->c);          // Connect to Queue
             $queue->setMailer($params['driver']);  // Set mail driver for Mailer/Queue class
             return $queue;
         }
         $Class = $this->config['drivers'][$params['driver']];
         return new $Class($this->c);
-    }
-
-    /**
-     * Retrieve shared mongo connection instance from connection pool
-     *
-     * @param array $params provider parameters
-     * 
-     * @return object MongoClient
-     */
-    public function getClass($params = array())
-    {
-        return $this->factory($params);
     }
 
     /**
@@ -87,6 +74,9 @@ Class MailerConnectionProvider extends AbstractConnectionProvider
     {   
         if ( ! isset($params['driver'])) {
             throw new UnexpectedValueException("Mailer driver requires driver parameter.");
+        }
+        if ( ! isset($params['options']['queue'])) {  // If queue option not selected we set queue option as "false" by default
+            $params['options']['queue'] = false;
         }
         $cid = $this->getKey($this->getConnectionId($params));
 

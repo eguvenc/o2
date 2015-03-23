@@ -7,7 +7,10 @@ use Auth\Identities\GenericUser;
 use Obullo\Authentication\Token;
 
 /**
- * O2 Authentication - RememberMe Recaller
+ * O2 Authentication - Recaller
+ *
+ * Remember the users when they come back, if remeber me cookie exist
+ * authenticate the user using recaller.
  *
  * @category  Authentication
  * @package   Token
@@ -16,7 +19,7 @@ use Obullo\Authentication\Token;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Recaller
+class Recaller
 {
     /**
      * Container
@@ -26,18 +29,18 @@ Class Recaller
     protected $c;
 
     /**
-     * Storage
-     * 
-     * @var object
-     */
-    protected $storage;
-
-    /**
      * Config
      * 
      * @var array
      */
     protected $config;
+
+    /**
+     * Storage
+     * 
+     * @var object
+     */
+    protected $storage;
 
     /**
      * Constructor
@@ -93,13 +96,14 @@ Class Recaller
      */
     protected function removeInactiveSessions()
     {
-        $sessions = $this->storage->getAllSessions();
-        if (count($sessions) == 0) {
+        $sessions = $this->storage->getUserSessions();
+
+        if (sizeof($sessions) == 0) {
             return;
         }
-        foreach ($sessions as $aid => $val) {       // Destroy all inactive sessions
-            if ($val['__isAuthenticated'] == 0) {  
-                $this->storage->killSession($aid);
+        foreach ($sessions as $loginID => $val) {       // Destroy all inactive sessions
+            if (isset($val['__isAuthenticated']) AND $val['__isAuthenticated'] == 0) {  
+                $this->storage->killSession($loginID);
             }
         }
     }
@@ -117,7 +121,7 @@ Class Recaller
             null,
             -1,
             $cookie['path'],
-            $this->c['config']['cookie']['domain'],   //  Get domain from global config
+            $cookie['domain'],   //  Get domain from global config
             $cookie['secure'], 
             $cookie['httpOnly']
         );

@@ -3,7 +3,7 @@
 namespace Obullo\Authentication\Storage;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
  * Cache storage interface
@@ -20,10 +20,10 @@ interface StorageInterface
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $provider ServiceProviderInterface
+     * @param object $c     container
+     * @param object $cache CacheHandlerInterface
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider);
+    public function __construct(Container $c, CacheHandlerInterface $cache);
 
     /**
      * Returns true if temporary credentials "not" exists
@@ -102,11 +102,11 @@ interface StorageInterface
     public function getAllKeys($block = '__permanent');
 
     /**
-     * Get multiple authenticated sessions
+     * Returns to database sessions
      * 
-     * @return array|false
+     * @return array
      */
-    public function getAllSessions();
+    public function getUserSessions();
 
     /**
      * Kill session using by login id

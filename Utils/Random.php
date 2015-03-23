@@ -12,7 +12,7 @@ namespace Obullo\Utils;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/utils
  */
-Class Random
+class Random
 {
     /**
     * Create a Random String

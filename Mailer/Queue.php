@@ -4,20 +4,20 @@ namespace Obullo\Mailer;
 
 use Obullo\Mailer\Response;
 use Obullo\Container\Container;
-use Obullo\Mailer\Transport\AbstractAdapter;
-use Obullo\Mailer\Transport\TransportInterface;
+use Obullo\Mailer\Transport\HttpMailer;
+use Obullo\Mailer\Transport\MailerInterface;
 
 /**
  * Queue Mailer Transport
  *
  * @category  Mail
- * @package   Transport
+ * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
-Class Queue extends AbstractAdapter  implements TransportInterface 
+class Queue extends HttpMailer implements MailerInterface
 {
     /**
      * Logger
@@ -38,7 +38,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      * 
      * @var object
      */
-    protected $queue;
+    protected $queueService;
 
     /**
      * Config params
@@ -52,7 +52,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      * 
      * @var string
      */
-    protected $mailerName = 'smtp';
+    protected $mailer = 'smtp';
 
     /**
      * Queue push response array
@@ -70,12 +70,13 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      */
     public function __construct(Container $c)
     {
-        $this->config = $c['config']->load('mailer');
-        $this->queue = $c['queue'];
+        $this->queueService = $c['queue'];
+        $this->config = $c['config']->load('mailer/transport');
+
         $this->logger = $c['logger'];
         $this->logger->debug('Mailer Queue Class Initialized');
 
-        parent::__construct($c, $this->config);
+        parent::__construct($c);
     }
 
     /**
@@ -87,7 +88,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
      */
     public function setMailer($mailer)
     {
-        $this->mailerName = $mailer;
+        $this->mailer = $mailer;
     }
 
     /**
@@ -281,15 +282,15 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     protected function push(array $payload)
     {
         $start = microtime(true);
-
         $route = $this->config['queue']['route'];
 
-        $this->queue->channel($this->config['queue']['channel']);   // Push
-        $push = $this->queue->push($this->config['queue']['worker'], $route, $payload);
+        $this->queueService->channel($this->config['queue']['channel']);   // Push
+        $push = $this->queueService->push($this->config['queue']['worker'], $route, $payload);
+
         $this->debugMsg[] = ($push) ? 'Mailer push success.' : 'Mailer push failed.';
 
         $time = microtime(true) - $start;
-        $this->logger->debug('Queue mailer push', array('payload' => $payload, 'time' => number_format($time * 1000, 2) . 'ms'));
+        $this->logger->debug('Queue mailer push success', array('payload' => $payload, 'time' => number_format($time * 1000, 2) . 'ms'));
     
         if ( ! $push) {
             $this->logger->error('Queue mailer push failed', array('route' => $route));
@@ -306,7 +307,7 @@ Class Queue extends AbstractAdapter  implements TransportInterface
     public function spoolEmail()
     {
         if ( ! isset($this->message['mailer'])) {
-            $this->message['mailer'] =  $this->mailerName;
+            $this->message['mailer'] =  $this->mailer;
         }
         $this->message['mailtype'] = $this->getMailType();
         $this->message['subject'] = $this->subject;

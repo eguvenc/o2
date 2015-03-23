@@ -75,10 +75,10 @@ Class RedisConnectionProvider extends AbstractConnectionProvider
     protected function createConnection(array $value)
     {
         $this->redis = new Redis;
-        $timeout = (empty($value['timeout'])) ? 0 : $value['timeout'];
+        $timeout = (empty($value['options']['timeout'])) ? 0 : $value['options']['timeout'];
 
-        if (isset($value['options']['persistent']) AND $value['options']['persistent'] == 1) {
-            $this->redis->pconnect($value['host'], $value['port'], $timeout, null, $value['reconnection.attemps']);
+        if (isset($value['options']['persistent']) AND $value['options']['persistent']) {
+            $this->redis->pconnect($value['host'], $value['port'], $timeout, null, $value['options']['attempt']);
         } else {
             $this->redis->connect($value['host'], $value['port'], $timeout);
         }
@@ -158,7 +158,7 @@ Class RedisConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Connection key %s not exists in your redis configuration.',
+                    'Connection key %s does not exist in your redis configuration.',
                     $params['connection']
                 )
             );

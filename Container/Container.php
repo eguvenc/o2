@@ -135,7 +135,7 @@ class Container implements ArrayAccess
             $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
         }
 
-        if ( ! isset($this->values[$cid])) {  // If not exists in container we load it directly.
+        if ( ! isset($this->values[$cid])) {  // If does not exist in container we load it directly.
             return $this->load($cid);        //  Load service providers, services and none component libraries like cookie, url ..
         }
 
@@ -158,8 +158,8 @@ class Container implements ArrayAccess
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
 
-        // Below the side If container value not exists in the controller instance
-        // then we assign container object into controler instance.
+        // Below the side If container value does not exist in the controller instance
+        // then we assign container object into controller instance.
     
         // Also this side assign libraries to all Layers. 
         // In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
@@ -580,6 +580,18 @@ class Container implements ArrayAccess
 
         $this->registeredProviders[$cid] = $provider;
         return $this;
+    }
+
+    /**
+     * Check provider is registered
+     * 
+     * @param string $provider key like cache, redis, memcache
+     * 
+     * @return boolean
+     */
+    public function isRegistered($provider)
+    {
+        return isset($this->registeredProviders[$provider]);
     }
 
 }

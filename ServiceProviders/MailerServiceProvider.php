@@ -37,25 +37,13 @@ class MailerServiceProvider implements ServiceProviderInterface
     }
 
     /**
-     * Get connection
-     *
-     * @param array $params array
-     *
-     * @return object
-     */
-    public function get($params = array())
-    {
-        return $this->connector->getClass($params);  // Get a mailer instance before we registered into container
-    }
-
-    /**
      * Create new connection
      * 
      * @param array $params array
      *
      * @return object
      */
-    public function factory($params = array())
+    public function get($params = array())
     {
         return $this->connector->factory($params);  // Create new mailer instance
     }

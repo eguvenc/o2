@@ -3,21 +3,23 @@
 use Obullo\Error\DebugOutput;
 
 if (isset($fatalError)) {
-    echo "\33[1;36mFatal Error\33[0m\n";
+    echo "\33[1;31mFatal Error\33[0m\n";
     // We could not load error libraries when error is fatal.
-    echo "\33[0;36m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage())."\n";
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\33[0m\n";
+    echo "\33[0;31m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getMessage())."\33[0m\n";
+    echo "\33[0;31m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'CONTROLLERS' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\33[0m\n";
     exit;
 }
-echo "\33[1;36mException Error\n". DebugOutput::getSecurePath($e->getMessage())."\n";
+echo "\33[1;31mException Error\n". DebugOutput::getSecurePath($e->getMessage())."\33[0m\n";
 
 if (isset($lastQuery) AND ! empty($lastQuery)) {
-    echo 'SQL: ' . $lastQuery . "\n";
+    echo "\33[0;31m".'SQL: ' . $lastQuery . "\33[0m\n";
 }
-echo $e->getCode().' '.DebugOutput::getSecurePath($e->getFile()). ' Line : ' . $e->getLine() . "\n";
+echo "\33[0;31m".$e->getCode().' '.DebugOutput::getSecurePath($e->getFile()). ' Line : ' . $e->getLine() ."\33[0m\n";
 
-echo "\33[0;36m".strip_tags(DebugOutput::debugFileSource($eTrace))."\33[0m";
-echo "\33[1;36mDetails: \33[0m\n\33[0;36m";
+if (isset($eTrace)) {
+    echo "\33[0;31m".strip_tags(DebugOutput::debugFileSource($eTrace))."\33[0m";
+}
+
 $fullTraces  = $e->getTrace();
 $debugTraces = array();
 
@@ -27,6 +29,8 @@ foreach ($fullTraces as $key => $val) {
     }
 }
 if (isset($debugTraces[0]['file']) AND isset($debugTraces[0]['line'])) {
+
+    echo "\33[1;31mDetails: \33[0m\n\33[0;31m";
 
     if (isset($debugTraces[1]['file']) AND isset($debugTraces[1]['line'])) {    
         $output = '';

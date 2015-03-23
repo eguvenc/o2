@@ -22,12 +22,10 @@ Class Apc implements CacheHandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c       container
-     * @param array $options options
+     * @param array $c container
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(Container $c)
     {
-        $options = array();
         $c = null;
         
         if ( ! extension_loaded('apc') OR ini_get('apc.enabled') != '1') {

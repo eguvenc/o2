@@ -16,6 +16,13 @@ namespace Obullo\Log\Console\Printer;
 Class Colorful
 {
     /**
+     * Log message
+     * 
+     * @var string
+     */
+    protected $message;
+
+    /**
      * Print current line
      * 
      * @param integer $i    line number
@@ -28,40 +35,33 @@ Class Colorful
         if ($i == 0) {
             $line = str_replace("\n", '', $line);
         }
-        $line = trim(preg_replace('/[\r\n]/', "\n", $line), "\n"); // Remove all newlines   
-        $out  = explode('.', $line);
-        if (isset($out[1])) {
-            $messageBody = $out[1];
-        }
-        if (isset($messageBody)) {
-            $line = $this->writeSQL($messageBody, $line);
-            $line = $this->writeHeader($messageBody, $line);
-            $line = $this->writeBody($messageBody, $line);
+        $this->message = $line = trim(preg_replace('/[\r\n]/', "\n", $line), "\n"); // Remove all newlines   
 
-            $this->writeFinalOutput($messageBody, $line);
-            $this->writeLevels($messageBody, $line);
-        }
+        $line = $this->writeSQL($line);
+        $line = $this->writeHeader($line);
+        $line = $this->writeBody($line);
 
+        $this->writeFinalOutput($line);
+        $this->writeLevels($line);
     }
 
     /**
      * Write header
      * 
-     * @param string $messageBody text
-     * @param string $line        line
+     * @param string $line line
      * 
      * @return string line
      */
-    protected function writeHeader($messageBody, $line)
+    protected function writeHeader($line)
     {
         $break = "\n------------------------------------------------------------------------------------------";
-        if (strpos($messageBody, '$_') !== false) {
+        if ($this->has('$_')) {
             $line = preg_replace('/\s+/', ' ', $line);
             $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
 
-            if (strpos($messageBody, '$_REQUEST_URI') !== false) {
+            if ($this->has('$_REQUEST_URI')) {
                 $line  = "\033[0;37m".$break."\n".$line.$break."\033[0m";
-            } elseif (strpos($messageBody, '$_LAYER') !== false) {
+            } elseif ($this->has('$_LAYER')) {
                 $line = "\033[0;37m".strip_tags($line)."\033[0m";
             } else {
                 $line = "\033[0;37m".$line."\033[0m";
@@ -73,17 +73,16 @@ Class Colorful
     /**
      * Write header
      * 
-     * @param string $messageBody text
-     * @param string $line        line
+     * @param string $line text
      * 
      * @return string line
      */
-    protected function writeBody($messageBody, $line)
+    protected function writeBody($line)
     {        
-        if (strpos($messageBody, '$_TASK') !== false) {
+        if ($this->has('$_TASK')) {
             $line = "\033[0;37m".$line."\033[0m";
         }
-        if (strpos($messageBody, 'loaded:') !== false) {
+        if ($this->has('loaded:')) {
             $line = "\033[0;37m".$line."\033[0m";
         }
         return $line;
@@ -92,14 +91,13 @@ Class Colorful
     /**
      * Write sql
      * 
-     * @param string $messageBody text
-     * @param string $line        line
+     * @param string $line line
      * 
      * @return string line
      */
-    protected function writeSQL($messageBody, $line)
+    protected function writeSQL($line)
     {
-        if (strpos($messageBody, '$_SQL') !== false) {   // Remove unnecessary spaces from sql output
+        if ($this->has('$_SQL')) {   // Remove unnecessary spaces from sql output
             $line = "\033[1;32m".preg_replace('/[\s]+/', ' ', $line)."\033[0m";
             $line = preg_replace('/[\r\n]/', "\n", $line);
         }
@@ -109,18 +107,17 @@ Class Colorful
     /**
      * Write final response info
      * 
-     * @param string $messageBody text
-     * @param string $line        line
+     * @param string $line line
      * 
      * @return void
      */
-    protected function writeFinalOutput($messageBody, $line)
+    protected function writeFinalOutput($line)
     {
-        if (strpos($messageBody, 'debug') !== false) {   // Do not write two times
-            if (strpos($messageBody, '--> Final output sent') !== false) {
+        if ($this->has('debug:')) {   // Do not write two times
+            if ($this->has('--> Final output sent')) {
                 $line = "\033[0m"."\033[0;37m".$line."\033[0m";
             }
-            if (strpos($messageBody, '--> Header redirect') !== false) {
+            if ($this->has('--> Header redirect')) {
                 $line = "\033[0m"."\033[0;35m".$line."\033[0m";
             }
             $line = "\033[0;37m".$line."\033[0m";
@@ -131,38 +128,50 @@ Class Colorful
     /**
      * Write log levels
      * 
-     * @param string $messageBody text
-     * @param string $line        line
+     * @param string $line line
      * 
      * @return void
      */
-    protected function writeLevels($messageBody, $line)
+    protected function writeLevels($line)
     {
-        if (strpos($messageBody, 'info') !== false) {
+        if ($this->has('info:')) {
             $line = "\033[1;33m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'error') !== false) {
+        } elseif ($this->has('error:')) {
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'alert') !== false) {
+        } elseif ($this->has('alert:')) {
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'emergency') !== false) {
+        } elseif ($this->has('emergency:')) {
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'critical') !== false) {
+        } elseif ($this->has('critical:')) {
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'warning') !== false) {
+        } elseif ($this->has('warning:')) {
             $line = "\033[1;31m".$line."\033[0m";
             echo $line."\n";
-        } elseif (strpos($messageBody, 'notice') !== false) {
+        } elseif ($this->has('notice:')) {
             $line = "\033[1;33m".$line."\033[0m";
             echo $line."\n";
         }
     }
 
-
+    /**
+     * Check has colorful level
+     * 
+     * @param string $level name
+     * 
+     * @return boolean
+     */
+    protected function has($level)
+    {
+        if (strpos($this->message, $level) !== false) {
+            return true;
+        }
+        return false;
+    }
 }
 
 // Terminal Colour Codes.

@@ -193,13 +193,10 @@ Class Layer
         $KEY = $this->getId();         // Get layer id
         $start = microtime(true);   // Start query timer 
 
-        if ($this->params['cache']) {
-            $response = $this->c['cache']->get($KEY);     // This type cache use cache package
-            if ( ! empty($response)) {              // If cache exists return to cached string.
-                $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
-                $this->reset();
-                return base64_decode($response);
-            }
+        if ($this->params['cache'] AND $response = $this->c['cache']->get($KEY)) {   
+            $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
+            $this->reset();
+            return base64_decode($response);
         }
         if ($this->c['response']->getError() != '') {  // If router dispatch fail ?
             $error = $this->c['response']->getError();

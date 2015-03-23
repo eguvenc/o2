@@ -15,49 +15,80 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class Memcache implements CacheHandlerInterface
+class Memcache implements CacheHandlerInterface
 {
-    const SERIALIZER_NONE = 'none';
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
 
     /**
      * Memcache object
      * 
      * @var object
      */
-    public $memcache;
+    protected $memcache;
 
     /**
-     * Connection settings
+     * Default memcache connection
      * 
      * @var array
      */
-    public $params = array();
+    protected $defaultConnection = array();  // Default connection array in config redis.php
 
     /**
      * Constructor
      * 
-     * @param array $c       container
-     * @param array $options options
+     * @param array  $c        container
+     * @param object $memcache Memcache
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(Container $c, \Memcache $memcache)
     {
-        $options = array();
-        $c['config']->load('cache');
-        $this->params = $c['config']['cache']['memcache'];
-        
-        if ( ! extension_loaded('memcache')) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s driver is not installed.', get_class()
-                )
-            );
+        $this->c = $c;
+        $this->memcache = $memcache;
+        $this->config = $this->c['config']['cache/memcache'];
+
+        $this->defaultConnection = $this->config['connections'][key($this->config['connections'])];
+        $this->connect();
+    }
+
+    /**
+     * Connect to Memcached
+     * 
+     * @return boolean
+     */
+    public function connect()
+    {
+        $this->openNodeConnections();
+        return true;
+    }
+
+    /**
+     * Connect to memcached nodes
+     * 
+     * @return void
+     */
+    protected function openNodeConnections()
+    {
+        if ( ! empty($this->config['nodes'][0]['host']) AND ! empty($this->config['nodes'][0]['port'])) {
+            array_unshift($this->config['nodes'], $this->defaultConnection);  // Add default connection to nodes
+        } else {
+            return;  // If there is no node.
         }
-        if ( ! $this->connect()) {
-            throw new RunTimeException(
-                sprintf(
-                    ' %s connection failed.', get_class()
-                )
-            );
+        $default = $this->defaultConnection['options'];
+
+        foreach ($this->config['nodes'] as $servers) {
+            if ( empty($servers['host']) OR empty($servers['port'])) {
+                throw new RunTimeException(
+                    sprintf(
+                        ' %s node configuration error, host or port can\'t be empty.',
+                        get_class()
+                    )
+                );
+            }
+            $this->memcache->addServer($servers['host'], $servers['port'], $default['persistent'], $servers['weight'], $default['timeout'], $default['attempt']);
         }
     }
 
@@ -72,35 +103,41 @@ Class Memcache implements CacheHandlerInterface
     }
 
     /**
-     * Connect to Memcache
+     * Sets serializer
      * 
-     * @return boolean
+     * @param string $serializer type
+     *
+     * @return void
      */
-    public function connect()
+    public function setSerializer($serializer = 'php')
     {
-        $this->memcache = new \Memcache;
-        foreach ($this->params['servers'] as $servers) {
-            if ( ! isset($servers['hostname']) AND ! isset($servers['port'])) {
-                throw new RunTimeException(
-                    sprintf(
-                        ' %s connection configuration items hostname or port can\'t be empty.', get_class()
-                    )
-                );
-            }
-            if ( ! isset($servers['weight'])) {
-                $servers['weight'] = 1;
-            }
-            if (is_array($servers)) {
-                if ( ! $this->memcache->addServer($servers['hostname'], $servers['port'], $servers['weight'])) {
-                    return false;
-                }
-            } else {
-                if ( ! $this->memcache->addServer($this->params['servers']['hostname'], $this->params['servers']['port'], $this->params['servers']['weight'])) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return $serializer;
+    }
+
+    /**
+     * Get client option.
+     * http://www.php.net/manual/en/memcached.constants.php
+     * 
+     * @param string $option option constant
+     * 
+     * @return bool false
+     */
+    public function getOption($option = 'OPT_SERIALIZER')
+    {
+        return $option = false;
+    }
+
+    /**
+     * Set option
+     * 
+     * @param string $option constant name
+     * @param string $value  constant value name
+     *
+     * @return void
+     */
+    public function setOption($option = 'OPT_SERIALIZER', $value = 'SERIALIZER_PHP')
+    {
+        $option = $value = false;
     }
 
     /**

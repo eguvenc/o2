@@ -5,7 +5,7 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
  * O2 Authentication - Cache Storage
@@ -17,7 +17,7 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Cache extends AbstractStorage
+Class Cache extends AbstractStorage implements StorageInterface
 {
     protected $c;               // Container
     protected $cache;           // Cache class
@@ -30,19 +30,14 @@ Class Cache extends AbstractStorage
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $provider ServiceProviderInterface
+     * @param object $c     container
+     * @param object $cache CacheHandlerInterface
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider) 
+    public function __construct(Container $c, CacheHandlerInterface $cache) 
     {
         $this->c = $c;
         $this->config = $this->c['auth.config'];
-        $this->cache = $provider->get(
-            [
-                'driver' => $this->config['cache']['provider']['driver'],
-                'connection' => $this->config['cache']['provider']['connection']
-            ]
-        );
+        $this->cache = $cache;
         $this->cacheKey = (string)$this->config['cache.key'];
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
@@ -167,13 +162,13 @@ Class Cache extends AbstractStorage
      */
     public function deleteCredentials($block = '__temporary')
     {
-        $lid  = $this->getLoginId();
+        $loginID  = $this->getLoginId();
         $credentials = $this->cache->get($this->getBlock($block));  // Don't do container cache
 
-        if ( ! isset($credentials[$lid])) {  // already removed
+        if ( ! isset($credentials[$loginID])) {  // already removed
             return;
         }
-        unset($credentials[$lid]);
+        unset($credentials[$loginID]);
         $this->cache->set($this->getMemoryBlockKey($block), $credentials, $this->getMemoryBlockLifetime($block));
 
         $credentials = $this->cache->get($this->getBlock($block)); // Destroy auth block if its empty
@@ -207,24 +202,24 @@ Class Cache extends AbstractStorage
     }
 
     /**
-     * Get multiple authenticated sessions
+     * Returns to database sessions
      * 
      * @return array
      */
-    public function getAllSessions()
+    protected function getUserSessions()
     {
-        $sessions   = array();
+        $sessions = array();
         $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'));
         
         if ($dbSessions == false) {
             return $sessions;
         }
-        foreach ($dbSessions as $lid => $val) {
-            if (isset($val['__isAuthenticated']) AND $val['__isAuthenticated'] == 1) {
-                $sessions[$lid]['__isAuthenticated'] = $val['__isAuthenticated'];
-                $sessions[$lid]['__time'] = $val['__time'];
-                $sessions[$lid]['id']  = $this->getUserId();
-                $sessions[$lid]['key'] = $this->getMemoryBlockKey('__permanent');   
+        foreach ($dbSessions as $loginID => $val) {
+            if (isset($val['__isAuthenticated'])) {
+                $sessions[$loginID]['__isAuthenticated'] = $val['__isAuthenticated'];
+                $sessions[$loginID]['__time'] = $val['__time'];
+                $sessions[$loginID]['id']  = $this->getUserId();
+                $sessions[$loginID]['key'] = $this->getMemoryBlockKey('__permanent');   
             }
         }
         return $sessions;
@@ -233,14 +228,14 @@ Class Cache extends AbstractStorage
     /**
      * Kill session using by login id
      * 
-     * @param integer $loginId login id max e.g. 87060e89 ( user@example.com:87060e89 )
+     * @param integer $loginID login id e.g. 87060e89 ( user@example.com:87060e89 )
      * 
      * @return void
      */
-    public function killSession($loginId)
+    public function killSession($loginID)
     {
         $data = $this->cache->get($this->getMemoryBlockKey('__permanent'));
-        unset($data[$loginId]);
+        unset($data[$loginID]);
         $this->cache->set($this->getMemoryBlockKey('__permanent'), $data, $this->getMemoryBlockLifetime('__permanent'));
     }
 

@@ -22,7 +22,6 @@ Class MemcachedConnectionProvider extends AbstractConnectionProvider
     protected $c;          // Container
     protected $config;     // Database configuration items
     protected $memcached;  // Memcached extension
-    protected $defaultConnection = array();  // Default connection array in config memcached.php
 
     /**
      * Constructor
@@ -35,7 +34,6 @@ Class MemcachedConnectionProvider extends AbstractConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('cache/memcached');  // Load memcached configuration file
-        $this->defaultConnection = $this->config['connections'][key($this->config['connections'])];
 
         $this->setKey('memcached.connection.');
 
@@ -74,8 +72,8 @@ Class MemcachedConnectionProvider extends AbstractConnectionProvider
      */
     protected function createConnection(array $value)
     {
-        if ($value['options']['persistent']['connection'] && ! empty($value['options']['persistent']['pool'])) {
-            $this->memcached = new Memcached($value['options']['persistent']['pool']);
+        if ($value['options']['persistent'] && ! empty($value['options']['pool'])) {
+            $this->memcached = new Memcached($value['options']['pool']);
         } else {
             $this->memcached = new Memcached;
         }
@@ -88,6 +86,7 @@ Class MemcachedConnectionProvider extends AbstractConnectionProvider
             );
         }
         $this->setOptions($value['options']);
+        $this->memcached->setOption(Memcached::OPT_CONNECT_TIMEOUT, $value['options']['timeout']);
         return $this->memcached;
     }
 
@@ -198,7 +197,7 @@ Class MemcachedConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Connection key %s not exists in your memcached configuration.',
+                    'Connection key %s doest not exist in your memcached configuration.',
                     $params['connection']
                 )
             );

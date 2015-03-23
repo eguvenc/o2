@@ -5,7 +5,7 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Cache\Handler\CacheHandlerInterface;
 
 /**
  * O2 Authentication - Memory Storage
@@ -30,19 +30,14 @@ Class Redis extends AbstractStorage implements StorageInterface
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $provider ServiceProviderInterface
+     * @param object $c     container
+     * @param object $cache CacheHandlerInterface
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider) 
+    public function __construct(Container $c, CacheHandlerInterface $cache) 
     {
         $this->c = $c;
         $this->config = $this->c['auth.config'];
-        $this->cache = $provider->get(
-            [
-                'driver' => $this->config['cache']['provider']['driver'],
-                'connection' => $this->config['cache']['provider']['connection']
-            ]
-        );
+        $this->cache = $cache;
         $this->cacheKey = (string)$this->config['cache.key'];
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
@@ -175,11 +170,11 @@ Class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Get multiple authenticated sessions
+     * Returns to database sessions
      * 
      * @return array
      */
-    public function getAllSessions()
+    public function getUserSessions()
     {
         $sessions   = array();
         $identifier = $this->getUserId();
@@ -191,14 +186,14 @@ Class Redis extends AbstractStorage implements StorageInterface
         }
         foreach ($dbSessions as $val) {
             $exp = explode(':', $val);
-            $lid = end($exp);
+            $loginID = end($exp);
 
-            $isAuthenticated = $this->cache->hGet($key.$identifier.':'.$lid, '__isAuthenticated');
-            if ($isAuthenticated == 1) {
-                $sessions[$lid]['__isAuthenticated'] = $isAuthenticated;
-                $sessions[$lid]['__time'] = $this->cache->hGet($key.$identifier.':'.$lid, '__time');
-                $sessions[$lid]['id'] = $identifier;
-                $sessions[$lid]['key'] = $key.$identifier.':'.$lid;
+            $value = $this->cache->hGet($key.$identifier.':'.$loginID, '__isAuthenticated');
+            if ($value !== false) {
+                $sessions[$loginID]['__isAuthenticated'] = $value;
+                $sessions[$loginID]['__time'] = $this->cache->hGet($key.$identifier.':'.$loginID, '__time');
+                $sessions[$loginID]['id'] = $identifier;
+                $sessions[$loginID]['key'] = $key.$identifier.':'.$loginID;
             }
         }
         return $sessions;
@@ -207,13 +202,13 @@ Class Redis extends AbstractStorage implements StorageInterface
     /**
      * Kill session using by login id
      * 
-     * @param integer $loginId login id max e.g. 87060e89 ( user@example.com:87060e89 )
+     * @param integer $loginID login id e.g. 87060e89 ( user@example.com:87060e89 )
      * 
      * @return void
      */
-    public function killSession($loginId)
+    public function killSession($loginID)
     {
-        $this->deleteCredentials($this->cacheKey.':__permanent:'.$this->getUserId().':'.$loginId);
+        $this->deleteCredentials($this->cacheKey.':__permanent:'.$this->getUserId().':'.$loginID);
     }
 
 }

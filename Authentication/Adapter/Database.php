@@ -162,7 +162,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         $storageResult = $this->storage->query();  // First do query to permanent memory block if user exists return to cached auth
 
         /**
-         * If user auth does not exists in memory do SQL query
+         * If user auth does not exist in memory do SQL query
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
@@ -198,7 +198,6 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->columnIdentifier => $genericUser->getIdentifier(),
             $this->columnPassword => $resultRowArray[$this->columnPassword],
             '__rememberMe' => $genericUser->getRememberMe(),
-            '__token' => $this->c['auth.token']->get(),
             '__time' => ceil(microtime(true)),
         );
         /**

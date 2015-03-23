@@ -137,14 +137,14 @@ Class Login
     /**
      * Returns to all sessions of valid user
      *
-     * One user can open multiple login sessions on different 
-     * devices or browsers.
+     * One user may have multiple sessions on different 
+     * devices.
      * 
      * @return array
      */
-    public function getAllSessions()
+    public function getUserSessions()
     {
-        return $this->c['auth.storage']->getAllSessions();
+        return $this->c['auth.storage']->getUserSessions();
     }
 
 }

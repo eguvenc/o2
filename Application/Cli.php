@@ -4,7 +4,6 @@ namespace Obullo\Application;
 
 use Controller;
 use Obullo\Config\Env;
-use Obullo\Error\Debug;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
@@ -21,6 +20,12 @@ require 'Obullo.php';
  */
 $c = new Container;
 
+$c['env'] = function () use ($c) {
+    return new Env($c);
+};
+$c['config'] = function () use ($c) {
+    return new Config($c);
+};
 $c['app'] = function () {
     return new Cli;
 };
@@ -37,63 +42,23 @@ $c['app'] = function () {
 class Cli extends Obullo
 {
     /**
-     * Version
-     */
-    const VERSION = '2.0';
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Middlewares stack
-     * 
-     * @var array
-     */
-    protected $middleware = array();
-
-    /**
-     * Environments config
-     * 
-     * @var array
-     */
-    protected $envArray = array();
-
-    /**
      * Constructor
      *
      * @return void
      */
-    public function run()
+    public function init()
     {
         if (isset($_SERVER['REMOTE_ADDR'])) die('Access denied');
 
         global $c;
         $this->c = $c;
-        $this->envArray = include ROOT .'app'. DS .'environments.php';
-        $this->detectEnvironment();
 
-        $c['env'] = function () use ($c) {
-            return new Env($c);
-        };
-        $c['config'] = function () use ($c) {
-            return new Config($c);
-        };
-        if ($c['config']['error']['reporting']) {   // Disable / Ebable Php Native Errors
-            ini_set('display_errors', 1);
-            error_reporting(E_ALL | E_STRICT | E_NOTICE);
-        } else {
-            error_reporting(0);
-        }
-        date_default_timezone_set($c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
-        
-        if ($c['config']['error']['debug'] AND $c['config']['error']['reporting'] == false) {  // // If framework debug feature enabled we register error & exception handlers.
-            Debug::enable(E_ALL | E_NOTICE | E_STRICT);
-        }        
-        $this->middleware = array($this); // Define default middleware stack
+        $this->detectEnvironment();
+        $this->setErrorReporting();
+        $this->setDefaultTimezone();
+        $this->setDebugger();
+
+        // Warning : Http middlewares are disabled in Cli mode.
 
         include OBULLO_CONTROLLER;
         include OBULLO_COMPONENTS;
@@ -102,8 +67,6 @@ class Cli extends Obullo
         include OBULLO_ROUTES;
         
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
-
-        $this->exec();
     }
 
     /**
@@ -114,31 +77,33 @@ class Cli extends Obullo
      * 
      * @return void
      */
-    public function exec()
-    {
+    public function run()
+    {    
+        global $c;
+        $this->init();
         $this->c['router']->init();       // Initialize Routes
 
-        $module = $this->c['router']->fetchModule();
-        $directory = $this->c['router']->fetchDirectory();
+        $route = $this->c['uri']->getUriString();   // Get current uri
+        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+            $route = $this->c['app']->uri->getUriString();                             
+        }
         $class = $this->c['router']->fetchClass();
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
 
         include CONTROLLERS .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
-        $className = '\\'.$namespace.'\\'.$class;
-        $this->notFoundUri = "$module / $directory / $class / $method";
+        $this->className = '\\'.$namespace.'\\'.$class;
+        $this->notFoundUri = $route;
 
-        if ( ! class_exists($className, false)) {
-            $this->c['response']->show404($this->notFoundUri);
-        }
-        $this->class = new $className;  // Call the controller
+        $this->dispatchClass();
+
+        $this->class = new $this->className;  // Call the controller
         $this->method = $method;
 
         if (method_exists($this->class, 'load')) {
             $this->class->load();
         }
-
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }
@@ -160,7 +125,7 @@ class Cli extends Obullo
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';
         }
-        $this->dispatchMethod();  // Display 404 error if method not exists also runs extend() method.
+        $this->dispatchMethod();  // Display 404 error if method doest not exist also run extend() method.
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);

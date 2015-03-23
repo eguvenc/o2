@@ -43,42 +43,6 @@ class Token
     }
 
     /**
-     * Generates random token for o2 auth security cookie
-     *
-     * @return void
-     */
-    public function generate()
-    {
-        return Random::generate('alnum', 16);  // Creates smaller token
-    }
-
-    /**
-     * If token exists don't refresh return to old.
-     *
-     * @return string token
-     */
-    public function get()
-    {
-        $cookie = $this->config['security']['cookie'];
-        $cookie['value'] = $this->generate();
-        $this->c['cookie']->queue($cookie);
-
-        return $cookie['value'];
-    }
-
-    /**
-     * Get token from cookie
-     *
-     * @return string
-     */
-    public function getCookie()
-    {
-        $cookie = $this->config['security']['cookie'];
-        
-        return $this->c['cookie']->get($cookie['name'], $cookie['prefix']);
-    }
-
-    /**
      * Run cookie reminder
      *
      * @return string token

@@ -15,7 +15,7 @@ use Obullo\Log\Queue\QueueLogger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class LoggerServiceProvider
+class LoggerServiceProvider
 {
     /**
      * Container class
@@ -57,7 +57,7 @@ Class LoggerServiceProvider
      */
     public function disabled()
     {
-        return ($this->c['config']['log']['control']['enabled']) ? false : true;
+        return ($this->c['config']['log']['enabled']) ? false : true;
     }
 }
 

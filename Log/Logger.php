@@ -56,8 +56,8 @@ Class Logger extends AbstractLogger implements LoggerInterface
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->enabled = $this->c['config']['log']['control']['enabled'];
-        $this->debug = $this->c['config']['log']['control']['firelog'];
+        $this->enabled = $this->c['config']['log']['enabled'];
+        $this->debug = $this->c['config']['log']['debug'];
 
         $this->configureErrorHandlers();
         $this->initialize();

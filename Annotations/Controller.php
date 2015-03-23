@@ -48,7 +48,7 @@ Class Controller
         $this->c['annotation.middleware'] = function () use ($c) {
             return new Middleware($c);
         };
-        if ( ! $reflection->hasMethod($method)) {  // Show404 if method not exists
+        if ( ! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
             $this->c['response']->show404();
         }
         $this->blocks = '';

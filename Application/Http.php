@@ -4,7 +4,6 @@ namespace Obullo\Application;
 
 use Controller;
 use Obullo\Config\Env;
-use Obullo\Error\Debug;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
@@ -21,6 +20,12 @@ require 'Obullo.php';
  */
 $c = new Container;
 
+$c['env'] = function () use ($c) {
+    return new Env($c);
+};
+$c['config'] = function () use ($c) {
+    return new Config($c);
+};
 $c['app'] = function () {
     return new Http;
 };
@@ -37,30 +42,11 @@ $c['app'] = function () {
 class Http extends Obullo
 {
     /**
-     * Version
-     */
-    const VERSION = '2.0';
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
      * Middlewares stack
      * 
      * @var array
      */
     protected $middleware = array();
-
-    /**
-     * Environments config
-     * 
-     * @var array
-     */
-    protected $envArray = array();
 
     /**
      * Constructor
@@ -75,30 +61,16 @@ class Http extends Obullo
      *
      * @return void
      */
-    public function run()
+    public function init()
     {
         global $c;
         $this->c = $c;
-        $this->envArray = include ROOT .'app'. DS .'environments.php';
-        $this->detectEnvironment();
 
-        $c['env'] = function () use ($c) {
-            return new Env($c);
-        };
-        $c['config'] = function () use ($c) {
-            return new Config($c);
-        };
-        if ($c['config']['error']['reporting']) {   // Disable / Ebable Php Native Errors
-            ini_set('display_errors', 1);
-            error_reporting(E_ALL | E_STRICT | E_NOTICE);
-        } else {
-            error_reporting(0);
-        }
-        date_default_timezone_set($c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
+        $this->detectEnvironment();
+        $this->setErrorReporting();
+        $this->setDefaultTimezone();
+        $this->setDebugger();
         
-        if ($c['config']['error']['debug'] AND $c['config']['error']['reporting'] == false) {  // // If framework debug feature enabled we register error & exception handlers.
-            Debug::enable(E_ALL | E_NOTICE | E_STRICT);
-        }        
         $this->middleware = array($this); // Define default middleware stack
 
         include OBULLO_CONTROLLER;
@@ -106,8 +78,6 @@ class Http extends Obullo
         include OBULLO_PROVIDERS;
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
-
-        $this->exec();
     }
 
     /**
@@ -118,39 +88,34 @@ class Http extends Obullo
      * 
      * @return void
      */
-    public function exec()
+    public function run()
     {
         global $c;
-        $this->c['router']->init();       // Initialize Routes
+        $this->init();
+        $this->c['router']->init();                 // Initialize Routes
+        $route = $this->c['uri']->getUriString();   // Get current uri
 
-        $route = $this->c['uri']->getUriString();          // Get current uri
-        $routes = $this->c['router']->getAttachedRoutes();
-
-        if ($this->c->exists('app.uri')) {
-            $route = $this->c['app.uri']->getUriString();  // If layer used, use global request uri object instead of layered.
-                                                           // Filters always run once because of we don't init filters in Layer class.
+        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+            $route = $this->c['app']->uri->getUriString();                             
         }
-        
-        $module = $this->c['router']->fetchModule();
-        $directory = $this->c['router']->fetchDirectory();
         $class = $this->c['router']->fetchClass();
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
 
         include CONTROLLERS .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
-        $className = '\\'.$namespace.'\\'.$class;
-        $this->notFoundUri = "$module / $directory / $class / $method";
+        $this->className = '\\'.$namespace.'\\'.$class;
+        $this->notFoundUri = $route;
 
-        if ( ! class_exists($className, false)) {
-            $this->c['response']->show404($this->notFoundUri);
-        }
-        $this->class = new $className;  // Call the controller
+        $this->dispatchClass();
+
+        $this->class = new $this->className;  // Call the controller
         $this->method = $method;
         $this->parseDocComments();
+
         $this->dispatchMethod();
 
-        foreach ($routes as $value) {
+        foreach ($this->c['router']->getAttachedRoutes() as $value) {
             if ($value['route'] == $route) {     // if we have natural route match
                 $this->middleware($value['name'], $value['options']);
             } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
@@ -161,6 +126,7 @@ class Http extends Obullo
 
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         $middleware->load();
+        
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }

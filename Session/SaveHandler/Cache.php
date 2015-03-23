@@ -62,6 +62,7 @@ Class Cache implements SaveHandlerInterface
     {
         $savePath = null;
         $sessionName = null;
+        
         $this->cache = $this->c['service provider cache']->get(
             [
                 'driver' => $this->config['cache']['provider']['driver'],

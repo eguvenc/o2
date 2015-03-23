@@ -3,8 +3,8 @@
 namespace Obullo\Translation;
 
 use ArrayAccess;
-use Obullo\Container\Container;
 use RuntimeException;
+use Obullo\Container\Container;
 
 /**
  * Translator Class
@@ -73,18 +73,11 @@ class Translator implements ArrayAccess
     protected $c;
 
     /**
-     * Locale code cookie name
-     *
-     * @var string
+     * Config
+     * 
+     * @var array
      */
-    protected $cookieName = 'locale';
-
-    /**
-     * Locale code cookie prefix
-     *
-     * @var string
-     */
-    protected $cookiePrefix = '';
+    protected $config;
 
     /**
      * Constructor
@@ -94,13 +87,10 @@ class Translator implements ArrayAccess
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->c['config']->load('translator');   // Load package config file
+        $this->config = $c['config']->load('translator');   // Load package config file
 
-        $this->setDefault($this->c['config']['translator']['locale']['default']);    // Sets default langugage from translator config file.
-        $this->setFallback($this->c['config']['translator']['fallback']['locale']);  // Default lang code
-
-        $this->cookieName   = $this->c['config']['translator']['cookie']['name'];
-        $this->cookiePrefix = $this->c['config']['cookie']['prefix'];  // Set cookie prefix
+        $this->setDefault($this->config['locale']['default']);    // Sets default langugage from translator config file.
+        $this->setFallback($this->config['fallback']['locale']);  // Default lang code
 
         $this->c['logger']->debug('Translator Class Initialized');
     }
@@ -144,13 +134,13 @@ class Translator implements ArrayAccess
 
             return $key;
         }
-        if (! isset($this->translateArray[$key])) {
-            $translateNotice = ($this->c['config']['translator']['debug']) ? static::NOTICE : '';
-            if (isset($this->fallbackArray[$key])) {    // Fallback translation is exist ?
+        if ( ! isset($this->translateArray[$key])) {
+            $notice = ($this->config['debug']) ? static::NOTICE : '';
+
+            if ($this->config['fallback']['enabled'] AND isset($this->fallbackArray[$key])) {    // Fallback translation is exist ?
                 return $this->fallbackArray[$key];      // Get it.
             }
-
-            return $translateNotice . $key;
+            return $notice . $key;
         }
 
         return $this->translateArray[$key];
@@ -184,19 +174,19 @@ class Translator implements ArrayAccess
      * Load a translation file
      *
      * @param string $filename filename
-     * @param string $fallback current locale
-     *
+     * 
      * @return object translator
      */
-    public function load($filename, $fallback = null)
+    public function load($filename)
     {
-        $locale = (empty($fallback)) ? $this->getLocale() : $fallback;  // Get current locale which is set by translation middleware.
+        $locale = $this->getLocale(); // Get current locale which is set by translation middleware.
 
         if (empty($locale)) {
             $this->setLocale($this->getDefault());  // Set default translation
-            // throw new RuntimeException(
-            //     "Translation code must be set with translator->setLocale() function.<pre>You should use translation middleware in middlewares.php.</pre>"
-            // );
+
+            //  Translation code must be set with translator->setLocale() function.
+            //  You should use translation middleware in middlewares.php.
+
             $locale = $this->getLocale();
         }
         $fileUrl = TRANSLATIONS . $locale . DS . $filename . '.php';
@@ -221,7 +211,6 @@ class Translator implements ArrayAccess
         $this->loadFallback($fileKey);  // Load fallback translation if fallback enabled
 
         unset($translateArray);
-
         return $this;
     }
 
@@ -234,7 +223,7 @@ class Translator implements ArrayAccess
      */
     protected function loadFallback($fileKey)
     {
-        if ($this->c['config']['translator']['fallback']['enabled']) {
+        if ($this->config['fallback']['enabled']) {
             $locale   = $this->getFallback();
             $filename = ltrim(strstr($fileKey, DS), '/');
             $fileUrl  = TRANSLATIONS . $locale . DS . $filename . '.php';
@@ -285,7 +274,7 @@ class Translator implements ArrayAccess
 
             return $this->translateArray[$item];
         }
-        $translateNotice = ($this->c['config']['translator']['debug']) ? static::NOTICE : '';
+        $translateNotice = ($this->config['debug']) ? static::NOTICE : '';
 
         return $translateNotice . $item;  // Let's notice the developers this line has no translate text
     }
@@ -297,7 +286,7 @@ class Translator implements ArrayAccess
      */
     public function getCookie()
     {
-        $name = $this->cookiePrefix . $this->cookieName;
+        $name = $this->config['cookie']['name'];
 
         return isset($_COOKIE[$name]) ? $_COOKIE[$name] : null;
     }
@@ -312,7 +301,7 @@ class Translator implements ArrayAccess
      */
     public function setLocale($locale = null, $writeCookie = true)
     {
-        if (! isset($this->c['config']['translator']['languages'][$locale])) {    // If its not in defined languages.
+        if (! isset($this->config['languages'][$locale])) {    // If its not in defined languages.
             return false;  // Good bye ..
         }
         $this->locale = $locale;
@@ -320,7 +309,6 @@ class Translator implements ArrayAccess
         if ($writeCookie) {
             $this->setCookie();  // write to cookie
         }
-
         return true;
     }
 
@@ -388,11 +376,13 @@ class Translator implements ArrayAccess
         if (defined('STDIN')) {  // Disable command line interface errors
             return;
         }
-        $this->cookieDomain = $this->c['config']['cookie']['domain'];
-        $this->cookiePath   = $this->c['config']['cookie']['path'];
-        $this->expiration   = $this->c['config']['translator']['cookie']['expire'];
-
-        setcookie($this->cookiePrefix . $this->cookieName, $this->getLocale(), time() + $this->expiration, $this->cookiePath, $this->cookieDomain, 0);
+        setcookie(
+            $this->config['cookie']['name'], 
+            $this->getLocale(), time() + $this->config['cookie']['expire'],
+            $this->config['cookie']['path'], 
+            $this->config['cookie']['domain'], 
+            0
+        );
     }
 }
 

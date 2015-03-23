@@ -28,7 +28,6 @@ Class CacheConnectionProvider extends AbstractConnectionProvider
     public function __construct(Container $c)
     {
         $this->c = $c;
-
         $this->setKey('cache.connection.');  // Set container key
     }
 
@@ -86,10 +85,14 @@ Class CacheConnectionProvider extends AbstractConnectionProvider
      */
     protected function createClass($class, $options)
     {
-        $driver = ucfirst(strtolower($class));
+        $driver = strtolower($class);
+        $Class = '\\Obullo\Cache\Handler\\'.ucfirst($driver);
 
-        $Class = '\\Obullo\Cache\Handler\\'.$driver;
-        $connection = new $Class($this->c, $options);  //  Store objects to container
+        if ($driver == 'file' OR $driver == 'apc') {
+            $connection = new $Class($this->c);
+        } else {
+            $connection = new $Class($this->c, $this->c['service provider '.$driver]->get($options));  //  Store objects to container
+        }
         return $connection;
     }
 

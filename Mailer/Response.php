@@ -12,7 +12,7 @@ namespace Obullo\Mailer;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
-Class Response
+class Response
 {
     /**
      * Response array

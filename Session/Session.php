@@ -66,31 +66,6 @@ Class Session
         ini_set('session.cookie_domain', $this->config['cookie']['domain']);
         $this->meta = ($this->config['meta']['enabled']) ? new MetaData($c, $this) : new NullMetaData;
 
-        // $this->saveHandler = new $this->config['saveHandler']($c);
-
-        // session_set_save_handler(
-        //     array($this->saveHandler, 'open'),
-        //     array($this->saveHandler, 'close'),
-        //     array($this->saveHandler, 'read'),
-        //     array($this->saveHandler, 'write'),
-        //     array($this->saveHandler, 'destroy'),
-        //     array($this->saveHandler, 'gc')
-        // );
-        // 
-        // $lifetime = ($this->config['cookie']['lifetime']) ? 0 : $this->config['session']['lifetime'];
-        // session_set_cookie_params(
-        //     $lifetime,
-        //     $this->config['cookie']['path'],
-        //     $this->config['cookie']['domain'],
-        //     $this->config['cookie']['secure'], 
-        //     $this->config['cookie']['httpOnly']
-        // );
-        
-        // $this->setName();
-
-        // if (session_status() == PHP_SESSION_NONE) { // If another session_start() used before ?
-        //     session_start();
-        // }
         register_shutdown_function(array($this, 'close'));
 
         $this->c['logger']->debug('Session Class Initialized');
@@ -117,7 +92,18 @@ Class Session
             array($this->saveHandler, 'destroy'),
             array($this->saveHandler, 'gc')
         );
+        $this->setCookieParams();
+    }
+
+    /**
+     * Set session cookie parameters
+     *
+     * @return void
+     */
+    protected function setCookieParams()
+    {
         $lifetime = ($this->config['cookie']['lifetime']) ? 0 : $this->config['session']['lifetime'];
+
         session_set_cookie_params(
             $lifetime,
             $this->config['cookie']['path'],

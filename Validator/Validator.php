@@ -2,9 +2,9 @@
 
 namespace Obullo\Validator;
 
-use Closure,
-    Controller,
-    Obullo\Container\Container;
+use Closure;
+use Controller;
+use Obullo\Container\Container;
 
 /**
  * Validator Class
@@ -18,7 +18,7 @@ use Closure,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/validator
  */
-Class Validator 
+class Validator 
 {
     public $translator;
     public $fieldData = array();    

@@ -92,7 +92,7 @@ Class PdoConnectionProvider extends AbstractConnectionProvider
         if ( ! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
-                    'Connection key %s not exists in your database.php config file.',
+                    'Connection key %s does not exist in your database.php config file.',
                     $params['connection']
                 )
             );

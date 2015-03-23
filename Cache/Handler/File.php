@@ -27,23 +27,13 @@ Class File implements CacheHandlerInterface
     public $filePath;
 
     /**
-     * Connection settings
-     * 
-     * @var array
-     */
-    public $params = array();
-
-    /**
      * Constructor
      * 
-     * @param array $c       container
-     * @param array $options options
+     * @param array $c container
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(Container $c)
     {
-        $options = array(); // Unset options, no need
-        $this->params = $c['config']->load('cache')['file'];
-        $this->filePath = ROOT. str_replace('/', DS, trim($this->params['path'], '/')) . DS;
+        $this->filePath = ROOT. str_replace('/', DS, trim($c['config']->load('cache/file')['path'], '/')) . DS;
 
         if ( ! is_writable($this->filePath)) {
             throw new RunTimeException(

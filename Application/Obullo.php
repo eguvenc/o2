@@ -4,6 +4,7 @@ namespace Obullo\Application;
 
 use Closure;
 use Controller;
+use Obullo\Error\Debug;
 
 /**
  * Obullo bootstrap
@@ -17,24 +18,28 @@ use Controller;
  */
 class Obullo
 {
-    /**
-     * Current environment
-     * 
-     * @var null
-     */
-    public $env = null;
+    const VERSION = '2.0';
+
+    protected $c;                  // Container
+    protected $env = null;         // Current environment
+    protected $envArray = array(); // Environments config
+    protected $class;              // Current controller
+    protected $method;             // Current method
+    protected $className;          // Current controller name
+    protected $notFoundUri;        // 404 uri
 
     /**
      * Detects application environment using "app/environments.php" file.
      * 
      * @return void or die if fail
      */
-    public function detectEnvironment()
+    protected function detectEnvironment()
     {
         $hostname = gethostname();
         if ($this->env != null) {
             return;
         }
+        $this->envArray = include ROOT .'app'. DS .'environments.php';
         foreach ($this->getEnvironments() as $current) {
             if (in_array($hostname, $this->envArray[$current])) {
                 $this->env = $current;
@@ -42,10 +47,47 @@ class Obullo
             }
         }
         if ($this->env == null) {
-            die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostname array.');
+            die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostnames.');
         }
     }
     
+    /**
+     * Enable / Disable php error reporting
+     *
+     * @return void
+     */
+    protected function setErrorReporting()
+    {
+        if ($this->c['config']['error']['reporting']) {   // Disable / Ebable Php Native Errors
+            ini_set('display_errors', 1);
+            error_reporting(E_ALL | E_STRICT | E_NOTICE);
+        } else {
+            error_reporting(0);
+        }
+    }
+
+    /**
+     * Set php date default timezone
+     *
+     * @return void
+     */
+    protected function setDefaultTimezone()
+    {
+        date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
+    }
+
+    /**
+     * Set framework debugger
+     *
+     * @return void
+     */
+    protected function setDebugger()
+    {
+        if ($this->c['config']['error']['debug'] AND $this->c['config']['error']['reporting'] == false) {  // If framework debug feature enabled we register error & exception handlers.
+            Debug::enable(E_ALL | E_NOTICE | E_STRICT);
+        }        
+    }
+
     /**
      * PSR-0 Autoloader
      * 
@@ -72,10 +114,6 @@ class Obullo
 
         if (strpos($fileName, 'Obullo') === 0) {     // Check is it Obullo Package ?
             include_once OBULLO .substr($fileName, 7). '.php';
-            return;
-        }
-        if ($fileName == 'Model') {  // Reserved class model
-            include_once OBULLO .'Model'. DS .'Model.php';
             return;
         }
         include_once CLASSES .$fileName. '.php'; // Otherwise load it from user directory
@@ -129,17 +167,17 @@ class Obullo
     }
 
     /**
-     * Call the controller load method
+     * Check class exists
      * 
      * @return void
      */
-    public function load()
+    protected function dispatchClass()
     {
-        if (method_exists($this->class, 'load')) {        // Check load method is available
-            $this->class->load();
+        if ( ! class_exists($this->className, false)) {
+            $this->c['response']->show404($this->notFoundUri);
         }
     }
-    
+
     /**
      * Check method exists
      * 
@@ -221,6 +259,9 @@ class Obullo
 
     /**
      * Returns 
+     *
+     * This function similar with Codeigniter getInstance(); 
+     * method.
      * 
      * @param string $key application object
      * 

@@ -8,7 +8,7 @@ use Obullo\Container\Container;
 /**
  * Mandrill Transactional Email Api Client
  *
- * @category  Mail
+ * @category  Mailer
  * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
@@ -16,7 +16,7 @@ use Obullo\Container\Container;
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-Class Mandrill extends AbstractAdapter  implements TransportInterface 
+class Mandrill extends HttpMailer implements MailerInterface
 {
     /**
      * Logger
@@ -26,25 +26,18 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
     public $logger;
 
     /**
+     * Mandrill config
+     *
+     * @var string
+     */
+    public $config;
+
+    /**
      * Curl post body
      * 
      * @var array
      */
     public $message;
-
-    /**
-     * The Mandrill API key.
-     *
-     * @var string
-     */
-    protected $key;
-
-    /**
-     * Mandrill dedicated ip pool
-     *
-     * @var string
-     */
-    protected $ipPool;
 
     /**
      * Mandrill api call response array
@@ -62,11 +55,7 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
      */
     public function __construct(Container $c)
     {
-        $config = $c['config']->load('mailer');
-
-        $this->key = $config['transport']['mandrill']['key'];
-        $this->ipPool = $config['transport']['mandrill']['ip_pool'];
-
+        $this->config = $c['config']->load('mailer/mandrill');
         $this->logger = $c['logger'];
         $this->logger->debug('Madrill Class Initialized');
 
@@ -258,19 +247,17 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
         // Async defaults to false for messages with no more than 10 recipients; 
         // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
         $this->message['async'] = false;   
-        $this->message['ip_pool'] = $this->ipPool;
+        $this->message['ip_pool'] = $this->config['pool'];
         $this->message['send_at'] = $this->setDate();
 
         $this->buildAttachments();
 
-        $url = 'https://mandrillapp.com/api/1.0/messages/send.json';
-
         // CURL POST
 
         $this->responseBody = $this->httpPostRequest(
-            $url,
+            $this->config['url'],
             array(
-                'key' => $this->key,
+                'key' => $this->config['key'],
                 'message' => $this->message
             )
         );
@@ -284,11 +271,11 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
             $this->debugMsg[] = $this->responseBody['info'];
             $this->logger->error(
                 'Transactional mail api call failed we were unable to decode the JSON', 
-                array(
-                    'url' => $url, 
-                    'body' => $this->responseBody['raw'], 
+                [
+                    'url' => $this->config['url'],
+                    'body' => $this->responseBody['raw'],
                     'info' => $this->responseBody['info']
-                    )
+                ]
             );
             return false;
         }
@@ -325,7 +312,7 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
      */
     public function getKey()
     {
-        return $this->key;
+        return $this->config['key'];
     }
 
     /**
@@ -337,7 +324,7 @@ Class Mandrill extends AbstractAdapter  implements TransportInterface
      */
     public function setKey($key)
     {
-        return $this->key = $key;
+        return $this->config['key'] = $key;
     }
 
 }

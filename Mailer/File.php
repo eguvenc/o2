@@ -12,7 +12,7 @@ namespace Obullo\Mailer;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/mailer
  */
-Class File
+class File
 {
     /**
      * Mime Types

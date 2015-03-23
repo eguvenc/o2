@@ -12,7 +12,7 @@ namespace Obullo\Mailer;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/mailer
  */
-Class Text
+class Text
 {
     /**
      * Newline sign
@@ -60,6 +60,27 @@ Class Text
         // We set the cut flag to false so that any individual words that are
         // too long get left alone.  In the next step we'll deal with them.
         $str = wordwrap($str, $charlim, "\n", false);
+
+        $output = $this->wrapLines($str, $charlim);
+
+        if (count($unwrap) > 0) { // Put our markers back
+            foreach ($unwrap as $key => $val) {
+                $output = str_replace("{{unwrapped" . $key . "}}", $val, $output);
+            }
+        }
+        return $output;
+    }
+
+    /**
+     * Wrap lines
+     * 
+     * @param string  $str     str
+     * @param integer $charlim limit
+     * 
+     * @return void
+     */
+    protected function wrapLines($str, $charlim)
+    {
         // Split the string into individual lines of text and cycle through them
         $output = "";
         foreach (explode("\n", $str) as $line) {
@@ -85,11 +106,6 @@ Class Text
                 $output .= $line;
             }
             $output .= $this->newline;
-        }
-        if (count($unwrap) > 0) { // Put our markers back
-            foreach ($unwrap as $key => $val) {
-                $output = str_replace("{{unwrapped" . $key . "}}", $val, $output);
-            }
         }
         return $output;
     }

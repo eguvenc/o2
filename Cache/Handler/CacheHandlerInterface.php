@@ -17,14 +17,6 @@ use Obullo\Container\Container;
 interface CacheHandlerInterface
 {
     /**
-     * Constructor
-     * 
-     * @param array $c       container
-     * @param array $options options
-     */
-    public function __construct(Container $c, $options = array());
-
-    /**
      * Get current serializer name
      * 
      * @return string serializer name
@@ -37,6 +29,15 @@ interface CacheHandlerInterface
      * @return boolean
      */
     public function connect();
+
+    /**
+     * Verify if the specified key exists.
+     * 
+     * @param string $key cache key.
+     * 
+     * @return boolean true or false
+     */
+    public function keyExists($key);
 
     /**
      * Set cache data.
@@ -77,15 +78,6 @@ interface CacheHandlerInterface
      * @return boolean
      */
     public function delete($key);
-
-    /**
-     * Verify if the specified key exists.
-     * 
-     * @param string $key cache key.
-     * 
-     * @return boolean true or false
-     */
-    public function keyExists($key);
 
 }
 

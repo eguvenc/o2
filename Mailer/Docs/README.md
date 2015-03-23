@@ -64,7 +64,11 @@ Class Mailer implements ServiceInterface
      */
     public function register($c)
     {
-        // ...
+        $c['mailer'] = function () use ($c) {
+            $mailer = $c['service provider mailer']->get(['driver' => 'mandrill', 'options' => array('queue' => false)]);
+            $mailer->from('Admin <admin@example.com>');
+            return $mailer;
+        };
     }
 }
 
@@ -103,7 +107,12 @@ $this->mailer->method();
 #### Using Service Provider Queue Option
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get('driver' => 'mandrill', 'options' => ['queue' => true]);
+$this->mailer = $this->c['service provider mailer']->get(
+    [
+        'driver' => 'mandrill', 
+        'options' => array('queue' => true)
+    ]
+);
 $this->mailer->method();
 ```
 
@@ -123,57 +132,38 @@ Preferences are set by passing an array of preference values to the email initia
 |
 */
 return array(
-    'send' => array(
-        'settings' => array(
-            'useragent' => 'Framework Mailer',  //  The "user agent".
-            'wordwrap' => true,       // "true" or "false" (boolean) Enable word-wrap.
-            'wrapchars' => 76,        // Character count to wrap at.
-            'mailtype' => 'html',     // text or html Type of mail. If you send HTML email you must send it as a complete web page. 
-                                      // Make sure you don't have any relative links or relative image paths otherwise they will not work.
-            'charset' => 'utf-8',     // Character set (utf-8, iso-8859-1, etc.).
-            'validate' => false,      // "true" or "false" (boolean) Whether to validate the email address.
-            'priority' =>  3,         // 1, 2, 3, 4, 5   Email Priority. 1 = highest. 5 = lowest. 3 = normal.
-            'crlf'  => "\n",          //  "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
-            'newline' =>  "\n",       // "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
-            'bccBatchMode' =>  false,   // true or false (boolean) Enable BCC Batch Mode.
-            'bccBatchSize' => 200,     // None  Number of emails in each BCC batch.
-        ),
-        'protocol' => array(
-            'mail' => array(
 
-            ),
-            'sendmail' => array(
-                'mailpath'  => '/usr/sbin/sendmail',  //  The server path to Sendmail.
-            ),
-            'smtp' => array(
-                'host' => 'smtp.mandrillapp.com',     // SMTP Server Address.
-                'user' => 'obulloframework@gmail.com', // SMTP Username.
-                'pass' => 'BIK8O7xt1Kp7aZyyQ55uOQ',    // SMTP Password.
-                'port' => '587',    // SMTP Port.
-                'timeout' => '5' ,  // SMTP Timeout (in seconds).
-            ),
-        ),
-        'transport' => array(
-            'mandrill' => array(
-                'key' => 'BIK8O7xt1Kp7aZyyQ55uOQ',  // Mandrill api key
-                'ip_pool' => 'Main Pool',           // The name of the dedicated ip pool that should be used to send the message.
-            ),
-            'mailgun' => array(
+    'drivers' => [
+        'mail' => '\Obullo\Mailer\Transport\Mail',
+        'smtp' => '\Obullo\Mailer\Transport\Smtp',
+        'sendmail' => '\Obullo\Mailer\Transport\Sendmail',
+        'mandrill' => '\Obullo\Mailer\Transport\Mandrill',
+    ],
 
-            )
-        ),
-        'queue' => array(
-            'mailer' => 'mandrill',             // Default mailer   // mandrill, mailgun, smtp, sendmail, mail ..
-            'channel' => 'Mail',                // QueueMailer channel name
-            'route' => gethostname().'.Mailer', // QueueMailer route name
-            'worker' => 'Workers\Mailer',
-        )
+    'useragent' => 'Obullo Mailer',  // Mailer "user agent".
+    'wordwrap' => true,              // "true" or "false" (boolean) Enable word-wrap.
+    'wrapchars' => 76,               // Character count to wrap at.
+    'mailtype' => 'html',            // text or html Type of mail. If you send HTML email you must send it as a complete web page. 
+    'charset' => 'utf-8',            // Character set (utf-8, iso-8859-1, etc.).
+    'validate' => false,             // Whether to validate the email address.
+    'priority' =>  3,                // 1, 2, 3, 4, 5   Email Priority. 1 = highest. 5 = lowest. 3 = normal.
+    'crlf'  => "\n",                 //  "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
+    'newline' =>  "\n",              // "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
 
+    'bccBatch' => array(
+        'mode' => false,             // true or false (boolean) Enable BCC Batch Mode.
+        'size' => 200,               // None  Number of emails in each BCC batch.
     ),
+    
+    'queue' => array(
+        'channel' => 'Mail',                // Queue Mailer channel name
+        'route' => gethostname().'.Mailer', // Queue Mailer route name
+        'worker' => 'Workers\Mailer',       // Queue Worker Class
+    )
 );
 
-/* End of file mail.php */
-/* Location: .app/env/local/mail.php */
+/* End of file transport.php */
+/* Location: .app/config/env/local/mailer/transport.php */
 ```
 
 ### Setting Preferences Manually
@@ -555,10 +545,10 @@ You can configure your worker like below.
 
 namespace Workers;
 
-use Obullo\Queue\Job,
-    Obullo\Queue\JobInterface,
-    Obullo\Mail\Send\Smtp,
-    Obullo\Mail\Transport\Mandrill;
+use Obullo\Queue\Job;
+use Obullo\Queue\JobInterface;
+use Obullo\Mail\Transport\Smtp;
+use Obullo\Mail\Transport\Mandrill;
 
  /**
  * Mail Worker
@@ -735,13 +725,14 @@ If you set parameter <b>--debug=1</b> this means you can see all outputs of the 
 When you send an email in the application you will get below the output on your console:
 
 ```php
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
+                _           _ _       
+           ___ | |__  _   _| | | ___  
+          / _ \| '_ \| | | | | |/ _ \ 
+         | (_) | |_) | |_| | | | (_) |
+          \___/|_.__/ \__,_|_|_|\___/  
 
-            Welcome to Task Manager (c) 2014
-    You are running $php task queue command which is located in app / tasks folder.
+        Welcome to Queue Manager (c) 2015
+    You are running \$php task queue command. For help type php task queue --help."
 
 Array
 (

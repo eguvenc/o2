@@ -45,26 +45,40 @@ Class Url
         if (strpos($uri, '@WEBHOST') !== false) {
             $uri = str_replace('@WEBHOST', $this->c['config']['url']['webhost'], $uri);
         }
-        $siteUri = $this->uri->getSiteUrl($uri, $suffix);
-
-        // "?" Question mark support
-        // If we have question mark beginning of the  the uri
-        // example:  example.com/?service_type=email&user_id=50
-        // replace with:  example.com?service_type=email&user_id=50
-
-        if (strpos(trim($uri, '/'), '?') === 0) {
-            $siteUri = (strpos($uri, '/') === 0) ? $siteUri : trim($siteUri, '/');
-        }
-        $siteUrl = ( ! preg_match('!^\w+://! i', $uri)) ? $siteUri : $uri;
-        if ($title == '') {
+        $siteUrl = $this->getSiteUrl($uri, $suffix);
+        
+        if (empty($title)) {
             $title = $siteUrl;
         }
-        if ($attributes != '') {
-            $attributes = self::parseAttributes($attributes);
-        }
+        $attributes = ($attributes != '') ? self::parseAttributes($attributes) : '';
+
         return '<a href="' . $siteUrl . '"' . $attributes . '>' . (string)$title . '</a>';
     }
     
+    /**
+     * Get site url
+     * 
+     * @param string $uri    uri
+     * @param string $suffix uri suffix
+     * 
+     * @return string site url
+     */
+    protected function getSiteUrl($uri, $suffix = true)
+    {
+        // "?" Question mark support
+        // If we have question mark beginning of the  the uri
+        // example:  example.com/?service_type=email&user_id=50  replace with:  example.com?service_type=email&user_id=50
+
+        $queryString = strstr($uri, '?');
+
+        if ( ! empty($queryString)) {
+            $uri = rtrim(strstr($uri, '?', true), '/').$queryString;
+        }
+        $siteUri = $this->uri->getSiteUrl($uri, $suffix);
+
+        return ( ! preg_match('!^\w+://! i', $uri)) ? $siteUri : $uri;
+    }
+
     /**
      * Header Redirect
      *
@@ -84,8 +98,6 @@ Class Url
         if ( ! preg_match('#^https?://#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
-        // $this->c['event']->fire('before.redirect', array($uri, $method));
-
         if (strpos($method, '[')) {
             $index = explode('[', $method);
             $param = str_replace(']', '', $index[1]);
