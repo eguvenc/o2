@@ -4,7 +4,6 @@ namespace Obullo\Log;
 
 use LogicException;
 use Obullo\Container\Container;
-use Obullo\Log\Debugger\DebugOutput;
 
 /**
  * Standart Logger Class
@@ -57,8 +56,8 @@ Class Logger extends AbstractLogger implements LoggerInterface
     {
         $this->c = $c;
         $this->enabled = $this->c['config']['log']['enabled'];
-        $this->debug = $this->c['config']['log']['debug'];
-
+        $this->c['response']->prepend = $this->debug = $this->c['config']['log']['debug'];  // Enable response prepend and debug
+        
         $this->configureErrorHandlers();
         $this->initialize();
         register_shutdown_function(array($this, 'close'));
@@ -73,9 +72,9 @@ Class Logger extends AbstractLogger implements LoggerInterface
     {
         if ($this->debug) {         // Debug output for log data if enabled
             $primaryWriter = $this->getPrimaryWriter();
-            $debugger = new DebugOutput($this->c, $this);
+            $debugger = new \Obullo\Log\Debugger\Output($this->c, $this);
             $debugger->setHandler($primaryWriter);
-            echo $debugger->printDebugger($this->getQueue($primaryWriter));
+            $debugger->writeBody($this->getQueue($primaryWriter));
             return;
         }
         if ($this->enabled == false) {  // Check logger is disabled.

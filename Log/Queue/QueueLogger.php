@@ -8,7 +8,6 @@ use Obullo\Log\LoggerTrait;
 use Obullo\Log\AbstractLogger;
 use Obullo\Container\Container;
 use Obullo\Log\LoggerInterface;
-use Obullo\Log\Debugger\DebugOutput;
 
 /**
  * QueueLogger Class
@@ -60,7 +59,7 @@ Class QueueLogger extends AbstractLogger implements LoggerInterface
     {
         $this->c = $c;
         $this->enabled = $this->c['config']['log']['enabled'];
-        $this->debug = $this->c['config']['log']['debug'];
+        $this->c['response']->prepend = $this->debug = $this->c['config']['log']['debug'];  // Enable response prepend and debug
 
         $this->configureErrorHandlers();
         $this->initialize();
@@ -77,7 +76,7 @@ Class QueueLogger extends AbstractLogger implements LoggerInterface
     {
         if ($this->debug) {         // Debug output for log data if enabled
             $primaryWriter = $this->getPrimaryWriter();
-            $debugger = new DebugOutput($this->c, $this);
+            $debugger = new \Obullo\Log\Debugger\Output($this->c, $this);
             $debugger->setHandler($primaryWriter);
             echo $debugger->printDebugger($this->getQueue($primaryWriter));
             return;

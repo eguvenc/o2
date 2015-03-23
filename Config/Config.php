@@ -18,7 +18,7 @@ use Obullo\Config\Writer\PhpArray;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-Class Config implements ArrayAccess
+class Config implements ArrayAccess
 {
     /**
      * Array stack

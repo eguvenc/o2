@@ -47,6 +47,20 @@ class Response
     public $output;
 
     /**
+     * Check prepend used
+     * 
+     * @var string
+     */
+    public $prepend = false;
+
+    /**
+     * Prepend data to html response body
+     * 
+     * @var string
+     */
+    public $prependData;
+
+    /**
      * Php headers
      * 
      * @var array
@@ -71,7 +85,6 @@ class Response
         $this->c['config']->load('response');
 
         $this->output = '';
-        $this->c['logger']->debug('Response Class Initialized');
     }
 
     /**
@@ -120,6 +133,39 @@ class Response
     }
     
     /**
+     * Prepend output of the HTTP response body
+     * 
+     * @param string $output output
+     * 
+     * @return void
+     */
+    public function prepend($output)
+    {
+        $this->prependData.= $output;
+        $this->prepend = true;
+    }
+
+    /**
+     * Reutuns to true if we used prepare function
+     * 
+     * @return boolean
+     */
+    public function hasPrepend()
+    {
+        return $this->prepend;
+    }
+
+    /**
+     * Get prepend data if prepend used
+     * 
+     * @return string
+     */
+    public function getPrependData()
+    {
+        return $this->prependData;
+    }
+
+    /**
      * Get page output length
      * 
      * @return int
@@ -143,7 +189,7 @@ class Response
             unset($this->headers['Content-Type']);
             unset($this->headers['Content-Length']);
         }
-        return array($this->status, $this->headers, $this->getOutput());
+        return array($this->status, $this->headers, $this->getOutput(), $this->getPrependData());
     }
 
     /**
@@ -175,11 +221,15 @@ class Response
      */
     public function flush()
     {
+        if ($this->prepend) {
+            $this->flush = true;
+            return;
+        }
         if ($this->enabled) {  // Send output
             list($status, $headers, $output) = $this->finalize();
             $this->sendHeaders($status, $headers);
 
-            echo $output;
+            echo $output; // Send output
         }
     }
 
@@ -303,6 +353,16 @@ class Response
     public function disableOutput()
     {
         $this->enabled = false;
+    }
+
+    /**
+     * Returns to true output enabled otherwise false
+     * 
+     * @return boolean
+     */
+    public function isEnabled()
+    {
+        return $this->enabled;
     }
 
     /**

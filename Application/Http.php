@@ -50,14 +50,6 @@ class Http extends Obullo
 
     /**
      * Constructor
-     */
-    public function __construct()
-    {
-        register_shutdown_function(array($this, 'close'));
-    }
-
-    /**
-     * Constructor
      *
      * @return void
      */
@@ -78,6 +70,8 @@ class Http extends Obullo
         include OBULLO_PROVIDERS;
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
+
+        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -91,6 +85,7 @@ class Http extends Obullo
     public function run()
     {
         global $c;
+
         $this->init();
         $this->c['router']->init();                 // Initialize Routes
         $route = $this->c['uri']->getUriString();   // Get current uri
@@ -142,7 +137,7 @@ class Http extends Obullo
      */
     public function call()
     {
-        if ($this->c['config']['output']['compress'] == true AND extension_loaded('zlib')
+        if ($this->c['config']['output']['compress'] == true AND extension_loaded('zlib')  // Do we need to output compression ?
             AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
             AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
         ) {
@@ -160,6 +155,18 @@ class Http extends Obullo
      */
     public function close()
     {
+        if ($this->c['response']->hasPrepend() AND $this->c['response']->isEnabled()) {  // Do we have any prepend data ?
+            
+            list($status, $headers, $output, $prepend) = $this->c['response']->finalize();
+            $this->c['response']->sendHeaders($status, $headers);
+
+            if ($this->c['config']['log']['debug']) {
+                echo \Obullo\Log\Debugger\Output::writeIframe($prepend, $output);
+                return;
+            }
+            echo $prepend.$output;
+        }
+
         // Write queued cookie headers if cookie package available in 
         // the application and we have queued cookies.
 
