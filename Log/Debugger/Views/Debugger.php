@@ -31,8 +31,6 @@
         </ul>
     </nav>
 
-    <div class="obulloDebugger-container" id="obulloDebugger-logs">{{LOGS}}</div>
-
     <div class="obulloDebugger-container hiddenContainer" id="obulloDebugger-environment">
         <?php
             $ENVIRONMENTS = ['SERVER' => isset($_SERVER) ? $_SERVER : [], 
@@ -66,6 +64,9 @@
         </div>
         <?php endforeach ?>
     </div>
+
+    <div class="obulloDebugger-container" id="obulloDebugger-logs">{{LOGS}}</div>
+
 </div>
 
 </body>

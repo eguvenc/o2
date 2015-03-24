@@ -133,7 +133,7 @@ class Output
         file_put_contents($content, $output);
         file_put_contents($bottom, $prepend);
 
-        return '<frameset rows="60%,40%" style="border-width:1px;">;
+        return '<frameset rows="60%,40%">
             <frame name="1" src="/resources/data/temp/debugger-content.html">
             <frame name="1" src="/resources/data/temp/debugger-bottom.html">
         </frameset>';
@@ -187,12 +187,25 @@ class Output
      */
     protected static function view($record)
     {
-        $context = str_replace(array('"', "'"), array('&quot;', '&quot;'), $record['context']);
+        // http://stackoverflow.com/questions/1364933/htmlentities-in-php-but-preserving-html-tags
+
+        $list = get_html_translation_table(HTML_ENTITIES);
+        unset($list['"']);
+        unset($list['<']);
+        unset($list['>']);
+        unset($list['&']);
+
+        $search = array_keys($list);
+        $values = array_values($list);
+        $search = array_map('utf8_encode', $search);
+
+        $str_in = $record['context'];
+        $str_out = str_replace($search, $values, $str_in);
 
         $logs = '<p>';
         $logs.= '<span class="date">['.$record['datetime'].']</span>';
         $logs.= '<span class="info">'.$record['channel'].'.'.$record['level'].':</span>';
-        $logs.= '--> '.$record['message'].' -- ';
+        $logs.= '--> '.$record['message'].' '.$str_out;
         $logs.= '</p>';
         return $logs;
     }
