@@ -106,11 +106,21 @@ class Output
      */
     public function writeIframe($prepend, $output)
     {
+        $dirname = str_replace(ROOT, 'ROOT/', RESOURCES .'data'. DS .'temp'. DS);
+
+        if ( ! is_dir(RESOURCES .'data'. DS .'temp'. DS)) {
+             die(
+                sprintf(
+                    "Temp directory <b>%s</b> not found.",  // Exceptions not works at this level
+                    $dirname
+                )
+            );
+        }
         if ( ! is_writable(RESOURCES .'data'. DS .'temp'. DS)) {
             die(
                 sprintf(
-                    "Temp directory <b>%s</b> is not writable. We could not create debugger data.",  // Exceptions not works at this level
-                    str_replace(ROOT, 'ROOT/', RESOURCES .'data'. DS .'temp'. DS)
+                    "Temp directory <b>%s</b> is not writable.",
+                    $dirname
                 )
             );
         }
@@ -123,7 +133,7 @@ class Output
         file_put_contents($content, $output);
         file_put_contents($bottom, $prepend);
 
-        return '<frameset rows="60%,40%" frameborder="0">;
+        return '<frameset rows="60%,40%" style="border-width:1px;">;
             <frame name="1" src="/resources/data/temp/debugger-content.html">
             <frame name="1" src="/resources/data/temp/debugger-bottom.html">
         </frameset>';
@@ -177,10 +187,12 @@ class Output
      */
     protected static function view($record)
     {
+        $context = str_replace(array('"', "'"), array('&quot;', '&quot;'), $record['context']);
+
         $logs = '<p>';
         $logs.= '<span class="date">['.$record['datetime'].']</span>';
         $logs.= '<span class="info">'.$record['channel'].'.'.$record['level'].':</span>';
-        $logs.= '--> '.$record['message'].' -- '. str_replace(array('"', "'"), array('&quot;', '&quot;'), $record['context']);
+        $logs.= '--> '.$record['message'].' -- ';
         $logs.= '</p>';
         return $logs;
     }
