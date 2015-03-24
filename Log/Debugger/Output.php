@@ -140,40 +140,31 @@ class Output
     }
 
     /**
-     * Write processor output to file
+     * Display logs
      *
-     * @param object $pQ priorityQueue array queue data
+     * @param array $data log record and wrapper data
      * 
      * @return string echo the log output
      */
-    public function writeBody($pQ)
+    public function writeBody($data)
     {
+        $primary = $data['primary'];
+
         ob_start();
         include_once 'Views/Debugger.php';
         $layout = ob_get_clean();
 
         if ( ! defined('STDIN')) {   // Disable html output for task requests
             $lines = '';
-            if ($pQ == false) {
-                $lines = sprintf('The log handler %s is not defined.', $this->handler);
-            } else {
-                $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction 
-                $count = $pQ->count();
-                if ($count > 0) {
-                    $i = 0;
-                    $pQ->top();  // Go to Top
-                    while ($pQ->valid()) {         // Prepare Lines 
-                        $record = $this->format($this->c['config']['logger']['format']['date'], $pQ->current());
-                        $lines.= static::view($record, $layout);
-                        $pQ->next();
-                        ++$i;                               
-                    }
-                    $body = preg_replace('/\{\{LOGS\}\}/', $lines, $layout);
-                    $this->c['response']->prepend($body);
-                } else {
-                    return sprintf('There is no data in %s handler.', $this->handler);
-                }
+            if (empty($data) OR count($data) == 0) {
+                return sprintf('There is no data in %s handler.', $this->handler);
             }
+            foreach ($data[$primary]['record'] as $record) {
+                $record = $this->format($this->c['config']['logger']['format']['date'], $record);
+                $lines.= static::view($record, $layout);
+            }
+            $body = preg_replace('/\{\{LOGS\}\}/', $lines, $layout);
+            $this->c['response']->prepend($body);
         }
 
     }
@@ -192,7 +183,7 @@ class Output
         $logs = '<p>';
         $logs.= '<span class="date">['.$record['datetime'].']</span>';
         $logs.= '<span class="info">'.$record['channel'].'.'.$record['level'].':</span>';
-        $logs.= '--> '.$record['message'].' -- ';
+        $logs.= '--> '.$record['message'].' '.$context;
         $logs.= '</p>';
         return $logs;
     }

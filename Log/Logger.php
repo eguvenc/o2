@@ -70,13 +70,6 @@ Class Logger extends AbstractLogger implements LoggerInterface
      */
     public function close()
     {
-        if ($this->debug) {         // Debug output for log data if enabled
-            $primaryWriter = $this->getPrimaryWriter();
-            $debugger = new \Obullo\Log\Debugger\Output($this->c, $this);
-            $debugger->setHandler($primaryWriter);
-            $debugger->writeBody($this->getQueue($primaryWriter));
-            return;
-        }
         if ($this->enabled == false) {  // Check logger is disabled.
             return;
         }
@@ -85,6 +78,15 @@ Class Logger extends AbstractLogger implements LoggerInterface
                                  // When connect booelan is available we load the worker class
             
             $this->exec();       // Set payload data
+
+            if ($this->debug) {         // Debug output for log data if enabled
+                $primaryWriter = $this->getPrimaryWriter();
+                $debugger = new \Obullo\Log\Debugger\Output($this->c, $this);
+                $debugger->setHandler($primaryWriter);
+
+                // $debugger->writeBody($this->getQueue($primaryWriter));
+                $debugger->writeBody($this->payload);
+            }
             $worker = new \Workers\Logger($this->c); // Excure worker for standart logger
             $worker->fire(null, $this->payload);
         }
