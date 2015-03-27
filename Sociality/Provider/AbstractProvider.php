@@ -1,0 +1,458 @@
+<?php
+
+namespace Obullo\Sociality\Provider;
+
+use Obullo\Http\Client;
+use InvalidArgumentException;
+
+/**
+ * Abstract Provider
+ * 
+ * @category  Provider
+ * @package   Abstract
+ * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/session
+ */
+abstract class AbstractProvider
+{
+    /**
+     * Redirect uri
+     *
+     * @var string
+     */
+    protected $redirectUri;
+
+    /**
+     * Sociality\Http\Client instance.
+     * 
+     * @var null
+     */
+    protected $httpClient = null;
+
+    /**
+     * The client ID.
+     *
+     * @var string
+     */
+    protected $clientId = '';
+
+    /**
+     * The client secret.
+     *
+     * @var string
+     */
+    protected $clientSecret = '';
+
+    /**
+     * The scopes being requested.
+     *
+     * @var array
+     */
+    protected $scopes = [];
+
+    /**
+     * The separating character for the requested scopes.
+     *
+     * @var string
+     */
+    protected $scopeSeparator = ',';
+
+    /**
+     * The type of the encoding in the query.
+     *
+     * @var int Can be either PHP_QUERY_RFC3986 or PHP_QUERY_RFC1738.
+     */
+    protected $encodingType = PHP_QUERY_RFC1738;
+
+    /**
+     * Access Token
+     * 
+     * @var null
+     */
+    protected $token = null;
+
+    /**
+     * Create a new provider instance.
+     *
+     * @param object $c      container instance
+     * @param string $params parameters
+     * 
+     * @return void
+     */
+    public function __construct($c, $params)
+    {
+        $this->c      = $c;
+        $this->params = $params;
+        $this->init();
+    }
+
+    /**
+     * Initializer
+     * 
+     * @return void
+     */
+    abstract protected function init();
+
+    /**
+     * Get the authentication URL for the provider.
+     *
+     * @param string $state state
+     * 
+     * @return string
+     */
+    abstract protected function getAuthUrl($state);
+
+    /**
+     * Get the token URL for the provider.
+     *
+     * @return string
+     */
+    abstract protected function getTokenUrl();
+
+    /**
+     * Get the raw user for the given access token.
+     *
+     * @param string $token access token
+     * 
+     * @return array
+     */
+    abstract protected function getContactsByToken($token);
+
+    /**
+     * Set access token
+     * 
+     * @param string $token accecss token
+     * 
+     * @return void
+     */
+    protected function setAccessToken($token)
+    {
+        $this->token = $token;
+        $this->c['session']->set('access_token', $token);
+    }
+
+    /**
+     * Redirect the user of the application to the provider's authentication screen.
+     *
+     * @return string
+     */
+    public function redirect()
+    {
+        $this->c['session']->set(
+            'state',
+            $state = sha1(time(). uniqid())
+        );
+        $this->removeToken();
+        $this->c['url']->redirect($this->getAuthUrl($state));
+    }
+
+    /**
+     * Redirect output; If you want to direct yourself.
+     * 
+     * @return string url
+     */
+    public function redirectOutput()
+    {
+        $this->c['session']->set(
+            'state',
+            $state = sha1(time(). uniqid())
+        );
+        $this->removeToken();
+        return $this->getAuthUrl($state);
+    }
+
+    /**
+     * Get the authentication URL for the provider.
+     *
+     * @param string $url   url
+     * @param string $state state
+     * 
+     * @return string
+     */
+    protected function buildAuthUrlFromBase($url, $state)
+    {
+        return $url .'?'. http_build_query($this->getCodeFields($state), '', '&', $this->encodingType);
+    }
+
+    /**
+     * Get the GET parameters for the code request.
+     *
+     * @param string $state state
+     * 
+     * @return array
+     */
+    protected function getCodeFields($state)
+    {
+        return [
+            'client_id'     => $this->clientId,
+            'redirect_uri'  => $this->getRedirectUri(),
+            'scope'         => $this->formatScopes($this->scopes, $this->scopeSeparator),
+            'state'         => $state,
+            'response_type' => 'code',
+        ];
+    }
+
+    /**
+     * Format the given scopes.
+     *
+     * @param array  $scopes         scopes
+     * @param string $scopeSeparator scope separator
+     * 
+     * @return string
+     */
+    protected function formatScopes(array $scopes, $scopeSeparator)
+    {
+        return implode($scopeSeparator, $scopes);
+    }
+
+    /**
+     * Get all contacts
+     * 
+     * @return array
+     */
+    public function getAllContacts()
+    {
+        if ($this->hasInvalidState()) {
+            throw new InvalidArgumentException;
+        }
+        return $this->getContactsByToken(
+            $this->getAccessToken($this->getCode())
+        );
+    }
+
+    /**
+     * Determine if the current request / session has a mismatching "state".
+     *
+     * @return bool
+     */
+    protected function hasInvalidState()
+    {
+        return ! ($this->c['request']->all('state') === $this->c['session']->get('state'));
+    }
+
+    /**
+     * Get the access token for the given code.
+     *
+     * @param string $code token code
+     * 
+     * @return string
+     */
+    public function getAccessToken($code)
+    {
+        if ($this->token || ($this->token = $this->c['session']->get('access_token'))) {
+            return $this->token;
+        }
+        $response = $this->getHttpClient()
+            ->setRequestUrl($this->getTokenUrl())
+            ->setPostFields($this->getTokenFields($code))
+            ->setHeaders(
+                ['Accept' => 'application/json']
+            )
+            ->post();
+        return $this->parseAccessToken($response);
+    }
+
+    /**
+     * Get the POST fields for the token request.
+     *
+     * @param string $code token code
+     * 
+     * @return array
+     */
+    protected function getTokenFields($code)
+    {
+        return [
+            'code'          => $code,
+            'client_id'     => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'redirect_uri'  => $this->getRedirectUri()
+        ];
+    }
+
+    /**
+     * Get the access token from the token response body.
+     *
+     * @param string $body response body
+     * 
+     * @return string
+     */
+    protected function parseAccessToken($body)
+    {
+        $response = $this->getHttpClient()->jsonDecode($body, true);
+
+        if (isset($response['access_token'])) {
+            $this->setAccessToken($response['access_token']);
+            return $response['access_token'];
+        }
+        throw new InvalidArgumentException('Missing parameter "access_token"');   
+    }
+
+    /**
+     * Get the code from the request.
+     *
+     * @return string
+     */
+    protected function getCode()
+    {
+        return $this->c['request']->all('code');
+    }
+
+    /**
+     * Get a instance of HTTP client.
+     *
+     * @return Sociality\Http\Client
+     */
+    protected function getHttpClient()
+    {
+        if ($this->httpClient == null) {
+            return $this->httpClient = new Client;
+        }
+        return $this->httpClient;
+    }
+
+    /**
+     * Get redirect uri
+     * 
+     * @return void
+     */
+    public function getRedirectUri()
+    {
+        if (empty($this->redirectUri)) {
+            $uris = $this->params['redirect'];
+            return $this->redirectUri = $uris[array_keys($uris)[0]];
+        }
+        return $this->redirectUri;
+    }
+
+    /**
+     * Set redirect uri
+     *
+     * @param mix $key uri key
+     * 
+     * @return $this
+     */
+    public function setRedirectUri($key)
+    {
+        $this->redirectUri = $this->params['redirect'][$key];
+        return $this;
+    }
+
+    /**
+     * Set the scopes of the requested access.
+     *
+     * @param array $scopes scopes
+     * 
+     * @return $this
+     */
+    public function setScopes(array $scopes)
+    {
+        $this->scopes = $scopes;
+
+        return $this;
+    }
+
+    /**
+     * Remove access token
+     * 
+     * @return void
+     */
+    public function removeToken()
+    {
+        $this->token = null;
+        $this->c['session']->remove('access_token');
+    }
+
+    /**
+     * Add an element to an array using "dot" notation if it doesn't exist.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $value
+     * @return array
+     */
+    public function array_add($array, $key, $value)
+    {
+        if (is_null(static::get($array, $key)))
+        {
+            static::set($array, $key, $value);
+        }
+        return $array;
+    }
+
+    /**
+     * Get an item from an array using "dot" notation.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    public static function get($array, $key, $default = null)
+    {
+        if (is_null($key)) return $array;
+
+        if (isset($array[$key])) return $array[$key];
+
+        foreach (explode('.', $key) as $segment)
+        {
+            if ( ! is_array($array) || ! array_key_exists($segment, $array))
+            {
+                return value($default);
+            }
+
+            $array = $array[$segment];
+        }
+
+        return $array;
+    }
+
+    /**
+     * Set an array item to a given value using "dot" notation.
+     *
+     * If no key is given to the method, the entire array will be replaced.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $value
+     * @return array
+     */
+    public static function set(&$array, $key, $value)
+    {
+        if (is_null($key)) return $array = $value;
+
+        $keys = explode('.', $key);
+
+        while (count($keys) > 1)
+        {
+            $key = array_shift($keys);
+
+            // If the key doesn't exist at this depth, we will just create an empty array
+            // to hold the next value, allowing us to create the arrays to hold final
+            // values at the correct depth. Then we'll keep digging into the array.
+            if ( ! isset($array[$key]) || ! is_array($array[$key]))
+            {
+                $array[$key] = [];
+            }
+
+            $array =& $array[$key];
+        }
+
+        $array[array_shift($keys)] = $value;
+
+        return $array;
+    }
+}
+
+/**
+ * Return the default value of the given value.
+ *
+ * @param  mixed  $value
+ * @return mixed
+ */
+function value($value)
+{
+    return $value instanceof Closure ? $value() : $value;
+}
