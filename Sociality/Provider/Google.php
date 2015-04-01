@@ -3,8 +3,8 @@
 namespace Obullo\Sociality\Provider;
 
 use SimpleXMLElement;
+use Obullo\Sociality\Provider\ProviderInterface;
 
-// class GoogleProvider extends AbstractProvider implements ProviderInterface
 /**
  * Google Provider
  * 
@@ -16,7 +16,7 @@ use SimpleXMLElement;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-class Google extends AbstractProvider
+class Google extends AbstractProvider implements ProviderInterface
 {
     /**
      * The separating character for the requested scopes.
@@ -49,7 +49,6 @@ class Google extends AbstractProvider
     {
         $this->clientId     = $this->params['client']['id'];
         $this->clientSecret = $this->params['client']['secret']; 
-        // $this->setScopes($this->params['client']['scopes']); 
     }
 
     /**
@@ -72,74 +71,6 @@ class Google extends AbstractProvider
     protected function getTokenUrl()
     {
         return $this->params['oauth']['token'];
-    }
-
-    /**
-     * Get the access token for the given code.
-     *
-     * @param string $code token code
-     * 
-     * @return string
-     */
-    // public function getAccessToken($code)
-    // {
-    //     $response = $this->getHttpClient()
-    //         ->setRequestUrl($this->getTokenUrl())
-    //         ->setPostFields($this->getTokenFields($code))
-    //         ->setHeaders(['Accept' => 'application/json'])
-    //         ->post();
-
-    //     return $this->parseAccessToken($response);
-    // }
-
-    /**
-     * Get the POST fields for the token request.
-     *
-     * @param string $code token code
-     * 
-     * @return array
-     */
-    protected function getTokenFields($code)
-    {
-        return $this->array_add(
-            parent::getTokenFields($code), 'grant_type', 'authorization_code'
-        );
-    }
-
-    /**
-     * Parse xml element
-     * 
-     * @param string $response curl exec response
-     * 
-     * @return SimpleXMLElement
-     */
-    protected function parseContactXml($response)
-    {
-        $xml = new SimpleXMLElement($response);
-        $xml->registerXPathNamespace('gd', 'http://schemas.google.com/g/2005');
-        $outputArray = array();
-
-        if (! empty($xml->error->code)) {
-            throw new \LogicException($xml->error->internalReason);
-        }
-        foreach ($xml->entry as $entry) {
-            // Initialize an array out here.
-            $contacts = array();
-            // Get the title and link attributes (link as an array)
-            $contacts['name'] = (string)$entry->title;
-            // If there are never more than 1 email, you don't need a loop here.
-            foreach ($entry->xpath('gd:email') as $email) {
-                $emailAddr = (string)$email->attributes()->address;
-                if (filter_var($emailAddr, FILTER_VALIDATE_EMAIL) !== false) { // Get the valid email
-                    $contacts['email'] = $emailAddr;
-                }
-            }
-            // Append your array to the larger output
-            if (isset($contacts['email'])) {
-                $outputArray[] = $contacts;
-            }
-        }
-        return $outputArray;
     }
 
     /**
@@ -209,27 +140,43 @@ class Google extends AbstractProvider
     }
 
     /**
-     * Map user to object
+     * Parse xml element
      * 
-     * @param array $user user data
+     * @param string $response curl exec response
      * 
-     * @return array
+     * @return SimpleXMLElement
      */
-    protected function mapUserToObject(array $user)
+    protected function parseContactXml($response)
     {
-        return (new User)->setRaw($user)->map(
-            [
-                // 'id'       => $user['id'],
-                // 'nickname' => array_get($user, 'nickname'),
-                // 'name'     => $user['displayName'],
-                // 'email'    => $user['emails'][0]['value'],
-                // 'avatar'   => array_get($user, 'image')['url'],
-                'id'       => 1,
-                'nickname' => 'nickname',
-                'name'     => 'displayName',
-                'email'    => 'emails',
-                'avatar'   => 'image',
-            ]
-        );
+        $xml = new SimpleXMLElement($response);
+        $xml->registerXPathNamespace('gd', 'http://schemas.google.com/g/2005');
+        $outputArray = array();
+
+        if (! empty($xml->error->code)) {
+            throw new \LogicException($xml->error->internalReason);
+        }
+        foreach ($xml->entry as $entry) {
+            // Initialize an array out here.
+            $contacts = array();
+            // Get the title and link attributes (link as an array)
+            $contacts['name'] = (string)$entry->title;
+            // If there are never more than 1 email, you don't need a loop here.
+            foreach ($entry->xpath('gd:email') as $email) {
+                $emailAddr = (string)$email->attributes()->address;
+                if (filter_var($emailAddr, FILTER_VALIDATE_EMAIL) !== false) { // Get the valid email
+                    $contacts['email'] = $emailAddr;
+                }
+            }
+            // Append your array to the larger output
+            if (isset($contacts['email'])) {
+                $outputArray[] = $contacts;
+            }
+        }
+        return $outputArray;
     }
 }
+
+// END Google.php File
+/* End of file Google.php
+
+/* Location: .Obullo/Sociality/Provider/Google.php */

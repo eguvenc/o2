@@ -4,9 +4,6 @@ namespace Obullo\Sociality;
 
 use LogicException;
 use Obullo\Container\Container;
-use Obullo\Sociality\Provider\Github;
-use Obullo\Sociality\Provider\Google;
-use Obullo\Sociality\Provider\Facebook;
 
 /**
  * Socality Connector
@@ -35,7 +32,6 @@ class Connect
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('sociality/google');
     }
 
     /**
@@ -51,27 +47,12 @@ class Connect
         if (isset($this->{$name})) {
             return $this->{$name};
         }
+
         return $this->{$name} = $this->buildProvider(
             'Obullo\Sociality\Provider\\'. ucfirst($name),
-            $this->config
+            $this->c['config']->load('sociality/'. $name)
         );
     }
-
-    /**
-     * Get a driver instance.
-     *
-     * @param string $driver driver name
-     * 
-     * @return object
-     */
-    // public function create($driver)
-    // {
-    //     $driver = strtolower($driver);
-    //     return $this->buildProvider(
-    //         'Obullo\Sociality\Provider\\'. ucfirst($driver),
-    //         $this->config
-    //     );
-    // }
 
     /**
      * Build an OAuth 2 provider instance.
@@ -91,20 +72,9 @@ class Connect
             $config
         );
     }
-
-    // /**
-    //  * Format the Twitter server configuration.
-    //  *
-    //  * @param array $config configuration
-    //  * 
-    //  * @return array
-    //  */
-    // public function formatConfig(array $config)
-    // {
-    //     return [
-    //         'identifier'   => $config['client']['id'],
-    //         'secret'       => $config['client']['secret'],
-    //         'callback_uri' => $config['redirect']['uris'],
-    //     ];
-    // }
 }
+
+// END Connect.php File
+/* End of file Connect.php
+
+/* Location: .Obullo/Sociality/Connect.php */

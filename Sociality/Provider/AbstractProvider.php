@@ -47,13 +47,6 @@ abstract class AbstractProvider
     protected $clientSecret = '';
 
     /**
-     * The scopes being requested.
-     *
-     * @var array
-     */
-    protected $scopes = [];
-
-    /**
      * The separating character for the requested scopes.
      *
      * @var string
@@ -75,6 +68,13 @@ abstract class AbstractProvider
     protected $token = null;
 
     /**
+     * The scopes being requested.
+     *
+     * @var array
+     */
+    protected $scopes = [];
+
+    /**
      * Create a new provider instance.
      *
      * @param object $c      container instance
@@ -84,8 +84,9 @@ abstract class AbstractProvider
      */
     public function __construct($c, $params)
     {
-        $this->c      = $c;
-        $this->params = $params;
+        $this->c       = $c;
+        $this->params  = $params;
+        $this->storage = $this->c['session'];
         $this->init();
     }
 
@@ -131,7 +132,7 @@ abstract class AbstractProvider
     protected function setAccessToken($token)
     {
         $this->token = $token;
-        $this->c['session']->set('access_token', $token);
+        $this->storage->set('access_token', $token);
     }
 
     /**
@@ -141,7 +142,7 @@ abstract class AbstractProvider
      */
     public function redirect()
     {
-        $this->c['session']->set(
+        $this->storage->set(
             'state',
             $state = sha1(time(). uniqid())
         );
@@ -156,7 +157,7 @@ abstract class AbstractProvider
      */
     public function redirectOutput()
     {
-        $this->c['session']->set(
+        $this->storage->set(
             'state',
             $state = sha1(time(). uniqid())
         );
@@ -230,7 +231,7 @@ abstract class AbstractProvider
      */
     protected function hasInvalidState()
     {
-        return ! ($this->c['request']->all('state') === $this->c['session']->get('state'));
+        return ! ($this->c['request']->all('state') === $this->storage->get('state'));
     }
 
     /**
@@ -242,7 +243,7 @@ abstract class AbstractProvider
      */
     public function getAccessToken($code)
     {
-        if ($this->token || ($this->token = $this->c['session']->get('access_token'))) {
+        if ($this->token || ($this->token = $this->storage->get('access_token'))) {
             return $this->token;
         }
         $response = $this->getHttpClient()
@@ -268,7 +269,8 @@ abstract class AbstractProvider
             'code'          => $code,
             'client_id'     => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'redirect_uri'  => $this->getRedirectUri()
+            'redirect_uri'  => $this->getRedirectUri(),
+            'grant_type'    => 'authorization_code'
         ];
     }
 
@@ -303,7 +305,7 @@ abstract class AbstractProvider
     /**
      * Get a instance of HTTP client.
      *
-     * @return Sociality\Http\Client
+     * @return Http\Client
      */
     protected function getHttpClient()
     {
@@ -341,20 +343,6 @@ abstract class AbstractProvider
     }
 
     /**
-     * Set the scopes of the requested access.
-     *
-     * @param array $scopes scopes
-     * 
-     * @return $this
-     */
-    public function setScopes(array $scopes)
-    {
-        $this->scopes = $scopes;
-
-        return $this;
-    }
-
-    /**
      * Remove access token
      * 
      * @return void
@@ -362,7 +350,7 @@ abstract class AbstractProvider
     public function removeToken()
     {
         $this->token = null;
-        $this->c['session']->remove('access_token');
+        $this->storage->remove('access_token');
     }
 
     /**
@@ -375,8 +363,7 @@ abstract class AbstractProvider
      */
     public function array_add($array, $key, $value)
     {
-        if (is_null(static::get($array, $key)))
-        {
+        if (is_null(static::get($array, $key))) {
             static::set($array, $key, $value);
         }
         return $array;
@@ -393,19 +380,14 @@ abstract class AbstractProvider
     public static function get($array, $key, $default = null)
     {
         if (is_null($key)) return $array;
-
         if (isset($array[$key])) return $array[$key];
 
-        foreach (explode('.', $key) as $segment)
-        {
-            if ( ! is_array($array) || ! array_key_exists($segment, $array))
-            {
+        foreach (explode('.', $key) as $segment) {
+            if ( ! is_array($array) || ! array_key_exists($segment, $array)) {
                 return value($default);
             }
-
             $array = $array[$segment];
         }
-
         return $array;
     }
 
@@ -421,38 +403,21 @@ abstract class AbstractProvider
      */
     public static function set(&$array, $key, $value)
     {
-        if (is_null($key)) return $array = $value;
-
+        if (is_null($key)) {
+            return $array = $value;
+        }
         $keys = explode('.', $key);
-
-        while (count($keys) > 1)
-        {
+        while (count($keys) > 1) {
             $key = array_shift($keys);
-
             // If the key doesn't exist at this depth, we will just create an empty array
             // to hold the next value, allowing us to create the arrays to hold final
             // values at the correct depth. Then we'll keep digging into the array.
-            if ( ! isset($array[$key]) || ! is_array($array[$key]))
-            {
+            if ( ! isset($array[$key]) || ! is_array($array[$key])) {
                 $array[$key] = [];
             }
-
             $array =& $array[$key];
         }
-
         $array[array_shift($keys)] = $value;
-
         return $array;
     }
-}
-
-/**
- * Return the default value of the given value.
- *
- * @param  mixed  $value
- * @return mixed
- */
-function value($value)
-{
-    return $value instanceof Closure ? $value() : $value;
 }

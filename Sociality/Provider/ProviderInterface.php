@@ -1,19 +1,25 @@
-<?php namespace Laravel\Socialite\Two;
+<?php
+
+namespace Obullo\Sociality\Provider;
 
 interface ProviderInterface
 {
-
     /**
      * Redirect the user to the authentication page for the provider.
      *
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     * @return void
      */
     public function redirect();
 
     /**
-     * Get the User instance for the authenticated user.
+     * Returns redirect uri
      *
-     * @return \Laravel\Socialite\Two\User
+     * @return string
      */
-    public function user();
+    public function redirectOutput();
 }
+
+// END ProviderInterface.php File
+/* End of file ProviderInterface.php
+
+/* Location: .Obullo/Sociality/Provider/ProviderInterface.php */
