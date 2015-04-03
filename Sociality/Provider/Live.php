@@ -2,21 +2,23 @@
 
 namespace Obullo\Sociality\Provider;
 
+use LogicException;
 use SimpleXMLElement;
 use Obullo\Sociality\Provider\ProviderInterface;
 
 /**
- * Google Provider
+ * Live Provider
  * 
  * @category  Provider
- * @package   Google
+ * @package   Live
  * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/session
+ * @link      http://obullo.com/package/sociality
+ * @api       https://msdn.microsoft.com/en-us/library/hh826528.aspx
  */
-class Google extends AbstractProvider implements ProviderInterface
+class Live extends AbstractProvider implements ProviderInterface
 {
     const TOKEN_REQUEST = 'code';
 
@@ -29,17 +31,20 @@ class Google extends AbstractProvider implements ProviderInterface
 
     /**
      * The scopes being requested.
-     *
-     * @var array
+     * 
+     * This "contacts_emails" I found it the answer.
+     * You can see stackoverflow link.
+     * @link http://stackoverflow.com/a/15414222/2866158
+     * 
+     * You can also find all scopes on the microsoft link.
+     * @link https://msdn.microsoft.com/en-us/library/hh243646.aspx
+     * 
+     * @var  array
      */
     protected $scopes = [
-        'https://www.google.com/m8/feeds/&response_type=code',
-        'https://www.googleapis.com/auth/plus.me',
-        'https://www.googleapis.com/auth/plus.login',
-        'https://www.googleapis.com/auth/plus.circles.read',
-        'https://www.googleapis.com/auth/plus.profile.emails.read',
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
+        'wl.basic',
+        'wl.signin',
+        'wl.contacts_emails',
     ];
 
     /**
@@ -51,7 +56,7 @@ class Google extends AbstractProvider implements ProviderInterface
     {
         $this->clientId      = $this->params['client']['id'];
         $this->clientSecret  = $this->params['client']['secret']; 
-        $this->requestMethod = 'post';
+        $this->requestMethod = 'get';
     }
 
     /**
@@ -103,26 +108,20 @@ class Google extends AbstractProvider implements ProviderInterface
      */
     protected function getContactsByToken($token)
     {
-        $querys = [
-            'max-results' => $this->params['maxResults'],
-            'oauth_token' => $token
-        ];
         $response = $this->getHttpClient()
             ->setRequestUrl(
-                'https://www.google.com/m8/feeds/contacts/default/full'
+                'https://apis.live.net/v5.0/me/contacts?access_token='. $token
             )
-            ->setFields($querys)
-            ->setMethod('get')
+            ->setMethod($this->requestMethod)
             ->setHeaders(
                 [
                     'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '. $token,
                 ]
             )
             ->send();
-            
-        return $this->parseContactXml($response);
+
+        return $this->parseContacts($response);
     }
 
     /**
@@ -155,10 +154,9 @@ class Google extends AbstractProvider implements ProviderInterface
     {
         $response = $this->getHttpClient()
             ->setRequestUrl(
-                'https://www.googleapis.com/plus/v1/people/me/people/visible'
+                'https://www.googleapis.com/plus/v1/people/me/people/visible?access_token='. $this->getAccessToken($this->getCode())
             )
-            ->setFields('access_token='. $this->getAccessToken($this->getCode()))
-            ->setMethod('get')
+            ->setMethod($this->requestMethod)
             ->setHeaders(
                 [
                     'Accept' => 'application/json',
@@ -170,43 +168,40 @@ class Google extends AbstractProvider implements ProviderInterface
     }
 
     /**
-     * Parse xml element
+     * Parse contacts
      * 
      * @param string $response curl exec response
      * 
-     * @return SimpleXMLElement
+     * @return array
      */
-    protected function parseContactXml($response)
+    protected function parseContacts($response)
     {
-        $xml = new SimpleXMLElement($response);
-        $xml->registerXPathNamespace('gd', 'http://schemas.google.com/g/2005');
-        $outputArray = array();
+        if (($data = $this->getHttpClient()->jsonDecode($response, true)) && isset($data['data'])) {
+            foreach ($data['data'] as $val) {
+                // Initialize an array out here.
+                $contacts = array();
+                // Get the title and link attributes (link as an array)
+                $contacts['name'] = (string)$val['name'];
+                $emailAddress     = (string)$val['emails']['preferred'];
 
-        if (! empty($xml->error->code)) {
-            throw new \LogicException($xml->error->internalReason);
-        }
-        foreach ($xml->entry as $entry) {
-            // Initialize an array out here.
-            $contacts = array();
-            // Get the title and link attributes (link as an array)
-            $contacts['name'] = (string)$entry->title;
-            // If there are never more than 1 email, you don't need a loop here.
-            foreach ($entry->xpath('gd:email') as $email) {
-                $emailAddr = (string)$email->attributes()->address;
-                if (filter_var($emailAddr, FILTER_VALIDATE_EMAIL) !== false) { // Get the valid email
-                    $contacts['email'] = $emailAddr;
+                if (filter_var($emailAddress, FILTER_VALIDATE_EMAIL) !== false) { // Get the valid email
+                    $contacts['email'] = $emailAddress;
+                }
+                // Append your array to the larger output
+                if (isset($contacts['email'])) {
+                    $outputArray[] = $contacts;
                 }
             }
-            // Append your array to the larger output
-            if (isset($contacts['email'])) {
-                $outputArray[] = $contacts;
-            }
+            return $outputArray;
         }
-        return $outputArray;
+        if (isset($data['error'])) {
+            throw new LogicException($data['error_description'] .' Error code: '. $data['error']);
+        }
+        return false;
     }
 }
 
-// END Google.php File
-/* End of file Google.php
+// END Live.php File
+/* End of file Live.php
 
-/* Location: .Obullo/Sociality/Provider/Google.php */
+/* Location: .Obullo/Sociality/Provider/Live.php */

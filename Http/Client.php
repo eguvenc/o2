@@ -26,6 +26,45 @@ class Client
     protected $ch;
 
     /**
+     * Get or post request fields
+     * 
+     * @var mixed
+     */
+    protected $fields;
+
+    /**
+     * Request method
+     * 
+     * @var string
+     */
+    protected $method;
+
+    /**
+     * Curl constants
+     * 
+     * @var array
+     */
+    protected $constants = [];
+
+    /**
+     * Is allowed method
+     * 
+     * @var array
+     */
+    protected $allowedMethods = ['get', 'post'];
+
+    /**
+     * Curl options
+     * 
+     * @var array
+     */
+    protected $curlArray = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false
+    ];
+
+    /**
      * Json errors
      * 
      * @var array
@@ -37,23 +76,6 @@ class Client
         JSON_ERROR_CTRL_CHAR      => 'JSON_ERROR_CTRL_CHAR - Unexpected control character found',
         JSON_ERROR_STATE_MISMATCH => 'JSON_ERROR_STATE_MISMATCH - Underflow or the modes mismatch',
     ];
-
-    /**
-     * Curl options
-     * 
-     * @var array
-     */
-    protected $curlArray = [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false
-    ];
-
-    /**
-     * Curl constants
-     * 
-     * @var array
-     */
-    protected $constants = [];
 
     /**
      * Constructor
@@ -76,6 +98,10 @@ class Client
     {
         if (! is_resource($this->ch)) {
             $this->ch = curl_init();
+        }
+        if (method_exists($this, $this->method)) {
+            $this->{$this->method}();
+            // $this->curlArray[CURLOPT_CUSTOMREQUEST] = $this->method;
         }
     }
 
@@ -101,7 +127,8 @@ class Client
     {
         $this->curlArray = [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
         ];
     }
 
@@ -115,6 +142,35 @@ class Client
     public function setRequestUrl($url)
     {
         $this->curlArray[CURLOPT_URL] = $url;
+        return $this;
+    }
+
+    /**
+     * Set fields
+     * 
+     * @param array $fields fields
+     * 
+     * @return object
+     */
+    public function setFields($fields)
+    {
+        $this->fields = $fields;
+        return $this;
+    }
+
+    /**
+     * Set method
+     * 
+     * @param string $method request method
+     * 
+     * @return object
+     */
+    public function setMethod($method)
+    {
+        if (! in_array($method, $this->allowedMethods)) {
+            throw new LogicException("You have selected an unsupported method: $method");
+        }
+        $this->method = $method;
         return $this;
     }
 
@@ -135,13 +191,16 @@ class Client
     /**
      * Set post fields
      * 
-     * @param array $getFields request get fields
+     * @param mixed $getFields request get fields
      * 
      * @return void
      */
     public function setGetFields($getFields)
     {
-        $this->curlArray[CURLOPT_URL] = '?'. http_build_query($getFields);
+        if (empty($getFields)) {
+            return $this;
+        }
+        $this->curlArray[CURLOPT_URL] .= '?'. (is_array($getFields) ? http_build_query($getFields) : $getFields);
         return $this;
     }
 
@@ -154,6 +213,11 @@ class Client
      */
     public function setHeaders(array $headers)
     {
+        foreach ($headers as $key => $val) {
+            if (strpos($val, ':') === false) {
+                $headers[$key] = $key .':'. $val;
+            }
+        }
         $this->curlArray[CURLOPT_HTTPHEADER] = $headers;
         return $this;
     }
@@ -180,6 +244,7 @@ class Client
             );
         }
         $this->curlArray[$key] = $val;
+        return $this;
     }
 
     /**
@@ -197,6 +262,7 @@ class Client
         // do is use the setOptions method for the values individually.
         $this->curlArray[CURLOPT_CONNECTTIMEOUT] = $timeout;
         $this->curlArray[CURLOPT_TIMEOUT] = $timeout;
+        return $this;
     }
 
     /**
@@ -212,6 +278,7 @@ class Client
     public function setUserAgent($agent)
     {
         $this->curlArray[CURLOPT_USERAGENT] = $agent;
+        return $this;
     }
 
     /**
@@ -221,10 +288,10 @@ class Client
      */
     public function post()
     {
+        $this->setPostFields($this->fields);
         if (! isset($this->curlArray[CURLOPT_POSTFIELDS]) || empty($this->curlArray[CURLOPT_POSTFIELDS])) {
-            throw new LogicException('You must first set the data using this "setPostFields()" function.');
+            throw new LogicException('You must first set the data using this "setFields()" function.');
         }
-        return $this->send();
     }
 
     /**
@@ -234,7 +301,10 @@ class Client
      */
     public function get()
     {
-        return $this->send();
+        $this->setGetFields($this->fields);
+        if (isset($this->curlArray[CURLOPT_POST]) && $this->curlArray[CURLOPT_POST]) {
+            throw new LogicException('You must first delete post data.');
+        }
     }
 
     /**
@@ -242,7 +312,7 @@ class Client
      * 
      * @return void
      */
-    protected function send()
+    public function send()
     {
         $this->init();  // Init curl
         curl_setopt_array(

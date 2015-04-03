@@ -75,6 +75,13 @@ abstract class AbstractProvider
     protected $scopes = [];
 
     /**
+     * Request Method
+     * 
+     * @var string
+     */
+    protected $requestMethod;
+
+    /**
      * Create a new provider instance.
      *
      * @param object $c      container instance
@@ -123,6 +130,34 @@ abstract class AbstractProvider
     abstract protected function getContactsByToken($token);
 
     /**
+     * Get the access token from the token response body.
+     *
+     * @param string $body response body
+     * 
+     * @return string
+     */
+    // abstract protected function parseAccessToken($body);
+
+    /**
+     * Get the GET parameters for the code request.
+     * 
+     * @param string $state Your client can insert state information that
+     *                      will be appended to the redirect_uri upon success user authorization.
+     *
+     * @return array
+     */
+    abstract protected function getCodeFields($state);
+
+    /**
+     * Get the POST fields for the token request.
+     *
+     * @param string $code token code
+     * 
+     * @return array
+     */
+    // abstract protected function getTokenFields($code);
+
+    /**
      * Set access token
      * 
      * @param string $token accecss token
@@ -144,7 +179,7 @@ abstract class AbstractProvider
     {
         $this->storage->set(
             'state',
-            $state = sha1(time(). uniqid())
+            $state = md5(time(). uniqid())
         );
         $this->removeToken();
         $this->c['url']->redirect($this->getAuthUrl($state));
@@ -159,7 +194,7 @@ abstract class AbstractProvider
     {
         $this->storage->set(
             'state',
-            $state = sha1(time(). uniqid())
+            $state = md5(time(). uniqid())
         );
         $this->removeToken();
         return $this->getAuthUrl($state);
@@ -175,7 +210,7 @@ abstract class AbstractProvider
      */
     protected function buildAuthUrlFromBase($url, $state)
     {
-        return $url .'?'. http_build_query($this->getCodeFields($state), '', '&', $this->encodingType);
+        return $url .'?'. http_build_query($this->getCodeFields($state));
     }
 
     /**
@@ -185,16 +220,16 @@ abstract class AbstractProvider
      * 
      * @return array
      */
-    protected function getCodeFields($state)
-    {
-        return [
-            'client_id'     => $this->clientId,
-            'redirect_uri'  => $this->getRedirectUri(),
-            'scope'         => $this->formatScopes($this->scopes, $this->scopeSeparator),
-            'state'         => $state,
-            'response_type' => 'code',
-        ];
-    }
+    // protected function getCodeFields($state)
+    // {
+    //     return [
+    //         'client_id'     => $this->clientId,
+    //         'redirect_uri'  => $this->getRedirectUri(),
+    //         'scope'         => $this->formatScopes($this->scopes, $this->scopeSeparator),
+    //         'state'         => $state,
+    //         'response_type' => 'code',
+    //     ];
+    // }
 
     /**
      * Format the given scopes.
@@ -248,12 +283,35 @@ abstract class AbstractProvider
         }
         $response = $this->getHttpClient()
             ->setRequestUrl($this->getTokenUrl())
-            ->setPostFields($this->getTokenFields($code))
+            ->setMethod($this->requestMethod)
+            ->setFields($this->getTokenFields($code))
+            ->setOption(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret)
             ->setHeaders(
-                ['Accept' => 'application/json']
+                [
+                    // 'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept : application/json'
+                ]
             )
-            ->post();
+            ->send();
+            
         return $this->parseAccessToken($response);
+    }
+
+    /**
+     * Get the access token from the token response body.
+     *
+     * @param string $body response body
+     * 
+     * @return string
+     */
+    protected function parseAccessToken($body)
+    {
+        $response = $this->getHttpClient()->jsonDecode($body, true);
+        if (isset($response['access_token'])) {
+            $this->setAccessToken($response['access_token']);
+            return $response['access_token'];
+        }
+        throw new InvalidArgumentException('Missing parameter "access_token"');   
     }
 
     /**
@@ -275,31 +333,13 @@ abstract class AbstractProvider
     }
 
     /**
-     * Get the access token from the token response body.
-     *
-     * @param string $body response body
-     * 
-     * @return string
-     */
-    protected function parseAccessToken($body)
-    {
-        $response = $this->getHttpClient()->jsonDecode($body, true);
-
-        if (isset($response['access_token'])) {
-            $this->setAccessToken($response['access_token']);
-            return $response['access_token'];
-        }
-        throw new InvalidArgumentException('Missing parameter "access_token"');   
-    }
-
-    /**
      * Get the code from the request.
      *
      * @return string
      */
     protected function getCode()
     {
-        return $this->c['request']->all('code');
+        return $this->c['request']->all(static::TOKEN_REQUEST);
     }
 
     /**
@@ -351,73 +391,5 @@ abstract class AbstractProvider
     {
         $this->token = null;
         $this->storage->remove('access_token');
-    }
-
-    /**
-     * Add an element to an array using "dot" notation if it doesn't exist.
-     *
-     * @param  array   $array
-     * @param  string  $key
-     * @param  mixed   $value
-     * @return array
-     */
-    public function array_add($array, $key, $value)
-    {
-        if (is_null(static::get($array, $key))) {
-            static::set($array, $key, $value);
-        }
-        return $array;
-    }
-
-    /**
-     * Get an item from an array using "dot" notation.
-     *
-     * @param  array   $array
-     * @param  string  $key
-     * @param  mixed   $default
-     * @return mixed
-     */
-    public static function get($array, $key, $default = null)
-    {
-        if (is_null($key)) return $array;
-        if (isset($array[$key])) return $array[$key];
-
-        foreach (explode('.', $key) as $segment) {
-            if ( ! is_array($array) || ! array_key_exists($segment, $array)) {
-                return value($default);
-            }
-            $array = $array[$segment];
-        }
-        return $array;
-    }
-
-    /**
-     * Set an array item to a given value using "dot" notation.
-     *
-     * If no key is given to the method, the entire array will be replaced.
-     *
-     * @param  array   $array
-     * @param  string  $key
-     * @param  mixed   $value
-     * @return array
-     */
-    public static function set(&$array, $key, $value)
-    {
-        if (is_null($key)) {
-            return $array = $value;
-        }
-        $keys = explode('.', $key);
-        while (count($keys) > 1) {
-            $key = array_shift($keys);
-            // If the key doesn't exist at this depth, we will just create an empty array
-            // to hold the next value, allowing us to create the arrays to hold final
-            // values at the correct depth. Then we'll keep digging into the array.
-            if ( ! isset($array[$key]) || ! is_array($array[$key])) {
-                $array[$key] = [];
-            }
-            $array =& $array[$key];
-        }
-        $array[array_shift($keys)] = $value;
-        return $array;
     }
 }
