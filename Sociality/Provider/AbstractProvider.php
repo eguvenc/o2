@@ -252,7 +252,7 @@ abstract class AbstractProvider
     public function getAllContacts()
     {
         if ($this->hasInvalidState()) {
-            throw new InvalidArgumentException;
+            throw new InvalidArgumentException('Security state not correct');
         }
         return $this->getContactsByToken(
             $this->getAccessToken($this->getCode())
