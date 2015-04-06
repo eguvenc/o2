@@ -18,6 +18,7 @@ use Obullo\Sociality\Provider\ProviderInterface;
  */
 class Google extends AbstractProvider implements ProviderInterface
 {
+    const PREFIX = 'google';
     const TOKEN_REQUEST = 'code';
 
     /**
@@ -29,6 +30,13 @@ class Google extends AbstractProvider implements ProviderInterface
 
     /**
      * The scopes being requested.
+     * 
+     * The following scopes, with user consent,
+     * provide access to otherwise restricted user data.
+     * @link texthttps://developers.google.com/+/api/oauth#scopes
+     * 
+     * Here's the OAuth 2.0 scope information for the Google Contacts API:
+     * @link https://developers.google.com/google-apps/contacts/v3/#authorizing_requests_to_the_api_name_service
      *
      * @var array
      */

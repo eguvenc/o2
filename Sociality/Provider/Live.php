@@ -20,6 +20,7 @@ use Obullo\Sociality\Provider\ProviderInterface;
  */
 class Live extends AbstractProvider implements ProviderInterface
 {
+    const PREFIX = 'live';
     const TOKEN_REQUEST = 'code';
 
     /**
@@ -112,59 +113,16 @@ class Live extends AbstractProvider implements ProviderInterface
             ->setRequestUrl(
                 'https://apis.live.net/v5.0/me/contacts?access_token='. $token
             )
-            ->setMethod($this->requestMethod)
+            ->setMethod('get')
             ->setHeaders(
                 [
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer '. $token,
+                    // 'Authorization' => 'Bearer '. $token,
                 ]
             )
             ->send();
-
+            
         return $this->parseContacts($response);
-    }
-
-    /**
-     * Google+ List of Visible Peoples
-     * 
-     * [kind] => plus#peopleFeed
-     * [etag] => "RqKWnRU4WW46-6W3rWhLR9iFZQM/quEIn5NpuNVOeqVU3NqJdxndqHE"
-     * [title] => Google+ List of Visible People
-     * [totalItems] => 18
-     * [items] => Array
-     * (
-     *     [0] => Array
-     *     (
-     *         [kind] => plus#person
-     *         [etag] => "RqKWnRU4WW46-6W3rWhLR9iFZQM/sAlvk04zWMyfFtRxownnP-74wR8"
-     *         [objectType] => person
-     *         [id] => 108486234400851501591
-     *         [displayName] => Name Surname
-     *         [url] => https://plus.google.com/108486234400851501592
-     *         [image] => Array
-     *         (
-     *             [url] => https://lh6.googleusercontent.com/-NjwfYM_SNEA/AAAAAAAAAAI/AAAAAAAAAXg/8SDzA6mLen0/photo.jpg?sz=50
-     *         )
-     *     ) ... more elements
-     * )
-     * 
-     * @return array
-     */
-    public function gPlusListOfVisiblePeoples()
-    {
-        $response = $this->getHttpClient()
-            ->setRequestUrl(
-                'https://www.googleapis.com/plus/v1/people/me/people/visible?access_token='. $this->getAccessToken($this->getCode())
-            )
-            ->setMethod($this->requestMethod)
-            ->setHeaders(
-                [
-                    'Accept' => 'application/json',
-                ]
-            )
-            ->send();
-
-        return $response;
     }
 
     /**

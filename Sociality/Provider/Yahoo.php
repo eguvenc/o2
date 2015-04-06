@@ -19,6 +19,7 @@ use Obullo\Sociality\Provider\ProviderInterface;
  */
 class Yahoo extends AbstractProvider implements ProviderInterface
 {
+    const PREFIX = 'yahoo';
     const TOKEN_REQUEST = 'code';
 
     /**
