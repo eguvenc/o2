@@ -293,9 +293,7 @@ abstract class AbstractProvider
                 ]
             )
             ->send();
-            // echo '<pre>';
-            // print_r($response);
-            // die('die');
+            
         return $this->parseAccessToken($response);
     }
 
@@ -308,15 +306,9 @@ abstract class AbstractProvider
      */
     protected function parseAccessToken($body)
     {
-        // echo '<pre>';
-        // var_dump($body);
-        // die('die');
         $response = $this->getHttpClient()->jsonDecode($body, true);
-        // echo '<pre>';
-        // var_dump(isset($response['access_token']));
-        // die('die');
+
         if (isset($response['access_token'])) {
-            echo $response['access_token'];
             $this->setAccessToken($response['access_token']);
             return $response['access_token'];
         }

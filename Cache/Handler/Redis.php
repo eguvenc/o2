@@ -337,7 +337,7 @@ class Redis implements CacheHandlerInterface
     public function hSet($key, $hashKey, $data, $ttl = 0)
     {
         $hSet = $this->redis->hSet($key, $hashKey, $data);
-        if ($hSet AND (int)$ttl > 0) {
+        if ((int)$ttl > 0) {
             $this->redis->setTimeout($key, (int)$ttl);
         }
         return $hSet;
@@ -355,7 +355,7 @@ class Redis implements CacheHandlerInterface
     public function hMSet($key, $members, $ttl = 0)
     {
         $hMSet = $this->redis->hMSet($key, $members);
-        if ($hMSet AND (int)$ttl > 0) {
+        if ((int)$ttl > 0) {
             $this->redis->setTimeout($key, (int)$ttl);
         }
         return $hMSet;
