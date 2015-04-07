@@ -15,18 +15,19 @@ use Obullo\Log\Console\Printer\Colorful;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class Mongo
+class Mongo
 {
     /**
      * Follow logs
      * 
      * @param string $c          container
      * @param string $dir        sections ( http, ajax, cli )
+     * @param string $db         default logs
      * @param string $collection default logs
      * 
      * @return void
      */
-    public function follow(Container $c, $dir = 'http', $collection = 'logs')
+    public function follow(Container $c, $dir = 'http', $db = null, $collection = null)
     {
         $c['config']->load('logger');
 
@@ -38,7 +39,7 @@ Class Mongo
             [
                 'connection' => 'default'
             ]
-        ); 
+        )->selectDb($db); 
         $mongoCollection = $mongo->{$collection};
         $resultArray = $mongoCollection->find();
         
