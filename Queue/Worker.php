@@ -7,7 +7,7 @@ use ErrorException;
 use Obullo\Queue\Job;
 use Obullo\Log\Logger;
 use Obullo\Container\Container;
-use Obullo\Tasks\Helper\Console;
+use Obullo\Task\Helper\Console;
 
 /**
  * Queue Worker Class
@@ -21,7 +21,7 @@ use Obullo\Tasks\Helper\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-Class Worker
+class Worker
 {
     /**
      * Container
@@ -325,8 +325,6 @@ Class Worker
                     if (isset($errorPriorities[$level])) {
                         $priority = $errorPriorities[$level];
                     } 
-                    global $c;
-                    $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                     $data = array(
                         'error_level' => $level,
                         'error_message' => $message,
@@ -336,14 +334,7 @@ Class Worker
                         'error_xdebug' => '',
                         'error_priority' => $priority,
                     );
-                    $this->prependJobDetails($data);
-                    if ($this->debug) {
-                        $this->debugOutput($data);
-                    }
-                    if ($c['config']['queue/workers']['failed']['enabled']) {
-                        $storage = new $storageClassName($c);
-                        $storage->save($data);
-                    }
+                    $this->saveFailedJob($data);
                 }
                 return ! $continueNativeHandler;
             }
@@ -385,10 +376,7 @@ Class Worker
                     $exception = $exception->getPrevious();
                 } while ($exception);
 
-                global $c;
-                $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                 foreach (array_reverse($messages) as $message) {
-                    global $c;
                     $data = array(
                         'error_level' => $message['level'],
                         'error_message' => $message['message'], 
@@ -398,14 +386,7 @@ Class Worker
                         'error_xdebug' => $message['xdebug'],
                         'error_priority' => $message['priority'],
                     );
-                    $this->prependJobDetails($data);
-                    if ($this->debug) {
-                        $this->debugOutput($data);
-                    }
-                    if ($c['config']['queue/workers']['failed']['enabled']) {
-                        $storage = new $storageClassName($c);
-                        $storage->save($data);
-                    }
+                    $this->saveFailedJob($data);
                 }
                 if ( ! is_null($this->job) AND ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
                     $this->job->release($this->delay);  // the queue so it is not lost. This will let is be retried at a later time by another worker.
@@ -429,8 +410,6 @@ Class Worker
         register_shutdown_function(
             function () {
                 if (null != $error = error_get_last()) {
-                    global $c;
-                    $storageClassName = '\\'.$c['config']['queue/workers']['failed']['storage'];
                     $data = array(
                         'error_level' => $error['type'],
                         'error_message' => $error['message'], 
@@ -440,19 +419,33 @@ Class Worker
                         'error_xdebug' => '',
                         'error_priority' => 99,
                     );
-                    $this->prependJobDetails($data);
-                    if ($this->debug) {
-                        $this->debugOutput($data);
-                    }
-                    if ($c['config']['queue/workers']['failed']['enabled']) {
-                        $storage = new $storageClassName($c);
-                        $storage->save($data);
-                    }
+                    $this->saveFailedJob($data);
                 }
             }
         );
         static::$registeredFatalErrorShutdownFunction = true;
         return true;
+    }
+
+    /**
+     * Save failed job to database
+     * 
+     * @param array $data failed data
+     * 
+     * @return void
+     */
+    protected function saveFailedJob($data)
+    {
+        global $c;
+        $data = $this->prependJobDetails($data);
+        if ($this->debug) {
+            $this->debugOutput($data);
+        }
+        if ($c['config']['queue/workers']['failed']['enabled']) {
+            $storageClassName = '\\'.ltrim($c['config']['queue/workers']['failed']['storage'], '\\');
+            $storage = new $storageClassName($c);
+            $storage->save($data);
+        }
     }
 
     /**
@@ -510,15 +503,11 @@ Class Worker
     public function debugOutput($data)
     {
         if (is_string($data)) {
-
             echo Console::text("Output : \n".$data."\n", 'yellow');
-
         } elseif (is_array($data)) {
-
             unset($data['error_trace']);
             unset($data['error_xdebug']);
             unset($data['error_priority']);
-            
             echo Console::fail("Error : \n".print_r($data, true));
         }
     }

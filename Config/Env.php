@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-Class Env implements ArrayAccess
+class Env implements ArrayAccess
 {
     /**
      * Container

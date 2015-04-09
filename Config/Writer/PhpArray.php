@@ -16,7 +16,7 @@ use RuntimeException;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-Class PhpArray extends AbstractWriter
+class PhpArray extends AbstractWriter
 {
     /**
      * @var string

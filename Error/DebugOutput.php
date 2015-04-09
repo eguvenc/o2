@@ -14,7 +14,7 @@ use Obullo\Logger\Logger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/error
  */
-Class DebugOutput
+class DebugOutput
 {
     /**
      * Config

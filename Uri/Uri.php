@@ -324,13 +324,16 @@ class Uri
     /**
      * Get Assets URL
      * 
-     * @param string $uri asset uri
+     * @param string $uri    asset uri
+     * @param string $folder whether to add asset folder
      * 
      * @return string
      */
-    public function getAssetsUrl($uri = '')
+    public function getAssetsUrl($uri = '', $folder = true)
     {
-        return rtrim($this->config['url']['assets'], '/') .'/'. ltrim($uri, '/');
+        $assetsFolder = ($folder) ? trim($this->c['config']['url']['assets']['folder'], '/').'/' : '';
+        
+        return $this->c['config']['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
     }
 
     /**
@@ -411,6 +414,16 @@ class Uri
     public function getCurrentUrl()
     {
         return $this->getSiteUrl($this->getUriString());
+    }
+
+    /**
+     * Get current url
+     *
+     * @return string
+     */
+    public function getWebHost()
+    {
+        return trim($this->c['config']['url']['webhost'], '/');
     }
 
     /**

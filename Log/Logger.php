@@ -6,7 +6,7 @@ use LogicException;
 use Obullo\Container\Container;
 
 /**
- * Standart Logger Class
+ * Logger Class
  * 
  * @category  Log
  * @package   Logger
@@ -15,11 +15,12 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class Logger extends AbstractLogger implements LoggerInterface
+class Logger extends AbstractLogger implements LoggerInterface
 {
     use LoggerTrait;
 
     public $debug = false;                    // Debug all outputs to end of the page
+    public $options = array();
     public $debugHandler;                     // Debug handler
     public $enabled = true;                   // On / Off Logging
     public $queries = false;                  // Whether to log sql queries
@@ -46,18 +47,18 @@ Class Logger extends AbstractLogger implements LoggerInterface
     protected static $registeredExceptionHandler = false;
     protected static $registeredFatalErrorShutdownFunction = false;
 
-    
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c       container
+     * @param array  $options parameters
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, $options = array())
     {
         $this->c = $c;
+        $this->options = $options;
         $this->enabled = $this->c['config']['log']['enabled'];
-        $this->c['response']->prepend = $this->debug = $this->c['config']['log']['debug'];  // Enable response prepend and debug
-        
+
         $this->configureErrorHandlers();
         $this->initialize();
         register_shutdown_function(array($this, 'close'));
@@ -70,25 +71,30 @@ Class Logger extends AbstractLogger implements LoggerInterface
      */
     public function close()
     {
-        if ($this->enabled == false) {  // Check logger is disabled.
-            return;
-        }
-        if ($this->connect) {    // Lazy loading for Logger service
-                                 // if connect method executed one time then we set to connect true
-                                 // When connect booelan is available we load the worker class
-            
-            $this->exec();       // Set payload data
+        if ($this->enabled AND $this->connect) {    // Lazy loading for Logger service
+                                                    // if connect method executed one time then we open connections and load classes
+                                                    // When connect booelan is true we load worker or queue libraries
+            $this->exec();  // Set payload data
+            // $writers = $this->getWriters();
 
-            if ($this->debug) {         // Debug output for log data if enabled
-                $primaryWriter = $this->getPrimaryWriter();
-                $debugger = new \Obullo\Log\Debugger\Output($this->c, $this);
-                $debugger->setHandler($primaryWriter);
+            // QUEUE LOGGER
+        
+            if (isset($this->options['queue']) AND $this->options['queue']) {     // Send data to queue
 
-                // $debugger->writeBody($this->getQueue($primaryWriter));
-                $debugger->writeBody($this->payload);
+                $queue = $this->c['return '.$this->c['config']['logger']['queue']['service']];  // Connect to Queue service
+                $queue->channel($this->c['config']['logger']['queue']['channel']); // Push to Queue
+                $queue->push(
+                    $this->c['config']['logger']['queue']['worker'],
+                    $this->c['config']['logger']['queue']['route'],
+                    $this->payload,
+                    $this->c['config']['logger']['queue']['delay']
+                );
+
+            } else {  // LOCAL LOGGER
+
+                $worker = new \Workers\Logger($this->c); // Execute standart logger
+                $worker->fire(null, $this->payload);
             }
-            $worker = new \Workers\Logger($this->c); // Excure worker for standart logger
-            $worker->fire(null, $this->payload);
         }
     }
 

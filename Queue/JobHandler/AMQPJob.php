@@ -2,10 +2,10 @@
 
 namespace Obullo\Queue\JobHandler;
 
-use AMQPQueue,
-    AMQPEnvelope,
-    Obullo\Queue\Job,
-    Obullo\Container\Container;
+use AMQPQueue;
+use AMQPEnvelope;
+use Obullo\Queue\Job;
+use Obullo\Container\Container;
 
 /**
  * AMQPJob Handler
@@ -17,7 +17,7 @@ use AMQPQueue,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-Class AMQPJob extends Job
+class AMQPJob extends Job
 {
     /**
      * Constructor

@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Tasks;
+namespace Obullo\Task;
 
 use Controller;
-use Obullo\Tasks\Helper\Console;
+use Obullo\Task\Helper\Console;
 
 /**
  * Domain Controller
@@ -62,6 +62,8 @@ class DomainController extends Controller
         $this->config->array['domain'][$name]['maintenance'] = 'down';
         $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
 
+        $this->c['logger']->debug('php task domain down --name='.$name);
+
         echo Console::fail("Domain ".Console::foreground($name, 'red')." down for maintenance.");
     }
 
@@ -78,6 +80,8 @@ class DomainController extends Controller
 
         $this->config->array['domain'][$name]['maintenance'] = 'up';
         $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
+
+        $this->c['logger']->debug('php task domain up --name='.$name);
 
         echo Console::success("Domain ".Console::foreground($name, 'green')." up.");
     }
@@ -127,10 +131,12 @@ echo Console::help("php task domain down --name=site\n\n");
 echo Console::help("Description:\n\n", true);
 echo Console::help("Manages domain features which are defined in your domain.php config file.\n\n");
 
+        $this->c['logger']->debug('php task domain help');
+
     }
 }
 
 // END DomainController class
 
 /* End of file DomainController.php */
-/* Location: .Obullo/Tasks/DomainController.php */
+/* Location: .Obullo/Task/DomainController.php */

@@ -87,7 +87,7 @@ Tüm task controller sınıfları **app/tasks** dizini altında bulunmaktadır. 
 
 ```php
 <?php
-$this->c['cli/task as task'];
+$this->c['task'];
 $this->task->run('controller');
 ```
 

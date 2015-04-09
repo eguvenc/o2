@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
 use Obullo\Authentication\Token;
@@ -10,19 +10,19 @@ use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
 
 /**
- * O2 Authentication - User Service Provider
- *
- * @category  Authentication
- * @package   AuthServiceProvider
+ * AuthServiceProvider Class
+ * 
+ * @category  Log
+ * @package   Debug
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
+ * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
+ * @link      http://obullo.com/package/service_providers
  */
-Class AuthServiceProvider
+class AuthServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Container
+     * Container class
      * 
      * @var object
      */
@@ -30,14 +30,25 @@ Class AuthServiceProvider
 
     /**
      * Constructor
-     * 
-     * @param object $c      container
-     * @param array  $params configuration parameters
+     *
+     * @param object $c container
+     *
+     * @return void
      */
-    public function __construct(Container $c, $params = array())
+    public function register(Container $c)
     {
         $this->c = $c;
+    }
 
+    /**
+     * Create classes
+     * 
+     * @param array $params config parameters
+     * 
+     * @return void
+     */
+    public function factory($params = array())
+    {
         $this->c['auth.config'] = function () use ($params) {
             return new Config(array_merge($params, $this->c['config']->load('auth')));
         };
@@ -92,7 +103,7 @@ Class AuthServiceProvider
     }
 }
 
-// END AuthServiceProvider.php File
-/* End of file AuthServiceProvider.php
+// END AuthServiceProvider class
+/* End of file AuthServiceProvider.php */
 
-/* Location: .Obullo/Authentication/AuthServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/AuthServiceProvider.php */

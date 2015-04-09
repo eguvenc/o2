@@ -12,12 +12,11 @@ O2 yetki doğrulama;
 * Kullanıcı kimliklerini önbelleklenme
 * Kullanıcı sorgularını özelleştirebilme ( User model class )
 * Yetki doğrulama onaylandırma ( Verification )
-* Güvenlik çerezi doğrulama önlemi, ( Security token validation )
 * Oturum id sini yeniden yaratma, ( Session regenerate )
 * Tarayıcı türünü doğrulama ( User agent validation )
 * Hatırlatma çerezi ve beni hatırla özellikleri ( Remember me token )
 
-gibi mevcut özellikleri ile size esnek, hızlı ve güvenli bir yetki doğrulama servisi sağlar.
+gibi özellikleri barındırır.
 
 ### Akış Şeması
 

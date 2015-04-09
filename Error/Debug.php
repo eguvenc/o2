@@ -7,6 +7,7 @@ use Obullo\Error\ErrorHandler,
 
 /**
  * Error Debug Cass
+ * 
  * Modeled after Symfony Debug package.
  * 
  * @category  Error
@@ -16,7 +17,7 @@ use Obullo\Error\ErrorHandler,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/error
  */
-Class Debug
+class Debug
 {
     /**
      * Enable disable debugging

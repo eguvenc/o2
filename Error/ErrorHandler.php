@@ -134,6 +134,9 @@ class ErrorHandler
         if (0 === $this->level) {
             return false;
         }
+        if (strpos($message, 'shmop_open') === 0) {  // Hide shmop_open function errors.
+            return false;
+        }
         $logger = $c['logger'];
         if ($level & (E_USER_DEPRECATED | E_DEPRECATED)) {
             if (is_object($c) AND $logger instanceof Logger) {

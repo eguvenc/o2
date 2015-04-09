@@ -1,12 +1,13 @@
 <?php
 
-namespace Obullo\Log;
+namespace Obullo\ServiceProviders;
 
+use Obullo\Log\Logger;
+use Obullo\Log\NullLogger;
 use Obullo\Container\Container;
-use Obullo\Log\Queue\QueueLogger;
 
 /**
- * LoggerServiceProviderProvider Class
+ * LoggerServiceProvider Class
  * 
  * @category  Log
  * @package   Debug
@@ -15,7 +16,7 @@ use Obullo\Log\Queue\QueueLogger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-class LoggerServiceProvider
+class LoggerServiceProvider implements ServiceProviderInterface
 {
     /**
      * Container class
@@ -28,8 +29,10 @@ class LoggerServiceProvider
      * Constructor
      *
      * @param object $c container
+     *
+     * @return void
      */
-    public function __construct(Container $c)
+    public function register(Container $c)
     {
         $this->c = $c;
     }
@@ -37,31 +40,20 @@ class LoggerServiceProvider
     /**
      * Returns to logger instance
      *
-     * @param array $params driver ( Logger or QueueLogger )
+     * @param array $options provider options
      * 
      * @return object
      */
-    public function get($params = array('driver' => 'Logger'))
+    public function get($options = array('queue' => false))
     {
-        if ($this->disabled()) {
+        if ( ! $this->c['config']['log']['enabled']) {
             return new NullLogger;  // Use null handler if config disabled.
         }
-        if ($params['driver'] == 'Logger') return new Logger($this->c);
-        if ($params['driver'] == 'QueueLogger') return new QueueLogger($this->c);
-    }
-
-    /**
-     * Returns to true if logger disabled from config
-     * 
-     * @return boolean
-     */
-    public function disabled()
-    {
-        return ($this->c['config']['log']['enabled']) ? false : true;
+        return new Logger($this->c, $options);
     }
 }
 
 // END LoggerServiceProvider class
 /* End of file LoggerServiceProvider.php */
 
-/* Location: .Obullo/Log/LoggerServiceProvider.php */
+/* Location: .Obullo/ServiceProviders/LoggerServiceProvider.php */

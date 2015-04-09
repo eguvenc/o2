@@ -17,7 +17,7 @@ use Obullo\Queue\Worker;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class WorkerController extends Controller
+class WorkerController extends Controller
 {
     /**
      * Execute command

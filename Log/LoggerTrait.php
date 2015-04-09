@@ -22,18 +22,12 @@ trait LoggerTrait
      */
     protected function configureErrorHandlers()
     {
-        $errorDebug = $this->c['config']['error']['debug'];
-        $errorReporting = $this->c['config']['error']['reporting'];
-
-        if ($errorDebug == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
+        if ($this->c['config']['error']['debug'] == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
             static::registerExceptionHandler($this); 
             static::registerErrorHandler($this);
             static::registerFatalErrorHandler($this);
         }
-        if ($errorReporting == true AND $errorDebug == false) { // If "Php Native Error Reporting" "enabled" from config restore handlers and use native errors.
-            static::unregisterErrorHandler();                   // Also write errors to log file. Especially designed for "local" environment.
-            static::unregisterExceptionHandler();
-        }
+        // Php error reporting always enabled .. 
     }
 
     /**
@@ -172,8 +166,8 @@ trait LoggerTrait
     public function filter($name, $params = array())
     {
         $method = 'filter';
-        if (strpos($name, '.') > 0) {
-            list($name, $method) = explode('.', $name);
+        if (strpos($name, '@') > 0) {
+            list($name, $method) = explode('@', $name);
         }
         if ( ! isset($this->filterNames[$name])) {
             throw new LogicException(

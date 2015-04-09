@@ -56,14 +56,9 @@ class Obullo
      *
      * @return void
      */
-    protected function setErrorReporting()
+    public function setErrorReporting()
     {
-        if ($this->c['config']['error']['reporting']) {   // Disable / Ebable Php Native Errors
-            ini_set('display_errors', 1);
-            error_reporting(E_ALL | E_STRICT | E_NOTICE);
-        } else {
-            error_reporting(0);
-        }
+        $this->c['config']->restoreErrors();
     }
 
     /**
@@ -81,13 +76,13 @@ class Obullo
      *
      * @return void
      */
-    protected function setDebugger()
+    protected function setPhpDebugger()
     {
-        if ($this->c['config']['error']['debug'] AND $this->c['config']['error']['reporting'] == false) {  // If framework debug feature enabled we register error & exception handlers.
+        if ($this->c['config']['error']['debug']) {  // If framework debug feature enabled we register error & exception handlers.
             Debug::enable(E_ALL | E_NOTICE | E_STRICT);
         }        
     }
-
+    
     /**
      * PSR-0 Autoloader
      * 
@@ -188,6 +183,43 @@ class Obullo
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
             $this->c['response']->show404($this->notFoundUri);
         }
+    }
+
+    /**
+     * Check http debugger is active
+     * 
+     * @return boolean
+     */
+    public function debuggerOn()
+    {
+        if ($this->getEnv() == 'production') {  // Only available on local environments
+            return false;
+        }
+        $id = @shmop_open(sprintf("%u", crc32('__obulloDebugger')), "a", 0, 0);
+        if ( ! $id) {
+            shmop_close($id);
+            return false;
+        }
+        $size = shmop_size($id);
+        $debugger = shmop_read($id, 0, $size);
+
+        if ($debugger == 'On') {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns to false if http debugger passive
+     * 
+     * @return boolean
+     */
+    public function debuggerOff()
+    {
+        if ($this->debuggerOn()) {
+            return false;
+        }
+        return true;
     }
 
     /**

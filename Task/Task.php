@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Cli;
+namespace Obullo\Task;
 
 use Obullo\Log\Logger;
 
@@ -14,7 +14,7 @@ use Obullo\Log\Logger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/task
  */
-Class Task
+class Task
 {
     /**
      * Logger
@@ -38,6 +38,8 @@ Class Task
 
     /**
      * Run cli task
+     *
+     * e.g: $this->c['task']->run('');
      * 
      * @param string  $uri   task uri
      * @param boolean $debug On / Off print debugger
@@ -46,15 +48,13 @@ Class Task
      */
     public function run($uri, $debug = false)
     {
-        $uri       = explode('/', trim(static::ucwordsUnderscore($uri)));
+        $delimiter = (strpos($uri, '/') > 0) ? '/' : ' ';
+        $uri = explode($delimiter, trim($uri));
         $directory = array_shift($uri);
-        foreach ($uri as $i => $section) {
-            if ( ! $section) {
-                $uri[$i] = 'false';
-            }
-        }
+        $segments = self::getSegments($uri);
+
         $host = isset($_SERVER['HTTP_HOST']) ? '--host='.$_SERVER['HTTP_HOST'] : '';  // Add http host variable if request comes from http
-        $shell = PHP_PATH .' '. FPATH .'/'. TASK_FILE .' '.$directory.' '. implode('/', $uri) . $host;
+        $shell = PHP_PATH .' '. FPATH .'/'. TASK_FILE .' '.$directory.' '. implode('/', $segments).' '. $host;
 
         if ($debug) {  // Enable debug output to log folder.
             $output = preg_replace(array('/\033\[36m/', '/\033\[31m/', '/\033\[0m/'), array('', '', ''), shell_exec($shell)); // Clean cli color codes
@@ -63,16 +63,37 @@ Class Task
             }
             return $output;
         }
-        shell_exec($shell . ' > /dev/null &');  // Continious task
+        shell_exec($shell . ' > /dev/null &');  // Async task
+
         if ($this->logger instanceof Logger) {
             $this->logger->debug('$_TASK executed', array('shell' => $shell));
         }
     }
 
     /**
+     * Create segments
+     * 
+     * @param array $uri segments
+     *
+     * @return array
+     */
+    protected static function getSegments($uri)
+    {
+        $segments = array();
+        foreach ($uri as $k => $v) {
+            if ( ! $v) {
+                $segments[$k] = 'false';
+            } else {
+                $segments[$k] = static::ucwordsUnderscore($v);
+            }
+        }
+        return $segments;
+    }
+
+    /**
      * Replace underscore to spaces to use ucwords
      * 
-     * Before : widgets\tutorials a  
+     * Before : widgets\tutorials_a  
      * After  : Widgets\Tutorials_A
      * 
      * @param string $string namespace part
@@ -81,9 +102,16 @@ Class Task
      */
     protected static function ucwordsUnderscore($string)
     {
-        $str = str_replace('_', ' ', $string);
-        $str = ucwords($str);
-        return str_replace(' ', '_', $str);
+        if (strpos($string, '_') > 0) {
+            $str = str_replace('_', '{__DELIM__}', $string);
+            $exp = explode('{__DELIM__}', $str);
+            $newArray = array();
+            foreach ($exp as $value) {
+                $newArray[] = ucfirst($value);
+            }
+            return implode('_', $newArray);
+        }
+        return $string;
     }
 
 }
@@ -91,4 +119,4 @@ Class Task
 // END Task.php File
 /* End of file Task.php
 
-/* Location: .Obullo/Cli/Task.php */
+/* Location: .Obullo/Task/Task.php */

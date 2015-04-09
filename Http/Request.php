@@ -128,15 +128,15 @@ class Request
 
     /**
      * Get Header
-     * e.g. echo $this->request->getHeader('Host');  // demo_blog
+     * e.g. echo $this->request->headers('Host');  // demo_blog
      *
      * @param string $key header key
      *
      * @link http://tr1.php.net/manual/en/function.getallheaders.php
      * 
-     * @return string | boolean
+     * @return string | boolean | array
      */
-    public function header($key = 'Host')
+    public function headers($key = null)
     {
         if (function_exists('getallheaders')) {
             $headers = getallheaders();
@@ -155,6 +155,9 @@ class Request
         }
         if (isset($headers[$key])) { // get selected header
             return $headers[$key];
+        }
+        if ($key == null OR $key == true) {  // Returns to all headers
+            return $headers;
         }
         return false;
     }
@@ -335,6 +338,7 @@ class Request
         }
         return false;
     }
+
 }
 
 // END Request class

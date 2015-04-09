@@ -20,7 +20,7 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-Abstract Class Adapter
+abstract class Adapter
 {
     public $sql;
     public $pdo = array();      // Pdo config
@@ -221,7 +221,7 @@ Abstract Class Adapter
         if (is_callable($closure)) {
             try
             {
-                $this->bind($closure);
+                $closure();
                 $this->commit();
             }
             catch(Exception $e)
@@ -231,19 +231,6 @@ Abstract Class Adapter
             }
         }
         return true;
-    }
-
-    /**
-     * Run Closure
-     *
-     * @param mixed $val closure or string
-     * 
-     * @return mixed
-     */
-    protected function bind($val)
-    {
-        $closure = Closure::bind($val, $this, get_class());
-        return $closure();
     }
 
     /**

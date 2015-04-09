@@ -54,7 +54,8 @@ class Config implements ArrayAccess
         $this->path  = APP .'config'. DS . 'env'. DS . $c['app']->getEnv() . DS;
         $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
         
-        ini_set('display_errors', 1);
+        $this->displayErrors();   // Show all errors
+
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
         
@@ -63,7 +64,8 @@ class Config implements ArrayAccess
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
         $this->array['domain'] = include $this->path .'domain.php';
-        ini_set('display_errors', 0);
+
+        $this->restoreErrors();  // Restore default configuration
     }
 
     /**
@@ -76,7 +78,7 @@ class Config implements ArrayAccess
         $dotenv = '.env.'. $this->c['app']->getEnv() .'.php';
         $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
         if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
-            $this->configurationError();
+            static::configurationError();
         }
         $_ENV = $envVariables;
     }
@@ -110,7 +112,9 @@ class Config implements ArrayAccess
             $isEnvFile = true;
             $file = $envFile;
         }
-        ini_set('display_errors', 1);
+        
+        $this->displayErrors();   // Show all errors
+        
         $config = include $file;
 
         if ($c['app']->getEnv() != 'local' AND $isEnvFile) { // Merge config variables if env not local.
@@ -119,7 +123,9 @@ class Config implements ArrayAccess
         } else {
             $this->array[$filename] = $config;
         }
-        ini_set('display_errors', 0);
+        
+        $this->restoreErrors();  // Restore default configuration
+
         return $this->array[$filename];
     }
 
@@ -191,13 +197,48 @@ class Config implements ArrayAccess
     }
 
     /**
+     * Display all errors
+     * 
+     * @return void
+     */
+    public function displayErrors()
+    {
+        ini_set('display_errors', 1);
+    }
+
+    /**
+     * Hide all errors
+     * 
+     * @return void
+     */
+    public function hideErrors()
+    {
+        ini_set('display_errors', 0);
+    }
+
+    /**
+     * Set error reporting
+     *
+     * @return void
+     */
+    public function restoreErrors()
+    {
+        if ($this->array['error']['debug'] == false) {
+            error_reporting(E_ALL | E_STRICT | E_NOTICE);
+            ini_set('display_errors', 1);
+        } else {
+            error_reporting(0);
+        }
+    }
+
+    /**
      * Include file errors
      * 
      * @param string $errorStr message
      * 
      * @return void exit
      */
-    protected function configurationError($errorStr = null)
+    protected static function configurationError($errorStr = null)
     {
         $error = error_get_last();
         $message = (is_null($errorStr)) ? $error['message'] : $errorStr;

@@ -49,7 +49,6 @@ Class View
         $this->_staticVars = array(
             '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
-            '@ASSETS'  => rtrim($c['config']['url']['assets'], '/')
         );
         $this->c['logger']->debug('View Class Initialized');
     }

@@ -2,10 +2,10 @@
 
 namespace Obullo\Process;
 
-use RuntimeException,
-    LogicException,
-    InvalidArgumentException,
-    Obullo\Process\Exception\ProcessTimedOutException;
+use RuntimeException;
+use LogicException;
+use InvalidArgumentException;
+use Obullo\Process\Exception\ProcessTimedOutException;
     
 /**
  * Process is a thin wrapper around proc_* functions to easily

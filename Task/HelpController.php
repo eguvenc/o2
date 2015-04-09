@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Tasks;
+namespace Obullo\Task;
 
 use Controller;
-use Obullo\Tasks\Helper\Console;
+use Obullo\Task\Helper\Console;
 
 /**
  * Help Controller
@@ -15,7 +15,7 @@ use Obullo\Tasks\Helper\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class HelpController extends Controller
+class HelpController extends Controller
 {
     /**
      * Execute command
@@ -39,6 +39,7 @@ echo Console::help("Usage:\n\n", true);
 echo Console::help("php task [command] [arguments]\n\n");
 echo Console::help("php task [command] --help\n\n\n");
 
+        $this->c['logger']->debug('php task help');
     }
 
 }
@@ -46,4 +47,4 @@ echo Console::help("php task [command] --help\n\n\n");
 // END HelpController class
 
 /* End of file HelpController.php */
-/* Location: .Obullo/Tasks/HelpController.php */
+/* Location: .Obullo/Task/HelpController.php */

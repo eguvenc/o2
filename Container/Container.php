@@ -253,6 +253,7 @@ class Container implements ArrayAccess
             }
         }
         $data = $this->getClassInfo($matches['class']);
+
         $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
         
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
@@ -431,7 +432,7 @@ class Container implements ArrayAccess
         if (strpos($Class, '\\') > 0) {
             return $this->resolveNamespace($Class, $cid, '\\', true);
         }
-        return $this->resolveNamespace($Class.'\\'.$Class, strtolower($cid), '\\', false);
+        return $this->resolveNamespace($Class.'\\'.$Class, $cid, '\\', false);
     }
 
     /**
@@ -454,7 +455,7 @@ class Container implements ArrayAccess
         }
         array_pop($exp);
         $nameSpace = 'Obullo' .$separator. implode($separator, $exp).$separator. ucfirst($ClassName);
-        return $this->resolved[$key] = array('key' => $key, 'cid' => $key, 'class' => $nameSpace);
+        return $this->resolved[$key] = array('key' => $key, 'cid' => strtolower($key), 'class' => $nameSpace);
     }
 
     /**

@@ -59,7 +59,7 @@ Class Colorful
             $line = preg_replace('/\s+/', ' ', $line);
             $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
 
-            if ($this->has('$_REQUEST_URI')) {
+            if ($this->has('$_URI')) {
                 $line  = "\033[0;37m".$break."\n".$line.$break."\033[0m";
             } elseif ($this->has('$_LAYER')) {
                 $line = "\033[0;37m".strip_tags($line)."\033[0m";

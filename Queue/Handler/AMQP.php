@@ -25,7 +25,7 @@ use Obullo\Queue\JobHandler\AMQPJob;
  * @see       http://www.php.net/manual/pl/book.amqp.php
  * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
-Class AMQP extends Queue implements HandlerInterface
+class AMQP extends Queue implements HandlerInterface
 {
     /**
      * Container

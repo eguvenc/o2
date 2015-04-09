@@ -69,13 +69,8 @@ echo $this->url->anchor('http://subdomain.@WEBHOST/news/local/123');
 Would produce: <a href="http://subdomain.yourdomain.com/news/local/123" title="Base Url">Subdomain</a>
 
 
-#### $this->url->prep()
+#### $this->url->asset($uri = 'images/example.png', $protocol = 'http://');
 
-This function will add http:// in the event it is missing from a URL. Pass the URL string to the function like this:
-
-```php
-$url = $this->url->prep("example.com");
-```
 
 #### $this->url->redirect($uri = '', $method = 'location', $http_response_code = '302', $suffix = true)
 
@@ -103,4 +98,13 @@ If you use refresh parameter you can set refresh time.
 
 ```php
 $this->url->redirect('/payments/response_status', 'refresh[4]');  // output  header("Refresh:4;url=/payments/response_status");
+```
+
+
+#### $this->url->prep()
+
+This function will add http:// in the event it is missing from a URL. Pass the URL string to the function like this:
+
+```php
+$url = $this->url->prep("example.com");
 ```

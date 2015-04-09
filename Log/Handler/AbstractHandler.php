@@ -37,6 +37,9 @@ abstract class AbstractHandler
      */
     public function isAllowed(array $record)
     {
+        if (isset($_GET[FRAMEWORK.'_debugger'])) {  //  Disable http debugger logs
+            return false;
+        }
         if ($record['request'] == 'worker') {
             return $this->c['config']['logger']['queue']['workers']['logging'];  //  If worker logs allowed from config file.
         }

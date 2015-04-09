@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Tasks\Helper;
+namespace Obullo\Task\Helper;
 
 /**
  * Console Helper
@@ -165,4 +165,4 @@ class Console
 // END Console class
 
 /* End of file Console.php */
-/* Location: .Obullo/Tasks/Helper/Console.php */
+/* Location: .Obullo/Task/Helper/Console.php */

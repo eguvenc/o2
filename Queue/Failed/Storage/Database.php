@@ -3,8 +3,8 @@
 namespace Obullo\Queue\Failed\Storage;
 
 use Pdo;
-use Container;
 use SimpleXMLElement;
+use Obullo\Container\Container;
 use Obullo\Queue\Failed\FailedJob;
 
 /**
@@ -17,7 +17,7 @@ use Obullo\Queue\Failed\FailedJob;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-Class Database extends FailedJob implements StorageInterface
+class Database extends FailedJob implements StorageInterface
 {
     /**
      * Constuctor
@@ -42,8 +42,8 @@ Class Database extends FailedJob implements StorageInterface
             $this->updateRepeat($id);
             return true;
         }
-        // Json encode coult not encode the large arrays
-        // Xml Encoding fix the issue.
+        // Json encode coult not encode the large data
+        // Xml Encoding fix the issue, if you see any problem please open an issue from github.
         if ( ! empty($data['error_trace'])) {
             $xml = new SimpleXMLElement('<root/>');
             array_walk_recursive($data['error_trace'], array($xml, 'addChild'));
@@ -55,7 +55,13 @@ Class Database extends FailedJob implements StorageInterface
             $data['error_xdebug'] = $xml->asXML();
         }
         $data['failure_first_date'] = time();
-        return $this->db->insert($this->table, $data);
+
+        $e = $this->db->transaction(
+            function () use ($data) {
+                $this->db->insert($this->table, $data);
+            }
+        );
+        return ($e === true) ? true : false;
     }
 
     /**
@@ -68,11 +74,12 @@ Class Database extends FailedJob implements StorageInterface
      */
     public function dailyExists($file, $line)
     {
-        $this->db->prepare('SELECT id, failure_first_date FROM %s WHERE error_file = ? AND error_line = ? LIMIT 1', array($this->db->protect($this->table)));
-        $this->db->bindValue(1, $file, PDO::PARAM_STR);
-        $this->db->bindValue(2, $line, PDO::PARAM_INT);
-        $this->db->execute();
-        $row = $this->db->row();
+        $this->db->select('id, failure_first_date');
+        $this->db->where('error_file', $file);
+        $this->db->where('error_line', $line);
+        $this->db->limit(1);
+        $row = $this->db->get($this->table)->row();
+
         if ($row == false) {
             return false;
         }
@@ -91,10 +98,15 @@ Class Database extends FailedJob implements StorageInterface
      */
     public function updateRepeat($id)
     {
-        $this->db->prepare('UPDATE %s SET failure_repeat = failure_repeat + 1, failure_last_date = ? WHERE id = ?', array($this->db->protect($this->table)));
-        $this->db->bindValue(1, time(), PDO::PARAM_INT);
-        $this->db->bindValue(2, $id, PDO::PARAM_INT);
-        $this->db->execute();
+        $e = $this->db->transaction(
+            function () use ($id) {
+                $this->db->where('id', $id);
+                $this->db->set('failure_last_date', time(), false);
+                $this->db->set('failure_repeat', 'failure_repeat + 1', false);
+                $this->db->update($this->table);
+            }
+        );
+        return ($e === true) ? true : false;
     }
 
 }

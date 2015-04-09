@@ -139,7 +139,7 @@ if ( ! $this->request->isValidIp($ip)) {
 
 #### $this->request->server($key);
 
-#### $this->request->header();
+#### $this->request->headers($key = null);
 
 #### $this->request->method();
 

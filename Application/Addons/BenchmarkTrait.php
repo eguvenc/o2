@@ -17,10 +17,14 @@ trait BenchmarkTrait
          *  Console log header
          * ------------------------------------------------------
          */
-        $this->c['logger']->debug('$_REQUEST_URI: ' . $this->c['uri']->getRequestUri(), array(), 10);
-        $this->c['logger']->debug('$_COOKIE: ', $_COOKIE, 9);
-        $this->c['logger']->debug('$_POST: ', $_POST, 9);
-        $this->c['logger']->debug('$_GET: ', $_GET, 9);
+        $this->c['logger']->debug('$_URI: '.$this->c['app']->uri->getRequestUri().' 😊', array(), 11);  // http://en.wikipedia.org/wiki/List_of_emoticons
+
+        if (count($_REQUEST) > 0) {
+            $this->c['logger']->debug('$_REQUEST: ', $_REQUEST, 10);
+        }
+        if (count($_COOKIE) > 0) {
+            $this->c['logger']->debug('$_COOKIE: ', $_COOKIE, 9);
+        }
     }
 
     /**

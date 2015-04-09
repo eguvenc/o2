@@ -14,7 +14,7 @@ use RuntimeException;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-Abstract Class FailedJob
+abstract Class FailedJob
 {
     /**
      * Db instance
@@ -50,7 +50,7 @@ Abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c['service provider '.$provider['name']]->get(['connection' => $provider['connection']]);
+        $this->db = $c['service provider query']->get(['connection' => $provider['connection']]);
         $this->table = $workers['failed']['table'];
     }
 

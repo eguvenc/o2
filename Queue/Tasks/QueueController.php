@@ -4,7 +4,7 @@ namespace Obullo\Queue\Tasks;
 
 use Controller;
 use Obullo\Process\Process;
-use Obullo\Tasks\Helper\Console;
+use Obullo\Task\Helper\Console;
 
 /**
  * Queue Controller
@@ -18,7 +18,7 @@ use Obullo\Tasks\Helper\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-Class QueueController extends Controller
+class QueueController extends Controller
 {
     /**
      * Constructor
@@ -93,6 +93,8 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
 
 echo Console::help("Usage for production: \n\n", true);
 echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\n");
+
+        $this->c['logger']->debug('php task queue help');
 
     }
 
@@ -198,6 +200,7 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
                 echo $process->getOutput();
             }
         }
+        $this->c['logger']->debug($cmd);
     }
 
 }

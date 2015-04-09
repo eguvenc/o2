@@ -15,7 +15,7 @@ use Obullo\Log\Console\Printer\Colorful;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class File
+class File
 {
     /**
      * Follow logs

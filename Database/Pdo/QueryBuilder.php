@@ -18,7 +18,7 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GPL Licence
  * @link      http://obullo.com/package/database
  */
-Class QueryBuilder
+class QueryBuilder
 {
     public $arSelect = array();
     public $arDistinct = false;
@@ -941,7 +941,7 @@ Class QueryBuilder
                 $item = $this->adapter->prefix . $item;
             }
         }
-        if ($protectIdentifiers === true AND !in_array($item, $this->adapter->reservedIdentifiers)) {
+        if ($protectIdentifiers === true AND ! in_array($item, $this->adapter->reservedIdentifiers)) {
             $item = $this->adapter->_escapeIdentifiers($item);
         }
         return $item . $alias;
@@ -978,7 +978,7 @@ Class QueryBuilder
             $table = trim(strrchr($table, " "));
 
             // Store the alias, if it doesn't already exist
-            if (!in_array($table, $this->arAliasedTables)) {
+            if ( ! in_array($table, $this->arAliasedTables)) {
                 $this->arAliasedTables[] = $table;
             }
         }
@@ -1090,7 +1090,7 @@ Class QueryBuilder
     public function insert($table = '', $set = null)
     {
         if ($table == '') {  // Set table
-            $table = $this->arFrom[0];
+            $table = isset($this->arFrom[0]) ? $this->arFrom[0] : '';
         } else {
             $this->from($table); // set tablename correctly.
         }

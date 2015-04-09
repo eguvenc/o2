@@ -2,9 +2,9 @@
 
 namespace Obullo\Process\Exception;
 
-use Obullo\Process\Process,
-    LogicException,
-    RuntimeException;
+use LogicException;
+use RuntimeException;
+use Obullo\Process\Process;
 
 /**
  * Exception that is thrown when a process times out.

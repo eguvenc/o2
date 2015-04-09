@@ -15,7 +15,7 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class File extends AbstractHandler implements HandlerInterface
+class File extends AbstractHandler implements HandlerInterface
 {
     use LineFormatterTrait;
 

@@ -14,7 +14,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
-Class Error
+class Error
 {
     /**
      * Constructor
@@ -95,8 +95,8 @@ Class Error
     */
     protected function showHttpError($heading, $message, $template = 'general', $statusCode = 500)
     {
-        $this->response->status($statusCode);
-        
+        http_response_code($statusCode);
+
         $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
         $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
 

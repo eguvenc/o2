@@ -7,6 +7,7 @@ use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
+use Obullo\Application\Debugger\WebSocket;
 
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
@@ -56,7 +57,7 @@ class Cli extends Obullo
         $this->detectEnvironment();
         $this->setErrorReporting();
         $this->setDefaultTimezone();
-        $this->setDebugger();
+        $this->setPhpDebugger();
 
         // Warning : Http middlewares are disabled in Cli mode.
 
@@ -129,6 +130,23 @@ class Cli extends Obullo
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
+
+        $this->checkDebugger();
+    }
+
+    /**
+     * Check http debugger is active ?
+     * 
+     * @return void
+     */
+    public function checkDebugger()
+    {
+        $debug = $this->debuggerOn();
+
+        if ($debug) {
+            $websocket = new WebSocket($this->c);
+            $websocket->cliHandshake();
+        }
     }
 
 }

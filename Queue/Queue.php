@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @link      http://obullo.com/package/queue
  * @see       http://www.php.net/manual/pl/book.amqp.php
  */
-Abstract class Queue
+abstract class Queue
 {
     /**
      * Constructor

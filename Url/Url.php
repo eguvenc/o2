@@ -80,6 +80,33 @@ Class Url
     }
 
     /**
+     * Create static assets urls
+     * 
+     * @param string $uri      /images/example.png
+     * @param mixed  $protocol http:// or https://
+     * @param mixed  $url      dynamic url ( overrides to asset url in config )
+     * 
+     * @return string
+     */
+    public function asset($uri, $protocol = '', $url = '')
+    {
+        $url = empty($url) ? $this->c['config']['url']['assets']['url'] : $url;
+        $uri = $url.trim($this->c['config']['url']['assets']['folder'], '/').'/'.ltrim($uri, '/');
+
+        if ($protocol == false) {
+            $uri = preg_replace('#^https?:\/\/#i', '', $uri);
+            $protocol = '';
+        }
+        if ($protocol == true) {  // Auto detect
+            $protocol = ($this->c['request']->isSecure()) ? 'https://' : 'http://';
+        }
+        if ( ! empty($protocol) OR is_bool($protocol)) {
+            $uri = preg_replace('#^https?:\/\/#i', '', $uri);
+        }
+        return $protocol.$uri;
+    }
+    
+    /**
      * Header Redirect
      *
      * Header redirect in two flavors
@@ -95,7 +122,7 @@ Class Url
      */
     public function redirect($uri = '', $method = 'location', $httpResponseCode = 302, $suffix = true)
     {
-        if ( ! preg_match('#^https?://#i', $uri)) {
+        if ( ! preg_match('#^https?:\/\/#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
         if (strpos($method, '[')) {

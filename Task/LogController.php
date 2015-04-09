@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Tasks;
+namespace Obullo\Task;
 
 use Controller;
-use Obullo\Tasks\Helper\Console;
+use Obullo\Task\Helper\Console;
 
 /**
  * Log Controller
@@ -75,9 +75,7 @@ class LogController extends Controller
             trim($this->c['config']['logger']['file']['path']['ajax'], '/'),
             trim($this->c['config']['logger']['file']['path']['cli'], '/'),
         );
-
         foreach ($files as $file) {
-            
             $file = ROOT. str_replace('/', DS, $file);
             $exp = explode(DS, $file);
             $filename = array_pop($exp);
@@ -87,9 +85,11 @@ class LogController extends Controller
                 unlink($path.$filename);
             }
         }
-        $queue = $this->c['queue'];   // Clear queue data
-        $queue->deleteQueue($this->c['config']['logger']['queue']['route']);
-        
+        if ($this->c->exists('queue')) {
+            $this->c['queue']->deleteQueue($this->c['config']['logger']['queue']['route']); // Clear queue data
+        }
+        $this->c['logger']->debug('php task log clear');
+
         echo Console::success('Application logs deleted.');
     }
 
@@ -127,6 +127,8 @@ echo Console::help(
 echo Console::help("Description:\n\n", true);
 echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.\n\n");
 
+        $this->c['logger']->debug('php task log help');
+
     }
 
 }
@@ -134,4 +136,4 @@ echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.
 // END LogController class
 
 /* End of file LogController.php */
-/* Location: .Obullo/Tasks/LogController.php */
+/* Location: .Obullo/Task/LogController.php */

@@ -7,7 +7,16 @@ use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
+use Obullo\Application\Debugger\WebSocket;
 
+/*
+|--------------------------------------------------------------------------
+| Php startup error handler
+|--------------------------------------------------------------------------
+*/
+if (error_get_last() != null) {
+    include TEMPLATES .'errors'. DS .'startup.php';
+}
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
 
@@ -61,8 +70,8 @@ class Http extends Obullo
         $this->detectEnvironment();
         $this->setErrorReporting();
         $this->setDefaultTimezone();
-        $this->setDebugger();
-        
+        $this->setPhpDebugger();
+
         $this->middleware = array($this); // Define default middleware stack
 
         include OBULLO_CONTROLLER;
@@ -155,18 +164,6 @@ class Http extends Obullo
      */
     public function close()
     {
-        if ($this->c['response']->hasPrepend() AND $this->c['response']->isEnabled()) {  // Do we have any prepend data ?
-            
-            list($status, $headers, $output, $prepend) = $this->c['response']->finalize();
-            $this->c['response']->sendHeaders($status, $headers);
-
-            if ($this->c['config']['log']['debug']) {
-                echo \Obullo\Log\Debugger\Output::writeIframe($prepend, $output);
-                return;
-            }
-            echo $prepend.$output;
-        }
-
         // Write queued cookie headers if cookie package available in 
         // the application and we have queued cookies.
 
@@ -174,6 +171,25 @@ class Http extends Obullo
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }
+        }
+        $this->checkDebugger();
+    }
+
+    /**
+     * Check http debugger is active ?
+     * 
+     * @return void
+     */
+    public function checkDebugger()
+    {
+        $debug = $this->debuggerOn();
+
+        // $key = sprintf("%u", crc32('__obulloDebugger'));
+        // $this->disableDebugger();
+
+        if ($debug AND ! isset($_REQUEST[FRAMEWORK.'_debugger'])) {
+            $websocket = new WebSocket($this->c);
+            $websocket->emit();
         }
     }
 

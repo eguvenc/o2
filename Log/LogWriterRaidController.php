@@ -14,7 +14,7 @@ namespace Obullo\Log;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class LogWriterRaidController
+class LogWriterRaidController
 {
     /**
      * if log data type is a *writer, mirror record data to other *slave writers  if type == handler

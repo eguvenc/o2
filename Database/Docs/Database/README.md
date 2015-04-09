@@ -798,15 +798,21 @@ Also you use active record class like this
 
 ```php
 <?php
+$this->db = $c['service provider query']->get(['connection' => 'default']);
 
 $col = array('person_type', 'person_name');
 
 $e = $this->db->transaction(
-    function () use ($col) {
+    function () use ($data) {
+
+        $this->insert('users', $data);
+
         // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['lazy','Jack']]));
         // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['clever','Steve']]));
         // $this->db->query("INSERT INTO persons (%s) VALUES (%s)", array(['@col' => $col], ['@val' => ['beatiful','Alex']]));
     }
+    ,
+    $this->db   // send reference object
 );
 
 if ($e !== true) {

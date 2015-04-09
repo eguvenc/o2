@@ -2,8 +2,8 @@
 
 namespace Obullo\Cli;
 
-use Obullo\Log\Logger,
-    InvalidArgumentException;
+use Obullo\Log\Logger;
+use InvalidArgumentException;
 
 /**
  * Parser Class
@@ -15,7 +15,7 @@ use Obullo\Log\Logger,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-Class Parser
+class Parser
 {
     /**
      * Argument seperator

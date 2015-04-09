@@ -16,7 +16,7 @@ use Obullo\Session\MetaData\NullMetaData;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-Class Session
+class Session
 {
     /**
      * Container
@@ -82,7 +82,8 @@ Class Session
      */
     public function registerSaveHandler($handler = null)
     {
-        $this->saveHandler = ($handler == null) ? new $this->config['saveHandler']($this->c) : new $handler($this->c);
+        $Class = '\\'.ltrim($this->config['saveHandler'], '\\');
+        $this->saveHandler = ($handler == null) ? new $Class($this->c) : new $handler($this->c);
 
         session_set_save_handler(
             array($this->saveHandler, 'open'),

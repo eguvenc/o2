@@ -14,7 +14,7 @@ use SplPriorityQueue;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-Class PriorityQueue extends SplPriorityQueue 
+class PriorityQueue extends SplPriorityQueue 
 {
     /**
      * Priority fix

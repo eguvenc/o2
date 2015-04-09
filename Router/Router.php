@@ -20,7 +20,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/router
  */
-Class Router
+class Router
 {
     public $uri;                            // Uri class
     public $logger;                         // Logger class
