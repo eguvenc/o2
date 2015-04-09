@@ -96,7 +96,7 @@ class Error
     protected function showHttpError($heading, $message, $template = 'general', $statusCode = 500)
     {
         http_response_code($statusCode);
-
+        
         $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
         $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
 

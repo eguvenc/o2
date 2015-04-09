@@ -96,6 +96,7 @@ class Identity extends AuthorizedUser
     {
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;
+            $this->attributes['__activity']['last'] = time();
             $this->setCredentials($this->attributes);
         } elseif ($this->attributes = $this->storage->getCredentials('__temporary')) {
             $this->setCredentials($this->attributes);
@@ -375,6 +376,8 @@ class Identity extends AuthorizedUser
      */
     public function close()
     {
+        // $this->storage->resetTimeout();  // Increase permanent 
+
         if (empty($this->killSignal)) {
             return;
         }

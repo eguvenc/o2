@@ -137,7 +137,9 @@ Class Redis extends AbstractStorage implements StorageInterface
      */
     public function update($key, $val, $block = '__permanent')
     {
-        return $this->cache->hSet($this->getMemoryBlockKey($block), $key, $val);
+        $lifetime = ($block == '__permanent') ? $this->getMemoryBlockLifetime($block) : 0;  // Refresh permanent expiration time
+
+        return $this->cache->hSet($this->getMemoryBlockKey($block), $key, $val, $lifetime);
     }
 
     /**
@@ -210,7 +212,6 @@ Class Redis extends AbstractStorage implements StorageInterface
     {
         $this->deleteCredentials($this->cacheKey.':__permanent:'.$this->getUserId().':'.$loginID);
     }
-
 }
 
 // END Redis.php File

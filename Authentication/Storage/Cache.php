@@ -206,7 +206,7 @@ Class Cache extends AbstractStorage implements StorageInterface
      * 
      * @return array
      */
-    protected function getUserSessions()
+    public function getUserSessions()
     {
         $sessions = array();
         $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'));

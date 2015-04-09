@@ -38,16 +38,26 @@ class LogController extends Controller
     public function index()
     {
         $this->logo();
+        $writer = $this->logger->getPrimaryWriter();
         $this->parser->parse(func_get_args());
-        $dir = $this->parser->argument('dir', 'http');
-        $table = $this->parser->argument('dir', 'logs');
+        $dir   = $this->parser->argument('dir', 'http');
+        $table = $db = null;
+        if ($writer == 'mongo') {
+            $table = $this->parser->argument('table');
+            $db    = $this->parser->argument('db');
+            if (empty($table) || empty($db)) {
+                 echo Console::fail('MongoDB database or table not given.');
+                 return;
+            }
+        }
 
         if ($this->parser->argument('help')) {
             return $this->help();
         }
         $Class = '\\Obullo\Log\Console\Reader\\'.ucfirst($this->logger->getPrimaryWriter());
         $class = new $Class;
-        $class->follow($this->c, $dir, $table);
+
+        $class->follow($this->c, $dir, $db, $table);
     }
 
     /**

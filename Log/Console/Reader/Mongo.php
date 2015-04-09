@@ -22,11 +22,12 @@ class Mongo
      * 
      * @param string $c          container
      * @param string $dir        sections ( http, ajax, cli )
+     * @param string $db         default logs
      * @param string $collection default logs
      * 
      * @return void
      */
-    public function follow(Container $c, $dir = 'http', $collection = 'logs')
+    public function follow(Container $c, $dir = 'http', $db = null, $collection = null)
     {
         $c['config']->load('logger');
 
@@ -38,7 +39,7 @@ class Mongo
             [
                 'connection' => 'default'
             ]
-        ); 
+        )->selectDb($db); 
         $mongoCollection = $mongo->{$collection};
         $resultArray = $mongoCollection->find();
         
