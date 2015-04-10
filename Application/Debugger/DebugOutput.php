@@ -18,7 +18,7 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-class Output
+class DebugOutput
 {
     use LineFormatterTrait;
 
@@ -60,7 +60,7 @@ class Output
      * 
      * @return string echo the log output
      */
-    public function printDebugger()
+    public function printHtml()
     {
         ob_start();
         include_once 'Views/Debugger.php';
@@ -170,7 +170,7 @@ class Output
 
 }
 
-// END Output class
-/* End of file Output.php */
+// END DebugOutput class
+/* End of file DebugOutput.php */
 
-/* Location: .Obullo/Log/Debbuger/Output.php */
+/* Location: .Obullo/Log/Debbuger/DebugOutput.php */

@@ -533,8 +533,8 @@ function getCookie(cname) {
             <li>
                 <a href="javascript:void(0);" onclick="clearConsole();">Clear</a>
             </li>
-            <li class="closeBtn" onclick="hideDebugger();">
-                <a href="#">x</a>
+            <li class="closeBtn">
+                <a href="/debugger/off">x</a>
             </li>
         </ul>
     </nav>

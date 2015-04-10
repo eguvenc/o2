@@ -58,6 +58,13 @@ class Http extends Obullo
     protected $middleware = array();
 
     /**
+     * Debugger
+     * 
+     * @var boolean
+     */
+    protected $debugger = false;
+
+    /**
      * Constructor
      *
      * @return void
@@ -66,6 +73,7 @@ class Http extends Obullo
     {
         global $c;
         $this->c = $c;
+        $this->debugger = $this->debuggerOn();
 
         $this->detectEnvironment();
         $this->setErrorReporting();
@@ -136,7 +144,13 @@ class Http extends Obullo
         }
         $middleware->call();   
 
-        $this->c['response']->flush();  // Send headers and echo output if output enabled
+        list($status, $headers, $output) = $this->c['response']->finalize();
+        $this->c['response']->sendHeaders($status, $headers);
+
+        if ($this->debugger) {
+            $output = \Obullo\Application\Debugger\Notice::turnOff($output);
+        }
+        echo $output; // Send output
     }
 
     /**
@@ -183,9 +197,6 @@ class Http extends Obullo
     public function checkDebugger()
     {
         $debug = $this->debuggerOn();
-
-        // $key = sprintf("%u", crc32('__obulloDebugger'));
-        // $this->disableDebugger();
 
         if ($debug AND ! isset($_REQUEST[FRAMEWORK.'_debugger'])) {
             $websocket = new WebSocket($this->c);
