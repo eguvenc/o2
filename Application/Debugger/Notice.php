@@ -23,7 +23,7 @@ class Notice
      */
     public static function turnOff($output)
     {
-        $closeDiv = '<div style="position: fixed;top: 3px;left: 3px;background:#eaeaea;border:1px solid #ccc;height:23px;line-height:23px;font-size:12px;padding:0 6px;font-family: Arial;">
+        $closeDiv = '<div style="z-index:10000;position: fixed;top: 3px;left: 3px;background:#eaeaea;border:1px solid #ccc;height:23px;line-height:23px;font-size:12px;padding:0 6px;font-family: Arial;">
               <a href="/debugger/off" style="color: #E53528;text-decoration:none;">
                 <button style="width:13px;height:13px;display:block;float:left;border:none;background: url(data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7);background-size:100% 100%;margin-top:5px;margin-right:3px;"></button>
                 <span style="float:left;">Turn Off Debugger</span><div style="clear:both;"></div>
