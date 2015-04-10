@@ -1,9 +1,8 @@
 <?php
 
-namespace Obullo\ServiceProviders;
+namespace Obullo\Authentication;
 
 use Obullo\Container\Container;
-use Obullo\Authentication\Token;
 use Obullo\Authentication\User\Login;
 use Obullo\Authentication\User\Config;
 use Obullo\Authentication\User\Activity;
@@ -19,7 +18,7 @@ use Obullo\Authentication\User\Identity;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service_providers
  */
-class AuthServiceProvider implements ServiceProviderInterface
+class AuthServiceProvider
 {
     /**
      * Container class
@@ -29,26 +28,16 @@ class AuthServiceProvider implements ServiceProviderInterface
     protected $c;
 
     /**
-     * Constructor
-     *
-     * @param object $c container
-     *
-     * @return void
-     */
-    public function register(Container $c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Create classes
      * 
+     * @param object $c container
      * @param array $params config parameters
      * 
-     * @return void
+     * @return object
      */
-    public function factory($params = array())
+    public function __construct(Container $c, $params = array())
     {
+        $this->c = $c;
         $this->c['auth.config'] = function () use ($params) {
             return new Config(array_merge($params, $this->c['config']->load('auth')));
         };
@@ -106,4 +95,4 @@ class AuthServiceProvider implements ServiceProviderInterface
 // END AuthServiceProvider class
 /* End of file AuthServiceProvider.php */
 
-/* Location: .Obullo/ServiceProviders/AuthServiceProvider.php */
+/* Location: .Obullo/Authentication/AuthServiceProvider.php */
