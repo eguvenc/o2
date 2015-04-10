@@ -196,8 +196,7 @@ class Obullo
             return false;
         }
         $id = @shmop_open(sprintf("%u", crc32('__obulloDebugger')), "a", 0, 0);
-        if ( ! $id) {
-            shmop_close($id);
+        if (! is_int($id)) {
             return false;
         }
         $size = shmop_size($id);
