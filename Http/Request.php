@@ -333,7 +333,6 @@ class Request
      */
     protected function isMethod($METHOD = 'GET')
     {
-        $this->c['logger']->error('REQUEST_METHOD', [$_SERVER['REQUEST_METHOD']]);
         if (isset($_SERVER['REQUEST_METHOD']) AND $_SERVER['REQUEST_METHOD'] == $METHOD) {
             return true;
         }
