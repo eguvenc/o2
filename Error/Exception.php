@@ -48,6 +48,9 @@ class Exception
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
             return;
         }
+        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Hide shmop function errors in debug mode.
+            return;
+        }
         if ($fatalError == false) { 
             unset($fatalError);  // Fatal error variable used in view file
         }

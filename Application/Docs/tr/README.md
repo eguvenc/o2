@@ -5,7 +5,7 @@ Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o
 
 Ortam değişkeninie <kbd>$c['app']->getEnv()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
 
-Obullo da uygulama http ve console isteklerine göre Http ve Cli sınıfları olarak ikiye ayrılır. Http isteğinden sonraki çözümlemede controller dosyası <b>modules/</b> klasöründen çağrılırken Cli istekleri konsoldan <kbd>$php task command</kbd> yöntemi ile <b>modules/tasks</b> klasörüne yönlendirilir.
+Obullo da uygulama http ve console isteklerine göre Http ve Cli sınıfları olarak ikiye ayrılır. Http isteğinden sonraki çözümlemede controller dosyası <b>modules/</b> klasöründen çağrılırken Cli istekleri ise konsoldan <kbd>$php task command</kbd> yöntemi ile <b>modules/tasks</b> klasörüne yönlendirilir.
 
 Aşağıda <kbd>o2/Application/Http.php</kbd> dosyasının ilgili içeriği bize uygulama sınıfının konteyner içerisine nasıl tanımlandığını ve ortam değişkeninin uygulamanın yüklenme seviyesinde nasıl belirlendiğini gösteriyor.
 
@@ -43,44 +43,21 @@ class Htttp extends Obullo {
 Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> index.php dosyasına bir göz atalım.
 
 
-#### index.php dosyası
+### index.php dosyası
+
+Uygulamaya ait tüm isteklerin çözümlendiği dosya index.php dosyasıdır bu dosya sayesinde uygulama başlatılır. Bu dosyanın tarayıcıda gözükmemesini istiyorsanız bir .htaccess dosyası içerisine aşağıdaki kuralları yazmanız yeterli olacaktır.
 
 ```php
-require 'constants';
-/*
-|--------------------------------------------------------------------------
-| Php startup error handler
-|--------------------------------------------------------------------------
-*/
-if (error_get_last() != null) {
-    include TEMPLATES .'errors'. DS .'startup.php';
-}
-/*
-|--------------------------------------------------------------------------
-| Obullo Http Requests
-|--------------------------------------------------------------------------
-*/
-require OBULLO_HTTP;
-/*
-|--------------------------------------------------------------------------
-| Autoloader
-|--------------------------------------------------------------------------
-*/
-Obullo\Application\Obullo::registerAutoloader();
-/*
-|--------------------------------------------------------------------------
-| Initialize
-|--------------------------------------------------------------------------
-*/
-$c['app']->run();
-
-/* Location: .index.php */
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php|assets|robots\.txt)
+RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
 ```
 
+### environments.php dosyası
 
-### $c['app']->detectEnvironment();
-
-Uygulamanızın hangi ortamda çalıştığını belirleyen metottur. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
+Uygulamanızın hangi ortamda çalıştığını belirleyen konfigurasyon dosyasıdır. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
 
 ```php
 return array(
@@ -114,7 +91,7 @@ root@localhost: hostname   // localhost.ubuntu
 Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile eşleşmediğinde uygulama size aşağıdaki gibi bir hata dönecektir.
 
 ```
-We could not detect your application environment, please correct your app/environments.php hostname array.
+We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
 ### $c['app']->getEnv();
@@ -245,11 +222,19 @@ Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b
 
 Env fonksiyonu <b>o2/Application/Http.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env']</b> sınıfı ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
-Fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, ikinci parametresi anahtarın varsayılan değerini tayin eder ve üçüncü parametre anahtarın zorunlu olup olmadığını belirler.
+```php
+echo $c['env']['MONGO_USERNAME.root']; // Root parametresi boş gelirse default değer root olacaktır.
+```
+
+Fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
 
 Eğer <b>ikinci</b> parametre girildiyse <b>$_ENV</b> değişkeni içerisindeki anahtar yok sayılır ve varsayılan değer geçerli olur.
 
-Eğer <b>üçüncü</b> parametre <b>true</b> olarak girildiyse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+Eğer <b>son</b> parametre <b>REQUIRED</b> olarak girildiyse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+
+```php
+echo $c['env']['MONGO_USERNAME.root.REQUIRED']; // Root parametresi boş gelemez.
+```
 
 Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin <b>$c['env']</b> sınıfı ile nasıl atandığını görüyorsunuz.
 
@@ -293,18 +278,6 @@ return array(
 /* Location: .app/environments.php */
 ```
 
-Ayrıca yarattığınız ortam için bir konfigürasyon <b>klasörü</b> ve bir <b>config.env</b> dosyası yaratmanız gerekiyor.
-
-```php
-- app
-    - config
-        + local
-        + production
-        + test
-        - myenv
-            config.env
-```
-
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
 ### Ortam Klasörü için Config Dosyalarını Yaratmak
@@ -318,11 +291,12 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
     - config
         + local
         - production
-            config.env
             config.php
+            database.php
         + test
         - myenv
-            config.env
+            config.php
+            database.php
 ```
 
 Aşağıdaki örnekte sadece <b>error, log, url</b> ve <b>cookie</b> anahtarları içerisindeki değişen belirli anahtarlar gözüküyor. Uygulama çalıştığında bu anahtar değerleri geçerli olurken geri kalan anahtar değerleri local ortam dosyasından okunur.
@@ -338,17 +312,17 @@ return array(
     ),
 
     'log' =>   array(
-        'control' => array(
-            'enabled' => true,
-            'firelog'  => false,
-        )
+        'enabled' => true,
     ),
 
-    'url' => array(
-        'webhost'   => 'example.com', 
-        'base'   => '/',         // Base Url 
-        'assets' => '/assets/',  // Assets Url
-    ),
+    'url' => [
+        'webhost'  => 'example.xom',
+        'baseurl'  => '/',
+        'assets'   => [
+            'url' => '/',
+            'folder' => '/assets/', 
+        ],
+    ],
 
     'cookie' => array( 
         'domain' => '.example.com'  // Set to .your-domain.com for site-wide cookies
@@ -454,7 +428,7 @@ $c['router']->group(
     [
         'name' => 'GenericUsers',
         'domain' => $c['config']['domain']['mydomain.com'],
-        'middleware' => array('Maintenance')
+        'middleware' => ['Maintenance']
     ],
     function () {
         $this->defaultPage('welcome');
@@ -475,7 +449,7 @@ $c['router']->group(
     [
         'name' => 'AuthorizedUsers',
         'domain' => $c['config']['domain']['mydomain.com'], 
-        'middleware' => array('Guest')
+        'middleware' => ['Auth', 'Guest']
     ],
     function () {
         $this->defaultPage('welcome');
@@ -487,6 +461,110 @@ $c['router']->group(
 Yukarıdaki örnekte de <b>Guest</b> katmanı kullanılarak <b>welcome/restricted</b> sayfasına oturum açmamış kullanıcıların girmesi engellenmiştir. Guest katmanı diğer katmanlar gibi <b>app/classes/Http/Middlewares/</b> klasörü içerisinde yer alır ve call() seviyesinde <b>$this->user->identity->guest()</b> metodu ile kullanıcının yetkisi olup olmadığını kontrol eder.
 
 Kontrol sonucunda yetkisi olmayan kullanıcılar login sayfasına yönlendirilirler.
+
+
+### Eklentiler
+
+Eklentiler Applicaiton/Addons klasörü içerisinde yeralan daha önceden uygulama ihtiyaçlarına göre hazırlanmış katman özellikleridir ( Traits ). Eklentiler middleware yapıları içerisinden <b>use</b> komutu ile çağrılırlar.
+
+Aşağıda uygulamanızı bakıma alma özlelliği sunan <b>UnderMaintenanceTrait</b> eklentisinin kullanımı görürülüyor.
+
+```php
+namespace Http\Middlewares;
+
+use Obullo\Container\Container;
+use Obullo\Application\Middleware;
+use Obullo\Application\Addons\UnderMaintenanceTrait;
+
+class Maintenance extends Middleware
+{
+    use UnderMaintenanceTrait;   // You can add / remove addons.
+
+    /**
+     * Loader
+     * 
+     * @return void
+     */
+    public function load()
+    {
+        $this->domainIsDown();
+
+        $this->next->load();
+    }
+
+    /**
+     *  Call action
+     * 
+     * @return void
+     */
+    public function call()
+    {
+        $this->next->call();
+    }
+}
+```
+
+Yukarıdaki katmanda görüldüğü gibi <b>use</b> komutu ile UnderMaintenanceTrait özelliğini çağırarak $this->domainIsDown(); metoduna genişlemiş olduk. Sizde uygulamanıza özgü eklentileri filtreler içerisinden bu yöntemle çağırabilirsiniz.
+
+Artık konsolunuzdan 
+
+```php
+php task domain down --name=root
+```
+
+komutu ile uygulamanızı bakıma alabilir 
+
+```php
+php task domain up --name=root
+```
+
+komutu ile de uygulamanızı bakım modundan çıkarabilirsiniz.
+
+
+### Modülleri Eklemek / Kaldırmak
+
+Modüller daha önceden hazırlanmış eklentilerdir. Aslında daha basitçe söylemek gerekirse modüller uygulamanız içerisinde <b>modules</b> klasörü altında çalışan isme göre gruplanmış Controller ve Views dosyalarının bütünüdür. Modüller tarayıcınızdan yada konsol dan çalışırlar.
+
+Bir modülü eklemek için konsolunuza aşağıdaki komutu yazmanız gerekir.
+
+```php
+php task module add --name=modulismi
+```
+
+Yine bir modülü kaldırmak için konsolunuza aşağıdaki komutu yazmanız yeterli olacaktır.
+
+```php
+php task module remove --name=modulismi
+```
+
+Modülleri daha iyi anlamak için çok popüler bir modül olan <b>debugger</b> modülünü kuralım.
+
+Config.php dosyasından debugger modülünü aktif edin.
+
+```php
+'debugger' => [
+    'enabled' => true,
+    'socket'  => 'ws://127.0.0.1:9000'  // Port
+],
+```
+
+Aşağıdaki komutu proje kök dizininde çalıştırın.
+
+```php
+php task module add --name=debugger
+```
+
+Debugger ın çalışabilmesi için debug sunucusunu arka planda çalıştırmalısınız. Bunun için aşağıdaki komutu girin.
+
+```php
+php task debugger
+```
+
+Şimdi tarayıcınıza gidip debugger sayfasını ziyaret edin.
+
+```php
+http://mylocalproject/debugger
+```
 
 
 #### Application Sınıfı Referansı

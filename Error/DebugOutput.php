@@ -61,9 +61,9 @@ class DebugOutput
                 'CLASSES' . DS,
                 'ROOT' . DS,
                 'OBULLO' . DS,
-                'CONTROLLERS' . DS,
+                'MODULES' . DS,
             );
-            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), $replace, $file);
+            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), $replace, $file);
         }
         if (is_string($file)) {
             if (strpos($file, ROOT) === 0) {
@@ -78,8 +78,8 @@ class DebugOutput
             if (strpos($file, OBULLO) === 0) {
                 $file = 'PACKAGES' . DS . substr($file, strlen(OBULLO));
             }
-            if (strpos($file, CONTROLLERS) === 0) {
-                $file = 'CONTROLLERS' . DS . substr($file, strlen(CONTROLLERS));
+            if (strpos($file, MODULES) === 0) {
+                $file = 'MODULES' . DS . substr($file, strlen(MODULES));
             }
         }
         return $file;

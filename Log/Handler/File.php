@@ -49,7 +49,7 @@ class File extends AbstractHandler implements HandlerInterface
     {
         $lines = '';
         foreach ($data['record'] as $record) {
-            $record = $this->arrayFormat($data['time'], $record);
+            $record = $this->arrayFormat($data, $record);
             $lines .= $this->lineFormat($record);
         }
         $this->path = static::replacePath($this->c['config']['logger']['file']['path']['http']); // Default http requests

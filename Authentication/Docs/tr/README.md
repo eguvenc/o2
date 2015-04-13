@@ -1,7 +1,7 @@
 
 ## O2 Yetki Doğrulama ( Authentication )
 
-Yetk doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 yetki doğrulama yalnızca yetki doğrulama ( <b>authentication</b> ) ile ilgilidir ve yetkilendirme ( authorization ) ile ilgili herhangi bir şeyi içermez.
+Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 yetki doğrulama yalnızca yetki doğrulama ( *authentication* ) ile ilgilidir ve yetkilendirme ( *authorization* ) ile ilgili herhangi bir şeyi içermez.
 
 O2 yetki doğrulama; 
 
@@ -14,7 +14,7 @@ O2 yetki doğrulama;
 * Yetki doğrulama onaylandırma ( Verification )
 * Oturum id sini yeniden yaratma, ( Session regenerate )
 * Tarayıcı türünü doğrulama ( User agent validation )
-* Hatırlatma çerezi ve beni hatırla özellikleri ( Remember me token )
+* Hatırlatma çerezi ve beni hatırla ( Remember me token )
 
 gibi özellikleri barındırır.
 

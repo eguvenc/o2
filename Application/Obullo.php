@@ -27,6 +27,7 @@ class Obullo
     protected $method;             // Current method
     protected $className;          // Current controller name
     protected $notFoundUri;        // 404 uri
+    protected $websocket;          // Debugger websocket
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -183,43 +184,6 @@ class Obullo
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
             $this->c['response']->show404($this->notFoundUri);
         }
-    }
-
-    /**
-     * Check http debugger is active
-     * 
-     * @return boolean
-     */
-    public function debuggerOn()
-    {
-        if ($this->getEnv() == 'production') {  // Only available on local environments
-            return false;
-        }
-        $id = @shmop_open(sprintf("%u", crc32('__obulloDebugger')), "a", 0, 0);
-        if ( ! $id) {
-            shmop_close($id);
-            return false;
-        }
-        $size = shmop_size($id);
-        $debugger = shmop_read($id, 0, $size);
-
-        if ($debugger == 'On') {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Returns to false if http debugger passive
-     * 
-     * @return boolean
-     */
-    public function debuggerOff()
-    {
-        if ($this->debuggerOn()) {
-            return false;
-        }
-        return true;
     }
 
     /**

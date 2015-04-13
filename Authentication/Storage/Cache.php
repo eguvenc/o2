@@ -74,38 +74,7 @@ Class Cache extends AbstractStorage implements StorageInterface
         }
         return false;
     }
-
-    /**
-     * Update identity item value
-     * 
-     * @param string $key   string
-     * @param value  $val   value
-     * @param string $block block key
-     *
-     * @return boolean|integer
-     */
-    public function update($key, $val, $block = '__permanent')
-    {
-        $data = $this->getCredentials($block);
-        $data[$key] = $val;
-        $this->setCredentials($data, null, $block);
-    }
-
-    /**
-     * Unset identity item
-     * 
-     * @param string $key   string
-     * @param string $block block key
-     * 
-     * @return boolean|integer
-     */
-    public function remove($key, $block = '__permanent')
-    {
-        $data = $this->getCredentials($block);
-        unset($data[$key]);
-        $this->setCredentials($data, null, $block);
-    }
-
+    
     /**
      * Update credentials
      * 
@@ -176,6 +145,38 @@ Class Cache extends AbstractStorage implements StorageInterface
             $this->cache->delete($this->getBlock($block));
         }
     }
+
+    /**
+     * Update identity item value
+     * 
+     * @param string $key   string
+     * @param value  $val   value
+     * @param string $block block key
+     *
+     * @return boolean|integer
+     */
+    public function update($key, $val, $block = '__permanent')
+    {
+        $data = $this->getCredentials($block);
+        $data[$key] = $val;
+        $this->setCredentials($data, null, $block);
+    }
+
+    /**
+     * Unset identity item
+     * 
+     * @param string $key   string
+     * @param string $block block key
+     * 
+     * @return boolean|integer
+     */
+    public function remove($key, $block = '__permanent')
+    {
+        $data = $this->getCredentials($block);
+        unset($data[$key]);
+        $this->setCredentials($data, null, $block);
+    }
+
 
     /**
      * Check whether to identify exists

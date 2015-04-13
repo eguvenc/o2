@@ -3,6 +3,7 @@
 namespace Obullo\Task;
 
 use Controller;
+use Obullo\Cli\Parser;
 use Obullo\Task\Helper\Console;
 
 /**
@@ -26,7 +27,7 @@ class LogController extends Controller
      */
     public function load()
     {
-        $this->c['cli/parser as parser'];
+        $this->parser = new Parser($this->c);
         $this->c['logger'];
     }
 
@@ -68,7 +69,7 @@ class LogController extends Controller
     public function logo() 
     {
         echo Console::logo("Welcome to Log Manager (c) 2015");
-        echo Console::description("You are displaying logs. For more help type \$php task log --help.");
+        echo Console::description("You are displaying logs. For more help type \$php task log help.");
     }
 
     /**
@@ -98,8 +99,6 @@ class LogController extends Controller
         if ($this->c->exists('queue')) {
             $this->c['queue']->deleteQueue($this->c['config']['logger']['queue']['route']); // Clear queue data
         }
-        $this->c['logger']->debug('php task log clear');
-
         echo Console::success('Application logs deleted.');
     }
 
@@ -122,7 +121,8 @@ echo Console::help(
 Available Arguments
 
     --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
-    --table  : Collection name if mongo driver used otherwise database table name.\n\n");
+    --db     : Database name if mongo driver used.
+    --table  : Collection name if mongo driver used.\n\n");
 
 echo Console::help("Usage:\n\n",true);
 echo Console::help(
@@ -136,8 +136,6 @@ echo Console::help(
 
 echo Console::help("Description:\n\n", true);
 echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.\n\n");
-
-        $this->c['logger']->debug('php task log help');
 
     }
 

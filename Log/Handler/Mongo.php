@@ -69,6 +69,24 @@ class Mongo extends AbstractHandler implements HandlerInterface
 
         parent::__construct($c);
 
+        self::checkConfigurations();
+
+        $this->mongoClient = $mongo;
+        $this->mongoCollection = $this->mongoClient->selectCollection($database, $collection);
+        $this->saveOptions = $saveOptions;
+    }
+
+    /**
+     * Check runtime errors
+     * 
+     * @param string $collection name
+     * @param string $database   name
+     * @param object $mongo      client
+     * 
+     * @return void
+     */
+    protected static function checkConfigurations($collection, $database, $mongo)
+    {
         if (null === $collection) {
             throw new InvalidArgumentException('The collection parameter cannot be empty');
         }
@@ -83,26 +101,24 @@ class Mongo extends AbstractHandler implements HandlerInterface
                 )
             );
         }
-        $this->mongoClient = $mongo;
-        $this->mongoCollection = $this->mongoClient->selectCollection($database, $collection);
-        $this->saveOptions = $saveOptions;
     }
 
     /**
     * Format log records and build lines
     *
-    * @param string $timestamp         unix time
-    * @param array  $unformattedRecord log data
+    * @param string $data              all data
+    * @param array  $unformattedRecord current record
     * 
     * @return array formatted record
     */
-    public function arrayFormat($timestamp, $unformattedRecord)
+    public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($this->c['config']['logger']['format']['date'], $timestamp))),
+            'datetime' => new MongoDate(strtotime(date($this->c['config']['logger']['format']['date'], $data['time']))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
+            'request'  => $data['request'],
             'context'  => null,
             'extra'    => null,
         );
@@ -133,7 +149,7 @@ class Mongo extends AbstractHandler implements HandlerInterface
     {
         $records = array();
         foreach ($data['record'] as $record) {
-            $records[] = $this->arrayFormat($data['time'], $record);
+            $records[] = $this->arrayFormat($data, $record);
         }
         $this->mongoCollection->batchInsert(
             $records, 

@@ -2,8 +2,8 @@
 
 namespace Obullo\Mongo;
 
-use LogicException,
-    Obullo\Container\Container;
+use LogicException;
+use Obullo\Container\Container;
 
 /**
  * Mongo Db Query Class
@@ -18,7 +18,7 @@ use LogicException,
  * @link      http://alexbilbie.com
  * @link      http://obullo.com/docs/mongo
  */
-Class Query
+class Query
 {
     protected $c;                   // Container
     public $db;                     // Mongo client instance

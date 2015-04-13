@@ -10,7 +10,7 @@
 | CLASSES           - The full server path to the user "classes" folder
 | TEMPLATES         - The full server path to the user "templates" folder
 | RESOURCES         - The full server path to the user "resources" folder
-| CONTROLLERS       - The full "dynamic" server path to the "public" folder
+| MODULES       	- The full "dynamic" server path to the "modules" folder
 | TASK_FILE         - The file name for $php task operations.
 | TASK              - The full "static" path of the native cli task folder.
 | INDEX_PHP         - The path of your index.php file.
@@ -22,7 +22,7 @@ define('DATA',  RESOURCES .'data'. DS);
 define('TRANSLATIONS',  RESOURCES .'translations'. DS);
 define('CLASSES',  APP .'classes'. DS);
 define('TEMPLATES',  APP . 'templates'. DS);
-define('CONTROLLERS', ROOT .'modules'. DS);
+define('MODULES', ROOT .'modules'. DS);
 define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
 define('CLI_PHP', 'cli.php');

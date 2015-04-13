@@ -514,7 +514,7 @@ function getCookie(cname) {
     <nav class="obulloDebugger-nav">
         <ul>
             <li class="favicon">
-                <img src="<?php echo $this->c['url']->asset('/images/favicon.ico') ?>" alt="">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAAcElEQVQ4y2NgGGjAiMx5aqrxnxhN0qdvMGIYQKxmdENY0CXWnLuJV2OIkToDAwMDw0Rmxv/5f/8zsmBTlP/3PyNOAxgYUFzKRGkgjhpABQMwojHESB0jqvABspLymnM34WkFI8FMZGYkaAi+hEYyAAAveB/cnCrFwQAAAABJRU5ErkJggg=="/>
             </li>
             <?php $activeTab = isset($_COOKIE[FRAMEWORK.'_debugger_active_tab']) ? $_COOKIE[FRAMEWORK.'_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 

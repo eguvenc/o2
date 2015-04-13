@@ -52,18 +52,19 @@ abstract class AbstractHandler
     /**
     * Format log records
     *
-    * @param string $timestamp         unix time
-    * @param array  $unformattedRecord log data
+    * @param string $data              all data
+    * @param array  $unformattedRecord current log record
     * 
     * @return array formatted record
     */
-    public function arrayFormat($timestamp, $unformattedRecord)
+    public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($this->c['config']['logger']['format']['date'], $timestamp),
+            'datetime' => date($this->c['config']['logger']['format']['date'], $data['time']),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
+            'request'  => $data['request'],
             'context'  => null,
             'extra'    => null,
         );
@@ -81,7 +82,7 @@ abstract class AbstractHandler
     /**
      * Write log data
      *
-     * @param array $records log data
+     * @param array $records all log data
      * 
      * @return boolean
      */
