@@ -187,6 +187,45 @@ class Obullo
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * Check http debugger is active
+     * 
+     * @return boolean
+     */
+    public function debuggerOn()
+    {
+        if ($this->getEnv() == 'production') {  // Only available on local environments
+            return false;
+        }
+        $id = @shmop_open(sprintf("%u", crc32('__obulloDebugger')), "a", 0, 0);
+        if (! is_int($id)) {
+            return false;
+        }
+        $size = shmop_size($id);
+        $debugger = shmop_read($id, 0, $size);
+
+        if ($debugger == 'On') {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns to false if http debugger passive
+     * 
+     * @return boolean
+     */
+    public function debuggerOff()
+    {
+        if ($this->debuggerOn()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+>>>>>>> 5f2b02daff397ca9aced45a9ab5dcb502d755413
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.
