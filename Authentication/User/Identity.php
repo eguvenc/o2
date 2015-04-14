@@ -376,8 +376,6 @@ class Identity extends AuthorizedUser
      */
     public function close()
     {
-        // $this->storage->resetTimeout();  // Increase permanent 
-
         if (empty($this->killSignal)) {
             return;
         }

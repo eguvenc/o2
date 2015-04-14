@@ -17,13 +17,6 @@ use Obullo\Container\Container;
 interface CacheHandlerInterface
 {
     /**
-     * Get current serializer name
-     * 
-     * @return string serializer name
-     */
-    public function getSerializer();
-
-    /**
      * Connection the cache..
      * 
      * @return boolean
@@ -48,7 +41,7 @@ interface CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function set($key = '', $data = 60, $ttl = 60);
+    public function set($key, $data = 60, $ttl = 60);
 
     /**
      * Get cache data.
@@ -68,7 +61,7 @@ interface CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function replace($key = '', $data = 60, $ttl = 60);
+    public function replace($key, $data = 60, $ttl = 60);
 
     /**
      * Remove specified keys.

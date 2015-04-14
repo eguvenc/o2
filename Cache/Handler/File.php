@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-Class File implements CacheHandlerInterface
+class File implements CacheHandlerInterface
 {
     const SERIALIZER_NONE = 'none';
 
@@ -101,7 +101,7 @@ Class File implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function replace($key = '', $data = 60, $ttl = 60)
+    public function replace($key, $data = 60, $ttl = 60)
     {
         if ( ! is_array($key)) {
             $this->delete($key);
@@ -177,7 +177,7 @@ Class File implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function set($key = '', $data = 60, $ttl = 60)
+    public function set($key, $data = 60, $ttl = 60)
     {
         if ( ! is_array($key)) {
             $contents = array(

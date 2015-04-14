@@ -62,9 +62,9 @@ $this->user->activity->method();
 
 ------
 
-Yetki doğrulama adaptörleri bu serviste esneklik için <b>Database</b> (RDBMS or NoSQL) veya <b>dosya tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
+Yetki doğrulama adaptörleri uygulamaya esneklik kazandıran otu sorgulama arabirimleridir, yetki doğrulamanın bir veritabanı ile mi yada örnek olarak LDAP gibi bir protokol üzerinden mi yapılacağını belirleyen sınıflardır. Varsayılan arabirim türü <b>Database</b> (RDBMS or NoSQL) dir, farklı türde kimlik doğrulama arabirimleri bu sürümde henüz mevcut değildir.
 
-Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
+Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve sorgulardan dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
 
 ### Hazıfa Depoları ( Storages )
 
@@ -113,7 +113,7 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
 )
 ```
 
-> Provider ayarlarından driver sekmesini sürücü ismi ile değiştirmeyi unutmayınız.
+> Yukarıda görüldüğü gibi provider ayarlarından driver sekmesini sürücü ismi ile değiştirmeyi unutmamalısınız.
 
 
 Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
@@ -136,19 +136,28 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
     <tbody>
         <tr>
             <td>cache[key]</td>
-            <td>Bu değer auth paketinin kayıt olacağı anahtarın önekidir. Bu değeri her proje için farlı girmeniz projelerinizin karışmaması için tavsiye edilir. Bu değer "projectameAuth" olarak girilebilir.</td>
+            <td>Bu değer auth paketinin kayıt olacağı anahtarın önekidir. Bu değeri her proje için farklı girmeniz projelerinizin karışmaması için tavsiye edilir. Örneğin bu değer "Auth:ProjectName" olarak girilebilir.</td>
         </tr>
         <tr>
             <td>cache[storage]</td>
             <td>Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler.Varsayılan depo Redis tir.</td>
         </tr>
         <tr>
+            <td>cache[provider][driver]</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi servis sağlayıcısına bağlanacağını belirler. Varsayılan değer "redis" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['service proviver x']->get(["connection" => "y"])</b> örneğinde <b>"x"</b> yerine gelen değerdir.</td>
+        </tr>
+
+        <tr>
+            <td>cache[provider][connection]</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi bağlantıyı kullanacağını belirler. Varsayılan değer "second" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['service proviver x']->get(["connection" => "y"])</b> örneğinde <b>"y"</b> yerine gelen değerdir.</td>
+        </tr>
+        <tr>
             <td>cache[block][permanent][lifetime]</td>
-            <td>Login denemesinden önce eğer yetki doğrulama onayı devre dışı yada kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> hafıza bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler varsayılan olarak <b>3600</b> saniye sonra yok olur.</td>
+            <td>Oturum açıldıktan sonra kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> hafıza bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler kullanıcının web sitesi üzerinde hareketsiz kaldığı andan itibaren varsayılan olarak <b>3600</b> saniye sonra yok olur.</td>
         </tr>
         <tr>
             <td>cache[block][temporary][lifetime]</td>
-            <td>Login denemesinden önce eğer yetki doğrulama onayı açık ise kullanıcı kimliği verileri <b>temporary</b> hafıza bloğuna kaydedilir. Geçici bloğa kaydedilmiş veriler <b>300</b> saniye sonrasında varsayılan olarak yok olur.Geçici blok yetki doğrulama onaylandırma durumları için tasarlanmıştır.
+            <td>Oturum açıldıktan sonra kullanıcı kimliği verileri <b>$this->user->identity->makeTemporary()</b> komutu ile <b>temporary</b> hafıza bloğuna taşınır. Geçici bloğa kaydedilmiş veriler <b>300</b> saniye sonrasında varsayılan olarak yok olur. Geçici blok yetki doğrulama onaylandırma durumları için tasarlanmıştır. Kimlik onayladı ise <b>$this->user->identity->makePermanent()</b> komutu ile kalıcı hale getirilmelidir.
             </td>
         </tr>
         <tr>
@@ -218,8 +227,8 @@ Class User implements ServiceInterface
                     'db.provider'      => 'database',
                     'db.connection'    => 'default',
                     'db.tablename'     => 'users',    // Database column settings
-                    'db.id'            => 'user_id',
-                    'db.identifier'    => 'email',
+                    'db.id'            => 'id',
+                    'db.identifier'    => 'username',
                     'db.password'      => 'password',
                     'db.rememberToken' => 'remember_token'
                 )
@@ -237,17 +246,17 @@ Class User implements ServiceInterface
 
 **Adaptörler:** Yetki doğrulama adaptörleri yetki doğrulama servisinde <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
 
-**Model:** Model sınıfı yetki doğrulama sınıfına ait database işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için database sorgularını özelleştirmek bölümüne bakınız.
+**Model:** Model sınıfı yetki doğrulama sınıfına ait database işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için aşağıda database sorgularını özelleştirmek başlığına bakınız.
 
 **Provider:** Database servis sağlayıcınızın ismidir. Database işlemlerinin hangi servis sağlayıcısının kullanması gerektiğini tanımlar.
 
 **Connection:** Database servis sağlayıcısının hangi bağlantıyı seçmesi gerektiğini tanımlar.
 
-**Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütün isimlerini belirlemenize olanak sağlar. Bu konfigurasyonlar database işlemlerinde kullanılır.
+**Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütun isimlerini belirlemenize olanak sağlar. Bu konfigürasyonlar database işlemlerinde kullanılır.
 
 ### Yetki Doğrulama Onayı
 
-Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmektir.
+Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmek için kullanılan ekstra bir özelliktir.
 
 Kullanıcı başarılı olarak giriş yaptıktan sonra kimliği kalıcı olarak ( varsayılan 3600 saniye ) önbelleklenir. Eğer kullanıcı onay adımından geçirilmek isteniyorsa kalıcı kimlikler <kbd>$this->user->identity->makeTemporary()</kbd> metodu ile geçici hale ( varsayılan 300 saniye ) getirilir. Geçici olan bir kimlik 300 saniye içerisinde kendiliğinden yokolur. 
 
@@ -262,14 +271,12 @@ Kullanıcının geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b
 Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <kbd>$this->user->identity->makePermanent()</kbd> metodu ile kimliği kalıcı hale getirmeniz gereklidir.
 Bir kimlik kalıcı yapıldığında kullanıcı tam olarak yetkilendirilmiş olur.
 
-**Note:** Bu paket programlanırken geçici kimlik "__temporary" kalıcı kimlik ise "__permanent" simgesi ile ifade edilmiş aynı zamanda hafıza depolarında bu ifadeler kullanılmıştır.
-
 #### Geçici kimliğin oluşturulmasına bir örnek:
 
 ```php
 $this->user->identity->makeTemporary();
 ```
-Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olan kimlik hafıza bloğuna geçici olarak kaydedilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
+Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olarak kaydedilen kimlik hafıza bloğunda geçici hale getirilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
 
 Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
 
@@ -534,7 +541,7 @@ Kullanıcı kimliği O2 paketi içerisindedir ve <b>app/Auth/Identities</b> içe
 * Kullanıcı kimliğini tamamen yok etme ( destroy )
 * Beni hatırla özelliği kullanılmışsa kullanıcı kimliğini çerezden kalıcı olarak silme forgetMe )
 
-Aşağıda örnek bir kullanıcı kimliğini nasıl görüntüleyebileceğiniz gösteriliyor.
+Aşağıda örnek bir kullanıcı kimliğini nasıl görüntüleyebileceğinizi gösteriliyor.
 
 ```php
 print_r($this->user->identity->getArray()); // Çıktılar
@@ -597,7 +604,7 @@ use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Event\EventListenerInterface;
 
-Class Attempt implements EventListenerInterface
+class Attempt implements EventListenerInterface
 {
     /**
      * Container
@@ -676,7 +683,7 @@ Yukarıdaki örnekte <b>after()</b> metodunu kullanarak oturum açma denemesinin
 
 ------
 
-O2 yetki doğrulama paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <kbd>Obullo\Authentication\Model\User</kbd> sınfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından db.model anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirmeniz gerekmektedir.
+O2 yetki doğrulama paketi kullanıcıya ait database fonksiyonlarını servis içerisinden <kbd>Obullo\Authentication\Model\User</kbd> sınıfından çağırmaktadır. Eğer mevcut database sorgularında değişlik yapmak istiyorsanız bu sınıfa genişlemek için önce auth konfigürasyon dosyasından db.model anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirmeniz gerekmektedir.
 
 Daha sonra <b>app/classes/Auth/Model</b> klasörünü içerisine <b>User.php</b> dosyasını yaratarak aşağıdaki gibi User model sınıfı içerisinden <b>Obullo\Authentication\Model\User</b> sınıfına genişlemeniz gerekmektedir. Bunu yaparken <b>UserInterface</b> içerisindeki yazım kurallarına bir göz atın.
 
@@ -685,12 +692,13 @@ Aşağıda O2 yetki doğrulama paketi içerisindeki <kbd>\Obullo\Authentication\
 ```php
 namespace Obullo\Authentication\Model;
 
-use Obullo\Container\Container,
-    Auth\Identities\GenericUser;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Obullo\ServiceProviders\ServiceProviderInterface;
 
 interface UserInterface
 {
-    public function __construct(Container $c);
+    public function __construct(Container $c, ServiceProviderInterface $provider);
     public function execQuery(GenericUser $user);
     public function execRecallerQuery($token);
     public function updateRememberToken($token, GenericUser $user);
@@ -700,7 +708,7 @@ interface UserInterface
 Önce User.php service dosyasından <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak değiştirin.
 
 ```php
-Class User implements ServiceInterface
+class User implements ServiceInterface
 {
     public function register(Container $c)
     {
@@ -714,8 +722,8 @@ Class User implements ServiceInterface
                     'db.provider'      => 'database',
                     'db.connection'    => 'default',
                     'db.tablename'     => 'users', // Database column settings
-                    'db.id'            => 'user_id',
-                    'db.identifier'    => 'email',
+                    'db.id'            => 'id',
+                    'db.identifier'    => 'username',
                     'db.password'      => 'password',
                     'db.rememberToken' => 'remember_token'
                 )
@@ -735,22 +743,23 @@ Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarı
 ```php
 namespace Auth\Model;
 
-use Obullo\Container\Container,
-    Auth\Identities\GenericUser,
-    Auth\Identities\AuthorizedUser,
-    Obullo\Authentication\Model\UserInterface,
-    Obullo\Authentication\Model\User as ModelUser;
+use Obullo\Container\Container;
+use Auth\Identities\GenericUser;
+use Auth\Identities\AuthorizedUser;
+use Obullo\Authentication\Model\UserInterface;
+use Obullo\Authentication\Model\User as ModelUser;
 
-Class User extends ModelUser implements UserInterface
+class User extends ModelUser implements UserInterface
 {
-    /**
+     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        container
+     * @param object $provider ServiceProviderInterface
      */
-    public function __construct(Container $c)
+    public function __construct(Container $c, ServiceProviderInterface $provider)
     {
-        parent::__construct($c);
+        parent::__construct($c, $provider);
     }
     
     /**
@@ -795,7 +804,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
         </tr>
         <tr>
             <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->login->verification(true)</kbd> metodu login attempt metodu öncesinde kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->login->authenticateTemporaryIdentity()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->identity->makeTemporary()</kbd> metodu login attempt metodu sonrasında kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->identity->makePermanent()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
         </tr>
         <tr>
             <td>__isVerified</td>
@@ -818,7 +827,7 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
 
 ------
 
-> User servisinde AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess sınıfı ile erişilir.
+> User servisinde AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
 
 ##### $this->user->login->config['variable'];
 
@@ -927,7 +936,7 @@ Geçici olarak oluşturulmuş kimlik bilgilerini güncellemenize olanak tanır.
 
 ##### $this->user->identity->logout();
 
-Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile günceller. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kappattı olarak kaydeder.
+Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile günceller. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kapattı olarak kaydeder.
 
 ##### $this->user->identity->destroy();
 
@@ -937,31 +946,9 @@ Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile
 
 Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
-##### $this->user->identity->getRememberMe();
+##### $this->user->identity->refreshRememberToken();
 
-Kullanıcı beni hatırla özelliğini kullandı ise <b>1</b> değerine kullanmadı ise <b>0</b> değerine döner.
-
-##### $this->user->identity->getPasswordNeedsReHash();
-
-Kullanıcı giriş yaptıktan sonra eğer şifresi yenilenmesi gerekiyorsa hash edilmiş yeni şifreye gerekmiyorsa <b>false</b> değerine döner.
-
-#### Identity "Set" Metotları
-
-------
-
->Identity set metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine yazmanızı sağlar.
-
-##### $this->user->identity->variable = 'value'
-
-Kimlik dizisine yeni bir değer ekler.
-
-##### unset($this->user->identity->variable)
-
-Kimlik dizisinde varolan değeri siler.
-
-##### $this->user->identity->setArray(array $attributes)
-
-Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
+Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
 
 
 #### Identity "Get" Metotları
@@ -984,24 +971,51 @@ Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine ak
 
 ##### $this->user->identity->getTime();
 
-Kimliğin ilk yaratılma zamanının verir. ( Php Unix microtime ).
+Kimliğin ilk yaratılma zamanını verir. ( Php Unix microtime ).
+
+##### $this->user->identity->getRememberMe();
+
+Kullanıcı beni hatırla özelliğini kullandı ise <b>1</b> değerine kullanmadı ise <b>0</b> değerine döner.
+
+##### $this->user->identity->getPasswordNeedsReHash();
+
+Kullanıcı giriş yaptıktan sonra eğer şifresi yenilenmesi gerekiyorsa hash edilmiş <b>yeni şifreye</b> gerekmiyorsa <b>false</b> değerine döner.
+
+##### $this->user->identity->getRememberToken();
+
+Beni hatırla çerezine döner.
 
 ##### $this->user->identity->getArray()
 
 Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
-##### $this->user->identity->getToken();
-
-Güvenlik çerezinine geri döner.
-
 >Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
+
+
+#### Identity "Set" Metotları
+
+------
+
+>Identity set metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine yazmanızı sağlar.
+
+##### $this->user->identity->variable = 'value'
+
+Kimlik dizisine yeni bir değer ekler.
+
+##### unset($this->user->identity->variable)
+
+Kimlik dizisinde varolan değeri siler.
+
+##### $this->user->identity->setArray(array $attributes)
+
+Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
 
 #### Activity Sınıfı Referansı
 
 ------
 
->Activite verileri son aktivite zaman gibi anlık kullanıcı verilerini önbellekte tutubilmenizi sağlayan bir sınıftır.
+>Aktivite verileri, son aktivite zamanı gibi anlık değişen kullanıcı verilerini önbellekte tutabilmeyi sağlayan sınıftır.
 
 ##### $this->user->activity->set($key, $val);
 

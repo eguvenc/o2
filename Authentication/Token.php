@@ -6,7 +6,7 @@ use Obullo\Utils\Random;
 use Obullo\Container\Container;
 
 /**
- * O2 Authentication - Security Token
+ * O2 Authentication - Token
  *
  * @category  Authentication
  * @package   Token
