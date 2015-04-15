@@ -830,27 +830,48 @@ class User
     public function getPagePermissionsSqlQuery()
     {
         $roleIds = $this->user->getRoleIds();
+        // $this->db->prepare(
+        //     "SELECT
+        //         node.`rbac_permission_name`,
+        //         node.`rbac_permission_id`,
+        //         node.`rbac_permission_parent_id`,
+        //         rolePerms.`rbac_roles_rbac_role_id`,
+        //         node.`rbac_permission_resource`,
+        //         operations.`rbac_operation_name`,
+        //         (COUNT(parent.`rbac_permission_name`) - 1) AS depth
+        //     FROM betforyousystem.`rbac_permissions` AS node, betforyousystem.`rbac_permissions` AS parent
+        //     INNER JOIN betforyousystem.`rbac_role_permissions` AS rolePerms
+        //     ON parent.`rbac_permission_id` = rolePerms.`rbac_permissions_rbac_permission_id`
+        //     INNER JOIN betforyousystem.`rbac_user_roles` AS userRoles
+        //     ON rolePerms.`rbac_roles_rbac_role_id` = userRoles.`rbac_roles_rbac_role_id`
+        //     INNER JOIN betforyousystem.`rbac_op_permissions` AS opPerms
+        //     ON parent.`rbac_permission_id` = opPerms.`rbac_permissions_rbac_permission_id`
+        //     INNER JOIN betforyousystem.`rbac_operations` AS operations
+        //     ON opPerms.`rbac_operations_rbac_operation_id` = operations.`rbac_operation_id`
+        //     WHERE node.`rbac_permission_type` = ? AND node.`rbac_permission_menu` = ? AND userRoles.`users_user_id` = ? AND rolePerms.`rbac_roles_rbac_role_id` IN (%s) AND opPerms.`rbac_roles_rbac_role_id` IN (%s) AND operations.`rbac_operation_name` = 'view' AND node.`rbac_permission_lft` BETWEEN parent.`rbac_permission_lft` AND parent.`rbac_permission_rgt` GROUP BY node.`rbac_permission_id` ORDER BY node.`rbac_permission_lft`",
+        //     array(
+        //         str_repeat('?,', count($roleIds) - 1) . '?',
+        //         str_repeat('?,', count($roleIds) - 1) . '?'
+        //     )
+        // );
         $this->db->prepare(
             "SELECT
                 node.`rbac_permission_name`,
                 node.`rbac_permission_id`,
                 node.`rbac_permission_parent_id`,
-                rolePerms.`rbac_roles_rbac_role_id`,
                 node.`rbac_permission_resource`,
                 operations.`rbac_operation_name`,
                 (COUNT(parent.`rbac_permission_name`) - 1) AS depth
             FROM betforyousystem.`rbac_permissions` AS node, betforyousystem.`rbac_permissions` AS parent
-            INNER JOIN betforyousystem.`rbac_role_permissions` AS rolePerms
-            ON parent.`rbac_permission_id` = rolePerms.`rbac_permissions_rbac_permission_id`
-            INNER JOIN betforyousystem.`rbac_user_roles` AS userRoles
-            ON rolePerms.`rbac_roles_rbac_role_id` = userRoles.`rbac_roles_rbac_role_id`
             INNER JOIN betforyousystem.`rbac_op_permissions` AS opPerms
             ON parent.`rbac_permission_id` = opPerms.`rbac_permissions_rbac_permission_id`
+            INNER JOIN betforyousystem.`rbac_user_roles` AS userRoles
+            ON userRoles.`rbac_roles_rbac_role_id` = opPerms.`rbac_roles_rbac_role_id`
             INNER JOIN betforyousystem.`rbac_operations` AS operations
             ON opPerms.`rbac_operations_rbac_operation_id` = operations.`rbac_operation_id`
-            WHERE node.`rbac_permission_type` = ? AND node.`rbac_permission_menu` = ? AND userRoles.`users_user_id` = ? AND rolePerms.`rbac_roles_rbac_role_id` IN (%s) AND opPerms.`rbac_roles_rbac_role_id` IN (%s) AND operations.`rbac_operation_name` = 'view' AND node.`rbac_permission_lft` BETWEEN parent.`rbac_permission_lft` AND parent.`rbac_permission_rgt` GROUP BY node.`rbac_permission_id` ORDER BY node.`rbac_permission_lft`",
+            WHERE node.`rbac_permission_type` = ? AND node.`rbac_permission_menu` = ? AND userRoles.`users_user_id` = ? AND opPerms.`rbac_roles_rbac_role_id` IN (%s) AND operations.`rbac_operation_name` = 'view' AND node.`rbac_permission_lft` BETWEEN parent.`rbac_permission_lft` AND parent.`rbac_permission_rgt` GROUP BY node.`rbac_permission_id` ORDER BY node.`rbac_permission_lft`",
             array(
-                str_repeat('?,', count($roleIds) - 1) . '?',
+                // str_repeat('?,', count($roleIds) - 1) . '?',
                 str_repeat('?,', count($roleIds) - 1) . '?'
             )
         );
@@ -862,12 +883,12 @@ class User
             $i++;
             $this->db->bindValue($i, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
         }
-        foreach ($roleIds as $id) {
-            $i++;
-            $this->db->bindValue($i, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
-        }
+        // foreach ($roleIds as $id) {
+        //     $i++;
+        //     $this->db->bindValue($i, $id[$this->user->columnUserRolePrimaryKey], PARAM_INT);
+        // }
         $this->db->execute();
-
+        
         return $this->db->resultArray();
     }
 
