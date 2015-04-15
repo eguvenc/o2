@@ -7,7 +7,7 @@ use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
-use Obullo\Application\Debugger\WebSocket;
+use Obullo\Application\Modules\Debugger\WebSocket;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,13 +58,6 @@ class Http extends Obullo
     protected $middleware = array();
 
     /**
-     * Debugger
-     * 
-     * @var boolean
-     */
-    protected $debugger = false;
-
-    /**
      * Constructor
      *
      * @return void
@@ -73,7 +66,6 @@ class Http extends Obullo
     {
         global $c;
         $this->c = $c;
-        $this->debugger = $this->debuggerOn();
 
         $this->detectEnvironment();
         $this->setErrorReporting();
@@ -88,6 +80,10 @@ class Http extends Obullo
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
 
+        if ($this->c['config']['debugger']['enabled']) {
+            $this->websocket = new WebSocket($this->c);
+            $this->websocket->connect();
+        }
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -114,7 +110,7 @@ class Http extends Obullo
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
 
-        include CONTROLLERS .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
+        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
         $this->className = '\\'.$namespace.'\\'.$class;
         $this->notFoundUri = $route;
@@ -144,13 +140,7 @@ class Http extends Obullo
         }
         $middleware->call();   
 
-        list($status, $headers, $output) = $this->c['response']->finalize();
-        $this->c['response']->sendHeaders($status, $headers);
-
-        if ($this->debugger) {
-            $output = \Obullo\Application\Debugger\Notice::turnOff($output);
-        }
-        echo $output; // Send output
+        $this->c['response']->flush();
     }
 
     /**
@@ -196,11 +186,8 @@ class Http extends Obullo
      */
     public function checkDebugger()
     {
-        $debug = $this->debuggerOn();
-
-        if ($debug AND ! isset($_REQUEST[FRAMEWORK.'_debugger'])) {
-            $websocket = new WebSocket($this->c);
-            $websocket->emit();
+        if ($this->c['config']['debugger']['enabled'] AND ! isset($_REQUEST[FRAMEWORK.'_debugger'])) {
+            $this->websocket->emit();
         }
     }
 

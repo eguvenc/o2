@@ -3,6 +3,7 @@
 namespace Obullo\Task;
 
 use Controller;
+use Obullo\Cli\Parser;
 use Obullo\Task\Helper\Console;
 
 /**
@@ -24,7 +25,7 @@ class DomainController extends Controller
      */
     public function load()
     {
-        $this->c['cli/parser as parser'];
+        $this->parser = new Parser($this->c);
     }
 
     /**
@@ -45,7 +46,7 @@ class DomainController extends Controller
     public function logo()
     {
         echo Console::logo("Welcome to Domain Manager (c) 2015");
-        echo Console::description("You are running \$php task domain command. For help type php task domain --help");
+        echo Console::description("You are running \$php task domain command. For help type php task domain help");
     }
 
     /**
@@ -123,15 +124,13 @@ Available Commands
 
 Available Arguments
 
-    --name   : Sets domain name\n\n"
+    --name   : Sets domain name.\n\n"
 );
 
 echo Console::help("Usage:\n\n", true);
-echo Console::help("php task domain down --name=site\n\n");
+echo Console::help("php task domain [command] --name=site\n\n");
 echo Console::help("Description:\n\n", true);
 echo Console::help("Manages domain features which are defined in your domain.php config file.\n\n");
-
-        $this->c['logger']->debug('php task domain help');
 
     }
 }

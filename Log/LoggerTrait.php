@@ -22,7 +22,7 @@ trait LoggerTrait
      */
     protected function configureErrorHandlers()
     {
-        if ($this->c['config']['error']['debug'] == false) {                   // If debug "disabled" from config use logger class handlers and send all errors to log.
+        if ($this->c['config']['error']['debug'] == false) { // If debug "disabled" from config use logger class handlers and send all errors to log.
             static::registerExceptionHandler($this); 
             static::registerErrorHandler($this);
             static::registerFatalErrorHandler($this);

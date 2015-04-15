@@ -104,7 +104,7 @@ class Redis implements CacheHandlerInterface
     }
 
     /**
-     * If method does not exist call from Redis class
+     * If method does not exist in this class call it from $this->redis
      * 
      * @param string $method    methodname
      * @param array  $arguments method arguments
@@ -389,7 +389,7 @@ class Redis implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function set($key = '', $data = 60, $ttl = 60) // If empty $ttl default timeout unlimited
+    public function set($key, $data = 60, $ttl = 60) // If empty $ttl default timeout unlimited
     {
         if ( ! is_array($key)) {
             return $this->redis->set($key, $data, $ttl);
@@ -418,7 +418,7 @@ class Redis implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function replace($key = '', $data = 60, $ttl = 60)
+    public function replace($key, $data = 60, $ttl = 60)
     {
         if ( ! is_array($key)) {
             return $this->redis->set($key, $data, $ttl);

@@ -363,7 +363,7 @@ class Router
         }
         $this->setDirectory($segments[0]); // Set first segment as default "top" directory 
 
-        if (isset($segments[1]) AND is_dir(CONTROLLERS .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
+        if (isset($segments[1]) AND is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
         ) {
             $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);
@@ -371,10 +371,10 @@ class Router
         }
         $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
 
-        if ( ! empty($segments[1]) AND file_exists(CONTROLLERS .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
+        if ( ! empty($segments[1]) AND file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
-        if (file_exists(CONTROLLERS .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
+        if (file_exists(MODULES .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }

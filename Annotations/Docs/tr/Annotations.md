@@ -39,7 +39,7 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
 
 ### Controller için dipnotları aktif etmek
 
-Config.php konfigürasyon dosyasını açın ve annotations reader anahtarının değerini <b>true</b> olarak güncelleyin.
+Config.php konfigürasyon dosyasını açın ve annotations enabled anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
 'annotations' => array(
@@ -131,7 +131,9 @@ public function load()
 ```
 
 
-#### Dipnotları kullanmadan middleware tanımlamak
+#### Dipnotları kullanmadan middleware tanımlayabilmek
+
+Eğer dipnotları kullanmadan filtreleri basitçe çağırmanız gereken bir durum sözkonusu ise bunu uygulama sınıfını içerisinden aşağıdaki gibi gerçekleştirebilirsiniz.
 
 ```php
 namespace Welcome;

@@ -4,6 +4,7 @@ namespace Obullo\Task;
 
 use Controller;
 use RuntimeException;
+use Obullo\Task\Helper\Console;
 
 class DebuggerController extends Controller
 {
@@ -21,6 +22,17 @@ class DebuggerController extends Controller
     {
         self::registerErrorHandler();     // We disable errors otherwise we get socket write errors in ajax response
         self::registerExceptionHandler();
+    }
+
+    /**
+     * Print logo
+     * 
+     * @return string
+     */
+    public function logo()
+    {
+        echo Console::logo("Welcome to Debug Manager (c) 2015");
+        echo Console::description("You are running \$php task debugger command. For help type php task debugger help");
     }
 
     /**
@@ -281,6 +293,29 @@ class DebuggerController extends Controller
             return true;
         }
         return $headers;
+    }
+
+    /**
+     * Cli help
+     * 
+     * @return void
+     */
+    public function help()
+    {
+        $this->logo();
+
+echo Console::help("Help:\n", true);
+echo Console::help("
+Available Commands
+
+    debugger     : Run debug server.\n\n"
+);
+
+echo Console::help("Usage:\n\n", true);
+echo Console::help("php task debugger\n\n");
+echo Console::help("Description:\n\n", true);
+echo Console::help("Start debugger websocket server.\n\n");
+
     }
 
 }

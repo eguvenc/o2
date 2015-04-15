@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Debugger;
+namespace Obullo\Application\Modules\Debugger;
 
 use RuntimeException;
 use Obullo\Container\Container;
@@ -58,9 +58,24 @@ class WebSocket
         }
         $this->host = $matches['host'];
         $this->port = $matches['port'];
+    }
 
+    /**
+     * Connecto debugger server
+     * 
+     * @return void
+     */
+    public function connect()
+    {
         $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        $this->connect = socket_connect($this->socket, $this->host, $this->port);
+        $this->connect = @socket_connect($this->socket, $this->host, $this->port);
+
+        if (isset($_SERVER['argv'][0]) && $_SERVER['argv'][0] == 'task') {  // Ignored for php task debugger init command
+            return;
+        }
+        if ($this->connect == false) {
+            throw new RuntimeException("Debugger server connection not available. Please run debugger from your console: <pre>php task debugger</pre>");
+        }  
     }
 
     /**
@@ -200,4 +215,4 @@ class WebSocket
 // END WebSocket.php File
 /* End of file WebSocket.php
 
-/* Location: .Obullo/Application/Debugger/WebSocket.php */
+/* Location: .Obullo/Application/Modules/Debugger/WebSocket.php */

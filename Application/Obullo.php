@@ -27,6 +27,7 @@ class Obullo
     protected $method;             // Current method
     protected $className;          // Current controller name
     protected $notFoundUri;        // 404 uri
+    protected $websocket;          // Debugger websocket
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -186,6 +187,8 @@ class Obullo
     }
 
     /**
+<<<<<<< HEAD
+=======
      * Check http debugger is active
      * 
      * @return boolean
@@ -222,6 +225,7 @@ class Obullo
     }
 
     /**
+>>>>>>> 5f2b02daff397ca9aced45a9ab5dcb502d755413
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.

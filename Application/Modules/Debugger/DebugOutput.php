@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Debugger;
+namespace Obullo\Application\Modules\Debugger;
 
 use RuntimeException;
 use Obullo\Log\PriorityQueue;
@@ -9,7 +9,7 @@ use Obullo\Container\Container;
 use Obullo\Log\Formatter\LineFormatterTrait;
 
 /**
- * Log Debugger Output Class
+ * Debugger Output Class
  * 
  * @category  Log
  * @package   Debugger
@@ -60,7 +60,7 @@ class DebugOutput
      * 
      * @return string echo the log output
      */
-    public function printHtml()
+    public function printConsole()
     {
         ob_start();
         include_once 'Views/Debugger.php';
@@ -173,4 +173,4 @@ class DebugOutput
 // END DebugOutput class
 /* End of file DebugOutput.php */
 
-/* Location: .Obullo/Log/Debbuger/DebugOutput.php */
+/* Location: .Obullo/Application/Modules/Debbuger/DebugOutput.php */

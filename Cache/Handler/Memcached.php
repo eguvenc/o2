@@ -94,6 +94,19 @@ class Memcached implements CacheHandlerInterface
     }
 
     /**
+     * If method does not exist in this class call it from $this->memcached
+     * 
+     * @param string $method    methodname
+     * @param array  $arguments method arguments
+     * 
+     * @return mixed
+     */
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array(array($this->memcached, $method), $arguments);
+    }
+
+    /**
      * Get current serializer name
      * 
      * @return string serializer name
@@ -162,18 +175,6 @@ class Memcached implements CacheHandlerInterface
     }
 
     /**
-     * Get multiple
-     * 
-     * @param array $data key => value
-     * 
-     * @return void
-     */
-    public function getMulti(array $data)
-    {
-        return $this->memcached->getMulti($data);
-    }
-
-    /**
      * Returns the keys that match a certain pattern.
      * 
      * @return array the keys that match a certain pattern.
@@ -219,8 +220,8 @@ class Memcached implements CacheHandlerInterface
     public function setArray($data, $ttl = 60)
     {
         if (is_array($data)) {
-            foreach ($data as $k => $v) {
-                $this->memcached->set($k, $v, time() + $ttl);
+            foreach ($data as $key => $value) {
+                $this->memcached->set($key, $value, time() + $ttl);
             }
             return true;
         }
@@ -236,26 +237,13 @@ class Memcached implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function set($key = '', $data = 60, $ttl = 60)
+    public function set($key, $data = 60, $ttl = 60)
     {
         if ( ! is_array($key)) {
             return $this->memcached->set($key, $data, time() + $ttl);
         }
-        return $this->setArray($key, $data);
+        return $this->setArray($data, $ttl);
     }
-
-    /**
-     * Save Multiple
-     * 
-     * @param mix $data cache data.
-     * @param int $ttl  expiration time
-     * 
-     * @return boolean
-     */
-    public function setMulti($data, $ttl = 60)
-    {
-        return $this->memcached->setMulti($data, time() + $ttl);
-    }   
 
     /**
      * Remove specified keys.
@@ -266,19 +254,10 @@ class Memcached implements CacheHandlerInterface
      */
     public function delete($key)
     {
+        if (is_array($key)) {
+            return $this->memcached->deleteMulti($key);
+        }
         return $this->memcached->delete($key);
-    }
-
-    /**
-     * Remove multiple
-     * 
-     * @param string $data cache data key => value
-     * 
-     * @return boolean
-     */
-    public function deleteMulti($data)
-    {
-        return $this->memcached->deleteMulti($data);
     }
 
     /**
@@ -290,7 +269,7 @@ class Memcached implements CacheHandlerInterface
      * 
      * @return boolean
      */
-    public function replace($key = '', $data = 60, $ttl = 60)
+    public function replace($key, $data = 60, $ttl = 60)
     {
         if ( ! is_array($key)) {
             $this->memcached->replace($key, $data, time() + $ttl);

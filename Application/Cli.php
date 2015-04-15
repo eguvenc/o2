@@ -7,7 +7,7 @@ use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
 use Obullo\Container\Container;
-use Obullo\Application\Debugger\WebSocket;
+use Obullo\Application\Modules\Debugger\WebSocket;
 
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
@@ -67,6 +67,10 @@ class Cli extends Obullo
         include OBULLO_EVENTS;
         include OBULLO_ROUTES;
         
+        if ($this->c['config']['debugger']['enabled']) {
+            $this->websocket = new WebSocket($this->c);
+            $this->websocket->connect();
+        }
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
     }
 
@@ -92,7 +96,7 @@ class Cli extends Obullo
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
 
-        include CONTROLLERS .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
+        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
         $this->className = '\\'.$namespace.'\\'.$class;
         $this->notFoundUri = $route;
@@ -131,6 +135,8 @@ class Cli extends Obullo
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
 
+        $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
+
         $this->checkDebugger();
     }
 
@@ -141,11 +147,8 @@ class Cli extends Obullo
      */
     public function checkDebugger()
     {
-        $debug = $this->debuggerOn();
-
-        if ($debug) {
-            $websocket = new WebSocket($this->c);
-            $websocket->cliHandshake();
+        if ($this->c['config']['debugger']['enabled']) {
+            $this->websocket->cliHandshake();
         }
     }
 

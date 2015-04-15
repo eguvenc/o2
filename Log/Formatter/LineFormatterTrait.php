@@ -5,7 +5,7 @@ namespace Obullo\Log\Formatter;
 trait LineFormatterTrait
 {
     /**
-     * Format the line comes from app/config/$env/config.php
+     * Format the line defined in app/config/$env/config.php
      * 
      * 'line' => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',
      * 

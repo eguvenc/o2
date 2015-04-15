@@ -5,8 +5,8 @@ include_once OBULLO .'Error'. DS .'View'. DS .'ExceptionHtmlHeader.php';
 
 $getError = function ($message) {
     return str_replace(
-        array(APP, DATA, CLASSES, ROOT, OBULLO, CONTROLLERS), 
-        array('APP' . DS, 'DATA'. DS, 'CLASSES'. DS, 'ROOT' . DS, 'OBULLO'. DS, 'CONTROLLERS'. DS),
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), 
+        array('APP' . DS, 'DATA'. DS, 'CLASSES'. DS, 'ROOT' . DS, 'OBULLO'. DS, 'MODULES'. DS),
         $message
     );
 }
