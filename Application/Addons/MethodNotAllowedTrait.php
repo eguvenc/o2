@@ -20,10 +20,11 @@ trait MethodNotAllowedTrait
 
             $this->c['response']->showError(
                 sprintf(
-                    "Http %s method not allowed.", 
+                    "Http Error 405 %s method not allowed.", 
                     ucfirst($currentMethod)
                 ),
-                405
+                405,
+                "Method Not Allowed"
             );
         }
     }

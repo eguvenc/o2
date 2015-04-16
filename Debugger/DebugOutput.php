@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Modules\Debugger;
+namespace Obullo\Debugger;
 
 use RuntimeException;
 use Obullo\Log\PriorityQueue;
@@ -16,7 +16,7 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
+ * @link      http://obullo.com/package/debugger
  */
 class DebugOutput
 {
@@ -173,4 +173,4 @@ class DebugOutput
 // END DebugOutput class
 /* End of file DebugOutput.php */
 
-/* Location: .Obullo/Application/Modules/Debbuger/DebugOutput.php */
+/* Location: .Obullo/Debbuger/DebugOutput.php */

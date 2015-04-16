@@ -126,30 +126,6 @@ class Obullo
     }
 
     /**
-     * Add middleware
-     *
-     * This method prepends new middleware to the application middleware stack.
-     * The argument must be an instance that subclasses Slim_Middleware.
-     *
-     * @param mixed $middleware class name or \Http\Middlewares\Middleware object
-     * @param array $params     parameters
-     *
-     * @return void
-     */
-    public function middleware($middleware, $params = array())
-    {
-        if (is_string($middleware)) {
-            $Class = '\\Http\\Middlewares\\'.ucfirst($middleware);
-            $middleware = new $Class;
-        }
-        $middleware->params = $params;  //  Inject Parameters
-        $middleware->setContainer($this->c);
-        $middleware->setApplication($this);
-        $middleware->setNextMiddleware(current($this->middleware));
-        array_unshift($this->middleware, $middleware);
-    }
-
-    /**
      * Parse annotations
      * 
      * @return void
@@ -187,45 +163,6 @@ class Obullo
     }
 
     /**
-<<<<<<< HEAD
-=======
-     * Check http debugger is active
-     * 
-     * @return boolean
-     */
-    public function debuggerOn()
-    {
-        if ($this->getEnv() == 'production') {  // Only available on local environments
-            return false;
-        }
-        $id = @shmop_open(sprintf("%u", crc32('__obulloDebugger')), "a", 0, 0);
-        if (! is_int($id)) {
-            return false;
-        }
-        $size = shmop_size($id);
-        $debugger = shmop_read($id, 0, $size);
-
-        if ($debugger == 'On') {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Returns to false if http debugger passive
-     * 
-     * @return boolean
-     */
-    public function debuggerOff()
-    {
-        if ($this->debuggerOn()) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
->>>>>>> 5f2b02daff397ca9aced45a9ab5dcb502d755413
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.

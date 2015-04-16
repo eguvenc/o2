@@ -201,7 +201,6 @@ class Translator implements ArrayAccess
 
         if (! isset($translateArray)) {
             $this->c['logger']->error('Translation file does not contain valid format: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
-
             return;
         }
         $this->loaded[] = $fileKey;
@@ -229,7 +228,7 @@ class Translator implements ArrayAccess
             $fileUrl  = TRANSLATIONS . $locale . DS . $filename . '.php';
             $fileKey  = substr(strstr($fileUrl, $locale), 0, -4);
 
-            $fallbackArray       = include $fileUrl;
+            $fallbackArray = include $fileUrl;
             $this->fallbackArray = array_merge($this->fallbackArray, $fallbackArray);
         }
     }
@@ -268,10 +267,8 @@ class Translator implements ArrayAccess
         if (isset($this->translateArray[$item])) {
             if (sizeof($args) > 1) {
                 unset($args[0]);
-
                 return vsprintf($this->translateArray[$item], $args);
             }
-
             return $this->translateArray[$item];
         }
         $translateNotice = ($this->config['debug']) ? static::NOTICE : '';

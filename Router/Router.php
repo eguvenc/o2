@@ -152,13 +152,12 @@ class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function post($match, $rewrite = null, $closure = null, $group = array())
+    public function post($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('post'), $match, $rewrite, $closure = null, $group);
+        $this->route(array('post'), $match, $rewrite, $closure = null);
         return $this;
     }
 
@@ -168,13 +167,12 @@ class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function put($match, $rewrite = null, $closure = null, $group = array())
+    public function put($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('put'), $match, $rewrite, $closure = null, $group);
+        $this->route(array('put'), $match, $rewrite, $closure = null);
         return $this;
     }
 
@@ -184,13 +182,12 @@ class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function delete($match, $rewrite = null, $closure = null, $group = array())
+    public function delete($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('delete'), $match, $rewrite, $closure = null, $group);
+        $this->route(array('delete'), $match, $rewrite, $closure = null);
         return $this;
     }
 
@@ -201,13 +198,12 @@ class Router
      * @param string $match   uri string match regex
      * @param string $rewrite uri rewrite regex value
      * @param string $closure optional closure function
-     * @param string $group   optional group name
      * 
      * @return object router
      */
-    public function match($methods, $match, $rewrite = null, $closure = null, $group = array())
+    public function match($methods, $match, $rewrite = null, $closure = null)
     {
-        $this->route($methods, $match, $rewrite, $closure = null, $group);
+        $this->route($methods, $match, $rewrite, $closure = null);
     }
 
     /**
@@ -223,6 +219,8 @@ class Router
     public function route($methods, $match, $rewrite = null, $closure = null)
     {
         $domainMatch = $this->detectDomain($this->group);
+        $match = trim($match, '/');
+        $rewrite = trim($rewrite, '/');
 
         if ( ! isset($this->group['name'])) {
             $this->group['name'] = 'UNNAMED';
@@ -232,27 +230,19 @@ class Router
         }
         $scheme = (strpos($match, '}') !== false) ? $match : null;
 
+        $subDomain = null;
         if ($this->isSubDomain($this->DOMAIN)) {
-            $this->routes[$this->DOMAIN][] = array(
-                'group' => $this->group['name'],
-                'sub.domain' => isset($this->group['domain']['regex']) ? $this->group['domain']['regex'] : $this->group['domain'],
-                'when' => $methods, 
-                'match' => $match,
-                'rewrite' => $rewrite,
-                'scheme' => $scheme,
-                'closure' => $closure,
-            );
-        } else {
-            $this->routes[$this->DOMAIN][] = array(
-                'group' => $this->group['name'],
-                'sub.domain' => null,
-                'when' => $methods, 
-                'match' => $match,
-                'rewrite' => $rewrite,
-                'scheme' => $scheme,
-                'closure' => $closure,
-            );
+            $subDomain = isset($this->group['domain']['regex']) ? $this->group['domain']['regex'] : $this->group['domain'];
         }
+        $this->routes[$this->DOMAIN][] = array(
+            'group' => $this->group['name'],
+            'sub.domain' => $subDomain,
+            'when' => $methods, 
+            'match' => $match,
+            'rewrite' => $rewrite,
+            'scheme' => $scheme,
+            'closure' => $closure,
+        );
         return $this;
     }
 
@@ -647,7 +637,13 @@ class Router
     */
     public function detectDomain(array $options = array())
     {
-        $domain = (isset($options['domain']['regex'])) ? $options['domain']['regex'] : $this->ROOT;
+        $domain = $this->ROOT;
+        if (isset($options['domain'])) {
+            $domain = $options['domain'];
+        }
+        if (is_array($options['domain']) AND isset($options['domain']['regex'])) { // If regex defined
+            $domain = $options['domain']['regex'];
+        }
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true;                // Regex match.
@@ -692,10 +688,10 @@ class Router
         if (isset($this->group['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }
-        // Attach Regex Support
-        $host = str_replace($this->getSubDomain($this->DOMAIN), '', $this->HOST);
+        $host = str_replace($this->getSubDomain($this->DOMAIN), '', $this->HOST);          // Attach Regex Support
+
         if ( ! $this->isSubDomain($this->DOMAIN) AND $this->isSubDomain($this->HOST)) {
-            $host = $this->HOST; // We have a problem when the host is subdomain and config domain not. This fix the isssue.
+            $host = $this->HOST;  // We have a problem when the host is subdomain and config domain not. This fix the isssue.
         }
         if ($this->DOMAIN != $host) {
             return;
@@ -711,6 +707,20 @@ class Router
     }
 
     /**
+     * Assign middleware to current route
+     * 
+     * @param array $middlewares names
+     * 
+     * @return void
+     */
+    public function middleware(array $middlewares)
+    {
+        $routeLast = end($this->routes[$this->DOMAIN]);
+        $route = $routeLast['match'];
+        $this->setMiddlewares($middlewares, $route, array());
+    }
+
+    /**
      * Configure attached middleware
      * 
      * @param array  $middlewares arguments
@@ -719,7 +729,7 @@ class Router
      * 
      * @return void
      */
-    protected function setMiddlewares($middlewares, $route, $options)
+    protected function setMiddlewares(array $middlewares, $route, $options)
     {
         foreach ($middlewares as $value) {
             $this->attach[$this->DOMAIN][] = array(

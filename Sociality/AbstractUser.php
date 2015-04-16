@@ -14,13 +14,6 @@ abstract class AbstractUser implements ArrayAccess
     public $id;
 
     /**
-     * The user's nickname / username.
-     *
-     * @var string
-     */
-    public $nickname;
-
-    /**
      * The user's full name.
      *
      * @var string
@@ -40,6 +33,13 @@ abstract class AbstractUser implements ArrayAccess
      * @var string
      */
     public $avatar;
+
+    /**
+     * The user's nickname / username.
+     *
+     * @var string
+     */
+    public $nickname;
 
     /**
      * Get the unique identifier for the user.

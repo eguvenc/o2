@@ -3,12 +3,10 @@
 namespace Obullo\Http;
 
 use Obullo\Container\Container;
+use Obullo\Http\Request\Headers;
 
 /**
  * Request Class
- * 
- * Fetch variables from $_REQUEST global and 
- * Get Http Request Headers
  * 
  * @category  Http
  * @package   Request
@@ -27,13 +25,6 @@ class Request
     public $c;
 
     /**
-     * Http request headers
-     * 
-     * @var array
-     */
-    public $headers;
-
-    /**
      * Constructor
      *
      * @param array $c container
@@ -42,6 +33,22 @@ class Request
     {
         $this->c = $c;
         $this->c['logger']->debug('Request Class Initialized');
+
+        $this->c['request.headers'] = function () {
+            return new Headers;
+        };
+    }
+
+    /**
+     * Request headers loader
+     * 
+     * @param string $variable name
+     * 
+     * @return object | bool
+     */
+    public function __get($variable)
+    {   
+        return $this->c['request.'.$variable];
     }
 
     /**
@@ -122,42 +129,6 @@ class Request
     {
         if (isset($_SERVER['REQUEST_METHOD'])) {
             return $_SERVER['REQUEST_METHOD'];
-        }
-        return false;
-    }
-
-    /**
-     * Get Header
-     * e.g. echo $this->request->headers('Host');  // demo_blog
-     *
-     * @param string $key header key
-     *
-     * @link http://tr1.php.net/manual/en/function.getallheaders.php
-     * 
-     * @return string | boolean | array
-     */
-    public function headers($key = null)
-    {
-        if (function_exists('getallheaders')) {
-            $headers = getallheaders();
-        } else {  // If http server is not Apache ?
-            $headers = '';
-            foreach ($_SERVER as $name => $value) {
-                if (substr($name, 0, 5) == 'HTTP_') {
-                    $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
-                    $headers[$name] = $value;
-                }
-            }
-        }
-        foreach ($headers as $name => $val) {  // Backup the lowercase format each of keys
-            $name = strtolower($name);
-            $headers[$name] = $val;
-        }
-        if (isset($headers[$key])) { // get selected header
-            return $headers[$key];
-        }
-        if ($key == null OR $key == true) {  // Returns to all headers
-            return $headers;
         }
         return false;
     }

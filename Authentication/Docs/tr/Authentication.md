@@ -74,7 +74,7 @@ Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe a
 
 **Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> veritabanı ve <b>Cache</b> sürücüsünü desteklemektedir. Cache sürücüsü seçtiğinizde File, Memcache, Memcached, Apc gibi sürücüleri cache.php konfigurasyon dosyanızdan ayarlamanız gerekmektedir.
 
-Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Installation</a>.
+Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>.
 
 
 ### Redis Deposu
@@ -85,7 +85,7 @@ Yetki doğrulama sınıfı hafıza deposu için varsayılan olarak redis kullan�
 
 ![PhpRedisAdmin](/Authentication/Docs/images/redis.png?raw=true "PhpRedisAdmin")
 
-Vardayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
+Varsayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 
 ```php
 'cache' => array(

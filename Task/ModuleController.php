@@ -11,8 +11,6 @@ use Obullo\Task\Helper\Console;
 
 /**
  * Module Controller
- *
- * Follow log data
  * 
  * @category  Console
  * @package   Tasks
@@ -55,6 +53,10 @@ class ModuleController extends Controller
         $this->parser->parse(func_get_args());
         $module = $this->parser->argument('name');
 
+        if (empty($module)) {
+            echo Console::fail("Module name can't be empty.");
+            return;
+        }
         $moduleFolder = OBULLO .'Task'. DS .'Modules'. DS .$module;
 
         if ( ! is_dir($moduleFolder)) {
@@ -84,6 +86,10 @@ class ModuleController extends Controller
         $this->parser->parse(func_get_args());
         $module = $this->parser->argument('name');
 
+        if (empty($module)) {
+            echo Console::fail("Module name can't be empty.");
+            return;
+        }
         $moduleFolder = OBULLO .'Task'. DS .'Modules'. DS .$module;
 
         if ( ! is_writable(MODULES)) {
@@ -177,7 +183,7 @@ echo Console::help("Add / remove modules to modules directory.\n\n");
 
 }
 
-// END LogController class
+// END ModuleController class
 
-/* End of file LogController.php */
-/* Location: .Obullo/Task/LogController.php */
+/* End of file ModuleController.php */
+/* Location: .Obullo/Task/ModuleController.php */

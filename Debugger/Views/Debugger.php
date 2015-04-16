@@ -112,7 +112,7 @@ body
 }
 .obulloDebugger-wrapper > .obulloDebugger-nav ul > li > a
 {
-    padding:0 8px;
+    padding:0 12px;
     text-decoration:none;
     color:#5A5A5F;
     border-right:1px solid #ccc;
@@ -173,11 +173,12 @@ body
 .obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.favicon img
 {
     margin-top:3px;
+    margin-left:3px;
     display: block;
 }
 .obulloDebugger-wrapper > .obulloDebugger-container  p
 {
-    padding:1px 0;
+    padding: 1px 0;
     background:white;
     cursor:pointer;
     position: relative;
@@ -214,138 +215,9 @@ body
 {
     display: none;
 }
-.obulloDebugger-wrapper > .obulloDebugger-container.obulloDebugger-layer-tabs > p.active > span.date
-{
-    color:#fff;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container.obulloDebugger-layer-tabs > p.active
-{
-    background: #006353;
-    color:#fff;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container.obulloDebugger-layer-tabs > p.active + div.obulloDebugger-layer 
-{
-    display: block;
-} 
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer
-{
-    padding:5px;
-    margin:10px 20px;
-    display: none;
-    margin-top:2px;
-    border-radius:5px;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer ul
-{
-    list-style-type:none;
-    background: #006353;
-    border-radius:2px;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer ul:after
-{
-    content: '';
-    display: block;
-    clear: both;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer > ul > li
-{
-    float: left;
-    margin:5px 1px;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer > ul > li > a
-{
-    color:#fff;
-    text-decoration:none;
-    padding:2px 5px;
-    outline:none;
-    margin:5px;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer > ul > li.activeDebuggerAnch > a
-{
-    background:#333;
-    color:#fff;
-    border-radius:2px;
-}
-.obulloDebugger-wrapper > .obulloDebugger-container > div.obulloDebugger-layer.hiddenContainer
-{
-    display: none;
-}
-.obulloDebugger-layerContainer
-{
-    display: none;
-}
-.obulloDebugger-layerContainer.activeLayer
-{
-    display: block;
-}
-.obulloDebugger-layerContainer
-{
-    padding:15px 25px;
-    border:1px dotted #ddd;
-    background: #f1f1f1;
-}
 #obulloDebugger-ajax > p > span.date
 {
     color:#0070FF;
-}
-.obulloDebugger-layer-tabs .layer-html .header .obulloDebugger-layer-tabs .layer-json .header
-{
-    color:#ccc;
-    border-top:1px dotted #ddd;
-    text-shadow:1px 1px 1px black;
-}
-.obulloDebugger-layer-tabs .layer-html .container,.obulloDebugger-layer-tabs .layer-json .container
-{
-    border-radius:2px;
-    padding:10px;
-    margin-left:50px;
-    border:1px dotted #ddd;
-}
-.obulloDebugger-layer-tabs .layer-html .container pre
-{
-    float: left;
-    width:45%;
-    height:100%;
-    display: block;
-}
-.obulloDebugger-layer-tabs .layer-html .container .preview
-{
-    float: right;
-    width:50%;
-    border:1px solid #ddd;
-    min-height:50px;
-    padding:25px;
-}
-.obulloDebugger-layer-tabs .layer-html .header i:first-child,.obulloDebugger-layer-tabs .layer-json .header i:first-child
-{
-    background:#006857;
-    border-top-left-radius:2px;
-    border-bottom-left-radius:2px;
-    border-right:none;
-    color:#fff;
-}
-.obulloDebugger-layer-tabs .layer-html ,.obulloDebugger-layer-tabs .layer-json
-{
-    border-top:1px dotted #ddd;
-}
-.obulloDebugger-layer-tabs .layer-html .header i,.obulloDebugger-layer-tabs .layer-json .header i
-{
-    /*font-weight:bold;*/
-    color:#444;
-    text-shadow:none;
-    height:15px;
-    line-height:15px;
-    display: inline-block;
-    padding:5px 5px;
-    text-align:center;
-}
-.obulloDebugger-layer-tabs .layer-html,.obulloDebugger-layer-tabs .layer-json
-{
-    /*background: #444;*/
-    margin-bottom:15px;
-    border-radius:2px;
-    /*border:1px solid #ddd;*/
-    min-height:25px;
 }
 .fireMiniTab
 {
@@ -403,7 +275,7 @@ body
     width: 85%;
     padding-left:10px;
 }
-.title { color: #5A5A5F; font-weight: bold; margin-top: 3px; margin-bottom: 3px; }
+.title { color: #5A5A5F; font-weight: bold; margin-top: 5px; margin-bottom: 3px; }
 .error { color: red; }
 </style>
 
@@ -588,5 +460,6 @@ function getCookie(cname) {
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-http-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-http-log">{{LOGS}}</div>
 
 </div>
+
 </body>
 </html>

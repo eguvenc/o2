@@ -242,7 +242,7 @@ class Memcached implements CacheHandlerInterface
         if ( ! is_array($key)) {
             return $this->memcached->set($key, $data, time() + $ttl);
         }
-        return $this->setArray($data, $ttl);
+        return $this->setArray($key, $data);
     }
 
     /**

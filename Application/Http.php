@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
+use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
-use Obullo\Application\Modules\Debugger\WebSocket;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +56,7 @@ class Http extends Obullo
      * @var array
      */
     protected $middleware = array();
+    protected $middlewares = array();
 
     /**
      * Constructor
@@ -124,9 +125,11 @@ class Http extends Obullo
         $this->dispatchMethod();
 
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
+            $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
+
             if ($value['route'] == $route) {     // if we have natural route match
                 $this->middleware($value['name'], $value['options']);
-            } elseif (preg_match('#' . str_replace('#', '\#', $value['attachedRoute']) . '#', $route)) {
+            } elseif (preg_match('#'. $attachedRoute .'#', $route)) {
                 $this->middleware($value['name'], $value['options']);
             }
         }
@@ -144,13 +147,50 @@ class Http extends Obullo
     }
 
     /**
+     * Add middleware
+     *
+     * This method prepends new middleware to the application middleware stack.
+     * The argument must be an instance that subclasses Slim_Middleware.
+     *
+     * @param mixed $middleware class name or \Http\Middlewares\Middleware object
+     * @param array $params     parameters
+     *
+     * @return void
+     */
+    public function middleware($middleware, $params = array())
+    {
+        if (is_string($middleware)) {
+            $Class = '\\Http\\Middlewares\\'.ucfirst($middleware);
+            $middleware = new $Class;
+        }
+        $middleware->params = $params;  //  Inject Parameters
+        $middleware->setContainer($this->c);
+        $middleware->setApplication($this);
+        $middleware->setNextMiddleware(current($this->middleware));
+        array_unshift($this->middleware, $middleware);
+
+        $name = get_class($middleware);
+        $this->middlewares[$name] = $name;  // Track names
+    }
+
+    /**
+     * Returns to all middleware class names
+     * 
+     * @return array
+     */
+    public function getMiddlewares()
+    {
+        return $this->middlewares;
+    }
+
+    /**
      * Execute the controller
      * 
      * @return void
      */
     public function call()
     {
-        if ($this->c['config']['output']['compress'] == true AND extension_loaded('zlib')  // Do we need to output compression ?
+        if ($this->c['config']['output']['compress'] AND extension_loaded('zlib')  // Do we need to output compression ?
             AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
             AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
         ) {
@@ -190,7 +230,6 @@ class Http extends Obullo
             $this->websocket->emit();
         }
     }
-
 }
 
 // END Http.php File

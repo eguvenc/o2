@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Application\Modules\Debugger;
+namespace Obullo\Debugger;
 
 use Obullo\Container\Container;
 
 /**
- * Debugger Output Class
+ * Debug Manager Class
  * 
  * @category  Log
  * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
+ * @link      http://obullo.com/package/debugger
  */
 class DebugManager
 {
@@ -54,7 +54,7 @@ class DebugManager
         $this->c = $c;
 
         if ( ! $this->c['config']['debugger']['enabled']) {
-            $this->c['response']->showError('Debugger disabled from application config file.');
+            $this->c['response']->showError('Debugger disabled from your application config file.', 300, "Debugger Disabled");
         }
         $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?'.FRAMEWORK.'_debugger=1'); // Disable logs sending by _debugger=1 params.
         $this->websocketUrl = $this->c['config']['debugger']['socket'];
@@ -263,4 +263,4 @@ class DebugManager
 // END DebugManager class
 /* End of file DebugManager.php */
 
-/* Location: .Obullo/Application/Modules/Debbuger/DebugManager.php */
+/* Location: .Obullo/Debbuger/DebugManager.php */

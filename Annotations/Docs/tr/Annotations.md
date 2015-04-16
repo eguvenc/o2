@@ -64,7 +64,7 @@ public function index()
 
 
 /* End of file welcome.php */
-/* Location: .public/welcome/controller/welcome.php */
+/* Location: .modules/welcome/welcome.php */
 ```
 
 Aşağıdaki örneklere bir göz atın.
@@ -169,5 +169,5 @@ Class Welcome extends \Controller
 }
 
 /* End of file welcome.php */
-/* Location: .controllers/welcome/welcome.php */
+/* Location: .modules/welcome/welcome.php */
 ```

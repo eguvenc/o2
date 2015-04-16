@@ -2,12 +2,12 @@
 
 namespace Obullo\Captcha\Adapter;
 
-use Obullo\Captcha\CaptchaResult,
-    Obullo\Captcha\AbstractAdapter,
-    Obullo\Captcha\AdapterInterface;
+use Obullo\Captcha\CaptchaResult;
+use Obullo\Captcha\AbstractAdapter;
+use Obullo\Captcha\AdapterInterface;
 
 /**
- * O2 Captcha - ReCaptcha
+ * Captcha ReCaptcha Adapter
  * 
  * The new reCAPTCHA is here. A significant number of your users can now attest they are human without having to solve a CAPTCHA 
  * Insteadwith just a single click they’ll confirm they are not a robot. We’re calling it the No CAPTCHA reCAPTCHA experience.

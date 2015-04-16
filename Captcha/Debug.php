@@ -2,6 +2,7 @@
 
 namespace Obullo\Captcha;
 
+use Obullo\Container\Container;
 use Obullo\Captcha\Adapter\Image;
 
 /**
@@ -14,14 +15,15 @@ use Obullo\Captcha\Adapter\Image;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-Class Debug extends Image
+class Debug extends Image
 {
     /**
      * Constructor
+     *
+     * @param object $c Container
      */
-    public function __construct()
+    public function __construct(Container $c)
     {
-        global $c;
         parent::__construct($c);
 
         $this->clearImages(); // Delete all old images from temp folder.

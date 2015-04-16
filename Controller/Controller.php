@@ -10,7 +10,7 @@
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/controller
  */
-Class Controller
+class Controller
 {
     public static $instance;                    // Controller instance
     public $c, $config, $uri, $router, $logger; // Core packages

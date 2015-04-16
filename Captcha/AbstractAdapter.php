@@ -2,9 +2,9 @@
 
 namespace Obullo\Captcha;
 
-use RuntimeException,
-    Obullo\Captcha\Result,
-    Obullo\Captcha\CaptchaService;
+use RuntimeException;
+use Obullo\Captcha\Result;
+use Obullo\Captcha\CaptchaService;
 
 /**
  * Captcha abstract class.
@@ -16,7 +16,7 @@ use RuntimeException,
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-abstract Class AbstractAdapter
+abstract class AbstractAdapter
 {
     /**
      * Result
@@ -25,7 +25,7 @@ abstract Class AbstractAdapter
      */
     public $result = array(
         'code' => '',
-        'messages' => array(),
+        'messages' => [],
     );
 
     /**

@@ -9,7 +9,7 @@ use Obullo\Captcha\AbstractAdapter;
 use Obullo\Captcha\AdapterInterface;
 
 /**
- * Captcha image class.
+ * Captcha Image Adapter
  * 
  * @category  Adapter
  * @package   Image
@@ -18,7 +18,7 @@ use Obullo\Captcha\AdapterInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-Class Image extends AbstractAdapter implements AdapterInterface
+class Image extends AbstractAdapter implements AdapterInterface
 {
     public $fonts;      // Actual fonts
     public $driver;     // Driver type
@@ -601,7 +601,7 @@ Class Image extends AbstractAdapter implements AdapterInterface
             // Remove captcha data from session.
             $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result['code'] = CaptchaResult::FAILURE_HAS_EXPIRED;
+            $this->result['code'] = CaptchaResult::FAILURE_IS_EXPIRED;
             $this->result['messages'][] = 'The captcha code has expired.';
             return $this->createResult();
         }

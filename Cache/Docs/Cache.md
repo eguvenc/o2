@@ -3,23 +3,33 @@
 
 ------
 
-Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir API sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası app/config/$env/cache/ dosyasından yönetilir.
+Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir API sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası <kbd>app/config/$env/cache/</kbd>dosyasından yönetilir.
 
-Desteklenen önbellek sürücüleri  <b>Apc, File, Memcache, Memcached ve Redis</b> dir. Her bir önbellek türünün konfigürasyonu tek bir dosyada fakat diğer türlerden ayrı olarak konfigüre edilir.
+### Cache Sürcüleri
+
+Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
+
+* Apc
+* File
+* Memcache
+* Memcached
+* Redis
+
+Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>app/config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
 
 ### Servis Konfigürasyonu
 
-Servisler uygulama içerisinde parametreleri değişmez olan ve tüm kütüphaneler tarafından ortak ( paylaşımlı ) kullanılan sınıflardır. Servisler kolay yönetilebilmek için genellikle bir paylaşımsız olan servis sağlayıcısına ihtiyaç duyarlar.
+Servisler uygulama içerisinde parametreleri değişmez olan ve tüm kütüphaneler tarafından ortak ( paylaşımlı ) kullanılan sınıflardır. Genellikle servisler kolay yönetilebilmek için bağımsız olan bir servis sağlayıcısına ihtiyaç duyarlar.
 
-Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı ayarlarını kurmamız gerekir. Cache servisi nesnesi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de konfigürasyon değişikliği yapılarak ( paylaşımsız ) kullanıldığı için sık sık kullanılır fakat kimi zaman farklı ihtiyaçlara cevap veremez.
+Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı ayarlarını kurmamız gerekir. Cache servisi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de parametre değişikliği gerektirdiği ( paylaşımsız yada bağımsız ) kullanıldığı için kimi zaman farklı ihtiyaçlara cevap veremez.
 
-Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>serializer</b> parametresi ile kullanılmaya konfigure edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>"none"</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>"none"</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
+Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>serializer</b> parametresi ile kullanılmaya konfigüre edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>"none"</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>"none"</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
 
-Hem bu nedenle hem de diğer nedenlerden ötürü cache kütüphanesi aşağıdaki gibi hem servis hem de servis sağlayıcı ( service provider ) olarak kullanılır.
+Bu nedenlerden ötürü cache kütüphanesi aşağıdaki gibi hem servis hem de servis sağlayıcı ( service provider ) olarak kullanılır.
 
 ### Servis Kurulumu
 
-Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağlayıcısının adını service provider get metodu içerisindeki driver anahtarı değerine girmektir.
+Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağlayıcısının adını service provider get metodu içerisindeki driver anahtarı değerine sürücü adını girmek ve konfigürasyon dosyanızdaki bağlantı adını seçmektir aşağıdaki <b>default</b> bağlantısı seçilmiştir.
 
 ```php
 namespace Service;
@@ -48,7 +58,6 @@ class Cache implements ServiceInterface
 Servis bir kez konteyner içerisinden çağrıldığında cache kütüphanesi yüklenmiş olur ve cache metotlarına ulaşabilir hale gelir.
 
 ```php
-<?php
 $this->c['cache'];
 $this->cache->metod();
 ```
@@ -56,17 +65,15 @@ $this->cache->metod();
 Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisinden servisi yüklemek aşağıdaki gibidir.
 
 ```php
-<?php
 $this->cache = $this->c['cache'];
 $this->cache->method();
 ```
 
 ### Servis Sağlayıcısını Yüklemek
 
-Cache kütüphanesi bağımsız olarak kullanılmak istendiği durumlarda servis sağlayıcısından direkt olarak çağrılabilir servis sağlayıcı yüklendiği zaman kütüphaneyi bir değişkene atayıp metotlara ulaşabilirsiniz.
+Cache kütüphanesi bağımsız olarak kullanılmak istendiği durumlarda servis sağlayıcısından direkt olarak çağrılabilir. Servis sağlayıcı yüklendiği zaman kütüphaneyi bir değişkene atayıp metotlara ulaşabilirsiniz.
 
 ```php
-<?php
 $this->cache = $this->c['service provider cache']->get(['driver' => 'memcached', 'connection' => 'default'];
 $this->cache->metod();
 ```
@@ -148,7 +155,7 @@ Eğer girilen anahtar önbellekte mevcut ise <b>true</b> değerine aksi durumda 
 
 ## Memcached Sürücüsü
 
-Ubuntu altında memcached kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Memcached">Memcached Kurulumu</a>. Aşağıda memcached için yapılandırılmış örnek konfigürasyon ayarlarını görüyorsunuz.
+Ubuntu altında memcached kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Memcached" target="_blank">Memcached Kurulumu</a>. Aşağıda memcached için yapılandırılmış örnek konfigürasyon ayarlarını görüyorsunuz.
 
 ```php
 return array(
@@ -249,7 +256,7 @@ Girilen anahtar eğer mevcut ise <b>true</b> değilse <b>false</b> değerine dö
 
 ##### $this->cache->set(mixed $key, mixed $data, int $ttl = 60);
 
-Girilen anahtara veri kaydeder, son parametre sona erme süresine "0" girilirse veri siz silinceye kadar yok olmaz. Anahtar bir dizi de olabilir.
+Girilen anahtara veri kaydeder, son parametre sona erme süresine "0" girilirse veri siz silinceye kadar yok olmaz. Eğer ilk parametreye bir dizi gönderirseniz ikinci parametreyi artık sona erme süresi olarak kullanabilirsiniz.
 
 ##### $this->cache->delete(string $key);
 
@@ -258,7 +265,7 @@ Girilen anahtara veri kaydeder, son parametre sona erme süresine "0" girilirse 
 
 -------
 
-Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis">Redis Kurulumu</a>. Aşağıda redis için yapılandırılmış konfigürasyon ayarlarını görüyorsunuz.
+Ubuntu altında redis kurulumu hakkında bilgi almak için <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>. Aşağıda redis için yapılandırılmış konfigürasyon ayarlarını görüyorsunuz.
 
 Birden fazla redis bağlantısı yapmak istiyorsanız konfigürasyon dosyasına aşağıdaki gibi birden fazla dizi girmeniz gerekir.
 
@@ -354,7 +361,9 @@ Redis e daha önceden set edilmiş opsiyonun değerine döner. Opsiyon sabitleri
 
 ##### $this->cache->set(mixed $key, mixed $data, int optional $expiration)
 
-Önbellek deposuna veri kaydeder. Kaydetme işlemlerinde string ve array türlerini kullanabilirsiniz. Anahtar içerisinde ":" karakterini kullanırsanız anahtarlar gruplanarak kaydedilirler.
+Önbellek deposuna veri kaydeder. Kaydetme işlemlerinde <b>string</b> ve <b>array</b> türlerini kullanabilirsiniz Eğer ilk parametreye bir dizi gönderirseniz ikinci parametreyi artık sona erme süresi olarak kullanabilirsiniz.
+
+>**Not:** Anahtar içerisinde ":" karakterini kullanırsanız anahtarlar gruplanarak kaydedilirler.
 
 ##### $this->cache->get($key)
 
@@ -475,7 +484,6 @@ Bir hash üyesinin değerini float (ondalıklı) değer olarak artırmayı sağl
 >**Not:** hIncrByFloat() metodunu kullanabilmek için serileştirme türü "none" olmalıdır.
 
 ```php
-<?php
 $this->cache->delete('h');
 $this->cache->hIncrByFloat('h','x', 1.5);   // Sonuç 1.5: h[x] = 1.5 now
 $this->cache->hIncrByFLoat('h', 'x', 1.5);  // Sonuç 3.0: h[x] = 3.0 now
@@ -509,11 +517,11 @@ En son meydana gelen hataya string biçiminde geri döner.
 
 ##### $this->cache->setTimeout(string $key, int $ttl)
 
-Önceden set edilmiş bir anahtarın yok olma süresini değiştirir. TTL parametresi mili saniye formatında yazılmalıdır.
+Önceden set edilmiş bir anahtarın yok olma süresini değiştirir. Son parametre $ttl mili saniye formatında yazılmalıdır.
 
 ##### $this->cache->type(string $key)
 
-Girilen anahtarın redis türünden biçimine döner bu biçimler şunlardır: string, set, list, zset, hash, other
+Girilen anahtarın redis türünden biçimine döner bu biçimlerden bazıları şunlardır: <b>string, set, list, zset, hash</b>.
 
 ##### $this->cache->flushDB()
 
@@ -539,7 +547,7 @@ $this->cache->getMultiple(array('key1', 'key2', 'key3'));
 ```
 ##### $this->cache->sAdd(string $key, string or array $value);
 
-Belirtilen anahtar
+Belirtilen değere bir değer ekler. Eğer değer zaten eklenmiş ise işlem sonucu **false** değerine döner.
 
 ```php
 $this->cache->sAdd('key1', 'value1'); // 1, 'key1' => {'value1'}
@@ -567,7 +575,7 @@ print_r($this->cache->sort('test')); // 1,2,3
 print_r($this->cache->sort('test', array('sort' => 'desc')));  // 5,4,3,2,1
 print_r($this->cache->sort('test', array('sort' => 'desc', 'store' => 'out'))); // (int)5
 ```
->**Not:** **sort** methodunun kullanılabilmesi için serileştirme tipi **"none"** olarak tanımlaması gerekmektedir.
+>**Not:** **sort** methodunun kullanılabilmesi için serileştirme türünün **"none"** olarak tanımlaması gerekmektedir.
 
 ##### $this->cache->sSize(string $key)
 
@@ -586,7 +594,7 @@ $this->cache->sSize('keyX'); /* 0 */
 
 ##### $this->cache->sInter(array $key)
 
-Belirtilen anahtarlara ait değerleri bir birleriyle kesişenleri döndürür.
+Belirtilen anahtarlara ait değerlerin bir birleriyle kesişenleri döndürür.
 
 ```php
 $this->cache->sAdd('key1', 'val1');
@@ -621,4 +629,4 @@ $this->cache->sAdd('key', 'val3');
 print_r($this->cache->sGetMembers('key'));  // Çıktı array('val3', 'val2', 'val1');
 ```
 
-Php Redis sınıfı hakkında daha detaylı dökümentasyona <a href="https://github.com/phpredis/phpredis">buradan</a> ulaşabilirsiniz.
+Php Redis sınıfı hakkında daha detaylı dökümentasyona <a href="https://github.com/phpredis/phpredis" target="_blank">buradan</a> ulaşabilirsiniz.

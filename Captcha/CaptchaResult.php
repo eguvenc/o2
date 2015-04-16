@@ -12,7 +12,7 @@ namespace Obullo\Captcha;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/captcha
  */
-Class CaptchaResult
+class CaptchaResult
 {
     /**
      * General failure.
@@ -27,7 +27,7 @@ Class CaptchaResult
     /**
      * Has been expired the captcha.
      */
-    const FAILURE_HAS_EXPIRED = -1;
+    const FAILURE_IS_EXPIRED = -1;
 
     /**
      * Invalid captcha code.

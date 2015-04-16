@@ -89,18 +89,21 @@ Class Hello_World extends Controller
 /* Location: .public/tutorials/controller/hello_world.php */
 ```
 
-#### $this->response->setHeader();
+#### $this->response->headers->set(string $header, string $value = null, $replace = true);
 
 Permits you to manually set server headers, which the output class will send for you when outputting the final rendered display. Example:
 
 ```php
-<?php
-$this->reponse->setHeader("HTTP/1.0 200 OK");
-$this->reponse->setHeader("HTTP/1.1 200 OK");
-$this->reponse->setHeader('Last-Modified: '.gmdate('D, d M Y H:i:s', $lastUpdate).' GMT');
-$this->reponse->setHeader("Cache-Control: no-store, no-cache, must-revalidate");
-$this->reponse->setHeader("Cache-Control: post-check=0, pre-check=0");
-$this->reponse->setHeader("Pragma: no-cache"); 
+$this->reponse->headers->set("HTTP/1.0 200 OK");
+$this->reponse->headers->set("HTTP/1.1 200 OK");
+$this->reponse->headers->set("Last-Modified", gmdate('D, d M Y H:i:s', $lastUpdate).' GMT');
+$this->reponse->headers->set("Cache-Control", "no-store, no-cache, must-revalidate");
+$this->reponse->headers->set("Cache-Control", "post-check=0, pre-check=0");
+$this->reponse->headers->set("Pragma", "no-cache");
+```
+
+```php
+$this->c['response']->headers->set("Content-type", "application/json");
 ```
 
 #### $this->reponse->setHttpResponse(code, 'text');
@@ -108,7 +111,6 @@ $this->reponse->setHeader("Pragma: no-cache");
 Permits you to manually set a server status header. Example:
 
 ```php
-<?php
 $this->reponse->status('401');  // Sets the header as:  Unauthorized
 ```
 
@@ -119,7 +121,6 @@ $this->reponse->status('401');  // Sets the header as:  Unauthorized
 Returns json encoded string with json headers. Second paramater disable json headers.
 
 ```php
-<?php
 /**
  * $app create
  * 
@@ -159,9 +160,14 @@ Append output to response body.
 
 #### $this->response->disableOutput();
 
+#### $this->response->headers->set();
+#### $this->response->headers->get();
+#### $this->response->headers->remove();
+#### $this->response->headers->all();
+
 #### $this->response->sendHeaders();
 
-#### $this->response->write();
+#### $this->response->flush();
 
 Writes output to screen.
 

@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
+use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
-use Obullo\Application\Modules\Debugger\WebSocket;
 
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
@@ -135,8 +135,9 @@ class Cli extends Obullo
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
 
-        $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
-
+        if (isset($_SERVER['argv'])) {
+            $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
+        }
         $this->checkDebugger();
     }
 

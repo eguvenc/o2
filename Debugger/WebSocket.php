@@ -1,19 +1,21 @@
 <?php
 
-namespace Obullo\Application\Modules\Debugger;
+namespace Obullo\Debugger;
 
 use RuntimeException;
 use Obullo\Container\Container;
 
 /**
- * Debugger ajax request handshake
+ * Debugger Websocket 
+ * 
+ * Handler requests and do handshake
  * 
  * @category  Container
  * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/container
+ * @link      http://obullo.com/package/debugger
  */
 class WebSocket
 {
@@ -215,4 +217,4 @@ class WebSocket
 // END WebSocket.php File
 /* End of file WebSocket.php
 
-/* Location: .Obullo/Application/Modules/Debugger/WebSocket.php */
+/* Location: .Obullo/Debugger/WebSocket.php */

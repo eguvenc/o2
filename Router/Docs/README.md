@@ -573,6 +573,27 @@ $c['router']->group(
 );
 ```
 
+#### Tek Bir Route a Middleare Atamak
+
+Aşağıdaki örnek tek bir iz için katmanlar tayin etmenizi sağlar.
+
+$router->get('hello$', 'welcome/index')->middleware(['Https']);
+
+Eğer çok fazla güvenli adresleriniz varsa onları aşağıdaki gibi tanımlamak daha mantıklı olacaktır.
+
+
+```php
+$c['router']->group(
+    ['name' => 'Secure', 'domain' => 'framework', 'middleware' => array('Https')],
+    function () {
+
+        $this->get('orders/pay');
+        $this->get('orders/bank_transfer');
+        $this->get('hello$', 'welcome/index');
+    }
+);
+```
+
 #### Creating Maintenance Filters
 
 Maintenance filters display maintenance page using configured maintenance function.
@@ -756,19 +777,23 @@ Sets your default controller.
 
 Sets your error controller.
 
-#### $c['router']->get(string $match, string $rewrite, object $closure = null, array $group = array)
+#### $c['router']->match(array $methods, string $match, string $rewrite, object $closure = null)
+
+Girilen http istek metotlarına göre bir iz yaratır, istek metotları get,post,put ve delete metotlarıdır.
+
+#### $c['router']->get(string $match, string $rewrite, object $closure = null)
 
 Creates a http GET based route.
 
-#### $c['router']->post(string $match, string $rewrite, object $closure = null, array $group = array)
+#### $c['router']->post(string $match, string $rewrite, object $closure = null)
 
 Creates a http POST based route.
 
-#### $c['router']->put(string $match, string $rewrite, object $closure = null, array $group = array)
+#### $c['router']->put(string $match, string $rewrite, object $closure = null)
 
 Creates a http PUT based route.
 
-#### $c['router']->delete(string $match, string $rewrite, object $closure = null, array $group = array)
+#### $c['router']->delete(string $match, string $rewrite, object $closure = null)
 
 Creates a http DELETE based route.
 
@@ -781,17 +806,17 @@ Creates a route group.
 Replaces your route schema with arguments.
 
 
-### Filter Reference
+### Middleware Reference
 
 ------
 
-#### $c['router']->filter($route, array $options = array())
+#### $c['router']->attach(string $route)
 
-Creates route filter.
+Geçerli grubun katmanlarını girilen ize tutturur.
 
-#### $c['router']->attach($route, array $filters = array())
+#### $c['router']->match(['get','post'], '/')->middleware(array $middlewares);
 
-Attach your route to defined filters.
+En son yazılan http izine girilen katmanları tutturur.
 
 
 ### Function Reference
@@ -814,6 +839,6 @@ Gets the currently working directory name.
 
 Gets the currently working directory name.
 
-#### $this->router->getFilters();
+#### $this->router->getAttachedRoutes();
 
-Returns to registered filters.
+Returns to registered middlewares.

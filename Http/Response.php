@@ -3,11 +3,14 @@
 namespace Obullo\Http;
 
 use Obullo\Container\Container;
+use Obullo\Http\Response\Headers;
 
 /**
  * Http response Class.
  * 
- * Set Http Response Code, Set Outputs, Send Headers
+ * Set Http Response Code
+ * Set Outputs
+ * Set & Finalize Headers
  * 
  * @category  Http
  * @package   Response
@@ -47,13 +50,6 @@ class Response
     public $output;
 
     /**
-     * Php headers
-     * 
-     * @var array
-     */
-    public $headers = array();
-
-    /**
      * Enable / Disable flush ( send output to browser )
      * 
      * @var boolean
@@ -71,6 +67,21 @@ class Response
         $this->c['config']->load('response');
 
         $this->output = '';
+        $this->c['response.headers'] = function () {
+            return new Headers;
+        };
+    }
+
+    /**
+     * Response headers loader
+     * 
+     * @param string $variable name
+     * 
+     * @return object | bool
+     */
+    public function __get($variable)
+    {   
+        return $this->c['response.'.$variable];
     }
 
     /**
@@ -139,10 +150,15 @@ class Response
     public function finalize()
     {
         if (in_array($this->status, array(204, 304))) {
-            unset($this->headers['Content-Type']);
-            unset($this->headers['Content-Length']);
+            $this->c['response.headers']->remove('Content-Type');
+            $this->c['response.headers']->remove('Content-Length');
         }
-        return array($this->status, $this->headers, $this->getOutput());
+        $headers = $options = array();
+        if ($this->c->loaded('response.headers')) {  // If response headers object loaded
+            $headers = $this->c['response.headers']->all();
+            $options = $this->c['response.headers']->options();
+        }
+        return array($this->status, $headers, $options, $this->getOutput());
     }
 
     /**
@@ -150,18 +166,26 @@ class Response
      * 
      * @param integer $status  http response code
      * @param array   $headers http headers
+     * @param array   $options header replace option
      * 
      * @return void
      */
-    public function sendHeaders($status, $headers)
+    public function sendHeaders($status, $headers, $options)
     {
         if (headers_sent() === false) {   // Send headers
 
             http_response_code($status);
 
             if (count($headers) > 0) {  // Are there any server headers to send ?
-                foreach ($headers as $header => $cookie) {
-                    header($header, $cookie['replace']);
+                $replace = true;
+                foreach ($headers as $header => $value) {
+                    if (isset($options[$header]['replace'])) {
+                        $replace = $options[$header]['replace'];
+                    }
+                    if (strpos($header, ':') === false && ! empty($value)) {
+                        $header = $header.': '.$value;
+                    }
+                    header($header, $replace);
                 }            
             }
         }
@@ -175,8 +199,8 @@ class Response
     public function flush()
     {
         if ($this->enabled) {  // Send output
-            list($status, $headers, $output) = $this->finalize();
-            $this->sendHeaders($status, $headers);
+            list($status, $headers, $options, $output) = $this->finalize();
+            $this->sendHeaders($status, $headers, $options);
 
             echo $output; // Send output
         }
@@ -203,32 +227,6 @@ class Response
     public function getStatus()
     {
         return $this->status;
-    }
-
-    /**
-    * Set Header
-    *
-    * Lets you set a server header which will be outputted with the final display.
-    *
-    * Note:  If a file is cached, headers will not be sent.  We need to figure out
-    * how to permit header data to be saved with the cache data.
-    *
-    * @param string  $header  header
-    * @param boolean $replace replace override header
-    * 
-    * @return object response
-    */    
-    public function setHeader($header, $replace = true)
-    {
-        // If zlib.output_compression is enabled it will compress the output,
-        // but it will not modify the content-length header to compensate for
-        // the reduction, causing the browser to hang waiting for more data.
-        // We'll just skip content-length in those cases.
-        if (@ini_get('zlib.output_compression') AND strncasecmp($header, 'content-length', 14) == 0) {
-            return;
-        }
-        $this->headers[$header] = array('replace' => $replace);
-        return $this;
     }
 
     /**
@@ -270,7 +268,7 @@ class Response
      */
     public function json(array $data, $header = 'default')
     {
-        $this->disableOutput(); // Disable output because of we return to json encode and send headers.
+        $this->disableOutput(); // Disable output, we need to send json headers.
 
         if ($header != false) {
             if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
@@ -345,7 +343,6 @@ class Response
     {
         $this->error = null;
     }
-
 
 }
 

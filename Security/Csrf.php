@@ -12,7 +12,7 @@ namespace Obullo\Security;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/security
  */
-Class Csrf 
+class Csrf 
 {
      /**
      * Random Hash for Cross Site Request Forgery Protection Cookie
@@ -71,8 +71,8 @@ Class Csrf
         if ($this->config['csrf']['protection']) {  // Is CSRF protection enabled?
 
             $this->expire     = $this->config['csrf']['expire'];
-            $this->tokenName  = $this->config['csrf']['token_name'];
-            $this->cookieName = $this->config['csrf']['cookie_name'];
+            $this->tokenName  = $this->config['csrf']['tokenName'];
+            $this->cookieName = $this->config['csrf']['cookieName'];
 
             if ($this->c['config']['cookie']['prefix'] != '') { // Append application specific cookie prefix
                 $this->cookieName = $this->c['config']['cookie']['prefix'].$this->cookieName;
@@ -140,7 +140,7 @@ Class Csrf
      */
     public function showError()
     {
-        $this->response->showError('The action you have requested is not allowed.');
+        $this->response->showError('The action you have requested is not allowed.', 401, 'Access Denied');
     }
 
     /**
