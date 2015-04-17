@@ -273,11 +273,11 @@ class Response
         if ($header != false) {
             if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
                 foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
-                    $this->setHeader($value);
+                    $this->headers->set($value);
                 }
             }
-            list($status, $headers) = $this->finalize();
-            $this->sendHeaders($status, $headers);
+            list($status, $headers, $options) = $this->finalize();
+            $this->sendHeaders($status, $headers, $options);
         }
         return json_encode($data);
     }
