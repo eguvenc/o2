@@ -49,7 +49,7 @@ In your config file <b>$config['log_threshold']</b> value > 0 framework simply w
 Set your log writing level to <b>"5"</b> to see all logs.
 
 ```php
-$config['log_threshold'] = ('production' == $this->getEnv()) ? 1 : 5;
+$config['log_threshold'] = ('production' == $this->c['app']->env()) ? 1 : 5;
 ```
 
 #### Run the Debugging

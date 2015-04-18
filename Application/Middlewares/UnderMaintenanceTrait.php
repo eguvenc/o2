@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 use RuntimeException;
 
@@ -73,4 +73,4 @@ trait UnderMaintenanceTrait
 // END UnderMaintenanceTrait File
 /* End of file UnderMaintenanceTrait.php
 
-/* Location: .Obullo/Application/Addons/UnderMaintenanceTrait.php */
+/* Location: .Obullo/Application/Middlewares/UnderMaintenanceTrait.php */

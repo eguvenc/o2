@@ -65,8 +65,6 @@ foreach ($segs as $segment)
 
 
 
-
-
 #### $this->uri->getRoutedSegment(n)
 
 This function is identical to the previous one, except that it lets you retrieve a specific segment from your re-routed URI in the event you are using Obullo's URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.
@@ -172,10 +170,6 @@ The function would return this:
 /news/local/345
 ```
 
-
-
-
-
 ## Loading Utilities Of Uri Class
 
 ------
@@ -185,18 +179,17 @@ The function would return this:
 ------
 
 ```php
-$this->c['utils/uri'];
-$this->utilsUri->method();
+$this->uriHelper = new Utils($this->c['uri']);
 ```
 
-#### $this->utilsUri->getSlashSegment(n)
+#### $this->uriHelper->getSlashSegment(n)
 
 This function is almost identical to <kbd>$this->uri->segment()</kbd>, except it adds a trailing and/or leading slash based on the second parameter. If the parameter is not used, a trailing slash added. Examples:
 
 ```php
-$this->utilsUri->getSlashSegment(3);
-$this->utilsUri->getSlashSegment(3, 'leading');
-$this->utilsUri->getSlashSegment(3, 'both');
+$this->uriHelper->getSlashSegment(3);
+$this->uriHelper->getSlashSegment(3, 'leading');
+$this->uriHelper->getSlashSegment(3, 'both');
 ```
 
 Returns:
@@ -205,11 +198,11 @@ Returns:
 * /segment
 * /segment/
 
-#### $this->utilsUri->getSlashRoutedSegment(n)
+#### $this->uriHelper->getSlashRoutedSegment(n)
 
 This function is identical to the previous one, except that it lets you add slashes to a specific segment from your re-routed URI in the event you are using Obullo's URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.
 
-#### $this->utilsUri->getUriToAssoc(n)
+#### $this->uriHelper->getUriToAssoc(n)
 
 This function lets you turn URI segments into an associative array of key/value pairs. Consider this URI:
 
@@ -231,7 +224,7 @@ Using this function you can turn the URI into an associative array with this pro
 The first parameter of the function lets you set an offset. By default it is set to <kbd>3</kbd> since your URI will normally contain a controller/function in the first and second segments. Example:
 
 ```php
-$array = $this->utilsUri->getUriToAssoc(3);
+$array = $this->uriHelper->getUriToAssoc(3);
 echo $array['name']; 
 ```
 
@@ -240,36 +233,36 @@ The second parameter lets you set default key names, so that the array returned 
 ```php
 $default = array('name', 'gender', 'location', 'type', 'sort');
 
-$array = $this->utilsUri->getUriToAssoc(3, $default);
+$array = $this->uriHelper->getUriToAssoc(3, $default);
 ```
 
 If the URI does not contain a value in your default, an array index will be set to that name, with the value of false.
 
 Lastly, if a corresponding value is not found for a given key (if there is an odd number of URI segments) the value will be set to false (boolean).
 
-#### $this->utilsUri->getRoutedUriToAssoc(n)
+#### $this->uriHelper->getRoutedUriToAssoc(n)
 
 This function is identical to the previous one, except that it creates an associative array using the re-routed URI in the event you are using Obullo's URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.
 
-#### $this->utilsUri->getAssocToUri()
+#### $this->uriHelper->getAssocToUri()
 
 Takes an associative array as input and generates a URI string from it. The array keys will be included in the string. Example:
 
 ```php
 $array = array('product' => 'shoes', 'size' => 'large', 'color' => 'red');
 
-$str = $this->utilsUri->getAssocToUri($array);
+$str = $this->uriHelper->getAssocToUri($array);
 
 // Produces: product/shoes/size/large/color/red
 ```
-#### $this->utilsUri->getRoutedUriString(n)
+#### $this->uriHelper->getRoutedUriString(n)
 
 This function is identical to the previous one, except that it returns the re-routed URI in the event you are using Obullo's URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.
 
-#### $this->utilsUri->getTotalSegments()
+#### $this->uriHelper->getTotalSegments()
 
 Returns the total number of segments.
 
-#### $this->utilsUri->getTotalRoutedSegments()
+#### $this->uriHelper->getTotalRoutedSegments()
 
 This function is identical to the previous one, except that it returns the total number of segments in your re-routed URI in the event you are using URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.

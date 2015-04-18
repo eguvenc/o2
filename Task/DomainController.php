@@ -61,7 +61,7 @@ class DomainController extends Controller
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'down';
-        $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
+        $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->env() . DS .'domain.php', $this->config['domain']);
 
         $this->c['logger']->debug('php task domain down --name='.$name);
 
@@ -80,7 +80,7 @@ class DomainController extends Controller
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'up';
-        $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->getEnv() . DS .'domain.php', $this->config['domain']);
+        $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->env() . DS .'domain.php', $this->config['domain']);
 
         $this->c['logger']->debug('php task domain up --name='.$name);
 

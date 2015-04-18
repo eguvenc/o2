@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layers
  */
-Class Json
+class Json
 {
     /**
      * Container class
@@ -51,7 +51,7 @@ Class Json
         if (isset($r['success'])      // Show exceptional message to developers if environment not LIVE.
             AND $r['success'] == false 
             AND isset($r['e']) AND ! empty($r['e'])
-            AND $this->c['app']->getEnv() != 'production'   // Don't send exceptional errors in "production" environment.
+            AND $this->c['app']->env() != 'production'   // Don't send exceptional errors in "production" environment.
         ) { 
             $r['message'] = $r['e'];  // Replace the message with exception
         }

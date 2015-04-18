@@ -56,7 +56,7 @@ class DebugManager
         if ( ! $this->c['config']['debugger']['enabled']) {
             $this->c['response']->showError('Debugger disabled from your application config file.', 300, "Debugger Disabled");
         }
-        $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?'.FRAMEWORK.'_debugger=1'); // Disable logs sending by _debugger=1 params.
+        $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
         $this->websocketUrl = $this->c['config']['debugger']['socket'];
 
         $this->debugOutput = new DebugOutput($this->c);
@@ -212,7 +212,7 @@ class DebugManager
         </head>
 
         <frameset rows="60%,40%" frameborder="0">
-             <frame id ="f1" name="frame1" onload="load();" src="'.$this->c['app']->uri->getBaseUrl(INDEX_PHP.'?'.FRAMEWORK.'_debugger=1').'">
+             <frame id ="f1" name="frame1" onload="load();" src="'.$this->c['app']->uri->getBaseUrl(INDEX_PHP.'?o_debugger=1').'">
              <frame id ="f2" src="'.$this->debuggerUrl.'">
         </frameset>
         </html>';

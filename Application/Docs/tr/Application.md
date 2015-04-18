@@ -3,7 +3,7 @@
 
 Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/Applicaiton/Http.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam değişkeni  olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile ortam çözümlenir.
 
-Ortam değişkeninie <kbd>$c['app']->getEnv()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
+Ortam değişkenine <kbd>$c['app']->env()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
 
 Obullo da uygulama http ve console isteklerine göre Http ve Cli sınıfları olarak ikiye ayrılır. Http isteğinden sonraki çözümlemede controller dosyası <b>modules/</b> klasöründen çağrılırken Cli istekleri ise konsoldan <kbd>$php task command</kbd> yöntemi ile <b>modules/tasks</b> klasörüne yönlendirilir.
 
@@ -94,20 +94,20 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
-### $c['app']->getEnv();
+### $c['app']->env();
 
 Geçerli ortam değişkenine geri döner.
 
 ```php
-echo $c['app']->getEnv();  // Çıktı  local
+echo $c['app']->env();  // Çıktı  local
 ```
 
-### $c['app']->getEnvironments();
+### $c['app']->environments();
 
 Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
 
 ```php
-print_r($c['app']->getEnvironments());
+print_r($c['app']->environments());
 
 /* Çıktı
 Array
@@ -119,12 +119,12 @@ Array
 */   
 ```
 
-### $c['app']->getEnvArray();
+### $c['app']->envArray();
 
 Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
 
 ```php
-print_r($c['app']->getEnvArray());
+print_r($c['app']->envArray());
 
 /* Çıktı
 Array ( 
@@ -136,12 +136,12 @@ Array (
 */
 ```
 
-### $c['app']->getEnvPath();
+### $c['app']->envPath();
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.
 
 ```php
-echo $c['app']->getEnvPath();  // Çıktı  /var/www/project.com/app/config/local/
+echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
 ```
 
 ### Mevcut Ortam Değişkenleri
@@ -347,6 +347,9 @@ echo $c['config']['database']['connections']['db']['host'];  // Çıktı localho
 
 ------
 
+##### $this->c['app']->env();
+
+Geçerli ortam değişkenine geri döner.
 
 ##### $this->c['app']->middleware(string | object $class, $params = array());
 
@@ -358,7 +361,7 @@ Uygulama sınıfında eğer metod tanımlı değilse Controller sınfından ça�
 
 ##### $this->c['app']->router->method();
 
-Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir hiyerarşik katman ( HMVC bknz. Layer paketi  ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
 
 ##### $this->c['app']->uri->method();
 
@@ -368,18 +371,14 @@ Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içer
 
 Uygulamaya eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
 
-##### $this->c['app']->getEnv();
-
-Geçerli ortam değişkenine geri döner.
-
-##### $this->c['app']->getEnvironments();
+##### $this->c['app']->environments();
 
 Ortam konfigürasyon dosyasında ( app/environments.php ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
 
-##### $this->c['app']->getEnvArray();
+##### $this->c['app']->envArray();
 
 Ortam konfigürasyon dosyasının ( app/environments.php ) içerisindeki tanımlı tüm diziye geri döner.
 
-##### $this->c['app']->getEnvPath();
+##### $this->c['app']->envPath();
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.

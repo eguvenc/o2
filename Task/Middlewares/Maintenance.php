@@ -4,7 +4,7 @@ namespace Http\Middlewares;
 
 use Obullo\Container\Container;
 use Obullo\Application\Middleware;
-use Obullo\Application\Addons\UnderMaintenanceTrait;
+use Obullo\Application\Middlewares\UnderMaintenanceTrait;
 
 class Maintenance extends Middleware
 {

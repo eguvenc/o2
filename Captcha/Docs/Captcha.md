@@ -9,6 +9,11 @@ CAPTCHA projesinin bazı uygulamalarına çoğu web sayfalarında rastlamak müm
 
 O2 captcha sınıfı captcha resimlerini oluşturmanıza yardımcı olan bir kütüphanedir. 
 
+### Kurulum
+
+```php
+php task module add --name=Captcha
+```
 
 ### Sınıfı Yüklemek
 

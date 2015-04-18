@@ -13,7 +13,7 @@ class Debugger extends \Controller
      */
     public function load()
     {
-        if ($this->c['app']->getEnv() == 'production') {  // Disable debugger in production mode
+        if ($this->c['app']->env() == 'production') {  // Disable debugger in production mode
             $this->c['response']->show404();
         }
         $this->debugger = new DebugManager($this->c);

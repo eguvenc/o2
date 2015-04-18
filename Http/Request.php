@@ -128,7 +128,7 @@ class Request
     public function method()
     {
         if (isset($_SERVER['REQUEST_METHOD'])) {
-            return $_SERVER['REQUEST_METHOD'];
+            return strtoupper($_SERVER['REQUEST_METHOD']);
         }
         return false;
     }

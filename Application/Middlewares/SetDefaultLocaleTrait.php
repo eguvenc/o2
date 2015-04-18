@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 trait SetDefaultLocaleTrait
 {
@@ -85,8 +85,9 @@ trait SetDefaultLocaleTrait
     public function setByBrowserDefault()
     {
         $intl = extension_loaded('intl');     // Intl extension should be enabled.
+
         if ($intl == false) {
-            $this->c['logger']->notice('Load php intl extension to enable setting browser detected language.');
+            $this->c['logger']->notice('Install php intl extension to enable detecting browser language feature.');
             return false;
         }
         if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $intl) {   // Set via browser default value
@@ -112,4 +113,4 @@ trait SetDefaultLocaleTrait
 // END RewriteLocaleTrait File
 /* End of file RewriteLocaleTrait.php
 
-/* Location: .Obullo/Application/Addons/RewriteLocaleTrait.php */
+/* Location: .Obullo/Application/Middlewares/RewriteLocaleTrait.php */

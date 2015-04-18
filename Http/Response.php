@@ -94,8 +94,9 @@ class Response
     * @return object response
     */    
     public function setOutput($output)
-    {
+    {        
         $this->output = $output;
+        $this->length = strlen($this->output);
         return $this;
     }
 
@@ -168,7 +169,7 @@ class Response
      * @param array   $headers http headers
      * @param array   $options header replace option
      * 
-     * @return void
+     * @return object
      */
     public function sendHeaders($status, $headers, $options)
     {
@@ -189,12 +190,13 @@ class Response
                 }            
             }
         }
+        return $this;
     }
 
     /**
      * Send headers and echo output
      * 
-     * @return string
+     * @return object
      */
     public function flush()
     {
@@ -204,6 +206,7 @@ class Response
 
             echo $output; // Send output
         }
+        return $this;
     }
 
     /**
@@ -285,21 +288,23 @@ class Response
     /**
      * Enables write output method
      * 
-     * @return void
+     * @return object
      */
     public function enableOutput()
     {
         $this->enabled = true;
+        return $this;
     }
 
     /**
      * Disables write output method
      * 
-     * @return void
+     * @return object
      */
     public function disableOutput()
     {
         $this->enabled = false;
+        return $this;
     }
 
     /**
@@ -317,11 +322,12 @@ class Response
      *
      * @param string $error message
      * 
-     * @return string
+     * @return object
      */
     public function setError($error)
     {
         $this->error = $error;
+        return $this;
     }
 
     /**
@@ -337,11 +343,12 @@ class Response
     /**
      * Clear error variables for layer requests
      * 
-     * @return void
+     * @return object
      */
     public function clear()
     {
         $this->error = null;
+        return $this;
     }
 
 }

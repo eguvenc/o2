@@ -1,7 +1,7 @@
 <?php
 /*
 |---------------------------------------------------------------
-| OBULLO APPLICATION CONSTANTS
+| ESSENTIAL CONSTANTS
 |---------------------------------------------------------------
 | ROOT              - The root path of your server
 | APP               - The full server path to the "app" folder
@@ -34,13 +34,27 @@ define('INDEX_PHP', 'index.php');
 */
 define('OBULLO_CLI', OBULLO .'Application'. DS .'Cli.php');
 define('OBULLO_HTTP', OBULLO .'Application'. DS .'Http.php');
-define('OBULLO_PROVIDERS', APP .'providers.php');
-define('OBULLO_COMPONENTS', APP .'components.php');
-define('OBULLO_EVENTS', APP .'events.php');
-define('OBULLO_ROUTES', APP .'routes.php');
-define('OBULLO_MIDDLEWARES', APP .'middlewares.php');
 define('OBULLO_CONTROLLER', OBULLO .'Controller'. DS .'Controller.php');
-
+/*
+|--------------------------------------------------------------------------
+| APPLICATION
+|--------------------------------------------------------------------------
+*/
+define('APP_PROVIDERS', APP .'providers.php');
+define('APP_COMPONENTS', APP .'components.php');
+define('APP_EVENTS', APP .'events.php');
+define('APP_ROUTES', APP .'routes.php');
+define('APP_MIDDLEWARES', APP .'middlewares.php');
+/*
+|---------------------------------------------------------------
+| NOTIFICATIONS
+|---------------------------------------------------------------
+*/
+define('NOTICE_MESSAGE', 'message'); // Form class message key
+define('NOTICE_ERROR', 0);
+define('NOTICE_SUCCESS', 1);
+define('NOTICE_WARNING', 2);
+define('NOTICE_INFO', 3);
 
 // END Constants.php File
 /* End of file Constants.php

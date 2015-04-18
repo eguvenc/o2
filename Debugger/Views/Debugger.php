@@ -281,7 +281,7 @@ body
 
 <?php 
 $getDebuggerURl = function ($method = 'console') {
-    return $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/'.$method.'?'.FRAMEWORK.'_debugger=1');
+    return $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/'.$method.'?o_debugger=1');
 };
 ?>
 <script type="text/javascript">
@@ -329,7 +329,7 @@ function debuggerShowTab(elem,target) {
         targetContainer.style.display = "block";
         elem.className = 'obulloDebugger-activeTab';
 
-    <?php echo 'var cookieName = "'.FRAMEWORK.'_debugger_active_tab";' ?>;
+    <?php echo 'var cookieName = "o_debugger_active_tab";' ?>;
 
         setCookie(cookieName, target); // set active tab to cookie
 };
@@ -388,7 +388,7 @@ function getCookie(cname) {
             <li class="favicon">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAAcElEQVQ4y2NgGGjAiMx5aqrxnxhN0qdvMGIYQKxmdENY0CXWnLuJV2OIkToDAwMDw0Rmxv/5f/8zsmBTlP/3PyNOAxgYUFzKRGkgjhpABQMwojHESB0jqvABspLymnM34WkFI8FMZGYkaAi+hEYyAAAveB/cnCrFwQAAAABJRU5ErkJggg=="/>
             </li>
-            <?php $activeTab = isset($_COOKIE[FRAMEWORK.'_debugger_active_tab']) ? $_COOKIE[FRAMEWORK.'_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
+            <?php $activeTab = isset($_COOKIE['o_debugger_active_tab']) ? $_COOKIE['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 
             <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-http-log');">
                 <a href="javascript:void(0);">Http Log</a>

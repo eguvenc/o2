@@ -62,10 +62,11 @@ class Cli extends Obullo
         // Warning : Http middlewares are disabled in Cli mode.
 
         include OBULLO_CONTROLLER;
-        include OBULLO_COMPONENTS;
-        include OBULLO_PROVIDERS;
-        include OBULLO_EVENTS;
-        include OBULLO_ROUTES;
+        
+        include APP_COMPONENTS;
+        include APP_PROVIDERS;
+        include APP_EVENTS;
+        include APP_ROUTES;
         
         if ($this->c['config']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);

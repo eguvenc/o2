@@ -2,14 +2,13 @@
 
 namespace Obullo\Annotations;
 
-use Controller;
 use Obullo\Container\Container;
 
 /**
  * Annotations Middleware Class
  * 
  * @category  Annotations
- * @package   Filter
+ * @package   Middleware
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -47,35 +46,47 @@ class Middleware
     {
         $this->c = $c;
         $this->count = 0;
-        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get';
-        $this->httpMethod = strtolower($method);
+        $this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
     }
 
     /**
-     * Initialize to before filters
+     * Add new middleware(s)
      * 
-     * @param mixed $name name
+     * @param mixed $middleware name
      * 
      * @return object
      */
-    public function assign($name)
+    public function add($middleware)
     {
-        $middleware = $name;
-        $params = array();
-        if (is_array($name)) {      // Do we have any possible parameters ?
-            $middleware = $name[0];
-            array_shift($name);
-            $params = $name;
+        if ( ! is_array($middleware)) {      // Do we have any possible parameters ?
+            $middleware = array($middleware);
         }
-        $allowedMethods = end($this->when);
-        if (count($allowedMethods) > 0 AND in_array($this->httpMethod, $allowedMethods)) {
-            $this->c['app']->middleware($middleware, $params);
+        $allowedMethods = end($this->when);  // Get the last used when method values
+
+        if (count($this->when) > 0 AND in_array($this->httpMethod, $allowedMethods)) {
+            $this->addMiddleware($middleware);
             $this->when = array();  // reset when
+            return $this;
         }
-        if (count($allowedMethods) == 0) {
-            $this->c['app']->middleware($middleware, $params);
-        }
+        $this->addMiddleware($middleware);
         return $this;
+    }
+
+    /**
+     * Remove middleware(s)
+     * 
+     * @param mixed $middleware name
+     * 
+     * @return object
+     */
+    public function remove($middleware)
+    {
+        if ( ! is_array($middleware)) {      // Do we have any possible parameters ?
+            $middleware = array($middleware);
+        }
+        foreach ($middleware as $name) {
+            $this->c['app']->remove(ucfirst($name));
+        }
     }
 
     /**
@@ -123,9 +134,23 @@ class Middleware
         $this->c['event']->subscribe(new $Class($this->c));
     }
 
+    /**
+     * Add middlewares to application
+     * 
+     * @param array $middlewares names
+     * 
+     * @return void
+     */
+    protected function addMiddleware(array $middlewares)
+    {
+        foreach ($middlewares as $name) {
+            $this->c['app']->middleware(ucfirst($name));
+        }
+    }
+
 }
 
-// END Filter.php File
-/* End of file Filter.php
+// END Middleware.php File
+/* End of file Middleware.php
 
-/* Location: .Obullo/Application/Filter.php */
+/* Location: .Obullo/Application/Middleware.php */

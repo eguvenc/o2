@@ -61,7 +61,7 @@ Class Controller
     /**
      * Parse docs blocks and execute filters
      * 
-     * @return void|filter \Blocks\Annotations\Filter
+     * @return void
      */
     public function parse()
     {
@@ -83,7 +83,7 @@ Class Controller
     /**
      * Call filter methods
      * 
-     * @param string $methodString filter method name ( when, assign, method )
+     * @param string $methodString middleware method name ( when, assign, method )
      * 
      * @return void
      */
@@ -98,7 +98,7 @@ Class Controller
         if (strpos($params, ',') > 0) {  // array support
             $parray = explode(',', $params);
         }
-        $this->c['annotation.middleware']->$method($parray);  // Execute filter methods
+        $this->c['annotation.middleware']->$method($parray);  // Execute middleware methods
     }
 
 }

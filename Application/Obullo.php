@@ -26,7 +26,6 @@ class Obullo
     protected $class;              // Current controller
     protected $method;             // Current method
     protected $className;          // Current controller name
-    protected $notFoundUri;        // 404 uri
     protected $websocket;          // Debugger websocket
 
     /**
@@ -41,7 +40,7 @@ class Obullo
             return;
         }
         $this->envArray = include ROOT .'app'. DS .'environments.php';
-        foreach ($this->getEnvironments() as $current) {
+        foreach ($this->environments() as $current) {
             if (in_array($hostname, $this->envArray[$current])) {
                 $this->env = $current;
                 break;
@@ -130,7 +129,7 @@ class Obullo
      * 
      * @return void
      */
-    protected function parseDocComments()
+    protected function dispatchAnnotations()
     {
         if ($this->c['config']['annotations']['enabled']) {
             $docs = new \Obullo\Annotations\Controller($this->c, $this->class, $this->method);
@@ -146,7 +145,7 @@ class Obullo
     protected function dispatchClass()
     {
         if ( ! class_exists($this->className, false)) {
-            $this->c['response']->show404($this->notFoundUri);
+            $this->c['response']->show404($this->getCurrentRoute());
         }
     }
 
@@ -158,8 +157,22 @@ class Obullo
     protected function dispatchMethod()
     {
         if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
-            $this->c['response']->show404($this->notFoundUri);
+            $this->c['response']->show404($this->getCurrentRoute());
         }
+    }
+
+    /**
+     * Returns to valid site route
+     * 
+     * @return string
+     */
+    protected function getCurrentRoute()
+    {
+        $route = $this->c['uri']->getUriString();   // Get current uri
+        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+            $route = $this->c['app']->uri->getUriString();                             
+        }
+        return $route;
     }
 
     /**
@@ -179,7 +192,7 @@ class Obullo
      * 
      * @return string
      */
-    public function getEnv()
+    public function env()
     {
         return $this->env;
     }
@@ -189,7 +202,7 @@ class Obullo
      * 
      * @return array
      */
-    public function getEnvironments()
+    public function environments()
     {
         return array_keys($this->envArray);
     }
@@ -199,7 +212,7 @@ class Obullo
      * 
      * @return array
      */
-    public function getEnvArray()
+    public function envArray()
     {
         return $this->envArray;
     }
@@ -209,9 +222,9 @@ class Obullo
      * 
      * @return string
      */
-    public function getEnvPath()
+    public function envPath()
     {
-        return APP .'config'. DS . $this->getEnv() . DS;
+        return APP .'config'. DS . $this->env() . DS;
     }
 
     /**

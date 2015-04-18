@@ -12,7 +12,7 @@ namespace Obullo\Validator;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/validator
  */
-Class Min
+class Min
 {
     /**
      * Constructor

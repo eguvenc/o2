@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 trait BenchmarkTrait
 {
@@ -59,4 +59,4 @@ trait BenchmarkTrait
 // END BenchmarkTrait File
 /* End of file BenchmarkTrait.php
 
-/* Location: .Obullo/Application/Addons/BenchmarkTrait.php */
+/* Location: .Obullo/Application/Middlewares/BenchmarkTrait.php */

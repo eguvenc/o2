@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 trait MethodNotAllowedTrait
 {
@@ -33,4 +33,4 @@ trait MethodNotAllowedTrait
 // END MethodNotAllowedTrait File
 /* End of file MethodNotAllowedTrait.php
 
-/* Location: .Obullo/Application/Addons/MethodNotAllowedTrait.php */
+/* Location: .Obullo/Application/Middlewares/MethodNotAllowedTrait.php */

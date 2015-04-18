@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 trait SanitizeSuperGlobalsTrait
 {
@@ -33,4 +33,4 @@ trait SanitizeSuperGlobalsTrait
 // END SanitizeSuperGlobalsTrait File
 /* End of file SanitizeSuperGlobalsTrait.php
 
-/* Location: .Obullo/Application/Addons/SanitizeSuperGlobalsTrait.php */
+/* Location: .Obullo/Application/Middlewares/SanitizeSuperGlobalsTrait.php */

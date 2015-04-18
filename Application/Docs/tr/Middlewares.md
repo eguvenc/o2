@@ -120,9 +120,9 @@ Yukarıdaki örnekte de <b>Guest</b> katmanı kullanılarak <b>welcome/restricte
 
 Kontrol sonucunda yetkisi olmayan kullanıcılar login sayfasına yönlendirilirler.
 
-### Katman Eklentileri
+### Uygulama Katmanları
 
-Katman eklentileri <b>Application/Addons</b> klasörü içerisinde yeralan daha önceden uygulama ihtiyaçlarına göre hazırlanmış katman özellikleridir ( Traits ). Eklentiler middleware yapıları içerisinden <b>use</b> komutu ile çağrılırlar.
+Uygulamaya katmanları <b>Obullo/Application/Middlewares</b> klasörü içerisinde yeralan daha önceden uygulama ihtiyaçlarına göre hazırlanmış katman özellikleridir ( Traits ). Uygulama katmanları <kbd>app/classes/Http/Middlewares</kbd> dizinindeki katmanlar içerisinden <b>use</b> komutu ile çağrılırlar.
 
 Aşağıdaki Maintenance katmanına bir gözatalım.
 
@@ -131,7 +131,7 @@ namespace Http\Middlewares;
 
 use Obullo\Container\Container;
 use Obullo\Application\Middleware;
-use Obullo\Application\Addons\UnderMaintenanceTrait;
+use Obullo\Application\Middlewares\UnderMaintenanceTrait;
 
 class Maintenance extends Middleware
 {
@@ -161,7 +161,7 @@ class Maintenance extends Middleware
 }
 ```
 
-Yukarıda maintenance katmanında görüldüğü gibi <b>use</b> komutu ile UnderMaintenanceTrait eklentisi çağırılarak <b>$this->domainIsDown();</b> metoduna genişler. Sizde uygulamanıza özgü eklentileri filtreler içerisinden bu yöntemle çağırabilirsiniz.
+Yukarıda maintenance katmanında görüldüğü gibi <b>use</b> komutu ile UnderMaintenanceTrait eklentisi çağırılarak <b>$this->domainIsDown();</b> metoduna genişledik. Sizde uygulamanıza özgü eklentileri filtreler içerisinden bu yöntemle çağırabilirsiniz.
 
 ## Katmanlar
 
@@ -171,7 +171,7 @@ Yukarıda maintenance katmanında görüldüğü gibi <b>use</b> komutu ile Unde
 
 ##### Konfigürasyon
 
-* Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
 
 ```php
 
@@ -228,7 +228,7 @@ php task middleware add --name=Maintenance
 php task middleware remove --name=Maintenance
 ```
 
-* Eğer app/routes.php içinde bu katmanı kullandıysanız middleware dizileri içinden silin.
+Eğer app/routes.php içinde bu katmanı kullandıysanız middleware dizileri içinden silin.
 
 ##### Çalıştırma
 
@@ -251,7 +251,7 @@ php task domain up --name=root
 
 ##### Konfigürasyon
 
-* Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
 
 ##### Çalıştırma
 
@@ -282,8 +282,8 @@ Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfal
 
 ##### Konfigürasyon
 
-* Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
-* <kbd>app/classes/Service/User.php</kbd> dosyası auth servis sağlayıcısından <b>url.login</b> anahtarının login dizinine göre konfigüre edin.
+Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+<kbd>app/classes/Service/User.php</kbd> dosyası auth servis sağlayıcısından <b>url.login</b> anahtarının login dizinine göre konfigüre edin.
 
 ```php
 class User implements ServiceInterface
@@ -451,8 +451,8 @@ php task middleware add --name=Https
 php task middleware remove --name=Https
 ```
 
-* Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından ayrıca silin.
-* Eğer Annotations ile Controller sınıfları üzerinde kullanıldıysa bir Search - Replace operasyonu ile ilgili dipnotları silin.
+Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından ayrıca silin.
+Eğer Annotations ile Controller sınıfları üzerinde kullanıldıysa bir Search - Replace operasyonu ile ilgili dipnotları silin.
 
 ##### Çalıştırma
 
@@ -506,7 +506,7 @@ $c['app']->middleware(new Http\Middlewares\Request);
 /* Location: .app/middlewares.php */
 ```
 
-* Ayrıca translation paketinin konfigürasyon dosyası <kbd>app/config/translator.php</kbd> dosyasını konfigüre etmeyi unutmayın.
+Ayrıca translation paketinin konfigürasyon dosyası <kbd>app/config/translator.php</kbd> dosyasını konfigüre etmeyi unutmayın.
 
 ```php
 return array(
@@ -561,8 +561,8 @@ php task middleware add --name=Translation
 php task middleware remove --name=Translation
 ```
 
-* Ayrıca <kbd>app/middlewares.php</kbd> dosyası içerisinden katmanı silin.
-* Varsa <kbd>app/routes.php</kbd> dosyasından ilgili route ları kaldırın.
+Ayrıca <kbd>app/middlewares.php</kbd> dosyası içerisinden katmanı silin.
+Varsa <kbd>app/routes.php</kbd> dosyasından ilgili route ları kaldırın.
 
 
 ##### Çalıştırma
@@ -609,7 +609,7 @@ php task middleware add --name=RewriteLocale
 php task middleware remove --name=RewriteLocale
 ```
 
-* Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından ayrıca silin.
+Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından ayrıca silin.
 
 ##### Çalıştırma
 
@@ -636,3 +636,104 @@ $c['router']->group(
 ```
 
 #### Csrf Middleware
+
+> Csrf katmanı Cross Request Forgery güvenlik tehdidine karşı uygulamanızdaki formlarda oluşturduğunuz güvenlik algoritmasını http POST istekleri geldiğinde sunucu tarafında doğrular, doğrulama başarılı olmazsa katman içerisinden kullanıcı hata sayfasına yönlendirilir.
+
+Cross Request Forgery güvenlik tehdidi hakkında daha detaylı bilgi için <a href="http://shiflett.org/articles/cross-site-request-forgeries">bu makalaye</a> gözatabilirsiniz.
+
+##### Konfigürasyon
+
+<kbd>app/config/security.php</kbd> dosyasından csrf protection değerini true olarak değiştirin.
+
+```php
+return array(
+            
+    'csrf' => [                      
+        'protection' => true,
+     ],                                 
+
+);
+
+/* End of file config.php */
+/* Location: .app/config/security.php */
+
+```
+
+Eğer Form/Element paketini kullanmıyorsanız uygulamanızdaki tüm form taglarına aşağıdaki gibi güvenlik değeri oluşturmanız gerekir.
+
+```html
+<form action="/buy" method="post">
+<input type="hidden" name="<?php echo $this->c['csrf']->getTokenName() ?>" 
+value="<?php echo $this->c['csrf']->getToken(); ?>" />
+</form>
+``` 
+
+Eğer form element paketini kullanıyorsanız open metodu sizin için csrf değerini kendiliğinden oluşturur.
+
+
+```php
+echo $this->formElement->open('/buy', array('method' => 'post'));
+```
+
+Csrf hidden input alanı olmayan bir form istiyorsanız en son parametreyi false göndererek input alanının otomatik eklenmesini engelleyebilirsiniz.
+
+```php
+echo $this->formElement->open('/dummy', array('method' => 'post'), array(), $protection = false);
+```
+
+##### Kurulum
+
+```php
+php task middleware add --name=Csrf
+```
+
+##### Kaldırma
+
+```php
+php task middleware remove --name=Csrf
+```
+
+Katmanı ayrıca <kbd>app/middlewares.php</kbd> dosyasından kaldırmanız gerekir.
+
+##### Çalıştırma
+
+Csrf doğrulama katmanının uygulamanın her yerinde çalışmasını istiyorsanız katmanı <kbd>app/middlewares.php</kbd> dosyasına ekleyin.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Csrf
+|--------------------------------------------------------------------------
+*/
+$c['app']->middleware(new Http\Middlewares\Csrf);
+/*
+|--------------------------------------------------------------------------
+| Request
+|--------------------------------------------------------------------------
+*/
+$c['app']->middleware(new Http\Middlewares\Request);
+
+/* End of file middlewares.php */
+/* Location: .app/middlewares.php */
+```
+
+Katman evrensel olarak eklendiğinde tüm http POST isteklerinde çalışır. Fakat çalışmasını istemediğiniz yerlerde katmanı Controller sınıfı içerisinde geçerli metot üzerinden  dipnotlar ( annotations ) yardımı ile kaldırabilirsiniz.
+
+```php
+/**
+ * Update
+ *
+ * @middleware->remove("Csrf");
+ * 
+ * @return void
+ */
+public function update()
+{
+    if ($this->c['request']->isPost()) {
+
+        // Form verilerini işle
+    }
+}
+```
+
+Eğer Csrf doğrulama katmanının uygulamanın sadece belirli yerlerinde çalışmasını istiyorsanız katman ismini <kbd>app/routes.php</kbd> dosyasına ekleyin.

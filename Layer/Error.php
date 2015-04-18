@@ -14,7 +14,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layer
  */
-Class Error
+class Error
 {
     const ERROR_HEADER = '<div style="
     white-space: pre-wrap;

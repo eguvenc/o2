@@ -102,7 +102,7 @@ class WebSocket
      */
     public function ajaxHandshake()
     {
-        setcookie(FRAMEWORK.'_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
+        setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
 
         $this->handshake('Ajax');
     }

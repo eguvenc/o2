@@ -2,6 +2,7 @@
 
 namespace Obullo\Utils;
 
+use Obullo\Uri\Uri;
 use Obullo\Container\Container;
 
 /**
@@ -21,17 +22,16 @@ class Uri
      *
      * @var object
      */
-    protected $c;
+    protected $uri;
 
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $uri Obullo\Uri\Uri
      */
-    public function __construct(Container $c)
+    public function __construct(Uri $uri)
     {
-        $this->c = $c;
-        $this->uri = $c['uri'];
+        $this->uri = $uri;
     }
 
     /**

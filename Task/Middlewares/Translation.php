@@ -3,7 +3,7 @@
 namespace Http\Middlewares;
 
 use Obullo\Application\Middleware;
-use Obullo\Application\Addons\SetDefaultLocaleTrait;
+use Obullo\Application\Middlewares\SetDefaultLocaleTrait;
 
 class Translation extends Middleware
 {

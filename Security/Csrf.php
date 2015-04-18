@@ -2,8 +2,15 @@
 
 namespace Obullo\Security;
 
+use Obullo\Container\Container;
+
 /**
  * Csrf Class
+ *
+ * About csrf protection
+ *
+ * http://shiflett.org/articles/cross-site-request-forgeries
+ * http://blog.beheist.com/csrf-protection-in-codeigniter-2-0-a-closer-look/
  * 
  * @category  Security
  * @package   Csrf
@@ -15,33 +22,32 @@ namespace Obullo\Security;
 class Csrf 
 {
      /**
-     * Random Hash for Cross Site Request Forgery Protection Cookie
-     *
-     * @var string
-     */
-     protected $hash = '';
+      * Session class
+      * 
+      * @var object
+      */
+     protected $session;
 
      /**
-     * Expiration time for Cross Site Request Forgery Protection Cookie
-     * Defaults to two hours (in seconds)
-     *
-     * @var int
-     */
-     protected $expire = 7200;
+      * Token refresh seconds
+      * 
+      * @var integer
+      */
+     protected $refresh;
 
      /**
-     * Token name for Cross Site Request Forgery Protection Cookie
+     * Token name for Cross Site Request Forgery Protection
      *
      * @var string
      */
      protected $tokenName = 'csrf_token';
 
      /**
-     * Cookie name for Cross Site Request Forgery Protection Cookie
-     *
-     * @var string
-     */
-     protected $cookieName = 'csrf_token';
+      * Token session data
+      * 
+      * @var array | false
+      */
+     protected $tokenData;
 
     /**
      * Constructor
@@ -50,12 +56,16 @@ class Csrf
      * 
      * @return  void
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('security');
         $this->logger = $c['logger'];
-        $this->response = $c['response'];
+        $this->session = $c['session'];
+        
+        $this->config = $c['config']->load('security');
+        $this->refresh = $this->config['csrf']['token']['refresh'];
+        $this->tokenName = $this->config['csrf']['token']['name'];
+        $this->init();
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf Class Initialized');
@@ -68,47 +78,35 @@ class Csrf
      */
     public function init()
     {
-        if ($this->config['csrf']['protection']) {  // Is CSRF protection enabled?
-
-            $this->expire     = $this->config['csrf']['expire'];
-            $this->tokenName  = $this->config['csrf']['tokenName'];
-            $this->cookieName = $this->config['csrf']['cookieName'];
-
-            if ($this->c['config']['cookie']['prefix'] != '') { // Append application specific cookie prefix
-                $this->cookieName = $this->c['config']['cookie']['prefix'].$this->cookieName;
-            }
-            $this->setHash();  // Set the CSRF hash
-        }
+        $this->tokenData = $this->session->get($this->tokenName);
     }
 
     /**
      * Verify Cross Site Request Forgery Protection
      *
-     * @return  object
+     * @return boolean
      */
     public function verify()
     {
-        if (strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST') { // If it's not a POST request we will set the CSRF cookie
-            return $this->setCookie();
+        if ($this->c['request']->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
+            return $this->setSession();
         }
-        if ( ! isset($_POST[$this->tokenName], $_COOKIE[$this->cookieName])) {  // Do the tokens exist in both the _POST and _COOKIE arrays ?
-            $this->showError();
-        }
-        if ($_POST[$this->tokenName] != $_COOKIE[$this->cookieName]) { // Do the tokens match? 
-            $this->showError();
+        if ( ! isset($_POST[$this->tokenName]) 
+            OR ! isset($this->tokenData['value'])
+            OR ($_POST[$this->tokenName] != $this->tokenData['value'])
+        ) {
+            return false;
         }
                                           // We kill this since we're done and we don't want to
                                           // polute the _POST array
-        unset($_POST[$this->tokenName]);  // Nothing should last forever     
-        unset($_COOKIE[$this->cookieName]);   
+        unset($_POST[$this->tokenName]);  // Nothing should last forever
 
-        $this->setHash();
-        $this->setCookie();
+        $this->refreshToken();
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf token verified');
 
-        return $this;
+        return true;
     }
 
     /**
@@ -116,31 +114,33 @@ class Csrf
      *
      * @return object
      */
-    public function setCookie()
+    public function setSession()
     {
-        $expire = time() + $this->expire;
-        $secureCookie = ($this->c['config']['cookie']['secure'] === true) ? 1 : 0;
+        if (empty($this->tokenData['value'])) {
+            $this->tokenData = ['value' => $this->generateHash(), 'time' => time()];
+            $this->session->set($this->tokenName, $this->tokenData);
 
-        if ($secureCookie) {
-            if ( ! $this->c['request']->isSecure()) {
-                return false;
-            }
+            $this->logger->channel('security');
+            $this->logger->debug('Csrf token session set');
         }
-        setcookie($this->cookieName, $this->hash, $expire, $this->c['config']['cookie']['path'], $this->c['config']['cookie']['domain'], $secureCookie);
-
-        $this->logger->channel('security');
-        $this->logger->debug('Csrf cookie Set');
         return $this;
     }
 
     /**
-     * Show CSRF Error
-     *
-     * @return  void
+     * Check csrf time every "x" seconds and update the
+     * session if token expired.
+     * 
+     * @return void
      */
-    public function showError()
+    protected function refreshToken()
     {
-        $this->response->showError('The action you have requested is not allowed.', 401, 'Access Denied');
+        $tokenRefresh = strtotime('- '.$this->refresh.' seconds'); // Create a old time belonging to refresh seconds.
+
+        if (isset($this->tokenData['time']) AND $tokenRefresh > $this->tokenData['time']) {  // Refresh token
+            $this->tokenData = array();  // Reset data for update the token
+            $this->setSession();
+        }
+        return $this->getToken();
     }
 
     /**
@@ -152,7 +152,7 @@ class Csrf
      */
     public function getToken()
     {
-        return $this->hash;
+        return $this->tokenData['value'];
     }
 
     /**
@@ -169,24 +169,12 @@ class Csrf
 
     /**
      * Set Cross Site Request Forgery Protection Cookie
-     *
+     * 
      * @return string
      */
-    protected function setHash()
+    protected function generateHash()
     {
-        if ($this->hash == '') {
-
-            // If the cookie exists we will use it's value.
-            // We don't necessarily want to regenerate it with
-            // each page load since a page could contain embedded
-            // sub-pages causing this feature to fail
-        
-            if (isset($_COOKIE[$this->cookieName]) AND preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->cookieName]) === 1) {
-                return $this->hash = $_COOKIE[$this->cookieName];
-            }
-            return $this->hash = md5(uniqid(rand(), true));
-        }
-        return $this->hash;
+        return md5(uniqid(rand(), true));
     }
 
 }

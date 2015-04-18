@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layers
  */
-Class Request
+class Request
 {
     /**
      * Container
@@ -85,7 +85,7 @@ Class Request
      */
     protected function isJson($uri, $raw)
     {
-        if (strpos(trim($uri, '/'), 'database/') === 0 OR strpos(trim($uri, '/'), 'jsons/') === 0) {
+        if (strpos(trim($uri, '/'), 'jsons/') === 0) {
             return $this->json($raw);
         }
         return $raw;

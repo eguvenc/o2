@@ -4,7 +4,7 @@ namespace Http\Middlewares;
 
 use Obullo\Container\Container;
 use Obullo\Application\Middleware;
-use Obullo\Application\Addons\RewriteHttpsTrait;
+use Obullo\Application\Middlewares\RewriteHttpsTrait;
 
 class Https extends Middleware
 {

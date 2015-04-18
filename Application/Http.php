@@ -51,12 +51,18 @@ $c['app'] = function () {
 class Http extends Obullo
 {
     /**
-     * Middlewares stack
+     * Middleware objects
      * 
      * @var array
      */
     protected $middleware = array();
-    protected $middlewares = array();
+
+    /**
+     * Middleware names
+     * 
+     * @var array
+     */
+    protected $middlewareNames = array();
 
     /**
      * Constructor
@@ -76,10 +82,11 @@ class Http extends Obullo
         $this->middleware = array($this); // Define default middleware stack
 
         include OBULLO_CONTROLLER;
-        include OBULLO_COMPONENTS;
-        include OBULLO_PROVIDERS;
-        include OBULLO_EVENTS;
-        include OBULLO_ROUTES;
+
+        include APP_COMPONENTS;
+        include APP_PROVIDERS;
+        include APP_EVENTS;
+        include APP_ROUTES;
 
         if ($this->c['config']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
@@ -98,15 +105,9 @@ class Http extends Obullo
      */
     public function run()
     {
-        global $c;
-
         $this->init();
         $this->c['router']->init();                 // Initialize Routes
-        $route = $this->c['uri']->getUriString();   // Get current uri
 
-        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
-            $route = $this->c['app']->uri->getUriString();                             
-        }
         $class = $this->c['router']->fetchClass();
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
@@ -114,26 +115,15 @@ class Http extends Obullo
         include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
         $this->className = '\\'.$namespace.'\\'.$class;
-        $this->notFoundUri = $route;
-
         $this->dispatchClass();
 
         $this->class = new $this->className;  // Call the controller
         $this->method = $method;
-        $this->parseDocComments();
 
         $this->dispatchMethod();
-
-        foreach ($this->c['router']->getAttachedRoutes() as $value) {
-            $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
-
-            if ($value['route'] == $route) {     // if we have natural route match
-                $this->middleware($value['name'], $value['options']);
-            } elseif (preg_match('#'. $attachedRoute .'#', $route)) {
-                $this->middleware($value['name'], $value['options']);
-            }
-        }
-        include OBULLO_MIDDLEWARES;  // Run application middlewares at the top
+        $this->dispatchMiddlewares();
+        $this->dispatchAnnotations();  // Read annotations after the attaching middlewares otherwise @middleware->remove()
+                                       // does not work
 
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         $middleware->load();
@@ -141,9 +131,31 @@ class Http extends Obullo
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }
-        $middleware->call();   
+        $middleware->call();
 
         $this->c['response']->flush();
+    }
+
+    /**
+     * Register assigned middlewares
+     * 
+     * @return void
+     */
+    protected function dispatchMiddlewares()
+    {
+        global $c;
+        $currentRoute = $this->getCurrentRoute();
+
+        foreach ($this->c['router']->getAttachedRoutes() as $value) {
+            $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
+
+            if ($value['route'] == $currentRoute) {     // if we have natural route match
+                $this->middleware($value['name'], $value['options']);
+            } elseif (preg_match('#'. $attachedRoute .'#', $currentRoute)) {
+                $this->middleware($value['name'], $value['options']);
+            }
+        }
+        include APP_MIDDLEWARES;  // Include app/middlewares.php
     }
 
     /**
@@ -163,14 +175,35 @@ class Http extends Obullo
             $Class = '\\Http\\Middlewares\\'.ucfirst($middleware);
             $middleware = new $Class;
         }
-        $middleware->params = $params;  //  Inject Parameters
+        $middleware->params = $params;      // Inject Parameters
         $middleware->setContainer($this->c);
         $middleware->setApplication($this);
         $middleware->setNextMiddleware(current($this->middleware));
         array_unshift($this->middleware, $middleware);
 
         $name = get_class($middleware);
-        $this->middlewares[$name] = $name;  // Track names
+        $this->middlewareNames[$name] = $name;  // Track names
+    }
+
+    /**
+     * Removes middleware ( Only works with annotations )
+     * 
+     * @param string $middleware name
+     * 
+     * @return void
+     */
+    public function remove($middleware)
+    {
+        $removal = 'Http\\Middlewares\\'.ucfirst($middleware);
+        if ( ! isset($this->middlewareNames[$removal])) {  // Check middleware exist
+            return;
+        }
+        foreach ($this->middleware as $key => $value) {
+            $current = get_class($value);
+            if ($current == $removal) {
+                unset($this->middleware[$key]);
+            }
+        }
     }
 
     /**
@@ -180,7 +213,7 @@ class Http extends Obullo
      */
     public function getMiddlewares()
     {
-        return $this->middlewares;
+        return $this->middlewareNames;
     }
 
     /**
@@ -203,14 +236,14 @@ class Http extends Obullo
 
     /**
      * Register shutdown
+     *
+     * 1 . Write cookies if package loaded and we have queued cookies.
+     * 2 . Check debugger module
      * 
      * @return void
      */
     public function close()
     {
-        // Write queued cookie headers if cookie package available in 
-        // the application and we have queued cookies.
-
         if ($this->c->loaded('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
@@ -220,13 +253,13 @@ class Http extends Obullo
     }
 
     /**
-     * Check http debugger is active ?
+     * Check debugger module is enabled ?
      * 
      * @return void
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['debugger']['enabled'] AND ! isset($_REQUEST[FRAMEWORK.'_debugger'])) {
+        if ($this->c['config']['debugger']['enabled'] AND ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit();
         }
     }

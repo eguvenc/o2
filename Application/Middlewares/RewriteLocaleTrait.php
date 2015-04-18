@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 use RuntimeException;
 
@@ -18,7 +18,7 @@ trait RewriteLocaleTrait
      * 
      * @var array
      */
-    public $exceptMethods = array();
+    public $excludedMethods = array();
 
     /**
      * Ignore these methods
@@ -27,12 +27,12 @@ trait RewriteLocaleTrait
      * 
      * @return void
      */
-    public function except(array $methods)
+    public function excludeMethods(array $methods)
     {
-        $this->exceptMethods = $methods;
+        $this->excludedMethods = $methods;
 
         $method = strtolower($this->c['request']->method());
-        if (in_array($method, $this->exceptMethods)) {  // Except methods
+        if (in_array($method, $this->excludedMethods)) {  // Except methods
             $this->stop();
         }
     }
@@ -68,9 +68,9 @@ trait RewriteLocaleTrait
             return;
         }
         $languages = $config['languages'];
-        $middlewares = $this->c['app']->getMiddlewares();
+        $middlewareNames = $this->c['app']->getMiddlewares();
 
-        if ( ! isset($middlewares['Http\Middlewares\Translation'])) {
+        if ( ! isset($middlewareNames['Http\Middlewares\Translation'])) {
             throw new RuntimeException(
                 sprintf(
                     'RewriteLocale middleware requires Translation middleware. Run this task. <pre>%s</pre>Then add this code to app/middlewares.php <pre>%s</pre>',
@@ -88,4 +88,4 @@ trait RewriteLocaleTrait
 // END RewriteLocaleTrait File
 /* End of file RewriteLocaleTrait.php
 
-/* Location: .Obullo/Application/Addons/RewriteLocaleTrait.php */
+/* Location: .Obullo/Application/Middlewares/RewriteLocaleTrait.php */

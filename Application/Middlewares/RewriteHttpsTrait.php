@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Application\Addons;
+namespace Obullo\Application\Middlewares;
 
 trait RewriteHttpsTrait
 {
@@ -20,4 +20,4 @@ trait RewriteHttpsTrait
 // END RewriteHttpsTrait File
 /* End of file RewriteHttpsTrait.php
 
-/* Location: .Obullo/Application/Addons/RewriteHttpsTrait.php */
+/* Location: .Obullo/Application/Middlewares/RewriteHttpsTrait.php */

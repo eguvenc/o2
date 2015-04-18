@@ -277,10 +277,11 @@ Class Element
     * @param string $action     the URI segments of the form destination
     * @param array  $attributes a key/value pair of attributes
     * @param array  $hidden     a key/value pair hidden data
+    * @param array  $protection csrf protection
     * 
     * @return   string
     */
-    public function open($action = '', $attributes = '', $hidden = array())
+    public function open($action = '', $attributes = '', $hidden = array(), $protection = true)
     {
         if ($attributes == '') {
             $attributes = 'method="post"';
@@ -289,6 +290,15 @@ Class Element
         $form  = '<form action="'.$action.'"';
         $form .= $this->attributesToString($attributes, true);
         $form .= '>';
+
+        $security = $this->c['config']->load('security');
+        $form = str_replace(array('"method=\'get\'"', "method=\'GET\'"), 'method="get"', $form);
+
+        // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
+
+        if ($security['csrf']['protection'] && $protection && ! stripos($form, 'method="get"')) {
+            $hidden[$this->c['csrf']->getTokenName()] = $this->c['csrf']->getToken();
+        }
         if (is_array($hidden) AND count($hidden) > 0) {
             $form .= sprintf("<div style=\"display:none\">%s</div>", $this->hidden($hidden));
         }

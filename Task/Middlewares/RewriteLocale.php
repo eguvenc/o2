@@ -3,7 +3,7 @@
 namespace Http\Middlewares;
 
 use Obullo\Application\Middleware;
-use Obullo\Application\Addons\RewriteLocaleTrait;
+use Obullo\Application\Middlewares\RewriteLocaleTrait;
 
 class RewriteLocale extends Middleware
 {
@@ -26,7 +26,8 @@ class RewriteLocale extends Middleware
      */
     public function call()
     {
-        $this->except(['post']);  // Ignore http post methods
+        $this->excludeMethods(['post']);  // Ignore http post methods
+        
         $this->rewrite();
 
         $this->next->call();

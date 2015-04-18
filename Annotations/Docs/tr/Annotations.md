@@ -3,9 +3,11 @@
 
 ------
 
-Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır.Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler. 
+Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır.Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
 
-Şu anki sürümde biz dipnotları sadece filtreleri tuturmak için kullanıyoruz.
+> **Not:** Dipnotarı kullanmak herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan dipnotlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
+
+Şu anki sürümde biz dipnotları sadece <b>Http Katmanlarını</b> ve Event sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
 ### Mevcut olan dipnotlar
 
@@ -18,20 +20,23 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
     </thead>
     <tbody>
         <tr>
-            <td><b>@middleware->assign("name");</b></td>
-            <td>Bir middleware filtresini app->middleware metodu ile dinamik olarak uygulamaya ekler.</td>
+            <td><b>@middleware->add();</b></td>
+            <td>Bir middleware katmanını uygulamaya ekler. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
         </tr>
-
         <tr>
-            <td><b>@middleware->method("post","get");</b></td>
-            <td>Http protokolü tarafından gönderilen istek metodu bu metot içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+            <td><b>@middleware->remove();</b></td>
+            <td>Varolan bir middleware katmanını uygulamadan çıkarır. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
+        </tr>
+        <tr>
+            <td><b>@middleware->method();</b></td>
+            <td>Http protokolü tarafından gönderilen istek metodu belirlenen metotlardan biri ile eşleşmez ise sayfaya erişime izin verilmez.</td>
         </tr>
          <tr>
-            <td><b>@middleware->when("post","get")->assign("name")</b></td>
-            <td>Filtreyi çalıştırır eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+            <td><b>@middleware->when()->add()</b></td>
+            <td>Http katmanını çalıştırır eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
         </tr>
         <tr>
-            <td><b>@event->subscribe("Class");</b></td>
+            <td><b>@event->subscribe();</b></td>
             <td>Event sınıfını çağırarak subscribe metodu ile varsayılan controller için dinleyici atamanızı sağlar.</td>
         </tr>
     </tbody>
@@ -53,7 +58,7 @@ Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi k
 /**
  * Index
  *
- * @middleware->when("get", "post")->assign("Activity")
+ * @middleware->when("get", "post")->add("Example")
  * 
  * @return void
  */
@@ -76,43 +81,57 @@ Aşağıdaki örneklere bir göz atın.
 /**
  * Index
  *
- * @middleware->assign("Csrf");
+ * @middleware->assign("Example");
  * @middleware->method("get", "post");
  *
  * @return void
  */
 ```
 
-Controller sınıfı metodunun çalışma seviyesinden önce <b>csrf</b> filtresini çalıştırır ve sadece <b>get</b> ve <b>post</b> metotlarına erişime izin verir.
+Yukarıdaki örnek Controller sınıfı index ( middleware call ) metodundan önce <b>Example</b> katmanını çalıştırır ve sadece <b>get</b> ve <b>post</b> isteklerinde erişime izin verir.
 
 ```php
 /**
  * Index
  *
- * @middleware->when("post")->assign("Csrf");
+ * @middleware->when("post")->add("XssFilter");
  * 
  * @return void
  */
 ```
 
-Sadece http <b>post</b> işlemlerinde controller sınıfının çalışma seviyesinden önce <b>csrf</b> filtresini çalıştırır.
+Yukarıdaki örnek sadece http <b>post</b> isteklerinde ve index() metodunun çalışmasından önce tanımlamış olduğunuz <b>XssFilter</b> gibi örnek bir katmanı çalıştırır.
 
 
 ```php
 /**
  * Index
  *
- * @middleware->when("get", "post")->assign("Csrf");
- * @middleware->when("get", "post")->assign("Auth");
+ * @middleware->when("post")->remove("Csrf");
  *
  * @return void
  */
 ```
 
-Sadece http <b>post</b> ve <b>get</b> işlemlerinde controller sınıfının çalışma seviyesinden önce <b>auth</b> filtresini çalıştırır.
+Yukarıdaki örnek sadece http <b>post</b> ve <b>get</b> isteklerinde index() metodunun çalışmasından önce varolan <b>Csrf</b> katmanını uygulamadan siler.
 
 
-#### Filtreleri tüm sınıf metotlarında geçerli kılmak
+```php
+/**
+ * Index
+ *
+ * @event->subscribe('Event\Login\Attempt');
+ *
+ * @return void
+ */
+```
+
+Bu örnekte ise bu dipnotun yazıldığı Controller sınıfına ait index metodu çalıştığında <kbd>@event->subscribe</kbd> dipnotu arkaplanda <kbd>\Obullo\Event->subscribe()</kbd> metodunu çalıştırır ve uygulama  <kbd>app/classes/Event/Login/Attemp.php</kbd> sınıfı içerisine tanımlanmış olayları dinlemeye başlar.
+
+> **Not:** Olaylar ( Events ) hakkında daha detaylı bilgiye Event paketi dökümentasyonundan ulaşabilirsiniz.
+
+
+#### Bir katmanı tüm sınıf metotlarında geçerli kılmak
 
 Bazı durumlarda yüklenen controller ın tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
 
@@ -128,46 +147,4 @@ public function load()
 {
     // ..
 }
-```
-
-
-#### Dipnotları kullanmadan middleware tanımlayabilmek
-
-Eğer dipnotları kullanmadan filtreleri basitçe çağırmanız gereken bir durum sözkonusu ise bunu uygulama sınıfını içerisinden aşağıdaki gibi gerçekleştirebilirsiniz.
-
-```php
-namespace Welcome;
-
-Class Welcome extends \Controller
-{
-    /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['url'];
-        $this->c['app']->middleware('MyMiddleware', $params = array());
-    }
-
-    /**
-     * Index
-     * 
-     * @return void
-     */
-    public function index()
-    {
-        $this->view->load(
-            'welcome',
-            [
-                'title' => 'Welcome to Obullo !',
-            ]
-        );
-    }
-
-}
-
-/* End of file welcome.php */
-/* Location: .modules/welcome/welcome.php */
 ```

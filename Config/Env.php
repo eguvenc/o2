@@ -117,15 +117,17 @@ class Env implements ArrayAccess
      */
     protected function env($key, $default = '', $required = false)
     {
+        $env = $this->c['app']->env();
+        
         $empty = empty($_ENV[$key]);
         if ($required AND $empty) {
-            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.$this->c['app']->getEnv().'.php file array.');
+            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.$env.'.php file array.');
         }
         if ($empty AND $default != '') {     // default value
             return $default;
         }
         if ( ! isset($_ENV[$key])) {
-            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.$this->c['app']->getEnv().'.php file array.');
+            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.$env.'.php file array.');
         }
         return $_ENV[$key];
     }

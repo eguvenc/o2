@@ -538,7 +538,7 @@ class Container implements ArrayAccess
     protected function resolveService($serviceClass, $isDirectory = false)
     {
         if ($isDirectory) {
-            return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->getEnv());
+            return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->env());
         }
         return '\Service\\'.$serviceClass;
     }

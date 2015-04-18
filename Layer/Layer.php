@@ -25,7 +25,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layer
  */
-Class Layer
+class Layer
 {
     const CACHE_KEY = 'Layer:';
     const LOG_HEADER = '<br /><div style="float:left;">';
@@ -117,6 +117,7 @@ Class Layer
         $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
 
+        $this->c['router']->setMethod('index');  //  Set default method otherwise we get 404 error if layer uri method not choosed
         $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
         $this->c['router']->init();
     }
@@ -190,7 +191,7 @@ Class Layer
      */
     public function execute($expiration = '')
     {
-        $KEY = $this->getId();         // Get layer id
+        $KEY = $this->getId();      // Get layer id
         $start = microtime(true);   // Start query timer 
 
         if ($this->params['cache'] AND $response = $this->c['cache']->get($KEY)) {   
