@@ -68,10 +68,11 @@ class Mongo extends AbstractHandler implements HandlerInterface
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
 
         parent::__construct($c);
-
-        self::checkConfigurations();
-
+        
         $this->mongoClient = $mongo;
+
+        self::checkConfigurations($collection, $database, $mongo);
+
         $this->mongoCollection = $this->mongoClient->selectCollection($database, $collection);
         $this->saveOptions = $saveOptions;
     }

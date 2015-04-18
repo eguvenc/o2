@@ -103,6 +103,32 @@ class Google extends AbstractProvider implements ProviderInterface
     }
 
     /**
+     * Get the access token for the given code.
+     *
+     * @param string $code token code
+     * 
+     * @return string
+     */
+    public function getAccessToken($code)
+    {
+        if ($this->token || ($this->token = $this->storage->get('access_token'))) {
+            return $this->token;
+        }
+        $response = $this->getHttpClient()
+            ->setRequestUrl($this->getTokenUrl())
+            ->setMethod($this->requestMethod)
+            ->setFields($this->getTokenFields($code))
+            ->setHeaders(
+                [
+                    'Accept : application/json'
+                ]
+            )
+            ->send();
+            
+        return $this->parseAccessToken($response);
+    }
+
+    /**
      * Get user by token
      * 
      * @param string $token token code
