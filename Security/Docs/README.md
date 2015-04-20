@@ -2,6 +2,9 @@
 
 ## Csrf Katmanı
 
+```php
+$this->match(['get', 'post'], 'widgets/tutorials/hello_form')->middleware('Csrf');
+```
 
 #### İstisnai Durumlarda Csrf Katmanını Kapatmak
 

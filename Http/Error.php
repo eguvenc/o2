@@ -19,8 +19,8 @@ class Error
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $response response
+     * @param object $c        Container
+     * @param object $response Http\Response
      * 
      * @return void
      */
@@ -63,7 +63,7 @@ class Error
     public function showError($message, $statusCode = 500, $heading = 'An Error Was Encountered')
     {
         $message = $this->sanitizeMessage($message);
-        $this->logger->error($heading.' --> '.$message, false);
+        $this->logger->error($heading.' --> '.$message);
 
         header('Content-type: text/html; charset='.$this->c['config']['locale']['charset']); // Some times we use utf8 chars in errors.
         echo $this->showHttpError($heading, $message, 'general', $statusCode);
@@ -95,13 +95,13 @@ class Error
     */
     protected function showHttpError($heading, $message, $template = 'general', $statusCode = 500)
     {
-        http_response_code($statusCode);
-        
         $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
         $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
 
         if (defined('STDIN')) { // Cli
             return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
+        } else {
+            http_response_code($statusCode);
         }
         ob_start();
         include TEMPLATES .'errors'. DS .$template.'.php';

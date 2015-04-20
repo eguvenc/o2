@@ -95,7 +95,7 @@ class Router
      *
      * @param string $domain your root domain name
      * 
-     * @return void
+     * @return object Router
      */
     public function domain($domain = '')
     {
@@ -103,6 +103,7 @@ class Router
         if (defined('STDIN')) {
             $this->ROOT = 'Cli'; // Define fake domain to Command Line Interface
         }
+        return $this;
     }
 
     /**
@@ -204,6 +205,7 @@ class Router
     public function match($methods, $match, $rewrite = null, $closure = null)
     {
         $this->route($methods, $match, $rewrite, $closure = null);
+        return $this;
     }
 
     /**
@@ -309,7 +311,7 @@ class Router
     }
 
     /**
-     * Set the Route
+     * Detect class && method names
      *
      * This function takes an array of URI segments as
      * input, and sets the current class/method
@@ -325,10 +327,11 @@ class Router
             return;
         }
         $this->setClass($segments[1]);
-        if (isset($segments[2])) {
+        if ( ! empty($segments[2])) {
             $this->setMethod($segments[2]); // A standard method request
         } else {
             $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
+            $this->setMethod('index');
         }
         $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.    
     }
@@ -489,11 +492,12 @@ class Router
      * 
      * @param string $class classname segment 1
      *
-     * @return void
+     * @return object Router
      */
     public function setClass($class)
     {
         $this->class = $class;
+        return $this;
     }
 
     /**
@@ -501,11 +505,12 @@ class Router
      * 
      * @param string $method name
      *
-     * @return void
+     * @return object Router
      */
     public function setMethod($method)
     {
         $this->method = $method;
+        return $this;
     }
 
     /**
@@ -523,11 +528,12 @@ class Router
      *
      * @param string $directory directory
      * 
-     * @return void
+     * @return object Router
      */
     public function setDirectory($directory)
     {
         $this->directory = $directory;
+        return $this;
     }
 
     /**
@@ -707,17 +713,23 @@ class Router
     }
 
     /**
-     * Assign middleware to current route
+     * Assign middleware(s) to current route
      * 
-     * @param array $middlewares names
+     * @param mixed $middlewares array|string
      * 
-     * @return void
+     * @return object
      */
-    public function middleware(array $middlewares)
+    public function middleware($middlewares)
     {
         $routeLast = end($this->routes[$this->DOMAIN]);
         $route = $routeLast['match'];
-        $this->setMiddlewares($middlewares, $route, array());
+
+        if (is_array($middlewares)) {
+            $this->setMiddlewares($middlewares, $route, array());
+            return;
+        }
+        $this->setMiddleware($middlewares, $route, array());
+        return $this;
     }
 
     /**
@@ -732,13 +744,27 @@ class Router
     protected function setMiddlewares(array $middlewares, $route, $options)
     {
         foreach ($middlewares as $value) {
-            $this->attach[$this->DOMAIN][] = array(
-                'name' => $value, 
-                'options' => $options,
-                'route' => trim($route, '/'), 
-                'attachedRoute' => trim($route)
-            );
+            $this->setMiddleware($value, $route, $options);
         }
+    }
+
+    /**
+     * Set middleware
+     * 
+     * @param string $middleware name
+     * @param string $route      curent route
+     * @param array  $options    arguments
+     *
+     * @return void
+     */
+    protected function setMiddleware($middleware, $route, $options)
+    {
+        $this->attach[$this->DOMAIN][] = array(
+            'name' => $middleware,
+            'options' => $options,
+            'route' => trim($route, '/'), 
+            'attachedRoute' => trim($route)
+        );
     }
 
     /**

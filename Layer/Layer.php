@@ -116,8 +116,7 @@ class Layer
 
         $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
-
-        $this->c['router']->setMethod('index');  //  Set default method otherwise we get 404 error if layer uri method not choosed
+        
         $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
         $this->c['router']->init();
     }

@@ -39,34 +39,23 @@ use Obullo\Application\Middleware;
 
 class Hello extends Middleware
 {
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
-        $this->c['response']->write('<pre>Hello im a <b>before</b> filter of load() method.</pre>');
+        $this->c['response']->write('<pre>Hello im a <b>before</b> middleware of load() method.</pre>');
 
         $this->next->load();
 
-        $this->c['response']->write('<pre>Hello im a <b>after</b> filter of load() method.</pre>');
+        $this->c['response']->write('<pre>Hello im a <b>after</b> middleware of load() method.</pre>');
     }
 
-    /**
-     *  Call action
-     * 
-     * @return void
-     */
     public function call()
     {
-        $this->c['response']->write('<pre>Hello im a <b>before</b> filter of call() method.</pre>');
+        $this->c['response']->write('<pre>Hello im a <b>before</b> middleware of index method.</pre>');
 
         $this->next->call();
 
-        $this->c['response']->write('<pre>Hello im a <b>after</b> filter of call() method.</pre>');
+        $this->c['response']->write('<pre>Hello im a <b>after</b> middleware of index method.</pre>');
     }
-
 }
 
 /* Location: .Http/Middlewares/Hello.php */
@@ -135,13 +124,8 @@ use Obullo\Application\Middlewares\UnderMaintenanceTrait;
 
 class Maintenance extends Middleware
 {
-    use UnderMaintenanceTrait;   // You can add / remove addons.
+    use UnderMaintenanceTrait;
 
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
         $this->domainIsDown();
@@ -149,11 +133,6 @@ class Maintenance extends Middleware
         $this->next->load();
     }
 
-    /**
-     *  Call action
-     * 
-     * @return void
-     */
     public function call()
     {
         $this->next->call();
@@ -409,21 +388,11 @@ class Request extends Middleware
 {
     use BenchmarkTrait;
 
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
         $this->next->load();
     }
 
-    /**
-     *  Call action
-     * 
-     * @return void
-     */
     public function call()
     {
         $this->benchmarkStart();
@@ -527,7 +496,7 @@ return array(
 
     'cookie' => [
         'name'   =>'locale',               // Translation value cookie name
-        'domain' => $c['env']['COOKIE_DOMAIN.NULL'], // Set to .your-domain.com for site-wide cookies
+        'domain' => $c['env']['COOKIE_DOMAIN.null'], // Set to .your-domain.com for site-wide cookies
         'expire' => (365 * 24 * 60 * 60),  // 365 day
         'secure' => false,                 // Cookie will only be set if a secure HTTPS connection exists.
         'httpOnly' => false,               // When true the cookie will be made accessible only 
@@ -614,7 +583,6 @@ Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından
 ##### Çalıştırma
 
 Aşağıdaki örnek genel ziyaretçiler route grubu için RewriteLocale katmanını çalıştırır.
-
 
 ```php
 $c['router']->group(
@@ -717,7 +685,7 @@ $c['app']->middleware(new Http\Middlewares\Request);
 /* Location: .app/middlewares.php */
 ```
 
-Katman evrensel olarak eklendiğinde tüm http POST isteklerinde çalışır. Fakat çalışmasını istemediğiniz yerlerde katmanı Controller sınıfı içerisinde geçerli metot üzerinden  dipnotlar ( annotations ) yardımı ile kaldırabilirsiniz.
+Katman evrensel olarak eklendiğinde tüm http POST isteklerinde çalışır. Fakat çalışmasını <b>istemediğiniz</b> metotlarda katmanı aşağıdaki gibi dipnotlar ( annotations ) yardımı ile kaldırabilirsiniz.
 
 ```php
 /**
@@ -736,4 +704,25 @@ public function update()
 }
 ```
 
-Eğer Csrf doğrulama katmanının uygulamanın sadece belirli yerlerinde çalışmasını istiyorsanız katman ismini <kbd>app/routes.php</kbd> dosyasına ekleyin.
+Eğer Csrf katmanının uygulamanın sadece belirli yerlerinde doğrulama istiyorsanız aşağıdaki gibi katman ismini <kbd>app/routes.php</kbd> dosyasına ekleyin.
+
+```php
+$c['router']->group(
+    [
+        'name' => 'Membership', 
+        'domain' => $c['config']['domain']['mydomain.com'], 
+        'middleware' => array('Maintenance')
+    ],
+    function () use ($c) {
+
+        $this->match(['get', 'post'], 'accounts/orders/post')->middleware("Csrf");
+        $this->match(['get', 'post'], 'accounts/orders/delete')->middleware("Csrf");
+
+        $this->get('accounts/orders/list');
+
+        $this->attach('.*');
+    }
+);
+```
+
+Bu örnekte sadece üye hesapları modülü altında siparişler sınıfına ait post metodunda csrf katmanını çalıştırmış olduk.

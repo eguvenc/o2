@@ -65,20 +65,11 @@ class Csrf
         $this->config = $c['config']->load('security');
         $this->refresh = $this->config['csrf']['token']['refresh'];
         $this->tokenName = $this->config['csrf']['token']['name'];
-        $this->init();
+        $this->tokenData = $this->session->get($this->tokenName);
+        $this->setCsrfToken();
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf Class Initialized');
-    }
-
-    /**
-     * Initalizer csrf
-     * 
-     * @return void
-     */
-    public function init()
-    {
-        $this->tokenData = $this->session->get($this->tokenName);
     }
 
     /**
@@ -88,8 +79,8 @@ class Csrf
      */
     public function verify()
     {
-        if ($this->c['request']->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
-            return $this->setSession();
+        if ($this->setCsrfToken()) {
+            return true;
         }
         if ( ! isset($_POST[$this->tokenName]) 
             OR ! isset($this->tokenData['value'])
@@ -97,16 +88,25 @@ class Csrf
         ) {
             return false;
         }
-                                          // We kill this since we're done and we don't want to
-                                          // polute the _POST array
-        unset($_POST[$this->tokenName]);  // Nothing should last forever
-
-        $this->refreshToken();
+        unset($_POST[$this->tokenName]); // We kill this since we're done and we don't want to  polute the _POST array
 
         $this->logger->channel('security');
         $this->logger->debug('Csrf token verified');
-
         return true;
+    }
+
+    /**
+     * Set csrf token if method not POST
+     *
+     * @return bool
+     */
+    protected function setCsrfToken()
+    {
+        if ($this->c['request']->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
+            $this->setSession();     // Set token to session if we have empty data
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -114,7 +114,7 @@ class Csrf
      *
      * @return object
      */
-    public function setSession()
+    protected function setSession()
     {
         if (empty($this->tokenData['value'])) {
             $this->tokenData = ['value' => $this->generateHash(), 'time' => time()];
@@ -123,6 +123,7 @@ class Csrf
             $this->logger->channel('security');
             $this->logger->debug('Csrf token session set');
         }
+        $this->refreshToken();
         return $this;
     }
 

@@ -577,7 +577,7 @@ $c['router']->group(
 
 Aşağıdaki örnek tek bir iz için katmanlar tayin etmenizi sağlar.
 
-$router->get('hello$', 'welcome/index')->middleware(['Https']);
+$router->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
 
 Eğer çok fazla güvenli adresleriniz varsa onları aşağıdaki gibi tanımlamak daha mantıklı olacaktır.
 
@@ -587,7 +587,9 @@ $c['router']->group(
     ['name' => 'Secure', 'domain' => 'framework', 'middleware' => array('Https')],
     function () {
 
-        $this->get('orders/pay');
+        $this->match(['get', 'post'], 'orders/pay')->middleware('Csrf');
+        $this->match(['post'], 'orders/pay/post')->middleware('Csrf');
+        
         $this->get('orders/bank_transfer');
         $this->get('hello$', 'welcome/index');
     }
