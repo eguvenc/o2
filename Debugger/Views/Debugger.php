@@ -292,7 +292,7 @@ $getDebuggerURl = function ($method = 'console') {
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
+ * @link      http://obullo.com/package/debugger
  */
 var ajax = {
     post : function(url, closure, params){
@@ -419,7 +419,7 @@ function getCookie(cname) {
         $ENVIRONMENTS['COOKIE'] = isset($_COOKIE) ? $_COOKIE : [];
         $ENVIRONMENTS['SESSION'] = isset($_SESSION) ? $_SESSION : [];
         $ENVIRONMENTS['SERVER'] = isset($_SERVER) ? $_SERVER : [];
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers();
+        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers->all();
         $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
 
         $output = '';

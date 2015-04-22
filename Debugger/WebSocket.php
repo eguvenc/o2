@@ -154,7 +154,7 @@ class WebSocket
     {
         $ENVIRONMENTS = $this->buildSuperGlobals();
 
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers();
+        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers->all();
         $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
 
         $output = '';

@@ -34,7 +34,7 @@ class Headers
     /**
      * Get request header
      *
-     * e.g. echo $this->c['request']->headers->get('Host');
+     * E.g. echo $this->c['request']->headers->get('Host');
      * 
      * @param string $key header key
      * 
@@ -68,10 +68,8 @@ class Headers
     protected function parseHeaders()
     {
         if (function_exists('getallheaders')) {
-
             $this->headers = getallheaders();
-
-        } else {  // If http server is not Apache ?
+        } else {                                // If http server is not Apache ?
 
             foreach ($_SERVER as $name => $value) {
                 if (substr($name, 0, 5) == 'HTTP_') {
