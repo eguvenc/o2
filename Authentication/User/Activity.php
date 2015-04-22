@@ -15,7 +15,7 @@ use Obullo\Authentication\UserService;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Activity
+class Activity
 {
     /**
      * Container

@@ -596,6 +596,8 @@ $c['router']->group(
 );
 ```
 
+> **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olur. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
+
 #### Creating Maintenance Filters
 
 Maintenance filters display maintenance page using configured maintenance function.

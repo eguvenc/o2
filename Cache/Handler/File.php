@@ -33,8 +33,12 @@ class File implements CacheHandlerInterface
      */
     public function __construct(Container $c)
     {
-        $this->filePath = ROOT. str_replace('/', DS, trim($c['config']->load('cache/file')['path'], '/')) . DS;
+        $this->filePath = $c['config']->load('cache/file')['path'];
+        $filePath = ltrim($this->filePath, '/');
 
+        if (strpos($filePath, 'resources') === 0) {
+            $this->filePath = ROOT. str_replace('/', DS, $filePath) . DS;
+        }
         if ( ! is_writable($this->filePath)) {
             throw new RunTimeException(
                 sprintf(

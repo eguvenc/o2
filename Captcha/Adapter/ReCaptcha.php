@@ -2,6 +2,7 @@
 
 namespace Obullo\Captcha\Adapter;
 
+use Obullo\Container\Container;
 use Obullo\Captcha\CaptchaResult;
 use Obullo\Captcha\AbstractAdapter;
 use Obullo\Captcha\AdapterInterface;
@@ -22,7 +23,7 @@ use Obullo\Captcha\AdapterInterface;
  * @link      http://obullo.com/docs/captcha
  * @see       https://www.google.com/recaptcha/intro/index.html
  */
-Class ReCaptcha extends AbstractAdapter implements AdapterInterface
+class ReCaptcha extends AbstractAdapter implements AdapterInterface
 {
     /**
      * Api data
@@ -59,12 +60,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * @var array
      * @see https://developers.google.com/recaptcha/docs/verify
      */
-    protected $errorCodes = array(
-        self::FAILURE_MISSING_INPUT_SECRET   => 'The secret parameter is missing.',
-        self::FAILURE_INVALID_INPUT_SECRET   => 'The secret parameter is invalid or malformed.',
-        self::FAILURE_MISSING_INPUT_RESPONSE => 'The response parameter is missing.',
-        self::FAILURE_INVALID_INPUT_RESPONSE => 'The response parameter is invalid or malformed.'
-    );
+    protected $errorCodes = array();
 
     /**
      * Captcha html
@@ -76,18 +72,21 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct($c, array $params = array())
+    public function __construct(Container $c)
     {
-        if (sizeof($params) == 0) {
-            $params = $c['config']->load('captcha/recaptcha');
-        }
         $this->c = $c;
-        $this->config = $params;
-        $this->tempConfig = $params;
+        $this->config = $c['config']->load('recaptcha/recaptcha');
 
+        $this->c['translator']->load('captcha');
+
+        $this->errorCodes = array(
+            self::FAILURE_MISSING_INPUT_SECRET   => $this->c['translator']['OBULLO:RECAPTCHA:MISSING_INPUT_SECRET'],
+            self::FAILURE_INVALID_INPUT_SECRET   => $this->c['translator']['OBULLO:RECAPTCHA:INVALID_INPUT_SECRET'],
+            self::FAILURE_MISSING_INPUT_RESPONSE => $this->c['translator']['OBULLO:RECAPTCHA:MISSING_INPUT_RESPONSE'],
+            self::FAILURE_INVALID_INPUT_RESPONSE => $this->c['translator']['OBULLO:RECAPTCHA:INVALID_INPUT_RESPONSE']
+        );
         parent::__construct($c);
     }
 
@@ -101,6 +100,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         if ($this->config['user']['autoSendIp']) {
             $this->setUserIp($this->c['request']->getIpAddress());
         }
+        $this->validationSet();
         $this->buildHtml();
     }
 
@@ -197,6 +197,16 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Get captcha input name
+     * 
+     * @return string name
+     */
+    public function getInputName()
+    {
+        return $this->config['form']['input']['attributes']['name'];
+    }
+
+    /**
      * Get javascript link
      * 
      * @return string
@@ -206,10 +216,10 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
         $lang = $this->getLang();
         $link = static::CLIENT_API;
 
-        if (! empty($lang)) {
+        if ( ! empty($lang)) {
             $link = static::CLIENT_API .'?hl='. $lang;
         }
-        print('<script src="'.$link.'" async defer></script>');
+        return '<script src="'.$link.'" async defer></script>';
     }
 
     /**
@@ -217,19 +227,9 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * 
      * @return string html
      */
-    public function printCaptcha()
+    public function printHtml()
     {
-        print($this->html);
-    }
-
-    /**
-     * Create captcha
-     * 
-     * @return void
-     */
-    public function create()
-    {
-        $this->buildHtml();
+        return $this->html;
     }
 
     /**
@@ -239,10 +239,10 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * 
      * @return bool
      */
-    public function check($response = null)
+    public function result($response = null)
     {
         if ($response == null) {
-            $response = $this->c['request']->post($this->config['form']['input']['attributes']['name']);
+            $response = $this->c['request']->post('g-recaptcha-response');
         }
         $response = $this->sendVerifyRequest(
             array(
@@ -251,7 +251,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
                 'remoteip' => $this->getUserIp() // optional
             )
         );
-        return $this->validateCaptcha($response);
+        return $this->validateCode($response);
     }
 
     /**
@@ -261,7 +261,7 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * 
      * @return Captcha\CaptchaResult object
      */
-    protected function validateCaptcha($response)
+    protected function validateCode($response)
     {
         if (isset($response['success'])) {
             if ( ! $response['success']
@@ -278,12 +278,12 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
             }
             if ($response['success'] === true) {
                 $this->result['code'] = CaptchaResult::SUCCESS;
-                $this->result['messages'][] = 'Captcha code has been entered successfully.';
+                $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:SUCCESS'];
                 return $this->createResult();
             }
         }
         $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
-        $this->result['messages'][] = 'The captcha response not found.';
+        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:NOT_FOUND'];
         return $this->createResult();
     }
 
@@ -309,8 +309,18 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     protected function buildHtml()
     {
+        unset($this->config['form']['validation']);
+        foreach ($this->config['form'] as $key => $val) {
+            $this->html .= vsprintf(
+                '<%s %s/>',
+                array(
+                    $key,
+                    $this->buildAttributes($val['attributes'])
+                )
+            );
+        }
         $attributes['data-sitekey'] = $this->getSitekey();
-        $this->html = sprintf(
+        $this->html.= sprintf(
             '<div class="g-recaptcha" %s></div>',
             $this->buildAttributes($attributes)
         );
@@ -333,23 +343,42 @@ Class ReCaptcha extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Generate code
-     * 
-     * @return void
-     */
-    public function generateCode()
-    {
-        return;
-    }
-
-    /**
      * Set validation
      * 
      * @return void
      */
     protected function validationSet()
     {
-        return;
+        if ( ! $this->config['form']['validation']['enabled']) {
+            return;
+        }
+        $label = $this->c['translator']['OBULLO:CAPTCHA:LABEL'];
+        $rules = 'required';
+        $post  = $this->c['request']->isPost();
+
+        if ($this->config['form']['validation']['callback'] AND $post) {  // Add callback if we have http post
+
+            $rules.= '|callback_captcha';  // Add callback validation rule
+
+            $self = $this;
+            $this->c['validator']->func(
+                'callback_captcha',
+                function () use ($self, $label) {
+                    if ($self->result()->isValid() == false) {
+                        $this->setMessage('callback_captcha', $this->c['translator']->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        return false;
+                    }
+                    return true;
+                }
+            );
+        }
+        if ($post) {
+            $this->c['validator']->setRules(
+                $this->config['form']['input']['attributes']['name'],
+                $label,
+                $rules
+            );
+        }
     }
 }
 

@@ -19,7 +19,7 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class User implements UserInterface
+class User implements UserInterface
 {
     public $c;                      // Container
     public $db;                     // Database

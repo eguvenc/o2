@@ -3,7 +3,7 @@
 namespace Obullo\Task;
 
 use Controller;
-use Obullo\Task\Helper\Console;
+use Obullo\Cli\Console;
 
 /**
  * Help Controller

@@ -27,7 +27,7 @@ class CaptchaResult
     /**
      * Has been expired the captcha.
      */
-    const FAILURE_IS_EXPIRED = -1;
+    const FAILURE_EXPIRED = -1;
 
     /**
      * Invalid captcha code.

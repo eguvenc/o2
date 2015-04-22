@@ -71,25 +71,18 @@ abstract class AbstractAdapter
     abstract public function init();
 
     /**
-     * Generate code
+     * Print javascript link
      * 
-     * @return void
+     * @return string
      */
-    abstract protected function generateCode();
+    abstract public function printJs();
 
     /**
-     * Validation set
+     * Print captcha html element
      * 
-     * @return void
+     * @return string
      */
-    abstract protected function validationSet();
-
-    /**
-     * Create captcha and save into captcha
-     *
-     * @return void
-     */
-    abstract public function create();
+    abstract public function printHtml();
 
     /**
      * Check captcha code
@@ -98,14 +91,14 @@ abstract class AbstractAdapter
      * 
      * @return boolean
      */
-    abstract public function check($code);
+    abstract public function result($code);
 
     /**
-     * Print javascript link
+     * Validation set
      * 
-     * @return string
+     * @return void
      */
-    abstract public function printJs();
+    abstract protected function validationSet();
 
     /**
      * Create result.

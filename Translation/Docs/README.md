@@ -180,13 +180,13 @@ If translation notice enabled from your config printing none exist key echo same
 echo $this->translator['asdasdas'];     // gives a notice to you 'translate:asdasdas'
 ```
 
-### Using $this->translator->sprintf($key, $arguments , , , ... );
+### Using $this->translator->get($key, $arguments , , , ... );
 
 Translator class has a <b>sprintf</b> which has provide the same functionality of php sprintf.
 
 ```php
 <?php
-echo $this->translator->sprintf('There are %d monkeys in the %s.', 5, 'tree');
+echo $this->translator->get('There are %d monkeys in the %s.', 5, 'tree');
 
 // Gives There are *5* monkeys in the *tree*.
 ```
@@ -273,7 +273,7 @@ Print translation value.
 
 Checks a translation key of text.
 
-#### $this->translator->sprintf(string $line, args ... );
+#### $this->translator->get(string $line, args ... );
 
 Offers same functionality of php sprintf.
 

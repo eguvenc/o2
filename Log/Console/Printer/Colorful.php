@@ -13,7 +13,7 @@ namespace Obullo\Log\Console\Printer;
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
  * @link      http://obullo.com/package/cli
  */
-Class Colorful
+class Colorful
 {
     /**
      * Log message

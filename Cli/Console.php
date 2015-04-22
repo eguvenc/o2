@@ -1,12 +1,12 @@
 <?php
 
-namespace Obullo\Task\Helper;
+namespace Obullo\Cli;
 
 /**
- * Console Helper
+ * Console Colors
  * 
- * @category  Tasks
- * @package   Helper
+ * @category  Cli
+ * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -165,4 +165,4 @@ class Console
 // END Console class
 
 /* End of file Console.php */
-/* Location: .Obullo/Task/Helper/Console.php */
+/* Location: .Obullo/Cli/Console.php */

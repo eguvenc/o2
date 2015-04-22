@@ -22,20 +22,27 @@ interface AdapterInterface
     public function init();
 
     /**
-     * Create captcha and save into captcha
-     *
-     * @return void
+     * Print captcha element js
+     * 
+     * @return string
      */
-    public function create();
+    public function printJs();
 
     /**
-     * Check captcha code
+     * Print captcha html element
+     * 
+     * @return string
+     */
+    public function printHtml();
+
+    /**
+     * Get captcha results
      * 
      * @param string $code captcha code
      * 
      * @return boolean
      */
-    public function check($code);
+    public function result($code);
 }
 
 

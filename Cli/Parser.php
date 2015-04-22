@@ -6,7 +6,7 @@ use Obullo\Log\Logger;
 use InvalidArgumentException;
 
 /**
- * Parser Class
+ * Console Argument Parser Class
  * 
  * @category  Cli
  * @package   Parser

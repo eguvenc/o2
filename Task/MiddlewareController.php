@@ -4,7 +4,7 @@ namespace Obullo\Task;
 
 use Controller;
 use Obullo\Cli\Parser;
-use Obullo\Task\Helper\Console;
+use Obullo\Cli\Console;
 
 /**
  * Middleware Controller
@@ -37,7 +37,7 @@ class MiddlewareController extends Controller
     public function logo() 
     {
         echo Console::logo("Welcome to Middleware Manager (c) 2015");
-        echo Console::description("Add / Remove modules. For more help type \$php task module help.");
+        echo Console::description("Add / Remove middleware files. For more help type \$php task middleware help.");
     }
 
     /**
@@ -55,7 +55,7 @@ class MiddlewareController extends Controller
             return;
         }
         $middleware = ucfirst($name).'.php';
-        $middlewareFile = OBULLO .'Task'. DS .'Middlewares'. DS .$middleware;
+        $middlewareFile = OBULLO .'Application'. DS .'Middlewares'. DS .$middleware;
 
         if ( ! file_exists($middlewareFile)) {
             echo Console::fail("Middleware '$middleware' does not exists in Obullo/Task/Middlewares folder.");
@@ -69,7 +69,7 @@ class MiddlewareController extends Controller
         copy($middlewareFile, $dest);
         chmod($dest, 0777);
 
-        echo Console::success("New middleware '".$middleware."' added successfully.");
+        echo Console::success("New middleware #$middleware added successfully.");
     }
 
     /**
@@ -89,11 +89,11 @@ class MiddlewareController extends Controller
         $middleware = ucfirst($name).'.php';
 
         if ( ! file_exists(static::getMiddlewarePath())) {
-            echo Console::fail("Middleware '$middleware' does not exists in app/classes/Http/Middlewares folder.");
+            echo Console::fail("Middleware #$middleware does not exists in app/classes/Http/Middlewares folder.");
             return;
         }
         unlink(static::getMiddlewarePath($middleware));
-        echo Console::success("Middleware '".$middleware."' removed successfully.");
+        echo Console::success("Middleware #$middleware removed successfully.");
     }
 
     /**

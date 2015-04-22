@@ -17,7 +17,7 @@ use Obullo\Authentication\AuthResult;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Login
+class Login
 {
     /**
      * Container

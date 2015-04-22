@@ -4,10 +4,10 @@ namespace Obullo\Task;
 
 use Controller;
 use Obullo\Cli\Parser;
+use Obullo\Cli\Console;
 use FilesystemIterator;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use Obullo\Task\Helper\Console;
 
 /**
  * Module Controller
@@ -51,29 +51,40 @@ class ModuleController extends Controller
     public function add()
     {   
         $this->parser->parse(func_get_args());
-        $module = $this->parser->argument('name');
+        $module = strtolower($this->parser->argument('name'));
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
             return;
         }
-        $moduleFolder = OBULLO .'Task'. DS .'Modules'. DS .$module;
+        $moduleFolder = OBULLO .'Application'. DS .'Modules'. DS .$module;
 
+        if (is_dir(MODULES .$module)) {
+            echo Console::fail("Module #$module already exist in .modules/ folder.");
+            return;
+        }
         if ( ! is_dir($moduleFolder)) {
-            echo Console::fail("Module '$module' does not exists in Obullo/Task/Modules folder.");
+            echo Console::fail("Module #$module does not exist in Obullo/Task/Modules folder.");
             return;
         }
         if ( ! is_writable(MODULES)) {
             echo Console::fail("We could not create directory in modules folder please check your write permissions.");
             return;
         }
-        if (is_dir($moduleFolder. DS .'Controllers')) {
-            $this->recursiveCopy($moduleFolder. DS .'Controllers', MODULES .$module);
+        if (is_dir($moduleFolder. DS .'controllers')) {
+            $this->recursiveCopy($moduleFolder. DS .'controllers', MODULES .$module);
         }
-        if (is_dir($moduleFolder. DS .'Tasks')) {
-            $this->recursiveCopy($moduleFolder. DS .'Tasks', MODULES .'tasks'. DS .$module);
+        if (is_dir($moduleFolder. DS .'config')) {
+            $this->recursiveCopy($moduleFolder. DS .'config', APP .'config'. DS .$module);
         }
-        echo Console::success("New module '".$module."' added successfully.");
+        if (is_dir($moduleFolder. DS .'tasks')) {
+            $this->recursiveCopy($moduleFolder. DS .'tasks', MODULES .'tasks'. DS .$module);
+        }
+        if (is_dir($moduleFolder. DS .'service')) {
+            copy($moduleFolder. DS .'service'. DS .ucfirst($module).'.php', APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
+            chmod(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php', 0777);
+        }
+        echo Console::success("New module #$module added successfully.");
     }
 
     /**
@@ -84,29 +95,39 @@ class ModuleController extends Controller
     public function remove()
     {
         $this->parser->parse(func_get_args());
-        $module = $this->parser->argument('name');
+        $module = strtolower($this->parser->argument('name'));
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
             return;
         }
-        $moduleFolder = OBULLO .'Task'. DS .'Modules'. DS .$module;
+        $moduleFolder = OBULLO .'Application'. DS .'Modules'. DS .$module;
 
+        if ( ! is_dir(MODULES .$module)) {
+            echo Console::fail("Module #$module already removed from .modules/ folder.");
+            return;
+        }
+        if ( ! is_dir($moduleFolder)) {
+            echo Console::fail("Module #$module does not exist in Obullo/Task/Modules folder.");
+            return;
+        }
         if ( ! is_writable(MODULES)) {
             echo Console::fail("We could not remove directories in modules folder please check write permissions.");
             return;
         }
-        if ( ! is_dir($moduleFolder)) {
-            echo Console::fail("Module '$module' does not exists in Obullo/Task/Modules folder.");
-            return;
-        }
-        if (is_dir($moduleFolder. DS .'Controllers')) {
+        if (is_dir($moduleFolder. DS .'controllers') AND is_dir(MODULES .$module)) {
             $this->recursiveRemove(MODULES .$module);
         }
-        if (is_dir($moduleFolder. DS .'Tasks')) {
+        if (is_dir($moduleFolder. DS .'config') AND is_dir(APP .'config'. DS .$module)) {
+            $this->recursiveRemove(APP .'config'. DS .$module);
+        }
+        if (is_dir($moduleFolder. DS .'tasks') AND is_dir(MODULES .'tasks'. DS .$module)) {
             $this->recursiveRemove(MODULES .'tasks'. DS .$module);
         }
-        echo Console::success("Module '".$module."' removed successfully.");
+        if (is_dir($moduleFolder. DS .'service') AND is_file(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php')) {
+            unlink(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
+        }
+        echo Console::success("Module #$module removed successfully.");
     }
 
     /**
@@ -123,10 +144,11 @@ class ModuleController extends Controller
         @mkdir($dst); 
         while (false !== ( $file = readdir($dir)) ) { 
             if (( $file != '.' ) && ( $file != '..' )) { 
-                if ( is_dir($src . '/' . $file) ) {
-                    $this->recursiveCopy($src . '/' . $file, $dst . '/' . $file);
+                if ( is_dir($src . DS . $file) ) {
+                    $this->recursiveCopy($src . DS . $file, $dst . DS . $file);
                 } else {
-                    copy($src . '/' . $file, $dst . '/' . $file); 
+                    copy($src . DS . $file, $dst . DS . $file);
+                    chmod($dst . DS . $file, 0777);
                 } 
             } 
         } 

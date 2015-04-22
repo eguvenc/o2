@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Log\Addons;
+namespace Obullo\Log\Filters;
 
 use Obullo\Log\Logger;
 
@@ -46,4 +46,4 @@ trait LogPriorityFilterTrait
 // END LogPriorityFilterTrait File
 /* End of file LogPriorityFilterTrait.php
 
-/* Location: .Obullo/Application/Addons/LogPriorityFilterTrait.php */
+/* Location: .Obullo/Log/Filters/LogPriorityFilterTrait.php */

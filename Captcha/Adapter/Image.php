@@ -21,10 +21,7 @@ use Obullo\Captcha\AdapterInterface;
 class Image extends AbstractAdapter implements AdapterInterface
 {
     public $fonts;      // Actual fonts
-    public $driver;     // Driver type
-    public $imgPath;    // Image dir
     public $imageUrl;   // Captcha image display url with base url
-    public $imgRawUrl;  // Image raw url
     public $width;      // Image width
     public $configFontPath;     // Font path
     public $defaultFontPath;    // Default font path
@@ -34,9 +31,8 @@ class Image extends AbstractAdapter implements AdapterInterface
     
     protected $html = '';       // Captcha html
     protected $config = array();   // Configuration data
-    protected $tempConfig = array();    // Configuration temp data
-    protected $imageId = '';        // Image unique id
-    protected $drivers = array();   // Image captcha drivers
+    protected $imageId = '';      // Image unique id
+    protected $mods = array();    // Image captcha mods
     protected $yPeriod = 12;    // Wave Y axis
     protected $yAmplitude = 14; // Wave Y amplitude
     protected $xPeriod = 11;    // Wave X axis
@@ -49,18 +45,15 @@ class Image extends AbstractAdapter implements AdapterInterface
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param array  $params parameters
+     * @param object $c container
      */
-    public function __construct(Container $c, array $params = array())
+    public function __construct(Container $c)
     {
-        if (sizeof($params) == 0) {
-            $params = $c['config']->load('captcha/image');
-        }
-        $this->c          = $c;
-        $this->config     = $params;
-        $this->tempConfig = $params;
-        $this->drivers    = array('cool', 'secure');
+        $this->c = $c;
+        $this->config = $c['config']->load('captcha/image');
+        $this->mods = array('cool', 'secure');
+        
+        $this->c['translator']->load('captcha');
 
         parent::__construct($c);
     }
@@ -72,37 +65,35 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function init()
     {
-        $this->buildHtml();
         $this->validationSet();
+        $this->buildHtml();
 
-        $this->config          = $this->tempConfig;
-        $this->fonts           = array_keys($this->config['fonts']);
-        $this->imgPath         = APP . str_replace('/', DS, trim($this->config['image']['path'], '/')) . DS;  // replace with DS
-        $this->imgRawUrl       = $this->c['uri']->getBaseUrl($this->config['image']['path'] . DS); // add Directory Seperator ( DS )
+        $this->fonts = array_keys($this->config['fonts']);
+        $this->imageUrl = $this->c['uri']->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( DS )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
         $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'Fonts' . DS;
     }
 
     /**
-     * Set driver type
+     * Set captcha mode
      * 
      * Types: "secure" or "cool"
      * 
-     * @param string $driver string
+     * @param string $mod string
      * 
      * @return object
      */
-    public function setDriver($driver)
+    public function setMod($mod)
     {
-        if ( ! $this->isAllowedDriver($driver)) {
+        if ( ! $this->isAllowedMod($mod)) {
             throw new RuntimeException(
                 sprintf(
-                    'You can not use an unsupported driver. It must be chosen from the following drivers "%s".',
-                    implode(',', $this->drivers)
+                    'Unsupported mod. You can choose from the following list "%s".',
+                    implode(',', $this->mods)
                 )
             );
         }
-        $this->config['driver'] = $driver;
+        $this->config['mod'] = $mod;
         return $this;
     }
 
@@ -129,9 +120,8 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function setNoiseColor($color)
     {
-        if (($color = $this->isValidColors($color)) === true) {
-            $this->config['text']['colors']['noise'] = $color;
-        }
+        $validColors = $this->isValidColors($color);
+        $this->config['text']['colors']['noise'] = $validColors;
         return $this;
     }
 
@@ -145,10 +135,21 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function setColor($color)
     {
-        if (($color = $this->isValidColors($color)) === true) {
-            $this->config['text']['colors']['text'] = $color;
-        }
+        $validColors = $this->isValidColors($color);
+        $this->config['text']['colors']['text'] = $validColors;
         return $this;
+    }
+
+    /**
+     * Set imagetruecolor() on / off
+     * 
+     * @param boolean $bool enable / disable true color feature
+     *
+     * @return void
+     */
+    public function setTrueColor($bool)
+    {
+        $this->config['image']['trueColor'] = $bool;
     }
 
     /**
@@ -301,6 +302,16 @@ class Image extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Get captcha input name
+     * 
+     * @return string name
+     */
+    public function getInputName()
+    {
+        return $this->config['form']['input']['attributes']['name'];
+    }
+
+    /**
      * Get captcha image url
      * 
      * @return string image asset url
@@ -321,7 +332,7 @@ class Image extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Get the code generated for CAPTCHA.
+     * Get the current captcha code
      * 
      * @return string
      */
@@ -331,15 +342,15 @@ class Image extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Is permitted driver
+     * Is permitted mod
      * 
-     * @param string $driver driver
+     * @param string $mod mod
      * 
      * @return boolean
      */
-    public function isAllowedDriver($driver)
+    public function isAllowedMod($mod)
     {
-        if ( ! in_array(strtolower($driver), $this->drivers)) {
+        if ( ! in_array(strtolower($mod), $this->mods)) {
             return false;
         }
         return true;
@@ -357,7 +368,6 @@ class Image extends AbstractAdapter implements AdapterInterface
         if ( ! is_array($colors)) {
             $colors = array($colors);
         }
-
         foreach ($colors as $val) {
             if ( ! isset($this->config['colors'][$val])) {
                 $invalidColors[] = $val;
@@ -384,7 +394,7 @@ class Image extends AbstractAdapter implements AdapterInterface
     {
         $code  = '';
         $defaultPool = $this->config['characters']['default']['pool'];
-        $possible    = $this->config['characters']['pools'][$defaultPool];
+        $possible = $this->config['characters']['pools'][$defaultPool];
 
         for ($i = 0; $i < $this->config['characters']['length']; $i++) {
             $code .= mb_substr(
@@ -421,8 +431,7 @@ class Image extends AbstractAdapter implements AdapterInterface
                 'expiration' => time() + $this->config['image']['expiration']
             )
         );
-        // $this->buildHtml();
-        $this->init(); // Variables are reset.
+        $this->init(); // Reset variables
     }
 
     /**
@@ -437,7 +446,7 @@ class Image extends AbstractAdapter implements AdapterInterface
         $this->calculateWidth();
 
         // PHP.net recommends imagecreatetruecolor(), but it isn't always available
-        if (function_exists('imagecreatetruecolor') AND $this->config['image']['truecolor']) {
+        if (function_exists('imagecreatetruecolor') AND $this->config['image']['trueColor']) {
             $this->image = imagecreatetruecolor($this->width, $this->config['image']['height']);
         } else {
             $this->image = imagecreate($this->width, $this->config['image']['height']) or die('Cannot initialize new GD image stream');
@@ -501,8 +510,7 @@ class Image extends AbstractAdapter implements AdapterInterface
         if (strpos($fonts[$randFont], '.ttf')) {
             $fontPath = $this->configFontPath . $this->config['fonts'][$fonts[$randFont]];
         }
-        
-        if ($this->config['driver'] != 'cool') {
+        if ($this->config['mod'] != 'cool') {
             $wHvalue = $this->width / $this->config['image']['height'];
             $wHvalue = $this->config['image']['height'] * $wHvalue;
             for ($i = 0; $i < $wHvalue; $i++) {
@@ -520,11 +528,7 @@ class Image extends AbstractAdapter implements AdapterInterface
         $x = ($this->width - $textbox[4]) / 2;
         $y = ($this->config['image']['height'] - $textbox[5]) / 2;
 
-        // Generate an unique image id using the session id, an unique id and time.
-        $this->setImageId($imageUniqId = md5($this->session->get('session_id') . uniqid(time())));
-
-        $this->imgName  = $imageUniqId . '.' . $this->config['image']['type'];
-        $this->imageUrl = $this->imgRawUrl . $this->imgName;
+        $this->setImageId(md5($this->session->get('session_id') . uniqid(time())));  // Generate an unique image id using the session id, an unique id and time.
 
         imagettftext($this->image, $this->config['font']['size'], 0, $x, $y, $this->textColor, $fontPath, $this->getCode()) or die('Error in imagettftext function');
     }
@@ -536,7 +540,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     protected function imageLine()
     {
-        if ($this->config['driver'] != 'cool') {
+        if ($this->config['mod'] != 'cool') {
 
             $wHvalue = $this->width / $this->config['image']['height'];
             $wHvalue = $wHvalue / 2;
@@ -573,7 +577,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      * 
      * @return Captcha\CaptchaResult object
      */
-    public function check($code = null)
+    public function result($code = null)
     {
         if ($code == null) {
             $code = $this->c['request']->post($this->config['form']['input']['attributes']['name']);
@@ -581,9 +585,8 @@ class Image extends AbstractAdapter implements AdapterInterface
         if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
         }
-        // Last failure.
         $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
-        $this->result['messages'][] = 'The captcha code not found.';
+        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:NOT_FOUND'];
         return $this->createResult();
     }
 
@@ -598,24 +601,23 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function validateCode($data, $code)
     {
         if ($data['expiration'] < time()) { // Expiration time of captcha ( second )
-            // Remove captcha data from session.
-            $this->session->remove($this->config['form']['input']['attributes']['name']);
 
-            $this->result['code'] = CaptchaResult::FAILURE_IS_EXPIRED;
-            $this->result['messages'][] = 'The captcha code has expired.';
+            $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove captcha data from session.
+
+            $this->result['code'] = CaptchaResult::FAILURE_EXPIRED;
+            $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:EXPIRED'];
             return $this->createResult();
         }
 
-        if ($code == $data['code']) { // Is the code correct?
-            // Remove captcha data from session.
-            $this->session->remove($this->config['form']['input']['attributes']['name']);
+        if ($code == $data['code']) {  // Is code correct ?
+            $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove
 
             $this->result['code'] = CaptchaResult::SUCCESS;
-            $this->result['messages'][] = 'Captcha code has been entered successfully.';
+            $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:SUCCESS'];
             return $this->createResult();
         }
         $this->result['code'] = CaptchaResult::FAILURE_INVALID_CODE;
-        $this->result['messages'][] = 'Invalid captcha code.';
+        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:INVALID'];
         return $this->createResult();
     }
 
@@ -627,13 +629,15 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function buildHtml()
     {
         foreach ($this->config['form'] as $key => $val) {
-            $this->html .= vsprintf(
-                '<%s %s/>',
-                array(
-                    $key,
-                    $this->buildAttributes($val['attributes'])
-                )
-            );
+            if (isset($val['attributes'])) {
+                $this->html .= vsprintf(
+                    '<%s %s/>',
+                    array(
+                        $key,
+                        $this->buildAttributes($val['attributes'])
+                    )
+                );
+            }
         }
     }
 
@@ -647,7 +651,6 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function buildAttributes(array $attributes)
     {
         $attr = array();
-
         foreach ($attributes as $key => $value) {
             $attr[] = $key.'="'.$value.'"';
         }
@@ -659,9 +662,19 @@ class Image extends AbstractAdapter implements AdapterInterface
      * 
      * @return string html
      */
-    public function printCaptcha()
+    public function printHtml()
     {
-        print($this->html);
+        return $this->html;
+    }
+
+    /**
+     * Print refresh button tag
+     * 
+     * @return string
+     */
+    public function printRefreshButton()
+    {
+        return sprintf($this->config['form']['refresh']['button'], $this->c['translator']['OBULLO:CAPTCHA:REFRESH_BUTTON_LABEL']);
     }
 
     /**
@@ -671,7 +684,12 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function printJs()
     {
-        return;
+        return sprintf(
+            $this->config['form']['refresh']['script'],
+            $this->config['form']['img']['attributes']['id'],
+            $this->config['form']['img']['attributes']['src'],
+            $this->config['form']['input']['attributes']['id']
+        );
     }
 
     /**
@@ -681,11 +699,36 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     protected function validationSet()
     {
-        $this->c['validator']->setRules(
-            $this->config['form']['input']['attributes']['name'],
-            'Captcha',
-            'required|exact('.$this->config['characters']['length'].')|trim'
-        );
+        if ( ! $this->config['form']['validation']['enabled']) {
+            return;
+        }
+        $label = $this->c['translator']['OBULLO:CAPTCHA:LABEL'];
+        $rules = 'required|exact('.$this->config['characters']['length'].')|trim';
+        $post  = $this->c['request']->isPost();
+
+        if ($this->config['form']['validation']['callback'] AND $post) {  // Add callback if we have http post
+
+            $rules.= '|callback_captcha';  // Add callback validation rule
+
+            $self = $this;
+            $this->c['validator']->func(
+                'callback_captcha',
+                function () use ($self, $label) {
+                    if ($self->result()->isValid() == false) {
+                        $this->setMessage('callback_captcha', $this->c['translator']->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        return false;
+                    }
+                    return true;
+                }
+            );
+        }
+        if ($post) {
+            $this->c['validator']->setRules(
+                $this->config['form']['input']['attributes']['name'],
+                $label,
+                $rules
+            );
+        }
     }
 }
 

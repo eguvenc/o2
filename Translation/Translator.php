@@ -131,7 +131,6 @@ class Translator implements ArrayAccess
     {
         if (! is_string($key)) {
             $this->c['logger']->warning('Translate key type error the key must be string.');
-
             return $key;
         }
         if ( ! isset($this->translateArray[$key])) {
@@ -140,9 +139,8 @@ class Translator implements ArrayAccess
             if ($this->config['fallback']['enabled'] AND isset($this->fallbackArray[$key])) {    // Fallback translation is exist ?
                 return $this->fallbackArray[$key];      // Get it.
             }
-            return $notice . $key;
+            return $notice.$key;
         }
-
         return $this->translateArray[$key];
     }
 
@@ -253,26 +251,27 @@ class Translator implements ArrayAccess
     }
 
     /**
-     * Get formatted translator item
+     * Gets a parameter or an object.
      *
-     * @return string
+     * @return mixed The value of the parameter or an object
      */
-    public function sprintf()
+    public function get()
     {
-        $args = func_get_args();
+        $count = func_num_args();
+        $args  = func_get_args();
+
         $item = $args[0];
         if (strpos($item, 'translate:') === 0) {    // Do we need to translate the message ?
             $item = substr($item, 10);              // Grab the variable
         }
         if (isset($this->translateArray[$item])) {
-            if (sizeof($args) > 1) {
+            if ($count > 1) {
                 unset($args[0]);
                 return vsprintf($this->translateArray[$item], $args);
             }
             return $this->translateArray[$item];
         }
         $translateNotice = ($this->config['debug']) ? static::NOTICE : '';
-
         return $translateNotice . $item;  // Let's notice the developers this line has no translate text
     }
 

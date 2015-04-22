@@ -64,14 +64,13 @@ abstract class AbstractAdapter
      */
     public function verifyPassword($plain, $hash)
     {
-        $passwordHash = array();
         $cost = $this->config['security']['passwordNeedsRehash']['cost'];
         $password = $this->c['password'];
 
         if ($password->verify($plain, $hash)) {
             if ($password->needsRehash($hash, array('cost' => $cost))) {
                 $value = $password->hash($plain, array('cost' => $cost));
-                return $passwordHash = array('hash' => $value);
+                return array('hash' => $value);
             }
             return true;
         }

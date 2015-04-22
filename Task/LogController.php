@@ -4,7 +4,7 @@ namespace Obullo\Task;
 
 use Controller;
 use Obullo\Cli\Parser;
-use Obullo\Task\Helper\Console;
+use Obullo\Cli\Console;
 
 /**
  * Log Controller

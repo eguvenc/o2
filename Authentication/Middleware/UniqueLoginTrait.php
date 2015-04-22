@@ -1,13 +1,13 @@
 <?php
 
-namespace Obullo\Authentication\Addons;
+namespace Obullo\Authentication\Middleware;
 
 use Obullo\Container\Container;
 
 trait UniqueLoginTrait
 {
      /**
-     * Terminates multiple login sessions.
+     * Terminates multiple sessions.
      * 
      * @return void
      */
@@ -40,4 +40,4 @@ trait UniqueLoginTrait
 // END UniqueLoginTrait.php File
 /* End of file UniqueLoginTrait.php
 
-/* Location: .Obullo/Authentication/Addons/UniqueLoginTrait.php */
+/* Location: .Obullo/Authentication/Middleware/UniqueLoginTrait.php */

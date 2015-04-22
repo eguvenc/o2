@@ -17,7 +17,7 @@ use Obullo\Cache\Handler\CacheHandlerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-Class Redis extends AbstractStorage implements StorageInterface
+class Redis extends AbstractStorage implements StorageInterface
 {
     protected $c;               // Container
     protected $cache;           // Cache class

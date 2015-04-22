@@ -249,6 +249,15 @@ class Container implements ArrayAccess
             if ( ! isset($this->registeredServices[$serviceName])) {
                 $service = new $serviceClass($this);
                 $service->register($this, $params, $matches);
+
+                if ( ! $this->exists($data['cid'])) {
+                    throw new RuntimeException(
+                        sprintf(
+                            "%s service configuration error service class name must be same with container key.",
+                            $serviceName
+                        )
+                    );
+                }
                 $this->registeredServices[$serviceName] = true;
             }
         }
@@ -487,23 +496,23 @@ class Container implements ArrayAccess
      *
      * @return callable The wrapped callable
      */
-    public function extend($cid, $callable)
-    {
-        if ( ! isset($this->keys[$cid])) {
-            throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $cid));
-        }
-        if ( ! is_object($this->values[$cid]) || ! method_exists($this->values[$cid], '__invoke')) {
-            throw new InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $cid));
-        }
-        if ( ! is_object($callable) || ! method_exists($callable, '__invoke')) {
-            throw new InvalidArgumentException('Extension service definition is not a Closure or invokable object.');
-        }
-        $factory = $this->values[$cid];
-        $extended = function ($param) use ($callable, $factory) {
-            return $callable($factory($param), $param);
-        };
-        return $this[$cid] = $extended;
-    }
+    // public function extend($cid, $callable)
+    // {
+    //     if ( ! isset($this->keys[$cid])) {
+    //         throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $cid));
+    //     }
+    //     if ( ! is_object($this->values[$cid]) || ! method_exists($this->values[$cid], '__invoke')) {
+    //         throw new InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $cid));
+    //     }
+    //     if ( ! is_object($callable) || ! method_exists($callable, '__invoke')) {
+    //         throw new InvalidArgumentException('Extension service definition is not a Closure or invokable object.');
+    //     }
+    //     $factory = $this->values[$cid];
+    //     $extended = function ($param) use ($callable, $factory) {
+    //         return $callable($factory($param), $param);
+    //     };
+    //     return $this[$cid] = $extended;
+    // }
 
     /**
      * Returns all defined value names.

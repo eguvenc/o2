@@ -14,16 +14,23 @@ use Controller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/form
  */
-Class Form
+class Form
 {
     /**
-     * Static form operation constants
+     * Form operation keys
      */
     const NOTICE  = 'notice';
     const STATUS  = 'status';
     const MESSAGE = 'message';
     const SUCCESS = 'success';
     const ERRORS  = 'errors';
+    /**
+     * Form status values
+     */
+    const NOTICE_ERROR = 0;
+    const NOTICE_SUCCESS = 1;
+    const NOTICE_WARNING = 2;
+    const NOTICE_INFO = 3;
 
     /**
      * Container
@@ -70,7 +77,7 @@ Class Form
     public function success($message)
     {
         $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = NOTICE_SUCCESS;
+        $this->messages[static::SUCCESS] = static::NOTICE_SUCCESS;
     }
 
     /**
@@ -83,7 +90,7 @@ Class Form
     public function error($message)
     {
         $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = NOTICE_ERROR;
+        $this->messages[static::SUCCESS] = static::NOTICE_ERROR;
     }
 
     /**
@@ -96,7 +103,7 @@ Class Form
     public function info($message)
     {
         $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = NOTICE_INFO;
+        $this->messages[static::SUCCESS] = static::NOTICE_INFO;
     }
 
     /**
@@ -109,7 +116,7 @@ Class Form
     public function warning($message)
     {
         $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = NOTICE_WARNING;
+        $this->messages[static::SUCCESS] = static::NOTICE_WARNING;
     }
 
     /**
@@ -171,11 +178,11 @@ Class Form
      * Set notification message and status
      * 
      * @param string $message form message
-     * @param int    $status  status
+     * @param int    $status  status default NOTICE_ERROR
      * 
      * @return void
      */
-    public function setMessage($message, $status = NOTICE_ERROR)
+    public function setMessage($message, $status = 0)
     {
         $this->status($status);
         $this->messages[static::MESSAGE] = (string)$message;
@@ -202,7 +209,7 @@ Class Form
         return $this->messages[static::MESSAGE] = str_replace(
             array('{class}','{icon}','{message}'), 
             array($array['class'], $array['icon'], $message),
-            $this->params[NOTICE_MESSAGE]
+            $this->params[static::MESSAGE]
         );
     }
 

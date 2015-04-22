@@ -45,16 +45,6 @@ define('APP_COMPONENTS', APP .'components.php');
 define('APP_EVENTS', APP .'events.php');
 define('APP_ROUTES', APP .'routes.php');
 define('APP_MIDDLEWARES', APP .'middlewares.php');
-/*
-|---------------------------------------------------------------
-| NOTIFICATIONS
-|---------------------------------------------------------------
-*/
-define('NOTICE_MESSAGE', 'message'); // Form class message key
-define('NOTICE_ERROR', 0);
-define('NOTICE_SUCCESS', 1);
-define('NOTICE_WARNING', 2);
-define('NOTICE_INFO', 3);
 
 // END Constants.php File
 /* End of file Constants.php

@@ -25,7 +25,7 @@ abstract class AbstractStorage
      */
     public function setIdentifier($identifier)
     {
-        $this->session->set($this->getCacheKey().'/Identifier', $identifier.':'.$this->getLoginId());
+        $this->session->set($this->getCacheKey().'/Identifier', $identifier);
     }
 
     /**
@@ -37,7 +37,7 @@ abstract class AbstractStorage
     {
         $id = $this->session->get($this->getCacheKey().'/Identifier');
 
-        return empty($id) ? '__empty' : $id;
+        return empty($id) ? '__empty' : $id.':'.$this->getLoginId();
     }
 
     /**
@@ -147,11 +147,11 @@ abstract class AbstractStorage
      */
     public function getUserId()
     {
-        $identifier = $this->getIdentifier();
+        $identifier = $this->session->get($this->getCacheKey().'/Identifier');
         if (empty($identifier)) {
             return '__empty';
         }
-        return strstr($identifier, ':', true); // user@example.com
+        return $identifier; // user@example.com
     }
 
     /**

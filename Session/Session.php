@@ -103,10 +103,8 @@ class Session
      */
     protected function setCookieParams()
     {
-        $lifetime = ($this->config['cookie']['lifetime']) ? 0 : $this->config['session']['lifetime'];
-
         session_set_cookie_params(
-            $lifetime,
+            $this->config['session']['lifetime'],
             $this->config['cookie']['path'],
             $this->config['cookie']['domain'],
             $this->config['cookie']['secure'], 

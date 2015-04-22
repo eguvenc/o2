@@ -4,7 +4,7 @@ namespace Obullo\Task;
 
 use Controller;
 use RuntimeException;
-use Obullo\Task\Helper\Console;
+use Obullo\Cli\Console;
 
 class DebuggerController extends Controller
 {

@@ -15,6 +15,18 @@ namespace Obullo\Flash;
 class Session
 {
     /**
+     * Message key
+     */
+    const MESSAGE = 'message';
+    /**
+     * Status constants
+     */
+    const NOTICE_ERROR = 0;
+    const NOTICE_SUCCESS = 1;
+    const NOTICE_WARNING = 2;
+    const NOTICE_INFO = 3;
+
+    /**
      * Session
      * 
      * @var object
@@ -58,7 +70,7 @@ class Session
         return str_replace(
             array('{class}','{icon}','{message}'), 
             array($this->flash[$constant]['class'], $this->flash[$constant]['icon'], $message),
-            $this->flash[NOTICE_MESSAGE]
+            $this->flash[static::MESSAGE]
         );
     }
 
@@ -101,7 +113,7 @@ class Session
      */
     public function success($message)
     {
-        $this->set(array('notice:success' => $message, 'status:success' => NOTICE_SUCCESS));
+        $this->set(array('notice:success' => $message, 'status:success' => static::NOTICE_SUCCESS));
     }
 
     /**
@@ -113,7 +125,7 @@ class Session
      */
     public function error($message)
     {
-        $this->set(array('notice:error' => $message, 'status:error' => NOTICE_ERROR));
+        $this->set(array('notice:error' => $message, 'status:error' => static::NOTICE_ERROR));
     }
 
     /**
@@ -125,7 +137,7 @@ class Session
      */
     public function info($message)
     {
-        $this->set(array('notice:info' => $message, 'status:info' => NOTICE_INFO));
+        $this->set(array('notice:info' => $message, 'status:info' => static::NOTICE_INFO));
     }
 
     /**
@@ -137,7 +149,7 @@ class Session
      */
     public function warning($message)
     {
-        $this->set(array('notice:warning' => $message, 'status:warning' => NOTICE_INFO));
+        $this->set(array('notice:warning' => $message, 'status:warning' => static::NOTICE_INFO));
     }
 
     /**

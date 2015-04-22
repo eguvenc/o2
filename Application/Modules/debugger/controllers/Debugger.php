@@ -61,8 +61,3 @@ class Debugger extends \Controller
     }
 
 }
-
-// END Debugger.php file
-/* End of file Debugger.php
-
-/* Location: .modules/Debugger/Debugger.php */

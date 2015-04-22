@@ -15,7 +15,7 @@ namespace Obullo\Session;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-Class Decoder
+class Decoder
 {
     /**
      * Decodes just session meta data

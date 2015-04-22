@@ -6,8 +6,8 @@ use Exception;
 use ErrorException;
 use Obullo\Queue\Job;
 use Obullo\Log\Logger;
+use Obullo\Cli\Console;
 use Obullo\Container\Container;
-use Obullo\Task\Helper\Console;
 
 /**
  * Queue Worker Class

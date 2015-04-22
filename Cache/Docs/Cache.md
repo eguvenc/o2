@@ -1,5 +1,5 @@
 
-## Cache Class
+## Cache Sınıfı
 
 ------
 
@@ -16,6 +16,14 @@ Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
 * Redis
 
 Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>app/config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
+
+### Servisi Yüklemek
+
+Cache servisi aracılığı ile cache metotlarına aşğıdaki gibi erişilebilir.
+
+```php
+$this->c['cache']->metod();
+```
 
 ### Servis Konfigürasyonu
 
@@ -51,22 +59,6 @@ class Cache implements ServiceInterface
 
 /* End of file Cache.php */
 /* Location: .classes/Service/Cache.php */
-```
-
-### Servisi Yüklemek
-
-Servis bir kez konteyner içerisinden çağrıldığında cache kütüphanesi yüklenmiş olur ve cache metotlarına ulaşabilir hale gelir.
-
-```php
-$this->c['cache'];
-$this->cache->metod();
-```
-
-Durum controller içerisinde böyle iken size ait herhangi bir sınıf içerisinden servisi yüklemek aşağıdaki gibidir.
-
-```php
-$this->cache = $this->c['cache'];
-$this->cache->method();
 ```
 
 ### Servis Sağlayıcısını Yüklemek
@@ -629,4 +621,4 @@ $this->cache->sAdd('key', 'val3');
 print_r($this->cache->sGetMembers('key'));  // Çıktı array('val3', 'val2', 'val1');
 ```
 
-Php Redis sınıfı hakkında daha detaylı dökümentasyona <a href="https://github.com/phpredis/phpredis" target="_blank">buradan</a> ulaşabilirsiniz.
+> **Not:** Bu dökümentasyonda tanımlı olmayan redis metotları __call metodu ile php Redis sınıfından çağrılırlar. Php Redis sınıfı hakkında daha detaylı dökümentasyona <a href="https://github.com/phpredis/phpredis" target="_blank">buradan</a> ulaşabilirsiniz.

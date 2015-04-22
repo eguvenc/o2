@@ -3,8 +3,8 @@
 namespace Obullo\Queue\Tasks;
 
 use Controller;
+use Obullo\Cli\Console;
 use Obullo\Process\Process;
-use Obullo\Task\Helper\Console;
 
 /**
  * Queue Controller
