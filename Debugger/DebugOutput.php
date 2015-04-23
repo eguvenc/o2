@@ -11,7 +11,7 @@ use Obullo\Log\Formatter\LineFormatterTrait;
 /**
  * Debugger Output Class
  * 
- * @category  Log
+ * @category  Debug
  * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
@@ -62,6 +62,9 @@ class DebugOutput
      */
     public function printConsole()
     {
+        $envtab = new EnvTab($this->c);
+        $envHtml = $envtab->printHtml();
+
         ob_start();
         include_once 'Views/Debugger.php';
         $view = ob_get_clean();

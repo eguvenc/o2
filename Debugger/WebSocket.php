@@ -10,8 +10,8 @@ use Obullo\Container\Container;
  * 
  * Handler requests and do handshake
  * 
- * @category  Container
- * @package   Container
+ * @category  Debug
+ * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -102,8 +102,11 @@ class WebSocket
      */
     public function ajaxHandshake()
     {
-        setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
-
+        if (isset($_COOKIE['o_debugger_active_tab']) AND $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
+            setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
+        } elseif ( ! isset($_COOKIE['o_debugger_active_tab'])) {
+            setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
+        }
         $this->handshake('Ajax');
     }
 
@@ -126,67 +129,7 @@ class WebSocket
     public function httpHandshake()
     {
         $this->handshake('Http');
-    }
-
-    /**
-     * Build super globals
-     * 
-     * @return array
-     */
-    public function buildSuperGlobals()
-    {
-        $ENVIRONMENTS = array();
-        $ENVIRONMENTS['POST'] = $_POST;
-        $ENVIRONMENTS['GET'] = $_GET;
-        $ENVIRONMENTS['COOKIE'] = isset($_COOKIE) ? $_COOKIE : [];
-        $ENVIRONMENTS['SESSION'] = isset($_SESSION) ? $_SESSION : [];
-        $ENVIRONMENTS['SERVER'] = isset($_SERVER) ? $_SERVER : [];
-
-        return $ENVIRONMENTS;
-    }
-
-    /**
-     * Build environments
-     * 
-     * @return string
-     */
-    public function buildEnvTab()
-    {
-        $ENVIRONMENTS = $this->buildSuperGlobals();
-
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers->all();
-        $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
-
-        $output = '';
-        foreach ($ENVIRONMENTS as $key => $value) {
-            $label = (strpos($key, 'HTTP_') === 0) ? $key : '$_'.$key;
-            $output.= '<a href="javascript:void(0);" onclick="fireMiniTab(this)" data_target="'.strtolower($key).'" class="fireMiniTab">'.$label.'</a>'."\n";
-            $output.= '<div id="'.strtolower($key).'">'."\n";
-            $output.= "<table>\n";
-            $output.= "<tbody>\n";
-            if (empty($value)) {
-                $output.= "<tr>\n";
-                $output.= "<th>&nbsp;</th>\n";
-                $output.= "</tr>\n";
-            }
-            foreach ($value as $k => $v) {
-                $output.= "<tr>\n";
-                $output.= "<th>$k</th>\n";
-                $output.= "<td>\n";
-                if (is_array($v)) {
-                    $output.= "<pre><span>".var_export($v, true)."</span></pre>\n";
-                } else {
-                    $output.= "<pre><span>\"$v\"</span></pre>\n";
-                }
-                $output.= "</td>\n";
-                $output.= "</tr>\n";
-            }
-            $output.= "</tbody>\n";
-            $output.= "</table>\n";
-            $output.= "</div>\n";
-        }
-        return $output;
-    }
+    } 
 
     /**
      * Send interface request to websocket
@@ -197,12 +140,13 @@ class WebSocket
      */
     protected function handshake($type = 'Ajax')
     {
-        $envHtml = $this->buildEnvTab();
+        $envtab = new EnvTab($this->c);
+        $base64Data = base64_encode($envtab->printHtml());
 
         $upgrade  = "Request: $type\r\n" .
         "Upgrade: websocket\r\n" .
         "Connection: Upgrade\r\n" .
-        "Environment-data: ".base64_encode($envHtml)."\r\n" .
+        "Environment-data: ".$base64Data."\r\n" .
         "WebSocket-Origin: $this->host\r\n" .
         "WebSocket-Location: ws://$this->host:$this->port\r\n";
 

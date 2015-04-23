@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 /**
  * Debug Manager Class
  * 
- * @category  Log
+ * @category  Debug
  * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
@@ -133,6 +133,7 @@ class DebugManager
 
                     websocket.onopen = function(data) {        // Connection is open 
                         console.log("Debugger websocket connection established.");
+                        alert("connected");
                     }
                     websocket.onmessage = function(response) { // Received messages from server
                         var msg = JSON.parse(response.data);   // Php sends Json data

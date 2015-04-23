@@ -297,11 +297,7 @@ $getDebuggerURl = function ($method = 'console') {
 var ajax = {
     post : function(url, closure, params){
         var xmlhttp;
-        if (window.XMLHttpRequest){
-            xmlhttp = new XMLHttpRequest(); // code for IE7+, Firefox, Chrome, Opera, Safari
-        }else{
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP"); // code for IE6, IE5
-        }
+        xmlhttp = new XMLHttpRequest(); // code for IE7+, Firefox, Chrome, Opera, Safari
         xmlhttp.onreadystatechange=function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
                 if( typeof closure === "function"){
@@ -378,9 +374,7 @@ function getCookie(cname) {
     return "";
 }
 </script>
-
 </head>
-
 <body>
 <div class="obulloDebugger-wrapper" id="obulloDebugger">
     <nav class="obulloDebugger-nav">
@@ -410,56 +404,12 @@ function getCookie(cname) {
             </li>
         </ul>
     </nav>
-
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-environment') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-environment">
-    
-        <?php
-        $ENVIRONMENTS['POST'] = isset($_POST) ? $_POST : [];
-        $ENVIRONMENTS['GET'] = isset($_GET) ? $_GET : [];
-        $ENVIRONMENTS['COOKIE'] = isset($_COOKIE) ? $_COOKIE : [];
-        $ENVIRONMENTS['SESSION'] = isset($_SESSION) ? $_SESSION : [];
-        $ENVIRONMENTS['SERVER'] = isset($_SERVER) ? $_SERVER : [];
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers->all();
-        $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
-
-        $output = '';
-        foreach ($ENVIRONMENTS as $key => $value) {
-            $label = (strpos($key, 'HTTP_') === 0) ? $key : '$_'.$key;
-            $output.= '<a href="javascript:void(0);" onclick="fireMiniTab(this)" data_target="'.strtolower($key).'" class="fireMiniTab">'.$label.'</a>'."\n";
-            $output.= '<div id="'.strtolower($key).'">'."\n";
-            $output.= "<table>\n";
-            $output.= "<tbody>\n";
-            if (empty($value)) {
-                $output.= "<tr>\n";
-                $output.= "<th>&nbsp;</th>\n";
-                $output.= "</tr>\n";
-            }
-            foreach ($value as $k => $v) {
-                $output.= "<tr>\n";
-                $output.= "<th>$k</th>\n";
-                $output.= "<td>\n";
-                if (is_array($v)) {
-                    $output.= "<pre><span>".var_export($v, true)."</span></pre>\n";
-                } else {
-                    $output.= "<pre><span>\"$v\"</span></pre>\n";
-                }
-                $output.= "</td>\n";
-                $output.= "</tr>\n";
-            }
-            $output.= "</tbody>\n";
-            $output.= "</table>\n";
-            $output.= "</div>\n";
-        }
-        echo $output;
-        ?>
-        
+        <?php echo $envHtml ?>
     </div>
-
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-console-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-console-log">{{CONSOLE:LOGS}}</div>
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-ajax-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-ajax-log">{{AJAX:LOGS}}</div>
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-http-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-http-log">{{LOGS}}</div>
-
 </div>
-
 </body>
 </html>
