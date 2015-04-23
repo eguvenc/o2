@@ -42,8 +42,7 @@ Yetki doğrulama paketi sınıflarına erişim <b>User</b> servisi üzerinden sa
 User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
 
 ```php
-$this->c['user'];
-$this->user->class->method();
+$this->c['user']->class->method();
 ```
 
 Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.

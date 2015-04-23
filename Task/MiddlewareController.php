@@ -14,7 +14,7 @@ use Obullo\Cli\Console;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cli
+ * @link      http://obullo.com/task
  */
 class MiddlewareController extends Controller
 {
@@ -54,11 +54,12 @@ class MiddlewareController extends Controller
             echo Console::fail("Middleware name can't be empty.");
             return;
         }
-        $middleware = ucfirst($name).'.php';
-        $middlewareFile = OBULLO .'Application'. DS .'Middlewares'. DS .$middleware;
+        $name = ucfirst($name);
+        $middleware = $name.'.php';
+        $middlewareFile = OBULLO .'Application'. DS .'Middlewares'. DS .$name. DS .$middleware;
 
         if ( ! file_exists($middlewareFile)) {
-            echo Console::fail("Middleware '$middleware' does not exists in Obullo/Task/Middlewares folder.");
+            echo Console::fail("Middleware #$middleware does not exists in Obullo/Middlewares folder.");
             return;
         }
         if ( ! is_writable(static::getMiddlewarePath())) {
@@ -86,7 +87,8 @@ class MiddlewareController extends Controller
             echo Console::fail("Middleware name can't be empty.");
             return;
         }
-        $middleware = ucfirst($name).'.php';
+        $name = ucfirst($name);
+        $middleware = $name.'.php';
 
         if ( ! file_exists(static::getMiddlewarePath())) {
             echo Console::fail("Middleware #$middleware does not exists in app/classes/Http/Middlewares folder.");

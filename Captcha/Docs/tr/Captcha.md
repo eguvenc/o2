@@ -555,7 +555,7 @@ Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</k
 namespace Service;
 
 use Obullo\Container\Container;
-use Obullo\Captcha\Adapter\ReCaptcha;
+use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 use Obullo\ServiceProviders\ServiceInterface;
 
 class Recaptcha implements ServiceInterface
@@ -563,8 +563,7 @@ class Recaptcha implements ServiceInterface
     public function register(Container $c)
     {
         $c['recaptcha'] = function () use ($c) {
-
-            $captcha = new ReCaptcha($c);            
+            $captcha = new ReCaptchaClass($c);            
             $captcha->setLang('en');
             return $captcha;
         };
