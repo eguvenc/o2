@@ -304,7 +304,7 @@ Class QueueController implements CliInterface
 /* End of file QueueController.php */
 /* Location: .Obullo/Cli/Controller/QueueController.php */
 ```
-### Metot Referansları
+### Parser Sınıfı Referansı
 
 ------
 
