@@ -101,6 +101,18 @@ class Console
     }
 
     /**
+     * Print new lines
+     * 
+     * @param integer $n number of n
+     * 
+     * @return string
+     */
+    public static function newline($n)
+    {
+        return str_repeat("\n", $n);
+    }
+
+    /**
      * Get help text color
      *
      * @param string $text body

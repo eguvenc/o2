@@ -3,7 +3,6 @@
 namespace Obullo\Task;
 
 use Controller;
-use Obullo\Cli\Parser;
 use Obullo\Cli\Console;
 use FilesystemIterator;
 use RecursiveIteratorIterator;
@@ -28,7 +27,6 @@ class ModuleController extends Controller
      */
     public function load()
     {
-        $this->parser = new Parser($this->c);
         $this->c['logger'];
     }
 
@@ -50,8 +48,7 @@ class ModuleController extends Controller
      */
     public function add()
     {   
-        $this->parser->parse(func_get_args());
-        $module = strtolower($this->parser->argument('name'));
+        $module = strtolower($this->cli->argument('name'));
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
@@ -94,8 +91,7 @@ class ModuleController extends Controller
      */
     public function remove()
     {
-        $this->parser->parse(func_get_args());
-        $module = strtolower($this->parser->argument('name'));
+        $module = strtolower($this->cli->argument('name'));
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");

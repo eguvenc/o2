@@ -4,6 +4,7 @@ namespace Obullo\Cli;
 
 use Obullo\Log\Logger;
 use InvalidArgumentException;
+use Obullo\Container\Container;
 
 /**
  * Console Argument Parser Class
@@ -13,9 +14,9 @@ use InvalidArgumentException;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/Cli
+ * @link      http://obullo.com/package/cli
  */
-class Parser
+class Cli
 {
     /**
      * Argument seperator
@@ -46,11 +47,11 @@ class Parser
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->logger = $c['logger'];
         if ($this->logger instanceof Logger) {  // We need to sure logger object is available
-            $this->logger->debug('Cli Parser Class Initialized');
+            $this->logger->debug('Cli Class Initialized');
         }
     }
 
@@ -135,6 +136,17 @@ class Parser
     public function argumentArray() 
     {
         return $this->arguments;
+    }
+
+    /**
+     * Reset variables
+     * 
+     * @return void
+     */
+    public function clear()
+    {
+        $this->segments = array();
+        $this->arguments = array();
     }
 
 }

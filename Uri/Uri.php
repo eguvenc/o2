@@ -57,12 +57,14 @@ class Uri
         empty($protocol) && $protocol = 'REQUEST_URI';  // Default protocol REQUEST_URI
 
         if ($this->c['app']->isCli()) {     // Parse console arguments
-            $uri = static::parseArgv();
+            $uri = $this->parseArgv();
+            $args = strstr($uri, '--');
+            $this->c['cli']->parse(explode('/', $args));  // Bind arguments to cli object
+
             $this->setCliHeaders($uri);
             $this->setUriString($uri);
             return;
         }
-
         switch ($protocol)
         {
         case 'REQUEST_URI':
@@ -81,7 +83,6 @@ class Uri
             $uri = isset($_SERVER[$protocol]) ? $_SERVER[$protocol] : $this->parseRequestUri();
             break;
         }
-        
         $this->setUriString($uri);
     }
 
@@ -223,7 +224,7 @@ class Uri
      * 
      * @return string
      */
-    protected static function parseArgv() 
+    public function parseArgv() 
     {
         $args = array_slice($_SERVER['argv'], 1);
         return $args ? implode('/', $args) : '';
@@ -289,9 +290,9 @@ class Uri
      * 
      * @return array
      */
-    public function getSegments()
+    public function segmentArray()
     {
-        return $this->uri->segments;
+        return $this->segments;
     }
 
     /**
@@ -299,7 +300,7 @@ class Uri
      * 
      * @return array
      */
-    public function getRoutedSegments()
+    public function routedSegments()
     {
         return $this->rsegments;
     }
@@ -316,7 +317,7 @@ class Uri
      * 
      * @return string
      */
-    public function getRoutedSegment($number, $no_result = false)
+    public function routedSegment($number, $no_result = false)
     {
         return ( ! isset($this->rsegments[$number])) ? $no_result : $this->rsegments[$number];
     }
@@ -449,7 +450,6 @@ class Uri
         if (strpos($segment, '.') !== false) {
             $extension = explode('.', $segment);
             $uriExtension = end($extension);
-
             if (in_array('.' . $uriExtension, $this->config['uri']['extensions'])) {
                 $this->uriExtension = $uriExtension;  // Set extension 
                 return rtrim(strstr($segment, $uriExtension, true), '.');  // Remove extension from end of the uri segment

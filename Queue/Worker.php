@@ -4,6 +4,7 @@ namespace Obullo\Queue;
 
 use Exception;
 use ErrorException;
+use Obullo\Cli\Cli;
 use Obullo\Queue\Job;
 use Obullo\Log\Logger;
 use Obullo\Cli\Console;
@@ -29,6 +30,13 @@ class Worker
      * @var c
      */
     protected $c;
+
+    /**
+     * Cli instance
+     * 
+     * @var object
+     */
+    protected $cli;
 
     /**
      * Queue instance
@@ -188,19 +196,17 @@ class Worker
     /**
      * Create a new queue worker.
      *
-     * @param object $c         container
-     * @param array  $arguments array cli args
+     * @param object $c   container
+     * @param array  $cli Obullo\Cli\Cli
      */
-    public function __construct(Container $c, array $arguments = array())
+    public function __construct(Container $c, Cli $cli)
     {
         $this->c = $c;
         $this->c['config']->load('queue/workers');  // Load queue configuration
 
+        $this->cli = $cli;
         $this->queue = $this->c['queue'];
         $this->logger = $this->c['logger'];
-        $this->parser = $this->c['cli/parser'];
-        
-        $this->parser->parse($arguments);
 
         Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
         Logger::unregisterExceptionHandler(); // logger error handlers.
@@ -225,17 +231,17 @@ class Worker
                                                // Don't change here we already catch all errors except the notices.
         error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
 
-        $this->queue->channel($this->parser->argument('channel', null));
-        $this->route = $this->parser->argument('route', null);
-        $this->memory = $this->parser->argument('memory', 128);
-        $this->delay  = $this->parser->argument('delay', 0);
-        $this->timeout = $this->parser->argument('timeout', 0);
-        $this->sleep = $this->parser->argument('sleep', 3);
-        $this->tries = $this->parser->argument('tries', 0);
-        $this->debug = $this->parser->argument('debug', 0);
-        $this->env = $this->parser->argument('env', 'local');
-        $this->project = $this->parser->argument('project', 'default');
-        $this->var = $this->parser->argument('var', null);
+        $this->queue->channel($this->cli->argument('channel', null));
+        $this->route = $this->cli->argument('route', null);
+        $this->memory = $this->cli->argument('memory', 128);
+        $this->delay  = $this->cli->argument('delay', 0);
+        $this->timeout = $this->cli->argument('timeout', 0);
+        $this->sleep = $this->cli->argument('sleep', 3);
+        $this->tries = $this->cli->argument('tries', 0);
+        $this->debug = $this->cli->argument('debug', 0);
+        $this->env = $this->cli->argument('env', 'local');
+        $this->project = $this->cli->argument('project', 'default');
+        $this->var = $this->cli->argument('var', null);
 
         if ($this->memoryExceeded($this->memory)) {
             die; return;

@@ -28,7 +28,6 @@ class QueueController extends Controller
     public function load()
     {
         $this->c['queue'];
-        $this->c['cli/parser as parser'];
     }
 
     /**
@@ -72,8 +71,8 @@ Available Commands
 
 Arguments
 
-    --channel   : Sets queue exchange ( Channel ).
-    --route     : Sets queue name.
+    --channel   : Sets queue channel.( Exchange )
+    --route     : Sets queue name.   ( Route )
 
 Optional
 
@@ -93,9 +92,6 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
 
 echo Console::help("Usage for production: \n\n", true);
 echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\n");
-
-        $this->c['logger']->debug('php task queue help');
-
     }
 
     /**
@@ -108,13 +104,11 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
     public function show()
     {
         $this->logo();
-        $this->parser->parse(func_get_args());
-
         $break = "------------------------------------------------------------------------------------------";
 
-        $channel = $this->parser->argument('channel');
-        $route = $this->parser->argument('route', null);  // Sets queue route key ( queue name )
-        $clear = $this->parser->argument('clear');
+        $channel = $this->cli->argument('channel');
+        $route = $this->cli->argument('route', null);  // Sets queue route key ( queue name )
+        $clear = $this->cli->argument('clear');
 
         if (empty($channel)) {
             echo Console::fail("Queue \"--channel\" can't be empty.");
@@ -169,19 +163,17 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
      */
     public function listen()
     {
-        $this->parser->parse(func_get_args());
-
-        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
-        $channel = $this->parser->argument('channel', null); // Sets queue exchange
-        $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
-        $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
-        $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
-        $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->parser->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $tries = $this->parser->argument('tries', 0);        // If job attempt failed we push back on to queue and increase attempt number.
-        $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
-        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker ( This is useful working with multiple projects ). 
-        $var = $this->parser->argument('var', null);         // Sets your custom variable
+        $debug = $this->cli->argument('debug', 0);        // Enable / Disabled console debug.
+        $channel = $this->cli->argument('channel', null); // Sets queue exchange
+        $route = $this->cli->argument('route', null);     // Sets queue route key ( queue name )
+        $memory = $this->cli->argument('memory', 128);    // Sets maximum allowed memory for current job.
+        $delay = $this->cli->argument('delay', 0);        // Sets job delay interval
+        $timeout = $this->cli->argument('timeout', 0);    // Sets time limit execution of the current job.
+        $sleep = $this->cli->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
+        $tries = $this->cli->argument('tries', 0);        // If job attempt failed we push back on to queue and increase attempt number.
+        $env = $this->cli->argument('env', 'local');      // Sets environment for current worker.
+        $project = $this->cli->argument('project', 'default');  // Sets project name for current worker ( This is useful working with multiple projects ). 
+        $var = $this->cli->argument('var', null);         // Sets your custom variable
         
         if (empty($channel)) {
             echo Console::fail("Queue \"--channel\" can't be empty.");

@@ -47,12 +47,12 @@ else
 }
 ```
 
-#### $this->uri->getSegments()
+#### $this->uri->segmentArray()
 
 Returns an array containing the URI segments. For example:
 
 ```php
-$segs = $this->uri->getSegments();
+$segs = $this->uri->segmentArray();
 
 foreach ($segs as $segment)
 {
@@ -61,11 +61,11 @@ foreach ($segs as $segment)
 }
 ```
 
-#### $this->uri->getRoutedSegments()
+#### $this->uri->routedSegmentArray()
 
 
 
-#### $this->uri->getRoutedSegment(n)
+#### $this->uri->routedSegment(n)
 
 This function is identical to the previous one, except that it lets you retrieve a specific segment from your re-routed URI in the event you are using Obullo's URI Routing <kbd>/docs/advanced/uri-routing</kbd> feature.
 

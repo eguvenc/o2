@@ -3,382 +3,209 @@
 
 ------
 
-Php **task** dosyası projenizin ana dizinin de (root) bulunmaktadır. Cli görevlerini çalıştırmanızda size yardımcı olur.  
+Cli paketi yani Command Line Interface komut satırından yürütülen işlemler için yardımcı paketler içerir. Framework konsol arayüzü projenizin ana dizinindeki **task** dosyası üzerinden çalışır.
 
-```php
-+ app
-+ assets
-+ o2
-  .
-  .
-  task
-```
+### Konsoldan Komut Çalıştırmak
 
-Terminalinizi açıp aşağıdaki komutu çalıştırabilirsiniz.
+Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmemize olanak sağlayarak konsol işlerini kolaylaştırmasıdır.
+
+Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalışırın.
 
 ```php
 php task help
 ```
 
-Her task komutu bir task **controller** olarak çözümlenir.
+Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modules/tasks/</kbd> klasörü altındaki <b>Help</b> adlı controller dosyasının <b>index</b> metodunu çalıştırır.
 
 ```php
-- app
-  - config
+- modules
   - tasks
-      help.php
+      Help.php
 ```
 
-### Loglar takip etme için
+### Argümanlar
 
-Terminalinizi açın ve aşağıdaki komutu yazınız
+Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı arguman ve Csrf değeri gönderiliyor.
+
+```php
+php task middleware add --name=Csrf
+```
+
+Bir kuyruğu dinlemek için kullanılan konsol komutuna bir örnek.
+
+```php
+php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --timeout=0 --sleep=3 --debug=1
+```
+
+### Log Komutu
+
+Terminalinizi açın ve aşağıdaki komutu yazın.
 
 ```php
 php task log
 ```
 
-Yukarıdaki komut **log** Cli sınıfını çalıştırır ve app.log dosyasını okuyarak uygulama loglarını takip eder.
+Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.ressources/data/logs/http.log</kbd> dosyasını okuyarak uygulama ait http isteklerinin loglarını ekrana döker.
 
-**Log** parametresi bir controller sınıfıdır, **app/task** dizini altında bulunmaktadır.
 
 ```php
-- app
-- config
-- tasks
-  - controller
-    log.php
+php task log --dir=ajax
 ```
 
-### Log kayıtlarını temizlemek
-
-Terminalinizi açın ve aşağıdaki komutu yazınız
+Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.ressources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulama ait ajax isteklerinin loglarını ekrana döker.
 
 ```php
-php task clear
+php task log --dir=ajax
 ```
 
-Yukarıdaki komut **app/data/logs** dizininden tüm log kayıtlarını siler.
-
-**Clear** parametresi bir controller sınıfıdır, **app/task** dizini altında bulunmaktadır.
-
+Help metodunu çalıştırdığınızda bir yardım ekranı ile karşılaşırsınız help metodu tüm task controller dosyalarında bulunabilir.
 
 ```php
-- app
-- config
-- tasks
-  - controller
-    clear.php
-    log.php
+php task log help
 ```
-
-## Task sınıfı
-
-Task sınıfı **CLI** işlemlerini (shell script vs. çalıştırır) kullanmanızı sağlar, ayrıca php **shell_exec()** fonksiyonu aracılığıyla bazı basit komutları çalıştırmada yardımcı olur.
-
-Tüm task controller sınıfları **app/tasks** dizini altında bulunmaktadır. $this->cliTask->run() methodu controller sınıfını çözümler ve görevleri arka planda çalıştırır.
-
-**Önemli:** Bu sınıf basit işlemlerde çok kullanışlı, örneğin projenizin bir takım ayarlarını önbellekte (cache) tutup yalnızca önbellekten okuduğunuzu varsayalım. Task sınıfıyla projenin çalıştığı sırada ilk işlem olarak ayarları önbelleğe aktararak yalnızca önbellekten çalıştırabilirsiniz.
-
-
-
-### Sınıfı yükleme
-
-------
-
 ```php
-<?php
-$this->c['task'];
-$this->task->run('controller');
-```
+                _           _ _       
+           ___ | |__  _   _| | | ___  
+          / _ \| '_ \| | | | | |/ _ \ 
+         | (_) | |_) | |_| | | | (_) |
+          \___/|_.__/ \__,_|_|_|\___/  
 
-#### Görevleri (Task) çalıştırma
+       Welcome to Log Manager (c) 2015
+You are displaying logs. For more help type $php task log help.
 
-Task sınıfı framework uri mantığında çalışır. <kbd>controller/index/argument</kbd>
+Help:
 
-```php
-<?php
-echo $this->task->run('help', true);
-```
+Available Commands
 
-### Metot Referansları
+    clear    : Clear log data ( also removes the queue logs ).
+    help     : Help
 
-------
+Available Arguments
 
-#### $this->task->run('controller/arg1/arg2 ...', $debug = false);
-
-**$this->task->run()** metodunu kullanarak tanımladığınız görevleriniz (task) php shell_exec(); fonksiyonu ile arka planda çalıştırılır.
-
-
-#### Sürekli Çalıştırılan Görevler
-
-Görevleriniz (task) altındaki komutlar arka planda çalıştırılır. İşlem yapılırken sunucudan her hangi bir cevap gelmesini beklemez.
-
-```php
-$this->task->run('controller');
-```
-
-#### Log Kayıtlarını Takip Etmek ( Cli Debug )
-
-```php
-root@localhost:/var/www/project$ php task log
-```
-
-```php
-Following log data ...
-
-DEBUG - 2013-09-13 06:39:44 --> Application Controller Class Initialized 
-DEBUG - 2013-09-13 06:39:44 --> Html Helper Initialized 
-DEBUG - 2013-09-13 06:39:44 --> Url Helper Initialized 
-DEBUG - 2013-09-13 06:39:44 --> Application Autorun Initialized 
-DEBUG - 2013-09-13 06:39:44 --> View Class Initialized 
-DEBUG - 2013-09-13 06:39:44 --> Final output sent to browser 
-BENCH - 2013-09-13 06:39:44 --> Memory Usage: 700,752 bytes 
-```
-
-#### Clear
-
-Projeniz çalışmaya başlayınca önceki log kayıtlarını temizlemeniz gerekebilir. Bunuda terminalden projenizin bulunduğu dizine gidip **clear** komutunu çalıştırarak yapabilirsiniz.
-
-```php
-root@localhost:/var/www/project$ php task clear 
-```
-
-#### Update
-
-Obullo'nun yeni versiyonu çıktığında güncellemeleri almanızı sağlar.
-
-
-```php
-root@localhost:/var/www/project$ php task update
-```
-
-### Sorun Giderme
-
-------
-
-Framework'ün ana dizinine (root) gidin.
-
-```php
-$cd /var/www/project/
-```
-
-Komut satırı isteği framework'ün ana dizinindeki (root) task dosyasına gönderir.  
-```php
-$php task help
-```
-
-Yukarıdaki komut **tasks** klasöründen <kbd>app/task/help.php</kbd> dosyasını çalığırır.
-
-```php
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
-
-        Welcome to Task Manager (c) 2014
-Please run [$php task help] You are in [ app / tasks ] folder.
+    --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
+    --db     : Database name if mongo driver used.
+    --table  : Collection name if mongo driver used.
 
 Usage:
-php task [command] [arguments]
 
-Aktif komutlar:
-log        : Proje log dosyalarını takip eder.
-clear      : Tanımlı dizindeki log dosyalarını temizler.
-help       : Aktif komut listesini gönsterir.
+php task log --dir=value
+
+    php task log 
+    php task log --dir=cli
+    php task log --dir=ajax
+    php task log --dir=http --table=logs
+
+Description:
+
+Read log data from '/var/www/framework/resources/data/logs' folder.
 ```
 
-Yukardaki ekranı görüyorsanız komut başarıyla çalıştırılmıştır. Eğer başlangıç ekranını gelmediyse php komutlarının çalıştırılacağı yolu kontrol ediniz. 
+Clear metodunu çalıştırdığınızda komut <kbd>.resources/data/logs</kbd> dizininden tüm log kayıtlarını siler.
 
 ```php
-$which php // komut çıktısı /usr/bin/php 
-```
- 
-Geçerli php yolunuz **/usr/bin/php** değilse contants dosyasını açarak istediğiniz yolu tanımlayabilirsiniz.
-
-```php
-define('PHP_PATH', 'your_php_path_that_you_learned_by_which_command'); 
+php task log clear
 ```
 
+> **Not:** Diğer Task komutları hakkında daha fazla bilgiye Task paketi dökümentasyonundan ulaşabilirsiniz
 
-## Cli Parser Class
 
-------
+### Kendi Komutlarınızı Çalıştırmak
 
-Cli sınıfı komut satırı parametrelerini ve argümanlarını ayrıştırmada yardımcı olur.
-
-Örnek komut satırı parametresi
-```php
-php task queue list
-```
-
-Örnek komut satırı parametresi ve argümanları
+Http arayüzündeki controller sınıfına benzer bir şekilde bir controller dosyası yaratın ve namespace bölümünü <b>Tasks</b> olarak değiştirin.
 
 ```php
-php task queue listen --channel=Log --route=logger --delay=0 --memory=128 --debug=1
-```
+namespace Tasks;
 
-> **Note:** Framework sadece tire **(--)** ile başlayan argümanları ayrıştırır.
+use Controller;
 
-
-### Sınıfı Yükleme
-
-------
-
-```php
-<?php
-
-$this->c['cli/parser as parser'];
-$this->parser->method();
-```
-
-### Örnek komut
-
-Below the command run <b>app/tasks/queue</b> controller.
-
-**app/tasks/queue** altındaki komutu çalıştıralım.
-
-```php
-php task queue list --channel=Log --route=my-hostname.Logger
-```
-
-Örnekteki QueueController komut satırından gelen argümanları almak için cli parser sınıfını kullanır.
-
-```php
-<?php
-
-namespace Obullo\Cli\Controller;
-
-use Obullo\Process\Process;
-
-/**
- * Queue Controller
- *
- * Listen queue data and workers
- * 
- * @category  Cli
- * @package   Controller
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cli
- */
-Class QueueController implements CliInterface
-{
+class Hello extends Controller {
+  
     /**
-     * Listen Queue
-     *
-     * php task queue listen --channel=Log --route=my-hostname.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --maxTries=0 --debug=0 --env=prod
+     * Index
      * 
      * @return void
      */
-    public function listenQueue()
+    public function index()
     {
-        $channel = $this->parser->argument('channel', null); // Sets queue exchange
-        $route = $this->parser->argument('route', null);     // Sets queue route key ( queue name )
-        $memory = $this->parser->argument('memory', 128);    // Sets maximum allowed memory for current job.
-        $delay = $this->parser->argument('delay', 0);        // Sets job delay interval
-        $timeout = $this->parser->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->parser->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $tries = $this->parser->argument('tries', 0);        // If job attempt failed we push and increase attempt number.
-        $debug = $this->parser->argument('debug', 0);        // Enable / Disabled console debug.
-        $env = $this->parser->argument('env', 'local');      // Sets environment for current worker.
-        $project = $this->parser->argument('project', 'default');  // Sets project name for current worker. 
-        $var = $this->parser->argument('var', null);         // Sets your custom variable
-        
-        $this->emptyControl($channel, $route);
-
-        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay==$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
-
-        $process = new Process($cmd, ROOT, null, null, $timeout);
-        while (true) {
-            $process->run();
-            if ($debug == 1) {
-                echo $process->getOutput();
-            }
-        }
+        echo Console::logo("Welcome to Hello Controller");
+        echo Console::description("This is my first task controller.");
     }
 }
 
-// END QueueController class
-
-/* End of file QueueController.php */
-/* Location: .Obullo/Cli/Controller/QueueController.php */
+/* End of file hello.php */
+/* Location: .modules/tasks/Hello.php */
 ```
-### Parser Sınıfı Referansı
 
-------
-
-#### $this->parser->parse(func_get_args());
-
-Geçerli fonksiyon parametrelerini ayrıştırır.
-
-#### $this->parser->segment(int $number);
-
-Tanımlanan komut satırı segmentini döndürür.
-
-#### $this->parser->segmentArray();
-
-Tüm segmentleri döndürür.
-
-#### $this->parser->argument(string $key, string $default = '');
-
-Gets valid command line argument.
-Geçerli komut satırı argümanını getirir.
-
-#### $this->parser->argumentArray();
-
-Tüm argümanları döndürür.
-
-## Cli Log Okuyucu
-
-------
-
-Bu paket Cli log kayıtlarını takip etmede yardımcı olur.
-
-### Aktif Sürücüler
-
-------
-
-* FileWriter
-* MongoHandler
-
-
-## Cli Controller Sınıfını Kullanmak
-
-------
-
-Task paketi Cli işlemleriniz de yardımcı olur. (shell script ve unix komutları çalıştırır)
-Available Commands
-
-#### Yardım
-
-Aktif komut listesini görmek için.
+Şimdi oluşturduğunuz komutu aşğıdaki gibi çalıştırın.
 
 ```php
-root@localhost:/var/www/project$ php task
-
-         _____ _____ _____ __    __    _____ 
-        |     | __  |  |  |  |  |  |  |     |
-        |  |  | __ -|  |  |  |__|  |__|  |  |
-        |_____|_____|_____|_____|_____|_____|
-
-        Welcome to Task Manager (c) 2014
-Please run [$php task help] You are in [ app / tasks ] folder.
-
-Usage:
-php task [command] [arguments]
-
-Available commands:
-log        : Follows the application log file.
-clear      : Clear application log data. It is currently located in data folder.
-help       : See list all of available commands.
-
+php task hello
 ```
 
-#### Clear
+### Cli Sınıfı
 
-#### Log
+<kbd>.modules/tasks</kbd> dizini içerisindeki komutlar aracılığı ile "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır. Cli sınıfı en sık kullanıldığı yerler task komut sınıflarıdır.
 
-#### Route
+Eğer aşağıdaki gibi bir task komutu sınıfı yarattıysanız ve komutunuzdan argümanlar göndermeniz gerekiyorsa Cli sınıfını örnekteki gibi kullanabilirsiniz.
 
-#### Queue
+```php
+namespace Tasks;
+
+use Controller;
+use Obullo\Cli\Console;
+
+class Hello extends Controller {
+  
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        echo Console::logo("Welcome to Hello Controller");
+        echo Console::description("This is my first task controller.");
+
+        $planet = $this->cli->argument('planet');
+
+        echo Console::text("Hello ".$planet, 'yellow');
+        echo Console::newline(2);
+    }
+}
+
+/* End of file hello.php */
+/* Location: .modules/tasks/Hello.php */
+```
+
+Konsoldan hello komutunu planet argümanı ile aşağıdaki gibi çalıştırdığınızda bir **Hello World** çıktısı almanız gerekir.
+
+```php
+php task hello --planet=World
+```
+
+> **Not:** Herhangi bi task controller sınıfı içerisinden http controller sınıfında olduğu gibi gereken yerlerde <b>load()</b> metodunu 
+
+
+#### Cli Sınıfı Referansı
+
+------
+
+##### $this->cli->argument(string $name, string $defalt = '');
+
+Girilen isme göre konsol komutundan gönderilen argümanın değerini verir.
+
+##### $this->cli->argumentArray();
+
+Çözümlenen argüman listesine "--key=value" olarak bir dizi içerisinde geri döner.
+
+##### $this->cli->segment(integer $n, string $default = '');
+
+Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman değerine döner.
+
+##### $this->cli->segmentArray();
+
+Çözümlenen argümanların listesine sadece "value" olarak bir dizi içerisinde geri döner.
+
+##### $this->cli->clear();
+
+Cli sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.

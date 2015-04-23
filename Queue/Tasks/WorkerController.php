@@ -26,7 +26,7 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        $worker = new Worker($this->c, func_get_args());
+        $worker = new Worker($this->c, $this->cli);
         $worker->init();
         $worker->pop();
     }

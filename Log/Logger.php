@@ -73,9 +73,8 @@ class Logger extends AbstractLogger implements LoggerInterface
     {
         if ($this->enabled AND $this->connect) {    // Lazy loading for Logger service
                                                     // if connect method executed one time then we open connections and load classes
-                                                    // When connect booelan is true we load worker or queue libraries
+                                                    // When connect booelan is true we execute standart worker or queue.
             $this->exec();  // Set payload data
-            // $writers = $this->getWriters();
 
             // QUEUE LOGGER
         
@@ -90,7 +89,7 @@ class Logger extends AbstractLogger implements LoggerInterface
                     $this->c['config']['logger']['queue']['delay']
                 );
 
-            } else {  // LOCAL LOGGER
+            } else {  // STANDART LOGGER
 
                 $worker = new \Workers\Logger($this->c); // Execute standart logger
                 $worker->fire(null, $this->payload);

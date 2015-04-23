@@ -3,7 +3,6 @@
 namespace Obullo\Task;
 
 use Controller;
-use Obullo\Cli\Parser;
 use Obullo\Cli\Console;
 
 /**
@@ -25,7 +24,6 @@ class MiddlewareController extends Controller
      */
     public function load()
     {
-        $this->parser = new Parser($this->c);
         $this->c['logger'];
     }
 
@@ -47,8 +45,7 @@ class MiddlewareController extends Controller
      */
     public function add()
     {   
-        $this->parser->parse(func_get_args());
-        $name = $this->parser->argument('name');
+        $name = $this->cli->argument('name');
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");
@@ -80,8 +77,7 @@ class MiddlewareController extends Controller
      */
     public function remove()
     {
-        $this->parser->parse(func_get_args());
-        $name = $this->parser->argument('name');
+        $name = $this->cli->argument('name');
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");

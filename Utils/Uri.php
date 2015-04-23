@@ -61,7 +61,7 @@ class Uri
      */
     public function getRoutedSegments()
     {
-        return $this->rsegments;
+        return $this->uri->rsegments;
     }
 
     /**

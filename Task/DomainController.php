@@ -3,7 +3,6 @@
 namespace Obullo\Task;
 
 use Controller;
-use Obullo\Cli\Parser;
 use Obullo\Cli\Console;
 
 /**
@@ -18,16 +17,6 @@ use Obullo\Cli\Console;
  */
 class DomainController extends Controller
 {
-    /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->parser = new Parser($this->c);
-    }
-
     /**
      * Execute command
      * 
@@ -56,8 +45,7 @@ class DomainController extends Controller
      */
     public function down()
     {
-        $this->parser->parse(func_get_args());
-        $name = $this->parser->argument('name', null);
+        $name = $this->cli->argument('name', null);
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'down';
@@ -75,8 +63,7 @@ class DomainController extends Controller
      */
     public function up()
     {
-        $this->parser->parse(func_get_args());
-        $name = $this->parser->argument('name', null);
+        $name = $this->cli->argument('name', null);
         $this->isEmpty($name);
 
         $this->config->array['domain'][$name]['maintenance'] = 'up';
