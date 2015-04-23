@@ -78,7 +78,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($to);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($to as $value) {
@@ -105,7 +105,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($cc);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($cc as $value) {
@@ -135,7 +135,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($bcc);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($bcc as $value) {
@@ -208,7 +208,7 @@ class Mandrill extends HttpMailer implements MailerInterface
                     $this->message['attachments'][$i]['type'] = $value['type'];
                     $this->message['attachments'][$i]['name'] = $value['name'];
                     if ( ! $content = file_get_contents($value['fileurl'])) {
-                        $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
+                        $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
                     }
                     $this->message['attachments'][$i]['content'] = ($content == false) ? null : base64_encode($content);
                     ++$i;
@@ -216,7 +216,7 @@ class Mandrill extends HttpMailer implements MailerInterface
                     $this->message['images'][$j]['type'] = $value['type'];
                     $this->message['images'][$j]['name'] = $value['name'];
                     if ( ! $content = file_get_contents($value['fileurl'])) {
-                        $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
+                        $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
                     }
                     $this->message['images'][$j]['content']  = ($content == false) ? null : base64_encode($content);
                     ++$j;
