@@ -1,5 +1,5 @@
 
-## Command Line Interface ( Cli )
+## Konsol Arayüzü ( Cli )
 
 ------
 
