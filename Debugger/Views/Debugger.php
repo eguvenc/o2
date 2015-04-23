@@ -353,6 +353,10 @@ function fireMiniTab(elem){
 };
 function clearConsole() {
     ajax.post(<?php echo "'".$getDebuggerURl('clear')."'" ?>, function(html){
+            if (html.indexOf("<html>") == -1) {  // Show exception errors
+                alert(html);
+                return;
+            }
             document.body.innerHTML = html;
         }
     );
@@ -385,19 +389,22 @@ function getCookie(cname) {
             <?php $activeTab = isset($_COOKIE['o_debugger_active_tab']) ? $_COOKIE['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 
             <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-http-log');">
-                <a href="javascript:void(0);">Http Log</a>
+                <a href="javascript:void(0);">HTTP</a>
             </li>
             <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-ajax-log')">
-                <a href="javascript:void(0);">Ajax Log</a>
+                <a href="javascript:void(0);">AJAX</a>
             </li>
             <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-console-log')">
-                <a href="javascript:void(0);">Cli Log</a>
+                <a href="javascript:void(0);">CONSOLE</a>
             </li>
             <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-environment')">
-                <a href="javascript:void(0);">Environments</a>
+                <a href="javascript:void(0);">ENVIRONMENTS</a>
             </li>
             <li>
-                <a href="javascript:void(0);" onclick="clearConsole();">Clear</a>
+                <a href="javascript:void(0);" onclick="clearConsole();">CLEAR</a>
+            </li>
+            <li>
+                <a href="javascript:void(0);"><img id="obulloDebuggerSocket" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAHCAYAAADnCQYGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6Qzc1NDQwMzdFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Qzc1NDQwMzhFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDNzU0NDAzNUU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDNzU0NDAzNkU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvXgJSIAAACwSURBVHjaYvz//z8DPvDMTPM1kOIH4i4gLgPij1Knrovi08PCQBgIAjEzEKcCMSuUjxewAF0SC6TlofzvQCwBcg0SmwnNAUxAPd1A+gUQc0J9AWODwEOQwiwgtiDCxU+BWAiIGYG4BI+6EyBDFwPxMSSXgsLrCxI7FWqQNFQNKBJmA/FrqOt4kNggcJeRiIj6Aw3TV0AsBsR/gRGFNy6YiPD2eyD+DXXdbygfLwAIMADjmCy+s+pJrgAAAABJRU5ErkJggg=="></a>
             </li>
             <li class="closeBtn">
                 <a href="/debugger/off">x</a>

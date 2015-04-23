@@ -76,7 +76,11 @@ class WebSocket
             return;
         }
         if ($this->connect == false) {
-            throw new RuntimeException("Debugger server connection not available. Please run debugger from your console: <pre>php task debugger</pre>");
+            $message = "Debugger server is not running. Please run debugger from your console: <pre>php task debugger</pre>";
+            if ($this->c['request']->isAjax()) {
+                $message = strip_tags($message);
+            }
+            throw new RuntimeException($message);
         }  
     }
 

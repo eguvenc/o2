@@ -128,12 +128,20 @@ class DebugManager
             function load(refresh){
                 try
                 {
+                    var base64ActiveSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAHCAYAAADnCQYGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6Qzc1NDQwMzdFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Qzc1NDQwMzhFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDNzU0NDAzNUU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDNzU0NDAzNkU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvXgJSIAAACwSURBVHjaYvz//z8DPvDMTPM1kOIH4i4gLgPij1Knrovi08PCQBgIAjEzEKcCMSuUjxewAF0SC6TlofzvQCwBcg0SmwnNAUxAPd1A+gUQc0J9AWODwEOQwiwgtiDCxU+BWAiIGYG4BI+6EyBDFwPxMSSXgsLrCxI7FWqQNFQNKBJmA/FrqOt4kNggcJeRiIj6Aw3TV0AsBsR/gRGFNy6YiPD2eyD+DXXdbygfLwAIMADjmCy+s+pJrgAAAABJRU5ErkJggg==";
+                    var base64DeactiveSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAHCAYAAADnCQYGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTlBQzFFMTNFOThGMTFFNEI0NEU5NDA3Qzc3OUI4REYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTlBQzFFMTRFOThGMTFFNEI0NEU5NDA3Qzc3OUI4REYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoxOUFDMUUxMUU5OEYxMUU0QjQ0RTk0MDdDNzc5QjhERiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoxOUFDMUUxMkU5OEYxMUU0QjQ0RTk0MDdDNzc5QjhERiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pn2CUacAAAC+SURBVHjaYvz//z8DLhATE/MaSPEDcciSJUs2Afl+QPYaIP4I5Ivi0sfEgB8IAjErEKdB+WlQviA+TSxA22OBtDwQfwdiCZArkNgwS9nRaCagvm4g/QKIOaG+gbEfsgCJLCC2IODim0i0CxAzAnEJDrUnQIYuBuJjUNeBwukLEjsVaoA6VAOMBkXEbCB+DXUdDxL7LgswwKfhiahkIMUMxD+hQjD6H1BfOrkR9R6IfwPxLCh/FpT/Hp8mgAADAAPLMt1P18UbAAAAAElFTkSuQmCC";
+
+                    var f2 = document.getElementById("f2");
+                    f2 = f2.contentWindow.document;
+                    var connectedImg = f2.getElementById("obulloDebuggerSocket");
+                    connectedImg.src = base64DeactiveSrc;
+
                     var wsUri = "'.$this->websocketUrl.'";           // Create webSocket connection
                     var websocket =  new WebSocket(wsUri);
 
                     websocket.onopen = function(data) {        // Connection is open 
                         console.log("Debugger websocket connection established.");
-                        alert("connected");
+                        connectedImg.src = base64ActiveSrc;
                     }
                     websocket.onmessage = function(response) { // Received messages from server
                         var msg = JSON.parse(response.data);   // Php sends Json data
@@ -149,10 +157,11 @@ class DebugManager
                         }
                     };
                     websocket.onclose = function(data) {        // Connection is closed connect again ?
-                        console.log("Connection closed.");
+                        console.log("Debugger websocket connection closed.");
+                        connectedImg.src = base64DeactiveSrc;
                     }
                     frame1.window.onbeforeunload = function() {
-                        // websocket.close();
+                        // websocket.close();  // Don not close the websocket connection we get disconnect errors on firefox browser.
                     };
 
                 }
