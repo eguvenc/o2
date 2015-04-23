@@ -547,7 +547,7 @@ abstract class StandartMailer
     public function setErrorMessage($msg, $val = '')
     {
         $this->c['translator']->load('mailer');
-        $this->debugMsg[] = $this->c['translator']->sprintf($msg, $val) . "<br />";
+        $this->debugMsg[] = $this->c['translator']->get($msg, $val) . "<br />";
     }
 
 }

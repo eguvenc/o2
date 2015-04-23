@@ -139,7 +139,7 @@ abstract class HttpMailer
         if ($this->validate) {
             $this->validator->validateEmail($this->strToArray($from));
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         if ($name != '') {  // Prepare the display name
@@ -171,7 +171,7 @@ abstract class HttpMailer
         if ($this->validate) {
             $this->validator->validateEmail($this->strToArray($replyto));
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         if ($name == '') {
@@ -299,7 +299,7 @@ abstract class HttpMailer
     
         if (curl_errno($ch)) {
             $this->logger->error('Transactional mail api call failed', array('url' => $url, 'error' => curl_error($ch)));
-            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:API_CALL_FAILED', $url, curl_error($ch));
+            $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:API_CALL_FAILED', $url, curl_error($ch));
         }
         $result['raw'] = $body;
         $result['info'] = curl_getinfo($ch);

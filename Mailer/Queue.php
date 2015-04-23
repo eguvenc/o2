@@ -107,7 +107,7 @@ class Queue extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($to);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($to as $value) {
@@ -132,7 +132,7 @@ class Queue extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($cc);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($cc as $value) {
@@ -162,7 +162,7 @@ class Queue extends HttpMailer implements MailerInterface
         if ($this->validate) {
             $this->validator->validateEmail($bcc);
             if ($this->validator->isError()) {
-                $this->debugMsg[] = $this->c['translator']->sprintf($this->validator->getError(), $this->validator->getValue());
+                $this->debugMsg[] = $this->c['translator']->get($this->validator->getError(), $this->validator->getValue());
             }
         }
         foreach ($bcc as $value) {
@@ -294,7 +294,7 @@ class Queue extends HttpMailer implements MailerInterface
     
         if ( ! $push) {
             $this->logger->error('Queue mailer push failed', array('route' => $route));
-            $this->debugMsg[] = $this->c['translator']->sprintf('OBULLO:MAILER:QUEUE_MAILER_PUSH_FAILED', $route);
+            $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:QUEUE_MAILER_PUSH_FAILED', $route);
         }
         return $push;
     }
