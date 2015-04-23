@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\DatabaseConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class DatabaseServiceProvider implements ServiceProviderInterface
+class DatabaseServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\CacheConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class CacheServiceProvider implements ServiceProviderInterface
+class CacheServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

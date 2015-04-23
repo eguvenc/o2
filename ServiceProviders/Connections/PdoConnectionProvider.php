@@ -18,7 +18,7 @@ use Obullo\Database\Connection;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class PdoConnectionProvider extends AbstractConnectionProvider
+class PdoConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;         // Container
     protected $config;    // Database configuration items

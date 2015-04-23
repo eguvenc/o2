@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\MemcachedConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class MemcachedServiceProvider implements ServiceProviderInterface
+class MemcachedServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

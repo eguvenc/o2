@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\PdoConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class PdoServiceProvider implements ServiceProviderInterface
+class PdoServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

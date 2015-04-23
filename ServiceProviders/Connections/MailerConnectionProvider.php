@@ -16,7 +16,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class MailerConnectionProvider extends AbstractConnectionProvider
+class MailerConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;            // Container
     protected $config;       // Configuration items

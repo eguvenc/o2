@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class QueryConnectionProvider extends AbstractConnectionProvider
+class QueryConnectionProvider extends AbstractConnectionProvider
 {
     protected $c; // Container
 

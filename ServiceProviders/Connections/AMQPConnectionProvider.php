@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class AMQPConnectionProvider extends AbstractConnectionProvider
+class AMQPConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;          // Container
     protected $config;     // AMQP configuration items

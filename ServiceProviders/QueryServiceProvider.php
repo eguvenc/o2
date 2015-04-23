@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\QueryConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class QueryServiceProvider implements ServiceProviderInterface
+class QueryServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

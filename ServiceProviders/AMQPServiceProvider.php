@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\AMQPConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/serviceProviders
  */
-Class AMQPServiceProvider implements ServiceProviderInterface
+class AMQPServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

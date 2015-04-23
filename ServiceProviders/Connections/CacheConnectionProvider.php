@@ -16,7 +16,7 @@ use Obullo\Cache\Handler\HandlerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class CacheConnectionProvider extends AbstractConnectionProvider
+class CacheConnectionProvider extends AbstractConnectionProvider
 {
     protected $c; // Container
 

@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class RedisConnectionProvider extends AbstractConnectionProvider
+class RedisConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;         // Container
     protected $redis;     // Redis extension

@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\RedisConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/service_providers
  */
-Class RedisServiceProvider implements ServiceProviderInterface
+class RedisServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector

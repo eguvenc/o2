@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-Class MemcacheConnectionProvider extends AbstractConnectionProvider
+class MemcacheConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;          // Container
     protected $config;     // Database configuration items
