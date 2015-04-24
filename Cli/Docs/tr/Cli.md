@@ -5,9 +5,52 @@
 
 Cli paketi yani Command Line Interface komut satırından yürütülen işlemler için yardımcı paketler içerir. Framework konsol arayüzü projenizin ana dizinindeki **task** dosyası üzerinden çalışır.
 
+### Cli Sınıfı
+
+Cli sınıfı <kbd>.modules/tasks</kbd> dizini içerisindeki komutlar aracılığı ile "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır.Bu sınıfın en sık kullanıldığı yerler task controller dosyalarıdır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->cli</kbd> ( vs. <kbd>$this->c['cli']</kbd> ) nesnesi ile bu argümanların  yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Obullo\Uri\Uri</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
+
+Sınıfı daha iyi anlamak için aşağıdaki gibi <kbd>.modules/tasks</kbd> dizini altında bir task controller yaratın ve yaratığınız task komutuna bir argüman gönderin.
+
+```php
+namespace Tasks;
+
+use Controller;
+use Obullo\Cli\Console;
+
+class Hello extends Controller {
+  
+    /**
+     * Index
+     * 
+     * @return void
+     */
+    public function index()
+    {
+        echo Console::logo("Welcome to Hello Controller");
+        echo Console::description("This is my first task controller.");
+
+        $planet = $this->cli->argument('planet');
+
+        echo Console::text("Hello ".$planet, 'yellow');
+        echo Console::newline(2);
+    }
+}
+
+/* End of file hello.php */
+/* Location: .modules/tasks/Hello.php */
+```
+
+Konsoldan hello komutunu <b>planet</b> argümanı ile aşağıdaki gibi çalıştırdığınızda bir **Hello World** çıktısı almanız gerekir.
+
+```php
+php task hello --planet=World
+```
+
+> **Not:** Herhangi bi task controller sınıfı içerisinden http controller sınıfında olduğu gibi gerekli ise <b>load()</b> metodunu kullanabilirsiniz.
+
 ### Konsoldan Komut Çalıştırmak
 
-Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmemize olanak sağlayarak konsol işlerini kolaylaştırmasıdır.
+Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmemize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark konsol komutlarında adres çözümlemesi için forward slash "/" yerinde boşluk " " karakteri kullanılır.
 
 Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalışırın.
 
@@ -22,6 +65,8 @@ Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modu
   - tasks
       Help.php
 ```
+
+> **Not:** Eğer bir method ismi yazmazsanız varsayılan method her zaman "index" metodudur.
 
 ### Argümanlar
 
@@ -39,26 +84,28 @@ php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --tim
 
 ### Log Komutu
 
-Terminalinizi açın ve aşağıdaki komutu yazın.
+Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled sekmesi "true" olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
+
+Bunun için terminalinizi açın ve aşağıdaki komutu yazın.
 
 ```php
 php task log
 ```
 
-Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.ressources/data/logs/http.log</kbd> dosyasını okuyarak uygulama ait http isteklerinin loglarını ekrana döker.
+Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.resources/data/logs/http.log</kbd> dosyasını okuyarak uygulamaya ait http isteklerinin loglarını ekrana döker.
 
 
 ```php
 php task log --dir=ajax
 ```
 
-Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.ressources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulama ait ajax isteklerinin loglarını ekrana döker.
+Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.resources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulama ait ajax isteklerinin loglarını ekrana döker.
 
 ```php
 php task log --dir=ajax
 ```
 
-Help metodunu çalıştırdığınızda bir yardım ekranı ile karşılaşırsınız help metodu tüm task controller dosyalarında bulunabilir.
+Help metodunu çalıştırdığınızda bir yardım ekranı ile karşılaşırsınız help metodu tüm task controller dosyalarında bulunur.
 
 ```php
 php task log help
@@ -106,7 +153,7 @@ Clear metodunu çalıştırdığınızda komut <kbd>.resources/data/logs</kbd> d
 php task log clear
 ```
 
-> **Not:** Diğer Task komutları hakkında daha fazla bilgiye Task paketi dökümentasyonundan ulaşabilirsiniz
+> **Not:** Diğer Task komutları hakkında daha fazla bilgiye Obullo\Task paketi dökümentasyonundan ulaşabilirsiniz
 
 
 ### Kendi Komutlarınızı Çalıştırmak
@@ -136,55 +183,11 @@ class Hello extends Controller {
 /* Location: .modules/tasks/Hello.php */
 ```
 
-Şimdi oluşturduğunuz komutu aşğıdaki gibi çalıştırın.
+Şimdi oluşturduğunuz komutu aşağıdaki gibi çalıştırın.
 
 ```php
 php task hello
 ```
-
-### Cli Sınıfı
-
-<kbd>.modules/tasks</kbd> dizini içerisindeki komutlar aracılığı ile "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır. Cli sınıfı en sık kullanıldığı yerler task komut sınıflarıdır.
-
-Eğer aşağıdaki gibi bir task komutu sınıfı yarattıysanız ve komutunuzdan argümanlar göndermeniz gerekiyorsa Cli sınıfını örnekteki gibi kullanabilirsiniz.
-
-```php
-namespace Tasks;
-
-use Controller;
-use Obullo\Cli\Console;
-
-class Hello extends Controller {
-  
-    /**
-     * Index
-     * 
-     * @return void
-     */
-    public function index()
-    {
-        echo Console::logo("Welcome to Hello Controller");
-        echo Console::description("This is my first task controller.");
-
-        $planet = $this->cli->argument('planet');
-
-        echo Console::text("Hello ".$planet, 'yellow');
-        echo Console::newline(2);
-    }
-}
-
-/* End of file hello.php */
-/* Location: .modules/tasks/Hello.php */
-```
-
-Konsoldan hello komutunu planet argümanı ile aşağıdaki gibi çalıştırdığınızda bir **Hello World** çıktısı almanız gerekir.
-
-```php
-php task hello --planet=World
-```
-
-> **Not:** Herhangi bi task controller sınıfı içerisinden http controller sınıfında olduğu gibi gereken yerlerde <b>load()</b> metodunu 
-
 
 #### Cli Sınıfı Referansı
 
