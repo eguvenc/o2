@@ -58,7 +58,7 @@ class QueryConnectionProvider extends AbstractConnectionProvider
             throw new RuntimeException(
                 sprintf(
                     "Query provider requires connection parameter. <pre>%s</pre>",
-                    "\$c['service provider query']->get(['connection' => 'default']);"
+                    "\$c['app']->provider('query')->get(['connection' => 'default']);"
                 )
             );
         }
@@ -82,7 +82,7 @@ class QueryConnectionProvider extends AbstractConnectionProvider
     protected function createClass($options)
     {
         $Class = '\\Obullo\Database\Pdo\QueryBuilder';
-        return new $Class($this->c['service provider database'], $options);
+        return new $Class($this->c['app']->provider('database'), $options);
     }
 
 }

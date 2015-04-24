@@ -50,7 +50,7 @@ abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c['service provider query']->get(['connection' => $provider['connection']]);
+        $this->db = $c['app']->provider('query')->get(['connection' => $provider['connection']]);
         $this->table = $workers['failed']['table'];
     }
 

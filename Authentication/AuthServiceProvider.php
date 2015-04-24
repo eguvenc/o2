@@ -30,8 +30,8 @@ class AuthServiceProvider
     /**
      * Create classes
      * 
-     * @param object $c container
-     * @param array $params config parameters
+     * @param object $c      container
+     * @param array  $params config parameters
      * 
      * @return object
      */
@@ -45,7 +45,7 @@ class AuthServiceProvider
         $this->c['auth.storage'] = function () {
             return new $this->config['cache']['storage'](
                 $this->c,
-                $this->c['service provider cache']->get(
+                $this->c['app']->provider('cache')->get(
                     [
                         'driver' => $this->config['cache']['provider']['driver'],
                         'connection' => $this->config['cache']['provider']['connection']
@@ -63,7 +63,7 @@ class AuthServiceProvider
         };
 
         $this->c['user.model'] = function () use ($params) {
-            return new $params['db.model']($this->c, $this->c['service provider '.$this->config['db.provider']]);
+            return new $params['db.model']($this->c, $this->c['app']->provider($this->config['db.provider']));
         };
 
         $this->c['auth.login'] = function () {

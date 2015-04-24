@@ -113,7 +113,7 @@ class MemcacheConnectionProvider extends AbstractConnectionProvider
             throw new RuntimeException(
                 sprintf(
                     "Memcache provider requires connection parameter. <pre>%s</pre>",
-                    "\$c['service provider memcache']->get(['connection' => 'default']);"
+                    "\$c['app']->provider('memcache')->get(['connection' => 'default']);"
                 )
             );
         }

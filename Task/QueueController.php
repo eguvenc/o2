@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Queue\Tasks;
+namespace Obullo\Task;
 
 use Controller;
 use Obullo\Cli\Console;
@@ -60,7 +60,8 @@ class QueueController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help: ", true);
+echo Console::help("Help:", true);
+echo Console::newline(1);
 echo Console::help("
 
 Available Commands
@@ -84,14 +85,17 @@ Optional
     --tries     : Sets the maximum number of times a job should be attempted.
     --env       : Sets your environment variable to job class.
     --project   : Sets your project name to works with multiple projects.
-    --var       : Sets your custom variable if you need.\n\n"
+    --var       : Sets your custom variable if you need."
 );
-
-echo Console::help("Usage for local: \n\n", true);
-echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=1\n\n");
-
-echo Console::help("Usage for production: \n\n", true);
-echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --timeout=3 --debug=0\n\n");
+echo Console::newline(2);
+echo Console::help("Usage for local:", true);
+echo Console::newline(2);
+echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --debug=1");
+echo Console::newline(2);
+echo Console::help("Usage for production:", true);
+echo Console::newline(2);
+echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --sleep=3 --timeout=3 --debug=0");
+echo Console::newline(2);
     }
 
     /**
@@ -200,4 +204,4 @@ echo Console::help("php task queue listen --channel=Log --route=my-computer-host
 // END QueueController class
 
 /* End of file QueueController.php */
-/* Location: .Obullo/Queue/Tasks/QueueController.php */
+/* Location: .Obullo/Task/QueueController.php */

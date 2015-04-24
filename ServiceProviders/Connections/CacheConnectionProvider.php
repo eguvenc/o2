@@ -59,7 +59,7 @@ class CacheConnectionProvider extends AbstractConnectionProvider
             throw new RuntimeException(
                 sprintf(
                     "Cache provider requires driver and connection parameters. <pre>%s</pre>",
-                    "\$c['service provider cache']->get(['driver' => 'redis', 'connection' => 'default']);"
+                    "\$c['app']->provider('cache')->get(['driver' => 'redis', 'connection' => 'default']);"
                 )
             );
         }
@@ -91,7 +91,7 @@ class CacheConnectionProvider extends AbstractConnectionProvider
         if ($driver == 'file' OR $driver == 'apc') {
             $connection = new $Class($this->c);
         } else {
-            $connection = new $Class($this->c, $this->c['service provider '.$driver]->get($options));  //  Store objects to container
+            $connection = new $Class($this->c, $this->c['app']->provider($driver)->get($options));  //  Store objects to container
         }
         return $connection;
     }

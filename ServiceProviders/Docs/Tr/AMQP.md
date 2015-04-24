@@ -7,7 +7,7 @@
 Kullanım Örneği
 
 ```php
-$this->AMQPConnection = $this->c['service provider AMQP']->get(['connection' => 'default']);
+$this->AMQPConnection = $this->c['app']->provider('AMQP')->get(['connection' => 'default']);
 ```
 
 Birkez yüklendikten sonra amqp bağlantısı açılır.
@@ -16,10 +16,10 @@ Birkez yüklendikten sonra amqp bağlantısı açılır.
 $channel = new AMQPChannel($this->AMQPConnection);
 ```
 
-Factory Örneği ( Config te olmayan yeni konnekşın lar üretmek için )
+Factory Örneği ( Konfigürasyonda tanımlı olmayan yeni bağlantılar üretmek için )
 
 ```php
-$this->AMQPConnection = $this->c['service provider AMQP']->factory( 
+$this->AMQPConnection = $this->c['app']->provider('AMQP')->factory( 
     [
         'host'  => 'localhost',
         'port'  => 5672,
@@ -29,7 +29,6 @@ $this->AMQPConnection = $this->c['service provider AMQP']->factory(
     ]
 );
 ```
-
 
 ```php
 <?php

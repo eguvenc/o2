@@ -3,7 +3,7 @@
 
 ------
 
-CAPTCHA Carnegie Mellon School of Computer Science tarafından geliştirilen bir projedir. Projenin amacı bilgisayar ile insanların davranışlarının ayırt edilmesidir ve daha çok bu ayrımı yapmanın en zor olduğu web ortamında kullanılmaktadır.
+CAPTCHA "Carnegie Mellon School of Computer Science" tarafından geliştirilen bir projedir. Projenin amacı bilgisayar ile insanların davranışlarının ayırt edilmesidir ve daha çok bu ayrımı yapmanın en zor olduğu web ortamında kullanılmaktadır.
 
 CAPTCHA projesinin bazı uygulamalarına çoğu web sayfalarında rastlamak mümkündür. Üyelik formlarında rastgele resim gösterilerek formu dolduran kişiden bu resmin üzerinde yazan sözcüğü girmesi istenir. Buradaki basit mantık o resimde insan tarafından okunabilecek ancak bilgisayar programları tarafından okunması zor olan bir sözcük oluşturmaktır. Eğer forma girilen sözcük resimdeki ile aynı değilse ya formu dolduran kişi yanlış yapmıştır ya da formu dolduran bir programdır denebilir.
 

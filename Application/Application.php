@@ -7,7 +7,7 @@ use Controller;
 use Obullo\Error\Debug;
 
 /**
- * Obullo bootstrap
+ * Run Application
  * 
  * @category  Container
  * @package   Container
@@ -16,7 +16,7 @@ use Obullo\Error\Debug;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
-class Obullo
+class Application
 {
     const VERSION = '2.0';
 
@@ -58,7 +58,22 @@ class Obullo
      */
     public function setErrorReporting()
     {
-        $this->c['config']->restoreErrors();
+        $this->restoreErrors();
+    }
+
+    /**
+     * Restore application error configuration
+     * 
+     * @return void
+     */
+    public function restoreErrors()
+    {
+        if ($this->c['config']['error']['debug'] == false) {
+            error_reporting(E_ALL | E_STRICT | E_NOTICE);
+            ini_set('display_errors', 1);
+        } else {
+            error_reporting(0);
+        }
     }
 
     /**
@@ -121,7 +136,7 @@ class Obullo
      */
     public static function registerAutoloader()
     {
-        spl_autoload_register(__NAMESPACE__ . "\\Obullo::autoload");
+        spl_autoload_register(__NAMESPACE__ . "\\Application::autoload");
     }
 
     /**
@@ -225,6 +240,18 @@ class Obullo
     public function envPath()
     {
         return APP .'config'. DS . $this->env() . DS;
+    }
+
+    /**
+     * Load service provider
+     * 
+     * @param string $name provider name
+     * 
+     * @return object
+     */
+    public function provider($name)
+    {
+        return $this->c->resolveProvider($name);
     }
 
     /**

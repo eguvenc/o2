@@ -46,8 +46,8 @@ class Cache implements SaveHandlerInterface
     {
         $this->c = $c;
         $this->config = $c['config']->load('session');
-        $this->key = $this->config['session']['key'];
-        $this->lifetime = $this->config['session']['lifetime'];
+        $this->key = $this->config['storage']['key'];
+        $this->lifetime = $this->config['storage']['lifetime'];
     }
 
     /**
@@ -62,8 +62,7 @@ class Cache implements SaveHandlerInterface
     {
         $savePath = null;
         $sessionName = null;
-        
-        $this->cache = $this->c['service provider cache']->get(
+        $this->cache = $this->c['app']->provider('cache')->get(
             [
                 'driver' => $this->config['cache']['provider']['driver'],
                 'connection' => $this->config['cache']['provider']['connection']

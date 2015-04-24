@@ -2,9 +2,9 @@
 
 namespace Obullo\Config\Writer;
 
-use Obullo\Utils\ArrayUtils,
-    Traversable,
-    RuntimeException;
+use Traversable;
+use RuntimeException;
+use Obullo\Utils\ArrayUtils;
 
 /**
  * Abstract Writer Class

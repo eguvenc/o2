@@ -66,7 +66,7 @@ class Query
      */
     public function selectDb($db)
     {
-        $this->db = $this->c['service provider mongo']->get(['connection' => $this->params['connection']])->selectDb($db);
+        $this->db = $this->c['app']->provider('mongo')->get(['connection' => $this->params['connection']])->selectDb($db);
     }
 
     /**

@@ -6,7 +6,7 @@
 Kullanım Örneği
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get(['driver' => 'mandrill']);
+$this->mailer = $this->c['app']->provider('mailer')->get(['driver' => 'mandrill']);
 ```
 
 Birkez yüklendikten sonra mailer metodlarına erişebilirsiniz.
@@ -42,7 +42,7 @@ return array(
 #### Queue opsiyonu
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get(
+$this->mailer = $this->c['app']->provider('mailer')->get(
 	[
 		'driver' => 'mandrill',
 		'options' => array('queue' => true)
@@ -53,7 +53,7 @@ Queue opsiyonu true olduğunda servis sağlayıcı mandrill drivier parametresi 
 
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get(
+$this->mailer = $this->c['app']->provider('mailer')->get(
 	[
 		'driver' => 'smtp',
 		'options' => array('queue' => true)

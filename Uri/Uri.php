@@ -44,11 +44,11 @@ class Uri
     }
 
     /**
-     * Get the URI String
+     * Initialize to URI String
      *
      * @return string
      */
-    public function fetchUriString()
+    public function init()
     {
         if ($this->uriString != '') {  // Don't run again if we have uri string
             return;
@@ -57,12 +57,7 @@ class Uri
         empty($protocol) && $protocol = 'REQUEST_URI';  // Default protocol REQUEST_URI
 
         if ($this->c['app']->isCli()) {     // Parse console arguments
-            $uri = $this->parseArgv();
-            $args = strstr($uri, '--');
-            $this->c['cli']->parse(explode('/', $args));  // Bind arguments to cli object
-
-            $this->setCliHeaders($uri);
-            $this->setUriString($uri);
+            $this->parseCli();
             return;
         }
         switch ($protocol)
@@ -84,6 +79,23 @@ class Uri
             break;
         }
         $this->setUriString($uri);
+    }
+
+    /**
+     * Parse command line interface uri
+     * 
+     * @return void
+     */
+    protected function parseCli()
+    {
+        $uri = $this->parseArgv();
+        $args = strstr($uri, '--');
+
+        $this->c['cli']->parse(explode('/', $args));  // Bind arguments to cli object
+
+        $this->setCliHeaders($uri);
+        $this->setUriString($uri);
+        $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv'])); // Log all cli commands
     }
 
     /**

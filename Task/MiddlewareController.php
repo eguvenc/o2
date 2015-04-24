@@ -115,7 +115,8 @@ class MiddlewareController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help:\n\n", true);
+echo Console::help("Help:", true);
+echo Console::newline(2);
 echo Console::help(
 "Available Commands
 
@@ -124,19 +125,20 @@ echo Console::help(
 
 Available Arguments
 
-    --name   : Middleware name.\n\n");
-
-echo Console::help("Usage:\n\n", true);
+    --name   : Middleware name.");
+echo Console::newline(2);
+echo Console::help("Usage:", true);
+echo Console::newline(2);
 echo Console::help(
 "php task middleware [command] --name=value
 
     php task middleware add --name=value 
-    php task middleware remove --name=value\n\n");
-
-
-echo Console::help("Description:\n\n", true);
-echo Console::help("Add / remove middlewares to .app/classes/Http/Middlewares/ directory.\n\n");
-
+    php task middleware remove --name=value");
+echo Console::newline(2);
+echo Console::help("Description:", true);
+echo Console::newline(2);
+echo Console::help("Add / remove middlewares to .app/classes/Http/Middlewares/ directory.");
+echo Console::newline(2);
     }
 
 }

@@ -7,7 +7,7 @@
 Kullanım Örneği
 
 ```php
-$this->redis = $this->c['service provider redis']->get(['connection' => 'default']);
+$this->redis = $this->c['app']->provider('redis')->get(['connection' => 'default']);
 ```
 
 Birkez yüklendikten sonra redis metodlarına erişebilirsiniz.
@@ -17,10 +17,10 @@ $this->redis->set(" ... ");
 $this->redis->get(" ... ");
 ```
 
-Factory Örneği ( Config te olmayan yeni konnekşın lar üretmek için )
+Factory Örneği ( Konfigürasyon olmayan yeni bağlantılar üretmek için )
 
 ```php
-$this->redis = $this->c['service provider redis']->factory( 
+$this->redis = $this->c['app']->provider('redis')->factory( 
     [
         'host' => '127.0.0.1',
         'port' => 6379,

@@ -7,7 +7,7 @@ Cli paketi yani Command Line Interface komut satırından yürütülen işlemler
 
 ### Cli Sınıfı
 
-Cli sınıfı <kbd>.modules/tasks</kbd> dizini içerisindeki komutlar aracılığı ile "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır.Bu sınıfın en sık kullanıldığı yerler task controller dosyalarıdır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->cli</kbd> ( vs. <kbd>$this->c['cli']</kbd> ) nesnesi ile bu argümanların  yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Obullo\Uri\Uri</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
+Cli sınıfı <kbd>.modules/tasks</kbd> dizini içerisindeki komutlar aracılığı ile "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır.Bu sınıfın en sık kullanıldığı yerler task controller dosyalarıdır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->cli</kbd> ( vs. <kbd>$this->c['cli']</kbd> ) nesnesi ile bu argümanların yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Obullo\Uri\Uri</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
 
 Sınıfı daha iyi anlamak için aşağıdaki gibi <kbd>.modules/tasks</kbd> dizini altında bir task controller yaratın ve yaratığınız task komutuna bir argüman gönderin.
 

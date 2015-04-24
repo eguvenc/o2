@@ -55,25 +55,79 @@ RewriteCond $1 !^(index\.php|assets|robots\.txt)
 RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
 ```
 
-### environments.php dosyası
+### Ortam Klasörü için Config Dosyalarını Yaratmak
 
-Uygulamanızın hangi ortamda çalıştığını belirleyen konfigurasyon dosyasıdır. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
+Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
+
+Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
+
+```php
+- app
+    - config
+        + local
+        - production
+            config.php
+            database.php
+        + test
+        - myenv
+            config.php
+            database.php
+```
+
+Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
+
+#### config.php Örneği
+
+```php
+return array(
+                    
+    'error' => [
+        'debug' => false,  // Friendly debugging feature "disabled"" in "production" environment.
+    ],
+
+    'log' =>   [
+        'enabled' => false,
+    ],
+
+    'url' => [
+        'webhost' => 'example.com',
+        'baseurl' => '/',
+        'assets' => 'http://cdn.example.com/assets/',
+    ],
+
+    'debugger' => [
+        'enabled' => false,
+    ],
+
+    'cookie' => [
+        'domain' => ''  // Set to .your-domain.com for site-wide cookies
+
+    ],
+);
+
+/* End of file config.php */
+/* Location: .app/config/env/production/config.php */
+```
+
+### environments.php Dosyası
+
+Uygulamanızın hangi ortamda çalıştığını belirleyen konfigürasyon dosyasıdır. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
 
 ```php
 return array(
 
-    'local' => array (
+    'local' => [
         'john-desktop',     // hostname
         'localhost.ubuntu', // hostname
-    ),
+    ],
 
-    'test' => array (
+    'test' => [
         'localhost.test',
-    ),
+    ],
 
-    'production' => array (
+    'production' => [
         'localhost.production',
-    ),
+    ],
 );
 
 /* End of file environments.php */
@@ -94,54 +148,12 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
-### $c['app']->env();
+### Ortam Değişkeni
 
 Geçerli ortam değişkenine geri döner.
 
 ```php
 echo $c['app']->env();  // Çıktı  local
-```
-
-### $c['app']->environments();
-
-Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
-
-```php
-print_r($c['app']->environments());
-
-/* Çıktı
-Array
-(
-    [0] => local
-    [1] => test
-    [2] => production
-)
-*/   
-```
-
-### $c['app']->envArray();
-
-Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
-
-```php
-print_r($c['app']->envArray());
-
-/* Çıktı
-Array ( 
-    [0] => my-desktop 
-    [1] => someone.computer 
-    [2] => anotherone.computer 
-    [3] => john-desktop 
-)
-*/
-```
-
-### $c['app']->envPath();
-
-Geçerli ortam değişkeninin dosya yoluna geri döner.
-
-```php
-echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
 ```
 
 ### Mevcut Ortam Değişkenleri
@@ -169,7 +181,52 @@ echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
     </tbody>
 </table>
 
-### .env.local.php
+### $c['app']->environments();
+
+Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
+
+```php
+print_r($c['app']->environments());
+
+/* Çıktı
+Array
+(
+    [0] => local
+    [1] => test
+    [2] => production
+)
+*/   
+```
+
+### $c['app']->envArray();
+
+Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
+
+```php
+print_r($c['app']->envArray());
+
+/* Çıktı
+Array ( 
+    'local' => array(
+            [0] => my-desktop 
+            [1] => someone.computer 
+            [2] => anotherone.computer 
+            [3] => john-desktop 
+    ),
+    'production' => array( .. )
+)
+*/
+```
+
+### $c['app']->envPath();
+
+Geçerli ortam değişkeninin dosya yoluna geri döner.
+
+```php
+echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
+```
+
+### .env.*.php Dosyaları
 
 ------
 
@@ -177,10 +234,7 @@ echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
 
 ```php
 return array(
-
-    'DATABASE_USERNAME' => 'root',
-    'DATABASE_PASSWORD' => '123456',
-
+    
     'MYSQL_USERNAME' => 'root',
     'MYSQL_PASSWORD' => '123456',
 
@@ -189,14 +243,26 @@ return array(
     'MONGO_PASSWORD' => '123456',
 
     'REDIS_HOST' => '127.0.0.1',
-    'REDIS_AUTH' => 'aZX0bjL',
+    'REDIS_AUTH' => '',  // aZX0bjL
 
-    'MANDRILL_API_KEY' => '8923j9m',
+    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
     'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
 
     'AMQP_HOST' => '127.0.0.1',
     'AMQP_USERNAME' => 'root',
-    'AMQP_PASSWORD' => '123456',    
+    'AMQP_PASSWORD' => '123456',
+
+    'COOKIE_NAME' => '',
+    'COOKIE_DOMAIN' => '',
+    'COOKIE_PATH' => '/',
+    'COOKIE_SECURE' => false,
+    'COOKIE_HTTP_ONLY' => false,
+
+    'SESSION_COOKIE_NAME' => 'session',
+    'SESSION_COOKIE_DOMAIN' => '',
+    'SESSION_COOKIE_PATH' => '/',
+    'SESSION_COOKIE_SECURE' => false,
+    'SESSION_COOKIE_HTTP_ONLY' => false,
 );
 
 /* End of file .env.local.php */
@@ -213,44 +279,49 @@ Warning: include(/var/www/example/.env.local.php): failed to open stream:
 No such file or directory in /o2/Config/Config.php on line 79
 ```
 
-Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi bir durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
+Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
 
-> **Not:** Boş sayfa hatası aldığınızda eğer framework debugger bile hatayı göremiyorsa <kbd>error > reporting</kbd> değerini true yaparak tüm hataları görebilirsiniz. Yinede hataları göremiyorsanız <b>index.php</b> dosyasının en başına 
-<b>ini_set('display_errors', 1);</b> ve <b>error_reporting(1);</b> komutlarını yazın. Bu türden boş sayfa hatalarına çok nadir rastlanır ve genellikle kütüphane geliştirme ortamlarında ortaya çıkabilirler.
+> **Not:** Boş sayfa hatası aldığınızda eğer konfigürasyon dosyasından error > debug açıksa ve buna rağmen hatayı göremiyorsanız <kbd>error > reporting</kbd> değerini true yaparak doğal php hataları görebilirsiniz.
 
-### $c['env']['key']; 
+### Env Sınıfı
 
-Env fonksiyonu <b>o2/Application/Http.php</b> dosyasında tanımlı olarak gelir. Bu fonksiyon konfigürasyon dosyaları içerisinde kullanılırlar.Yukarıdaki örnekte gösterdiğimiz anahtarlar uygulama çalıştığında ile önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>$c['env']</b> sınıfı ile değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+Env sınıfı <b>o2/Application/Http.php</b> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<b>.env.*.php</b> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>Obullo\Config\Env</b> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
-```php
-echo $c['env']['MONGO_USERNAME.root']; // Root parametresi boş gelirse default değer root olacaktır.
-```
+Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek bir dosyadan yönetilmiş olur.
 
-Fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
-
-Eğer <b>ikinci</b> parametre girildiyse <b>$_ENV</b> değişkeni içerisindeki anahtar yok sayılır ve varsayılan değer geçerli olur.
-
-Eğer <b>son</b> parametre <b>REQUIRED</b> olarak girildiyse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+Örnek bir env konfigürasyon çıktısı
 
 ```php
-echo $c['env']['MONGO_USERNAME.root.REQUIRED']; // Root parametresi boş gelemez.
+echo $c['env']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
 ```
 
-Aşağıdaki örnekte mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin <b>$c['env']</b> sınıfı ile nasıl atandığını görüyorsunuz.
+Yukarıdaki örnekte fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
+
+Eğer en <b>son</b> parametre <b>required</b> olarak girilirse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+
+Boş gelemez zorunluluğuna bir örnek
+
+```php
+echo $c['env']['MONGO_USERNAME.root.required']; // Root parametresi boş gelemez.
+```
+
+Aşağıdaki örnekte ise mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin bu sınıf ile nasıl atandığını görüyorsunuz.
 
 ```php
 return array(
 
-    'connections' => array(
-        
-        'default' => array(
-            'host' => $c['env']['MONGO_HOST.REQUIRED'],
-            'username' => $c['env']['MONGO_USERNAME.root'],
-            'password' => $c['env']['MONGO_PASSWORD.null'],
-            'port' => '27017',
-            'options'  => array('connect' => true)
-            ),
-    ),
+    'connections' =>
+    [
+        'default' => [
+            'server' => 'mongodb://'.$c['env']['MONGO_USERNAME.root'].':'.$c['env']['MONGO_PASSWORD.null'].'@'.$c['env']['MONGO_HOST.required'].':27017',
+            'options'  => ['connect' => true]
+        ],
+        'second' => [
+            'server' => 'mongodb://test:123456@localhost:27017',
+            'options'  => ['connect' => true]
+        ]
+    ],
+
 );
 
 /* End of file mongo.php */
@@ -265,13 +336,13 @@ Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adın
 
 ```php
 return array(
-    'local' => array ( ... ),
-    'test' => array ( ... ),
-    'production' => array( ... )
-    'myenv' => array ( 
+    'local' => [ ... ],
+    'test' =>  [ ... ],
+    'production' => [ ... ]
+    'myenv' => [
         'example.hostname'
         'example2.hostname'
-    )
+    ]
 );
 
 /* End of file environments.php */
@@ -280,68 +351,6 @@ return array(
 
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
-### Ortam Klasörü için Config Dosyalarını Yaratmak
-
-Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
-
-Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
-
-```php
-- app
-    - config
-        + local
-        - production
-            config.php
-            database.php
-        + test
-        - myenv
-            config.php
-            database.php
-```
-
-Aşağıdaki örnekte sadece <b>error, log, url</b> ve <b>cookie</b> anahtarları içerisindeki değişen belirli anahtarlar gözüküyor. Uygulama çalıştığında bu anahtar değerleri geçerli olurken geri kalan anahtar değerleri local ortam dosyasından okunur.
-
-#### config.php
-
-```php
-return array(
-                    
-    'error' => array(
-        'debug' => false,
-        'reporting' => false,
-    ),
-
-    'log' =>   array(
-        'enabled' => true,
-    ),
-
-    'url' => [
-        'webhost'  => 'example.xom',
-        'baseurl'  => '/',
-        'assets'   => [
-            'url' => '/',
-            'folder' => '/assets/', 
-        ],
-    ],
-
-    'cookie' => array( 
-        'domain' => '.example.com'  // Set to .your-domain.com for site-wide cookies
-    ),
-
-);
-
-/* Location: .app/config/production/config.php */
-```
-
-### Konfigürasyon ayarlarına erişim
-
-Konfigürasyon dosyaları load metodu ile yüklendiğinde çevre ortamı ne olursa olsun ortak biri dizi içerisinde kaydedilirler ve config sınıfı ile bu diziden ilgili konfigürasyon dosyası ayarlarına ulaşılır. Lüten aşağıdaki örneğe bir göz atın.
-
-```php
-$c['config']->load('database');
-
-echo $c['config']['database']['connections']['db']['host'];  // Çıktı localhost
-```
 
 #### Application Sınıfı Referansı
 
@@ -365,7 +374,11 @@ Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama i�
 
 ##### $this->c['app']->uri->method();
 
-Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+
+##### $this->c['app']->provider(string $name);
+
+Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
 ##### $this->c['app']->isCli();
 

@@ -121,7 +121,7 @@ class MetaData
      */
     protected function checkSessionIsExpired()
     {
-        if (($this->meta['la'] + $this->config['session']['lifetime']) < $this->now) {
+        if (($this->meta['la'] + $this->config['storage']['lifetime']) < $this->now) {
             $this->c['logger']->notice('Session expired', array('session_id' => session_id()));
             $this->return = false;
         }

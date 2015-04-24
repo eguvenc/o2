@@ -48,10 +48,10 @@ class DomainController extends Controller
         $name = $this->cli->argument('name', null);
         $this->isEmpty($name);
 
-        $this->config->array['domain'][$name]['maintenance'] = 'down';
-        $this->config->write(APP .'config'. DS . 'env'. DS .$this->c['app']->env() . DS .'domain.php', $this->config['domain']);
+        $newArray = $this->config['domain'];
+        $newArray[$name]['maintenance'] = 'down';
 
-        $this->c['logger']->debug('php task domain down --name='.$name);
+        $this->config->write('domain.php', $newArray);
 
         echo Console::fail("Domain ".Console::foreground($name, 'red')." down for maintenance.");
     }
@@ -66,10 +66,10 @@ class DomainController extends Controller
         $name = $this->cli->argument('name', null);
         $this->isEmpty($name);
 
-        $this->config->array['domain'][$name]['maintenance'] = 'up';
-        $this->config->write(APP .'config'. DS . 'env'. DS . $this->c['app']->env() . DS .'domain.php', $this->config['domain']);
+        $newArray = $this->config['domain'];
+        $newArray[$name]['maintenance'] = 'up';
 
-        $this->c['logger']->debug('php task domain up --name='.$name);
+        $this->config->write('domain.php', $newArray);
 
         echo Console::success("Domain ".Console::foreground($name, 'green')." up.");
     }
@@ -102,7 +102,8 @@ class DomainController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help:\n", true);
+echo Console::help("Help:", true);
+echo Console::newline(1);
 echo Console::help("
 Available Commands
 
@@ -111,14 +112,17 @@ Available Commands
 
 Available Arguments
 
-    --name   : Sets domain name.\n\n"
+    --name   : Sets domain name."
 );
-
-echo Console::help("Usage:\n\n", true);
-echo Console::help("php task domain [command] --name=site\n\n");
-echo Console::help("Description:\n\n", true);
-echo Console::help("Manages domain features which are defined in your domain.php config file.\n\n");
-
+echo Console::newline(2);
+echo Console::help("Usage:", true);
+echo Console::newline(2);
+echo Console::help("php task domain [command] --name=site");
+echo Console::newline(2);
+echo Console::help("Description:", true);
+echo Console::newline(2);
+echo Console::help("Manages domain features which are defined in your domain.php config file.");
+echo Console::newline(2);
     }
 }
 

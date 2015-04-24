@@ -7,7 +7,7 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
 
 > **Not:** Dipnotarı kullanmak herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan dipnotlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
 
-Şu anki sürümde biz dipnotları sadece <b>Http Katmanlarını</b> ve Event sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
+Şu anki sürümde biz dipnotları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
 ### Mevcut olan dipnotlar
 
@@ -29,15 +29,15 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
         </tr>
         <tr>
             <td><b>@middleware->method();</b></td>
-            <td>Http protokolü tarafından gönderilen istek metodu belirlenen metotlardan biri ile eşleşmez ise sayfaya erişime izin verilmez.</td>
+            <td>Http protokolü tarafından gönderilen istek metodu belirlenen metotlardan biri ile eşleşmez ise sayfaya erişime izin verilmez. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
         </tr>
          <tr>
             <td><b>@middleware->when()->add()</b></td>
-            <td>Http katmanını çalıştırır eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı controller a erişime izin verilmez.</td>
+            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı katman uygulumaya eklenmez.</td>
         </tr>
         <tr>
             <td><b>@event->subscribe();</b></td>
-            <td>Event sınıfını çağırarak subscribe metodu ile varsayılan controller için dinleyici atamanızı sağlar.</td>
+            <td>Event sınıfını çağırarak subscribe metodu ile varsayılan controller için bir dinleyici atamanızı sağlar.</td>
         </tr>
     </tbody>
 </table>
@@ -81,7 +81,7 @@ Aşağıdaki örneklere bir göz atın.
 /**
  * Index
  *
- * @middleware->assign("Example");
+ * @middleware->add("Example");
  * @middleware->method("get", "post");
  *
  * @return void

@@ -304,18 +304,22 @@ class DebuggerController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help:\n", true);
+echo Console::help("Help:", true);
+echo Console::newline(2);
 echo Console::help("
 Available Commands
 
-    debugger     : Run debug server.\n\n"
+    debugger     : Run debug server."
 );
-
-echo Console::help("Usage:\n\n", true);
-echo Console::help("php task debugger\n\n");
-echo Console::help("Description:\n\n", true);
-echo Console::help("Start debugger websocket server.\n\n");
-
+echo Console::newline(2);
+echo Console::help("Usage:", true);
+echo Console::newline(2);
+echo Console::help("php task debugger");
+echo Console::newline(2);
+echo Console::help("Description:", true);
+echo Console::newline(2);
+echo Console::help("Start debugger websocket server.");
+echo Console::newline(2);
     }
 
 }

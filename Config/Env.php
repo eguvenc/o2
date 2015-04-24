@@ -118,16 +118,23 @@ class Env implements ArrayAccess
     protected function env($key, $default = '', $required = false)
     {
         $env = $this->c['app']->env();
-        
         $empty = empty($_ENV[$key]);
+        $heading = $message = '';
+        
         if ($required AND $empty) {
-            die('<b>Configuration error: </b>'.$key.' key not found or value is empty in .env.'.$env.'.php file array.');
+            $heading = 'Env Variable Not Defined';
+            $message = 'Env variable <b>'.$key.'</b> key not defined or empty in your <b>.env.'.$env.'.php</b> file.';
+            include APP. 'templates'. DS . 'errors'. DS .'general.php';
+            die;
         }
         if ($empty AND $default != '') {     // default value
             return $default;
         }
         if ( ! isset($_ENV[$key])) {
-            die('<b>Configuration error: </b>'.$key.' key not found in .env.'.$env.'.php file array.');
+            $heading = 'Env Variable Not Exists';
+            $message = 'Env variable <b>'.$key.'</b> key defined in your <b>.env.'.$env.'.php</b> file.';
+            include APP. 'templates'. DS . 'errors'. DS .'general.php';
+            die;
         }
         return $_ENV[$key];
     }
@@ -153,7 +160,7 @@ class Env implements ArrayAccess
             if (strtolower($exp[1]) == 'null' OR empty($exp[1])) {
                 $arguments['default'] = null;
             }
-            $arguments['required'] = (isset($exp[2])) ? true : false;
+            $arguments['required'] = ($arguments['default'] == 'required' || isset($exp[2])) ? true : false;
         }
         return $arguments;
     }

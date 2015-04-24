@@ -233,7 +233,7 @@ Services
 
 ```php
 $c['cache'];  // creates shared cache instance
-$c['service provider cache']->get(); // creates new cache providers instance
+$c['app']->provider('cache')->get(); // creates new cache providers instance
 ```
 
 #### "Return" Example

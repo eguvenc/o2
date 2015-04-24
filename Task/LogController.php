@@ -107,7 +107,8 @@ class LogController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help:\n\n", true);
+echo Console::help("Help:", true);
+echo Console::newline(2);
 echo Console::help(
 "Available Commands
 
@@ -118,21 +119,23 @@ Available Arguments
 
     --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
     --db     : Database name if mongo driver used.
-    --table  : Collection name if mongo driver used.\n\n");
-
-echo Console::help("Usage:\n\n",true);
+    --table  : Collection name if mongo driver used.");
+echo Console::newline(2);
+echo Console::help("Usage:",true);
+echo Console::newline(2);
 echo Console::help(
 "php task log --dir=value
 
     php task log 
     php task log --dir=cli
     php task log --dir=ajax
-    php task log --dir=http --table=logs\n\n");
+    php task log --dir=http --table=logs");
+echo Console::newline(2);
 
-
-echo Console::help("Description:\n\n", true);
-echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.\n\n");
-
+echo Console::help("Description:", true);
+echo Console::newline(2);
+echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.");
+echo Console::newline(2);
     }
 
 }

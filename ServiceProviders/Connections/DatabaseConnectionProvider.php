@@ -61,7 +61,7 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     {
         $driver = ucfirst(strstr($this->config['connections'][$key]['dsn'], ':', true));
         $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
-        return new $Class($this->c['config'], $this->c['logger'], $this->c['service provider pdo'], ['connection' => $key]);
+        return new $Class($this->c['config'], $this->c['logger'], $this->c['app']->provider('pdo'), ['connection' => $key]);
     }
     
     /**
@@ -75,7 +75,7 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     {
         $driver = ucfirst(strstr($params['dsn'], ':', true));
         $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
-        return new $Class($this->c['config'], $this->c['logger'], $this->c['service provider pdo'], $params);
+        return new $Class($this->c['config'], $this->c['logger'], $this->c['app']->provider('pdo'), $params);
     }
     
 

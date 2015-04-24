@@ -20,7 +20,7 @@ if (error_get_last() != null) {
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
 
-require 'Obullo.php';
+require 'Application.php';
 
 /**
  * Container
@@ -39,7 +39,7 @@ $c['app'] = function () {
     return new Http;
 };
 /**
- * Obullo bootstrap
+ * Run Http Application
  * 
  * @category  Container
  * @package   Container
@@ -48,7 +48,7 @@ $c['app'] = function () {
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
-class Http extends Obullo
+class Http extends Application
 {
     /**
      * Middleware objects

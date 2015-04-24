@@ -7,7 +7,7 @@
 Kullanım Örneği
 
 ```php
-$this->pdo = $this->c['service provider pdo']->get(['connection' => 'default']);
+$this->pdo = $this->c['app']->provider('pdo')->get(['connection' => 'default']);
 ```
 
 Birkez yüklendikten sonra mongo metodlarına erişebilirsiniz.
@@ -19,7 +19,7 @@ $this->pdo->query(" ... ");
 Factory Örneği ( Config te olmayan yeni konnekşın lar üretmek için )
 
 ```php
-$this->pdo = $this->c['service provider pdo']->factory( 
+$this->pdo = $this->c['app']->provider('pdo')->factory( 
     [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
         'username' => 'root',

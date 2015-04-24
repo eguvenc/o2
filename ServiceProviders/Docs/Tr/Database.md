@@ -4,7 +4,7 @@
 -----
 
 ```php
-$this->db = $this->c['service provider database']->get(['connection' => 'default']);
+$this->db = $this->c['app']->provider('database')->get(['connection' => 'default']);
 $this->db->method();
 ```
 
@@ -39,14 +39,14 @@ You can add new connection in this connections configuration.
 You must send the connection name to the chosen database connection.
 
 ```php
-$this->c['service provider database']->get(['connection' => 'default']);
+$this->c['app']->provider('database')->get(['connection' => 'default']);
 ```
 Also when you use same parameters, database provider service returns same object.
 
 ```php
-$db1 = $this->c['service provider database']->get(['connection' => 'default']); // Creates a new object ($db1)
-$db2 = $this->c['service provider database']->get(['connection' => 'default']); // Returns same object ($db1)
-$db3 = $this->c['service provider database']->get(['connection' => 'test']);	 // Creates a new object
+$db1 = $this->c['app']->provider('database')->get(['connection' => 'default']);  // Creates a new object ($db1)
+$db2 = $this->c['app']->provider('database')->get(['connection' => 'default']);  // Returns same object ($db1)
+$db3 = $this->c['app']->provider('database')->get(['connection' => 'test']);	 // Creates a new object
 ```
 <blockquote>When you change parameters, database service provider will automatically create a new object..</blockquote>
 
@@ -55,7 +55,7 @@ $db3 = $this->c['service provider database']->get(['connection' => 'test']);	 //
 You can send manually your own configuration. The database service provider creates a new object.
 
 ```php
-$db = $this->c['service provider database']->factory(
+$db = $this->c['app']->provider('database')->factory(
     [
         'dsn'      => 'mysql:host=localhost;port=;dbname=test',
         'username' => 'root',

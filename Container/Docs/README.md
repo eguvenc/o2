@@ -20,7 +20,7 @@ If you are new to service containers or Dependency Injection, it would be a good
 
 #### $c['service'];
 
-#### $c['service provider class']->get(array $params);
+#### $this->c['app']->provider('name')->get(array $params);
 
 #### $c->exists();
 

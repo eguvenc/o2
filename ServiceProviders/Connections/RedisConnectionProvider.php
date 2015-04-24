@@ -151,7 +151,7 @@ class RedisConnectionProvider extends AbstractConnectionProvider
             throw new RuntimeException(
                 sprintf(
                     "Redis provider requires connection parameter. <pre>%s</pre>",
-                    "\$c['service provider redis']->get(['connection' => 'default']);"
+                    "\$c['app']->provider('redis')->get(['connection' => 'default']);"
                 )
             );
         }

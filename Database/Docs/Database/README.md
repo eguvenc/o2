@@ -798,7 +798,7 @@ Also you use active record class like this
 
 ```php
 <?php
-$this->db = $c['service provider query']->get(['connection' => 'default']);
+$this->db = $c['app']->provider('query')->get(['connection' => 'default']);
 
 $col = array('person_type', 'person_name');
 

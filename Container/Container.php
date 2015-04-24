@@ -40,7 +40,6 @@ class Container implements ArrayAccess
     protected $return = array();           // Stores return requests
     protected $resolved = array();         // Stores resolved class names
     protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
-    protected $bindNamespaces = array();   // Stores bind method namespaces
     protected $services = array();         // Defined services
     protected $registeredServices = array();  // Lazy loading for service wrapper class
     protected $registeredProviders = array();  // Stack data for service provider wrapper class
@@ -122,7 +121,7 @@ class Container implements ArrayAccess
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
         $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, array('router','uri','config','logger','exception','error'));
+        $isCoreFile = in_array($key, ['app','router','uri','config','logger','exception','error','env']);
 
         // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
         // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
@@ -132,14 +131,12 @@ class Container implements ArrayAccess
             AND Controller::$instance == null
             AND $isCoreFile == false
         ) {
-            $this->unRegistered[$cid] = $cid; // Mark them as unregistered then we will assign back into controller.
+            $this->unRegistered[$cid] = $cid;   // Mark them as unregistered then we will assign back into controller.
         }
-
-        if ( ! isset($this->values[$cid])) {  // If does not exist in container we load it directly.
-            return $this->load($cid);        //  Load service providers, services and none component libraries like cookie, url ..
+        if ( ! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
+            return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
         }
-
-        if (isset($this->raw[$cid])         // Returns to instance of class or raw closure.
+        if (isset($this->raw[$cid])             // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
@@ -235,9 +232,6 @@ class Container implements ArrayAccess
         $class = strtolower($matches['class']);
         $serviceName = ucfirst($matches['class']);
 
-        if ( ! empty($matches['provider'])) {
-            return $this->resolveProvider($class);
-        }
         $isService = false;
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
@@ -261,8 +255,12 @@ class Container implements ArrayAccess
                 $this->registeredServices[$serviceName] = true;
             }
         }
-        $data = $this->getClassInfo($matches['class']);
-
+        // $data = $this->getClassInfo($matches['class']);
+        $data = [
+            'key' => $matches['class'],
+            'cid' => $class,
+            'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
+        ];
         $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
         
         if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
@@ -278,7 +276,7 @@ class Container implements ArrayAccess
      * 
      * @return object \Obullo\ServiceProviders\ServiceProviderInterface
      */
-    protected function resolveProvider($class)
+    public function resolveProvider($class)
     {
         if ( ! isset($this->registeredProviders[$class])) {
             throw new RuntimeException(
@@ -347,24 +345,6 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Map the class names
-     * 
-     * @param array  $exp   names
-     * @param string $slash whetherto add slash
-     * 
-     * @return void
-     */
-    protected function mapName($exp, $slash = '')
-    {
-        return array_map(
-            function ($value) use ($slash) {
-                return $slash.ucfirst($value);  // Converts "utils/uri" to "utilsUri"
-            },
-            $exp
-        );
-    }
-
-    /**
      * Register unregistered class to container
      * 
      * @param string $cid       identifier
@@ -413,7 +393,7 @@ class Container implements ArrayAccess
             'as' => ''
         );
         if (strrpos($class, ' ')) {  // If we have command request
-            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<provider>(?:)service provider|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
+            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
             preg_match('#'.$regex.'#', $class, $matches);
             if ( ! empty($matches['last'])) {
                 $matches['as'] = substr(trim($matches['last']), 3);
@@ -421,50 +401,6 @@ class Container implements ArrayAccess
         }
         $this->resolvedCommand[$class] = $matches;
         return $matches;
-    }
-
-    /**
-     * Get class name and key
-     * 
-     * @param string $cid identifier
-     *
-     * @return array data
-     */
-    public function getClassInfo($cid)
-    {
-        if (isset($this->resolved[$cid])) {
-            return $this->resolved[$cid];
-        }
-        $Class = ucfirst($cid);
-        $Class = str_replace('/', '\\', trim($Class));  // Replace  all forward slashes "/" to backslashes "\\".
-
-        if (strpos($Class, '\\') > 0) {
-            return $this->resolveNamespace($Class, $cid, '\\', true);
-        }
-        return $this->resolveNamespace($Class.'\\'.$Class, $cid, '\\', false);
-    }
-
-    /**
-     * Resolve PSR-0 Namespaces
-     * 
-     * @param string $Class     class path
-     * @param stirng $key       store key
-     * @param string $separator path sign
-     * @param string $implode   whether to implode namespaces
-     * 
-     * @return string
-     */
-    protected function resolveNamespace($Class, $key, $separator = '\\', $implode = true)
-    {
-        $exp = explode($separator, $Class);
-        $ClassName = end($exp);
-        if ($implode) {
-            $exp = $this->mapName($exp);   // Converts "utils/uri" to "utilsUri"
-            $key = lcfirst(implode('', $exp));  // First letter must be lowercase
-        }
-        array_pop($exp);
-        $nameSpace = 'Obullo' .$separator. implode($separator, $exp).$separator. ucfirst($ClassName);
-        return $this->resolved[$key] = array('key' => $key, 'cid' => strtolower($key), 'class' => $nameSpace);
     }
 
     /**

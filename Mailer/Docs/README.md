@@ -65,7 +65,7 @@ Class Mailer implements ServiceInterface
     public function register($c)
     {
         $c['mailer'] = function () use ($c) {
-            $mailer = $c['service provider mailer']->get(['driver' => 'mandrill', 'options' => array('queue' => false)]);
+            $mailer = $c['app']->provider('mailer')->get(['driver' => 'mandrill', 'options' => array('queue' => false)]);
             $mailer->from('Admin <admin@example.com>');
             return $mailer;
         };
@@ -100,14 +100,14 @@ echo $this->mailer->printDebugger();
 
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get('driver' => 'smtp');
+$this->mailer = $c['app']->provider('mailer')->get('driver' => 'smtp');
 $this->mailer->method();
 ```
 
 #### Using Service Provider Queue Option
 
 ```php
-$this->mailer = $this->c['service provider mailer']->get(
+$this->mailer = $c['app']->provider('mailer')->get(
     [
         'driver' => 'mandrill', 
         'options' => array('queue' => true)

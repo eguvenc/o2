@@ -104,7 +104,7 @@ class Session
     protected function setCookieParams()
     {
         session_set_cookie_params(
-            $this->config['session']['lifetime'],
+            $this->config['cookie']['expire'],
             $this->config['cookie']['path'],
             $this->config['cookie']['domain'],
             $this->config['cookie']['secure'], 
@@ -186,7 +186,7 @@ class Session
     {
         $oldSessionId = session_id();
         session_regenerate_id((bool) $deleteOldSession);
-        $storageLifetime = ($lifetime == null) ? $this->config['session']['lifetime'] : $lifetime;
+        $storageLifetime = ($lifetime == null) ? $this->config['storage']['lifetime'] : $lifetime;
         $this->saveHandler->setLifetime($storageLifetime);
         $this->remove($oldSessionId);  // Removes old Session id value
         $this->meta->create();
@@ -245,7 +245,7 @@ class Session
         if ( ! isset($meta['la'])) {  // la = meta data last activity.
             return false;
         }
-        $expire = $this->getTime() - $this->config['session']['lifetime'];
+        $expire = $this->getTime() - $this->config['storage']['lifetime'];
         if ($meta['la'] <= $expire) {
             return true;
         }

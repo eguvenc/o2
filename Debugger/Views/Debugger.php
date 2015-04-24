@@ -275,6 +275,24 @@ body
     width: 85%;
     padding-left:10px;
 }
+pre{
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  background:#EEE;
+  border:1px solid #DDD;
+  border-radius:4px;
+  -moz-border-radius:4px;
+  -webkit-
+  border-radius:4px;
+  padding:5px 10px;
+  color:#666;
+  font-size:12px;
+}
+pre code{background:transparent;border:none;padding:0;}
+pre span.string {color: #cc0000;}
 .title { color: #5A5A5F; font-weight: bold; margin-top: 5px; margin-bottom: 3px; }
 .error { color: red; }
 </style>

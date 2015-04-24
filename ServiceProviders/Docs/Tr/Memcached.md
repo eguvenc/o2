@@ -6,7 +6,7 @@
 Kullanım Örneği
 
 ```php
-$this->memcached = $this->c['service provider memcached']->get(['connection' => 'default']);
+$this->memcached = $this->c['app']->provider('memcached')->get(['connection' => 'default']);
 ```
 
 Birkez yüklendikten sonra cache metotlarına erişebilirsiniz.
@@ -19,7 +19,7 @@ $this->memcached->get(" ... ");
 Factory Örneği ( Config te olmayan yeni bağlantılar üretmek için )
 
 ```php
-$this->memcached = $this->c['service provider memcached']->factory( 
+$this->memcached = $this->c['app']->provider('memcached')->factory( 
     [
         'host' => '127.0.0.1',
         'port' => 11211,

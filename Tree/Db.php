@@ -2,6 +2,7 @@
 
 namespace Obullo\Tree;
 
+use PDO;
 use RunTimeException;
 
 /**
@@ -22,7 +23,7 @@ use RunTimeException;
  * http://ftp.nchu.edu.tw/MySQL/tech-resources/articles/hierarchical-data.html
  *
  */
-Class Db
+class Db
 {
     /**
      * Table Constants
@@ -221,7 +222,7 @@ Class Db
         if ($this->db) { // Lazy loading
             return;
         }
-        $this->db = $this->c['service provider database']->get(['connection' => $this->params['connection']]); // set database object.
+        $this->db = $this->c['app']->provider('database')->get(['connection' => $this->params['connection']]); // set database object.
     }
 
     /**
@@ -289,7 +290,7 @@ Class Db
         $i = 0;
         foreach ($data as $value) {
             $i++;
-            $param = (is_numeric($value)) ? PARAM_INT : PARAM_STR;
+            $param = (is_numeric($value)) ? PDO::PARAM_INT : PDO::PARAM_STR;
             $this->db->bindValue($i, $value, $param);
         }
         return $this->db->execute();
@@ -312,7 +313,7 @@ Class Db
                 $this->db->protect($this->primaryKey)
             )
         );
-        $this->db->bindValue(1, $category_id, PARAM_INT);
+        $this->db->bindValue(1, $category_id, PDO::PARAM_INT);
         $this->db->execute();
         return $this->db->rowArray();
     }
@@ -445,8 +446,8 @@ Class Db
                 $this->db->protect($this->rgt),
             )
         );
-        $this->db->bindValue(1, $lftValue, PARAM_INT);
-        $this->db->bindValue(2, $rgtValue, PARAM_INT);
+        $this->db->bindValue(1, $lftValue, PDO::PARAM_INT);
+        $this->db->bindValue(2, $rgtValue, PDO::PARAM_INT);
 
         $this->db->execute();
 
@@ -483,7 +484,7 @@ Class Db
                 $this->db->protect($this->primaryKey),
             )
         );
-        $this->db->bindValue(1, $category_id, PARAM_INT);
+        $this->db->bindValue(1, $category_id, PDO::PARAM_INT);
         return $this->db->execute();
     }
 
@@ -526,8 +527,8 @@ Class Db
                 $this->db->protect($this->primaryKey)
             )
         );
-        $this->db->bindValue(1, $category_id, PARAM_INT);
-        $this->db->bindValue(2, $source[$this->primaryKey], PARAM_INT);
+        $this->db->bindValue(1, $category_id, PDO::PARAM_INT);
+        $this->db->bindValue(2, $source[$this->primaryKey], PDO::PARAM_INT);
         return $this->db->execute();
     }
 
@@ -720,8 +721,8 @@ Class Db
                 $this->db->protect($this->lft)
             )
         );
-        $this->db->bindValue(1, $setValue, PARAM_INT);
-        $this->db->bindValue(2, $whereValue, PARAM_INT);
+        $this->db->bindValue(1, $setValue, PDO::PARAM_INT);
+        $this->db->bindValue(2, $whereValue, PDO::PARAM_INT);
         
         return $this->db->execute();
     }
@@ -748,8 +749,8 @@ Class Db
                 $this->db->protect($this->rgt),
             )
         );
-        $this->db->bindValue(1, $setValue, PARAM_INT);
-        $this->db->bindValue(2, $whereValue, PARAM_INT);
+        $this->db->bindValue(1, $setValue, PDO::PARAM_INT);
+        $this->db->bindValue(2, $whereValue, PDO::PARAM_INT);
         return $this->db->execute();
     }
 
@@ -810,7 +811,7 @@ Class Db
                 $this->lft
             )
         );
-        $this->db->bindValue(1, $nodeId, PARAM_INT);
+        $this->db->bindValue(1, $nodeId, PDO::PARAM_INT);
         $this->db->execute();
         return $this->db->resultArray();
     }
@@ -981,7 +982,7 @@ Class Db
                 $this->db->protect($this->parentId),
             )
         );
-        $this->db->bindValue(1, $parent_id[$this->parentId], PARAM_INT);
+        $this->db->bindValue(1, $parent_id[$this->parentId], PDO::PARAM_INT);
         $this->db->execute();
         return $this->db->resultArray();
     }
@@ -1004,7 +1005,7 @@ Class Db
                 $this->db->protect($this->primaryKey)
             )
         );
-        $this->db->bindValue(1, $category_id, PARAM_INT);
+        $this->db->bindValue(1, $category_id, PDO::PARAM_INT);
         $this->db->execute();
         return $this->db->rowArray();
     }

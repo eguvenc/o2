@@ -346,7 +346,7 @@ class Layer
             array(
                 'time' => number_format(microtime(true) - $start, 4), 
                 'key' => $KEY, 
-                'output' => static::LOG_HEADER .substr($response, 0, 50).' ...'. static::LOG_FOOTER
+                'output' => static::LOG_HEADER .$response. static::LOG_FOOTER
             )
         );
     }

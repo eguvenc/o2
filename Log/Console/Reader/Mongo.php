@@ -35,7 +35,7 @@ class Mongo
 
         // use default provider
 
-        $mongo = $c['service provider mongo']->get(
+        $mongo = $c['app']->provider('mongo')->get(
             [
                 'connection' => 'default'
             ]

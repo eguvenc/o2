@@ -50,7 +50,7 @@ class Cache implements ServiceInterface
     public function register(Container $c)
     {
         $c['cache'] = function () use ($c) {
-            return $c['service provider cache']->get(['driver' => 'redis', 'connection' => 'default']);
+            return $this->c['app']->provider('cache')->get(['driver' => 'redis', 'connection' => 'default']);
         };
     }
 }
@@ -66,7 +66,7 @@ class Cache implements ServiceInterface
 Cache kütüphanesi bağımsız olarak kullanılmak istendiği durumlarda servis sağlayıcısından direkt olarak çağrılabilir. Servis sağlayıcı yüklendiği zaman kütüphaneyi bir değişkene atayıp metotlara ulaşabilirsiniz.
 
 ```php
-$this->cache = $this->c['service provider cache']->get(['driver' => 'memcached', 'connection' => 'default'];
+$this->cache = $this->c['app']->provider('cache')->get(['driver' => 'memcached', 'connection' => 'default'];
 $this->cache->metod();
 ```
 
@@ -203,7 +203,7 @@ Birden fazla memcached sunucunuz varsa konfigürasyon dosyasındaki diğer sunuc
 Eğer uygulama içerisinde cache servisinin memcached kullanmasını istiyorsanız <kbd>app/Classes/Service/Cache.php</kbd> dosyasındaki <b>driver</b> anahtarını <b>memcached</b> olarak değiştirin.
 
 ```php
-$c['service provider cache']->get(['driver' => 'memcached', 'connection' => 'default']);
+$this->c['app']->provider('cache')->get(['driver' => 'memcached', 'connection' => 'default']);
 ```
 
 ### Memcached Metot Referansı

@@ -16,7 +16,7 @@ use Obullo\Container\Container;
  * @category  Router
  * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/router
  */
@@ -41,6 +41,11 @@ class Router
     protected $domainMatches = array();     // Keeps matched domains in cache
     protected $httpMethod = 'get';          // Http methods ( get, post, put, delete )
     protected $group = array('name' => 'UNNAMED', 'domain' => null);       // Group configuration array
+
+    /**
+     * If default route not detected
+     */
+    const DEFAULT_PAGE_ERROR = 'Unable to determine what should be displayed. A default route has not been specified in the routing file.';
 
     /**
      * Constructor
@@ -283,20 +288,19 @@ class Router
      */
     public function init()
     {
-        $this->uri->fetchUriString();  // Detect the complete URI string
+        $this->uri->init();  // Initialize to complete URI string
+
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
 
-            if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
-                $message = 'Unable to determine what should be displayed. A default route has not been specified in the routing file.';
-
-                if (isset($_SERVER['LAYER_REQUEST'])) {  // Returns to false if we have Layer connection error.
-                    $this->c['response']->setError('@ErrorTemplate@'.$message);
-                    return false;
-                }
-                $this->c['response']->showError($message, 404);
+            $layerRequest = isset($_SERVER['LAYER_REQUEST']);
+            if ($layerRequest) {  // Returns to false if we have Layer connection error.
+                $this->c['response']->setError('@ErrorTemplate@'.static::DEFAULT_PAGE_ERROR);
+                return false;
             }
+            $this->checkErrors();
+
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
-            if (isset($_SERVER['LAYER_REQUEST']) AND $segments === false) {   // Returns to false if we have Layer connection error.
+            if ($layerRequest AND $segments === false) {   // Returns to false if we have Layer connection error.
                 return false;  
             }
             $this->setClass($segments[1]);
@@ -305,6 +309,28 @@ class Router
             $this->logger->debug('No URI present. Default controller set.');
             return;
         }
+        $this->dispatchRoutes();
+    }
+
+    /**
+     * Check route errors
+     * 
+     * @return void
+     */
+    protected function checkErrors()
+    {        
+        if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
+            $this->c['response']->showError(static::DEFAULT_PAGE_ERROR, 404);
+        }
+    }
+
+    /**
+     * Dispatch routes if we have no errors
+     * 
+     * @return void
+     */
+    protected function dispatchRoutes()
+    {
         $this->uri->removeUrlSuffix();   // Do we need to remove the URL suffix?
         $this->uri->explodeSegments();   // Compile the segments into an array 
         $this->parseRoutes();            // Parse any custom routing that may exist
@@ -354,14 +380,8 @@ class Router
         if (defined('STDIN') AND ! isset($_SERVER['LAYER_REQUEST'])) {  // Command Line Requests
             array_unshift($segments, 'tasks');
         }
-        $this->setDirectory($segments[0]); // Set first segment as default "top" directory 
-
-        if (isset($segments[1]) AND is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
-        ) {
-            $this->setModule($segments[0]);
-            $this->setDirectory($segments[1]);
-            array_shift($segments);
-        }
+        $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
+        $segments  = $this->detectModule($segments);
         $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
 
         if ( ! empty($segments[1]) AND file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
@@ -371,18 +391,56 @@ class Router
             array_unshift($segments, $directory);
             return $segments;
         }
-        if ( ! empty($this->pageNotFoundController)) {            // HTTP 404
-            $exp = explode('/', $this->pageNotFoundController);   // If we've gotten this far it means that the URI does not correlate to a valid
-            $this->setDirectory($exp[0]);                         // controller class.  We will now see if there is an +override
-            $this->setClass($exp[1]);
-            $this->setMethod(isset($exp[2]) ? $exp[2] : 'index');
-            return $exp;
+        if ( ! empty($this->pageNotFoundController)) {
+            return $this->pageNotFound();
         }
         if (isset($_SERVER['LAYER_REQUEST'])) {
-            $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
+            $this->layerNotFound();
             return false;
         }
         $this->c['response']->show404($this->uri->getUriString());
+    }
+
+    /**
+     * Check first segment if have a module set module name
+     * 
+     * @param array $segments uri segments
+     * 
+     * @return array
+     */
+    protected function detectModule($segments)
+    {
+        if (isset($segments[1]) AND is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
+        ) {
+            $this->setModule($segments[0]);
+            $this->setDirectory($segments[1]);
+            array_shift($segments);
+        }
+        return $segments;
+    }
+
+    /**
+     * Http 404
+     * 
+     * @return array page not found segments
+     */
+    protected function pageNotFound()
+    {
+        $exp = explode('/', $this->pageNotFoundController);   // If we've gotten this far it means that the URI does not correlate to a valid
+        $this->setDirectory($exp[0]);                         // controller class.  We will now see if there is an +override
+        $this->setClass($exp[1]);
+        $this->setMethod(isset($exp[2]) ? $exp[2] : 'index');
+        return $exp;
+    }
+
+    /**
+     * Hmvc 404
+     * 
+     * @return array page not found segments
+     */
+    protected function layerNotFound()
+    {
+        $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
     }
 
     /**
@@ -405,7 +463,7 @@ class Router
         $parameters = array();
         foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
 
-            if (strpos($val['scheme'], '}') !== false) {   // Does we have route Parameters like {id}/{name} ?
+            if (strpos($val['scheme'], '}') !== false) {   // Do we have route Parameters like {id}/{name} ?
                 $parametersIndex = preg_split('#{(.*?)}#', $val['scheme']); // Get parameter indexes
                 foreach ($parametersIndex as $key => $values) {  // Find parameters we will send it to closure($args)
                     $values = null;
@@ -413,20 +471,33 @@ class Router
                 }
                 $val['scheme'] = preg_replace('#{(.*?)}#', '', $val['scheme']);
             }
-            if (static::routeMatch($val['match'], $uri)) {  // Does the route match ?
-
-                if (count($val['when']) > 0) { //  Dynamically add methot not allowed middleware
-                    $this->c['app']->middleware('MethodNotAllowed', $val['when']);
-                }
-                if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
-                    $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
-                }
-                $segments = (empty($val['rewrite'])) ? $this->uri->segments : explode('/', $val['rewrite']);
-                $this->setSegments($val['closure'], $segments, $parameters);
+            if (static::hasMatch($val['match'], $uri)) {    // Does the route match ?
+                $this->dispatchRouteMatches($uri, $val, $parameters);
                 return;
             }
         }
         $this->setRequest($this->uri->segments);  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
+    }
+
+    /**
+     * Dispatch route matches and assign middlewares
+     * 
+     * @param string $uri        current uri
+     * @param array  $val        route values
+     * @param array  $parameters closure parameters
+     * 
+     * @return void
+     */
+    protected function dispatchRouteMatches($uri, $val, $parameters)
+    {
+        if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
+            $this->c['app']->middleware('MethodNotAllowed', $val['when']);
+        }
+        if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
+            $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
+        }
+        $segments = (empty($val['rewrite'])) ? $this->uri->segments : explode('/', $val['rewrite']);
+        $this->setSegments($val['closure'], $segments, $parameters);
     }
 
     /**
@@ -438,7 +509,7 @@ class Router
      * 
      * @return boolean
      */
-    protected static function routeMatch($match, $uri)
+    protected static function hasMatch($match, $uri)
     {
         if ($match == $uri) { // Is there any literal match ? 
             return true;

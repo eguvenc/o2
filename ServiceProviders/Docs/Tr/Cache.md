@@ -8,7 +8,7 @@ Varolan bağlantılar
 
 
 ```php
-$this->cache = $this->c['service provider cache']->get, 
+$this->cache = $this->c['app']->provider('cache')->get, 
     [
         'driver' => 'redis',
         'options' => array(
@@ -22,7 +22,7 @@ $this->cache = $this->c['service provider cache']->get,
 Kullanım Örneği
 
 ```php
-$this->cache = $this->c['service provider cache']->factory, 
+$this->cache = $this->c['app']->provider('cache')->factory, 
     [
         'driver' => 'redis',
         'options' => array(

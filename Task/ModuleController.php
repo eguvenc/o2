@@ -175,7 +175,8 @@ class ModuleController extends Controller
     {
         $this->logo();
 
-echo Console::help("Help:\n\n", true);
+echo Console::help("Help:", true);
+echo Console::newline(2);
 echo Console::help(
 "Available Commands
 
@@ -184,19 +185,20 @@ echo Console::help(
 
 Available Arguments
 
-    --name   : Module name.\n\n");
-
-echo Console::help("Usage:\n\n", true);
+    --name   : Module name.");
+echo Console::newline(2);
+echo Console::help("Usage:", true);
+echo Console::newline(2);
 echo Console::help(
 "php task module [command] --name=value
 
     php task module add --name=value 
-    php task module remove --name=value\n\n");
-
-
-echo Console::help("Description:\n\n", true);
-echo Console::help("Add / remove modules to modules directory.\n\n");
-
+    php task module remove --name=value");
+echo Console::newline(2);
+echo Console::help("Description:", true);
+echo Console::newline(2);
+echo Console::help("Add / remove modules to modules directory.");
+echo Console::newline(2);
     }
 
 }
