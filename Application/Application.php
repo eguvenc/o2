@@ -18,7 +18,7 @@ use Obullo\Error\Debug;
  */
 class Application
 {
-    const VERSION = '2.0';
+    const VERSION = '2.0@alpha-2';
 
     protected $c;                  // Container
     protected $env = null;         // Current environment
@@ -183,8 +183,8 @@ class Application
      */
     protected function getCurrentRoute()
     {
-        $route = $this->c['uri']->getUriString();   // Get current uri
-        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+        $route = $this->c['uri']->getUriString();          // Get current uri
+        if ($this->c->exists('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
             $route = $this->c['app']->uri->getUriString();                             
         }
         return $route;
@@ -243,6 +243,18 @@ class Application
     }
 
     /**
+     * Register provider
+     * 
+     * @param string $provider name
+     * 
+     * @return Obullo\Container\Contaiiner
+     */
+    public function register($provider)
+    {
+        return $this->c->register($provider);
+    }
+
+    /**
      * Load service provider
      * 
      * @param string $name provider name
@@ -252,6 +264,16 @@ class Application
     public function provider($name)
     {
         return $this->c->resolveProvider($name);
+    }
+
+    /**
+     * Returns current version of Obullo
+     * 
+     * @return string
+     */
+    public function version()
+    {
+        return static::VERSION;
     }
 
     /**

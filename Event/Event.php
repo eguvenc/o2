@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/event
  */
-Class Event
+class Event
 {
     /**
      * Container

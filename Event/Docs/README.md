@@ -218,7 +218,7 @@ Class Welcome extends Controller
         $this->c['form'];
         $this->c['view'];
         $this->c['post'];
-        $this->c['service/user'];
+        $this->c['user'];
         $this->c['event']->subscribe(new Event\Login\Attempt($this->c)];        
     }
 

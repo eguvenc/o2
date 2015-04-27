@@ -351,6 +351,10 @@ return array(
 
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
+#### Servis Sağlayıcıları
+
+
+
 
 #### Application Sınıfı Referansı
 
@@ -376,7 +380,11 @@ Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama i�
 
 Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
 
-##### $this->c['app']->provider(string $name);
+##### $this->c['app']->register(string $provider);
+
+<kbd>.app/providers.php</kbd> dosyasında servis sağlayıları uygulamaya tanımlamak için kullanılır. Uygulamada genellikle servisler içerisinde kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir.
+
+##### $this->c['app']->provider(string $name)->get(array $params);
 
 Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
