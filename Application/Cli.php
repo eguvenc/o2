@@ -90,7 +90,7 @@ class Cli extends Application
         $this->c['router']->init();       // Initialize Routes
 
         $route = $this->c['uri']->getUriString();   // Get current uri
-        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+        if ($this->c->has('app.uri')) {                 // If layer used, use global request uri object instead of current.
             $route = $this->c['app']->uri->getUriString();                             
         }
         $class = $this->c['router']->fetchClass();

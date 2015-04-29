@@ -247,7 +247,7 @@ class Form
      */
     public function getError($field, $prefix = '', $suffix = '')
     {
-        if ($this->c->exists('validator')) {  // If we have validator object
+        if ($this->c->has('validator')) {  // If we have validator object
             return $this->c['validator']->getError($field, $prefix, $suffix);
         }
     }
@@ -265,7 +265,7 @@ class Form
      */    
     public function getValue($field = '', $default = '')
     {
-        if ($this->c->exists('validator')) { // If we have validator object
+        if ($this->c->has('validator')) { // If we have validator object
             return $this->c['validator']->getValue($field, $default);
         }
         return $default;

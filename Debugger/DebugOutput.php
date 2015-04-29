@@ -166,7 +166,7 @@ class DebugOutput
                 unlink($path.$filename);
             }
         }
-        if ($this->c->exists('queue')) {
+        if ($this->c->has('queue')) {
             $this->c['queue']->deleteQueue($this->c['config']['logger']['queue']['route']); // Clear queue data
         }
     }

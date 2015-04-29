@@ -2,6 +2,7 @@
 
 namespace Obullo\Cookie;
 
+use RuntimeException;
 use Obullo\Container\Container;
 
 /**
@@ -14,14 +15,14 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cookie
  */
-Class Cookie
+class Cookie
 {
     /**
-     * Config
+     * Cookie unique id
      * 
-     * @var object
+     * @var string
      */
-    protected $config;
+    protected $id;
 
     /**
      * Queued cookies
@@ -31,6 +32,13 @@ Class Cookie
     protected $queued = array();
 
     /**
+     * Standart cookies
+     * 
+     * @var array
+     */
+    protected $cookies = array();
+
+    /**
      * Constructor
      * 
      * @param object $c container
@@ -38,10 +46,131 @@ Class Cookie
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config'];
-        $this->logger = $this->c['logger'];
+        $this->c['logger']->debug('Cookie Class Initialized');
+    }
 
-        $this->logger->debug('Cookie Class Initialized');
+    /**
+     * Create unique cookie id
+     * 
+     * @return void
+     */
+    protected function createId()
+    {
+        if ($this->id == null) {
+            $this->id = uniqid();  // Create random id for new cookie
+        }
+    }
+
+    /**
+     * Set cookie name
+     * 
+     * @param string $name cookie name
+     * 
+     * @return object
+     */
+    public function name($name)
+    {
+        $this->createId();
+        $this->cookies[$this->id]['name'] = $name;
+        return $this;
+    }
+    
+    /**
+     * Set cookie value
+     * 
+     * @param string $value value
+     * 
+     * @return object
+     */
+    public function value($value = '')
+    {
+        $this->createId();
+        $this->cookies[$this->id]['value'] = $value;
+        return $this;
+    }
+
+    /**
+     * Set cookie expire in seconds
+     * 
+     * @param integer $expire seconds
+     * 
+     * @return object
+     */
+    public function expire($expire = 0)
+    {
+        $this->createId();
+        $this->cookies[$this->id]['expire'] = (int)$expire;
+        return $this;
+    }
+
+    /**
+     * Set cookie domain name
+     * 
+     * @param string $domain name
+     * 
+     * @return void
+     */
+    public function domain($domain = '')
+    {
+        $this->createId();
+        $this->cookies[$this->id]['domain'] = $domain;
+        return $this;
+    }
+
+    /**
+     * Set cookie path
+     * 
+     * @param string $path name
+     * 
+     * @return object
+     */
+    public function path($path = '/')
+    {
+        $this->createId();
+        $this->cookies[$this->id]['path'] = $path;
+        return $this;
+    }
+
+    /**
+     * Set secure cookie
+     * 
+     * @param boolean $bool true or false
+     * 
+     * @return object
+     */
+    public function secure($bool = false)
+    {
+        $this->createId();
+        $this->cookies[$this->id]['secure'] = $bool;
+        return $this;
+    }
+
+    /**
+     * Make cookie available just for http. ( No javascript )
+     * 
+     * @param boolean $bool true or false
+     * 
+     * @return object
+     */
+    public function httpOnly($bool = false)
+    {
+        $this->createId();
+        $this->cookies[$this->id]['httpOnly'] = $bool;
+        return $this;
+    }
+
+    /**
+     * Set a cookie prefix
+     * 
+     * @param string $prefix prefix
+     * 
+     * @return object
+     */
+    public function prefix($prefix = '')
+    {
+        $this->createId();
+        $this->cookies[$this->id]['prefix'] = $prefix;
+        return $this;
     }
 
     /**
@@ -50,23 +179,35 @@ Class Cookie
      * Accepts six parameter, or you can submit an associative
      * array in the first parameter containing all the values.
      * 
-     * @param string  $name     cookie name
-     * @param string  $value    cookie value
-     * @param integer $expire   expire
-     * @param string  $domain   domain e.g. .example.com
-     * @param string  $path     null default "/"
-     * @param boolean $secure   whether to https enabled cookie
-     * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
-     * @param string  $prefix   cookie prefix
+     * @param string  $name  cookie name
+     * @param string  $value cookie value
+     * @param boolean $queue send to queue
      *
-     * @return void
+     * @return array
      */
-    public function set($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
+    public function set($name = null, $value = null, $queue = false)
     {
-        $name = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
-        return $this->write($name);
+        if (is_string($name) && $name != null) {    // Build method chain parameters
+
+            if ( ! isset($this->cookies[$this->id]['name'])) {
+                $this->name($name);   // Set cookie name
+            }
+            if ( ! isset($this->cookies[$this->id]['value'])) {
+                $this->value($value); // Set cookie value
+            }
+            $name = $this->cookies[$this->id];
+        }
+        if ($name == null && $value == null) {  // If user want to use this way $this->cookie->name()->value()->set();
+            $name = $this->cookies[$this->id];
+        }
+        $cookie = $this->buildParameters($name);
+        if ($queue == false) {
+            $this->write($cookie);
+        }
+        unset($this->cookies[$this->id]);  // Remove latest cookie from cookie array
+        return $cookie;
     }
-    
+
     /**
      * Write cookie to headers
      * 
@@ -88,65 +229,117 @@ Class Cookie
     }
 
     /**
-     * Build cookie parameters
+     * Send cookies to queue with cookie name
      * 
-     * @param string  $name     cookie name
-     * @param string  $value    cookie value
-     * @param integer $expire   expire
-     * @param string  $domain   domain e.g. .example.com
-     * @param string  $path     null default "/"
-     * @param boolean $secure   whether to https enabled cookie
-     * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
-     * @param string  $prefix   cookie prefix
+     * @param string $name  cookie name
+     * @param string $value cookie value
      * 
-     * @return array
+     * @return void
      */
-    protected function buildParameters($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
+    public function queue($name = null, $value = null)
     {
-        if (is_array($name)) {
-            $cookie = $name;
-            foreach ($cookie as $k => $v) {
-                if (in_array($k, array('name','value','expire','domain','path','secure','httpOnly','prefix'))) {
-                    $$k = $v;
-                }
-            }
-        }
-        $prefixVal = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
-        return array(
-            'name' => $name,
-            'value' => $value,
-            'expire' => $expire,
-            'domain' => $domain,
-            'path' => ($path == null) ? $this->config['cookie']['path'] : $path,
-            'secure' => $secure,
-            'httpOnly' => $httpOnly,
-            'prefix' => $prefixVal,
-        );
+        $cookie = $this->set($name, $value, true);
+        $this->queued[$cookie['prefix'].$cookie['name']] = $cookie;
     }
 
     /**
-     * Build parameters
+     * Get a queued cookie array
      *
+     * @param string $name   cookie name
+     * @param string $prefix prefix
+     * 
+     * @return string
+     */
+    public function queued($name, $prefix = '')
+    {
+        $prefix = empty($prefix) ? $this->c['config']['cookie']['prefix'] : $prefix;
+        return isset($this->queued[$prefix.$name]) ? $this->queued[$prefix.$name]['value'] : false;
+    }
+
+    /**
+     * Remove a cookie from the queue.
+     *
+     * @param string $name   cookie name
+     * @param string $prefix prefix
+     * 
+     * @return void
+     */
+    public function unqueue($name, $prefix = '')
+    {
+        $prefix = empty($prefix) ? $this->c['config']['cookie']['prefix'] : $prefix;
+        unset($this->queued[$prefix.$name]);
+    }
+
+    /**
+     * Get cookie
+     * 
+     * @param string $key    cookie key
+     * @param string $prefix cookie prefix
+     * 
+     * @return string sanizited cookie
+     */
+    public function get($key, $prefix = '')
+    {
+        if ( ! isset($_COOKIE[$key]) && $prefix == '' && $this->c['config']['cookie']['prefix'] != '') {
+            $prefix = $this->c['config']['cookie']['prefix'];
+        }
+        if ( ! isset($_COOKIE[$prefix.$key])) {
+            return false;
+        }
+        return $_COOKIE[$prefix.$key];
+    }
+
+    /**
+     * Returns id of current cookie
+     * 
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+    * Delete a cookie
+    *
+    * @param string $name   cookie
+    * @param string $prefix custom prefix
+    * 
+    * @return   void
+    */
+    public function delete($name = null, $prefix = null)
+    {
+        if ($name != null) {
+            $this->name($name);
+        }
+        if ($prefix != null) {
+            $this->prefix($prefix);
+        }
+        $this->value(null)->expire(-1)->prefix($prefix)->set();
+    }
+
+    /**
+     * Build cookie parameters
+     * 
      * @param array $params cookie params
      * 
      * @return array
      */
-    protected function getParameters(array $params)
+    protected function buildParameters($params)
     {
-        if ($params['domain'] == '' AND $this->config['cookie']['domain'] != '') {
-            $params['domain'] = $this->config['cookie']['domain'];
+        if ( ! is_array($params) || ! isset($params['name'])) {
+            throw new RuntimeException("Cookie name can't be empty.");
         }
-        if ($params['secure'] == false AND $this->config['cookie']['secure'] != false) {
-            $params['secure'] = $this->config['cookie']['secure'];
+        $cookie = array();
+        foreach (array('name','value','expire','domain','path','secure','httpOnly','prefix') as $k) {
+            if (array_key_exists($k, $params)) {
+                $cookie[$k] = $params[$k];
+            } else {
+                $cookie[$k] = $this->c['config']['cookie'][$k];
+            }
         }
-        if ( ! is_numeric($params['expire']) AND is_numeric($this->config['cookie']['expire'])) {
-            $params['expire'] = $this->config['cookie']['expire'];
-        }
-        if ($params['httpOnly'] == false AND $this->config['cookie']['httpOnly'] != false) {
-            $params['httpOnly'] = $this->config['cookie']['httpOnly'];
-        }
-        $params['expire'] = $this->getExpiration($params['expire']);
-        return $params;
+        $cookie['expire'] = $this->getExpiration($cookie['expire']);
+        return $cookie;
     }
 
     /**
@@ -166,92 +359,6 @@ Class Cookie
             }
         }
         return $expire;
-    }
-
-    /**
-     * Get cookie
-     * 
-     * @param string $key    cookie key
-     * @param string $prefix cookie prefix
-     * 
-     * @return string sanizited cookie
-     */
-    public function get($key, $prefix = '')
-    {
-        if ( ! isset($_COOKIE[$key]) AND $prefix == '' AND $this->config['cookie']['prefix'] != '') {
-            $prefix = $this->config['cookie']['prefix'];
-        }
-        if ( ! isset($_COOKIE[$prefix.$key])) {
-            return false;
-        }
-        return $_COOKIE[$prefix.$key];
-    }
-
-    /**
-    * Delete a cookie
-    *
-    * @param string $name   cookie
-    * @param string $prefix prefix
-    * @param string $domain the cookie domain.  Usually:  ".yourdomain.com"
-    * @param string $path   the cookie path     generally "/""
-    * 
-    * @return   void
-    */
-    public function delete($name = '', $prefix = '', $domain = '', $path = '/')
-    {
-        $this->set($name, '', 0, $domain, $path, false, false, $prefix);
-    }
-
-    /**
-     * Queue a cookie to send with the next response.
-     *
-     * Accepts six parameter, or you can submit an associative
-     * array in the first parameter containing all the values.
-     * 
-     * @param string  $name     cookie name
-     * @param string  $value    cookie value
-     * @param integer $expire   expire
-     * @param string  $domain   domain e.g. .example.com
-     * @param string  $path     null default "/"
-     * @param boolean $secure   whether to https enabled cookie
-     * @param boolean $httpOnly when true the cookie will be made accessible only through the HTTP protocol
-     * @param string  $prefix   cookie prefix
-     *
-     * @return void
-     */
-    public function queue($name, $value = '', $expire = 0, $domain = '', $path = null, $secure = false, $httpOnly = false, $prefix = '')
-    {
-        $cookie = $this->getParameters($this->buildParameters($name, $value, $expire, $domain, $path, $secure, $httpOnly, $prefix));
-
-        if (is_string($name)) {
-            $this->queued[$name] = $cookie;
-        } elseif (is_array($name) AND isset($name['name'])) {
-            $this->queued[$name['name']] = $cookie;
-        }
-    }
-
-    /**
-     * Get a queued cookie array
-     *
-     * @param string $name cookie name
-     * 
-     * @return string
-     */
-    public function queued($name)
-    {
-        return isset($this->queued[$name]) ? $this->queued[$name]['value'] : false;
-    }
-
-    /**
-     * Remove a cookie from the queue.
-     *
-     * @param string $name cookie name
-     *
-     * @return void
-     */
-    public function unqueue($name)
-    {
-        unset($this->queued[$name]);
     }
 
     /**

@@ -80,7 +80,7 @@ class MailerConnectionProvider extends AbstractConnectionProvider
         }
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->exists($cid)) { //  create shared object if not exists
+        if ( ! $this->c->has($cid)) { //  create shared object if not exists
             $this->c[$cid] = function () use ($params) {  //  create shared objects
                 return $this->createClass($params);
             };

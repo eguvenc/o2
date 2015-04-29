@@ -184,7 +184,7 @@ class Application
     protected function getCurrentRoute()
     {
         $route = $this->c['uri']->getUriString();          // Get current uri
-        if ($this->c->exists('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
+        if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
             $route = $this->c['app']->uri->getUriString();                             
         }
         return $route;
@@ -304,7 +304,7 @@ class Application
     public function __get($key)
     {
         $cid = 'app.'.$key;
-        if ( ($key == 'uri' OR $key == 'router') AND $this->c->exists($cid) ) {
+        if ( ($key == 'uri' OR $key == 'router') AND $this->c->has($cid) ) {
             return $this->c[$cid];
         }
         return Controller::$instance->{$key};

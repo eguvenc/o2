@@ -377,12 +377,12 @@ class CacheServiceProvider implements ServiceProviderInterface
     
     public function register(Container $c)
     {
-        $this->connector = new CacheConnectionProvider($c);  // Register all Connectors as shared services
+        $this->connector = new CacheConnectionProvider($c);
     }
 
     public function get($params = array())
     {
-        return $this->connector->getConnection($params);  // Get existing connection
+        return $this->connector->getConnection($params);
     }
 }
 
@@ -392,8 +392,7 @@ class CacheServiceProvider implements ServiceProviderInterface
 /* Location: .app/classes/Service/Providers/CacheServiceProvider.php */
 ```
 
-
-Aşağıdaki değişikliğide <kbd>.app/providers.php</kbd> dosyası içerisinde gerçekleştirdiğinizde artık servis sağlayıcısı uygulama içerisinden çalışmaya başlayacaktır.
+Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyası içerisine eklediğinizde artık servis sağlayıcınız uygulama içerisinden çalışmaya başlayacaktır.
 
 ```php
 /*
@@ -420,7 +419,7 @@ Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. )
 
 Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
 
-#### $c->exists(string $class);
+#### $c->has(string $class);
 
 Bir sınıfın uygulamadaki kısa adının konteyner içerisine kayıtlı olup olmadığını kontrol eder. Kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 

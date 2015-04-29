@@ -354,7 +354,7 @@ class Identity extends AuthorizedUser
         if ( ! $this->c['cookie']->get($cookie['name'], $cookie['prefix'])) {
             return;
         }
-        $this->c['cookie']->delete($cookie['name'], $cookie['prefix']);
+        $this->c['cookie']->delete($cookie['name'], $cookie['domain'], $cookie['path'], $cookie['prefix']);
     }
 
     /**

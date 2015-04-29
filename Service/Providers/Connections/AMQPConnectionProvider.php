@@ -119,7 +119,7 @@ class AMQPConnectionProvider extends AbstractConnectionProvider
     {
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
+        if ( ! $this->c->has($cid)) { //  create shared connection if not exists
             $this->c[$cid] = function () use ($params) {  //  create shared connections
                 return $this->createConnection($params);
             };

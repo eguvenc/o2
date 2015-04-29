@@ -133,7 +133,6 @@ class View
             }
         }
         if (is_object($val)) {
-            //  do filter
             $this->_objectStack[$key] = $val;
             $this->_arrayStack = array();
             return;
