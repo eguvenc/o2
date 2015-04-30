@@ -5,14 +5,14 @@
 
 Bir Dependency Injection Container <b>DIC</b> veya kısaca konteyner, servisleri yaratmak ve uygulamaya yüklemek için kullanılır. Konteyner sınıfı yinelemeli olarak istenenen servislerin bağımlılıklarını yaratır ve onları uygulamaya enjekte eder.
 
-Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynerlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın.
+Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynırlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın.
 
 
 > **Note:** <b>$c</b> değişkeni konteyner sınıfına eşitlenerek uygulamanın ( Application/Http paketinin ) en başında ilan edilmiştir. Uygulamada gördüğünüz bir <b>$c</b> değişkeni her zaman konteyner sınıfını temsil eder.
 
 ### Servisler
 
-Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni onu uygulama içerisinde kullandırırken tekrar tekrar hep aynı değişken değerleriyle uzun uzadıya yazdırmak yerine, onu bir servis içerisinden hazırlamış değerleriyle yaratarak bu nesne değerleriyle onu <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. Bu türden servisler paylaşımlı servisler olarak adlandırılır. ( Shared Services ).
+Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni onu uygulama içerisinde kullandırırken tekrar tekrar hep aynı değişken değerleriyle uzun uzadıya yazdırmak yerine, onu bir servis içerisinden hazırlamış değerleriyle yaratarak bu nesne değerleriyle uygulamada <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. Bu türden servisler paylaşımlı servisler olarak adlandırılırlar. ( Shared Services ).
 
 Konteyner içerisine bir kez kaydedilen bir sınıf uygulama içerisine tekrar tekrar çağrıldığında sınıfa ait değişken değerleri hep aynı kalır.
 
