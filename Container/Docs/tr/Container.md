@@ -417,7 +417,7 @@ Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. )
 
 #### $c->get(string $class, $alias = null, $shared = true);
 
-Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
+Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
 
 #### $c->has(string $class);
 
