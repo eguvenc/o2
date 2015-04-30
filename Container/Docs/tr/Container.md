@@ -93,7 +93,7 @@ $this->session = $closure(['foo' => 'bar']);
 
 ### Servisleri Tanımlamak
 
-Servis sınıfları uygulamada paylaşılmak istenen sınıfıları konteyner içerisine yüklemeye yarayan ara yüzlerdir. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
+Servis sınıfları uygulamada paylaşılmak istenen sınıfları konteyner içerisine yüklemeye yarayan ara yüzlerdir. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
 
 Önceden tanımlı servisler uygulama çalıştığı anda <kbd>app/classes/Service</kbd> klasöründen konteyner içerisine kayıt edilirler. Yeni bir servis yaratmak için <kbd>app/classes/Service</kbd> dizininde takip eden örnekte gösterildiği gibi bir sınıf yaratılması gerekir.
 
@@ -102,7 +102,7 @@ Servis sınıfları uygulamada paylaşılmak istenen sınıfıları konteyner i�
 namespace Service;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\ServiceInterface;
+use Obullo\Service\ServiceInterface;
 use Obullo\Session\Session as SessionClass;
 
 class Session implements ServiceInterface
