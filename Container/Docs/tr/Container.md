@@ -290,7 +290,7 @@ $this->cache = $this->c['app']->provider('cache')->factory(
 );
 ```
 
-Servis sağlayıcısı bir kez yüklendikten sonra artık cache metodlarına erişebilirsiniz.
+Servis sağlayıcısı bir kez yüklendikten sonra artık cache metotlarına erişebilirsiniz.
 
 ```php
 $this->cache->method();
@@ -298,7 +298,7 @@ $this->cache->method();
 
 ### Mevcut Servis Sağlayıcıları 
 
-Obullo için yazılan servis sağlayıcıları <kbd>Obullo\ServiceProviders</kbd> klasörü altında gruplanmıştır. Aşağıdaki tablo varolan servis sağlayıcılarının bir listesini gösteriyor.
+Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kbd> klasörü altında gruplanmıştır. Aşağıdaki tablo varolan servis sağlayıcılarının bir listesini gösteriyor.
 
 <table>
     <thead>
@@ -413,7 +413,7 @@ $c['app']->register('Service\Providers\CacheServiceProvider');
 
 #### $c['class'];
 
-Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) bu şekilde çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise; sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
+Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise bu durumda sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
 #### $c->get(string $class, $alias = null, $shared = true);
 
