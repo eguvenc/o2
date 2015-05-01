@@ -31,7 +31,7 @@ trait UniqueLoginTrait
             foreach (array_keys($sessions) as $loginID) {       // Destroy all other sessions
                 $this->c['auth.identity']->killSignal($loginID);
             }
-            $this->c['logger']->debug('Unique login addon initialized, user session has been terminated.');
+            $this->c['logger']->debug('Unique login middleware initialized, user session has been terminated.');
         }
     }
 
