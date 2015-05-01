@@ -70,7 +70,7 @@ Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modu
 
 ### Argümanlar
 
-Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı argüman ve Csrf değeri gönderiliyor.
+Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı argüman ve ona ait Csrf değeri gönderiliyor.
 
 ```php
 php task middleware add --name=Csrf
@@ -84,7 +84,7 @@ php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --tim
 
 ### Log Komutu
 
-Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled aanahtarı true olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
+Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled anahtarı true olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
 
 Bunun için terminalinizi açın ve aşağıdaki komutu yazın.
 
@@ -100,10 +100,6 @@ php task log --dir=ajax
 ```
 
 Yukarıdaki komut ise  <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.resources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulamaya ait ajax isteklerinin loglarını ekrana döker.
-
-```php
-php task log --dir=ajax
-```
 
 Help metodunu çalıştırdığınızda ise bir yardım ekranı ile karşılaşırsınız ve help metodu standart olarak tüm task controller dosyalarında bulunur.
 
@@ -196,7 +192,7 @@ php task hello
 
 ##### $this->cli->argument(string $name, string $defalt = '');
 
-Girilen isme göre konsol komutundan gönderilen argümanın değerini verir.
+Girilen isme göre konsol komutundan gönderilen argümanın değerine geri döner.
 
 ##### $this->cli->argumentArray();
 
@@ -204,7 +200,7 @@ Girilen isme göre konsol komutundan gönderilen argümanın değerini verir.
 
 ##### $this->cli->segment(integer $n, string $default = '');
 
-Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman değerine döner.
+Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman değerine geri döner.
 
 ##### $this->cli->segmentArray();
 
