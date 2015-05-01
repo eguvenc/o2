@@ -46,11 +46,11 @@ Konsoldan hello komutunu <b>planet</b> argümanı ile aşağıdaki gibi çalış
 php task hello --planet=World
 ```
 
-> **Not:** Herhangi bi task controller sınıfı içerisinden http controller sınıfında olduğu gibi gerekli ise <b>load()</b> metodunu kullanabilirsiniz.
+> **Not:** Herhangi bir task controller sınıfı içerisinden http controller sınıfında olduğu gibi gerekli durumlarda <b>load()</b> metodunu kullanabilirsiniz.
 
 ### Konsoldan Komut Çalıştırmak
 
-Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmemize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark konsol komutlarında adres çözümlemesi için forward slash "/" yerinde boşluk " " karakteri kullanılır.
+Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmenize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark ise konsol komutlarında adres çözümlemesi için forward slash "/" yerine boşluk " " karakteri kullanılmasıdır.
 
 Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalışırın.
 
@@ -70,13 +70,13 @@ Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modu
 
 ### Argümanlar
 
-Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı arguman ve Csrf değeri gönderiliyor.
+Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı argüman ve Csrf değeri gönderiliyor.
 
 ```php
 php task middleware add --name=Csrf
 ```
 
-Bir kuyruğu dinlemek için kullanılan konsol komutuna bir örnek.
+Bir kuyruğu dinlemek için kullanılan konsol komutuna bir başka örnek.
 
 ```php
 php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --timeout=0 --sleep=3 --debug=1
@@ -84,7 +84,7 @@ php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --tim
 
 ### Log Komutu
 
-Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled sekmesi "true" olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
+Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled aanahtarı true olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
 
 Bunun için terminalinizi açın ve aşağıdaki komutu yazın.
 
@@ -99,13 +99,13 @@ Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <
 php task log --dir=ajax
 ```
 
-Yukarıdaki komut <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.resources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulama ait ajax isteklerinin loglarını ekrana döker.
+Yukarıdaki komut ise  <kbd>modules/tasks/Log</kbd> sınıfını çalıştırır ve <kbd>.resources/data/logs/ajax.log</kbd> dosyasını okuyarak uygulamaya ait ajax isteklerinin loglarını ekrana döker.
 
 ```php
 php task log --dir=ajax
 ```
 
-Help metodunu çalıştırdığınızda bir yardım ekranı ile karşılaşırsınız help metodu tüm task controller dosyalarında bulunur.
+Help metodunu çalıştırdığınızda ise bir yardım ekranı ile karşılaşırsınız ve help metodu standart olarak tüm task controller dosyalarında bulunur.
 
 ```php
 php task log help
@@ -158,7 +158,8 @@ php task log clear
 
 ### Kendi Komutlarınızı Çalıştırmak
 
-Http arayüzündeki controller sınıfına benzer bir şekilde bir controller dosyası yaratın ve namespace bölümünü <b>Tasks</b> olarak değiştirin.
+Modules task klasörū içerisinde kendinize ait task dosyaları yaratabilirsiniz. Bunun için
+http arayüzündeki controller sınıfına benzer bir şekilde bir controller dosyası yaratın ve namespace bölümünü <b>Tasks</b> olarak değiştirin.
 
 ```php
 namespace Tasks;
