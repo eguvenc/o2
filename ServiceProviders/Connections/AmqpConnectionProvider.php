@@ -2,7 +2,7 @@
 
 namespace Obullo\ServiceProviders\Connections;
 
-use AMQPConnection;
+use AmqpConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
@@ -17,7 +17,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-class AMQPConnectionProvider extends AbstractConnectionProvider
+class AmqpConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;          // Container
     protected $config;     // AMQP configuration items
@@ -141,7 +141,7 @@ class AMQPConnectionProvider extends AbstractConnectionProvider
     }
 }
 
-// END AMQPConnectionProvider.php class
-/* End of file AMQPConnectionProvider.php */
+// END AmqpConnectionProvider.php class
+/* End of file AmqpConnectionProvider.php */
 
-/* Location: .Obullo/ServiceProviders/Connections/AMQPConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/AmqpConnectionProvider.php */

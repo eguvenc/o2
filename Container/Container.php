@@ -278,6 +278,7 @@ class Container implements ArrayAccess
      */
     public function resolveProvider($class)
     {
+        $class = strtolower($class);
         if ( ! isset($this->registeredProviders[$class])) {
             throw new RuntimeException(
                 sprintf(

@@ -3,10 +3,10 @@
 namespace Obullo\ServiceProviders;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\Connections\AMQPConnectionProvider;
+use Obullo\ServiceProviders\Connections\AmqpConnectionProvider;
 
 /**
- * AMQP Service Provider
+ * Amqp Service Provider
  *
  * @category  ServiceProvider
  * @package   ServiceProviders
@@ -15,7 +15,7 @@ use Obullo\ServiceProviders\Connections\AMQPConnectionProvider;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/serviceProviders
  */
-class AMQPServiceProvider implements ServiceProviderInterface
+class AmqpServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector
@@ -33,7 +33,7 @@ class AMQPServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $c)
     {
-        $this->connector = new AMQPConnectionProvider($c);
+        $this->connector = new AmqpConnectionProvider($c);
         $this->connector->register();
     }
 
