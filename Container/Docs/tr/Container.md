@@ -5,14 +5,14 @@
 
 Bir Dependency Injection Container <b>DIC</b> veya kısaca konteyner, servisleri yaratmak ve uygulamaya yüklemek için kullanılır. Konteyner sınıfı yinelemeli olarak istenenen servislerin bağımlılıklarını yaratır ve onları uygulamaya enjekte eder.
 
-Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynerlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın.
+Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynırlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın.
 
 
 > **Note:** <b>$c</b> değişkeni konteyner sınıfına eşitlenerek uygulamanın ( Application/Http paketinin ) en başında ilan edilmiştir. Uygulamada gördüğünüz bir <b>$c</b> değişkeni her zaman konteyner sınıfını temsil eder.
 
 ### Servisler
 
-Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni onu uygulama içerisinde kullandırırken tekrar tekrar hep aynı değişken değerleriyle uzun uzadıya yazdırmak yerine, onu bir servis içerisinden hazırlamış değerleriyle yaratarak bu nesne değerleriyle onu <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. Bu türden servisler paylaşımlı servisler olarak adlandırılır. ( Shared Services ).
+Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni onu uygulama içerisinde kullandırırken tekrar tekrar hep aynı değişken değerleriyle uzun uzadıya yazdırmak yerine, onu bir servis içerisinden hazırlamış değerleriyle yaratarak bu nesne değerleriyle uygulamada <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. Bu türden servisler paylaşımlı servisler olarak adlandırılırlar. ( Shared Services ).
 
 Konteyner içerisine bir kez kaydedilen bir sınıf uygulama içerisine tekrar tekrar çağrıldığında sınıfa ait değişken değerleri hep aynı kalır.
 
@@ -93,7 +93,7 @@ $this->session = $closure(['foo' => 'bar']);
 
 ### Servisleri Tanımlamak
 
-Servis sınıfları uygulamada paylaşılmak istenen sınıfıları konteyner içerisine yüklemeye yarayan ara yüzlerdir. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
+Servis sınıfları uygulamada paylaşılmak istenen sınıfları konteyner içerisine yüklemeye yarayan ara yüzlerdir. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
 
 Önceden tanımlı servisler uygulama çalıştığı anda <kbd>app/classes/Service</kbd> klasöründen konteyner içerisine kayıt edilirler. Yeni bir servis yaratmak için <kbd>app/classes/Service</kbd> dizininde takip eden örnekte gösterildiği gibi bir sınıf yaratılması gerekir.
 
@@ -290,7 +290,7 @@ $this->cache = $this->c['app']->provider('cache')->factory(
 );
 ```
 
-Servis sağlayıcısı bir kez yüklendikten sonra artık cache metodlarına erişebilirsiniz.
+Servis sağlayıcısı bir kez yüklendikten sonra artık cache metotlarına erişebilirsiniz.
 
 ```php
 $this->cache->method();
@@ -298,7 +298,7 @@ $this->cache->method();
 
 ### Mevcut Servis Sağlayıcıları 
 
-Obullo için yazılan servis sağlayıcıları <kbd>Obullo\ServiceProviders</kbd> klasörü altında gruplanmıştır. Aşağıdaki tablo varolan servis sağlayıcılarının bir listesini gösteriyor.
+Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kbd> klasörü altında gruplanmıştır. Aşağıdaki tablo varolan servis sağlayıcılarının bir listesini gösteriyor.
 
 <table>
     <thead>
@@ -413,11 +413,11 @@ $c['app']->register('Service\Providers\CacheServiceProvider');
 
 #### $c['class'];
 
-Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) bu şekilde çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise; sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
+Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise bu durumda sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
 #### $c->get(string $class, $alias = null, $shared = true);
 
-Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
+Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
 
 #### $c->has(string $class);
 

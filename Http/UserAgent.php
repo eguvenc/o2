@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\User;
+namespace Obullo\Http;
 
 /**
  * Identifies the platform, browser, robot, or mobile devise of the browsing agent
  *
- * @category  User_Agent
+ * @category  UserAgent
  * @package   Agent
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/agent
  */
-Class Agent
+class UserAgent
 {
     /**
      * Current user-agent
@@ -543,7 +543,7 @@ Class Agent
 
 }
 
-// END Agent.php File
-/* End of file Agent.php
+// END UserAgent.php File
+/* End of file UserAgent.php
 
-/* Location: .Obullo/User/Agent.php */
+/* Location: .Obullo/Http/UserAgent.php */
