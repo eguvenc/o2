@@ -43,7 +43,7 @@ Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağla
 namespace Service;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\ServiceInterface;
+use Obullo\Service\ServiceInterface;
 
 class Cache implements ServiceInterface
 {

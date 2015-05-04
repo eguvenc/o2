@@ -102,7 +102,7 @@ Servis sınıfları uygulamada paylaşılmak istenen sınıfıları konteyner i�
 namespace Service;
 
 use Obullo\Container\Container;
-use Obullo\ServiceProviders\ServiceInterface;
+use Obullo\Service\ServiceInterface;
 use Obullo\Session\Session as SessionClass;
 
 class Session implements ServiceInterface

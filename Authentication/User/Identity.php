@@ -79,7 +79,6 @@ class Identity extends AuthorizedUser
             $this->recaller->recallUser($rememberToken);
         }
         $this->logger = $this->c['logger'];
-
         $this->initialize();
 
         if ($this->config['session']['unique']) {
@@ -354,7 +353,7 @@ class Identity extends AuthorizedUser
         if ( ! $this->c['cookie']->get($cookie['name'], $cookie['prefix'])) {
             return;
         }
-        $this->c['cookie']->delete($cookie['name'], $cookie['domain'], $cookie['path'], $cookie['prefix']);
+        $this->c['cookie']->domain($cookie['domain'])->path($cookie['path'])->delete($cookie['name'], $cookie['prefix']);
     }
 
     /**

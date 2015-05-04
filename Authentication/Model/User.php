@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\UserProviderInterface;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * O2 User Model

@@ -2,6 +2,8 @@
 
 namespace Obullo\Crypt\Password;
 
+use Obullo\Container\Container;
+
 /**
  * Password Bcrypt class.
  * 
@@ -13,17 +15,30 @@ namespace Obullo\Crypt\Password;
  * @link      http://obullo.com/package/bcrypt
  * @see       http://www.php.net/manual/en/ref.password.php
  */
-Class Bcrypt
+class Bcrypt
 {
     /**
      * Constructor
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
+        $c = null;
         $Class = (version_compare(phpversion(), '5.5.0', '<')) ? 'Obullo\Crypt\Password\OldVersion' : 'Obullo\Crypt\Password\NewVersion';
-        $this->driver = new $Class($c);
+        $this->driver = new $Class;
+    }
+
+    /**
+     * Set identifier
+     * 
+     * @param string $id scheme identifier
+     *
+     * @return void
+     */
+    public function setIdentifier($id = '2y') 
+    {
+        $this->driver->setIdentifier($id);
     }
 
     /**

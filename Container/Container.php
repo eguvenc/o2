@@ -92,7 +92,7 @@ class Container implements ArrayAccess
         if (isset($this->frozen[$cid])) {
             return;
         }
-        if ( ! is_callable($value) AND is_object($value)) {
+        if ( ! is_callable($value) && is_object($value)) {
             return $this->bind($cid, $value);
         }
         $this->values[$cid] = $value;
@@ -155,12 +155,12 @@ class Container implements ArrayAccess
     protected static function isSuitable($key, $noReturn, $controllerExists, $isCoreFile)
     {
         if ($noReturn
-            AND $controllerExists
-            AND Controller::$instance != null
-            AND $isCoreFile == false
-            AND ! isset(Controller::$instance->{$key})    // Warning: If user use $this->c['uri'] in load method 
-        ) {                                               // it overrides instance of the current controller uri and effect to layers
-            return true;                                  // we need to check the key using isset
+            && $controllerExists
+            && Controller::$instance != null
+            && $isCoreFile == false
+            && ! isset(Controller::$instance->{$key})    // Warning: If user use $this->c['uri'] in load method 
+        ) {                                              // it overrides instance of the current controller uri and effect to layers
+            return true;                                 // we need to check the key using isset
         }
         return false;
     }
@@ -202,9 +202,9 @@ class Container implements ArrayAccess
         // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they availabl
 
         if ($noReturn
-            AND $controllerExists
-            AND Controller::$instance == null
-            AND $isCoreFile == false
+            && $controllerExists
+            && Controller::$instance == null
+            && $isCoreFile == false
         ) {
             $this->unRegistered[$cid] = $cid;   // Mark them as unregistered then we will assign back into controller.
         }
@@ -273,7 +273,7 @@ class Container implements ArrayAccess
         $serviceName = ucfirst($matches['class']);
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
-        if ($isDirectory OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
+        if ($isDirectory || isset($this->services[$serviceName.'.php'])) {  // Resolve services
             $isService = true;
             $data['cid'] = $data['key'] = $class;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
@@ -300,7 +300,7 @@ class Container implements ArrayAccess
         ];
         $matches['key'] = $key = $this->fetchAlias($data['cid'], $data['key'], $matches);
         
-        if ( ! $this->has($data['cid']) AND ! $isService) {   // Don't register service again.
+        if ( ! $this->has($data['cid']) && ! $isService) {   // Don't register service again.
             $this->registerClass($data['cid'], $key, $matches, $data['class'], $params);
         }
         return $this->offsetGet($data['cid'], $params, $matches);
@@ -358,7 +358,7 @@ class Container implements ArrayAccess
     protected function fetchAlias($cid, $key, $matches) 
     {   
         $callable = $this->raw($cid);
-        if ( ! is_null($callable) AND $this->aliases->contains($callable)) {
+        if ( ! is_null($callable) && $this->aliases->contains($callable)) {
             $key = $this->aliases[$callable];
         }
         return $this->searchAs($key, $matches);
@@ -393,13 +393,13 @@ class Container implements ArrayAccess
      */
     protected function registerClass($cid, $key, $matches, $ClassName, $params = array())
     {
-        if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
+        if ( ! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
 
             $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
 
                 $Object = is_string($ClassName) ? new $ClassName($this, $params) : $ClassName;
 
-                if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
+                if (Controller::$instance != null && empty($matches['return'])) {  // Let's sure controller instance available and not null
                     return Controller::$instance->{$key} = $Object;
                 }
                 return $Object;

@@ -129,6 +129,8 @@ class Welcome extends \Controller
 /* Location: .modules/welcome/welcome.php */
 ```
 
+Bunun gibi bazı durumlarda uygulamanızda bir performans sorunu yaşamamanız için array access yöntemi ile kütüphaneleri sadece ihtiyacınız olduğu yerlerde yüklemeniz gerekebilir.
+
 ### Method Argümanları
 
 ------

@@ -66,7 +66,7 @@ namespace Service;
 
 use Obullo\Container\Container;
 use Obullo\Captcha\Adapter\Image;
-use Obullo\ServiceProviders\ServiceInterface;
+use Obullo\Service\ServiceInterface;
 
 class Captcha implements ServiceInterface
 {
@@ -555,8 +555,8 @@ Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</k
 namespace Service;
 
 use Obullo\Container\Container;
+use Obullo\Service\ServiceInterface;
 use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
-use Obullo\ServiceProviders\ServiceInterface;
 
 class Recaptcha implements ServiceInterface
 {

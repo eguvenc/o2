@@ -4,7 +4,7 @@ namespace Obullo\Authentication\Model;
 
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * User Provider Interface

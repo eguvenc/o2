@@ -60,8 +60,8 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     protected function createConnection($key)
     {
         $driver = ucfirst(strstr($this->config['connections'][$key]['dsn'], ':', true));
-        $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
-        return new $Class($this->c['config'], $this->c['logger'], $this->c['app']->provider('pdo'), ['connection' => $key]);
+        $Class = '\\Obullo\Database\Adapter\Pdo\\'.$driver;
+        return new $Class($this->c, $this->c['app']->provider('pdo'), ['connection' => $key]);
     }
     
     /**
@@ -74,8 +74,8 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     protected function factoryConnection($params)
     {
         $driver = ucfirst(strstr($params['dsn'], ':', true));
-        $Class = '\\Obullo\Database\Pdo\Handler\\'.$driver;
-        return new $Class($this->c['config'], $this->c['logger'], $this->c['app']->provider('pdo'), $params);
+        $Class = '\\Obullo\Database\Adapter\Pdo\\'.$driver;
+        return new $Class($this->c, $this->c['app']->provider('pdo'), $params);
     }
     
 

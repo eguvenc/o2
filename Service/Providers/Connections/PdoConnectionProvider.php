@@ -2,7 +2,7 @@
 
 namespace Obullo\Service\Providers\Connections;
 
-use Pdo;
+use PDO;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;

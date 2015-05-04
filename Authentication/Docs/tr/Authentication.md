@@ -76,7 +76,7 @@ Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe a
 Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>.
 
 
-### Redis Deposu
+#### Redis Deposu
 
 ------
 
@@ -97,7 +97,7 @@ Varsayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
 )
 ```
 
-### Cache Deposu
+#### Cache Deposu
 
 Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
 
@@ -117,7 +117,7 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
 
 Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
 
-### Konfigürasyon
+#### Konfigürasyon
 
 ------
 
@@ -143,12 +143,12 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>cache[provider][driver]</td>
-            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi servis sağlayıcısına bağlanacağını belirler. Varsayılan değer "redis" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['service proviver x']->get(["connection" => "y"])</b> örneğinde <b>"x"</b> yerine gelen değerdir.</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi servis sağlayıcısına bağlanacağını belirler. Varsayılan değer "redis" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['app']->provider('x')->get(["connection" => "y"])</b> örneğinde <b>"x"</b> yerine gelen değerdir.</td>
         </tr>
 
         <tr>
             <td>cache[provider][connection]</td>
-            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi bağlantıyı kullanacağını belirler. Varsayılan değer "second" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['service proviver x']->get(["connection" => "y"])</b> örneğinde <b>"y"</b> yerine gelen değerdir.</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi bağlantıyı kullanacağını belirler. Varsayılan değer "second" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['app']->provider('x')->get(["connection" => "y"])</b> örneğinde <b>"y"</b> yerine gelen değerdir.</td>
         </tr>
         <tr>
             <td>cache[block][permanent][lifetime]</td>
@@ -173,13 +173,13 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>session[unique]</td>
-            <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Eklentiler klasöründeki kullandığınız eklentinin davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique session özelliği <b>Authentication/Addons</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
+            <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Eklentiler klasöründeki kullandığınız eklentinin davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique session özelliği <b>Authentication/Middleware</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
         </tr>
     </tbody>
 </table>
 
 
-### Servis Yapılandırılması
+#### Servis Yapılandırılması
 
 ------
 
@@ -253,41 +253,8 @@ Class User implements ServiceInterface
 
 **Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütun isimlerini belirlemenize olanak sağlar. Bu konfigürasyonlar database işlemlerinde kullanılır.
 
-### Yetki Doğrulama Onayı
 
-Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmek için kullanılan ekstra bir özelliktir.
-
-Kullanıcı başarılı olarak giriş yaptıktan sonra kimliği kalıcı olarak ( varsayılan 3600 saniye ) önbelleklenir. Eğer kullanıcı onay adımından geçirilmek isteniyorsa kalıcı kimlikler <kbd>$this->user->identity->makeTemporary()</kbd> metodu ile geçici hale ( varsayılan 300 saniye ) getirilir. Geçici olan bir kimlik 300 saniye içerisinde kendiliğinden yokolur. 
-
-Bu özelliği kullanmak istiyorsanız aşağıda daha detaylı bilgiler bulabilirsiniz.
-
-### Geçiçi Kimlikler Hangi Amaçla Kullanılır ?
-
-Geçici kimlikler genellikle yetki doğrulama onaylaması için kulanılırlar.
-
-Kullanıcının geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerinden herhangi biriyle göndermiş olacağınız onay kodu ile gerçekleşir. Eğer kullanıcı 300 saniye içerisinde ( bu konfigürasyon dosyasından ayarlanabilir bir değişkendir ) kullanıcı kendisine gönderilen onay kodunu onaylayamaz ise geçiçi kimlik kendiliğinden yok olur.
-
-Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <kbd>$this->user->identity->makePermanent()</kbd> metodu ile kimliği kalıcı hale getirmeniz gereklidir.
-Bir kimlik kalıcı yapıldığında kullanıcı tam olarak yetkilendirilmiş olur.
-
-#### Geçici kimliğin oluşturulmasına bir örnek:
-
-```php
-$this->user->identity->makeTemporary();
-```
-Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olarak kaydedilen kimlik hafıza bloğunda geçici hale getirilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
-
-Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
-
-#### Onaylanmış kimliğin kalıcı hale getirilmesine bir örnek:
-
-```php
-$this->user->identity->makePermanent();
-```
-
-Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde tam yetkili konuma gelir. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden elde edilmiş olur. Kalıcı kimliğin önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir. Geçici veya kalıcı kimlik oluşturma fonksiyonları kullanılmamışsa sistem varsayılan olarak kimliği kalıcı olarak kaydedecektir.
-
-#### Bir Kalıcı Oturum Açma Denemesi ( Varsayılan )
+#### Bir Oturum Açma Denemesi
 
 ```php
 $this->user->login->attempt(
@@ -299,18 +266,22 @@ $this->user->login->attempt(
 );
 ```
 
-#### Bir Geçici Oturum Açma Örneği
+#### Bir Oturum Açma Örneği
 
-Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım. Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTemporary();</kbd> metodu ile oturum açıldıktan sonra kimliğin geçici hale getirilmesidir.
+Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adlı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım.
+
 
 ```php
 + app
 + assets
 - modules
     - membership
-        + view
+        - view
+            login.php
         Login.php
 ```
+
+Login kontrolör dosyamızın içeriğini inceleyelim.
 
 ```php
 namespace Membership;
@@ -338,7 +309,7 @@ Class Login extends \Controller
     {
         if ($this->request->isPost()) {
 
-            $this->c['validator']; // load validator
+            $this->c['validator'];
             $this->validator->setRules('email', 'Email', 'required|email|trim');
             $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
 
@@ -355,30 +326,65 @@ Class Login extends \Controller
                 );
                 if ($result->isValid()) {
 
-                    $this->user->identity->makeTemporary();
-                    $this->flash->success('Verification code has been sent.');
-
-                    $this->url->redirect('membership/confirm_verification_code');
+                    $this->flash->success('Login success !');
+                    $this->url->redirect('membership/resrticted');
 
                 } else {
-                    $this->validator->setError($result->getArray());
-                    $this->form->setErrors($this->validator);
+                    $this->form->setResults($result->getArray());
                 }
             }
         }
             
-        echo $this->flash->output();          // form message
-        print_r($this->form->outputArray());  // form errors
+        $this->view->load('login');
 
     }
 }
-
-/* End of file Login.php */
-/* Location: .modules/membership/Login.php */
 ```
 
-Yukarıdaki kodları çalıştırdığınıza geçici kimlik oluştu ise bir <b>membership/confirm_verification_code</b> sayfası oluşturun ve bu sayfada kullanıcı onay kodunu doğru girdi ise <kbd>$this->user->identity->makePermanent();</kbd> metodunu kullanarak kullanıcıyı yetkilendirin.
+Yukarıdaki örnekte attempt fonksiyonu <b>AuthResult</b> nesnesine geri dönüyor ve Auth result sınıfı isValid() metodu ile yetkilendirmenin başarılı olup olmadığı anlaşılıyor. Yetkilendirme başarılı ise kullanıcı Guest kullanıcılarının erişemeyeceği bir sayfaya yönlendiriliyor. Eğer oturum açma başarısız ise sonuçlar form sınıfına gönderiliyor.
 
+View dosyası
+
+```php
+<h1>Login Example</h1>
+
+<section><?php echo $this->flash->output() ?></section>
+
+<section><?php
+if ($results = $this->form->resultsArray()) {
+    foreach ($results['messages'] as $message) {
+        echo $this->form->getMessage($message);
+    }
+}
+?></section>
+
+<section>
+    <form action="/membership/login" method="POST">
+        <table width="100%">
+            <tr>
+                <td style="width:20%;">Email</td>
+                <td><?php echo $this->form->getError('email'); ?>
+                <input type="text" name="email" value="<?php echo $this->form->getValue('email') ?>" />
+                </td>
+            </tr>
+            <tr>
+                <td>Password</td>
+                <td><?php echo $this->form->getError('password'); ?>
+                <input type="password" name="password" value="" /></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><?php echo $this->form->getError('rememberMe'); ?>
+                <input type="checkbox" name="rememberMe" value="1"  id="rememberMe"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" name="dopost" value="DoPost" /></td>
+            </tr>
+            </table>
+        </form>
+</section>
+```
 
 ### AuthResult Sınıfı ve Oturum Açma Sonuçları
 
@@ -570,6 +576,82 @@ Array
 
 Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar yetki doğrulama paketi tarafından kullanılan (rezerve anaharlar) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış kullanıcılar ile igili sayısal yada meta verileri için ayrılmış olan size ait bir anahtardır.
 
+### Yetki Doğrulama Onayı Özelliği
+
+Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmek için kullanılan ekstra bir özelliktir.
+
+Kullanıcı başarılı olarak giriş yaptıktan sonra kimliği kalıcı olarak ( varsayılan 3600 saniye ) önbelleklenir. Eğer kullanıcı onay adımından geçirilmek isteniyorsa kalıcı kimlikler <kbd>$this->user->identity->makeTemporary()</kbd> metodu ile geçici hale ( varsayılan 300 saniye ) getirilir. Geçici olan bir kimlik 300 saniye içerisinde kendiliğinden yokolur. 
+
+Bu özelliği kullanmak istiyorsanız aşağıda daha detaylı bilgiler bulabilirsiniz.
+
+### Geçiçi Kimlikler Hangi Amaçla Kullanılır ?
+
+Geçici kimlikler genellikle yetki doğrulama onaylaması için kulanılırlar.
+
+Kullanıcının geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerinden herhangi biriyle göndermiş olacağınız onay kodu ile gerçekleşir. Eğer kullanıcı 300 saniye içerisinde ( bu konfigürasyon dosyasından ayarlanabilir bir değişkendir ) kullanıcı kendisine gönderilen onay kodunu onaylayamaz ise geçiçi kimlik kendiliğinden yok olur.
+
+Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <kbd>$this->user->identity->makePermanent()</kbd> metodu ile kimliği kalıcı hale getirmeniz gereklidir.
+Bir kimlik kalıcı yapıldığında kullanıcı tam olarak yetkilendirilmiş olur.
+
+#### Geçici kimliğin oluşturulmasına bir örnek:
+
+```php
+$this->user->identity->makeTemporary();
+```
+Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olarak kaydedilen kimlik hafıza bloğunda geçici hale getirilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
+
+Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
+
+#### Onaylanmış kimliğin kalıcı hale getirilmesine bir örnek:
+
+```php
+$this->user->identity->makePermanent();
+```
+
+Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde tam yetkili konuma gelir. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden elde edilmiş olur. Kalıcı kimliğin önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir. Geçici veya kalıcı kimlik oluşturma fonksiyonları kullanılmamışsa sistem varsayılan olarak kimliği kalıcı olarak kaydedecektir.
+
+#### Bir Geçici Oturum Açma Örneği
+
+Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTemporary();</kbd> metodu ile oturum açıldıktan sonra kimliğin geçici hale getirilmesidir.
+
+Örnek
+
+```php
+$result = $this->user->login->attempt(
+    [
+        $this->user->config['db.identifier'] => $this->request->post('email'), 
+        $this->user->config['db.password'] => $this->request->post('password')
+    ],
+    $this->request->post('rememberMe')
+);
+if ($result->isValid()) {
+
+    $this->user->identity->makeTemporary();
+
+    $this->flash->success('Verification code has been sent.');
+    $this->url->redirect('membership/confirm_code');
+
+} else {
+    $this->form->setResults($result->getArray());
+}
+
+/* End of file Login.php */
+/* Location: .modules/membership/Login.php */
+```
+
+Yukarıdaki kod bloğuna login kontrolör içerisine entegre edip çalıştırdığınıza login denemesi başarılı ise geçici kimlik oluşturulur. Sonraki adım için bir <b>membership/confirm_code</b> sayfası oluşturun ve bu sayfada oluşturacağınız formda kullanıcı onay kodunu doğru girdi ise <kbd>$this->user->identity->makePermanent();</kbd> metodunu kullanarak kullanıcıyı yetkilendirin.
+
+
+```php
++ app
++ assets
+- modules
+    - membership
+        + view
+        Login.php
+        Confirm_Code.php
+```
+
 
 ### User Activity Sınıfı İşlevleri
 
@@ -693,7 +775,7 @@ namespace Obullo\Authentication\Model;
 
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 interface UserInterface
 {
@@ -745,6 +827,7 @@ namespace Auth\Model;
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
+use Obullo\Service\ServiceProviderInterface;
 use Obullo\Authentication\Model\UserInterface;
 use Obullo\Authentication\Model\User as ModelUser;
 
@@ -781,7 +864,7 @@ class User extends ModelUser implements UserInterface
 /* Location: .app/classes/Auth/Model/User.php */
 ```
 
-### Rezerve edilmiş anahtarlar :
+#### Kimlik anahtarları :
 
 Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
 

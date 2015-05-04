@@ -152,6 +152,8 @@ Set key for json_encode(). Sets <b>success, message, errors</b> keys and any cus
 
 Set validator errors to form object.
 
+#### $this->form->setResults(array $results);
+
 #### $this->form->success(integer $status = 1);
 
 Sets form message status default is "1". Status "0" means we have an error.

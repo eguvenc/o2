@@ -15,7 +15,7 @@ use RuntimeException;
  * @link      http://obullo.com/package/bcrypt
  * @see       http://www.php.net/manual/en/ref.password.php
  */
-Class NewVersion
+class NewVersion
 {
     /**
      * Default crypt cost factor.
@@ -42,6 +42,18 @@ Class NewVersion
             throw new RuntimeException('Password bcrypt hashing not supported.');
         }
         return $hash;
+    }
+
+    /**
+     * Set identifier
+     * 
+     * @param string $id scheme identifier
+     *
+     * @return null
+     */
+    public function setIdentifier($id = '2y') 
+    {
+        return $id = null;
     }
 
     /**

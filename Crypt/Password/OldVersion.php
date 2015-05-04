@@ -15,7 +15,7 @@ use RuntimeException;
  * @link      http://obullo.com/package/bcrypt
  * @see       http://www.php.net/manual/en/ref.password.php
  */
-Class OldVersion
+class OldVersion
 {
     /**
      * Default crypt cost factor.
@@ -24,8 +24,19 @@ Class OldVersion
      */
     protected $cost = 10;
 
-    private $_identifier = '2y';  // Default identifier
-    private $_validIdentifiers = array('2a', '2x', '2y'); // All valid hash identifiers
+    /**
+     * Default identifier
+     * 
+     * @var string
+     */
+    protected $identifier = '2y';
+
+    /**
+     * All valid hash identifiers
+     *  
+     * @var array
+     */
+    protected $validIdentifiers = array('2a', '2x', '2y');
 
     /**
      * Constructor
@@ -33,8 +44,20 @@ Class OldVersion
     public function __construct()
     {
         if ( ! function_exists('crypt')) {
-            throw new RunTimeException('Crypt must be loaded for password_verify to function');
+            throw new RuntimeException("Crypt must be loaded for password_verify to function");
         }
+    }
+
+    /**
+     * Set identifier
+     * 
+     * @param string $id scheme identifier
+     *
+     * @return null
+     */
+    public function setIdentifier($id = '2y') 
+    {
+        return $this->identifier = $id;
     }
 
     /**
@@ -49,7 +72,7 @@ Class OldVersion
      */
     public function hash($value, array $options = array())
     {
-        $salt = $this->_generateSalt();
+        $salt = $this->generateSalt();
         $options = array();
         return crypt($value, $salt);
     }
@@ -59,16 +82,16 @@ Class OldVersion
      *
      * @return string
      */
-    private function _generateSalt()
+    protected function generateSalt()
     {
         if ($this->cost < 4 || $this->cost > 31) { // do not increase the work factor                                        // this may cause performance problems.
             $this->cost = $this->_workFactor;
         }
-        $input = $this->_getRandomBytes();
-        $salt = '$' . $this->_identifier . '$';
-        $salt .= str_pad($this->cost, 2, '0', STR_PAD_LEFT);
-        $salt .= '$';
-        $salt .= substr(strtr(base64_encode($input), '+', '.'), 0, 22);
+        $input = $this->getRandomBytes();
+        $salt = '$' . $this->identifier . '$';
+        $salt.= str_pad($this->cost, 2, '0', STR_PAD_LEFT);
+        $salt.= '$';
+        $salt.= substr(strtr(base64_encode($input), '+', '.'), 0, 22);
         return $salt;
     }
 
@@ -77,10 +100,10 @@ Class OldVersion
      *
      * @return string
      */
-    private function _getRandomBytes()
+    protected function getRandomBytes()
     {
         if ( ! function_exists('openssl_random_pseudo_bytes')) {
-            throw new RunTimeException('Unsupported hash format.');
+            throw new RunTimeException("Unsupported hash format.");
         }
         return openssl_random_pseudo_bytes(16);
     }
@@ -96,7 +119,7 @@ Class OldVersion
      */
     public function verify($value, $hashedValue)
     {
-        $this->_validateIdentifier($hashedValue);
+        $this->validateIdentifier($hashedValue);
         $checkHash = crypt($value, $hashedValue);
         return ($checkHash === $hashedValue);
     }
@@ -108,10 +131,10 @@ Class OldVersion
      * 
      * @return void
      */
-    private function _validateIdentifier($hash)
+    protected function validateIdentifier($hash)
     {
-        if ( ! in_array(substr($hash, 1, 2), $this->_validIdentifiers)) {
-            throw new RunTimeException('Unsupported hash format.');
+        if ( ! in_array(substr($hash, 1, 2), $this->validIdentifiers)) {
+            throw new RuntimeException("Unsupported hash format.");
         }
     }
 
@@ -127,9 +150,8 @@ Class OldVersion
      */
     public function needsRehash($hashedValue, array $options = array())
     {
-        // $cost = isset($options['cost']) ? $options['cost'] : $this->cost;
-        // return password_needs_rehash($hashedValue, PASSWORD_BCRYPT, array('cost' => $cost));
-        return false;
+        $options = array();
+        return $hashedValue = false;
     }
     
     /**
@@ -142,8 +164,7 @@ Class OldVersion
      */
     public function getInfo($hash)
     {
-        $hash = null;
-        return;
+        return $hash = null;
     }
 }
 

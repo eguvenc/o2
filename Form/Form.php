@@ -3,6 +3,7 @@
 namespace Obullo\Form;
 
 use Controller;
+use Obullo\Container\Container;
 
 /**
  * Form Class
@@ -10,7 +11,7 @@ use Controller;
  * @category  Form
  * @package   Form
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/form
  */
@@ -23,6 +24,7 @@ class Form
     const STATUS  = 'status';
     const MESSAGE = 'message';
     const SUCCESS = 'success';
+    const RESULTS = 'results';
     const ERRORS  = 'errors';
     /**
      * Form status values
@@ -59,7 +61,7 @@ class Form
      * @param string $c      container
      * @param string $params parameters
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
         $this->params = (count($params) == 0) ? $c['config']->load('form') : $params;
@@ -171,7 +173,19 @@ class Form
         if (is_array($errors) AND count($errors) > 0) {
             $this->messages[static::SUCCESS] = 0;
         }
-        $this->messages[static::ERRORS]  = $errors;
+        $this->messages[static::ERRORS] = $errors;
+    }
+
+    /**
+     * Set api results
+     * 
+     * @param array $results api result messages
+     *
+     * @return void
+     */
+    public function setResults($results)
+    {
+        $this->messages[static::RESULTS] = $results;
     }
 
     /**
@@ -234,6 +248,16 @@ class Form
     public function outputArray()
     {
         return $this->messages;
+    }
+
+    /**
+     * Get all outputs of the form 
+     * 
+     * @return array|false
+     */
+    public function resultsArray()
+    {
+        return isset($this->messages[static::RESULTS]) ? $this->messages[static::RESULTS] : false;
     }
 
     /**
