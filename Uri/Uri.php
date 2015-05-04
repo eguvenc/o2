@@ -402,10 +402,10 @@ class Uri
             $uri_str = implode('/', $uri_str);
         }
         if ($uri_str == '') {
-            return $this->getBaseUrl() . $this->config['rewrite']['indexPage'];
+            return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
         } else {
             $suffix = ($this->config['url']['rewrite']['suffix'] == false OR $suffix == false) ? '' : $this->config['url']['rewrite']['suffix'];
-            return $this->getBaseUrl() . $this->config['url']['rewrite']['indexPage'] . trim($uri_str, '/') . $suffix;
+            return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uri_str, '/') . $suffix;
         }
     }
 

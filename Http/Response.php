@@ -235,30 +235,30 @@ class Response
     /**
     * 404 Page Not Found Handler
     *
-    * @param string  $page    page name
-    * @param boolean $http404 http 404 or layer 404
+    * @param string $page page name
     * 
     * @return void|string
     */
-    public function show404($page = '', $http404 = true)
+    public function show404($page = '')
     {
         $error = new Error($this->c, $this);
-        return $error->show404($page, $http404);
+        return $error->show404($page);
     }
 
     /**
     * Manually Set General Http Errors
     *
-    * @param string $message    message
-    * @param int    $statusCode status
-    * @param int    $heading    heading text
+    * @param string $message message
+    * @param int    $heading heading text
     *
     * @return void|string
     */
-    public function showError($message, $statusCode = 500, $heading = 'An Error Was Encountered')
+    public function showError($message, $heading = 'An Error Was Encountered')
     {
+        $status = ($this->getStatus() == 200) ? 500 : $this->getStatus();
+
         $error = new Error($this->c, $this);
-        return $error->showError($message, $statusCode, $heading);
+        return $error->showError($message, $status, $heading);
     }
 
     /**

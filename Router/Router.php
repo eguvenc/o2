@@ -64,7 +64,7 @@ class Router
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
         if ($this->HOST != 'Cli' AND strpos($this->HOST, $c['config']['url']['webhost']) === false) {
-            $this->c['response']->showError('Your host configuration is not correct in the main config file.');
+            $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 7);
     }
@@ -320,7 +320,7 @@ class Router
     protected function checkErrors()
     {        
         if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
-            $this->c['response']->showError(static::DEFAULT_PAGE_ERROR, 404);
+            $this->c['response']->status(404)->showError(static::DEFAULT_PAGE_ERROR, 404);
         }
     }
 

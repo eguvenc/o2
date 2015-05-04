@@ -54,7 +54,7 @@ class DebugManager
         $this->c = $c;
 
         if ( ! $this->c['config']['debugger']['enabled']) {
-            $this->c['response']->showError('Debugger disabled from your application config file.', 300, "Debugger Disabled");
+            $this->c['response']->status(300)->showError('Debugger disabled from your application config file.', "Debugger Disabled");
         }
         $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
         $this->websocketUrl = $this->c['config']['debugger']['socket'];

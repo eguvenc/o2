@@ -3,8 +3,6 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
-use Obullo\Log\PriorityQueue;
-use Obullo\Log\AbstractLogger;
 use Obullo\Container\Container;
 use Obullo\Log\Formatter\LineFormatterTrait;
 
@@ -73,7 +71,8 @@ class DebugOutput
         $body = $this->getLogHtml('http', $view);
         $body = $this->getLogHtml('ajax', $body);
         $body = $this->getLogHtml('cli', $body);
-        
+        unset($envHtml);
+
         $patterns = array(
             '#<p>(.*(\$_URI\b).*)<\/p>#',
             '#<p>(.*(system.error\b).*)<\/p>#',

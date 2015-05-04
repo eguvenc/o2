@@ -261,7 +261,7 @@ class DebugOutput
     
 }
 
-// END Error Handler class
+// END DebugOutput class
 
-/* End of file Handler.php */
-/* Location: .Obullo/Error/Handler.php */
+/* End of file DebugOutput.php */
+/* Location: .Obullo/Error/DebugOutput.php */
