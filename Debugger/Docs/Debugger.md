@@ -51,5 +51,5 @@ Eğer debugger kurulumu doğru gerçekleşti ise aşağıdaki gibi bir panel uyg
 ![Debugger](/Debugger/Docs/images/debugger.png?raw=true "Debugger Ekran Görüntüsü")
 
 
-Websocket bağlantısı bazı tarayıcılarda kendiliğinden kopabilir panel üzerindeki ![Closed](/Debugger/Docs/images/socket-closed.png?raw=true "Socket Closed") simgesi debugger sunucusuna ait bağlantının koptuğunu ![Open](/Debugger/Docs/images/socket-open.png?raw=true "Socket Open") simgesi ise bağlantının aktif olduğunu gösterir. Eğer bağlantı koparsa verileri sayfa yenilemesi olmadan takip edemezsiniz. Böyle bir durumda bağlantı koptuğunda debugger sunucunuzu yeniden başlatmayı deneyin.
+Websocket bağlantısı bazı tarayıcılarda kendiliğinden kopabilir panel üzerindeki ![Closed](/Debugger/Docs/images/socket-closed.png?raw=true "Socket Closed") simgesi debugger sunucusuna ait bağlantının koptuğunu ![Open](/Debugger/Docs/images/socket-open.png?raw=true "Socket Open") simgesi ise bağlantının aktif olduğunu gösterir. Eğer bağlantı koparsa verileri sayfa yenilemesi olmadan takip edemezsiniz. Böyle bir durumda debugger sunucunuzu ve tarayıcınızı yeniden başlatmayı deneyin.
 
