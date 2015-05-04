@@ -8,7 +8,7 @@ Kontrolör sınıfı uygulamanın kalbidir ve uygulamaya gelen HTTP isteklerinin
 
 ------
 
-Bir kontrolör uygulamada http adres satırından çağrıldığı ismi ile bağlantılı olarak çözümlenebilen basit php sınıflarıdır. Kontrolör dosyaları uygulamada <kbd>.modules/modüladı/</kbd> klasörü altında tutulurlar. Uygulama içerisinde her bir kontrolör kendine ait isim alanı ( namespace ) ile belirtilmek zorundadır aksi takdirde çözümlenemezler.
+Kontrolör dosyaları uygulamada http adres satırından çağrıldığı ismi ile bağlantılı olarak çözümlenebilen basit php sınıflarıdır. Kontrolör dosyaları uygulamada <kbd>.modules/modüladı/</kbd> klasörü altında tutulurlar. Uygulama içerisinde her bir kontrolör kendine ait isim alanı ( namespace ) ile belirtilmek zorundadır aksi takdirde çözümlenemezler.
 
 Aşağıdaki adres satırı blog adlı modül altında bulunan start isimli kontrolör dosyasını çağırır:
 
