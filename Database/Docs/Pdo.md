@@ -9,8 +9,8 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
 <li>
     <a href="#server-requirements">Sunucu Gereksinimleri</a>
     <ul>
-        <li><a href="#server-requirements">Unix Sunucularda Pdo Kurulumu</a></li>
-        <li><a href="#server-requirements">Windows Sunucularda Pdo Kurulumu</a></li>
+        <li><a href="#unix-requirements">Unix Sunucularda Pdo Kurulumu</a></li>
+        <li><a href="#windows-requirements">Windows Sunucularda Pdo Kurulumu</a></li>
         <li><a href="#supported-databases">Desteklenen Veritabanları</a></li>
     </ul>
 </li>
@@ -93,6 +93,7 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
 </ul>
 
 <a name='server-requirements'></a>
+<a name='unix-requirements'></a>
 
 ### Sunucu Gereksinimleri
 
@@ -110,6 +111,8 @@ extension=pdo.so
 ```
 
 Daha fazla bilgi için bu sayfayı ziyaret edin. <a href="http://php.net/manual/tr/pdo.installation.php">http://php.net/manual/tr/pdo.installation.php</a>
+
+<a name='windows-requirements'></a>
 
 #### Windows Sunucularda Pdo Kurulumu
 
@@ -595,7 +598,8 @@ Bir değiştirgeyi belirtilen değişkenle ilişkilendirir. Pdo bindValue() yön
 $calories = 150;
 $color = 'red';
 
-$result = $this->db->prepare("SELECT name, colour, calories FROM fruit WHERE calories < ? AND color = ?")
+$result = $this->db->prepare("SELECT name, colour, calories FROM fruit 
+WHERE calories < ? AND color = ?")
 ->bindParam(1, $calories, \PDO::PARAM_INT)
 ->bindParam(2, $color, \PDO::PARAM_STR, 12)
 ->execute();
