@@ -50,7 +50,7 @@ php task hello --planet=World
 
 ### Konsoldan Komut Çalıştırmak
 
-Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>module/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmenize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark ise konsol komutlarında adres çözümlemesi için forward slash "/" yerine boşluk " " karakteri kullanılmasıdır.
+Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>directory/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmenize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark ise konsol komutlarında adres çözümlemesi için forward slash "/" yerine boşluk " " karakteri kullanılmasıdır.
 
 Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalışırın.
 
