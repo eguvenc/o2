@@ -3,6 +3,7 @@
 namespace Obullo\Log;
 
 use Closure;
+use Exception;
 use LogicException;
 use ErrorException;
 use RuntimeException;
@@ -11,25 +12,10 @@ use Obullo\Container\Container;
 use Obullo\Error\ErrorHandler;
 
 /**
- * Main logger features
+ * Main logger trait
  */
 trait LoggerTrait
 {
-    /**
-     * Configure error features
-     * 
-     * @return void
-     */
-    protected function configureErrorHandlers()
-    {
-        if ($this->c['config']['error']['debug'] == false) { // If debug "disabled" from config use logger class handlers and send all errors to log.
-            static::registerExceptionHandler($this); 
-            static::registerErrorHandler($this);
-            static::registerFatalErrorHandler($this);
-        }
-        // Php error reporting always enabled .. 
-    }
-
     /**
      * Initialize config parameters
      * 
@@ -174,7 +160,7 @@ trait LoggerTrait
                 sprintf(
                     'The filter %s is not registered in your logger service. Please first register it with following command. <pre>%s</pre> .', 
                     $name,
-                    '$log->registerFilter(\'class.method\', \'Log\Filters\ClassNameFilter\');'
+                    '$logger->registerFilter(\'filtername\', \'Log\Filters\ClassNameFilter\');'
                 )
             );
         }
@@ -213,6 +199,10 @@ trait LoggerTrait
     {
         if ( ! $this->enabled) {
             return $this;
+        }
+        if (is_object($message) && $message instanceof Exception) {
+            $this->logExceptionError($message);
+            return;
         }
         $recordUnformatted = array();
         if (isset(static::$priorities[$level])) { // is Allowed level ?
@@ -296,163 +286,41 @@ trait LoggerTrait
     }
 
     /**
-     * Register logging system as an error handler to log PHP errors
-     *
-     * @param object  $logger                class
-     * @param boolean $continueNativeHandler native handler switch
+     * Log exceptional messages
      * 
-     * @return mixed Returns result of set_error_handler
-     */
-    public static function registerErrorHandler(AbstractLogger $logger, $continueNativeHandler = false)
-    {
-        if (static::$registeredErrorHandler) {  // Only register once per instance
-            return false;
-        }
-        $errorPriorities = static::$errorPriorities;
-        $previous = set_error_handler(
-            function ($level, $message, $file, $line) use ($logger, $errorPriorities, $continueNativeHandler) {
-                $iniLevel = error_reporting();
-                if ($iniLevel & $level) {
-                    $priority = static::$priorities['error'];
-                    if (isset($errorPriorities[$level])) {
-                        $priority = $errorPriorities[$level];
-                    } 
-                    $logger->log(
-                        'error', 
-                        $message, 
-                        array(
-                        'level' => $level,
-                        'file'  => $file,
-                        'line'  => $line,
-                        ),
-                        $priority
-                    );
-                }
-                return ! $continueNativeHandler;
-            }
-        );
-        static::$registeredErrorHandler = true;
-        return $previous;
-    }
-
-    /**
-     * Register logging system as an exception handler to log PHP exceptions
-     *
-     * @param object $logger class
-     * 
-     * @return boolean
-     */
-    public function registerExceptionHandler(AbstractLogger $logger)
-    {
-        if (static::$registeredExceptionHandler) {  // Only register once per instance
-            return false;
-        }
-        $errorPriorities = static::$errorPriorities;
-        set_exception_handler(
-            function ($exception) use ($logger, $errorPriorities) {
-                $logMessages = array();  // @see http://www.php.net/manual/tr/errorexception.getseverity.php
-                do {
-                    $priority = static::$priorities['error'];
-                    if ($exception instanceof ErrorException AND isset($errorPriorities[$exception->getSeverity()])) {
-                        $priority = $errorPriorities[$exception->getSeverity()];
-                    }
-                    $extra = array(
-                        'file'  => $exception->getFile(),
-                        'line'  => $exception->getLine(),
-                        // 'trace' => $exception->getTrace(),
-                    );
-                    if (isset($exception->xdebug_message)) {
-                        $extra['xdebug'] = $exception->xdebug_message;
-                    }
-                    $logMessages[] = array(
-                        'priority' => $priority,
-                        'message'  => $exception->getMessage(),
-                        'extra'    => $extra,
-                    );
-                    $exception = $exception->getPrevious();
-                } while ($exception);
-
-                foreach (array_reverse($logMessages) as $logMessage) {
-                    $logger->log('error', $logMessage['message'], $logMessage['extra'], $logMessage['priority']);
-                }
-            }
-        );
-        static::$registeredExceptionHandler = true;
-        return true;
-    }
-
-    /**
-     * Register a shutdown handler to log fatal errors
-     *
-     * @param object $logger class
-     * 
-     * @return bool
-     */
-    public static function registerFatalErrorHandler(AbstractLogger $logger)
-    {
-        if (static::$registeredFatalErrorShutdownFunction) {  // Only register once per instance
-            return false;
-        }
-        register_shutdown_function(
-            function () use ($logger) {
-                if (null != $error = error_get_last()) {
-                    $logger->log(
-                        'error', 
-                        $error['message'], 
-                        array(
-                            'level' => $error['type'],
-                            'file' => $error['file'], 
-                            'line' => $error['line']
-                            )
-                    );
-                    $logger->close();
-                }
-            }
-        );
-        static::$registeredFatalErrorShutdownFunction = true;
-        return true;
-    }
-
-    /**
-     * Unregister error handler
-     *
-     * @return void
-     */
-    public static function unregisterErrorHandler()
-    {
-        restore_error_handler();
-        static::$registeredErrorHandler = false;
-    }
-
-    /**
-     * Unregister exception handler
-     *
-     * @return void
-     */
-    public static function unregisterExceptionHandler()
-    {
-        restore_exception_handler();
-        static::$registeredExceptionHandler = false;
-    }
-
-    /**
-     * Returns log priorities
-     * 
-     * @return array
-     */
-    public function getPriorities()
-    {
-        return static::$priorities;
-    }
-
-    /**
-     * Enable html debugger
+     * @param object $e ErrorException
      * 
      * @return void
      */
-    public function printDebugger()
+    public function logExceptionError($e)
     {
-        $this->debug = true;
+        $errorReporting = error_reporting();
+        $records = array();
+        $errorPriorities = $this->getErrorPriorities();
+
+        do {
+            $priority = $this->getPriorities()['error'];
+            if ($e instanceof ErrorException && isset($errorPriorities[$e->getSeverity()])) {
+                $priority = $errorPriorities[$e->getSeverity()];
+            }
+            $extra = [
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ];
+            if (isset($e->xdebug_message)) {
+                $extra['xdebug'] = $e->xdebug_message;
+            }
+            $records[] = [
+                'priority' => $priority,
+                'message'  => $e->getMessage(),
+                'extra'    => $extra,
+            ];
+            $e = $e->getPrevious();
+        } while ($e && $errorReporting);
+
+        foreach (array_reverse($records) as $record) {
+            $this->error($record['message'], $record['extra'], $record['priority']);
+        }
     }
 
     /**
@@ -462,7 +330,7 @@ trait LoggerTrait
      */
     public function push()
     {        
-        if ($this->debug OR $this->enabled == false) {
+        if ($this->enabled == false) {
             return;
         }
         foreach ($this->writers as $name => $val) {
@@ -470,9 +338,9 @@ trait LoggerTrait
                 if ( ! isset($this->writers[$name])) {
                     throw new LogicException(
                         sprintf(
-                            'The push handler %s not available in log writers please first load it using below the command.
-                            <pre>$this->logger->load("handler");</pre>', 
-                            $name
+                            'The push handler %s not available in log writers please first load it using below the command. <pre>%s</pre>', 
+                            $name,
+                            '$this->logger->load("handler");'
                         )
                     );
                 }
@@ -517,7 +385,7 @@ trait LoggerTrait
         $this->payload['logger'] = end($exp);
         $this->payload['primary'] = $this->writers[$this->getPrimaryWriter()]['priority'];
         foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ( ! isset($this->push[$name]) AND isset($this->loadedHandlers[$name])) {     // If handler available in push data.
+            if ( ! isset($this->push[$name]) && isset($this->loadedHandlers[$name])) {     // If handler available in push data.
                 return;
             }
             $priority = $val['priority'];
@@ -529,7 +397,7 @@ trait LoggerTrait
             $this->payload[$priority]['handler'] = $name;
             $this->payload[$priority]['type'] = $val['type'];
             $this->payload[$priority]['time'] = time();
-            $this->payload[$priority]['record'] =  $records;// set record array
+            $this->payload[$priority]['record'] =  $records; // set record array
         }
         asort($this->payload);
     }

@@ -19,9 +19,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 {
     use LoggerTrait;
 
-    public $debug = false;                    // Debug all outputs to end of the page
-    public $options = array();
-    public $debugHandler;                     // Debug handler
+    public $options = array();                // Service parameters
     public $enabled = true;                   // On / Off Logging
     public $queries = false;                  // Whether to log sql queries
     public $benchmark = false;                // Whether to log benchmark, Memory usage ..
@@ -30,7 +28,6 @@ class Logger extends AbstractLogger implements LoggerInterface
     public $track = array();                  // Track data for handlers and writers
 
     protected $connect = false;               // Lazy connections
-    protected $shutdown = false;              // Manually shutdown on off
     protected $push = array();                // Push data
     protected $payload = array();             // Payload
     protected $priorityQueue = array();       // Log priority queue objects
@@ -59,7 +56,6 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->options = $options;
         $this->enabled = $this->c['config']['log']['enabled'];
 
-        $this->configureErrorHandlers();
         $this->initialize();
         register_shutdown_function(array($this, 'close'));
     }

@@ -4,6 +4,7 @@ namespace Obullo\Application;
 
 use Closure;
 use Controller;
+use ErrorException;
 use Obullo\Error\Debug;
 
 /**
@@ -58,16 +59,6 @@ class Application
      */
     public function setErrorReporting()
     {
-        $this->restoreErrors();
-    }
-
-    /**
-     * Restore application error configuration
-     * 
-     * @return void
-     */
-    public function restoreErrors()
-    {
         if ($this->c['config']['error']['debug'] == false) {
             error_reporting(E_ALL | E_STRICT | E_NOTICE);
             ini_set('display_errors', 1);
@@ -98,6 +89,45 @@ class Application
         }        
     }
     
+    /**
+     * Sets application exception errors
+     * 
+     * @param Closure $closure function
+     * 
+     * @return void
+     */
+    public function error(Closure $closure)
+    {
+        if ($this->c['config']['error']['debug'] == false) {  // If debug "disabled" from config use app handler otherwise use Error/Debug package.
+            set_exception_handler($closure);
+            set_error_handler(
+                function ($level, $message, $file, $line) use ($closure) {
+                    return $closure(new ErrorException($message, $level, 0, $file, $line));   
+                }
+            );
+        }
+    }
+
+    /**
+     * Sets application fatal errors
+     * 
+     * @param Closure $closure function
+     * 
+     * @return void
+     */
+    public function fatal(Closure $closure)
+    {
+        if (null != $error = error_get_last()) {  // If we have a fatal error
+            register_shutdown_function(
+                function () use ($closure) {
+                    $return = $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
+                    $this->c['logger']->close();  // Close the logger if have the fatal error
+                    return $return;
+                }
+            );
+        }
+    }
+
     /**
      * PSR-0 Autoloader
      * 

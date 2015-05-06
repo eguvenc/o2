@@ -81,17 +81,19 @@ class Http extends Application
 
         $this->middleware = array($this); // Define default middleware stack
 
-        include OBULLO_CONTROLLER;
+        include APP .'errors.php';
+        include OBULLO .'Controller'. DS .'Controller.php';
 
-        include APP_COMPONENTS;
-        include APP_PROVIDERS;
-        include APP_EVENTS;
-        include APP_ROUTES;
+        include APP .'components.php';
+        include APP .'providers.php';
+        include APP .'events.php';
+        include APP .'routes.php';
 
         if ($this->c['config']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
+
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -155,7 +157,7 @@ class Http extends Application
                 $this->middleware($value['name'], $value['options']);
             }
         }
-        include APP_MIDDLEWARES;  // Include app/middlewares.php
+        include APP .'middlewares.php';
     }
 
     /**
@@ -223,9 +225,9 @@ class Http extends Application
      */
     public function call()
     {
-        if ($this->c['config']['output']['compress'] AND extension_loaded('zlib')  // Do we need to output compression ?
-            AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
-            AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
+        if ($this->c['config']['output']['compress'] && extension_loaded('zlib')  // Do we need to output compression ?
+            && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
+            && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
         ) {
             ob_start('ob_gzhandler');
         } else {
@@ -244,7 +246,7 @@ class Http extends Application
      */
     public function close()
     {
-        if ($this->c->loaded('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+        if ($this->c->loaded('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }
@@ -259,7 +261,7 @@ class Http extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['debugger']['enabled'] AND ! isset($_REQUEST['o_debugger'])) {
+        if ($this->c['config']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit();
         }
     }

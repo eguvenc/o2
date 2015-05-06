@@ -19,6 +19,54 @@ Uygulamada <b>error > debug</b> değeri true olduğunda her arayüz ( Http istek
 
 ![Http Errors](/Error/Docs/images/error-debug.png?raw=true "Http Errors")
 
+### Evrensel Hata Yönetimi
+
+Uygulamada evrensel hata yönetimi <kbd>app/errors.php</kbd> dosyasından kontrol edilir. Hata durumunda ne yapılacağı bir isimsiz fonksiyon tarafından belirlenerek uygulama tarafında php error handler fonksiyonlarına kayıt edilir.
+
+#### Php Hataları ve İstisnai Hatalar
+
+Aşağıdaki örnekte <b>doğal php hataları</b> ve <b>istisnai hatalar</b> error log olarak kaydediliyor.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Php Errors & Exceptions
+|--------------------------------------------------------------------------
+*/
+$c['app']->error(
+    function ($e) use ($c) {
+        $c['logger']->error($e);
+        return ! $continue = true;   // Whether to continue native errors
+    }
+);
+```
+
+Error metodu içerisine girilen isimsiz fonksiyonu kendi ihtiyaçlarınıza göre özelleştirebilirsiniz. İsimsiz fonksiyon uygulama çalıştığında error metodu ile <dfn>set_exception_handler()</dfn> fonksiyonuna kaydedilir. Fonksiyon sonucu <kbd>$continue</kbd> değişkenine döner ve bu değişken php hatalarının devam edilerek gösterilip gösterilmeyeceğine karar verir. Değişken değeri <b>true</b> olması durumunda hatalar gösterilmeye devam eder <b>false</b> durumda ise fatal error hataları hariç hatalar gösterilmez.
+
+
+#### Ölümcül Hatalar
+
+Aşağıdaki örnekte ise php fatal error türündeki hatalar kontrol altına alınarak log sınıfına gönderiliyor.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Php Fatal Errors
+|--------------------------------------------------------------------------
+*/
+$c['app']->fatal(
+    function ($e) use ($c) {
+        $c['logger']->error($e);
+    }
+);
+```
+
+Fatal error örneğinde ölümcül hata türündeki hatalar fatal metodu ile php <a href="http://php.net/manual/en/function.register-shutdown-function.php" target="_blank">register_shutdown</a> fonksiyonuna gönderilerek kontrol edilirler. Bir ölümcül hata oluşması durumunda isimsiz fonksiyon çalışarak fonksiyon içerisindeki görevleri yerine getirir. Fatal error metodu uygulamanın en alt seviyesinde çalışır.
+
+
+> **Not:** $c['app']->error() ve $c['app']->fatal() metotları yalnızca bir kere tanımlanabilirler.
+
+
 ### İstisnai Hataları Yakalamak
 
 ------
@@ -41,7 +89,7 @@ try
 }
 ```
 
-Exception sınıfı <kbd>app/components.php</kbd> dosyasında komponent olarak konfigüre edilmiştir.
+Exception sınıfı <kbd>app/components.php</kbd> dosyasında önce komponent olarak konfigüre edilmiştir.
 
 
 ```php
@@ -50,14 +98,14 @@ Exception sınıfı <kbd>app/components.php</kbd> dosyasında komponent olarak k
 | Exception
 |--------------------------------------------------------------------------
 */
-$c['exception'] = function () {
-    return new Obullo\Error\Exception;
+$c['exception'] = function () use ($c) {
+    return new Obullo\Error\Exception($c);
 };
 ```
 
-### Http Hataları Göndermek
+### Özel Http Hataları Göndermek
 
-Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu durumda Http paketi içerisinden response sınıfına ait metotları uygulamanızda kullanabilirsiniz.
+Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu durumda Http paketi içerisindeki response sınıfına ait metotları uygulamanızda kullanabilirsiniz.
 
 ##### $this->response->showError('message')
 
@@ -65,7 +113,7 @@ Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu dur
 $this->response->status(500)->showError('There is an error occured');
 ```
 
-Bu fonksiyon <kbd>app/templates/errors/general.php</kbd> hata şablonunu kullanarak özel hata mesajları gösterir. Hata dosyasını ihtiyaçlarınıza göre özelleştirebilirsiniz. Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.
+Bu fonksiyon <kbd>app/templates/errors/general.php</kbd> hata şablonunu kullanarak özel hata mesajları gösterir. Hata şablonunu ihtiyaçlarınıza göre özelleştirebilirsiniz. Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.
 
 
 ##### $this->response->show404('message')
@@ -74,4 +122,4 @@ Bu fonksiyon <kbd>app/templates/errors/general.php</kbd> hata şablonunu kullana
 $this->response->show404('Page not found')
 ```
 
-Bu fonksiyon <kbd>app/templates/errors/404.php</kbd> hata şablonunu kullanarak 404 http durum kodu ile birlikte sayfa bulunamadı hatası gösterir. Hata dosyasını ihtiyaçlarınıza göre özelleştirebilirsiniz.
+Bu fonksiyon <kbd>app/templates/errors/404.php</kbd> hata şablonunu kullanarak 404 http durum kodu ile birlikte sayfa bulunamadı hatası gösterir. Hata şablonunu ihtiyaçlarınıza göre özelleştirebilirsiniz.

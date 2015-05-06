@@ -61,12 +61,13 @@ class Cli extends Application
 
         // Warning : Http middlewares are disabled in Cli mode.
 
-        include OBULLO_CONTROLLER;
+        include APP .'errors.php';
+        include OBULLO .'Controller'. DS .'Controller.php';
         
-        include APP_COMPONENTS;
-        include APP_PROVIDERS;
-        include APP_EVENTS;
-        include APP_ROUTES;
+        include APP .'components.php';
+        include APP .'providers.php';
+        include APP .'events.php';
+        include APP .'routes.php';
         
         if ($this->c['config']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
@@ -126,7 +127,7 @@ class Cli extends Application
     public function call()
     {
         $argumentSlice = 3;
-        if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
+        if ( ! method_exists($this->class, $this->method) || $this->method == 'load' || $this->method == 'extend') { // load method reserved
             $argumentSlice = 2;
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';
