@@ -74,7 +74,7 @@ class DebugOutput
         unset($envHtml);
 
         $patterns = array(
-            '#<p>(.*(\$_URI\b).*)<\/p>#',
+            '#<p>(.*(\Uri Class Initialized\b).*)<\/p>#',
             '#<p>(.*(system.error\b).*)<\/p>#',
             '#<p>(.*(system.warning\b).*)<\/p>#',
             '#<p>(.*(system.notice\b).*)<\/p>#',
