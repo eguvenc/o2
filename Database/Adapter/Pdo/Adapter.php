@@ -190,7 +190,7 @@ abstract class Adapter
      *
      * @param object $closure or null
      * 
-     * @return boolean | object $e exception
+     * @return mixed
      */
     public function transaction($closure = null)
     {
@@ -199,16 +199,16 @@ abstract class Adapter
         if (is_callable($closure)) {
             try
             {
-                $closure();
+                $result = $closure();
                 $this->commit();
             }
             catch(Exception $e)
             {
                 $this->rollBack();
-                return $e;
+                throw $e;           // throw a PDOException developer will catch it 
             }
         }
-        return true;
+        return $result;  // Return to callable object result
     }
 
     /**
@@ -399,7 +399,7 @@ abstract class Adapter
      */
     protected function log()
     {
-        if ($this->c['config']['logger']['extra']['queries']) {
+        if ($this->c['config']['logger']['app']['sql']['queries']) {
             $this->c['logger']->debug(
                 '$_SQL '.$this->queryId.' ( Query ):', 
                 array('time' => number_format(microtime(true) - $this->beginQueryTimer, 4), 'output' => $this->formatSql($this->lastQuery())), 
@@ -432,5 +432,6 @@ abstract class Adapter
 }
 
 // END Adapter Class
+
 /* End of file Adapter.php
 /* Location: .Obullo/Database/Adapter/Pdo/Adapter.php */

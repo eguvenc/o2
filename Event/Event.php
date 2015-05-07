@@ -73,7 +73,6 @@ class Event
         }
         foreach ((array) $events as $event) {
             $this->listeners[$event][$priority][] = (is_string($listener)) ?  $this->createClassListener($listener) : $listener;
-
             unset($this->sorted[$event]);
         }
     }
@@ -99,6 +98,10 @@ class Event
      */
     public function subscribe($subscriber)
     {
+        if (is_string($subscriber)) {
+            $Class = '\\'.$subscriber;
+            $subscriber = new $Class($this->c);
+        }
         $subscriber->subscribe($this);
     }
 
@@ -131,7 +134,6 @@ class Event
             $payload = array($payload);   // we can easily use call_user_func_array on the listeners, passing in the
         }                                 // payload to each of them so that they receive each of these arguments.
         $this->firing[] = $event;
-
         $listeners = $this->getListeners($event);
 
         foreach ($listeners as $listener) {

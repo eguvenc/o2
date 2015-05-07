@@ -3,8 +3,10 @@
 namespace Obullo\Application;
 
 use Closure;
+use Exception;
 use Controller;
 use ErrorException;
+use ReflectionFunction;
 use Obullo\Error\Debug;
 
 /**
@@ -28,6 +30,8 @@ class Application
     protected $method;             // Current method
     protected $className;          // Current controller name
     protected $websocket;          // Debugger websocket
+    protected $exceptions = array();
+    protected $fatalError;
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -98,13 +102,10 @@ class Application
      */
     public function error(Closure $closure)
     {
-        if ($this->c['config']['error']['debug'] == false) {  // If debug "disabled" from config use app handler otherwise use Error/Debug package.
-            set_exception_handler($closure);
-            set_error_handler(
-                function ($level, $message, $file, $line) use ($closure) {
-                    return $closure(new ErrorException($message, $level, 0, $file, $line));   
-                }
-            );
+        $reflection = new ReflectionFunction($closure);
+        $parameters = $reflection->getParameters();
+        if (isset($parameters[0])) {
+            $this->exceptions[] = array('closure' => $closure, 'exception' => $parameters[0]->getClass());
         }
     }
 
@@ -117,14 +118,66 @@ class Application
      */
     public function fatal(Closure $closure)
     {
+        $this->fatalError = $closure;
+    }
+
+    /**
+     * Error handler, convert all errors to exceptions
+     * 
+     * @param integer $level   name
+     * @param string  $message error message
+     * @param string  $file    file
+     * @param integer $line    line
+     * 
+     * @return boolean whether to continue displaying php errors
+     */
+    public function handleError($level, $message, $file = '', $line = 0)
+    {
+        return $this->handleException(new ErrorException($message, $level, 0, $file, $line));
+    }
+
+    /**
+     * Exception error handler
+     * 
+     * @param Exception $e exception class
+     * 
+     * @return boolean
+     */
+    public function handleException(Exception $e)
+    {
+        $return = false;
+        foreach ($this->exceptions as $val) {
+            if ($val['exception']->isInstance($e)) {
+                $return = $val['closure']($e);
+            }
+        }
+        return $return;
+    }
+
+    /**
+     * Set error handlers
+     *
+     * @return void
+     */
+    public function registerErrorHandlers()
+    {
+        if ($this->c['config']['error']['debug'] == false) {  // If debug "disabled" from config use app handler otherwise use Error/Debug package.
+            set_error_handler(array($this, 'handleError'));
+            set_exception_handler(array($this, 'handleException'));
+        }
+    }
+
+    /**
+     * Register fatal error handler
+     * 
+     * @return mixed
+     */
+    public function registerFatalError()
+    {
+        $closure = $this->fatalError;
         if (null != $error = error_get_last()) {  // If we have a fatal error
-            register_shutdown_function(
-                function () use ($closure) {
-                    $return = $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
-                    $this->c['logger']->close();  // Close the logger if have the fatal error
-                    return $return;
-                }
-            );
+            $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
+            $this->c['logger']->close();          // Close the logger if have fatal error otherwise log writers not write to drivers
         }
     }
 
@@ -213,7 +266,7 @@ class Application
      */
     protected function getCurrentRoute()
     {
-        $route = $this->c['uri']->getUriString();          // Get current uri
+        $route = $this->c['uri']->getUriString();       // Get current uri
         if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
             $route = $this->c['app']->uri->getUriString();                             
         }
@@ -325,7 +378,7 @@ class Application
      * Returns 
      *
      * This function similar with Codeigniter getInstance(); 
-     * method.
+     * instead of getInstance()->class->method() we use $this->c['app']->class->metod();
      * 
      * @param string $key application object
      * 
@@ -337,7 +390,10 @@ class Application
         if ( ($key == 'uri' OR $key == 'router') AND $this->c->has($cid) ) {
             return $this->c[$cid];
         }
-        return Controller::$instance->{$key};
+        if (class_exists('Controller', false) && Controller::$instance != null) {
+            return Controller::$instance->{$key};
+        }
+        return $this->c[$cid];
     }
 
 }

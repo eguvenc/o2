@@ -210,22 +210,22 @@ $c['router']->defaultPage('welcome/index');
 /* Location: .routes.php */
 ```
 
-### Dipnotlar ( Annotations )
+### Anotasyonlar ( Annotations )
 
 ------
 
-Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
+Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
 
-> **Not:** Dipnotarı kullanmak herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan dipnotlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
+> **Not:** Anotasyonlar herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan anotasyonlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
 
-Şu anki sürümde biz dipnotları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
+Şu anki sürümde biz anotasyonları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
-### Mevcut olan dipnotlar
+### Mevcut olan anotasyonlar
 
 <table>
     <thead>
         <tr>
-            <th>Dipnot</th>    
+            <th>Anotasyon</th>    
             <th>Açıklama</th>
         </tr>
     </thead>
@@ -244,7 +244,7 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
         </tr>
          <tr>
             <td><b>@middleware->when()->add()</b></td>
-            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı katman uygulumaya eklenmez.</td>
+            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu anotasyonun kullanıldığı katman uygulumaya eklenmez.</td>
         </tr>
         <tr>
             <td><b>@event->subscribe();</b></td>
@@ -253,9 +253,9 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
     </tbody>
 </table>
 
-### Controller için dipnotları aktif etmek
+### Kontrolör İçin Anotasyonları Aktif Etmek
 
-Config.php konfigürasyon dosyasını açın ve annotations enabled anahtarının değerini <b>true</b> olarak güncelleyin.
+Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
 'annotations' => array(
@@ -263,7 +263,7 @@ Config.php konfigürasyon dosyasını açın ve annotations enabled anahtarını
 )
 ```
 
-Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi kullanabilirsiniz.
+Artık kontrolör sınıfı metotları üzerinde anotasyonları aşağıdaki gibi kullanabilirsiniz.
 
 ```php
 /**
@@ -283,7 +283,7 @@ public function index()
 /* Location: .modules/welcome/welcome.php */
 ```
 
-> **Not:** Dipnotlar hakkında daha fazla bilgiye <b>Annotations</b> paketi dökümentasyonundan ulaşabilirsiniz.
+> **Not:** Anotasyonlar hakkında daha fazla bilgiye <b>Annotations</b> paketi dökümentasyonundan ulaşabilirsiniz.
 
 
 ### Rezerve Edilmiş Metotlar

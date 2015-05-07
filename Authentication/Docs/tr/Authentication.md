@@ -51,7 +51,7 @@ Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodları
 <b>Config</b>, <b>Login</b>, <b>Identity</b> ve <b>Activity</b> sınıfları için birer örnek
 
 ```php
-$this->user->config['variable'];
+$this->user['variable'];   // Konfigürasyon değeri
 $this->user->login->method();
 $this->user->identity->method();
 $this->user->activity->method();
@@ -259,8 +259,8 @@ Class User implements ServiceInterface
 ```php
 $this->user->login->attempt(
     [
-        $this->user->config['db.identifier'] => $this->request->post('email'), 
-        $this->user->config['db.password'] => $this->request->post('password')
+        $this->user['db.identifier'] => $this->request->post('email'), 
+        $this->user['db.password'] => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -319,16 +319,13 @@ Class Login extends \Controller
 
                 $result = $this->user->login->attempt(
                     [
-                        $this->user->config['db.identifier'] => $this->request->post('email'), 
-                        $this->user->config['db.password'] => $this->request->post('password')
+                        $this->user['db.identifier'] => $this->request->post('email'), 
+                        $this->user['db.password'] => $this->request->post('password')
                     ],
                     $this->request->post('rememberMe')
                 );
                 if ($result->isValid()) {
-
-                    $this->flash->success('Login success !');
-                    $this->url->redirect('membership/resrticted');
-
+                    $this->flash->success('Login success.')->with('url')->redirect('membership/resrticted');
                 } else {
                     $this->form->setResults($result->getArray());
                 }
@@ -393,8 +390,8 @@ Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar
 ```php
 $result = $this->user->login->attempt(
     [
-        $this->user->config['db.identifier'] => $this->request->post('email'), 
-        $this->user->config['db.password'] => $this->request->post('password')
+        $this->user['db.identifier'] => $this->request->post('email'), 
+        $this->user['db.password'] => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -525,11 +522,11 @@ Kimlikler içerisinde kendi fonksiyonlarınızı oluşturabilmeniz için kimlik 
 <kbd>app/Classes/Sevice/User.php</kbd> dosyasında çağrılan AuthServiceProvider sınıfı içerisinden gönderilen parametreleri ve <b>auth.php</b> konfigürasyon dosyasındaki parametreler ile birleştirerek auth paketine ait konfigurasyon ile ilgili tüm dizileri tek bir elden yönetmeye yardımcı olur. Daha iyi anlamak için aşağıdaki örneğe bir gözatabiliriz.
 
 ```php
-echo $this->user->config['db.identifier'];   // Çıktı username
-echo $this->user->config['db.password'];     // Çıktı password
-echo $this->user->config['cache.key'];       // Çıktı Auth
+echo $this->user['db.identifier'];   // Çıktı username
+echo $this->user['db.password'];     // Çıktı password
+echo $this->user['cache.key'];       // Çıktı Auth
 
-echo $this->user->config['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
+echo $this->user['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
 ```
 
 ### User Identity Sınıfı İşlevleri
@@ -619,8 +616,8 @@ Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTempo
 ```php
 $result = $this->user->login->attempt(
     [
-        $this->user->config['db.identifier'] => $this->request->post('email'), 
-        $this->user->config['db.password'] => $this->request->post('password')
+        $this->user['db.identifier'] => $this->request->post('email'), 
+        $this->user['db.password'] => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -905,15 +902,15 @@ Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza depo
 </table>
 
 
-#### Config Sınıfı Referansı
+#### Konfigürasyon Parametrelerine Erişim
 
 ------
 
-> User servisinde AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
+> User servisi AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
 
-##### $this->user->login->config['variable'];
+##### $this->user['variable'];
 
-Konfigürasyon dosyası veya user servisi parametrelerine döner.
+<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
 
 
 #### Login Sınıfı Referansı

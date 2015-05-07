@@ -62,6 +62,7 @@ class Cli extends Application
         // Warning : Http middlewares are disabled in Cli mode.
 
         include APP .'errors.php';
+        $this->registerErrorHandlers();
         include OBULLO .'Controller'. DS .'Controller.php';
         
         include APP .'components.php';
@@ -74,6 +75,8 @@ class Cli extends Application
             $this->websocket->connect();
         }
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
+        
+        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -140,7 +143,20 @@ class Cli extends Application
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
         }
+    }
+
+    /**
+     * Register shutdown
+     *
+     * 1 . Check debugger module
+     * 1 . Write fatal errors
+     * 
+     * @return void
+     */
+    public function close()
+    {
         $this->checkDebugger();
+        $this->registerFatalError();
     }
 
     /**

@@ -82,6 +82,7 @@ class Http extends Application
         $this->middleware = array($this); // Define default middleware stack
 
         include APP .'errors.php';
+        $this->registerErrorHandlers();     
         include OBULLO .'Controller'. DS .'Controller.php';
 
         include APP .'components.php';
@@ -93,7 +94,6 @@ class Http extends Application
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
-
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -164,17 +164,16 @@ class Http extends Application
      * Add middleware
      *
      * This method prepends new middleware to the application middleware stack.
-     * The argument must be an instance that subclasses Slim_Middleware.
      *
      * @param mixed $middleware class name or \Http\Middlewares\Middleware object
-     * @param array $params     parameters
+     * @param array $params     parameters we inject the parmeters inside middleware as a variable. ( $this->params )
      *
-     * @return void
+     * @return object
      */
     public function middleware($middleware, $params = array())
     {
         if (is_string($middleware)) {
-            $Class = '\\Http\\Middlewares\\'.ucfirst($middleware);
+            $Class = strpos($middleware, '\Middlewares\\') ?  $middleware : '\\Http\\Middlewares\\'.ucfirst($middleware);
             $middleware = new $Class;
         }
         $middleware->params = $params;      // Inject Parameters
@@ -185,10 +184,11 @@ class Http extends Application
 
         $name = get_class($middleware);
         $this->middlewareNames[$name] = $name;  // Track names
+        return $this;
     }
 
     /**
-     * Removes middleware ( Only works with annotations )
+     * Removes middleware
      * 
      * @param string $middleware name
      * 
@@ -201,8 +201,7 @@ class Http extends Application
             return;
         }
         foreach ($this->middleware as $key => $value) {
-            $current = get_class($value);
-            if ($current == $removal) {
+            if (get_class($value) == $removal) {
                 unset($this->middleware[$key]);
             }
         }
@@ -241,6 +240,7 @@ class Http extends Application
      *
      * 1 . Write cookies if package loaded and we have queued cookies.
      * 2 . Check debugger module
+     * 3 . Register fatal error handler
      * 
      * @return void
      */
@@ -252,6 +252,7 @@ class Http extends Application
             }
         }
         $this->checkDebugger();
+        $this->registerFatalError();
     }
 
     /**

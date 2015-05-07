@@ -309,7 +309,7 @@ Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kb
     </thead>
     <tbody>
         <tr>
-            <td><b>AMQP</b></td>
+            <td><b>amqp</b></td>
             <td>Uygulamanızdaki queue/amqp.php konfigürasyonunu kullanarak AMQP bağlantılarını yönetir.</td>
         </tr>
         <tr>
@@ -341,10 +341,6 @@ Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kb
             <td>Uygulamanızdaki mongo.php konfigürasyonunu kullanarak mongo db bağlantılarını yönetir.</td>
         </tr>
         <tr>
-            <td><b>query</b></td>
-            <td>QueryBuilder ( Active Record ) nesnesi taleplerini yönetir.</td>
-        </tr>
-        <tr>
             <td><b>pdo</b></td>
             <td>Uygulamanızdaki database.php konfigürasyonunu kullanarak pdo bağlantılarını yönetmenize yardımcı olur.</td>
         </tr>
@@ -356,7 +352,7 @@ Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kb
 </table>
 
 
-> **Not:** Obullo\ServiceProviders paketinden yukarıda anlatılan her bir servis sağlayıcısına ait detaylı dökümentasyona ulaşabilirsiniz.
+> **Not:** Obullo\Service\Providers paketinden yukarıda anlatılan her bir servis sağlayıcısına ait detaylı dökümentasyona ulaşabilirsiniz.
 
 
 ### Kendi Servis Sağlayıcılarınızı Tanımlamak

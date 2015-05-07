@@ -2,6 +2,8 @@
 
 namespace Obullo\Flash;
 
+use Obullo\Container\Container;
+
 /**
  * Flash Session Class
  * 
@@ -21,39 +23,61 @@ class Session
     /**
      * Status constants
      */
-    const NOTICE_ERROR = 0;
-    const NOTICE_SUCCESS = 1;
-    const NOTICE_WARNING = 2;
-    const NOTICE_INFO = 3;
+    const NOTICE_ERROR = 'error';
+    const NOTICE_SUCCESS = 'success';
+    const NOTICE_WARNING = 'warning';
+    const NOTICE_INFO = 'info';
+
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Flash config
+     * 
+     * @var array
+     */
+    protected $flash;
 
     /**
      * Session
      * 
      * @var object
      */
-    public $session;
+    protected $session;
+
+    /**
+     * Notice keys
+     * 
+     * @var array
+     */
+    protected $notice = array();
 
     /**
      * Flashdata key
      * 
      * @var string
      */
-    public $flashdataKey = 'flash';
+    protected $flashdataKey = 'flash';
 
     /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct($c) 
+    public function __construct(Container $c) 
     {
+        $this->c = $c;
         $this->session = $c['session'];
         $this->flash = $c['config']->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
         
-        $c['logger']->debug('Session Flash Class Initialized');
+        $this->c['logger']->debug('Session Flash Class Initialized');
     }
 
     /**
@@ -66,10 +90,9 @@ class Session
      */
     public function template($message, $key = 'error')
     {
-        $constant = constant('NOTICE_'.strtoupper($key));
         return str_replace(
             array('{class}','{icon}','{message}'), 
-            array($this->flash[$constant]['class'], $this->flash[$constant]['icon'], $message),
+            array($this->flash[$key]['class'], $this->flash[$key]['icon'], $message),
             $this->flash[static::MESSAGE]
         );
     }
@@ -109,11 +132,12 @@ class Session
      * 
      * @param string $message notice
      *
-     * @return void
+     * @return object
      */
     public function success($message)
     {
-        $this->set(array('notice:success' => $message, 'status:success' => static::NOTICE_SUCCESS));
+        $this->set(array('notice:success' => $message, 'notice:status' => static::NOTICE_SUCCESS));
+        return $this;
     }
 
     /**
@@ -121,11 +145,12 @@ class Session
      * 
      * @param string $message notice
      *
-     * @return void
+     * @return object
      */
     public function error($message)
     {
-        $this->set(array('notice:error' => $message, 'status:error' => static::NOTICE_ERROR));
+        $this->set(array('notice:error' => $message, 'notice:status' => static::NOTICE_ERROR));
+        return $this;
     }
 
     /**
@@ -133,11 +158,12 @@ class Session
      * 
      * @param string $message notice
      *
-     * @return void
+     * @return object
      */
     public function info($message)
     {
-        $this->set(array('notice:info' => $message, 'status:info' => static::NOTICE_INFO));
+        $this->set(array('notice:info' => $message, 'notice:status' => static::NOTICE_INFO));
+        return $this;
     }
 
     /**
@@ -145,11 +171,12 @@ class Session
      * 
      * @param string $message notice
      *
-     * @return void
+     * @return object
      */
     public function warning($message)
     {
-        $this->set(array('notice:warning' => $message, 'status:warning' => static::NOTICE_INFO));
+        $this->set(array('notice:warning' => $message, 'notice:status' => static::NOTICE_WARNING));
+        return $this;
     }
 
     /**
@@ -159,7 +186,7 @@ class Session
      * @param mixed  $newData key or array
      * @param string $newval  value
      * 
-     * @return void
+     * @return object
      */
     public function set($newData = array(), $newval = '')
     {
@@ -172,6 +199,7 @@ class Session
                 $this->session->set($flashdataKey, $val);
             }
         }
+        return $this;
     }
 
     /**
@@ -181,7 +209,7 @@ class Session
      * @param string $prefix html open tag
      * @param string $suffix html close tag
      * 
-     * @return   string
+     * @return string
      */
     public function get($key, $prefix = '', $suffix = '')
     {
@@ -199,7 +227,7 @@ class Session
      *
      * @param string $key session key
      * 
-     * @return void
+     * @return object
      */
     public function keep($key)
     {
@@ -207,6 +235,19 @@ class Session
         $value = $this->session->get($old_flashdataKey);
         $new_flashdataKey = $this->flashdataKey . ':new:' . $key;
         $this->session->set($new_flashdataKey, $value);
+        return $this;
+    }
+
+    /**
+     * Returns to requested object
+     *
+     * @param string $name object
+     * 
+     * @return void
+     */
+    public function with($name)
+    {
+        return $this->c[$name];
     }
 
     /**

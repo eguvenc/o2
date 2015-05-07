@@ -92,9 +92,6 @@ class Container implements ArrayAccess
         if (isset($this->frozen[$cid])) {
             return;
         }
-        if ( ! is_callable($value) && is_object($value)) {
-            return $this->bind($cid, $value);
-        }
         $this->values[$cid] = $value;
         $this->keys[$cid] = true;
     }
@@ -542,30 +539,6 @@ class Container implements ArrayAccess
             return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->env());
         }
         return '\Service\\'.$serviceClass;
-    }
-
-    /**
-     * Bind classes into the container if its not exists.
-     * 
-     * @param string $cid       class id
-     * @param string $namespace class
-     * 
-     * @return void
-     */
-    protected function bind($cid, $namespace = null)
-    {
-        if ( ! is_object($namespace)) {
-            throw new InvalidArgumentException('Bind method second parameter must be object.');
-        }
-        if ( ! $this->has($cid)) {   // Don't register service again.
-            $this->registerClass($cid, null, array('return' => 'return'), $namespace);
-        }
-        if (isset($this->frozen[$cid])) {
-            return $this->values[$cid];
-        }
-        $this->frozen[$cid] = true;
-        $this->raw[$cid] = $this->values[$cid];
-        return $this->values[$cid] = $this->closure($this->values[$cid]);
     }
 
     /**

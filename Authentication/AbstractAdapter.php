@@ -25,13 +25,6 @@ abstract class AbstractAdapter
     protected $c;
 
     /**
-     * Authentication config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
      * Constructor
      * 
      * @param object $c container
@@ -39,7 +32,6 @@ abstract class AbstractAdapter
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $c['auth.config'];
     }
 
     /**
@@ -64,7 +56,7 @@ abstract class AbstractAdapter
      */
     public function verifyPassword($plain, $hash)
     {
-        $cost = $this->config['security']['passwordNeedsRehash']['cost'];
+        $cost = $this->c['user']['security']['passwordNeedsRehash']['cost'];
         $password = $this->c['password'];
 
         if ($password->verify($plain, $hash)) {

@@ -94,8 +94,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $this->storage = $c['auth.storage'];
         $this->session = $c['session'];
 
-        $this->columnIdentifier = $c['auth.config']['db.identifier'];
-        $this->columnPassword   = $c['auth.config']['db.password'];
+        $this->columnIdentifier = $c['user']['db.identifier'];
+        $this->columnPassword   = $c['user']['db.password'];
 
         parent::__construct($c);
     }
@@ -205,7 +205,7 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
-        if ($this->config['session']['regenerateSessionId']) {
+        if ($this->c['user']['session']['regenerateSessionId']) {
             $this->regenerateSessionId(true);  // Delete old session after regenerate !
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature

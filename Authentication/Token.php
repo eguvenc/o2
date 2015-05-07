@@ -25,13 +25,6 @@ class Token
     protected $c;
 
     /**
-     * Authentication config
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
      * @param object $c container
@@ -39,7 +32,6 @@ class Token
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['auth.config'];
     }
 
     /**
@@ -49,8 +41,7 @@ class Token
      */
     public function getRememberToken()
     {
-        $cookie = $this->config['login']['rememberMe']['cookie'];
-
+        $cookie = $this->c['user']['login']['rememberMe']['cookie'];
         $cookie['value'] = Random::generate('alnum', 32);
         $this->c['cookie']->queue($cookie);
 

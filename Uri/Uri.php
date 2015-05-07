@@ -40,7 +40,13 @@ class Uri
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->c['logger']->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
+
+        $this->c['logger']->debug(
+            'Uri Class Initialized', 
+            array('uri' => $this->getRequestUri().' 😊'), 
+            11
+        );
+        // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
     /**

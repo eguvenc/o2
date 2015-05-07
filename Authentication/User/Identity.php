@@ -20,13 +20,6 @@ use Obullo\Authentication\Recaller;
 class Identity extends AuthorizedUser
 {
     /**
-     * Authentication config
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Logger
      *
      * @var object
@@ -70,8 +63,6 @@ class Identity extends AuthorizedUser
     public function __construct(Container $c)
     {
         $this->setContainer($c);
-
-        $this->config = $this->c['auth.config'];
         $this->storage = $this->c['auth.storage'];
 
         if ($rememberToken = $this->recallerExists()) {   // Remember the user if recaller cookie exists
@@ -81,7 +72,7 @@ class Identity extends AuthorizedUser
         $this->logger = $this->c['logger'];
         $this->initialize();
 
-        if ($this->config['session']['unique']) {
+        if ($this->c['user']['session']['unique']) {
             register_shutdown_function(array($this, 'close'));
         }
     }
@@ -137,10 +128,10 @@ class Identity extends AuthorizedUser
      */
     public function recallerExists()
     {
-        $name = $this->config['login']['rememberMe']['cookie']['name'];
+        $name = $this->c['user']['login']['rememberMe']['cookie']['name'];
         $token = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
      
-        if ( ! $this->storage->hasIdentifier() AND ctype_alnum($token) AND strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
+        if ( ! $this->storage->hasIdentifier() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
             return $token;
         }
         return false;
@@ -186,7 +177,7 @@ class Identity extends AuthorizedUser
         if ($this->isVerified != null) { // We store it into variable for application performance
             return 1;
         }
-        if (isset($this->__isVerified) AND $this->__isVerified == 1) {
+        if (isset($this->__isVerified) && $this->__isVerified == 1) {
             $this->isVerified = 1;
             return true;
         }
@@ -319,12 +310,12 @@ class Identity extends AuthorizedUser
     {
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
 
-            $rememberMeCookie = $this->config['login']['rememberMe']['cookie'];
+            $rememberMeCookie = $this->c['user']['login']['rememberMe']['cookie'];
             $rememberToken = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
 
             $genericUser = new GenericUser;
             $genericUser->setContainer($this->c);
-            $genericUser->setCredentials([$this->config['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
+            $genericUser->setCredentials([$this->c['user']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
 
             $this->refreshRememberToken($genericUser);
         }
@@ -349,7 +340,7 @@ class Identity extends AuthorizedUser
      */
     public function forgetMe()
     {
-        $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
+        $cookie = $this->c['user']['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
         if ( ! $this->c['cookie']->get($cookie['name'], $cookie['prefix'])) {
             return;
         }

@@ -664,11 +664,9 @@ Eğer işlemde herhangi bir hata ile karşılaşılırsa <b>catch</b> komutu blo
 
 ```php
 try {
-    
+
     $this->db->transaction(); // Operasyonları başlat
-
     $this->db->exec("INSERT INTO persons (person_skill, person_name) VALUES ('javascript', 'john')");
-
     $this->db->commit();      // Operasyonu bitti olarak kaydet
 
     echo 'Veri başarı ile kaydedildi.';

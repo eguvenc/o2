@@ -12,7 +12,7 @@ use Obullo\Container\Container;
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
+ * @link      http://obullo.com/package/event
  */
 interface EventListenerInterface
 {
@@ -27,4 +27,4 @@ interface EventListenerInterface
 // END EventListenerInterface.php File
 /* End of file EventListenerInterface.php
 
-/* Location: .Obullo/Authentication/EventListenerInterface.php */
+/* Location: .Obullo/Event/EventListenerInterface.php */

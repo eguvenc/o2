@@ -256,7 +256,6 @@ class Response
     public function showError($message, $heading = 'An Error Was Encountered')
     {
         $status = ($this->getStatus() == 200) ? 500 : $this->getStatus();
-
         $error = new Error($this->c, $this);
         return $error->showError($message, $status, $heading);
     }

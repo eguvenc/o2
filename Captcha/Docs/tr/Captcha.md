@@ -395,7 +395,7 @@ class Form extends \Controller
 </table>
 
 
-#### Image Sınıfı Referansı
+#### Image Captcha Sınıfı Referansı
 
 ------
 

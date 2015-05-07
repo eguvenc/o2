@@ -8,15 +8,12 @@ Framework supports "flashData", or session data that will only be available for 
 **Note:** Flash variables are prefaced with <b>"flash_"</b> so avoid this prefix in your own session names.
 
 ```php
-<?php
-$this->c['flash'];
-$this->flash->method();
+$this->c['flash']->method();
 ```
 
 #### Adding Flash Notice
 
 ```php
-<?php
 $this->flash->success('Form saved successfully.');
 $this->flash->error('Error.');
 $this->flash->warning('Something went wrong.');
@@ -28,7 +25,6 @@ $this->flash->output();  // Gives string output with error templates.
 Using in the application
 
 ```php
-<?php
 $e = $this->db->transaction(
     function () use ($data) {
         $this->db->where('username', $this->post['user_id']);
@@ -42,24 +38,27 @@ if (is_object($e)) {
 }
 ```
 
+#### Getting Current Status
+
+```php
+$this->flash->keep('notice:status');  // success
+```
+
 #### Keep FlashData
 
 If you find that you need to preserve a flashdata variable through an additional request, you can do so using the $this->flash->keep() function.
 
 ```php
-<?php
 $this->flash->keep('item');
 ```
 
 ```php
-<?php
 $this->flash->keep('notice:success');
 ```
 
 #### Adding Flash Data
 
 ```php
-<?php
 $this->flash->set('item', 'value');
 ```
 You can also pass an array to $this->flash->set(), in the same manner as $this->flash->set().
@@ -67,16 +66,13 @@ You can also pass an array to $this->flash->set(), in the same manner as $this->
 To read a flashdata variable:
 
 ```php
-<?php
 $this->flash->get('item', $prefix = '' , $suffix = '');
-
 ```
 Getting data
 
 If flash **data is empty** $this->flash->get() function will return an empty string otherwise it will retun the flash data value with $prefix and $suffix codes.
 
 ```php
-<?php
 echo $this->flash->get('item', '<p class="example">', '</p>');
 ```
 

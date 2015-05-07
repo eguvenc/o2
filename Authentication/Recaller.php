@@ -29,13 +29,6 @@ class Recaller
     protected $c;
 
     /**
-     * Config
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Storage
      * 
      * @var object
@@ -50,11 +43,10 @@ class Recaller
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config  = $this->c['auth.config'];
         $this->storage = $this->c['auth.storage'];
 
-        $this->columnIdentifier = $this->config['db.identifier'];
-        $this->rememberToken    = $this->config['db.rememberToken'];
+        $this->columnIdentifier = $this->c['user']['db.identifier'];
+        $this->rememberToken = $this->c['user']['db.rememberToken'];
     }
 
     /**
@@ -97,7 +89,6 @@ class Recaller
     protected function removeInactiveSessions()
     {
         $sessions = $this->storage->getUserSessions();
-
         if (sizeof($sessions) == 0) {
             return;
         }
@@ -115,7 +106,7 @@ class Recaller
      */
     public function removeCookie()
     {
-        $cookie = $this->config['login']['rememberMe']['cookie']; // Delete rememberMe cookie
+        $cookie = $this->c['user']['login']['rememberMe']['cookie']; // Delete rememberMe cookie
         setcookie(
             $cookie['prefix'].$cookie['name'], 
             null,

@@ -22,7 +22,6 @@ class Cache extends AbstractStorage implements StorageInterface
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $cacheKey;        // Cache key
-    protected $config;          // Auth config array
     protected $session;         // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
     protected $logger;          // Logger
@@ -36,9 +35,8 @@ class Cache extends AbstractStorage implements StorageInterface
     public function __construct(Container $c, CacheHandlerInterface $cache) 
     {
         $this->c = $c;
-        $this->config = $this->c['auth.config'];
         $this->cache = $cache;
-        $this->cacheKey = (string)$this->config['cache.key'];
+        $this->cacheKey = (string)$this->c['user']['cache.key'];
         $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
     }
@@ -131,7 +129,7 @@ class Cache extends AbstractStorage implements StorageInterface
      */
     public function deleteCredentials($block = '__temporary')
     {
-        $loginID  = $this->getLoginId();
+        $loginID = $this->getLoginId();
         $credentials = $this->cache->get($this->getBlock($block));  // Don't do container cache
 
         if ( ! isset($credentials[$loginID])) {  // already removed
@@ -211,7 +209,6 @@ class Cache extends AbstractStorage implements StorageInterface
     {
         $sessions = array();
         $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'));
-        
         if ($dbSessions == false) {
             return $sessions;
         }
