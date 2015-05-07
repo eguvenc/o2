@@ -58,7 +58,7 @@ $c['app']->error(
 );
 ```
 
-Eğer fonksiyon içerisideki hatalar log sınıfı herhangi bir metodunun içerisine exception nesnesi olarak gönderilirse log sınıfı tarafından istisnai hata çözümlenerek log dosyalarına kayıt edilir.
+Eğer fonksiyon içerisindeki hatalar log sınıfı herhangi bir metodunun içerisine exception nesnesi olarak gönderilirse log sınıfı tarafından istisnai hata çözümlenerek log dosyalarına kayıt edilir.
 
 #### İstisnai Hatalar Hiyerarşisi
 
@@ -84,7 +84,7 @@ Hataları yakalarken uygulamaya tüm exception isimleri yazmanıza <b>gerek yokt
         - UnexpectedValueException
 ```
 
-İstisnai hatalar ile ilgili bu kaynağa bir gözatın. <a href="http://nitschinger.at/A-primer-on-PHP-exceptions"></a>
+İstisnai hatalar ile ilgili bu kaynağa bir gözatın. <a href="http://nitschinger.at/A-primer-on-PHP-exceptions">Php Exceptions</a>
 
 #### Veritabanı ve Diğer İstisnai Hatalar Yönetimi
 
