@@ -239,18 +239,6 @@ class Session
     }
 
     /**
-     * Returns to requested object
-     *
-     * @param string $name object
-     * 
-     * @return void
-     */
-    public function with($name)
-    {
-        return $this->c[$name];
-    }
-
-    /**
      * Identifies flashdata as 'old' for removal
      * when flashdataSweep() runs.
      * 
@@ -284,6 +272,19 @@ class Session
             }
         }
     }
+
+    /**
+     * Return to requested container class
+     * 
+     * @param string $cid class id
+     * 
+     * @return object
+     */
+    public function __get($cid)
+    {
+        return $this->c[$cid];
+    }
+
 }
 
 // END Session.php File
