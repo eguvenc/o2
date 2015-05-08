@@ -399,7 +399,7 @@ abstract class Adapter
      */
     protected function log()
     {
-        if ($this->c['config']['logger']['app']['sql']['queries']) {
+        if ($this->c['config']['logger']['app']['query']['log']) {
             $this->c['logger']->debug(
                 '$_SQL '.$this->queryId.' ( Query ):', 
                 array('time' => number_format(microtime(true) - $this->beginQueryTimer, 4), 'output' => $this->formatSql($this->lastQuery())), 
