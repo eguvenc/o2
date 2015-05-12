@@ -61,7 +61,7 @@ class Session
      * 
      * @var string
      */
-    protected $flashdataKey = 'flash';
+    protected $flashdataKey = 'flash_';
 
     /**
      * Constructor
@@ -193,7 +193,7 @@ class Session
         if (is_string($newData)) {
             $newData = array($newData => $newval);
         }
-        if (is_array($newData) AND sizeof($newData) > 0) {
+        if (is_array($newData) && sizeof($newData) > 0) {
             foreach ($newData as $key => $val) {
                 $flashdataKey = $this->flashdataKey . ':new:' . $key;
                 $this->session->set($flashdataKey, $val);
@@ -249,7 +249,7 @@ class Session
         $session = $_SESSION;
         foreach ($session as $name => $value) {
             $parts = explode(':new:', $name);
-            if (is_array($parts) AND count($parts) === 2) {
+            if (is_array($parts) && count($parts) === 2) {
                 $newName = $this->flashdataKey . ':old:' . $parts[1];
                 $this->session->set($newName, $value);
                 $this->session->remove($name);
@@ -274,7 +274,7 @@ class Session
     }
 
     /**
-     * Return to requested container class
+     * Return to requested container object
      * 
      * @param string $cid class id
      * 

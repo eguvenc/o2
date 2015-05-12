@@ -26,7 +26,7 @@ trait LoggerTrait
         $this->c['config']->load('logger');  // Load logger package configuration
 
         $this->channel = $this->c['config']['logger']['default']['channel'];
-        $this->queries = $this->c['config']['logger']['app']['sql']['queries'];
+        $this->queries = $this->c['config']['logger']['app']['query']['log'];
         $this->benchmark = $this->c['config']['logger']['app']['benchmark'];
 
         $this->detectRequest();  
