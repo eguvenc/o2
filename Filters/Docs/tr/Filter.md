@@ -196,7 +196,7 @@ $this->is->ip('0938493', '0.0.0.0');  // Çıktı 0.0.0.0
 Ip adresinin IPV6 olup olmadığı kendiliğinden algılanır.
 
 ```php
-$this->is->ip('FE80:0000:0000:0000:0202:B3FF:FE1E:8329');   // Çıktı FE80:0000:0000:0000:0202:B3FF:FE1E:8329
+$this->is->ip('FE80:0000:0000:0000:0202:B3FF:FE1E:8329');   // Çıktı FE80:0000:0000:0000:..
 ```
 
 Sadece belirli bir ip standardı doğrulamasına izin verilmek isteniyorsa 
