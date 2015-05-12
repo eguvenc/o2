@@ -350,7 +350,10 @@ var_dump($str1);
 ```
 
 ```php
-$str2 = $this->clean->str("Welcome <script> alert('Hello World')</script>", 'encode_amp|no_encode_quotes');
+$str2 = $this->clean->str(
+"Welcome <script> alert('Hello World')</script>",
+'encode_amp|no_encode_quotes'
+);
 var_dump($str2);
 
 //Çıktı string(29) "Welcome alert('Hello World')" 
