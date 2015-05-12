@@ -11,9 +11,9 @@ use RuntimeException;
 use InvalidArgumentException;
 
 /**
- * Container class.
+ * Container class
  *
- * This file after modeled Pimple Software ( Dependency Container ). http://pimple.sensiolabs.org/
+ * This file after modeled Pimple Software ( Dependency Container )
  * 
  * @category  Container
  * @package   Container

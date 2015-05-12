@@ -9,6 +9,18 @@ The router class allows you to remap the URLs.
 
 ------
 
+
+Folder Limitation Example
+
+```php
+http://www.example.com/test/bad_segment
+http://www.example.com/test/good_segment1
+http://www.example.com/test/good_segment2
+
+$this->attach('^(test/(?!bad_segment).*)$');
+```
+
+
 ```php
 <?php
 $this->c['router']->method();

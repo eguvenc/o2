@@ -96,6 +96,7 @@ $this->cookie->set($cookie);
             <td>prefix</td>
             <td>Önad ihtiyaç olursa sadece çerezlerinizin diğer çerezler ile karışmasını engellemek için kullanılır. Bir değer girilmezse varsayılan değer konfigürasyon dosyasından okunur.</td>
         </tr>
+        </tbody>
 </table>
 
 

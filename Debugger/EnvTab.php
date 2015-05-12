@@ -77,12 +77,12 @@ class EnvTab
             $output.= "<tbody>\n";
             if (empty($value)) {
                 $output.= "<tr>\n";
-                $output.= "<th>&nbsp;</th>\n";
+                $output.= "<th><pre>\"\"</pre></th>\n";
                 $output.= "</tr>\n";
             }
             foreach ($value as $k => $v) {
                 $output.= "<tr>\n";
-                $output.= "<th>$k</th>\n";
+                $output.= "<th><pre>$k</pre></th>\n";
                 $output.= "<td>\n";
                 if (is_array($v)) {
                     $output.= "<pre><span>".var_export($v, true)."</span></pre>\n";

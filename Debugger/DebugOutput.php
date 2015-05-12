@@ -74,7 +74,7 @@ class DebugOutput
         unset($envHtml);
 
         $patterns = array(
-            '#<p>(.*(\Uri Class Initialized\b).*)<\/p>#',
+            '#<p>(.*(Uri Class Initialized\b).*)<\/p>#',
             '#<p>(.*(system.error\b).*)<\/p>#',
             '#<p>(.*(system.warning\b).*)<\/p>#',
             '#<p>(.*(system.notice\b).*)<\/p>#',
@@ -82,7 +82,7 @@ class DebugOutput
             '#<p>(.*(system.critical\b).*)<\/p>#',
         );
         $replace = array(
-            '<p class="title">$1---------------------------------------------------------------------------------------</p>',
+            '<p class="title">$1</p>',
             '<p class="error">$1</p>',
             '<p class="error">$1</p>',
             '<p class="error">$1</p>',

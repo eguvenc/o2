@@ -718,7 +718,7 @@ class Router
         if (isset($options['domain'])) {
             $domain = $options['domain'];
         }
-        if (is_array($options['domain']) AND isset($options['domain']['regex'])) { // If regex defined
+        if (isset($options['domain']['regex'])) { // If regex defined
             $domain = $options['domain']['regex'];
         }
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']

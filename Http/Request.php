@@ -33,7 +33,6 @@ class Request
     {
         $this->c = $c;
         $this->c['logger']->debug('Request Class Initialized');
-
         $this->c['request.headers'] = function () {
             return new Headers;
         };
@@ -54,37 +53,43 @@ class Request
     /**
      * GET wrapper
      * 
-     * @param string $key key
+     * @param string  $key    key
+     * @param boolean $filter name
      * 
      * @return mixed
      */
-    public function get($key)
+    public function get($key, $filter = null)
     {
         if (is_bool($key)) {
             return $_GET;
         }
-        if ( ! isset($_GET[$key])) {
-            return false;
+        $data = isset($_GET[$key]) ? $_GET[$key] : false;
+
+        if (is_string($filter)) {
+            return $this->c[$filter]->setValue($data);
         }
-        return $_GET[$key];
+        return $data;
     }
 
     /**
      * POST wrapper
      * 
-     * @param string $key key
+     * @param string  $key    key
+     * @param boolean $filter name
      * 
      * @return mixed
      */
-    public function post($key)
+    public function post($key, $filter = null)
     {
         if (is_bool($key)) {
             return $_POST;
         }
-        if ( ! isset($_POST[$key])) {
-            return false;
+        $data = isset($_POST[$key]) ? $_POST[$key] : false;
+
+        if (is_string($filter)) {
+            return $this->c[$filter]->setValue($data);
         }
-        return $_POST[$key];
+        return $data;
     }
 
     /**
@@ -99,10 +104,12 @@ class Request
         if (is_bool($key)) {
             return $_REQUEST;
         }
-        if ( ! isset($_REQUEST[$key])) {
-            return false;
+        $data = isset($_REQUEST[$key]) ? $_REQUEST[$key] : false;
+
+        if (is_string($filter)) {
+            return $this->c[$filter]->setValue($data);
         }
-        return $_REQUEST[$key];
+        return $data;
     }
 
     /**
@@ -146,7 +153,6 @@ class Request
             return $ipAddress;
         }
         $ipAddress = $this->getRealIp($REMOTE_ADDR);
-
         if ( ! $this->isValidIp($ipAddress)) {
             $ipAddress = '0.0.0.0';
         }
@@ -190,26 +196,13 @@ class Request
     /**
      * Validate IP adresss
      * 
-     * @param string $ip    ip address
-     * @param string $which flag
+     * @param string $ip ip address
      * 
      * @return boolean
      */
-    public function isValidIp($ip, $which = '')
+    public function isValidIp($ip)
     {
-        $which = strtolower($which);
-        switch ($which) {
-        case 'ipv4':
-            $flag = FILTER_FLAG_IPV4;
-            break;
-        case 'ipv6':
-            $flag = FILTER_FLAG_IPV6;
-            break;
-        default:
-            $flag = '';
-            break;
-        }
-        return (bool) filter_var($ip, FILTER_VALIDATE_IP, $flag);
+        return (bool) filter_var($ip, FILTER_VALIDATE_IP);
     }
 
     /**

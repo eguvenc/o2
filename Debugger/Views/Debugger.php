@@ -248,13 +248,13 @@ body
 #obulloDebugger-environment div table thead tr th
 {
     background: rgba(236, 236, 236, 0.51);
-    padding: 8px 4px;
+    padding: 4px 4px;
     font-weight: bold;
     text-align:center;
 }
 #obulloDebugger-environment div table td,#obulloDebugger-environment div table th
 {
-    padding:6px 4px;
+    padding:0px 0px;
     background: rgba(236, 66, 66, 0.04);
     text-align:left;
 }
@@ -265,7 +265,7 @@ body
 #obulloDebugger-environment > div > table > tbody > tr > th
 {
     border-right: 2px solid #ddd;
-    padding-left: 10px;
+    padding-left: 2px;
     background: #ECECEC;
     font-weight: normal;
     color: #000;
@@ -273,7 +273,7 @@ body
 #obulloDebugger-environment > div > table > tbody > tr > td
 {
     width: 85%;
-    padding-left:10px;
+    padding-left:2px;
 }
 pre{
   white-space: pre-wrap;       /* css-3 */
@@ -293,6 +293,11 @@ pre{
 }
 pre code{background:transparent;border:none;padding:0;}
 pre span.string {color: #cc0000;}
+
+#obulloDebugger-environment pre {
+    background: none;
+    border: none;
+}
 .title { color: #5A5A5F; font-weight: bold; margin-top: 5px; margin-bottom: 3px; }
 .error { color: red; }
 </style>
