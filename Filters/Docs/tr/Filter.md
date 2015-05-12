@@ -596,9 +596,10 @@ Bir kullanıcı girdisindeki özel karakterlerden kaçış için kullanılır. �
 ```php
 echo $this->clean->escape("Is Peter <b>smart</b>> & funny?");
 ```
+
 ```php
 // Çıktı Is Peter <b>smart</b> & funny? 
-``
+```
 
 Seçenekler
 
@@ -690,9 +691,8 @@ echo $this->clean->url("http://mydomain.example\0.com?a=b&c=d", 'host|query');
 ```
 
 ```php
-Çıktı http://mydomain.example.com?a=b&c=d
+// Çıktı http://mydomain.example.com?a=b&c=d
 ```
-
 
 Seçenekler
 
