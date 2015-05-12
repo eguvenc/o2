@@ -594,8 +594,11 @@ $this->clean->quote("Ayşe'nin elbisesi");  // Çıktı Ayşe\'nin elbisesi
 Bir kullanıcı girdisindeki özel karakterlerden kaçış için kullanılır. Özel karakterlere kaçış atarak karakterlerin olduğu gibi gösterilmesini sağlar.
 
 ```php
-echo $this->clean->escape("Is Peter <b>smart</b>> & funny?");  // Çıktı Is Peter <b>smart</b> & funny? 
+echo $this->clean->escape("Is Peter <b>smart</b>> & funny?");
 ```
+```php
+// Çıktı Is Peter <b>smart</b> & funny? 
+``
 
 Seçenekler
 
@@ -679,6 +682,17 @@ Bir url adresi girdisinden tüm usulsüz karakterleri siler. Sadece harfler, say
 ```php
 echo $this->clean->url("http://www.example��.co�m", 'host');  // Çıktı http://www.example.com
 ```
+
+Birden fazla seçenek de kullanılabilir.
+
+```php
+echo $this->clean->url("http://mydomain.example\0.com?a=b&c=d", 'host|query');
+```
+
+```php
+Çıktı http://mydomain.example.com?a=b&c=d
+```
+
 
 Seçenekler
 
