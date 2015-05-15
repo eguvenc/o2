@@ -402,7 +402,7 @@ Son sql sorgusundan etkilenen satır sayısını döndürür.
 echo $this->db->query("SELECT * FROM users")->count();  // 5
 ```
 
-##### $this->db->row()
+##### $this->db->row($default = false)
 
 Son sql sorgusundan dönen tekil sonucu <b>nesne</b> türünden verir.
 
@@ -422,7 +422,17 @@ stdClass Object
 )
 ```
 
-##### $this->db->rowArray()
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+
+```php
+$row = $this->db->query("SELECT * FROM users WHERE id = 748")->row(array());
+```
+
+```php
+var_dump($row);  // Çıktı array(0) { } 
+```
+
+##### $this->db->rowArray($default = false)
 
 Son sql sorgusundan dönen tekil sonucu <b>dizi</b> türünden verir.
 
@@ -442,7 +452,17 @@ Array
 )
 ```
 
-##### $this->db->result()
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+
+```php
+$row = $this->db->query("SELECT * FROM users WHERE id = 748")->rowArray(array());
+```
+
+```php
+var_dump($row);  // Çıktı array(0) { } 
+```
+
+##### $this->db->result($default = false)
 
 Son sql sorgusundan dönen tüm sonuçları bir dizi içinde <b>nesne</b> türünden verir.
 
@@ -472,7 +492,17 @@ Array
 )
 ```
 
-##### $this->db->resultArray()
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+
+```php
+$row = $this->db->query("SELECT * FROM users WHERE id = 748")->result(array());
+```
+
+```php
+var_dump($row);  // Çıktı array(0) { } 
+```
+
+##### $this->db->resultArray($default = false)
 
 Son sql sorgusundan dönen tüm sonuçları <b>dizi</b> türünden verir.
 
@@ -501,6 +531,17 @@ Array
 
 )
 ```
+
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+
+```php
+$row = $this->db->query("SELECT * FROM users WHERE id = 748")->resultArray(array());
+```
+
+```php
+var_dump($row);  // Çıktı array(0) { } 
+```
+
 
 <a name='writing-database'></a>
 <a name='exec'></a>
@@ -657,7 +698,7 @@ Eğer transaksiyonlar konusuna aşina değilseniz veritabanınıza özgü konu h
 
 #### Doğal Transaksiyon
 
-Uygulamada transaksiyonları doğal olarak <b>try ... catch</b> komutları ile çalıştırabilmek mümkündür. Bunun için try komutu içerisinde <kbd>$this->db->transaction()</kbd> ile operasyonu başlatıp ve işlemlerin en sonunda başarılı işlemi gönderme anlamına gelen <kbd>$this->db->commit()</kbd> metodu ile işlemi bitirmeniz gerekir.
+Uygulamada transaksiyonları doğal olarak <b>try ... catch</b> komutları ile çalıştırabilmek mümkündür. Bunun için try komutu içerisinde <kbd>$this->db->beginTransaction()</kbd> ile operasyonu başlatıp ve işlemlerin en sonunda başarılı işlemi gönderme anlamına gelen <kbd>$this->db->commit()</kbd> metodu ile işlemi bitirmeniz gerekir.
 
 Eğer işlemde herhangi bir hata ile karşılaşılırsa <b>catch</b> komutu bloğunda <kbd>$this->db->rollBack()</kbd> komutu ile işlem kaydedilmeden bütün operasyonları geri alabilirsiniz. Geri dönen hata mesajı ise <kbd>$e->getMessage()</kbd> komutu ile elde edilebilir.
 
@@ -665,7 +706,7 @@ Eğer işlemde herhangi bir hata ile karşılaşılırsa <b>catch</b> komutu blo
 ```php
 try {
 
-    $this->db->transaction(); // Operasyonları başlat
+    $this->db->beginTransaction(); // Operasyonları başlat
     $this->db->exec("INSERT INTO persons (person_skill, person_name) VALUES ('javascript', 'john')");
     $this->db->commit();      // Operasyonu bitti olarak kaydet
 
@@ -688,22 +729,20 @@ Transaction/Commit metotları arasında birden fazla sorgu çalıştırabilirsin
 Otomatik transaksiyon bir closure fonksiyonu içerisine konulan veritabanı sorgu operasyonları için transaksiyonları başlatıp commit ve rollBack işlemlerini kendiliğinden yapar. 
 
 ```php
-$e = $this->db->transaction(
+$result = $this->db->transactional(
     function () {
-        $this->db->exec("INSERT INTO persons (person_skill, person_name) VALUES ('php', 'Bob')");
+        return $this->db->exec("INSERT INTO persons (person_skill, person_name) VALUES ('php', 'Bob')");
     }
 );
 
-if (is_object($e)) {          
+if ( ! $result) {          
     echo $e->getMessage();  // Hata mesajı
 } else {
-    echo 'Veri başarı ile kaydedildi.'
+    echo 'Veri başarı ile kaydedildi. Etkilenen satır sayısı '.$result;
 }
 ```
 
-Eğer işlem başarısız olursa işlem sonucu <b>$e</b> Exception Error nesnesine döner. Başarılı durumda ise <b>true</b> değerine döner. 
-
-> **Not:** İşlem başarısız olduğunda nesneye geri döndüğü için yukarıdaki örneğin tersine işlemin true değeri kontrolü yapılmak isteniyorsa <b>===</b> tür kontrolü operatorü kullanmayı unutmayın.
+> **Not:** Eğer transactional() fonksiyonu içerisindeki fonksiyon sonucu <b>0</b> yada <b>false</b> ise sonuç her zaman <b>true</b> değerine dönecektir. Sadece gerçek bir istisnai hata olması durumunda sonuç <b>false</b> değerine döner. Eğer fonksiyon sonucu 0 dan büyük bir değere dönüyorsa o zaman sonucun kendisine dönülür.
 
 
 <a name='helper-functions'></a>

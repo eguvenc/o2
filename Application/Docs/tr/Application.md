@@ -244,25 +244,6 @@ return array(
 
     'REDIS_HOST' => '127.0.0.1',
     'REDIS_AUTH' => '',  // aZX0bjL
-
-    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
-    'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
-
-    'AMQP_HOST' => '127.0.0.1',
-    'AMQP_USERNAME' => 'root',
-    'AMQP_PASSWORD' => '123456',
-
-    'COOKIE_NAME' => '',
-    'COOKIE_DOMAIN' => '',
-    'COOKIE_PATH' => '/',
-    'COOKIE_SECURE' => false,
-    'COOKIE_HTTP_ONLY' => false,
-
-    'SESSION_COOKIE_NAME' => 'session',
-    'SESSION_COOKIE_DOMAIN' => '',
-    'SESSION_COOKIE_PATH' => '/',
-    'SESSION_COOKIE_SECURE' => false,
-    'SESSION_COOKIE_HTTP_ONLY' => false,
 );
 
 /* End of file .env.local.php */
@@ -353,7 +334,32 @@ Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b>
 
 #### Servis Sağlayıcıları
 
+Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
 
+Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Register application service providers
+|--------------------------------------------------------------------------
+*/
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
+        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
+        'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
+        'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
+        'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
+        'query' => 'Obullo\Service\Providers\QueryServiceProvider',
+    ]
+);
+```
+
+Eğer kafanızda soru işaretleri varsa servisler ve servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi için [Container.md](Container/Docs/tr/Container.md) dosyasına bir gözatın.
 
 
 #### Application Sınıfı Referansı
@@ -380,9 +386,9 @@ Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama i�
 
 Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
 
-##### $this->c['app']->register(string $provider);
+##### $this->c['app']->register(array $providers);
 
-<kbd>.app/providers.php</kbd> dosyasında servis sağlayıları uygulamaya tanımlamak için kullanılır. Uygulamada genellikle servisler içerisinde kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir.
+<kbd>.app/providers.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
 
 ##### $this->c['app']->provider(string $name)->get(array $params);
 

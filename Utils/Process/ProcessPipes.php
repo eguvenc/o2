@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Process;
+namespace Obullo\Utils\Process;
 
 use RuntimeException;
 
@@ -395,4 +395,4 @@ class ProcessPipes
 // END Process class
 
 /* End of file Process.php */
-/* Location: .Obullo/Process/ProcessPipes.php */
+/* Location: .Obullo/Utils/Process/ProcessPipes.php */

@@ -88,7 +88,7 @@ class File implements CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function keyExists($key)
+    public function exists($key)
     {
         if ($this->get($key) == false) {
             return false;

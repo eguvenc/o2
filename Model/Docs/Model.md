@@ -172,7 +172,7 @@ class Entry extends \Obullo\Model\Easy
      */
     public function insert()
     {
-        return $this->db->transaction(
+        return $this->db->transactional(
             function () use () {
 
                 return $this->db->exec(

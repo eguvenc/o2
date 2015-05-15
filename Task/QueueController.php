@@ -4,7 +4,7 @@ namespace Obullo\Task;
 
 use Controller;
 use Obullo\Cli\Console;
-use Obullo\Process\Process;
+use Obullo\Utils\Process\Process;
 
 /**
  * Queue Controller

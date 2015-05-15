@@ -48,7 +48,7 @@ abstract class Adapter
      */
     public function connect()
     {
-        if ($this->connection) {    // Lazy loading, If connection is ok not need to again connect.
+        if ($this->conn) {    // Lazy loading, If connection is ok not need to again connect.
             return $this;
         }
         $this->createConnection();
@@ -72,7 +72,7 @@ abstract class Adapter
      */
     public function connection()
     {
-        return $this->connection;
+        return $this->conn;
     }
 
     /**
@@ -82,7 +82,7 @@ abstract class Adapter
      */
     public function isConnected()
     {
-        return ((bool) ($this->connection instanceof PDO));
+        return ((bool) ($this->conn instanceof PDO));
     }
 
     /**
@@ -98,7 +98,7 @@ abstract class Adapter
         $this->connect();       // Open db connections only when we need to them
         $this->trackQuery($sql);
         $this->beginTimer();
-        $this->stmt = $this->connection->prepare($sql, $options);
+        $this->stmt = $this->conn->prepare($sql, $options);
         return $this;
     }
 
@@ -114,7 +114,7 @@ abstract class Adapter
         $this->connect();
         $this->trackQuery($sql);
         $this->beginTimer();
-        $this->stmt = $this->connection->query($sql);
+        $this->stmt = $this->conn->query($sql);
         $this->log();
         return $this;
     }
@@ -142,7 +142,7 @@ abstract class Adapter
     public function quote($str, $type = PDO::PARAM_STR)
     {
         $this->connect();
-        return $this->connection->quote($str, $type);
+        return $this->conn->quote($str, $type);
     }
 
     /**
@@ -178,7 +178,7 @@ abstract class Adapter
      */
     protected function trackValues($key, $val = '')
     {
-        if (is_array($key)) {
+        if (is_array($key) && ! empty($key)) {
             $this->values[$this->queryId()] = $key;
             return;
         }
@@ -186,29 +186,37 @@ abstract class Adapter
     }
 
     /**
-     * Begin transactions or run auto transaction with a closure.
-     *
-     * @param object $closure or null
+     * Begin transaction
      * 
-     * @return mixed
+     * @return void
      */
-    public function transaction($closure = null)
+    public function beginTransaction()
     {
         $this->connect();
-        $this->connection->beginTransaction();
-        if (is_callable($closure)) {
-            try
-            {
-                $result = $closure();
-                $this->commit();
-            }
-            catch(Exception $e)
-            {
-                $this->rollBack();
-                throw $e;           // throw a PDOException developer will catch it 
-            }
+        return $this->conn->beginTransaction();
+    }
+
+    /**
+     * Begin transactions or run auto transaction with a closure.
+     *
+     * @param object $func Closure
+     * 
+     * @return void
+     */
+    public function transactional(Closure $func)
+    {
+        $this->beginTransaction();
+        try
+        {
+            $return = $func();
+            $this->commit();
+            return $return ?: true;  // Only fail if we have exceptions
         }
-        return $result;  // Return to callable object result
+        catch(Exception $e)
+        {
+            $this->rollBack();
+            throw $e;           // throw a PDOException developer will catch it 
+        }
     }
 
     /**
@@ -219,7 +227,7 @@ abstract class Adapter
     public function commit()
     {
         $this->connect();
-        return $this->connection->commit();
+        return $this->conn->commit();
     }
 
     /**
@@ -230,7 +238,7 @@ abstract class Adapter
     public function inTransaction()
     {
         $this->connect();
-        return $this->connection->inTransaction();
+        return $this->conn->inTransaction();
     }
 
     /**
@@ -241,7 +249,7 @@ abstract class Adapter
     public function rollBack()
     {
         $this->connect();      
-        return $this->connection->rollBack();
+        return $this->conn->rollBack();
     }
 
     /**
@@ -308,7 +316,7 @@ abstract class Adapter
         $this->trackQuery($sql);
         $this->beginTimer();
         $this->log();
-        return $this->connection->exec($sql);
+        return $this->conn->exec($sql);
     }
 
     /**
@@ -335,6 +343,16 @@ abstract class Adapter
     }
 
     /**
+     * Equal to pdo last insert id
+     * 
+     * @return integer
+     */
+    public function lastInsertId()
+    {
+        return $this->conn->lastInsertId();
+    }
+
+    /**
      * Alias of lastQueryId()
      *
      * @return object PDO::Statement
@@ -351,14 +369,13 @@ abstract class Adapter
      */
     public function lastQuery()
     {
-        if (sizeof($this->values) > 0) {
+        if ( ! empty($this->values[$this->queryId()])) {
             $newValues = array();
-            $values = $this->values[$this->queryId()];
-            foreach ($values as $key => $value) {
-                if (is_int($value)) {
-                    $newValues[$key] = $value;
-                } else {
+            foreach ($this->values[$this->queryId()] as $key => $value) {
+                if (is_string($value)) {
                     $newValues[$key] = $this->quote($value);
+                } else {
+                    $newValues[$key] = $value;
                 }
             }
             $sql = preg_replace('/(?:[?])/', '%s', $this->lastSql);
@@ -368,18 +385,8 @@ abstract class Adapter
     }
 
     /**
-     * Equal to pdo last insert id
-     * 
-     * @return integer
-     */
-    public function lastInsertId()
-    {
-        return $this->connection->lastInsertId();
-    }
-
-    /**
      * Assign all controller objects into db class
-     * to available closure $this->object support in transaction() method.
+     * to available closure $this->object support in beginTransaction() method.
      *
      * @param string $key Controller variable
      * 
@@ -426,7 +433,7 @@ abstract class Adapter
      */
     public function __destruct()
     {
-        $this->connection = null;
+        $this->conn = null;
     }
 
 }

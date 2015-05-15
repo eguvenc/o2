@@ -19,18 +19,18 @@ use Obullo\Service\ServiceProviderInterface;
 class Mysql extends Adapter implements HandlerInterface
 {
     /**
+     * Pdo connection object
+     * 
+     * @var null
+     */
+    public $conn;
+    
+    /**
      * Pdo Provider
      * 
      * @var object
      */
     public $provider;
-
-    /**
-     * Pdo connection object
-     * 
-     * @var null
-     */
-    public $connection;
 
     /**
      * Pdo provider parameters
@@ -46,21 +46,28 @@ class Mysql extends Adapter implements HandlerInterface
      */
     public function createConnection()
     {
-        $this->connection = (isset($this->params['connection'])) ? $this->provider->get($this->params) : $this->provider->factory($this->params);
-        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // Aways show the pdo exceptions errors. // PDO::ERRMODE_SILENT 
+        $this->conn = (isset($this->params['connection'])) ? $this->provider->get($this->params) : $this->provider->factory($this->params);
+        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // Aways show the pdo exceptions errors. // PDO::ERRMODE_SILENT 
     }
 
     /**
      * Platform specific pdo quote function.
      * 
-     * @param string $str  string
-     * @param mixed  $type type
+     * @param mixed $str string
      * 
      * @return string
      */
-    public function escape($str, $type = PDO::PARAM_STR)
+    public function escape($str)
     {
-        return $this->quote($str, $type);
+        if (is_array($str)) {
+            foreach ($str as $key => $val) {
+                if (is_string($val)) {
+                    $str[$key] = $this->escape($val);
+                }
+            }
+            return $str;
+        }
+        return $this->quote($str, PDO::PARAM_STR);
     }
 }
 

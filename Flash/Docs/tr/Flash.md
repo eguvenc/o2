@@ -88,6 +88,9 @@ Bir flaş mesajı göstermek oldukça kolaydır bir durum metodu seçin ve için
 $this->flash->success('Form saved successfully.');
 ```
 
+Ve aşağıdaki kodu view sayfanıza yerleştirin.
+
+
 ```php
 $this->flash->output();  // Çıktı Form saved successfully.
 ```
@@ -124,7 +127,7 @@ Durum Metotları
 
 #### Birden Fazla Flaş Mesajı Göstermek
 
-Bir flaş mesajı göstermek için birden fazla metot kullanın.
+Birden fazla flaş mesajı göstermek için birden fazla metot kullanın.
 
 ```php
 $this->flash->success('Form saved successfully.');
@@ -151,7 +154,7 @@ Something went wrong.
 Uygulama içerisinde mesajlar göstermek için <b>if .. else</b> komutlarından yararlanabilirsiniz.
 
 ```php
-$delete = $this->db->transaction(
+$delete = $this->db->transactional(
     function () use () {
     	return $this->db->exec("DELETE FROM users WHERE id = 1");
     }
@@ -188,7 +191,7 @@ Mevcut durum metotları dışında kendinize ait flaş mesajları da ekleyebilir
 $this->flash->set('anahtar', 'değer');
 ```
 
-Özel mesajları okumak için ise get fonksiyonu kullanılır.
+Mesajları okumak için ise get fonksiyonu kullanılır.
 
 ```php
 echo $this->flash->get('anahtar', '<p class="example">', '</p>');

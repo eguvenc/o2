@@ -67,7 +67,7 @@ class Flush
             $hashString .= str_replace('"', '', json_encode($data)); // remove quotes to fix equality problem
         }
         $KEY = $this->generateId($hashString);
-        if ($this->cache->keyExists($KEY)) {
+        if ($this->cache->exists($KEY)) {
             return $this->cache->delete($KEY);
         }
         return false;
@@ -82,7 +82,7 @@ class Flush
      */
     public function id($layerId)
     {
-        if (is_numeric($layerId) AND $this->cache->keyExists($layerId)) {
+        if (is_numeric($layerId) && $this->cache->exists($layerId)) {
             return $this->cache->delete($layerId);
         }
         return false;

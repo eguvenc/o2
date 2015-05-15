@@ -46,54 +46,58 @@ class Result
 
     /**
      * Get row as object & if fail return false
+     *
+     * @param boolean $default return value to if operation fail
      * 
      * @return array | object otherwise false
      */
-    public function row()
+    public function row($default = false)
     {
-        return $this->stmt->fetch(PDO::FETCH_OBJ);
+        $result = $this->stmt->fetch(PDO::FETCH_OBJ);
+
+        return ($result) ? $result : $default;
     }
 
     /**
      * Get row as array & if fail return 
      * 
-     * @param boolean $failArray return array if fail
+     * @param boolean $default return value to if operation fail
      * 
      * @return array | object otherwise false
      */
-    public function rowArray($failArray = false)
+    public function rowArray($default = false)
     {
         $result = $this->stmt->fetch(PDO::FETCH_ASSOC);
 
-        return ( ! $result && $failArray) ? array() : $result;
+        return ($result) ? $result : $default;
     }
 
     /**
      * Get results as array & if fail return ARRAY
      * 
-     * @param boolean $failArray return array if fail
+     * @param boolean $default return value to if operation fail
      * 
      * @return array | object otherwise false
      */
-    public function result($failArray = false)
+    public function result($default = false)
     {
         $result = $this->stmt->fetchAll(PDO::FETCH_OBJ);
 
-        return ( ! $result && $failArray) ? array() : $result;
+        return ($result) ? $result : $default;
     }
 
     /**
      * Get results as array & if fail return ARRAY
      * 
-     * @param boolean $failArray return array if fail
+     * @param boolean $default return value to if operation fail
      * 
      * @return array | object otherwise false
      */
-    public function resultArray($failArray = false)
+    public function resultArray($default = false)
     {
         $result = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        return ( ! $result && $failArray) ? array() : $result;
+        return ($result) ? $result : $default;
     }
 
 }

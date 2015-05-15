@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue\Failed\Storage;
 
-use Pdo;
+use PDO;
 use SimpleXMLElement;
 use Obullo\Container\Container;
 use Obullo\Queue\Failed\FailedJob;
@@ -56,12 +56,12 @@ class Database extends FailedJob implements StorageInterface
         }
         $data['failure_first_date'] = time();
 
-        $e = $this->db->transaction(
+        return $this->db->transactional(
             function () use ($data) {
-                $this->db->insert($this->table, $data);
+                $sql = "INSERT INTO $this->table (".implode(',', array_keys($data)).") VALUES (".implode(',', array_values($this->db->escape($data))).")";
+                return $this->db->exec($sql);
             }
         );
-        return ($e === true) ? true : false;
     }
 
     /**
@@ -74,12 +74,12 @@ class Database extends FailedJob implements StorageInterface
      */
     public function dailyExists($file, $line)
     {
-        $this->db->select('id, failure_first_date');
-        $this->db->where('error_file', $file);
-        $this->db->where('error_line', $line);
-        $this->db->limit(1);
-        $row = $this->db->get($this->table)->row();
-
+        $this->db->prepare("SELECT id, failure_first_date FROM $this->table WHERE error_file = ? AND error_line = ? LIMIT 1")
+            ->bindParam(1, $file, PDO::PARAM_STR)
+            ->bindParam(2, $line, PDO::PARAM_INT)
+            ->execute()
+            ->row();
+            
         if ($row == false) {
             return false;
         }
@@ -98,15 +98,12 @@ class Database extends FailedJob implements StorageInterface
      */
     public function updateRepeat($id)
     {
-        $e = $this->db->transaction(
+        return $this->db->transactional(
             function () use ($id) {
-                $this->db->where('id', $id);
-                $this->db->set('failure_last_date', time(), false);
-                $this->db->set('failure_repeat', 'failure_repeat + 1', false);
-                $this->db->update($this->table);
+                $sql = "UPDATE $this->table SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
+                return $this->db->exec(sprintf($sql, time(), $id));
             }
         );
-        return ($e === true) ? true : false;
     }
 
 }

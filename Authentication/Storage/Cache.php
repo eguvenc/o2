@@ -50,7 +50,7 @@ class Cache extends AbstractStorage implements StorageInterface
      */
     public function isEmpty($block = '__permanent')
     {
-        $exists = $this->cache->keyExists($this->getBlock($block));
+        $exists = $this->cache->exists($this->getBlock($block));
         return ($exists) ? false : true;
     }
 

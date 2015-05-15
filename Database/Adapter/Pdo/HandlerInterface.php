@@ -27,12 +27,11 @@ interface HandlerInterface
     /**
      * Platform specific pdo quote function.
      * 
-     * @param string $str  string
-     * @param mixed  $type type
+     * @param string $str string
      * 
      * @return string
      */
-    public function escape($str, $type = null);
+    public function escape($str);
 }
 
 // END HandlerInterface class

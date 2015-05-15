@@ -1,11 +1,11 @@
 <?php
 
-namespace Obullo\Process;
+namespace Obullo\Utils\Process;
 
 use RuntimeException;
 use LogicException;
 use InvalidArgumentException;
-use Obullo\Process\Exception\ProcessTimedOutException;
+use Obullo\Utils\Process\Exception\ProcessTimedOutException;
     
 /**
  * Process is a thin wrapper around proc_* functions to easily
@@ -1172,4 +1172,4 @@ class Process
 // END Process class
 
 /* End of file Process.php */
-/* Location: .Obullo/Process/Process.php */
+/* Location: .Obullo/Utils/Process/Process.php */

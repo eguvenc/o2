@@ -1,10 +1,10 @@
 <?php
 
-namespace Obullo\Process\Exception;
+namespace Obullo\Utils\Process\Exception;
 
 use LogicException;
 use RuntimeException;
-use Obullo\Process\Process;
+use Obullo\Utils\Process\Process;
 
 /**
  * Exception that is thrown when a process times out.

@@ -2,6 +2,8 @@
 
 namespace Obullo\Form;
 
+use Obullo\Container\Container;
+
 /**
  * Element Class
  * 
@@ -12,20 +14,87 @@ namespace Obullo\Form;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/form
  */
-Class Element
+class Element
 {
     /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->logger = $c['logger'];
         $this->translator = $c['translator'];
 
         $this->logger->debug('Form Element Class Initialized');
+    }
+
+    /**
+    * Form Declaration
+    * Creates the opening portion of the form.
+    *
+    * @param string $action     the URI segments of the form destination
+    * @param array  $attributes a key/value pair of attributes
+    * @param array  $hidden     a key/value pair hidden data
+    * @param array  $protection csrf protection
+    * 
+    * @return   string
+    */
+    public function form($action = '', $attributes = '', $hidden = array(), $protection = true)
+    {
+        if ($attributes == '') {
+            $attributes = 'method="post"';
+        }
+        $action = ( strpos($action, '://') === false) ? $this->c['uri']->getSiteUrl($action) : $action;
+        $form  = '<form action="'.$action.'"';
+        $form .= $this->attributesToString($attributes, true);
+        $form .= '>';
+
+        $security = $this->c['config']->load('security');
+        $form = str_replace(array('"method=\'get\'"', "method=\'GET\'"), 'method="get"', $form);
+
+        // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
+
+        if ($security['csrf']['protection'] && $protection && ! stripos($form, 'method="get"')) {
+            $hidden[$this->c['csrf']->getTokenName()] = $this->c['csrf']->getToken();
+        }
+        if (is_array($hidden) && count($hidden) > 0) {
+            $form .= $this->hidden($hidden, '');
+        }
+        return $form;
+    }
+
+    /**
+     * Form close tag
+     * 
+     * @param string $extra extra
+     * 
+     * @return string
+     */
+    public function formClose($extra = '')
+    {
+        return "</form>" . $extra;
+    }
+
+    /**
+     * Form Declaration - Multipart type
+     * Creates the opening portion of the form, but with "multipart/form-data".
+     * 
+     * @param string $action     the "uri" segments of the form destination
+     * @param array  $attributes a key/value pair of attributes
+     * @param array  $hidden     a key/value pair hidden data
+     * 
+     * @return string
+     */
+    public function formMultipart($action, $attributes = array(), $hidden = array())
+    {
+        if (is_string($attributes)) {
+            $attributes .= ' enctype="multipart/form-data"';
+        } else {
+            $attributes['enctype'] = 'multipart/form-data';
+        }
+        return $this->form($action, $attributes, $hidden);
     }
 
     /**
@@ -40,7 +109,7 @@ Class Element
     public function button($data = '', $content = '', $extra = '')
     {
         $defaults = array('name' => (( ! is_array($data)) ? $data : ''), 'type' => 'button');
-        if ( is_array($data) AND isset($data['content'])) {
+        if ( is_array($data) && isset($data['content'])) {
             $content = $data['content'];
             unset($data['content']); // content is not an attribute
         }
@@ -63,7 +132,7 @@ Class Element
             $value = $this->getRowValue($checked, $data); 
         }
         $defaults = array('type' => 'checkbox', 'name' => (( ! is_array($data)) ? $data : ''), 'value' => $value);
-        if (is_array($data) AND array_key_exists('checked', $data)) {
+        if (is_array($data) && array_key_exists('checked', $data)) {
             $checked = $data['checked'];
             if ($checked == false) {
                 unset($data['checked']);
@@ -77,22 +146,10 @@ Class Element
             unset($defaults['checked']);
         }
         $type = 'checkbox';
-        if (isset($data['type']) AND $data['type'] == 'radio') {
+        if (isset($data['type']) && $data['type'] == 'radio') {
             $type = 'radio';
         }
         return "<input " . $this->parseFormAttributes($data, $defaults) . $extra . " />";
-    }
-   
-    /**
-     * Form close tag
-     * 
-     * @param string $extra extra
-     * 
-     * @return string
-     */
-    public function close($extra = '')
-    {
-        return "</form>" . $extra;
     }
 
     /**
@@ -126,7 +183,7 @@ Class Element
         if ($extra != '') {
             $extra = ' '.$extra;
         }
-        $multiple  = (sizeof($selected) > 1 AND strpos($extra, 'multiple') === false) ? ' multiple="multiple"' : '';
+        $multiple  = (sizeof($selected) > 1 && strpos($extra, 'multiple') === false) ? ' multiple="multiple"' : '';
         $selectTag = '<select name="'.$name.'"'.$extra.$multiple.">\n";
         foreach ($options as $key => $val) {
             $key = (string) $key;
@@ -152,7 +209,7 @@ Class Element
      * Fieldset Tag
      * 
      * Used to produce <fieldset><legend>text</legend>.  To close fieldset
-     * use form_fieldset_close()
+     * use fieldsetClose()
      * 
      * @param string $legend_text the legend text
      * @param array  $attributes  additional attributes
@@ -206,7 +263,7 @@ Class Element
         }
         if (is_array($name)) {
             foreach ($name as $key => $val) {
-                $this->hidden($key, $val, '', true);
+                $this->hidden($key, $val, $extra, true);
             }
             return $hiddenTag;
         }
@@ -260,7 +317,7 @@ Class Element
             $id = mb_strtolower($label_text);
         }
         $label .= " for=\"$id\"";
-        if (is_array($attributes) AND count($attributes) > 0) {
+        if (is_array($attributes) && count($attributes) > 0) {
             foreach ($attributes as $key => $val) {
                 $label .= ' '.$key.'="'.$val.'"';
             }
@@ -268,61 +325,6 @@ Class Element
             $label .= ' '.ltrim($attributes);
         }
         return $label .= ">$label_text</label>";
-    }
-
-    /**
-    * Form Declaration
-    * Creates the opening portion of the form.
-    *
-    * @param string $action     the URI segments of the form destination
-    * @param array  $attributes a key/value pair of attributes
-    * @param array  $hidden     a key/value pair hidden data
-    * @param array  $protection csrf protection
-    * 
-    * @return   string
-    */
-    public function open($action = '', $attributes = '', $hidden = array(), $protection = true)
-    {
-        if ($attributes == '') {
-            $attributes = 'method="post"';
-        }
-        $action = ( strpos($action, '://') === false) ? $this->c['uri']->getSiteUrl($action) : $action;
-        $form  = '<form action="'.$action.'"';
-        $form .= $this->attributesToString($attributes, true);
-        $form .= '>';
-
-        $security = $this->c['config']->load('security');
-        $form = str_replace(array('"method=\'get\'"', "method=\'GET\'"), 'method="get"', $form);
-
-        // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
-
-        if ($security['csrf']['protection'] && $protection && ! stripos($form, 'method="get"')) {
-            $hidden[$this->c['csrf']->getTokenName()] = $this->c['csrf']->getToken();
-        }
-        if (is_array($hidden) AND count($hidden) > 0) {
-            $form .= sprintf("<div style=\"display:none\">%s</div>", $this->hidden($hidden));
-        }
-        return $form;
-    }
-
-    /**
-     * Form Declaration - Multipart type
-     * Creates the opening portion of the form, but with "multipart/form-data".
-     * 
-     * @param string $action     the "uri" segments of the form destination
-     * @param array  $attributes a key/value pair of attributes
-     * @param array  $hidden     a key/value pair hidden data
-     * 
-     * @return string
-     */
-    public function openMultipart($action, $attributes = array(), $hidden = array())
-    {
-        if (is_string($attributes)) {
-            $attributes .= ' enctype="multipart/form-data"';
-        } else {
-            $attributes['enctype'] = 'multipart/form-data';
-        }
-        return $this->open($action, $attributes, $hidden);
     }
    
     /**
@@ -351,15 +353,15 @@ Class Element
      * Form Prep
      * Formats text so that it can be safely placed in a form field in the event it has HTML tags.
      * 
-     * @param string $str        str
-     * @param string $field_name field name
+     * @param string $str   str
+     * @param string $field field name
      * 
      * @return string
      */
-    public function prep($str = '', $field_name = '')
+    public function prep($str = '', $field = '')
     {
         static $preppedFields = array();
-        if (is_array($str)) { // if the field name is an array we do this recursively
+        if (is_array($str)) {   // If the field name is an array we do this recursively
             foreach ($str as $key => $val) {
                 $str[$key] = $this->prep($val);
             }
@@ -368,18 +370,12 @@ Class Element
         if ($str === '') {
             return '';
         }
-        // we've already prepped a field with this name
-        // @todo need to figure out a way to namespace this so
-        // that we know the *exact* field and not just one with
-        // the same name
-        if (isset($preppedFields[$field_name])) {
+        if (isset($preppedFields[$field])) {  // We've already prepped a field with this name
             return $str;
         }
-        $str = htmlspecialchars($str);
-        // In case htmlspecialchars misses these.
-        $str = str_replace(array("'", '"'), array("&#39;", "&quot;"), $str);
-        if ($field_name != '') {
-            $preppedFields[$field_name] = $field_name;
+        $str = htmlspecialchars($str, ENT_QUOTES, $this->c['config']['locale']['charset'], false);
+        if ($field != '') {
+            $preppedFields[$field] = $field;
         }
         return $str;
     }
@@ -448,9 +444,9 @@ Class Element
             $value = $this->getRowValue($value, $data);
         }
         $defaults = array('name' => (( ! is_array($data)) ? $data : ''), 'cols' => '90', 'rows' => '12');
-        if ( ! is_array($data) OR ! isset($data['value'])) {
+        if ( ! is_array($data) || ! isset($data['value'])) {
             $val = $value;
-            if (strpos($extra, 'rows') !== false OR strpos($extra, 'cols') !== false) {
+            if (strpos($extra, 'rows') !== false || strpos($extra, 'cols') !== false) {
                 $defaults = array('name' => ( ! is_array($data)) ? $data : '');
             }
         } else {
@@ -523,7 +519,7 @@ Class Element
      */
     public function attributesToString($attributes)
     {
-        if (is_string($attributes) AND strlen($attributes) > 0) {
+        if (is_string($attributes) && strlen($attributes) > 0) {
             $attributes = str_replace('\'', '"', $attributes); // convert to double quotes.
             if (strpos($attributes, 'method=') === false) {
                 $attributes.= ' method="post"';
@@ -533,10 +529,10 @@ Class Element
             }
             return ' '.ltrim($attributes);
         }
-        if (is_object($attributes) AND count($attributes) > 0) {
+        if (is_object($attributes) && count($attributes) > 0) {
             $attributes = (array)$attributes;
         }
-        if (is_array($attributes) AND count($attributes) > 0) {
+        if (is_array($attributes) && count($attributes) > 0) {
             $atts = '';
             if ( ! isset($attributes['method'])) {
                 $atts.= ' method="post"';
@@ -552,11 +548,9 @@ Class Element
     }
     
     /**
-     * Get $_REQUEST value from
-     * $_POST data or database $row 
-     * using valid schema comparison.
+     * Get $_REQUEST value from $_POST data or database $row using valid db field comparison.
      * 
-     * @param object $row   object row
+     * @param object $row   database object row
      * @param string $field field
      * 
      * @return string
@@ -566,11 +560,11 @@ Class Element
         if (is_array($field)) {
             $field = $field['name'];
         }
-        $value = (isset($_REQUEST[$field])) ? $this->setValue($field) : '';
+        $value = (isset($_REQUEST[$field])) ? $this->c['form']->getValue($field) : '';
         if ( ! isset($_REQUEST[$field])) { // If POST data not available use Database $row
-            if (is_object($row) AND isset($row->{$field})) { // If field available in database $row Object
+            if (is_object($row) && isset($row->{$field})) { // If field available in database $row Object
                 $value = $row->{$field};
-            } elseif (is_array($row) AND isset($row[$field])) { // If field available in database $row Array
+            } elseif (is_array($row) && isset($row[$field])) { // If field available in database $row Array
                 $value = $row[$field];   
             }
         }

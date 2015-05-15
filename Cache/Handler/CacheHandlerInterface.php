@@ -30,7 +30,7 @@ interface CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function keyExists($key);
+    public function exists($key);
 
     /**
      * Set cache data.

@@ -306,28 +306,28 @@ class Container implements ArrayAccess
     /**
      * Returns to provider instance
      * 
-     * @param string $class provider name
+     * @param string $name provider name
      * 
      * @return object \Obullo\Service\Providers\ServiceProviderInterface
      */
-    public function resolveProvider($class)
+    public function resolveProvider($name)
     {
-        $class = strtolower($class);
-        if ( ! isset($this->registeredProviders[$class])) {
+        $name = strtolower($name);
+        if ( ! isset($this->registeredProviders[$name])) {
             throw new RuntimeException(
                 sprintf(
                     "%s provider is not registered, please register it in providers.php",
-                    ucfirst($class)
+                    ucfirst($name)
                 )
             );
         }
-        $providerName = $this->registeredProviders[$class];
-        if ( ! isset($this->registeredConnections[$class])) {
-            $provider = new $providerName;
+        $Class = $this->registeredProviders[$name];
+        if ( ! isset($this->registeredConnections[$name])) {
+            $provider = new $Class;
             $provider->register($this);
-            $this->registeredConnections[$class] = $provider;
+            $this->registeredConnections[$name] = $provider;
         }
-        return $this->registeredConnections[$class];
+        return $this->registeredConnections[$name];
     }
 
     /**
@@ -544,28 +544,28 @@ class Container implements ArrayAccess
     /**
      * Registers a service provider.
      *
-     * @param object $provider A Service Provider instance
+     * @param array $providers provider name and namespace array
      *
      * @return static
      */
-    public function register($provider)
+    public function register($providers)
     {
-        $classname = explode('\\', $provider);
-        $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
-        $this->registeredProviders[$cid] = $provider;
+        foreach ((array)$providers as $name => $namespace) {
+            $this->registeredProviders[$name] = $namespace;
+        }
         return $this;
     }
 
     /**
      * Check provider is registered
      * 
-     * @param string $provider key like cache, redis, memcache
+     * @param string $name provider key like cache, redis, memcache
      * 
      * @return boolean
      */
-    public function isRegistered($provider)
+    public function isRegistered($name)
     {
-        return isset($this->registeredProviders[$provider]);
+        return isset($this->registeredProviders[$name]);
     }
 
 }

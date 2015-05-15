@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Recaptcha\Examples;
 
 class Ajax extends \Controller

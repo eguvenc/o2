@@ -324,7 +324,7 @@ $app->func(
             $c->load('service/provider/database as db');  // load database
             
             try {
-                $this->db->transaction();
+                $this->db->beginTransaction();
                 $this->db->insert(
                   'users', 
                   array(

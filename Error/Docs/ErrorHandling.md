@@ -156,7 +156,7 @@ Uygulamanıza özgü istisnai hataları yakalamak için <kbd>try/catch</kbd> blo
 ```php
 try
 {
-	$this->db->transaction();
+	$this->db->beginTransaction();
 	$this->db->query("INSERT INTO users (name) VALUES('John')");
 	$this->db->commit();
 

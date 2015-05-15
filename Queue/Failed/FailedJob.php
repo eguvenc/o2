@@ -3,6 +3,7 @@
 namespace Obullo\Queue\Failed;
 
 use RuntimeException;
+use Obullo\Container\Container;
 
 /**
  * Failed Job Class
@@ -35,11 +36,10 @@ abstract Class FailedJob
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(Container $c)
     {
         $workers  = $c['config']->load('queue/workers');
         $database = $c['config']->load('database');
-
         $provider = $workers['failed']['provider'];
 
         if ( ! isset($database['connections'][$provider['connection']])) {
@@ -50,7 +50,7 @@ abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c['app']->provider('query')->get(['connection' => $provider['connection']]);
+        $this->db = $c['app']->provider('database')->get(['connection' => $provider['connection']]);
         $this->table = $workers['failed']['table'];
     }
 

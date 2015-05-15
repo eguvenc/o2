@@ -5,14 +5,88 @@
 
 Bir Dependency Injection Container <b>DIC</b> veya kısaca konteyner, servisleri yaratmak ve uygulamaya yüklemek için kullanılır. Konteyner sınıfı yinelemeli olarak istenenen servislerin bağımlılıklarını yaratır ve onları uygulamaya enjekte eder.
 
-Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynırlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın.
+Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynırlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın. Obullo içerisinde kullanılan konteyner bu sınıfın biraz daha sadeleştirilip çerçeveye göre uyarlanmış versiyonudur.
+
+> **Not:** <b>$c</b> değişkeni konteyner sınıfına eşitlenerek uygulamanın ( Application/Http paketinin ) en başında ilan edilmiştir. Uygulamada gördüğünüz bir <b>$c</b> değişkeni her zaman konteyner sınıfını temsil eder.
+
+<ul>
+<li>
+    <a href="#services">Servisler</a>
+    <ul>
+        <li><a href="#service-definition">Servisleri Tanımlamak</a></li>
+        <li><a href="#service-load">Servisleri Yüklemek</a></li>
+        <li><a href="#service-get">Servis Nesnesine Dönmek ( $this->c->get() )</a></li>
+        <li><a href="#service-loading-a-class">Servis Olmayan Bir Sınıfı Yüklemek</a></li>
+        <li><a href="#service-environments">Servisleri Çevre Ortamına Duyarlı Hale Getirmek</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#service-providers">Servis Sağlayıcıları</a>
+    <ul>
+        <li><a href="#service-provider-definition">Servis Sağlayıcılarını Tanımlamak</a></li>
+        <li><a href="#service-provider-load">Servis Sağlayıcılarını Yüklemek</a></li>
+        <li><a href="#service-providers-list">Mevcut Servis Sağlayıcıları</a></li>
+        <li><a href="#service-providers-custom">Kendi Servis Sağlayıcılarınızı Tanımlamak</a></li>
+    </ul>
+</li>
+<li><a href="#application-doc">Uygulama Sınıfı Belgelerine Bir Gözatın</a></li>
+<li><a href="#container-reference">Konteyner Sınıfı Referansı</a></li>
+</ul>
+
+<a name="services"></a>
+
+## Servisler
+
+Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni kütüphaneyi uygulama içerisinde kullandırırken kuruluma ait metotları tekrar tekrar yazmak yerine onu bir servis içerisinden hazırlamış metot ve parametreleri ile yaratarak bu nesne değerleriyle uygulamada <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. İşte bu türden uygulama içerisinde aynı parametrelere sahip bir kütüphane uygulamaya bir servis olarak sunuluyorsa bu türden servisler paylaşımlı servisler olarak adlandırılırlar. ( Shared Services ).
+
+<a name="service-definition"></a>
+
+### Servisleri Tanımlamak
+
+Obullo da servisler servis klasörü içerisindeki aracı sınıflar tarafından yüklenirler. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
+
+Önceden tanımlı servisler uygulama çalıştığı anda <kbd>app/classes/Service</kbd> klasöründen konteyner içerisine kayıt edilirler. Yeni bir servis yaratmak için <kbd>app/classes/Service</kbd> dizininde takip eden örnekte gösterildiği gibi bir sınıf yaratılması gerekir.
 
 
-> **Note:** <b>$c</b> değişkeni konteyner sınıfına eşitlenerek uygulamanın ( Application/Http paketinin ) en başında ilan edilmiştir. Uygulamada gördüğünüz bir <b>$c</b> değişkeni her zaman konteyner sınıfını temsil eder.
+```php
+namespace Service;
 
-### Servisler
+use Obullo\Container\Container;
+use Obullo\Service\ServiceInterface;
+use Obullo\Session\Session as SessionClass;
 
-Servisler uygulama kalitesini arttıran aracı sınıflardır. Bir sınıfın servis haline getirilmesinin nedeni onu uygulama içerisinde kullandırırken tekrar tekrar hep aynı değişken değerleriyle uzun uzadıya yazdırmak yerine, onu bir servis içerisinden hazırlamış değerleriyle yaratarak bu nesne değerleriyle uygulamada <b>paylaşımlı</b> kullanıp uygulamanızın kod kalitesini ve esnekliğini arttırmaktır. Bu türden servisler paylaşımlı servisler olarak adlandırılırlar. ( Shared Services ).
+class Session implements ServiceInterface
+{
+    public function register(Container $c)
+    {
+        $c['session'] = function () use ($c) {
+            $session = new SessionClass($c);
+            $session->registerSaveHandler();
+            $session->setName();
+            $session->start();
+            return $session;
+        };
+    }
+}
+
+// END Session service
+
+/* End of file Session.php */
+/* Location: .classes/Service/Session.php */
+```
+
+Yukarıdaki örnekte <b>session</b> sınıfına ait bir servis konfigürasyonu görülüyor. 
+
+Bu tanımlamadan sonra artık <kbd>app/classes/Service/Session.php</kbd> dizininde tanımlı olan Session sınıfına konteyner içerisinden aşağıdaki gibi ulaşılabilir.
+
+```php
+$this->c['session']->method();
+```
+
+<a name="service-load"></a>
+
+### Servisleri Yüklemek
 
 Konteyner içerisine bir kez kaydedilen bir sınıf uygulama içerisine tekrar tekrar çağrıldığında sınıfa ait değişken değerleri hep aynı kalır.
 
@@ -64,8 +138,9 @@ class Welcome extends \Controller
 /* Location: .modules/welcome/welcome.php */
 ```
 
+<a name="service-get"></a>
 
-#### $this->c->get($class, $alias = null, $shared = true)
+#### Servis Nesnesine Dönmek ( $this->c->get() )
 
 Eğer bir nesnenin Controller sınıfına kendiliğinden kayıt edilmesini <b>önlemek</b> istiyorsanız get() fonksiyonunu kullanmanız gerekir. Get fonksiyonu konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner.
 
@@ -91,50 +166,9 @@ $closure = $this->c->get('session', null, false);
 $this->session = $closure(['foo' => 'bar']);
 ```
 
-### Servisleri Tanımlamak
+<a name="service-loading-a-class"></a>
 
-Servis sınıfları uygulamada paylaşılmak istenen sınıfları konteyner içerisine yüklemeye yarayan ara yüzlerdir. Böyle bir arayüze ihtiyaç duyulmasının nedeni servisleri bir klasör içerisinde gruplayarak geçerli çevre ortamı değiştiğinde ( local, test, production ) onları farklı davranışlara göre çalıştırabilmektir.
-
-Önceden tanımlı servisler uygulama çalıştığı anda <kbd>app/classes/Service</kbd> klasöründen konteyner içerisine kayıt edilirler. Yeni bir servis yaratmak için <kbd>app/classes/Service</kbd> dizininde takip eden örnekte gösterildiği gibi bir sınıf yaratılması gerekir.
-
-
-```php
-namespace Service;
-
-use Obullo\Container\Container;
-use Obullo\Service\ServiceInterface;
-use Obullo\Session\Session as SessionClass;
-
-class Session implements ServiceInterface
-{
-    public function register(Container $c)
-    {
-        $c['session'] = function () use ($c) {
-            $session = new SessionClass($c);
-            $session->registerSaveHandler();
-            $session->setName();
-            $session->start();
-            return $session;
-        };
-    }
-}
-
-// END Session service
-
-/* End of file Session.php */
-/* Location: .classes/Service/Session.php */
-```
-
-Yukarıdaki örnekte <b>session</b> sınıfına ait bir servis konfigürasyonu görülüyor. 
-
-<kbd>app/classes/Service/Session.php</kbd> dizininde tanımlı olan Session sınıfına konteyner içerisinden aşağıdaki gibi ulaşılabilir.
-
-```php
-$this->c['session']->method();
-```
-
-
-### Konteyner ile Bir Sınıfı Yüklemek
+### Servis Olmayan Bir Sınıfı Yüklemek
 
 Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) <kbd>$c['class']</kbd> bu şekilde çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise; sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
@@ -143,6 +177,8 @@ Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. )
 ```php
 $this->c['cookie'];
 ```
+
+<a name="service-environments"></a>
 
 ### Servisleri Çevre Ortamına Duyarlı Hale Getirmek
 
@@ -174,7 +210,9 @@ Gerçek bir örnek için Logger servisini inceleyebilirsiniz.
 
 Böylelikle logger servisi çevre ortamı değiştiğinde her çevre ortamı için önceden yapılandırılmış servisler sayesinde farklı log yazıcıları kullanarak yazma işlemlerini gerçekleştirebilir.
 
-### Servis Sağlayıcıları
+<a name="service-providers"></a>
+
+## Servis Sağlayıcıları
 
 Bir servis sağlayıcısı yazımlıcılara uygulamada kullandıkları yinelenen farklı konfigürasyonlara ait parçaları uygulamanın farklı bölümlerinde güvenli bir şekilde tekrar kullanabilmelerine olanak tanır. Bağımsız olarak kullanılabilecekleri gibi bir servis konfigürasyonunun içerisinde de kullanılabilirler.
 
@@ -184,23 +222,36 @@ Yada uygulamada kullanılan servis sağlayıcısı bir <b>nesne yönetimi</b> il
 
 Bir servis sağlayıcısı sınıfı yanlış yazılmış yada yapılandırılmış ise onu uygulamanızda kullandığınız bölümlerin hepsi yanlış çalışmaya başlar. Bu yüzden servis sağlayıcıları bir uygulama çalışırken en kritik rolü üstlenirler.
 
+<a name="service-provider-definition"></a>
+
 ### Servis Sağlayıcılarını Tanımlamak
 
-Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve <kbd>app/providers.php</kbd> dosyası içerisinde ön tanımlı olmak zorundadırlar.
+Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
 
 Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
 
 ```php
 /*
 |--------------------------------------------------------------------------
-| Memcached Service Provider
+| Register application service providers
 |--------------------------------------------------------------------------
 */
-$c['app']->register('Obullo\Service\Providers\MemcachedServiceProvider');
-
-/* End of file providers.php */
-/* Location: .app/providers.php */
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
+        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
+        'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
+        'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
+        'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
+        'query' => 'Obullo\Service\Providers\QueryServiceProvider',
+    ]
+);
 ```
+
+<a name="service-provider-load"></a>
 
 ### Servis Sağlayıcılarını Yüklemek
 
@@ -296,6 +347,8 @@ Servis sağlayıcısı bir kez yüklendikten sonra artık cache metotlarına eri
 $this->cache->method();
 ```
 
+<a name="service-providers-list"></a>
+
 ### Mevcut Servis Sağlayıcıları 
 
 Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kbd> klasörü altında gruplanmıştır. Aşağıdaki tablo varolan servis sağlayıcılarının bir listesini gösteriyor.
@@ -354,6 +407,7 @@ Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kb
 
 > **Not:** Obullo\Service\Providers paketinden yukarıda anlatılan her bir servis sağlayıcısına ait detaylı dökümentasyona ulaşabilirsiniz.
 
+<a name="service-providers-custom"></a>
 
 ### Kendi Servis Sağlayıcılarınızı Tanımlamak
 
@@ -396,12 +450,25 @@ Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyas
 | Cache Service Provider
 |--------------------------------------------------------------------------
 */
-$c['app']->register('Service\Providers\CacheServiceProvider');
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
+        'cache' => 'Service\Providers\CacheServiceProvider'
+    ]
+);
 
 /* End of file providers.php */
 /* Location: .app/providers.php */
 ```
 
+<a name="application-doc"></a>
+
+### Uygulama Sınıfı Belgelerine Bir Gözatın
+
+Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel olan çoğu şeyi öğrendiniz demektir fakat çerçeveye daha hakim olmak için [Application.md](Application/Docs/tr/Application.md) dökümentasyonuna da bir gözatmanızı istiyoruz.
+
+<a name="container-reference"></a>
 
 ### Konteyner Sınıfı Referansı
 
@@ -426,10 +493,6 @@ Bir sınıfın uygulamaya konteyner içerisinden önceden yüklenip yüklenmedi�
 #### $c->isRegistered(string $provider)
 
 Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
-
-#### $c->bind(string $class, mixed $namespace = 'Namespace/Of/Class');
-
-Yeni bir sınıfı konteyner içerisine kaydeder. Namespace parametresine sınıfın tam yolu yada kendisi gönderilmelidir.
 
 #### $c->keys();
 
