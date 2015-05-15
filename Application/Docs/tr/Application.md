@@ -359,7 +359,7 @@ $c['app']->register(
 );
 ```
 
-Eğer kafanızda soru işaretleri varsa servisler ve servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi için [Container.md](Container/Docs/tr/Container.md) dosyasına bir gözatın.
+Eğer kafanızda soru işaretleri varsa servisler ve servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi için [Container.md](/Container/Docs/tr/Container.md) dosyasına bir gözatın.
 
 
 #### Application Sınıfı Referansı
