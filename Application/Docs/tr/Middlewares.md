@@ -171,7 +171,7 @@ return array(
 );
 
 /* End of file */
-/* Location: ./var/www/framework/app/config/env/local/domain.php */
+/* Location: .app/config/env/local/domain.php */
 ```
 
 Dosya içerisindeki <b>"maintenance"</b> anahtarları domain adresinin bakıma alınıp alınmadığını kontrol eder, <b>"regex"</b> anahtarı ise geçerli route adresleriyle eşleşme yapılabilmesine olanak sağlar. Domain adresinize uygun düzenli ifadeyi regex kısmına girin.
@@ -373,7 +373,7 @@ Framework çekirdeğinde çalışan bir filtredir herhangi bir kurulum ve konfig
 > **Not:** Http katmanlarında önemlilik sırası en yüksek olan katman en son tanımlanandır.
 
 ```php
-$c['app']->middleware(new Http\Middlewares\Request);
+$c['app']->middleware('Http\Middlewares\Request');
 
 /* End of file middlewares.php */
 /* Location: .middlewares.php */
@@ -673,13 +673,13 @@ Csrf doğrulama katmanının uygulamanın her yerinde çalışmasını istiyorsa
 | Csrf
 |--------------------------------------------------------------------------
 */
-$c['app']->middleware(new Http\Middlewares\Csrf);
+$c['app']->middleware('Http\Middlewares\Csrf');
 /*
 |--------------------------------------------------------------------------
 | Request
 |--------------------------------------------------------------------------
 */
-$c['app']->middleware(new Http\Middlewares\Request);
+$c['app']->middleware('Http\Middlewares\Request');
 
 /* End of file middlewares.php */
 /* Location: .app/middlewares.php */
