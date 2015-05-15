@@ -19,8 +19,8 @@ php task module remove --name=modulismi
 
 ### Debugger Modülü
 
-Ayrıntılı kurulum için Debugger paketi dökümentasyonuna bakınız.
+Ayrıntılı kurulum için Debugger paketi [Debbuger.md](/Debugger/Docs/tr/Debugger.md) belgesine bakınız.
 
 ### Captcha Modülü
 
-Ayrıntılı kurulum için Captcha paketi dökümentasyonuna bakınız.
+Ayrıntılı kurulum için Captcha paketi [Captcha.md](/Captcha/Docs/tr/Captcha.md) belgesine bakınız.
