@@ -84,7 +84,10 @@ class Layer
         $this->c = $c;
         $this->params = $params;
         $this->logger = $c['logger'];
-        
+
+        $this->c['layer.flush'] = function () use ($c) {
+            return new Flush($c);
+        };
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
@@ -367,6 +370,18 @@ class Layer
             return;
         }
         $this->processDone = false;
+    }
+
+    /**
+     * Call helpers ( flush class .. )
+     * 
+     * @param string $key class name
+     * 
+     * @return object
+     */
+    public function __get($key)
+    {
+        return $this->c['layer.'.$key];
     }
 
 }
