@@ -466,7 +466,7 @@ $c['app']->register(
 
 ### Uygulama Sınıfı Belgelerine Bir Gözatın
 
-Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel olan çoğu şeyi öğrendiniz demektir fakat çerçeveye daha hakim olmak için [Application.md](Application/Docs/tr/Application.md) dökümentasyonuna da bir gözatmanızı istiyoruz.
+Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel olan çoğu şeyi öğrendiniz demektir fakat çerçeveye daha hakim olmak için [Application.md](/Application/Docs/tr/Application.md) dökümentasyonuna da bir gözatmanızı istiyoruz.
 
 <a name="container-reference"></a>
 
