@@ -67,11 +67,10 @@ class User implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier));
-        $this->db->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR);
-        $this->db->execute();
-        
-        return $this->db->rowArray();  // returns to false if fail
+        $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier))
+            ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
+            ->execute()
+            ->rowArray();
     }
 
     /**
@@ -83,11 +82,9 @@ class User implements UserInterface
      */
     public function execRecallerQuery($token)
     {
-        $this->db->prepare(sprintf($this->sqlRecalledUser, $this->tablename, $this->columnRememberToken));
-        $this->db->bindValue(1, $token, PDO::PARAM_STR);
-        $this->db->execute();
-
-        return $this->db->rowArray();  // returns to false if fail
+        return $this->db->prepare(sprintf($this->sqlRecalledUser, $this->tablename, $this->columnRememberToken))
+            ->bindValue(1, $token, PDO::PARAM_STR)
+            ->execute()->rowArray();
     }
 
     /**
@@ -100,10 +97,10 @@ class User implements UserInterface
      */
     public function updateRememberToken($token, GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier));
-        $this->db->bindValue(1, $token, PDO::PARAM_STR);
-        $this->db->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR);
-        $this->db->execute();
+        $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier))
+            ->bindValue(1, $token, PDO::PARAM_STR)
+            ->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR)
+            ->execute();
     }
 }
 

@@ -160,9 +160,21 @@ try
 	$this->db->query("INSERT INTO users (name) VALUES('John')");
 	$this->db->commit();
 
-} catch(Exception $e)
+} catch(\Exception $e)
 {
 	$this->db->rollBack();
+    echo $e->getMessage();
+}
+```
+
+### İstisnai Hataları Yakalama Problemi
+
+Eğer istisnai hataları alamıyorsanız ve  ekrana boş beyaz bir sayfa geliyorsa büyük ihtimalle bir namespace içerisindesiniz ve <b>fatal error</b> alıyorsunuz. Namespace içerisinde iken kullandığınız sayfa içerisinde en üstte <b>use Exception</b> yada catch kısmında  backslash <b>\</b> ile <b>\Exception</b> kullanmayı deneyin.
+
+```php
+} catch(\Exception $e)
+{
+    $this->db->rollBack();
     echo $e->getMessage();
 }
 ```

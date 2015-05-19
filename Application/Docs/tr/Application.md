@@ -38,7 +38,7 @@ class Htttp extends Obullo {
 /* Location: .Obullo/Application/Http.php */
 ```
 
->Obullo Http sınıfı konteyner içerisine $c['app'] olarak kaydedilir. Konsol ortamında ise o2/Application/Cli.php çağırıldığı için bu sınıf Http değil artık Cli sınıfıdır.
+> Obullo Http sınıfı konteyner içerisine $c['app'] olarak kaydedilir. Konsol ortamında ise o2/Application/Cli.php çağırıldığı için bu sınıf Http değil artık Cli sınıfıdır.
 
 Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> index.php dosyasına bir göz atalım.
 
@@ -347,14 +347,12 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 $c['app']->register(
     [
         'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
         'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
         'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
         'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
         'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
         'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
         'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
-        'query' => 'Obullo\Service\Providers\QueryServiceProvider',
     ]
 );
 ```

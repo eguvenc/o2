@@ -2,7 +2,6 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Layer\Layer;
 use Obullo\Container\Container;
 
 /**

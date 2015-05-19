@@ -2,7 +2,6 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Layer\Error;
 use Obullo\Container\Container;
 
 /**

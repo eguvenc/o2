@@ -2,14 +2,15 @@
 
 namespace Obullo\Service\Providers\Connections;
 
-use PDO;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
-use Obullo\Database\Connection;
+use Doctrine\DBAL\Configuration;
+use Doctrine\DBAL\DriverManager;
+use Obullo\Database\Doctrine\DBAL\SQLLogger;
 
 /**
- * Pdo Connection Provider
+ * Doctrine Connection Provider
  * 
  * @category  Connections
  * @package   Service
@@ -18,16 +19,14 @@ use Obullo\Database\Connection;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class PdoConnectionProvider extends AbstractConnectionProvider
+class DoctrineConnectionProvider extends AbstractConnectionProvider
 {
-    protected $c;         // Container
-    protected $config;    // Database configuration items
-    protected $pdoClass;  // Pdo extension client name
+    protected $c;             // Container
+    protected $config;        // Configuration items
+    protected $adapterClass;  // Doctrine Adapter Class
 
     /**
      * Constructor
-     * 
-     * Automatically check if the PDO extension has been installed / enabled.
      * 
      * @param string $c container
      */
@@ -35,15 +34,9 @@ class PdoConnectionProvider extends AbstractConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
+        $this->adapterClass = '\Obullo\Doctrine\DBAL\Adapter';
 
-        $this->setKey('pdo.connection.');  // Set container key
-
-        if ( ! extension_loaded('PDO')) {
-            throw new RuntimeException(
-                'The PDO extension has not been installed or enabled.'
-            );
-        }
-        $this->pdoClass = 'PDO';
+        $this->setKey('doctrine.connection.');
     }
 
     /**
@@ -53,32 +46,39 @@ class PdoConnectionProvider extends AbstractConnectionProvider
      */
     public function register()
     {
-        foreach ($this->config['connections'] as $key => $val) {
-            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
-                return $this->createConnection($val);
+        foreach (array_keys($this->config['connections']) as $key) {
+            $this->c[$this->getKey($key)] = function () use ($key) {  // create shared connections
+                return $this->createConnection($key);
             };
         }
     }
 
     /**
-     * Creates PDO connections
+     * Creates databse connections
      * 
-     * @param array $params connection parameters
+     * @param array $params database connection params
      * 
-     * @return void
+     * @return object
      */
     protected function createConnection($params)
     {
-        if ( ! isset($params['dsn']) OR empty($params['dsn'])) {
-            throw new RuntimeException(
-                'In your database configuration "dsn" connection key empty or not found.'
-            );
+        $dsnString = 'driver='.strstr($params['dsn'], ':', true).';'.ltrim(strstr($params['dsn'], ':'), ':');
+        parse_str(str_replace(';', '&', $dsnString), $formattedParams);
+        $params = array_merge($formattedParams, $params);
+
+        $config = isset($params['config']) ? $params['config'] : new Configuration;
+        $eventManager = isset($params['eventManager']) ? $params['eventManager'] : null;
+
+        if ($this->c['config']['logger']['app']['query']['log']) {
+            $config->setSQLLogger(new SQLLogger($this->c['logger']));
         }
-        return new $this->pdoClass($params['dsn'], $params['username'], $params['password'], $params['options']);
+        $params['wrapperClass'] = '\Obullo\Database\Doctrine\DBAL\Adapter';
+
+        return DriverManager::getConnection($params, $config, $eventManager);
     }
 
     /**
-     * Retrieve shared PDO connection instance from connection pool
+     * Retrieve shared database connection instance from connection pool
      *
      * @param array $params provider parameters
      * 
@@ -101,20 +101,18 @@ class PdoConnectionProvider extends AbstractConnectionProvider
     }
 
     /**
-     * Create a new PDO connection
-     * 
-     * if you don't want to add it to config file and you want to create new one.
+     * Create a new database connection if you don't want to add config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
-     * @return object PDO client
+     * @return object database
      */
     public function factory($params = array())
-    {
+    {   
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->has($cid)) { //  create shared connection if not exists
-            $this->c[$cid] = function () use ($params) {  //  create shared connections
+        if ( ! $this->c->has($cid)) { // create shared connection if not exists
+            $this->c[$cid] = function () use ($params) { //  create shared connections
                 return $this->createConnection($params);
             };
         }
@@ -122,7 +120,7 @@ class PdoConnectionProvider extends AbstractConnectionProvider
     }
 
     /**
-     * Close all "active" connections
+     * Close the connections
      */
     public function __destruct()
     {
@@ -133,9 +131,10 @@ class PdoConnectionProvider extends AbstractConnectionProvider
             }
         }
     }
+
 }
 
-// END PdoConnectionProvider.php class
-/* End of file PdoConnectionProvider.php */
+// END DoctrineConnectionProvider.php class
+/* End of file DoctrineConnectionProvider.php */
 
-/* Location: .Obullo/Service/Providers/Connections/PdoConnectionProvider.php */
+/* Location: .Obullo/Service/Providers/Connections/DoctrineConnectionProvider.php */

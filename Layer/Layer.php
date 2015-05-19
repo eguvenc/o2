@@ -84,7 +84,7 @@ class Layer
         $this->c = $c;
         $this->params = $params;
         $this->logger = $c['logger'];
-        
+
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 

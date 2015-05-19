@@ -100,19 +100,19 @@ class Container implements ArrayAccess
      * Gets a parameter or an object.
      *
      * @param string $cid     The unique identifier for the parameter or object
-     * @param string $params  The construct arguments
      * @param string $matches Registry Command requests
-     *
+     * @param array  $params  Parameters
+     * 
      * @return mixed The value of the parameter or an object
      *
      * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function offsetGet($cid, $params = array(), $matches = array())
+    public function offsetGet($cid, $matches = array(), $params = array())
     {
         list($key, $noReturn, $controllerExists, $isCoreFile) = $this->resolveLoaderParts($cid, $matches);
 
         if ( ! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
-            return $this->load($cid, $params);  //  Load services and none component libraries like cookie, url ..
+            return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
         }
         $isAllowedToStore = static::isSuitable($key, $noReturn, $controllerExists, $isCoreFile);
 
@@ -120,7 +120,6 @@ class Container implements ArrayAccess
             || ! is_object($this->values[$cid])
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
-            
             return ($isAllowedToStore) ? Controller::$instance->{$key} = $this->values[$cid] : $this->values[$cid];
         }
         $this->frozen[$cid] = true;
@@ -257,7 +256,7 @@ class Container implements ArrayAccess
      * Class and Sercice loader
      *
      * @param string $classString class command
-     * @param mixed  $params      array
+     * @param array  $params      closure params
      * 
      * @return void
      */
@@ -276,8 +275,9 @@ class Container implements ArrayAccess
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
             if ( ! isset($this->registeredServices[$serviceName])) {
+
                 $service = new $serviceClass($this);
-                $service->register($this, $params, $matches);
+                $service->register($this);
 
                 if ( ! $this->has($data['cid'])) {
                     throw new RuntimeException(
@@ -295,12 +295,12 @@ class Container implements ArrayAccess
             'cid' => $class,
             'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
         ];
-        $matches['key'] = $key = $this->fetchAlias($data['cid'], $data['key'], $matches);
+        $matches['key'] = $key = $this->fetchAlias($data['cid'], $data['key']);
         
         if ( ! $this->has($data['cid']) && ! $isService) {   // Don't register service again.
-            $this->registerClass($data['cid'], $key, $matches, $data['class'], $params);
+            $this->registerClass($data['cid'], $key, $matches, $data['class']);
         }
-        return $this->offsetGet($data['cid'], $params, $matches);
+        return $this->offsetGet($data['cid'], $matches, $params);
     }
     
     /**
@@ -347,33 +347,16 @@ class Container implements ArrayAccess
     /**
      * Get alias name if we have "as" match
      * 
-     * @param string $cid     identifier
-     * @param string $key     default key
-     * @param array  $matches array data
+     * @param string $cid identifier
+     * @param string $key default key
      * 
      * @return string
      */
-    protected function fetchAlias($cid, $key, $matches) 
+    protected function fetchAlias($cid, $key) 
     {   
         $callable = $this->raw($cid);
         if ( ! is_null($callable) && $this->aliases->contains($callable)) {
             $key = $this->aliases[$callable];
-        }
-        return $this->searchAs($key, $matches);
-    }
-
-    /**
-     * Search "as" keyword
-     * 
-     * @param string $key     class key
-     * @param array  $matches loader command matches
-     * 
-     * @return string
-     */
-    protected function searchAs($key, $matches)
-    {
-        if ( ! empty($matches['as'])) {  // Replace key with alias if we have it
-            $key = $matches['as'];
         }
         return trim($key);
     }
@@ -385,17 +368,16 @@ class Container implements ArrayAccess
      * @param string $key       alias
      * @param string $matches   commands
      * @param string $ClassName classname
-     * @param string $params    array
      * 
      * @return mixed object or null
      */
-    protected function registerClass($cid, $key, $matches, $ClassName, $params = array())
+    protected function registerClass($cid, $key, $matches, $ClassName)
     {
         if ( ! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
 
-            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
+            $this[$cid] = function () use ($key, $matches, $ClassName) {
 
-                $Object = is_string($ClassName) ? new $ClassName($this, $params) : $ClassName;
+                $Object = is_string($ClassName) ? new $ClassName($this) : $ClassName;
 
                 if (Controller::$instance != null && empty($matches['return'])) {  // Let's sure controller instance available and not null
                     return Controller::$instance->{$key} = $Object;
@@ -411,53 +393,37 @@ class Container implements ArrayAccess
      * register it into Controller object
      * 
      * @param string  $cid    class id
-     * @param string  $alias  alias of class
      * @param boolean $shared if false returns to closure() method
+     * @param array   $params closure parameters
      * 
      * @return object
      */
-    public function get($cid, $alias = null, $shared = true)
+    public function get($cid, $shared = true, $params = array())
     {
-        if ( ! empty($alias)) {
-            return $this->getAlias($cid, $alias);
-        }
         if ( ! $shared) {
-            return $this->getClosure($cid);
+            return $this->getClosure($cid, $params);
         }
         $this->get[$cid] = $cid;
         return $this[$cid];
     }
 
     /**
-     * Create alias of the class for Controller
-     * 
-     * @param string $cid   class id
-     * @param string $alias name
-     * 
-     * @return object
-     */
-    protected function getAlias($cid, $alias)
-    {
-        $this->as[$cid] = $alias;
-        return $this[$cid];
-    }
-
-    /**
      * Get closure function of object
      * 
-     * @param string $cid class id
+     * @param string $cid    class id
+     * @param array  $params closure params
      * 
      * @return object Closure
      */
-    protected function getClosure($cid)
+    protected function getClosure($cid, $params = array())
     {
         if ( ! isset($this->keys[$cid])) {  // First load class to container if its not loaded
-            $this[$cid];
+            return $this->load($cid, $params);
         }
         if (isset($this->raw[$cid])) {  // Check is it available if yes return to closure()
-            return $this->raw[$cid];
+            return $this->raw[$cid]($params);
         }
-        return $this->values[$cid];     // else return to object
+        return $this->values[$cid]($params);     // else return to object
     }
 
     /**
@@ -474,11 +440,7 @@ class Container implements ArrayAccess
             'return' => '',   // fill return if get() function used.
             'new' => '',
             'class' => $class,
-            'as' => ''
         );
-        if (isset($this->as[$class])) {
-            $matches['as'] = $this->as[$class];
-        }
         if (isset($this->get[$class])) {
             $matches['return'] = 'return';
         }

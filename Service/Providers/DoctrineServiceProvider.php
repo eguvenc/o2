@@ -4,19 +4,19 @@ namespace Obullo\Service\Providers;
 
 use Obullo\Container\Container;
 use Obullo\Service\ServiceProviderInterface;
-use Obullo\Service\Providers\Connections\QueryConnectionProvider;
+use Obullo\Service\Providers\Connections\DoctrineConnectionProvider;
 
 /**
- * Query Builder Service Provider
+ * Doctrine Service Provider
  *
  * @category  Provider
- * @package   Service
+ * @package   DoctrineServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class QueryServiceProvider implements ServiceProviderInterface
+class DoctrineServiceProvider implements ServiceProviderInterface
 {
     /**
      * Connector
@@ -24,7 +24,7 @@ class QueryServiceProvider implements ServiceProviderInterface
      * @var object
      */
     public $connector;
-    
+
     /**
      * Registry
      * 
@@ -34,7 +34,8 @@ class QueryServiceProvider implements ServiceProviderInterface
      */
     public function register(Container $c)
     {
-        $this->connector = new QueryConnectionProvider($c);  // Register all Connectors as shared services
+        $this->connector = new DoctrineConnectionProvider($c);  // Register all Connectors as shared services
+        $this->connector->register();
     }
 
     /**
@@ -49,9 +50,20 @@ class QueryServiceProvider implements ServiceProviderInterface
         return $this->connector->getConnection($params);  // Get existing connection
     }
 
+    /**
+     * Create undefined connection
+     * 
+     * @param array $params array
+     * 
+     * @return object
+     */
+    public function factory($params = array())
+    {
+        return $this->connector->factory($params);  // Get new connection
+    }
 }
 
-// END QueryServiceProvider Class
+// END DoctrineServiceProvider Class
 
-/* End of file QueryServiceProvider.php */
-/* Location: .Obullo/Service/Providers/QueryServiceProvider.php */
+/* End of file DoctrineServiceProvider.php */
+/* Location: .Obullo/Service/Providers/DoctrineServiceProvider.php */

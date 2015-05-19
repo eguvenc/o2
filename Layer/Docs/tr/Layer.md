@@ -119,9 +119,7 @@ Layer class creates your layers then manage layer traffic and cache mechanism us
 Layer class defined as core service in your application root <b>components.php</b>. Don't forget services always use same instance.
 
 ```php
-<?php
-$c->load('layer');
-$this->layer->method();
+$this->c['layer']->method();
 ```
 Once loaded, the Layer object will be available using: <dfn>$this->layer->method()</dfn>
 
@@ -415,21 +413,19 @@ Layer flush class allows to remove cached layers from your cache storage.
 ------
 
 ```php
-<?php
-$c->load('layer/flush');
-$this->layerFlush->method();
+$this->layer->flush->method();
 ```
-Once loaded, the Layer object will be available using: <dfn>$this->layerFlush->method()</dfn>
+Once loaded, the Layer object will be available using: <dfn>$this->layer->flush->method()</dfn>
 
 
 ### Layer/Flush Class Function Reference
 
 ------
 
-#### $this->layerFlush->uri(string $uri, $data = array);
+#### $this->layer->flush->uri(string $uri, $data = array);
 
 Deletes cache from memory using uri and parameters.
 
-#### $this->layerFlush->id(integer $layerId);
+#### $this->layer->flush->id(integer $layerId);
 
 Deletes cache from memory by layer id.

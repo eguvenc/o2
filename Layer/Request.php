@@ -3,8 +3,6 @@
 namespace Obullo\Layer;
 
 use Controller;
-use Obullo\Layer\Json;
-use Obullo\Layer\Error;
 use Obullo\Container\Container;
 
 /**
@@ -35,6 +33,10 @@ class Request
     {   
         $this->c = $c;
         $this->params = $c['config']['layer'];
+
+        $this->c['layer.flush'] = function () use ($c) {
+            return new Flush($c);
+        };
     }
 
     /**
@@ -130,6 +132,19 @@ class Request
         }
         return (string)$response;
     }
+
+    /**
+     * Call helpers ( flush class .. )
+     * 
+     * @param string $key class name
+     * 
+     * @return object
+     */
+    public function __get($key)
+    {
+        return $this->c['layer.'.$key];
+    }
+    
 }
 
 // END Request class

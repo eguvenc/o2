@@ -1,15 +1,15 @@
 <?php
 
-namespace Obullo\Database\Adapter\Pdo;
+namespace Obullo\Database\Doctrine\DBAL;
 
 use PDO;
-use PDOStatement;
+use Doctrine\DBAL\Driver\Statement;
 
 /**
- * Pdo Database Result
+ * Database Result
  * 
  * @category  Database
- * @package   Adapter
+ * @package   Result
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -29,7 +29,7 @@ class Result
      * 
      * @param PDOStatement $stmt pdo statement object
      */
-    public function __construct(PDOStatement $stmt)
+    public function __construct(Statement $stmt)
     {
         $this->stmt = $stmt;
     }
@@ -105,4 +105,4 @@ class Result
 // END Result Class
 /* End of file Result.php
 
-/* Location: .Obullo/Database/Adapter/Pdo/Result.php */
+/* Location: .Obullo/Database/Doctrine/Result.php */

@@ -151,19 +151,41 @@ $this->session->method();
 
 > **Önemli:** Get fonksiyonu ile alınan bir servis yada kütüphane Controller sınıfı içerisine kaydedilmez.
 
-
-Eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisine <b>farklı bir isim</b> ile kaydedilir.
+Eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure fonksiyonuna parametre gönderilebilir . Ve gereken durumlarda yeni parametreler gönderilerek yeni nesneler elde edilebilir.
 
 ```php
-$this->c->get('session', 'sess');  // Yeni bir takma isim yarat
-$this->sess->method();
+$this->db = $this->c->get('qb', false, ['connection' => 'default']);
 ```
 
-Eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Ve alınan değişkene gereken durumlarda yeni parametreler gönderilerek $closure fonksiyonu ile yeni bir nesne elde edilmiş olur.
+```php
+$result = $this->db->select('id', 'username')
+    ->from('users')
+    ->where('id = ?')->setParameters([0 => 1])->get()->resultArray();
+
+print_r($result);
+```
+
+Yukarıdaki örnekte query builder servisine default bağlantı parametresi göndererek database servis sağlayıcısından default bağlantısı ile bir query builder nesnesi yaratmasını istiyoruz. Eğer farklı bir bağlantıya ait query builder nesnesi isteseydik aşağıdaki gibi farklı bir bağlantı parametresi göndermeliydik.
 
 ```php
-$closure = $this->c->get('session', null, false);
-$this->session = $closure(['foo' => 'bar']);
+$this->db2 = $this->c->get('qb', false, ['connection' => 'second']);
+```
+
+```php
+$result = $this->db2->select('id', 'username')
+    ->from('admins')
+    ->where('id = ?')->setParameters([0 => 1])->get()->resultArray();
+
+print_r($result);
+```
+
+Eğer parametre gönderilmezse servis sağlayıcınızda desteklenen default parametresine ait bağlatı kullanılır. Ve query builder nesnesi hep aynı nesne değerlerine ( instance ) a döner.
+
+```php
+$this->c->get('qb');  // eski nesne  ['connection' => 'default']
+$this->c->get('qb');  // eski nesne
+$this->c->get('qb');  // eski nesne
+$this->c->get('qb', false, ['connection' => 'second']); // yeni nesne
 ```
 
 <a name="service-loading-a-class"></a>
@@ -239,14 +261,12 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 $c['app']->register(
     [
         'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
         'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
         'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
         'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
         'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
         'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
         'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
-        'query' => 'Obullo\Service\Providers\QueryServiceProvider',
     ]
 );
 ```
@@ -453,7 +473,6 @@ Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyas
 $c['app']->register(
     [
         'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'pdo' => 'Obullo\Service\Providers\PdoServiceProvider',
         'cache' => 'Service\Providers\CacheServiceProvider'
     ]
 );
@@ -478,9 +497,9 @@ Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel 
 
 Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise bu durumda sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
-#### $c->get(string $class, $alias = null, $shared = true);
+#### $c->get(string $class, $shared = true, $params = array());
 
-Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$alias</b> parametresine bir değer gönderilirse servis Controller içerisinde gönderilen değer ile kaydedilir, eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure değişkeni elde edilir. Böylece elde edilen değişkene parametre gönderilerek yeni bir nesne elde edilebilir.
+Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure fonksiyonuna parametre gönderilerek yeni bir nesneler elde edilebilir.
 
 #### $c->has(string $class);
 

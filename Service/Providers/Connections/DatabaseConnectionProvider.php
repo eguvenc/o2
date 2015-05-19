@@ -5,6 +5,7 @@ namespace Obullo\Service\Providers\Connections;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
+use Obullo\Database\Pdo\SQLLogger;
 
 /**
  * Database Connection Provider
@@ -18,8 +19,9 @@ use Obullo\Container\Container;
  */
 class DatabaseConnectionProvider extends AbstractConnectionProvider
 {
-    protected $c;         // Container
-    protected $config;    // Configuration items
+    protected $c;             // Container
+    protected $config;        // Configuration items
+    protected $adapterClass;  // Database Adapter Class
 
     /**
      * Constructor
@@ -32,6 +34,7 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
+        $this->adapterClass = '\Obullo\Database\Pdo\Adapter';
 
         $this->setKey('database.connection.');
     }
@@ -45,7 +48,7 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     {
         foreach (array_keys($this->config['connections']) as $key) {
             $this->c[$this->getKey($key)] = function () use ($key) {  // create shared connections
-                return $this->createConnection($key);
+                return $this->createConnection($this->config['connections'][$key]);
             };
         }
     }
@@ -53,31 +56,21 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     /**
      * Creates databse connections
      * 
-     * @param array $key database connection name
+     * @param array $params database connection params
      * 
      * @return object
      */
-    protected function createConnection($key)
+    protected function createConnection($params)
     {
-        $driver = ucfirst(strstr($this->config['connections'][$key]['dsn'], ':', true));
-        $Class = '\\Obullo\Database\Adapter\Pdo\\'.$driver;
-        return new $Class($this->c, $this->c['app']->provider('pdo'), ['connection' => $key]);
+        $params['dsn'] = str_replace('pdo_', '', $params['dsn']);
+        $Class = '\\Obullo\Database\Pdo\Drivers\\'.ucfirst(strstr($params['dsn'], ':', true));
+
+        if ($this->c['config']['logger']['app']['query']['log']) {
+            $params['logger'] = new SQLLogger($this->c['logger']);
+        }
+        return new $Class($params);
+
     }
-    
-    /**
-     * Creates databse connections
-     * 
-     * @param array $params connection parameters
-     * 
-     * @return object
-     */
-    protected function factoryConnection($params)
-    {
-        $driver = ucfirst(strstr($params['dsn'], ':', true));
-        $Class = '\\Obullo\Database\Adapter\Pdo\\'.$driver;
-        return new $Class($this->c, $this->c['app']->provider('pdo'), $params);
-    }
-    
 
     /**
      * Retrieve shared database connection instance from connection pool
@@ -115,7 +108,7 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
 
         if ( ! $this->c->has($cid)) { // create shared connection if not exists
             $this->c[$cid] = function () use ($params) { //  create shared connections
-                return $this->factoryConnection($params);
+                return $this->createConnection($params);
             };
         }
         return $this->c[$cid];
@@ -126,7 +119,12 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
      */
     public function __destruct()
     {
-        return; // We already close the connections in pdo provider.
+        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
+            $key = $this->getKey($key);
+            if ($this->c->loaded($key)) {  // Connection is active ? 
+                 unset($this->c[$key]);
+            }
+        }
     }
 
 }

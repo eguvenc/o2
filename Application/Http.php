@@ -87,7 +87,6 @@ class Http extends Application
 
         include APP .'components.php';
         include APP .'providers.php';
-        // exit('ok');
         include APP .'events.php';
         include APP .'routes.php';
 

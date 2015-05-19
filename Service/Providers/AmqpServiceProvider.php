@@ -7,10 +7,10 @@ use Obullo\Service\ServiceProviderInterface;
 use Obullo\Service\Providers\Connections\AmqpConnectionProvider;
 
 /**
- * AMQP Service Provider
+ * Amqp Service Provider
  *
  * @category  Provider
- * @package   Service
+ * @package   AmqpServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license

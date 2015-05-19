@@ -80,16 +80,23 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
 <li>
     <a href="#helper-functions">Yardımcı Fonksiyonlar</a>
     <ul>
+        <li><a href="#drivers">$this->db->drivers()</a></li>
+        <li><a href="#connect">$this->db->connect()</a></li>
         <li><a href="#connection">$this->db->connection()</a></li>
-        <li><a href="#reconnect">$this->db->reconnect()</a></li>
-        <li><a href="#isConnected">$this->db->isConnected()</a></li>
         <li><a href="#stmt">$this->db->stmt()</a></li>
         <li><a href="#stmt">$this->db->inTransaction()</a></li>
         <li><a href="#queryId">$this->db->queryId()</a></li>
-        <li><a href="#insertId">$this->db->insertId()</a></li>
+        <li><a href="#lastInsertId">$this->db->insertId()</a></li>
         <li><a href="#lastQuery">$this->db->lastQuery()</a></li>
     </ul>
 </li>
+<li>
+    <a href="#addons">Eklentiler</a>
+    <ul>
+        <li><a href="#doctrine">Doctrine Veritabanı Katmanı</a></li>
+    </ul>
+</li>
+
 </ul>
 
 <a name='server-requirements'></a>
@@ -746,9 +753,9 @@ if ( ! $result) {
 
 
 <a name='helper-functions'></a>
+<a name='drivers'></a>
+<a name='connect'></a>
 <a name='connection'></a>
-<a name='reconnect'></a>
-<a name='isConnected'></a>
 <a name='stmt'></a>
 <a name='inTransaction'></a>
 <a name='queryId'></a>
@@ -758,17 +765,17 @@ if ( ! $result) {
 ### Yardımcı Fonksiyonlar
 
 
+##### $this->db->drivers();
+
+Kurulu database servis sağlayıcısında mevcut sürücü isimlerinin listesine geri döner.
+
+##### $this->db->connect()
+
+Eğer bazı durumlarda bağlantının varlığından emin olunamıyorsa connect ile yeniden bağlanma denemesi yapılarak bağlantı nın hep canlı kalması sağlanır.
+
 ##### $this->db->connection()
 
-Varolan pdo bağlantı nesnesine geri döner.
-
-##### $this->db->reconnect()
-
-Eğer bazı durumlarda bağlantının varlığından emin olunamıyorsa reconnect ile yeniden bağlanma denemesi yapılarak bağlantı nın hep canlı kalması sağlanır.
-
-##### $this->db->isConnected()
-
-Bağlantının var olup olmadığını anlamaya yardımcı olur. Eğer aktif bir bağlantı varsa <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
+Varolan pdo yada veritabanı bağlantı nesnesine geri döner.
 
 ##### $this->db->stmt()
 
@@ -780,7 +787,7 @@ Eğer aktif bir transaksiyon işlemi varsa metot <b>true</b> değerine aksi duru
 
 ##### $this->db->queryId()
 
-Uygulamada her sorguya bir identity değeri veririlir queryId metodu ise varolan sorgunun id değerine geri döner.
+Uygulamada her sorguya kendinden artan numerik bir değer veririlir queryId metodu ise varolan sorgunun id değerine geri döner.
 
 ##### $this->db->insertId()
 
@@ -789,3 +796,14 @@ Veritabanına en son eklenen tablo id sinin değerine geri döner.
 ##### $this->db->lastQuery()
 
 En son çalıştırılan sorgunun çıktısını elde etmeyi sağlar.
+
+
+<a name='doctrine'></a>
+
+## Eklentiler
+
+Eğer mevcut veritabanı katmanı projeniz için yetmiyorsa Obullo kendi veritabanı arayüzü üzerinden bazı popüler veritabanı katmanlarının kurulmasına da izin verir.
+
+### Doctrine Veritabanı Katmanı
+
+Eğer <b>composer</b> kullanıyorsanız veritabanı katmanlarının en popüler olanı <a href="http://www.doctrine-project.org/" target="_blank">Doctrine DBAL</a> veritabanı katmanını [bu dökümentasyondan](/Database/Docs/DoctrineDBAL.md) faydalanarak bir eklenti olarak kurabilirsiniz. Doctrine DBAL ve Query Builder sınıfları için Obullo içerisinden özel yazılmış adaptörler kod yapınızı bozmadan entegrasyon sağladığı gibi mevcut doctrine yazım yöntemlerini de kolaylaştırır. Veritabanı sonuçları Result sınıfı üzerinden elde edildiğinden veritabanı sonuçları içinde kodlarınızı değiştirmek zorunda kalmazsınız.
