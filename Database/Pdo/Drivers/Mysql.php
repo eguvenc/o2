@@ -11,7 +11,7 @@ use Obullo\Service\ServiceProviderInterface;
  * Pdo Mysql Database Driver
  * 
  * @category  Database
- * @package   Adapter
+ * @package   Mysql
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -19,6 +19,13 @@ use Obullo\Service\ServiceProviderInterface;
  */
 class Mysql extends Adapter
 {
+    /**
+     * Column identifier symbol
+     * 
+     * @var string
+     */
+    public $escapeIdentifier = '`';
+
     /**
      * Connect to PDO
      * 

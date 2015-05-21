@@ -6,7 +6,7 @@ use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 
 /**
- * QueryBuilder Layer for Doctrine
+ * Layer for Doctrine QueryBuilder
  * 
  * @category  Database
  * @package   QueryBuilder
@@ -18,45 +18,13 @@ use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 class QueryBuilder extends DoctrineQueryBuilder
 {
     /**
-     * Initializes a new QueryBuilder.
+     * Call connection methods
      *
-     * @param \Doctrine\DBAL\Connection $connection The DBAL Connection.
-     */
-    public function __construct(Adapter $connection)
-    {
-        parent::__construct($connection);
-    }
-
-    /**
-     * Get sql query & execute
-     *
-     * @param string                                      $table name
-     * @param array                                       $types The types the previous parameters are in.
-     * @param \Doctrine\DBAL\Cache\QueryCacheProfile|null $qcp   The query cache profile, optional.
+     * This method allows to you reach database connection methods
      * 
-     * @return object connection
-     */
-    public function get($table = null, $types = array(), QueryCacheProfile $qcp = null)
-    {
-        if ($table != null) {
-            $this->from($table);
-        }
-        return $this->connection->executeQuery($this->getSQL(), $this->getParameters(), $types, $qcp);
-    }
-
-    /**
-     * Execute query builder insert, update, replace, delete ( write )
-     * operations.
+     * Example :
      * 
-     * @return object connection
-     */
-    public function exec()
-    {
-        return $this->connection;
-    }
-
-    /**
-     * Call adapter methods
+     * $this->db->query("..");
      * 
      * @param string $method    name
      * @param array  $arguments method arguments
@@ -65,7 +33,11 @@ class QueryBuilder extends DoctrineQueryBuilder
      */
     public function __call($method, $arguments)
     {
-        return call_user_func_array(array($this->connection, $method), $arguments);
+        return call_user_func_array(array($this->getConnection(), $method), $arguments);
     }
-
 }
+
+// END QueryBuilder Class
+/* End of file QueryBuilder.php
+
+/* Location: .Obullo/Database/Doctrine/QueryBuilder.php */

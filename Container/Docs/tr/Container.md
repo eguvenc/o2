@@ -96,11 +96,10 @@ $this->c['session'];	 // eski nesne
 $this->c['session'];	 // eski nesne
 ```
 
-Bir servisin paylaşımlı <b>olmaması</b> demek onun her çağrıldığında yeni bir nesneye dönmesi demektir. Uygulama içerisinde <b>çok nadir</b> durumlarda bir servisin yeni değişkenler ile gelmesi istenebilir. Böyle bir durum sözkonusu olduğunda konteyner içerisinden <b>get('class', null, false)</b> komutu kullanılarak nesnenin kayıtlı olduğu closure fonksiyonu alınır ve bu fonksiyon çalıştırılarak sınıfın yeni nesneye dönmesi sağlanır.
+Bir servisin paylaşımlı <b>olmaması</b> demek onun her çağrıldığında yeni bir nesneye dönmesi demektir. Uygulama içerisinde <b>çok nadir</b> durumlarda bir servisin yeni değişkenler ile gelmesi istenebilir. Eğer servis yada sınıf yeni parametereler gönderilerek oluşturulması gerekiyorsa konteyner içerisinden <b>get('class', $params = array())</b> komutu kullanılarak nesnenin kayıtlı olduğu closure fonksiyonu yeniden çalıştırılır ve sınıfın yeni nesneye dönmesi sağlanır.
 
 ```php
-$closure = $this->c->get('session', null, false);
-$this->session = $closure(['foo' => 'bar']);
+$this->session = $this->c->get('session', ['test' => 1]);
 ```
 
 Controller sınıfında <b>$c</b> nesnesi bu sınıfa önceden <kbd>$this->c</kbd> olarak kayıtlı geldiğinden Controller sınıfı içerisinde <b>$c</b> değişkeni hep <kbd>$this->c</kbd> olarak kullanılır. 
@@ -151,10 +150,17 @@ $this->session->method();
 
 > **Önemli:** Get fonksiyonu ile alınan bir servis yada kütüphane Controller sınıfı içerisine kaydedilmez.
 
-Eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure fonksiyonuna parametre gönderilebilir . Ve gereken durumlarda yeni parametreler gönderilerek yeni nesneler elde edilebilir.
+Eğer <b>$params</b> parametresine <b>false</b> değeri gönderilirse sınıf yeni nesneye döner.
+
 
 ```php
-$this->db = $this->c->get('qb', false, ['connection' => 'default']);
+$this->session = $this->c->get('session', false);
+```
+
+Eğer <b>$params</b> parametresine <b>array</b> türü gönderilirse kayıtlı closure fonksiyonu bu yeni parametreler ile yeni bir nesneye döner.
+
+```php
+$this->db = $this->c->get('qb', ['connection' => 'default']);
 ```
 
 ```php
@@ -168,7 +174,7 @@ print_r($result);
 Yukarıdaki örnekte query builder servisine default bağlantı parametresi göndererek database servis sağlayıcısından default bağlantısı ile bir query builder nesnesi yaratmasını istiyoruz. Eğer farklı bir bağlantıya ait query builder nesnesi isteseydik aşağıdaki gibi farklı bir bağlantı parametresi göndermeliydik.
 
 ```php
-$this->db2 = $this->c->get('qb', false, ['connection' => 'second']);
+$this->db2 = $this->c->get('qb', ['connection' => 'second']);
 ```
 
 ```php
@@ -185,8 +191,11 @@ Eğer parametre gönderilmezse servis sağlayıcınızda desteklenen default par
 $this->c->get('qb');  // eski nesne  ['connection' => 'default']
 $this->c->get('qb');  // eski nesne
 $this->c->get('qb');  // eski nesne
-$this->c->get('qb', false, ['connection' => 'second']); // yeni nesne
+$this->c->get('qb', ['connection' => 'second']); // yeni nesne
 ```
+
+Son örnekte <b>qb</b> isimli servis üzerinden parametre göndererek <b>database</b> servis sağlayıcısını çalıştırmış olduk.
+
 
 <a name="service-loading-a-class"></a>
 
@@ -497,9 +506,9 @@ Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel 
 
 Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise bu durumda sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
-#### $c->get(string $class, $shared = true, $params = array());
+#### $c->get(string $class, mixed $params = false|array());
 
-Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$shared</b> parametresine <b>false</b> değeri gönderilirse closure fonksiyonuna parametre gönderilerek yeni bir nesneler elde edilebilir.
+Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$params</b> parametresine <b>false</b> yada <b>array</b> değeri gönderilirse closure fonksiyonuna parametre gönderilerek yeni bir nesne elde edilebilir.
 
 #### $c->has(string $class);
 

@@ -22,16 +22,16 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#unix-connection">Unix Soket Bağlantısı</a></li>
         <li><a href="#config-configuration">Konfigürasyon</a></li>
         <li><a href="#connection-management">Bağlantı Yönetimi</a></li>
-        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
-        <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
     </ul>
 </li>
 
 <li>
-    <a href="#service-provider">Servis Sağlayıcısı</a>
+    <a href="#service-provider">Servis Sağlayıcısı Konfigürasyonu</a>
     <ul>
         <li><a href="#getting-existing-connection">Varolan Bağlantıyı Almak</a></li>
         <li><a href="#creating-new-connection">Yeni Bir Bağlantı Oluşturmak</a></li>
+        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
+        <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
     </ul>
 </li>
 
@@ -85,9 +85,8 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#connection">$this->db->connection()</a></li>
         <li><a href="#stmt">$this->db->stmt()</a></li>
         <li><a href="#stmt">$this->db->inTransaction()</a></li>
-        <li><a href="#queryId">$this->db->queryId()</a></li>
         <li><a href="#lastInsertId">$this->db->insertId()</a></li>
-        <li><a href="#lastQuery">$this->db->lastQuery()</a></li>
+        <li><a href="#quoteIdentifier">$this->db->quoteIdentifier()</a></li>
     </ul>
 </li>
 <li>
@@ -151,11 +150,11 @@ extension=php_pdo_mysql.dll
 </thead>
 <tbody>
 <tr>
-<td>mysql</td>
+<td>pdo_mysql</td>
 <td>MySQL 3.x/4.x/5.x</td>
 </tr>
 <tr>
-<td>pgsql</td>
+<td>pdo_pgsql</td>
 <td>PostgreSQL</td>
 </tr>
 </tbody>
@@ -176,7 +175,7 @@ Veritabanı ile bağlantı kurulması veritabanı işlevleri ( query, execute, e
 Veritabanına bağlantı konfigürasyonu yerel ortam için <kbd>app/config/env/local/database.php</kbd> dosyasından gerçekleştirilir. Aşağıdaki örnek bağlantı şeması <b>dsn</b> anahtarına girilir.
 
 ```php
-mysql:host=localhost;port=;dbname=test;
+pdo_mysql:host=localhost;port=;dbname=test;
 ```
 
 <a name='unix-connection'></a>
@@ -186,12 +185,12 @@ mysql:host=localhost;port=;dbname=test;
 Unix soket tipinde bağlantı isteniyorsa bağlantı şeması aşağıdaki gibi olmalıdır.
 
 ```php
-mysql:unix_socket=/PATH/TO/SOCK_FILE;dbname=YOUR_DB_NAME;charset=utf8;
+pdo_mysql:unix_socket=/PATH/TO/SOCK_FILE;dbname=YOUR_DB_NAME;charset=utf8;
 ```
 Örnek bir bağlantı
 
 ```php
-mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test
+pdo_mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test
 ```
 
 <a name='config-configuration'></a>
@@ -206,7 +205,7 @@ return array(
     'connections' => 
     [
         'default' => [
-            'dsn'      => 'mysql:host=localhost;port=;dbname=test',
+            'dsn'      => 'pdo_mysql:host=localhost;port=;dbname=test',
             'username' => $c['env']['MYSQL_USERNAME.root'],
             'password' => $c['env']['MYSQL_PASSWORD.null'],
             'options'  => [
@@ -235,6 +234,75 @@ Veritabanı servis sağlayıcısı <b>connections</b> anahtarı altına girilen 
 Böylece <b>veritabanı</b> servis sağlayıcısı sayesinde uygulamada kullanılan çoklu veritabanları database.php konfigürasyon dosyasından takip edilerek her yazılımcının mevcut bir bağlantı varken yeni bir bağlantı açması önlenmiş olur.
 
 > **Not:** Veritabanı bağlantısı teknik olarak <kbd>Obullo/Service/Providers/Database.php</kbd> servis sağlayıcısı üzerinden <kbd>Obullo/Database/Pdo/Handler/$sürücü.php</kbd> dosyasındaki createConnection() metodu aracılığı ile sağlanır.
+
+<a name='service-provider'></a>
+
+### Servis Sağlayıcısı Konfigürasyonu
+
+------
+
+Veritabanı servis sağlayıcısı <kbd>Obullo/Service/Providers/DatabaseServiceProvider.php</kbd> dosyasıdır. Servis sağlayıcısı konfigürasyon dosyasını kullanarak bağlantıları yönetir eğer var olan bir veritabanı bağlantısını kullanmak yada yeni bir veritabanı bağlantısı açmak isteniyorsa <b>database</b> servis sağlayıcısı kullanılır.
+
+
+```php
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+    ]
+);
+```
+
+Eğer başka bir servis sağlayıcı kullanamk istityorsanız <kbd>app/providers.php</kbd> dosyasından database anahtarına ait isimalanı değerini yeni servis sağlayıcınız ile değiştirin.
+
+
+<a name='getting-existing-connection'></a>
+
+#### Varolan Bağlantıyı Almak
+
+Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımlı</b> olan bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>get</b> metodunu kullanır.
+
+Servis sağlayıcıları uygulamanın her yerinde kullanılabilen işe yarar parçacıklardır. Veritabanı servis sağlayıcısı uygulamanın farklı bölümlerinde gereksiz yeni bağlantılar açmamak için yazılımcıdan gelen talebe göre konfigürasyon dosyasında varolan bir bağlantıyı alır yada konfigürasyon dosyasında olmayan yeni bir bağlanyı yaratır. Yaratılan bağlantılar bağlantı havuzunda toplanırlar ve tekrar aynı değerler ile istenen bir bağlantı olduğunda bu defa havuzdan getirilirler.
+
+Aşağıdaki örnekte konfigürasyon dosyasında varolan <b>default</b> bağlantı nesnesi alınıyor.
+
+```php
+$this->db = $this->c['app']->provider('database')->get();  // ['connection' => 'default']
+```
+
+Eğer <b>second</b> isimli tanımlanmış farklı bir bağlantı olsaydı aşağıdaki gibi alınırdı.
+
+```php
+$this->db = $this->c['app']->provider('database')->get(['connection' => 'second']);
+```
+
+Veritabanı nesnesi alındıktan sonra artık veritabanı metotlarına erişilebilir.
+
+```php
+$this->db->query(" .. ");
+```
+
+<a name='creating-new-connection'></a>
+
+#### Yeni Bir Bağlantı Oluşturmak
+
+Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımsız</b> olan yeni bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>factory</b> metodunu kullanır.
+
+Aşağıdaki örnekte konfigürasyon dosyasında varolmayan <b>yeni</b> bir bağlantı nesnesi oluşturuluyor.
+
+```php
+$this->db = $this->c['app']->provider('database')->factory(
+    [
+        'dsn'      => 'mysql:host=localhost;port=;dbname=test',
+        'username' => 'root',
+        'password' => '123456',
+        'options' => [
+            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
+            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
+        ]
+    ]
+);
+```
 
 <a name='service-configuration'></a>
 
@@ -313,62 +381,6 @@ Herhangi bir sınıf içerisinde veritabanı nesnesini kullanıyor ve kontrolör
 ```php
 $this->db = $this->c->get('db');
 $this->db->query('...');
-```
-
-<a name='service-provider'></a>
-
-### Servis Sağlayıcısı
-
-------
-
-Veritabanı servis sağlayıcısı <kbd>Obullo/Service/Providers/Database.php</kbd> dosyasıdır. Servis sağlayıcısı konfigürasyon dosyasını kullanarak bağlantıları yönetir eğer var olan bir veritabanı bağlantısı kullanmak yada yeni bir veritabanı bağlantısı açılmak isteniyorsa <b>database</b> servis sağlayıcısı kullanılır.
-
-<a name='getting-existing-connection'></a>
-
-#### Varolan Bağlantıyı Almak
-
-Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımlı</b> olan bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>get</b> metodunu kullanır.
-
-Servis sağlayıcıları uygulamanın her yerinde kullanılabilen işe yarar parçacıklardır. Veritabanı servis sağlayıcısı uygulamanın farklı bölümlerinde gereksiz yeni bağlantılar açmamak için yazılımcıdan gelen talebe göre konfigürasyon dosyasında varolan bir bağlantıyı alır yada konfigürasyon dosyasında olmayan yeni bir bağlanyı yaratır. Yaratılan bağlantılar bağlantı havuzunda toplanırlar ve tekrar aynı değerler ile istenen bir bağlantı olduğunda bu defa havuzdan getirilirler.
-
-Aşağıdaki örnekte konfigürasyon dosyasında varolan <b>default</b> bağlantı nesnesi alınıyor.
-
-```php
-$this->db = $this->c['app']->provider('database')->get(['connection' => 'default']);
-```
-
-Eğer <b>second</b> isimli tanımlanmış farklı bir bağlantı olsaydı aşağıdaki gibi alınırdı.
-
-```php
-$this->db = $this->c['app']->provider('database')->get(['connection' => 'second']);
-```
-
-Veritabanı nesnesi alındıktan sonra artık veritabanı metotlarına erişilebilir.
-
-```php
-$this->db->query(" .. ");
-```
-
-<a name='creating-new-connection'></a>
-
-#### Yeni Bir Bağlantı Oluşturmak
-
-Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımsız</b> olan yeni bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>factory</b> metodunu kullanır.
-
-Aşağıdaki örnekte konfigürasyon dosyasında varolmayan <b>yeni</b> bir bağlantı nesnesi oluşturuluyor.
-
-```php
-$this->db = $this->c['app']->provider('database')->factory(
-    [
-        'dsn'      => 'mysql:host=localhost;port=;dbname=test',
-        'username' => 'root',
-        'password' => '123456',
-        'options' => [
-            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
-        ]
-    ]
-);
 ```
 
 <a name='reading-database'></a>
@@ -758,9 +770,9 @@ if ( ! $result) {
 <a name='connection'></a>
 <a name='stmt'></a>
 <a name='inTransaction'></a>
-<a name='queryId'></a>
 <a name='insertId'></a>
-<a name='lastQuery'></a>
+<a name='quoteIdentifier'></a>
+<a name='getParameters'></a>
 
 ### Yardımcı Fonksiyonlar
 
@@ -785,18 +797,13 @@ Varolan PDOStatement nesnesine geri döner. Veritabanı sınıfında olmayan bir
 
 Eğer aktif bir transaksiyon işlemi varsa metot <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
 
-##### $this->db->queryId()
-
-Uygulamada her sorguya kendinden artan numerik bir değer veririlir queryId metodu ise varolan sorgunun id değerine geri döner.
-
 ##### $this->db->insertId()
 
 Veritabanına en son eklenen tablo id sinin değerine geri döner.
 
-##### $this->db->lastQuery()
+##### $this->db->quoteIdentifier();
 
-En son çalıştırılan sorgunun çıktısını elde etmeyi sağlar.
-
+Veritabanı sürücüsüne göre bir sütun adı yada tablo ismi gibi belirli tanımlayıcılara kaçış sembolü atmanıza yardımcı olur.
 
 <a name='doctrine'></a>
 
@@ -806,4 +813,4 @@ Eğer mevcut veritabanı katmanı projeniz için yetmiyorsa Obullo kendi veritab
 
 ### Doctrine Veritabanı Katmanı
 
-Eğer <b>composer</b> kullanıyorsanız veritabanı katmanlarının en popüler olanı <a href="http://www.doctrine-project.org/" target="_blank">Doctrine DBAL</a> veritabanı katmanını [bu dökümentasyondan](/Database/Docs/DoctrineDBAL.md) faydalanarak bir eklenti olarak kurabilirsiniz. Doctrine DBAL ve Query Builder sınıfları için Obullo içerisinden özel yazılmış adaptörler kod yapınızı bozmadan entegrasyon sağladığı gibi mevcut doctrine yazım yöntemlerini de kolaylaştırır. Veritabanı sonuçları Result sınıfı üzerinden elde edildiğinden veritabanı sonuçları içinde kodlarınızı değiştirmek zorunda kalmazsınız.
+Eğer <b>composer</b> kullanıyorsanız sık kullanılan veritabanı katmanlarından biri olan  <a href="http://www.doctrine-project.org/" target="_blank">Doctrine DBAL</a> veritabanı katmanını [bu dökümentasyondan](/Database/Docs/DoctrineDBAL.md) faydalanarak bir eklenti olarak kurabilirsiniz. Doctrine DBAL ve Query Builder sınıfları için Obullo içerisinden özel yazılmış adaptörler kod yapınızı bozmadan entegrasyon sağladığı gibi mevcut doctrine yazım yöntemlerini de kolaylaştırır. Veritabanı sonuçları Result sınıfı üzerinden elde edildiğinden veritabanı sorgu sonuçları içinde kodlarınızı değiştirmek zorunda kalmazsınız.

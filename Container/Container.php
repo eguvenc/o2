@@ -393,14 +393,16 @@ class Container implements ArrayAccess
      * register it into Controller object
      * 
      * @param string  $cid    class id
-     * @param boolean $shared if false returns to closure() method
-     * @param array   $params closure parameters
+     * @param boolean $params if array params not empty execute the closure() method
      * 
      * @return object
      */
-    public function get($cid, $shared = true, $params = array())
+    public function get($cid, $params = null)
     {
-        if ( ! $shared) {
+        if ($params === false) {
+            $params = array();
+        }
+        if (is_array($params)) {
             return $this->getClosure($cid, $params);
         }
         $this->get[$cid] = $cid;

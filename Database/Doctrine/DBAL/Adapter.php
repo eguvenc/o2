@@ -141,7 +141,7 @@ class Adapter extends Connection
     public function inTransaction()
     {
         $this->connect();
-        return $this->conn->inTransaction();
+        return $this->_conn->inTransaction();
     }
 
     /**
@@ -154,9 +154,6 @@ class Adapter extends Connection
      */
     public function prepare($sql, $options = array())
     {
-        $this->trackQuery($sql);
-        $this->beginTimer();
-
         $this->stmt = parent::prepare($sql, $options);
         return $this;
     }
@@ -170,12 +167,7 @@ class Adapter extends Connection
     {
         $args = func_get_args();
         $sql = $args[0];
-
-        $this->trackQuery($sql);
-        $this->beginTimer();
-
         $this->stmt = parent::query($sql);
-        $this->log();
         return $this;
     }
 
@@ -193,7 +185,6 @@ class Adapter extends Connection
     public function bindParam($param, $val, $type, $length = null, $options = null)
     {
         $this->stmt->bindParam($param, $val, $type, $length, $options);
-        $this->trackValues($param, $val);
         return $this;
     }
 
@@ -209,7 +200,6 @@ class Adapter extends Connection
     public function bindValue($param, $val, $type)
     {
         $this->stmt->bindValue($param, $val, $type);
-        $this->trackValues($param, $val);
         return $this;
     }
 
@@ -223,20 +213,38 @@ class Adapter extends Connection
     public function execute($array = null)
     {
         $this->stmt->execute($array);
-        $this->trackValues($array);     // Store last executed bind values for last_query method.
-        $this->log();
         return $this;
     }
 
     /**
-     * [executeQuery description]
-     * @param  [type]                 $query  [description]
-     * @param  array                  $params [description]
-     * @param  array                  $types  [description]
-     * @param  QueryCacheProfile|null $qcp    [description]
-     * @return [type]                         [description]
+     * Excecute doctrine sql queries with params
+     * 
+     * @param string                 $query  statement
+     * @param array                  $params parameters
+     * @param array                  $types  paremeters types
+     * @param QueryCacheProfile|null $qcp    cache option
+     * 
+     * @return object
      */
     public function executeQuery($query, array $params = array(), $types = array(), QueryCacheProfile $qcp = null)
+    {
+        $this->stmt = parent::executeQuery($query, $params, $types, $qcp);
+        return $this;
+    }
+
+    /**
+     * Executes a caching query.
+     *
+     * @param string                                 $query  The SQL query to execute.
+     * @param array                                  $params The parameters to bind to the query, if any.
+     * @param array                                  $types  The types the previous parameters are in.
+     * @param \Doctrine\DBAL\Cache\QueryCacheProfile $qcp    The query cache profile.
+     *
+     * @return \Doctrine\DBAL\Driver\ResultStatement
+     *
+     * @throws \Doctrine\DBAL\Cache\CacheException
+     */
+    public function executeCacheQuery($query, $params, $types, QueryCacheProfile $qcp)
     {
         $this->stmt = parent::executeQuery($query, $params, $types, $qcp);
         return $this;
@@ -265,10 +273,6 @@ class Adapter extends Connection
      */
     public function exec($sql)
     {
-        $this->trackQuery($sql);
-        $this->beginTimer();
-        $this->log();
-
         return parent::exec($sql);
     }
 
@@ -318,8 +322,6 @@ class Adapter extends Connection
             return Controller::$instance->{$key};
         }
     }
-
-
 }
 
 // END Adapter Class

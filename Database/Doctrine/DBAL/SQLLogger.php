@@ -2,12 +2,11 @@
 
 namespace Obullo\Database\Doctrine\DBAL;
 
-use PDO;
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface;
 use Doctrine\DBAL\Logging\SQLLogger as SQLLoggerInterface;
 
 /**
- * Doctrine SQLLogger for Obullo
+ * SQLLogger for Doctrine
  * 
  * @category  Database
  * @package   SQLLogger
@@ -40,6 +39,13 @@ class SQLLogger implements SQLLoggerInterface
     protected $logger;
 
     /**
+     * Bind parameters
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
      * Count number of queries
      * 
      * @var integer
@@ -51,7 +57,7 @@ class SQLLogger implements SQLLoggerInterface
      * 
      * @param \Obullo\Log\Logger $logger object
      */
-    public function __construct(Logger $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
@@ -78,8 +84,10 @@ class SQLLogger implements SQLLoggerInterface
     public function startQuery($sql, array $params = null, array $types = null)
     {
         $this->beginTimer();
-        $this->sql = $sql;
+        $this->params = $params;
         ++$this->queryNumber;
+        $this->sql = $sql;
+        $types = null;
     }
 
     /**
@@ -93,7 +101,7 @@ class SQLLogger implements SQLLoggerInterface
             '$_SQL '.$this->queryNumber.' ( Query ):', 
             [
                 'time' => number_format(microtime(true) - $this->start, 4),
-                'output' => static::formatSql($this->sql)
+                'output' => $this->format($this->sql)
             ],
             ($this->queryNumber * -1)  // priority
         );
@@ -106,10 +114,23 @@ class SQLLogger implements SQLLoggerInterface
      * 
      * @return void
      */
-    public static function formatSql($sql)
+    public function format($sql)
     {
-        $sql = preg_replace('/\n\r\t/', ' ', $sql);
-        return trim($sql, "\n");
+        $sql = preg_replace('/\n\r\t/', ' ', trim($sql, "\n"));
+        $newValues = array();
+        if ( ! empty($this->params)) {
+            foreach ($this->params as $key => $value) {
+                if (is_string($value)) {
+                    $newValues[$key] = "'".addslashes($value)."'";
+                } else {
+                    $newValues[$key] = $value;
+                }
+            }
+            $sql = preg_replace('/(?:[?])/', '%s', $sql);  // question mark binds
+            $sql = preg_replace('/:\w+/', '%s', $sql);     // bounded parameters
+            return vsprintf($sql, $newValues);
+        }
+        return $sql;
     }
 
 }
@@ -117,4 +138,4 @@ class SQLLogger implements SQLLoggerInterface
 // END SQLLogger Class
 /* End of file SQLLogger.php
 
-/* Location: .Obullo/Database/Doctrine/SQLLogger.php */
+/* Location: .Obullo/Database/Doctrine/DBAL/SQLLogger.php */

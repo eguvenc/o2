@@ -8,6 +8,7 @@ use Exception;
 use Controller;
 use Obullo\Container\Container;
 use Obullo\Database\AdapterInterface;
+use Obullo\Database\SQLLoggerInterface;
 use Obullo\Service\ServiceProviderInterface;
     
 /**
@@ -411,6 +412,54 @@ class Adapter implements AdapterInterface
     public function getParameters($failure = array())
     {
         return empty($this->parameters) ? $failure : $this->parameters;
+    }
+
+    /**
+     * Quotes a string so that it can be safely used as a table or column name,
+     * even if it is a reserved word of the platform. This also detects identifier
+     * chains separated by dot and quotes them independently.
+     *
+     * NOTE: Just because you CAN use quoted identifiers doesn't mean
+     * you SHOULD use them. In general, they end up causing way more
+     * problems than they solve.
+     *
+     * @param string $str The identifier name to be quoted.
+     *
+     * @return string The quoted identifier string.
+     */
+    public function quoteIdentifier($str)
+    {
+        if (strpos($str, ".") !== false) {
+            $parts = array_map(array($this, "quoteSingleIdentifier"), explode(".", $str));
+
+            return implode(".", $parts);
+        }
+
+        return $this->quoteSingleIdentifier($str);
+    }
+
+    /**
+     * Quotes a single identifier (no dot chain separation).
+     *
+     * @param string $str The identifier name to be quoted.
+     *
+     * @return string The quoted identifier string.
+     */
+    public function quoteSingleIdentifier($str)
+    {
+        $c = $this->getIdentifierQuoteCharacter();
+
+        return $c . str_replace($c, $c.$c, $str) . $c;
+    }
+
+    /**
+     * Get identifier char
+     * 
+     * @return string
+     */
+    public function getIdentifierQuoteCharacter()
+    {
+        return $this->escapeIdentifier;
     }
 
     /**

@@ -7,6 +7,7 @@ use UnexpectedValueException;
 use Obullo\Container\Container;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+
 use Obullo\Database\Doctrine\DBAL\SQLLogger;
 
 /**
@@ -48,7 +49,7 @@ class DoctrineConnectionProvider extends AbstractConnectionProvider
     {
         foreach (array_keys($this->config['connections']) as $key) {
             $this->c[$this->getKey($key)] = function () use ($key) {  // create shared connections
-                return $this->createConnection($key);
+                return $this->createConnection($this->config['connections'][$key]);
             };
         }
     }

@@ -4,8 +4,8 @@ namespace Obullo\Service\Providers\Connections;
 
 use RuntimeException;
 use UnexpectedValueException;
+use Obullo\Database\SQLLogger;
 use Obullo\Container\Container;
-use Obullo\Database\Pdo\SQLLogger;
 
 /**
  * Database Connection Provider

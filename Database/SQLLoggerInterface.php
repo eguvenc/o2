@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Database\Pdo;
+namespace Obullo\Database;
 
 /**
  * Interface SqlLogger
@@ -37,4 +37,4 @@ interface SQLLoggerInterface
 // END SQLLoggerInterface Class
 /* End of file SQLLoggerInterface.php
 
-/* Location: .Obullo/Database/Doctrine/SQLLoggerInterface.php */
+/* Location: .Obullo/Database/SQLLoggerInterface.php */

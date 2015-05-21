@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Database\Pdo;
+namespace Obullo\Database;
 
 use PDO;
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface;
 
 /**
  * SQLLogger for Obullo Pdo
@@ -57,7 +57,7 @@ class SQLLogger implements SQLLoggerInterface
      * 
      * @param \Obullo\Log\Logger $logger object
      */
-    public function __construct(Logger $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
@@ -87,6 +87,8 @@ class SQLLogger implements SQLLoggerInterface
         $this->params = $params;
         ++$this->queryNumber;
         $this->sql = $sql;
+        $types = null;
+
     }
 
     /**
@@ -117,16 +119,16 @@ class SQLLogger implements SQLLoggerInterface
     {
         $sql = preg_replace('/\n\r\t/', ' ', trim($sql, "\n"));
         $newValues = array();
-
         if ( ! empty($this->params)) {
             foreach ($this->params as $key => $value) {
                 if (is_string($value)) {
-                    $newValues[$key] = addslashes($value);
+                    $newValues[$key] = "'".addslashes($value)."'";
                 } else {
                     $newValues[$key] = $value;
                 }
             }
-            $sql = preg_replace('/(?:[?])/', '%s', $sql);
+            $sql = preg_replace('/(?:[?])/', '%s', $sql);  // question mark binds
+            $sql = preg_replace('/:\w+/', '%s', $sql);     // bounded parameters
             return vsprintf($sql, $newValues);
         }
         return $sql;
@@ -137,4 +139,4 @@ class SQLLogger implements SQLLoggerInterface
 // END SQLLogger Class
 /* End of file SQLLogger.php
 
-/* Location: .Obullo/Database/Doctrine/SQLLogger.php */
+/* Location: .Obullo/Database/SQLLogger.php */
