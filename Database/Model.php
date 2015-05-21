@@ -1,20 +1,20 @@
 <?php
 
-namespace Obullo\Model;
+namespace Obullo\Database;
 
 use Controller;
 
 /**
- * Easy Class
+ * Model Class ( Default Model )
  * 
  * @category  Model
- * @package   Easy
+ * @package   Model
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/model
  */
-class Easy
+class Model
 {
     /**
      * Container
@@ -50,7 +50,7 @@ class Easy
     }
 }
 
-// END Easy class
-/* End of file Easy.php */
+// END Model class
+/* End of file Model.php */
 
-/* Location: .Obullo/Model/Easy.php */
+/* Location: .Obullo/Database/Model.php */

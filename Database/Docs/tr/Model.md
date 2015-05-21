@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `entries` (
 ```php
 namespace Model;
 
-class Entry extends \Obullo\Model\Easy
+class Entry extends \Obullo\Database\Model
 {
     public $title;
     public $content;
@@ -163,7 +163,7 @@ Yukarıdaki örnekteki uygulamaya özgü <b>findAll()</b> ve <b>findOne()</b> me
 ```php
 namespace Model;
 
-class Entry extends \Obullo\Model\Easy
+class Entry extends \Obullo\Database\Model
 {
     /**
      * Insert entry
