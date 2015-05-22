@@ -63,27 +63,25 @@ Doctrine veritabanı katmanı daha çok PDO sınıfı saran ve PDO sınıfına b
 </li>     
 
 <li>
-    <a href="#query-binding">Güvenli Sorgular Oluşturmak ( Query Binding )</a>
+    <a href="#query-binding">Hazırlanmış Sorgular Oluşturmak ( Query Binding )</a>
     <ul>
         <li><a href="#prepare">$this->db->prepare()</a></li>
     </ul>
 </li>
+
 <li>
     <a href="#escaping-sql-injections">Sql Enjeksiyonundan Kaçış</a>
     <ul>
         <li><a href="#escape">$this->db->escape()</a></li>
     </ul>
-</li>  
+</li>
+
 <li>
     <a href="#transactions">Veri Kaybı Olmadan Veri Kaydetmek ( Transactions )</a>
     <ul>
         <li><a href="#native-transaction">Doğal Transaksiyon</a></li>
         <li><a href="#auto-transaction">Otomatik Transaksiyon</a></li>
     </ul>
-</li>
-
-<li>
-    <a href="#transactions">Önbellekleme ( Caching )</a>
 </li>
 
 <li>
@@ -98,6 +96,7 @@ Doctrine veritabanı katmanı daha çok PDO sınıfı saran ve PDO sınıfına b
         <li><a href="#quoteIdentifier">$this->db->quoteIdentifier()</a></li>
     </ul>
 </li>
+
 <li>
     <a href="#queryBuilder">Sorgu Oluşturucu ( Query Builder )</a>
 </li>
@@ -266,7 +265,7 @@ $c['app']->register(
     [
         'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
         // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-        'database' => 'Obullo\Service\Providers\DoctrineServiceProvider',
+        'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
     ]
 );
 ```
@@ -495,7 +494,7 @@ stdClass Object
 )
 ```
 
-Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucunun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
 
 ```php
 $row = $this->db->query("SELECT * FROM users WHERE id = 748")->row(array());
@@ -525,7 +524,7 @@ Array
 )
 ```
 
-Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucunun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
 
 ```php
 $row = $this->db->query("SELECT * FROM users WHERE id = 748")->rowArray(array());
@@ -565,7 +564,7 @@ Array
 )
 ```
 
-Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucunun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
 
 ```php
 $row = $this->db->query("SELECT * FROM users WHERE id = 748")->result(array());
@@ -605,7 +604,7 @@ Array
 )
 ```
 
-Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
+Eğer ilk parametre gönderilirse sonuçların başarısız olması durumunda fonksiyonun hangi türe döneceği belirlenir. Varsayılan <b>false</b> değeridir. Eğer başarısız işlemde sonucunun <b>array()</b> değerine dönmesini isteseydik fonksiyonu aşağıdaki gibi kullanmalıydık.
 
 ```php
 $row = $this->db->query("SELECT * FROM users WHERE id = 748")->resultArray(array());
@@ -615,9 +614,10 @@ $row = $this->db->query("SELECT * FROM users WHERE id = 748")->resultArray(array
 var_dump($row);  // Çıktı array(0) { } 
 ```
 
-
 <a name='writing-database'></a>
-<a name='exec'></a>
+<a name='executeUpdate'></a>
+<a name='insert'></a>
+<a name='update'></a>
 
 
 ### Veritabanına Yazmak
@@ -625,37 +625,6 @@ var_dump($row);  // Çıktı array(0) { }
 ------
 
 Veritabanına yazma işlemleri aşağıdaki metotlar yardımı ile yapılır. Bir yazma metodu çalıştırıldıktan sonra veri işleme gerçekleşir ve metot etkilenen <b>satır sayısına</b> geri döner ve etkilenen satırları alabilmek ayrıca sütun sayma işlemi yapmaya gerek kalmaz.
-
-##### $this->db->insert($expression, array $data, array $types = array())
-
-```php
-$count = $this->db->insert('users', ['username' => user@example.com]);
-
-// INSERT INTO user (username) VALUES ('user@example.com')
-```
-
-##### $this->db->update($expression, array $data, array $identifier, array $types = array())
-
-```php
-$count = $this->db->update(
-    'users',
-    ['username' => 'user@example.com'],
-    ['id' => 1],
-    ['id' => \PDO::PARAM_INT]
-);
-
-// UPDATE users SET username = 'user@example.com' WHERE id = 1
-```
-
-> **Not:** Update operasyonunda eğer veritabanındaki değer gönderilen değer ile <b>aynı</b> ise update işlemi yapılmaz ve etkilenen satır sayısı <b>0</b> olarak elde edilir.
-
-##### $this->db->delete($expression, array $identifier, array $types = array())
-
-```php
-$count = $this->db->delete('users', ['id' => 18], ['id' => \PDO::PARAM_INT]);
-
-// DELETE FROM users WHERE id = 1
-```
 
 ##### $this->db->executeUpdate($query, array $params = array(), array $types = array()
 
@@ -667,6 +636,50 @@ $count = $this->db->executeUpdate(
     ['neo', 1],
     [\PDO::PARAM_STR, \PDO::PARAM_INT]
 );
+```
+
+<a name='delete'></a>
+
+##### $this->db->insert($table, array $data, array $types = array())
+
+```php
+$count = $this->db->insert(
+    'users', 
+    ['username' => 'test@example.com', 'password' => 123456], 
+    ['username' => \PDO::PARAM_STR, 'password' => \PDO::PARAM_INT]
+);
+
+// INSERT INTO user (username, password) VALUES (?, ?)
+// INSERT INTO user (username, password) VALUES ('test@example.com', 123456)
+```
+
+##### $this->db->update($table, array $data, array $identifier, array $types = array())
+
+```php
+$count = $this->db->update(
+    'users', 
+    ['password' => '123456', 'username' => 'user@example.com'], 
+    ['id' => 1], 
+    [
+        'id' => \PDO::PARAM_INT,
+        'username' => \PDO::PARAM_STR,
+        'password' => \PDO::PARAM_STR
+    ]
+);
+
+// UPDATE users SET password = ?, username = ? WHERE id = ?
+// UPDATE users SET password = '123456', username = 'user@example.com' WHERE id = 1
+```
+
+> **Not:** Update operasyonunda eğer veritabanındaki değer gönderilen değer ile <b>aynı</b> ise update işlemi yapılmaz ve etkilenen satır sayısı <b>0</b> olarak elde edilir.
+
+##### $this->db->delete($table, array $identifier, array $types = array())
+
+```php
+$count = $this->db->delete('users', ['id' => 18], ['id' => \PDO::PARAM_INT]);
+
+// DELETE FROM users WHERE id = ?
+// DELETE FROM users WHERE id = 18
 ```
 
 ###### Etkilenen Satır Sayısı
@@ -684,7 +697,7 @@ int(1)
 <a name='query-binding'></a>
 <a name='prepare'></a>
 
-### Güvenli Sorgular Oluşturmak ( Query Binding )
+### Hazırlanmış Sorgular Oluşturmak ( Query Binding )
 
 ------
 
@@ -835,8 +848,7 @@ if ( ! $result) {
 }
 ```
 
-> **Not:** Eğer transactional() fonksiyonu içerisindeki fonksiyon sonucu <b>0</b> yada <b>false</b> ise sonuç her zaman <b>true</b> değerine dönecektir. Sadece gerçek bir istisnai hata olması durumunda sonuç <b>false</b> değerine döner. Eğer fonksiyon sonucu 0 dan büyük bir değere dönüyorsa o zaman sonucun kendisine dönülür.
-
+> **Not:** Eğer transactional() fonksiyonu içerisindeki fonksiyon sonucu <b>0</b> yada <b>false</b> ise sonuç her zaman <b>true</b> değerine dönecektir. Sadece gerçek bir istisnai hata olması durumunda sonuç <b>false</b> değerine döner. Eğer fonksiyon sonucu 0 dan büyük bir değere dönüyorsa o zaman sonucunun kendisine dönülür.
 
 <a name='helper-functions'></a>
 <a name='drivers'></a>
@@ -846,7 +858,6 @@ if ( ! $result) {
 <a name='inTransaction'></a>
 <a name='insertId'></a>
 <a name='quoteIdentifier'></a>
-<a name='getParameters'></a>
 
 ### Yardımcı Fonksiyonlar
 
@@ -875,9 +886,9 @@ Eğer aktif bir transaksiyon işlemi varsa metot <b>true</b> değerine aksi duru
 
 Veritabanına en son eklenen tablo id sinin değerine geri döner.
 
-##### $this->db->quoteIdentifier();
+##### $this->db->quoteIdentifier(string $name);
 
-Veritabanı sürücüsüne göre bir sütun adı yada tablo ismi gibi belirli tanımlayıcılara kaçış sembolü atmanıza yardımcı olur.
+Veritabanı sürücüsünde sütun adı yada tablo isimleriyle karışan rezerve edilmiş bir isim var ise bu isime kaçış sembolü atayarak isim çakışmalarının önüne geçer. Sadece gereken yerlerde kullanılması tavsiye edilir.
 
 
 <a name='queryBuilder'></a>

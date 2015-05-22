@@ -154,48 +154,23 @@ Eğer <b>$params</b> parametresine <b>false</b> değeri gönderilirse sınıf ye
 
 
 ```php
-$this->session = $this->c->get('session', false);
+$this->nesne = $this->c->get('nesne', false);
 ```
 
 Eğer <b>$params</b> parametresine <b>array</b> türü gönderilirse kayıtlı closure fonksiyonu bu yeni parametreler ile yeni bir nesneye döner.
 
 ```php
-$this->db = $this->c->get('qb', ['connection' => 'default']);
+$this->nesne = $this->c->get('nesne', ['example' => 'parameter']);
 ```
+
+Eğer parametre gönderilmezse nesne ilk oluşturulan parametereler ile oluşturulan eski nesne değerlerine ( instance ) döner.
 
 ```php
-$result = $this->db->select('id', 'username')
-    ->from('users')
-    ->where('id = ?')->setParameters([0 => 1])->get()->resultArray();
-
-print_r($result);
+$this->c->get('nesne', ['example' => 'old']);  // yeni nesne
+$this->c->get('nesne');  // eski nesne
+$this->c->get('nesne');  // eski nesne
+$this->c->get('nesne', ['example' => 'new']); // yeni nesne
 ```
-
-Yukarıdaki örnekte query builder servisine default bağlantı parametresi göndererek database servis sağlayıcısından default bağlantısı ile bir query builder nesnesi yaratmasını istiyoruz. Eğer farklı bir bağlantıya ait query builder nesnesi isteseydik aşağıdaki gibi farklı bir bağlantı parametresi göndermeliydik.
-
-```php
-$this->db2 = $this->c->get('qb', ['connection' => 'second']);
-```
-
-```php
-$result = $this->db2->select('id', 'username')
-    ->from('admins')
-    ->where('id = ?')->setParameters([0 => 1])->get()->resultArray();
-
-print_r($result);
-```
-
-Eğer parametre gönderilmezse servis sağlayıcınızda desteklenen default parametresine ait bağlatı kullanılır. Ve query builder nesnesi hep aynı nesne değerlerine ( instance ) a döner.
-
-```php
-$this->c->get('qb');  // eski nesne  ['connection' => 'default']
-$this->c->get('qb');  // eski nesne
-$this->c->get('qb');  // eski nesne
-$this->c->get('qb', ['connection' => 'second']); // yeni nesne
-```
-
-Son örnekte <b>qb</b> isimli servis üzerinden parametre göndererek <b>database</b> servis sağlayıcısını çalıştırmış olduk.
-
 
 <a name="service-loading-a-class"></a>
 

@@ -68,7 +68,7 @@ class Result
     public function rowArray($default = false)
     {
         $result = $this->stmt->fetch(PDO::FETCH_ASSOC);
-
+        
         return ($result) ? $result : $default;
     }
 

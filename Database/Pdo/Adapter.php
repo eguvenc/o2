@@ -6,6 +6,7 @@ use PDO;
 use Closure;
 use Exception;
 use Controller;
+use RuntimeException;
 use Obullo\Container\Container;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\SQLLoggerInterface;
@@ -24,44 +25,39 @@ use Obullo\Service\ServiceProviderInterface;
 class Adapter implements AdapterInterface
 {
     /**
-     * Available drivers
+     * Stores last executed sql query
      * 
-     * @var array
+     * @var string
      */
-    public $drivers = [
-        'pdo_mysql',
-        'pdo_pgsql',
-    ];
+    protected $sql;
 
     /**
      * Pdo connection object
      * 
      * @var object
      */
-    public $conn;
+    protected $conn;
+
+    /**
+     * PDOStatement Object
+     * 
+     * @var null
+     */
+    protected $stmt;
+
+    /**
+     * Timer
+     * 
+     * @var int
+     */
+    protected $start;
 
     /**
      * Connection Params
      * 
      * @var array
      */
-    public $params;    // Pdo provider parameters
-
-    /**
-     * Statement
-     * 
-     * @var null
-     */
-    public $stmt = null; // PDOStatement Object
-
-    /**
-     * Benchmark variables
-     * 
-     * @var string
-     */
-    public $sql;                    // Stores last executed sql query
-    public $start;                  // Timer
-    public $parameters = array();   // Stores last executed PDO values
+    protected $params;
 
     /**
      * SQLLogger
@@ -69,6 +65,23 @@ class Adapter implements AdapterInterface
      * @var object
      */
     protected $logger;
+
+    /**
+     * Available drivers
+     * 
+     * @var array
+     */
+    protected $drivers = [
+        'pdo_mysql',
+        'pdo_pgsql',
+    ];
+
+    /**
+     * Stores last executed PDO params
+     * 
+     * @var array
+     */
+    protected $parameters = array();
 
     /**
      * Constructor
@@ -176,11 +189,10 @@ class Adapter implements AdapterInterface
     public function query()
     {
         $args = func_get_args();
-        $sql = $args[0];
-        
+
         $this->connect();
-        $this->startQuery($sql);
-        $this->stmt = $this->conn->query($sql);
+        $this->startQuery($args[0]);
+        $this->stmt = $this->conn->query($args[0]);
         $this->stopQuery();
         return $this;
     }
@@ -376,16 +388,20 @@ class Adapter implements AdapterInterface
     /**
      * Start query timer & add sql log
      * 
-     * @param string $sql sql
+     * @param string     $sql    sql
+     * @param array|null $params parameters
+     * @param array|null $types  types
      * 
      * @return void
      */
-    protected function startQuery($sql)
+    protected function startQuery($sql, $params = null, $types = null)
     {
         $this->sql = $sql;
-        $params = $this->getParameters(null);
+        if (is_null($params)) {
+            $params = $this->getParameters(null);
+        }
         if ($this->logger) {
-            $this->logger->startQuery($sql, $params);
+            $this->logger->startQuery($sql, $params, $types);
         }
     }
 
@@ -403,15 +419,152 @@ class Adapter implements AdapterInterface
     }
 
     /**
-     * Get prepared parameters
+     * Executes an SQL INSERT/UPDATE/DELETE query with the given parameters and returns the number of affected rows.
      *
-     * @param mixed $failure result value if empty
-     * 
-     * @return array|null
+     * @param string $query  The SQL query.
+     * @param array  $params The query parameters.
+     * @param array  $types  The parameter types.
+     *
+     * @return integer The number of affected rows.
      */
-    public function getParameters($failure = array())
+    public function executeUpdate($query, array $params = array(), array $types = array())
     {
-        return empty($this->parameters) ? $failure : $this->parameters;
+        $this->connect();
+        $this->startQuery($query, $params, $types);
+        if ($params) {
+            $this->stmt = $this->conn->prepare($query);
+            if ($types) {
+                $i = -1;
+                foreach ($types as $type) {
+                    ++$i;
+                    $this->stmt->bindValue($i + 1, $params[$i], $type);
+                }
+                $this->stmt->execute();
+            } else {
+                $this->stmt->execute($params);
+            }
+            $result = $this->stmt->rowCount();
+
+        } else {
+            $result = $this->exec($query);
+        }
+        $this->stopQuery();
+        return $result;
+    }
+
+    /**
+     * Executes an SQL UPDATE statement on a table.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table to update quoted or unquoted.
+     * @param array  $data       An associative array containing column-value pairs.
+     * @param array  $identifier The update criteria. An associative array containing column-value pairs.
+     * @param array  $types      Types of the merged $data and $identifier arrays in that order.
+     *
+     * @return integer The number of affected rows.
+     */
+    public function update($expression, array $data, array $identifier, array $types = array())
+    {
+        $this->connect();
+        $set = array();
+        foreach ($data as $columnName => $value) {
+            $value = null;
+            $set[] = $columnName . ' = ?';
+        }
+        if (is_string(key($types))) {
+            $types = $this->extractTypeValues(array_merge($data, $identifier), $types);
+        }
+        $params = array_merge(array_values($data), array_values($identifier));
+
+        $sql  = 'UPDATE ' . $expression . ' SET ' . implode(', ', $set)
+                . ' WHERE ' . implode(' = ? AND ', array_keys($identifier))
+                . ' = ?';
+        return $this->executeUpdate($sql, $params, $types);
+    }
+
+    /**
+     * Inserts a table row with specified data.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table to insert data into, quoted or unquoted.
+     * @param array  $data       An associative array containing column-value pairs.
+     * @param array  $types      Types of the inserted data.
+     *
+     * @return integer The number of affected rows.
+     */
+    public function insert($expression, array $data, array $types = array())
+    {
+        $this->connect();
+        if (empty($data)) {
+            return $this->executeUpdate('INSERT INTO ' . $expression . ' ()' . ' VALUES ()');
+        }
+        return $this->executeUpdate(
+            'INSERT INTO ' . $expression . ' (' . implode(', ', array_keys($data)) . ')' .
+            ' VALUES (' . implode(', ', array_fill(0, count($data), '?')) . ')',
+            array_values($data),
+            is_string(key($types)) ? $this->extractTypeValues($data, $types) : $types
+        );
+    }
+
+    /**
+     * Extract ordered type list from two associate key lists of data and types.
+     *
+     * @param array $data  values
+     * @param array $types types
+     *
+     * @return array
+     */
+    protected function extractTypeValues(array $data, array $types)
+    {
+        $typeValues = array();
+        foreach ($data as $k => $_) {
+            $_ = null;
+            $typeValues[] = isset($types[$k]) ? $types[$k] : \PDO::PARAM_STR;
+        }
+        return $typeValues;
+    }
+
+    /**
+     * Executes an SQL DELETE statement on a table.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table on which to delete.
+     * @param array  $identifier The deletion criteria. An associative array containing column-value pairs.
+     * @param array  $types      The types of identifiers.
+     *
+     * @return integer The number of affected rows.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function delete($expression, array $identifier, array $types = array())
+    {
+        if (empty($identifier)) {
+            throw new RuntimeException("Delete identifier cannot be empty.");
+        }
+        $this->connect();
+        $criteria = array();
+
+        foreach (array_keys($identifier) as $columnName) {
+            $criteria[] = $columnName . ' = ?';
+        }
+        return $this->executeUpdate(
+            'DELETE FROM ' . $expression . ' WHERE ' . implode(' AND ', $criteria),
+            array_values($identifier),
+            is_string(key($types)) ? $this->extractTypeValues($identifier, $types) : $types
+        );
+    }
+    
+    /**
+     * Closes the cursor, freeing the database resources used by this statement.
+     *
+     * @return boolean TRUE on success, FALSE on failure.
+     */
+    public function closeCursor()
+    {
+        $this->stmt->closeCursor();
     }
 
     /**
@@ -434,7 +587,6 @@ class Adapter implements AdapterInterface
 
             return implode(".", $parts);
         }
-
         return $this->quoteSingleIdentifier($str);
     }
 
@@ -448,7 +600,6 @@ class Adapter implements AdapterInterface
     public function quoteSingleIdentifier($str)
     {
         $c = $this->getIdentifierQuoteCharacter();
-
         return $c . str_replace($c, $c.$c, $str) . $c;
     }
 
@@ -460,6 +611,18 @@ class Adapter implements AdapterInterface
     public function getIdentifierQuoteCharacter()
     {
         return $this->escapeIdentifier;
+    }
+
+    /**
+     * Get prepared parameters
+     *
+     * @param mixed $failure result value if empty
+     * 
+     * @return array|null
+     */
+    public function getParameters($failure = array())
+    {
+        return empty($this->parameters) ? $failure : $this->parameters;
     }
 
     /**

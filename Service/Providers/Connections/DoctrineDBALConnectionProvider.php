@@ -11,7 +11,7 @@ use Doctrine\DBAL\DriverManager;
 use Obullo\Database\Doctrine\DBAL\SQLLogger;
 
 /**
- * Doctrine Connection Provider
+ * Doctrine DBAL Connection Provider
  * 
  * @category  Connections
  * @package   Service
@@ -20,7 +20,7 @@ use Obullo\Database\Doctrine\DBAL\SQLLogger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DoctrineConnectionProvider extends AbstractConnectionProvider
+class DoctrineDBALConnectionProvider extends AbstractConnectionProvider
 {
     protected $c;             // Container
     protected $config;        // Configuration items
@@ -135,7 +135,7 @@ class DoctrineConnectionProvider extends AbstractConnectionProvider
 
 }
 
-// END DoctrineConnectionProvider.php class
-/* End of file DoctrineConnectionProvider.php */
+// END DoctrineDBALConnectionProvider.php class
+/* End of file DoctrineDBALConnectionProvider.php */
 
-/* Location: .Obullo/Service/Providers/Connections/DoctrineConnectionProvider.php */
+/* Location: .Obullo/Service/Providers/Connections/DoctrineDBALConnectionProvider.php */

@@ -249,6 +249,16 @@ class Adapter extends Connection
         $this->stmt = parent::executeQuery($query, $params, $types, $qcp);
         return $this;
     }
+    
+    /**
+     * Closes the cursor, freeing the database resources used by this statement.
+     *
+     * @return boolean TRUE on success, FALSE on failure.
+     */
+    public function closeCursor()
+    {
+        $this->stmt->closeCursor();
+    }
 
     /**
      * Get the pdo statement object and use native pdo functions.

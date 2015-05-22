@@ -4,66 +4,65 @@ namespace Obullo\Service\Providers;
 
 use Obullo\Container\Container;
 use Obullo\Service\ServiceProviderInterface;
-use Obullo\Service\Providers\Connections\DoctrineConnectionProvider;
+use Obullo\Database\Doctrine\DBAL\QueryBuilder;
 
 /**
- * Doctrine Service Provider
+ * Query Builder Provider
  *
  * @category  Provider
- * @package   DoctrineServiceProvider
+ * @package   QbServiceProvider
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DoctrineServiceProvider implements ServiceProviderInterface
+class DoctrineQueryBuilderServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Connector
-     * 
+     * Container
+     *
      * @var object
      */
-    public $connector;
+    public $c;
 
     /**
      * Registry
-     * 
+     *
      * @param object $c container
-     * 
+     *
      * @return void
      */
     public function register(Container $c)
     {
-        $this->connector = new DoctrineConnectionProvider($c);  // Register all Connectors as shared services
-        $this->connector->register();
+        $this->c = $c;
     }
 
     /**
      * Get connection
-     * 
+     *
      * @param array $params array
-     * 
+     *
      * @return object
      */
     public function get($params = array())
     {
-        return $this->connector->getConnection($params);  // Get existing connection
+        return new QueryBuilder($this->c['app']->provider('database')->get($params)); // Get existing connection
     }
 
     /**
-     * Create undefined connection
-     * 
+     * Create unnamed connection
+     *
      * @param array $params array
-     * 
+     *
      * @return object
      */
     public function factory($params = array())
     {
-        return $this->connector->factory($params);  // Get new connection
+        return new QueryBuilder($this->c['app']->provider('database')->factory($params));  // Create new undefined connection
     }
 }
 
-// END DoctrineServiceProvider Class
+// END QbServiceProvider Class
 
-/* End of file DoctrineServiceProvider.php */
-/* Location: .Obullo/Service/Providers/DoctrineServiceProvider.php */
+/* End of file QbServiceProvider.php */
+/* Location: .Obullo/Service/Providers/QbServiceProvider.php */
