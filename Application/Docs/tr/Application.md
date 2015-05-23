@@ -5,6 +5,55 @@ Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o
 
 Ortam değişkenine <kbd>$c['app']->env()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
 
+<ul>
+<li>
+    <a href="#http-and-console-requests">Http ve Konsol ( Cli ) İstekleri</a>
+</li>
+<li>
+    <a href="#index-file">index.php dosyası</a>
+</li>
+<li>
+    <a href="#create-env-file">Ortam Dosyası ( .env.*.php ) Oluşturma</a>
+</li>
+<li>
+    <a href="#environment-configuration">Ortam Konfigürasyonu</a>
+    <ul>
+        <li><a href="#get-env-variable">Ortam Değişkenini Almak</a></li>
+        <li><a href="#existing-env-variables">Mevcut Ortam Değişkenleri</a></li>
+        <li><a href="#create-env-variable-for-env-file">Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak</a></li>
+        <li><a href="#config-php-example">config.php Örneği</a></li>
+        <li><a href="#env-class">Env Sınıfı</a></li>
+        <li><a href="#create-a-new-env-variable">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
+    </ul>
+</li>
+<li>
+    <a href="#assistant-methods">Yardımcı Metotlar</a>
+    <ul>
+        <li><a href="#assistant-methods">$c['app']->environments()</a></li>
+        <li><a href="#assistant-methods">$c['app']->envArray()</a></li>
+        <li><a href="#assistant-methods">$c['app']->envPath()</a></li>
+    </ul>
+<li><a href="#service-providers">Servis Sağlayıcıları</a></li>
+</li>
+<li><a href="#application-class-references">Application Sınıfı Referansı</a>
+    <ul>
+        <li><a href="#application-class-references">$this->c['app']->env()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->middleware(string | object $class, $params = array())</a></li>
+        <li><a href="#application-class-references">$this->c['app']->method()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->router->method()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->uri->method()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->register(array $providers)</a></li>
+        <li><a href="#application-class-references">$this->c['app']->provider(string $name)->get(array $params)</a></li>
+        <li><a href="#application-class-references">$this->c['app']->isCli()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->environments()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->envArray()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->envPath()</a></li>
+    </ul>
+</li>
+</ul>
+
+<a name='http-and-console-requests'></a>
+
 ### Http ve Konsol ( Cli ) İstekleri
 
 
@@ -46,7 +95,7 @@ class Htttp extends Obullo {
 
 Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> index.php dosyasına bir göz atalım.
 
-
+<a name="index-file"></a>
 ### index.php dosyası
 
 Uygulamaya ait tüm isteklerin çözümlendiği dosya index.php dosyasıdır bu dosya sayesinde uygulama başlatılır. Bu dosyanın tarayıcıda gözükmemesini istiyorsanız bir .htaccess dosyası içerisine aşağıdaki kuralları yazmanız yeterli olacaktır.
@@ -59,6 +108,7 @@ RewriteCond $1 !^(index\.php|assets|robots\.txt)
 RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
 ```
 
+<a name="create-env-file"></a>
 ### Ortam Dosyası ( .env.*.php ) Oluşturma
 
 ------
@@ -97,7 +147,7 @@ Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b
 
 > **Not:** Boş sayfa hatası aldığınızda eğer konfigürasyon dosyasından error > debug açıksa ve buna rağmen hatayı göremiyorsanız <kbd>error > reporting</kbd> değerini true yaparak doğal php hataları görebilirsiniz.
 
-
+<a name="environment-configuration"></a>
 ### Ortam Konfigürasyonu
 
 Uygulamanız local, test, production veya yeni ekleyebileceğiniz çevre ortamlarında farklı konfigürasyonlar ile çalışabilir. Geçerli çevre ortamı bir konfigürasyon dosyasında oluşturmuş olduğunuz sunucu isimlerinin mevcut sunucu ismi ile karşılaştırılması sonucu elde edilir. Uygulamanızın hangi ortamda çalıştığını belirleyen konfigürasyon dosyası <b>app/environments.php</b> dosyasıdır.
@@ -139,6 +189,7 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
+<a name="get-env-variable"></a>
 #### Ortam Değişkenini Almak
 
 Geçerli ortam değişkenine env() metodu ile ulaşılır.
@@ -147,6 +198,7 @@ Geçerli ortam değişkenine env() metodu ile ulaşılır.
 echo $c['app']->env();  // Çıktı  local
 ```
 
+<a name="existing-env-variables"></a>
 #### Mevcut Ortam Değişkenleri
 
 <table>
@@ -172,7 +224,7 @@ echo $c['app']->env();  // Çıktı  local
     </tbody>
 </table>
 
-
+<a name="create-env-variable-for-env-file"></a>
 #### Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak
 
 Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
@@ -194,13 +246,14 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
 
 Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
 
+<a name="config-php-example"></a>
 #### config.php Örneği
 
 ```php
 return array(
                     
     'error' => [
-        'debug' => false,  // Friendly debugging feature "disabled"" in "production" environment.
+        'debug' => false,
     ],
 
     'log' =>   [
@@ -227,6 +280,7 @@ return array(
 /* Location: .app/config/env/production/config.php */
 ```
 
+<a name="env-class"></a>
 #### Env Sınıfı
 
 Env sınıfı <b>o2/Application/Http.php</b> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<b>.env.*.php</b> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>Obullo\Config\Env</b> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
@@ -272,7 +326,8 @@ return array(
 /* Location: .app/config/local/mongo.php */
 ```
 
-### Yeni Bir Ortam Değişkeni Yaratmak
+<a name="create-a-new-env-variable"></a>
+#### Yeni Bir Ortam Değişkeni Yaratmak
 
 Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adını küçük harflerle girin. Aşağıdaki örnekte biz <b>myenv</b> adında bir ortam yaratttık.
 
@@ -293,6 +348,7 @@ return array(
 
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
+<a name="assistant-methods"></a>
 ### Yardımcı Metotlar
 
 #### $c['app']->environments();
@@ -340,6 +396,7 @@ Geçerli ortam değişkeninin dosya yoluna geri döner.
 echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
 ```
 
+<a name="service-providers"></a>
 ### Servis Sağlayıcıları
 
 Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
@@ -368,6 +425,7 @@ $c['app']->register(
 Eğer kafanızda soru işaretleri varsa servisler ve servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi için [Container.md](/Container/Docs/tr/Container.md) dosyasına bir gözatın.
 
 
+<a name="application-class-references"></a>
 #### Application Sınıfı Referansı
 
 ------
