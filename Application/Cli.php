@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
-use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
+use Obullo\Http\Debugger\WebSocket;
 
 require OBULLO .'Container'. DS .'Container.php';
 require OBULLO .'Config'. DS .'Config.php';
@@ -70,7 +70,7 @@ class Cli extends Application
         include APP .'events.php';
         include APP .'routes.php';
         
-        if ($this->c['config']['debugger']['enabled']) {
+        if ($this->c['config']['http-debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
@@ -166,7 +166,7 @@ class Cli extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['debugger']['enabled']) {
+        if ($this->c['config']['http-debugger']['enabled']) {
             $this->websocket->cliHandshake();
         }
     }

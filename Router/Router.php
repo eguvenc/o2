@@ -294,7 +294,7 @@ class Router
 
             $layerRequest = isset($_SERVER['LAYER_REQUEST']);
             if ($layerRequest) {  // Returns to false if we have Layer connection error.
-                $this->c['response']->setError('@ErrorTemplate@'.static::DEFAULT_PAGE_ERROR);
+                $this->c['response']->setError('@LayerNotFound@'.static::DEFAULT_PAGE_ERROR);
                 return false;
             }
             $this->checkErrors();
@@ -440,7 +440,7 @@ class Router
      */
     protected function layerNotFound()
     {
-        $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
+        $this->c['response']->setError('@LayerNotFound@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
     }
 
     /**

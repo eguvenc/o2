@@ -99,6 +99,11 @@ Doctrine veritabanı katmanı daha çok PDO sınıfı saran ve PDO sınıfına b
 
 <li>
     <a href="#queryBuilder">Sorgu Oluşturucu ( Query Builder )</a>
+    <ul>
+        <li>
+            <a href="#queryBuilderDoc">Dökümentasyon</a>
+        </li>
+    </ul>
 </li>
 
 </ul>
@@ -892,7 +897,15 @@ Veritabanı sürücüsünde sütun adı yada tablo isimleriyle karışan rezerve
 
 
 <a name='queryBuilder'></a>
+<a name='queryBuilderDoc'></a>
 
 ### Sorgu Oluşturucu ( Query Builder )
 
 ------
+
+Sorgu oluşturucu sql sorgularınızı Object Oriented programlama sitilinde kolayca oluşturmanızı sağlayan bir araçtır. 
+
+
+#### Dökümentasyon
+
+Bu sınıfa ait dökümentasyona [DoctrineQueryBuilder.md](/Docs/tr/DoctrineQueryBuilder.md) dosyasından ulaşılabilir.

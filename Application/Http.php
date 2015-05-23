@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
-use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
+use Obullo\Http\Debugger\WebSocket;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ class Http extends Application
         include APP .'events.php';
         include APP .'routes.php';
 
-        if ($this->c['config']['debugger']['enabled']) {
+        if ($this->c['config']['http-debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
@@ -262,7 +262,7 @@ class Http extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
+        if ($this->c['config']['http-debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit();
         }
     }

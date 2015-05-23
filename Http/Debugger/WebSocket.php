@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Debugger;
+namespace Obullo\Http\Debugger;
 
 use RuntimeException;
 use Obullo\Container\Container;
@@ -55,7 +55,7 @@ class WebSocket
     public function __construct(Container $c)
     {
         $this->c = $c;
-        if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['debugger']['socket'], $matches)) {
+        if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['http-debugger']['socket'], $matches)) {
             throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
         }
         $this->host = $matches['host'];
@@ -165,4 +165,4 @@ class WebSocket
 // END WebSocket.php File
 /* End of file WebSocket.php
 
-/* Location: .Obullo/Debugger/WebSocket.php */
+/* Location: .Obullo/Http/Debugger/WebSocket.php */

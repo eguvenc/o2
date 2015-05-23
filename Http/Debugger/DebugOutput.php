@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Debugger;
+namespace Obullo\Http\Debugger;
 
 use RuntimeException;
 use Obullo\Container\Container;
@@ -175,4 +175,4 @@ class DebugOutput
 // END DebugOutput class
 /* End of file DebugOutput.php */
 
-/* Location: .Obullo/Debbuger/DebugOutput.php */
+/* Location: .Obullo/Http/Debbuger/DebugOutput.php */

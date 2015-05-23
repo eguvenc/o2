@@ -193,7 +193,7 @@ class Layer
         $KEY = $this->getId();      // Get layer id
         $start = microtime(true);   // Start query timer 
 
-        if ($this->params['cache'] AND $response = $this->c['cache']->get($KEY)) {   
+        if ($this->params['cache'] && $response = $this->c['cache']->get($KEY)) {   
             $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
             $this->reset();
             return base64_decode($response);
@@ -224,7 +224,7 @@ class Layer
         }
         if ( ! method_exists($class, $method)) {  // Check method exist or not
             $this->reset();
-            $this->c['response']->setError('@ErrorTemplate@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
+            $this->c['response']->setError('@LayerNotFound@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
             return $this->c['response']->getError();
         }
 
@@ -356,7 +356,7 @@ class Layer
      * 
      * If we have any possible Layer exceptions
      * reset the router variables and restore all objects
-     * to complete Layer process. Otherwise we see 
+     * to complete Layer process. Otherwise we see uncompleted request errors.
      * 
      * @return void
      */

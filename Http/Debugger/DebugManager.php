@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Debugger;
+namespace Obullo\Http\Debugger;
 
 use Obullo\Container\Container;
 
@@ -53,11 +53,11 @@ class DebugManager
     {
         $this->c = $c;
 
-        if ( ! $this->c['config']['debugger']['enabled']) {
+        if ( ! $this->c['config']['http-debugger']['enabled']) {
             $this->c['response']->status(300)->showError('Debugger disabled from your application config file.', "Debugger Disabled");
         }
         $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
-        $this->websocketUrl = $this->c['config']['debugger']['socket'];
+        $this->websocketUrl = $this->c['config']['http-debugger']['socket'];
 
         $this->debugOutput = new DebugOutput($this->c);
     }
@@ -137,6 +137,7 @@ class DebugManager
                     connectedImg.src = base64DeactiveSrc;
 
                     var wsUri = "'.$this->websocketUrl.'";           // Create webSocket connection
+                    console.log(wsUri);
                     var websocket =  new WebSocket(wsUri);
 
                     websocket.onopen = function(data) {        // Connection is open 
@@ -167,7 +168,7 @@ class DebugManager
                 }
                 catch(ex)
                 { 
-                    console.log("Debugger exception error:" + ex);
+                    console.log("Debugger exception error:" + ex.message + " at line " + ex.lineNumber);
                 }
             }
 
@@ -273,4 +274,4 @@ class DebugManager
 // END DebugManager class
 /* End of file DebugManager.php */
 
-/* Location: .Obullo/Debbuger/DebugManager.php */
+/* Location: .Obullo/Http/Debbuger/DebugManager.php */

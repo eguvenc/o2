@@ -6,7 +6,7 @@ use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
 
 /**
- * Layer for Doctrine QueryBuilder
+ * Handle for Doctrine QueryBuilder
  * 
  * @category  Database
  * @package   QueryBuilder
@@ -17,6 +17,22 @@ use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
  */
 class QueryBuilder extends DoctrineQueryBuilder
 {
+    /**
+     * Run execute methods, set table using from 
+     * if tablename not null
+     * 
+     * @param string $table name
+     * 
+     * @return void
+     */
+    public function get($table = null)
+    {
+        if ($table != null) {
+            $this->from($table);
+        }
+        $this->execute();
+    }
+
     /**
      * Call connection methods
      *

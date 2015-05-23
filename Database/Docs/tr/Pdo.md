@@ -61,18 +61,15 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#exec">$this->db->delete()</a></li>
     </ul>
 </li>     
+
 <li>
-    <a href="#query-binding">Hazırlanmış Sorgular Oluşturmak ( Query Binding )</a>
+    <a href="#security">Güvenlik</a>
     <ul>
-        <li><a href="#prepare">$this->db->prepare()</a></li>
-    </ul>
-</li>
-<li>
-    <a href="#escaping-sql-injections">Sql Enjeksiyonundan Kaçış</a>
-    <ul>
+        <li><a href="#escaping-sql-injections">Sql Enjeksiyonunu Önlemek</a></li>
         <li><a href="#escape">$this->db->escape()</a></li>
     </ul>
-</li>  
+</li>
+
 <li>
     <a href="#transactions">Veri Kaybı Olmadan Veri Kaydetmek ( Transactions )</a>
     <ul>
@@ -642,11 +639,15 @@ var_dump($count);
 ```php
 int(1)
 ```
+<a name='security'></a>
 
-<a name='query-binding'></a>
-<a name='prepare'></a>
+### Güvenlik
 
-### Hazırlanmış Sorgular Oluşturmak ( Query Binding )
+------
+
+<a name='escaping-sql-injections'></a>
+
+##### Sql Enjeksiyonunu Önlemek
 
 ------
 
@@ -655,14 +656,6 @@ Pdo nesnesi ile güvenli sorgular oluşturmak için <a href="http://php.net/manu
 Ayrıca eğer uygulamanın bir bölümünde çok fazla aynı sql sorgusu kullanılıyorsa prepare yöntemi sql sorgularını önbelleğe alır ve birbirine eş değer çok fazla sorgu olması durumunda performans sağlar. 
 
 > **Not:** Query binding yöntemini kullandığınızda sql enjeksiyon tehdidine karşı girilen değerlerden $this->db->escape() metodu ile kaçış yapmanıza gerek kalmaz.
-
-##### Eğer uygulamanın bir bölümünde prepare metodu kullanıyorsanız aşağıdaki iki neden veya bu iki nedenden bir tanesine ihtiyaç duyuyor olmanız gerekir.
-
-1. Uygulama için kritik bir sql sorgusu ve girilen değerlerde tür kontrolü gerekli ise.
-2. Uygulamanın bir bölümünde aynı sql sorgusu farklı değerlerler ile çok kez tekrarlanıyorsa.
-
-Bu iki koşuldan birinin oluşmadığı durumlarda query() metodunu kullanarak daha hızlı sql sorguları elde edebilirsiniz.
-
 
 ##### $this->db->prepare()
 
@@ -714,18 +707,12 @@ WHERE calories < :calories AND colour = :colour')->execute(
 );
 ```
 
-<a name='escaping-sql-injections'></a>
 <a name='escape'></a>
 
 
-### Sql Enjeksiyonundan Kaçış
-
-------
-
-Eğer <b>query binding</b> özelliğini kullanmıyorsanız sorgu değerlerini <a href="http://tr.wikipedia.org/wiki/SQL_Injection">sql enjeksiyon</a> güvenlik tehdidine karşı bir kaçış fonksiyonu kullanmanız gerekir. Escape fonksiyonu belirli karakterlerden kaçarak sql cümleciği değerlerini güvenli bir şekilde oluşturmanızı sağlar.
-
-
 ##### $this->db->escape()
+
+Eğer <b>prepare</b> özelliğini kullanmıyorsanız sorgu değerlerini <a href="http://tr.wikipedia.org/wiki/SQL_Injection">sql enjeksiyon</a> güvenlik tehdidine karşı bir kaçış fonksiyonu kullanmanız gerekir. Escape fonksiyonu belirli karakterlerden kaçarak sql cümleciği değerlerini güvenli bir şekilde oluşturmanızı sağlar.
 
 Sql enjeksiyon tehditlerine karşı bağlantıdaki aktif karaktere türüne ( charset ) göre girilen karakterlerden kaçar.
 
@@ -850,4 +837,4 @@ Eğer mevcut veritabanı katmanı projeniz için yetmiyorsa Obullo kendi veritab
 
 ### Doctrine Veritabanı Katmanı
 
-Eğer <b>composer</b> kullanıyorsanız sık kullanılan veritabanı katmanlarından biri olan  <a href="http://www.doctrine-project.org/" target="_blank">Doctrine DBAL</a> veritabanı katmanını [bu dökümentasyondan](/Database/Docs/DoctrineDBAL.md) faydalanarak bir eklenti olarak kurabilirsiniz. Doctrine DBAL ve Query Builder sınıfları için Obullo içerisinden özel yazılmış adaptörler kod yapınızı bozmadan entegrasyon sağladığı gibi mevcut doctrine yazım yöntemlerini de kolaylaştırır. Veritabanı sonuçları Result sınıfı üzerinden elde edildiğinden veritabanı sorgu sonuçları içinde kodlarınızı değiştirmek zorunda kalmazsınız.
+Eğer <b>composer</b> kullanıyorsanız sık kullanılan veritabanı katmanlarından biri olan  <a href="http://www.doctrine-project.org/" target="_blank">Doctrine DBAL</a> veritabanı katmanını [bu dökümentasyondan](/Database/Docs/DoctrineDBAL.md) faydalanarak varolan veritabanı katmanı yerine bir eklenti olarak kurabilirsiniz. Doctrine DBAL ve Query Builder sınıfları için Obullo içerisinden özel yazılmış adaptörler kod yapınızı bozmadan entegrasyon sağladığı gibi mevcut doctrine yazım yöntemlerini de kolaylaştırır. Veritabanı sonuçları Result sınıfı üzerinden elde edildiğinden veritabanı sorgu sonuçları içinde kodlarınızı değiştirmek zorunda kalmazsınız.

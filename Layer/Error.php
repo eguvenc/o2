@@ -61,52 +61,7 @@ class Error
      */
     public function getError($response)
     {
-        if ($this->c['request']->isAjax()) {  // Is ajax request ?
-            return array(
-                'success' => 0,
-                'message' => $response,
-                'errors' => array()
-            );
-        }
         return (static::ERROR_HEADER . $response . static::ERROR_FOOTER);
-    }
-
-    /**
-     * Get private request format error
-     * 
-     * @param string $response lvc response
-     * 
-     * @return string
-     */
-    public function getFormatError($response)
-    {
-        $error = sprintf(
-            '%s<span style="font-weight:bold;">Database layer response array must be contain at least one of the following keys.</span><pre style="border:none;">
-            $r = array(
-                \'success\' => integer     // optional
-                \'message\' => string,     // optional
-                \'errors\'  => array(),    // optional
-                \'results\' => array(),    // optional
-                \'e\' => $e->getMessage(), // optional
-            )
-
-            echo json_encode($r); // required
-
-            <b>Actual Response:</b> %s
-            </pre>%s',
-            static::ERROR_HEADER,
-            (is_array($response) ? print_r($response, true) : $response),
-            static::ERROR_FOOTER
-        );
-
-        if ($this->c['request']->isAjax()) {
-            return array(
-                'success' => 0,
-                'message' => $error,
-                'errors' => array()
-            );
-        }
-        return $error;
     }
     
 }
