@@ -40,7 +40,7 @@ class Is extends AbstractFilter
         $options['options']['max_range'] = $max;
         $options['options']['flags'] = static::getFlag($flag);
 
-        return filter_var($this->getValue($value), FILTER_VALIDATE_INT, $options);
+        return filter_var($value, FILTER_VALIDATE_INT, $options);
     }
 
     /**
@@ -53,7 +53,7 @@ class Is extends AbstractFilter
      */
     public function float($value = '', $default = false)
     {
-        return filter_var($this->getValue($value), FILTER_VALIDATE_FLOAT, static::getDefault($default));
+        return filter_var($value, FILTER_VALIDATE_FLOAT, static::getDefault($default));
     }
 
     /**
@@ -66,7 +66,7 @@ class Is extends AbstractFilter
      */
     public function bool($value = '', $default = false)
     {
-        return filter_var($this->getValue($value), FILTER_VALIDATE_BOOLEAN, static::getDefault($default));
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, static::getDefault($default));
     }
 
     /**
@@ -79,7 +79,7 @@ class Is extends AbstractFilter
      */
     public function email($value = '', $default = false)
     {
-        return filter_var($this->getValue($value), FILTER_VALIDATE_EMAIL, static::getDefault($default));
+        return filter_var($value, FILTER_VALIDATE_EMAIL, static::getDefault($default));
     }
     
     /**
@@ -96,7 +96,7 @@ class Is extends AbstractFilter
         $options = static::getDefault($default);
         $options['flags'] = static::getFlag($flag);
 
-        return filter_var($this->getValue($value), FILTER_VALIDATE_IP, $options);
+        return filter_var($value, FILTER_VALIDATE_IP, $options);
     }
 
     /**
@@ -120,7 +120,7 @@ class Is extends AbstractFilter
         $options = static::getDefault($default);
         $options['options']['flags'] = static::getFlag($flag);
 
-        return filter_var($this->getValue($value), FILTER_VALIDATE_URL, $options);
+        return filter_var($value, FILTER_VALIDATE_URL, $options);
     }
 }
 

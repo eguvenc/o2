@@ -94,19 +94,23 @@ class Entry extends \Obullo\Database\Model
      */
     public function insert()
     {
-        return $this->db->exec(
-            sprintf(
-                "INSERT INTO entries (title, content, date) VALUES (%s, %s, %d)",
-                $this->db->escape($this->title),
-                $this->db->escape($this->content),
-                $this->date
-            )
+        return $this->db->insert(
+            'entries', 
+            [
+                'title' => $this->title, 
+                'content' => $this->content,
+                'date' => $this->date
+            ], 
+            [
+                'title' => \PDO::PARAM_STR,
+                'content' => \PDO::PARAM_STR,
+                'date' => \PDO::PARAM_INT,
+            ]
         );
-
     }
 
     /**
-     * Update entry
+     * Update entry ( Example transaction )
      * 
      * @param integer $id id
      * 
@@ -114,19 +118,30 @@ class Entry extends \Obullo\Database\Model
      */
     public function update($id)
     {
-        return $this->db->exec(
-            sprintf(
-                "UPDATE entries SET title = %s, content = %s, date = %d WHERE id = %d",
-                $this->db->escape($this->title),
-                $this->db->escape($this->content),
-                $this->date,
-                $id
-            )
+        return $this->db->transactional(
+            function () 
+            {
+                return $this->db->update(
+                    'entries', 
+                    [
+                        'title' => $this->title, 
+                        'content' => $this->content,
+                        'date' => $this->date
+                    ], 
+                    ['id' => 1], 
+                    [
+                        'id' => \PDO::PARAM_INT,
+                        'title' => \PDO::PARAM_STR,
+                        'content' => \PDO::PARAM_STR,
+                        'date' => \PDO::PARAM_INT,
+                    ]
+                );
+            }
         );
     }
 
     /**
-     * Example transaction support
+     * Delete entry
      * 
      * @param integer $id id
      * 
@@ -134,12 +149,7 @@ class Entry extends \Obullo\Database\Model
      */
     public function delete($id)
     {
-        return $this->db->exec(
-            sprintf(
-                "DELETE FROM entries WHERE id = %d",
-                $id
-            )
-        );
+        return $this->db->delete('entries', ['id' => $id], ['id' => \PDO::PARAM_INT]);
     }
 
     /**
@@ -172,16 +182,23 @@ class Entry extends \Obullo\Database\Model
      */
     public function insert()
     {
-        return $this->db->transactional(
-            function () use () {
+        $data = [
+                    'title' => $this->title, 
+                    'content' => $this->content,
+                    'date' => $this->date
+        ];
 
-                return $this->db->exec(
-                    sprintf(
-                        "INSERT INTO entries (title, content, date) VALUES (%s, %s, %d)",
-                        $this->db->escape($this->title),
-                        $this->db->escape($this->content),
-                        $this->date
-                    )
+        return $this->db->transactional(
+            function () use ($data) {
+
+                return $this->db->insert(
+                    'entries', 
+                    $data, 
+                    [
+                        'title' => \PDO::PARAM_STR,
+                        'content' => \PDO::PARAM_STR,
+                        'date' => \PDO::PARAM_INT,
+                    ]
                 );
             }
         );
@@ -229,19 +246,15 @@ class Welcome extends \Controller
         $this->entry->title = 'Update Test';
         $this->entry->content = 'Welcome to my world';
         $this->entry->date = time();
-        $this->entry->update($id);
-
-        echo 'Entry updated.';
+        $this->entry->update($id);  // Transaction example
+                                    // Globally catch the PDOException Errors using app/errors.php
+                                    // or use try catch
+        echo 'Entry updated.';    
     }
 
     public function delete($id)
     {
-        if ($this->entry->delete($id)) {  // Transaction example
-            echo 'Entry deleted.';
-        } 
-
-        // Globally catch the PDOException Errors 
-        // using app/errors.php
+        $this->entry->delete($id);
     }
 }
 

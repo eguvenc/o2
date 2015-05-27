@@ -30,13 +30,43 @@ class QueryBuilder extends DoctrineQueryBuilder
         if ($table != null) {
             $this->from($table);
         }
-        $this->execute();
+        return parent::execute();
+    }
+
+    /**
+     * Set limit value
+     * 
+     * @param int $limit  value
+     * @param int $offset value ( optional )
+     * 
+     * @return object
+     */
+    public function limit($limit, $offset = null)
+    {
+        $this->setMaxResults((int)$limit);
+        $this->offset($offset);
+        return $this;
+    }
+
+    /**
+     * Set offset value
+     * 
+     * @param int $offset value
+     * 
+     * @return object
+     */
+    public function offset($offset)
+    {
+        if (is_numeric($offset)) {
+            $this->setFirstResult($offset);
+        }
+        return $this;
     }
 
     /**
      * Call connection methods
      *
-     * This method allows to you reach database connection methods
+     * This method allows to you reach database connection object methods
      * 
      * Example :
      * 
@@ -49,7 +79,11 @@ class QueryBuilder extends DoctrineQueryBuilder
      */
     public function __call($method, $arguments)
     {
-        return call_user_func_array(array($this->getConnection(), $method), $arguments);
+        $connection = $this->getConnection();
+        if ($connection == null) {
+            return;
+        }
+        return call_user_func_array(array($connection, $method), $arguments);
     }
 }
 

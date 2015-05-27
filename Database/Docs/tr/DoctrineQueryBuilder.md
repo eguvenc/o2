@@ -43,13 +43,49 @@ Doctrine 2.1 sürüm ile gelen query builder sınıfı eklentisi SQL dili için 
                 <li><a href="#where-expr">$this->db->expr()</a></li>
             </ul>
         </li>
-        <li><a href="#group-by">GROUP BY & HAVING</a></li>
-        <li><a href="#join">JOIN</a></li>
+
+        <li>
+            <a href="#groupBy">GROUP BY & HAVING</a>
+            <ul>
+                <li><a href="#orHaving">$this->db->orHaving()</a></li>
+                <li><a href="#andHaving">$this->db->andHaving()</a></li>
+                <li><a href="#addGroupBy">$this->db->addGroupBy()</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#join">JOIN</a>
+            <ul>
+                <li><a href="#innerJoin">$this->db->innerJoin()</a></li>
+                <li><a href="#rightJoin">$this->db->rightJoin()</a></li>
+                <li><a href="#leftJoin">$this->db->leftJoin()</a></li>
+            </ul>
+        </li>
+
         <li><a href="#order-by">ORDER BY</a></li>
         <li><a href="#limit">LIMIT</a></li>
-        <li><a href="#value">VALUES</a></li>
+        <li><a href="#values">VALUES</a></li>
         <li><a href="#set">SET</a></li>
-        <li><a href="#exressions">Sql İfadeleri Yaratmak</a></li>
+        <li>
+            <a href="#operators">Sql Operatörleri</a>
+            <ul>
+                <li><a href="#expr">$this->db->expr()</a></li>
+                <li><a href="#andx">$this->db->andx()</a></li>
+                <li><a href="#orx">$this->db->orx()</a></li>
+                <li><a href="#eq">$this->db->eq()</a></li>
+                <li><a href="#neq">$this->db->neq()</a></li>
+                <li><a href="#lt">$this->db->lt()</a></li>
+                <li><a href="#lte">$this->db->lte()</a></li>
+                <li><a href="#gt">$this->db->gt()</a></li>
+                <li><a href="#gte">$this->db->gte()</a></li>
+                <li><a href="#isNull">$this->db->isNull()</a></li>
+                <li><a href="#isNotNull">$this->db->isNotNull()</a></li>
+                <li><a href="#notLike">$this->db->notLike()</a></li>
+                <li><a href="#in">$this->db->in()</a></li>
+                <li><a href="#notIn">$this->db->notIn()</a></li>
+                <li><a href="#escape">$this->db->escape()</a></li>
+            </ul>
+        </li>
         <li><a href="#query-binding">Sorgulara Parametre Yerleştirme ( Query Binding )</a></li>
     </ul>
 </li>
@@ -88,7 +124,7 @@ Böylelikle mevcut database servis sağlayıcısını doctrine dbal servis sağl
 
 Sorgu oluşturucu <b>DoctrineQueryBuilderServiceProvider</b> isimli servis sağlayıcısı üzerinden çalışır. Servis sağlayıcı database servis sağlayıcısına bağlanarak önceden tanımlı olan bağlantı adına ilişkin veriler ile sorgu oluşturucuya ait veritabanı bağlantısını kurar. 
 
-Eğer servis sağlayıcısı tanımlı değilse <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi <b>qb</b> anahtarına tanımlamanız önerilir.
+Eğer servis sağlayıcısı tanımlı değilse <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi <b>this->db</b> anahtarına tanımlamanız önerilir.
 
 ```php
 $c['app']->register(
@@ -96,7 +132,7 @@ $c['app']->register(
         'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
         // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
        	'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
-        'qb' => 'Obullo\Service\Providers\DoctrineQueryBuilderServiceProvider',
+        'this->db' => 'Obullo\Service\Providers\DoctrineQueryBuilderServiceProvider',
     ]
 );
 
@@ -108,18 +144,18 @@ $c['app']->register(
 
 #### Sınıfı Yüklemek
 
-Servis sağlayıcısı yapılandırmasından sonra sorgu oluşturucuyu servis sağlayıcısı üzerinden bağlantı parametereleri göndererek oluşturabilirsiniz. Gönderilen bağlantı parametreleri <b>qb</b> servis sağlayıcısı üzerinden <b>database</b> servis sağlayıcısına gönderilirler.
+Servis sağlayıcısı yapılandırmasından sonra sorgu oluşturucuyu servis sağlayıcısı üzerinden bağlantı parametereleri göndererek oluşturabilirsiniz. Gönderilen bağlantı parametreleri <b>this->db</b> servis sağlayıcısı üzerinden <b>database</b> servis sağlayıcısına gönderilirler.
 
 Sınıfı servis sağlayıcısı ile bir kez oluşturduktan sonra istediğiniz değişkene atayabilirsiniz.
 
 ```php
-$this->db = $this->c['app']->provider('qb')->get(['connection' => 'default']);
+$this->db = $this->c['app']->provider('this->db')->get(['connection' => 'default']);
 ```
 
 Eğer parametre gönderilmezse database servis sağlayıcısı varsayılan olarak default bağlantısına bağlanacaktır.
 
 ```php
-$this->db = $this->c['app']->provider('qb')->get();
+$this->db = $this->c['app']->provider('this->db')->get();
 
 $row = $this->db
     ->select('id', 'name')
@@ -262,9 +298,11 @@ $this->db
 Alternatif olarak where ifadeleri içerisinde ifadeler yaratmak için <kbd>$this->db->expr()</kbd> metodunu kullabilirsiniz.
 
 ```php
-$or = $this->db->expr()->orx();
-$or->add($this->db->expr()->eq('u.id', 1));
-$or->add($this->db->expr()->eq('u.id', 2));
+$e = $this->db->expr();
+
+$or = $e->orx();
+$or->add($e->eq('u.id', 1));
+$or->add($e->eq('u.id', 2));
 
 echo $this->db->update('users', 'u')
     ->set('u.password', md5('password'))
@@ -273,13 +311,541 @@ echo $this->db->update('users', 'u')
 // UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE (u.id = 1) OR (u.id = 2)
 ```
 
-### Sql İfadeleri Yaratmak
+<a name="groupBy"></a>
 
+#### GROUP BY & HAVING
+
+SELECT ifadesi GROUP BY ve HAVING ifadeleri ile kullanılabilir. Having metodu kullanma işlevi where() metodu işlevi gibi çalışır ve andHaving() veya orHaving() gibi size uyan metotlardan biri ile kombine edilebilir.
+
+```php
+echo $this->db
+    ->select('DATE(last_login) as date', 'COUNT(id) AS users')
+    ->from('users')
+    ->groupBy('DATE(last_login)')
+    ->having('users > 10');
+
+// SELECT DATE(last_login) as date, COUNT(id) AS users 
+// FROM users GROUP BY DATE(last_login) HAVING users > 10 
+```
+
+<a name="orHaving"></a>
+
+##### $this->db->orHaving()
+
+```php
+echo $this->db
+    ->select('COUNT(id) as users')
+    ->from('users')
+    ->groupBy('username')
+    ->having('users > 10')
+    ->orHaving('users < 5');
+
+// SELECT COUNT(id) as users FROM users GROUP BY username 
+// HAVING (users > 10) OR (users < 5) 
+```
+
+<a name="andHaving"></a>
+
+##### $this->db->andHaving()
+
+```php
+echo $this->db
+    ->select('COUNT(id) as users')
+    ->from('users')
+    ->groupBy('username')
+    ->having('users > 10')
+    ->andHaving("username = 'test'");
+
+// SELECT COUNT(id) as users FROM users GROUP BY username HAVING (users > 10) AND (username = 'test')
+```
+
+<a name="addGroupBy"></a>
+
+##### $this->db->addGroupBy()
+
+GROUP BY ifadesi için groupBy() metodu ile en son groupBy değeri değiştirilebilir yada addGroupBy() metodu ile birden fazla groupBy eklenebilir.
+
+```php
+echo $this->db
+    ->select('u.name')
+     ->from('users', 'u')
+     ->groupBy('u.lastLogin')
+     ->addGroupBy('u.createdAt');
+
+// SELECT u.name FROM users u GROUP BY u.lastLogin, u.createdAt 
+```
+
+<a name="join"></a>
+
+#### JOIN
+
+SELECT ifadeleri için INNER, LEFT ve RIGHT olmak üzere farklı türde JOIN ifadeleri oluşturabilirsiniz: RIGHT join tüm platformlarda desteklenmeyebilir mesela Sqlite veritabanında RIGHT join desteklemez. Bir JOIN ifadesi daima bir FROM ifadesinin bir parçasıdır bu yüzden FROM parçasında ona verilen bir takma ad join metodunda ilk parametre olarak girilir. İkinci ve üçüncü parametrelere join tablosunun adı ve kısa takmaadı girilir, dördüncü parametre ise ON ifadesine ait eşleştirmeyi içerir.
+
+```php
+echo $this->db
+    ->select('u.id', 'u.name', 'p.number')
+    ->from('users', 'u')
+    ->innerJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
+
+// SELECT u.id, u.name, p.number FROM users u LEFT JOIN phonenumbers p ON u.id = p.user_id 
+```
+
+> **Not:** join(), innerJoin(), leftJoin() ve rightJoin() fonksiyonları için işlevler aynıdır join() metodu innerJoin() metodunun takma adı dır.
+
+
+<a name="innerJoin"></a>
+
+##### $this->db->innerJoin()
+
+```php
+echo $this->db
+    ->select('u.id', 'u.name', 'p.number')
+    ->from('users', 'u')
+    ->innerJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
+
+// SELECT u.id, u.name, p.number FROM users u INNER JOIN phonenumbers p ON u.id = p.user_id
+```
+
+<a name="rightJoin"></a>
+
+##### $this->db->rightJoin()
+
+```php
+echo $this->db
+    ->select('u.id', 'u.name', 'p.number')
+    ->from('users', 'u')
+    ->rightJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
+
+// SELECT u.id, u.name, p.number FROM users u RIGHT JOIN phonenumbers p ON u.id = p.user_id 
+```
+
+<a name="leftJoin"></a>
+
+##### $this->db->leftJoin()
+
+```php
+echo $this->db
+    ->select('u.id', 'u.name', 'p.number')
+    ->from('users', 'u')
+    ->leftJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
+
+// SELECT u.id, u.name, p.number FROM users u LEFT JOIN phonenumbers p ON u.id = p.user_id
+```
+
+<a name="order-by"></a>
+
+#### ORDER BY
+
+orderBy($sort, $order = null) metodu ORDER BY ifadesine sıralama ifadeleri ekler. orderBy metoduna ait olan değeri değiştirmemek için tekrar orderBy yerine addOrderBy metodu kullanılır.
+
+```php
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->orderBy('username', 'ASC')
+    ->addOrderBy('last_login', 'ASC NULLS FIRST');
+
+// SELECT id, name FROM users ORDER BY username ASC, last_login ASC NULLS FIRST
+```
+
+> **Not:** Opsiyonel parametre olan $order parametresi herhangi bir güvenlik önlemi içermez, bu parametreye girilen kullanıcı girdileri tehlikeli olabilir bu nedenle bu girdide sadece SQL ifadelerine izin verilmelidir.
+
+<a name="limit"></a>
+
+#### LIMIT
+
+Yalnızca bir kaç veritabanı LIMIT ifadesini destekler MySQL veritabanı bunların arasındadır fakat Doctrine DBAL arayüzü bu fonsiyonaliteyi tüm veritabanı sürücüleri için destekler. Bu özelliği kullanabilmek için <b>offset($offset)</b> ve <b>limit($limit)</b> metotlarını kullanarak sonuçları sınırlandırmanız gerekir.
+
+```php
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->limit(20)
+    ->offset(10);
+
+// SELECT id, name FROM users LIMIT 20 OFFSET 10 
+```
+veya offset limit metodunun ikinci parametresi olarak girilebilir.
+
+```php
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->limit(20, 10);
+
+// SELECT id, name FROM users LIMIT 20 OFFSET 10     
+```
+
+**Not**: Şuanki Doctrine DBAL sürümlerinde limit metodu setMaxResults() offset metodu ise setFirstResutl() olarak çağrılır. Bu fonksiyonlar Obullo içinde de desteklenir fakat  kod yazımını kolaylaştırmak amacıyla Obullo içerisinde bu metotlar limit ve offset olarak adlandırılmıştır.
+
+<a name="values"></a>
+
+#### VALUES
+
+Sorgu oluşturucu içerisindeki values() metodu ile INSERT ifadeleri için sütunlara özgü değerler sorguya gönderilebilir.
+
+```php
+echo $this->db
+    ->insert('users')
+    ->values(
+        array(
+            'name' => '?',
+            'password' => '?'
+        )
+    )
+    ->setParameter(0, $username)
+    ->setParameter(1, $password);
+
+// INSERT INTO users (name, password) VALUES (?, ?)
+```
+
+values() metodunun bir kere çağrılması daha önceden ardı ardında çağırılan setValue() metodu değerlerini değiştirir.
+
+```php
+echo $this->db
+    ->insert('users')
+    ->setValue('name', '?')
+    ->setValue('password', '?')
+    ->setParameter(0, $username)
+    ->setParameter(1, $password)
+;
+// INSERT INTO users (name, password) VALUES (?, ?)
+```
+
+yada her iki method birlikte de kombine edilebilir.
+
+```php
+echo $this->db
+    ->insert('users')
+    ->values(
+        array(
+            'name' => '?'
+        )
+    )
+    ->setParameter(0, $username)
+;
+// INSERT INTO users (name) VALUES (?)
+
+if ($password) {
+    $this->db
+        ->setValue('password', '?')
+        ->setParameter(1, $password)
+    ;
+    // INSERT INTO users (name, password) VALUES (?, ?)
+}
+```
+
+Eğer herhangi bir değer atanmazsa sonuç boş bir sql sorgusuna döner.
+
+```php
+echo $this->db
+    ->insert('users');
+
+// INSERT INTO users () VALUES ()
+```
+
+Sorgunun çalışabilmesi için <b>execute()</b> metodunun en sonda çağrılması gerekir.
+
+```php
+echo $this->db->insert('users')
+    ->values(['username' => '?'])
+    ->setParameter(0, 'user@example.com')
+    ->execute();
+
+// 1
+```
+
+<a name="set"></a>
+
+#### SET
+
+UPDATE ifadesi için sütün değerleri göndermek zorunludur ve <b>set()</b> fonksiyonu ile gönderilir. İkinci parametre için dikkatli olun bu paramtereye kullanıcı girdileri göndermek güvenli değildir.
+
+```php
+echo $this->db
+    ->update('users', 'u')
+    ->set('u.logins', 'u.logins + 1')
+    ->set('u.last_login', '?')
+    ->setParameter(0, $userInputLastLogin);
+
+// UPDATE users u SET u.logins = u.logins + 1, u.last_login = ? 
+```
+
+<a name="operators"></a>
+
+### Sql Operatörleri
+
+Daha fazla kompleks WHERE, HAVING veya diğer ifadeler için operatörler ile bütün bir sorgu içerisinde sorgu parçaları yaratabilirsiniz. Bunun için sorgu oluşturucuda önce <b>$this->db->expr()</b> metodu ile ifade nesnesini yaratmanız gerekir ve sonra oluşan expression nesnesi üzerinden expression metotlarına ulaşabilirsiniz.
+
+Genellikle ifade oluşturmak için ilk önce And veya Or operatörleri seçilir. Daha sonra seçilen operatör içerisinde karşılaştırma operatörü belirtilerek sorgu parçaları oluşturulur.
+
+```php
+$e = $this->db->expr();
+
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->where(
+        $e->andX(
+            $e->eq('username', '?'),
+            $e->eq('email', '?')
+        )
+    );
+
+// SELECT id, name FROM users WHERE (username = ?) AND (email = ?) 
+```
+
+andX() ve orX() metotları isteğe bağlı sayıda alt alta ilişkili argüman alabilirler.
+
+<a name="expr"></a>
 
 ##### $this->db->expr()
 
+Operatör metotlarına ulaşmak için ifade nesnesini oluşturur.
+
+```php
+$e = $this->db->expr();
+
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->where(
+        $e->andX(
+            $e->eq('username', '?'),
+            $e->eq('email', '?')
+        )
+    );
+
+// SELECT id, name FROM users WHERE (username = ?) AND (email = ?) 
+```
+
+<a name="andx"></a>
+
 ##### $this->db->andx()
 
-##### $this->db->orx()
+Girilen ifadelere göre AND bağlacı yaratır.
+
+
+```php
+$e = $this->db->expr();
+
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->where(
+        $e->andX(
+            $e->eq('username', '?'),
+            $e->eq('email', '?')
+        )
+    );
+
+// SELECT id, name FROM users WHERE (username = ?) AND (email = ?)
+```
+
+<a name="orx"></a>
 
 ##### $this->db->orx()
+
+Girilen ifadelere göre OR bağlacı yaratır.
+
+```php
+$e = $this->db->expr();
+
+$or = $e->orx();
+$or->add($e->eq('u.id', 1));
+$or->add($e->eq('u.id', 2));
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($or);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE (u.id = 1) OR (u.id = 2)     
+```
+
+<a name="eq"></a>
+
+##### $this->db->eq()
+
+Girilen argümanlar ile bir eşitlik kıyaslama ifadesi oluşturur.
+
+```php
+$e = $this->db->expr();
+
+$or = $e->orx();
+$or->add($e->eq('u.id', 1));
+$or->add($e->eq('u.id', 2));
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($or);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE (u.id = 1) OR (u.id = 2) 
+```
+
+<a name="neq"></a>
+
+##### $this->db->neq()
+
+Girilen argümanlar ile bir eşitlik tersi kıyaslama ifadesi oluşturur.
+
+```php
+$e = $this->db->expr();
+
+$or = $e->orx();
+$or->add($e->neq('u.id', 2));
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($or);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE u.id <> 2 
+```
+
+<a name="lt"></a>
+
+##### $this->db->lt()
+
+Girilen argümanlar ile bir küçüktür kıyaslama ifadesi oluşturur.
+
+```php
+$e = this->db->expr();
+
+$and = $e->andx();
+$and = $e->lt('u.id', 49);
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->>where($and);
+```
+
+<a name="lte"></a>
+
+##### $this->db->lte()
+
+Girilen argümanlar ile bir küçük eşit kıyaslama ifadesi oluşturur.
+
+```php
+$e = $this->db->expr();
+
+$and = $e->andx();
+$and = $e->lte('u.id', 49);
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($and);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE u.id <= 49
+```
+
+<a name="gt"></a>
+
+
+##### $this->db->gt()
+
+Girilen argümanlar ile bir büyüktür kıyaslama ifadesi oluşturur.
+
+```php
+$e = $this->db->expr();
+
+$and = $e->andx();
+$and = $e->gt('u.id', 10);
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($and);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE u.id > 10 
+```
+
+<a name="gte"></a>
+
+##### $this->db->gte()
+
+Girilen argümanlar ile bir büyük eşit kıyaslama ifadesi oluşturur.
+
+```php
+$e = $this->db->expr();
+
+$and = $e->andx();
+$and = $e->gte('u.id', 10);
+
+echo $this->db->update('users', 'u')
+    ->set('u.password', md5('password'))
+    ->where($and);
+
+// UPDATE users u SET u.password = 5f4dcc3b5aa765d61d8327deb882cf99 WHERE u.id >= 10
+```
+
+<a name="isNull"></a>
+
+##### $this->db->isNull($str)
+
+Girilen argümanlar ile bir IS NULL ifadesi oluşturur.
+
+<a name="isNotNull"></a>
+
+##### $this->db->isNotNull($str)
+
+Girilen argümanlar ile bir IS NOT NULL ifadesi oluşturur.
+
+<a name="like"></a>
+
+##### $this->db->like($field, $val)
+
+Girilen argümanlar ile bir LIKE() karşılaştırma ifadesi oluşturur.
+
+<a name="notLike"></a>
+
+##### $this->db->notLike($field, $val)
+
+Girilen argümanlar ile bir NOT LIKE() karşılaştırma ifadesi oluşturur.
+
+<a name="in"></a>
+
+##### $this->db->in($field, mixed $vals)
+
+Girilen argümanlar ile bir IN() karşılaştırma ifadesi oluşturur.
+
+<a name="notIn"></a>
+
+##### $this->db->notIn($field, mixed $vals)
+
+Girilen argümanlar ile bir NOT IN() karşılaştırma ifadesi oluşturur.
+
+<a name="escape"></a>
+
+##### $this->db->escape(string|array $input)
+
+Sql enjeksiyon tehdidini önlemek için girilen kullanıcı girdisindeki tehlikeli karakterleri kaçış sembolü ile farklılaştırır. Eğer kullanıcı girdilerinde parametre yerleştirme kullanıyorsanız bu fonksiyonu kullanmanıza gerek kalmaz çünkü escape davranışı böyle bir durumda kendiliğinden sorgu oluşturucu sınıfı içerisinde yapılır.
+
+<a name="query-binding"></a>
+
+### Sorgulara Parametre Yerleştirme ( Query Binding )
+
+Genellikle parametre yerleştirme isimleri ( placeholder names ) bir kesinlik ifade etmezler yani <b>:value</b> yada <b>?</b> şeklindedirler. Eğer tam bir esneklik isteniyorsa aşağıdaki farklı parametre yerleştirme metotlarını sorgularınız içerisinde kullanabilirsiniz.
+
+```php
+$id = 5;
+$email = 'user@example.com';
+
+echo $this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->where('email = ' .  $this->db->createNamedParameter($email))
+    ->andWhere('id = ' .  $this->db->createNamedParameter($id));
+
+// SELECT id, name FROM users WHERE (email = :dcValue1) AND (id = :dcValue2)
+```
+
+Soru işareti kullanılarak parametre yerleştirmeye bir örnek:
+
+```php
+$email = 'user@example.com';
+
+$this->db
+    ->select('id', 'name')
+    ->from('users')
+    ->where('email = ' . $this->db->createPositionalParameter($email));
+
+// SELECT id, name FROM users WHERE email = ?
+```

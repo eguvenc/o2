@@ -92,6 +92,9 @@ class Adapter extends Connection
      */
     public function __call($method, $arguments)
     {
+        if ($this->stmt == null) {
+            return;
+        }
         return call_user_func_array(array(new Result($this->stmt), $method), $arguments);
     }
 

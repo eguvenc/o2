@@ -108,7 +108,7 @@ if ($id = $this->request->post('id', 'is')->int()) {
 Eğer parametre kullanmak istiyorsanız request değerini alabilmek için ilk parametre <b>null</b> girilmelidir.
 
 ```php
-if ($id = $this->request->post('id', 'is')->int(null, false, 0, 1000)) {
+if ($id = $this->request->post('id', 'is')->int(false, 0, 1000)) {
 	echo $id;
 }
 ```
@@ -154,8 +154,13 @@ $this->is->bool(true); // Çıktı true
 $this->is->bool(10, 0);  // Çıktı 0
 ```
 
-> **Not:** Bu metodun request sınıfı ile birlikte kullanımı int metoduyla aynıdır.
+###### Request Sınıfı İle Birlikte Kullanmak
 
+```php
+if ($this->request->post('allow', 'is')->bool()) {
+
+}
+```
 
 <a name="is-email"></a>
 
@@ -173,8 +178,13 @@ $this->is->email('user@example.com');  // Çıktı user@example.com
 $this->is->email(user.example.com, null);  // Çıktı null
 ```
 
-> **Not:** Bu metodun request sınıfı ile birlikte kullanımı int metoduyla aynıdır.
+###### Request Sınıfı İle Birlikte Kullanmak
 
+```php
+if ($this->request->post('email', 'is')->email()) {
+
+}
+```
 
 <a name="is-ip"></a>
 
@@ -246,8 +256,13 @@ Seçenekler
 </table>
 
 
-> **Not:** Bu metodun request sınıfı ile birlikte kullanımı int metoduyla aynıdır.
+###### Request Sınıfı İle Birlikte Kullanmak
 
+```php
+if ($this->request->post('ip_address', 'is')->ip('v4|no_priv_range')) {
+
+}
+```
 
 <a name="is-url"></a>
 
@@ -304,6 +319,14 @@ Seçenekler
         </tr>
     </tbody>
 </table>
+
+###### Request Sınıfı İle Birlikte Kullanmak
+
+```php
+if ($this->request->post('url_adress', 'is')->url('host|query')) {
+
+}
+```
 
 <a name="clean"></a>
 
@@ -365,10 +388,10 @@ if ($entry = $this->request->post('entry', 'clean')->str()) {
     echo $entry;
 }
 ```
-Eğer parametre girmek istiyorsanız ilk değere <b>null</b> gönderin.
+Eğer parametre girmek istiyorsanız ilk parametrenin olmadığını varsayıp gönderin.
 
 ```php
-if ($entry = $this->request->post('entry', 'clean')->str(null, 'strip_high|encode_amp')) {
+if ($entry = $this->request->post('entry', 'clean')->str('strip_high|encode_amp')) {
     echo $entry;
 }
 ```
@@ -442,7 +465,13 @@ var_dump($this->clean->raw("Is Peter �� & \0\n funny?", 'strip_high|encode_a
 // Çıktı string(25) "Is Peter & funny?" 
 ```
 
-> **Not:** Bu metodun request sınıfı ile birlikte kullanımı str metoduyla aynıdır.
+###### Request Sınıfı İle Birlikte Kullanmak
+
+```php
+if ($entry = $this->request->post('entry', 'clean')->raw('strip_high|encode_amp')) {
+    echo $entry;
+}
+```
 
 Seçenekler
 
@@ -527,7 +556,7 @@ $this->clean->float("10.2p,#aE", 'fraction|thousand|scientific'); // "10.2,E"
 ###### Request Sınıfı İle Birlikte Kullanmak
 
 ```php
-if ($price = $this->request->post('price', 'clean')->float(null, 'fraction|thousand')) {
+if ($price = $this->request->post('price', 'clean')->float('fraction|thousand')) {
     echo $price;
 }
 ```
@@ -755,7 +784,7 @@ echo $this->clean->urlencode("http://example��.com", 'strip_high');
 ###### Request Sınıfı İle Birlikte Kullanmak
 
 ```php
-if ($url = $this->request->get('url', 'clean')->urlencode(null, 'strip_high')) {
+if ($url = $this->request->get('url', 'clean')->urlencode('strip_high')) {
     echo $url;
 }
 ```

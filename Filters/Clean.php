@@ -35,7 +35,7 @@ class Clean extends AbstractFilter
      */
     public function str($value = '', $flag = 'strip_low')
     {
-        return filter_var($this->getValue($value), FILTER_SANITIZE_STRING, static::getFlag($flag));
+        return filter_var($value, FILTER_SANITIZE_STRING, static::getFlag($flag));
     }
 
     /**
@@ -58,7 +58,7 @@ class Clean extends AbstractFilter
      */
     public function raw($value = '', $flag = 'strip_low')
     {
-        return filter_var($this->getValue($value), FILTER_UNSAFE_RAW, static::getFlag($flag));
+        return filter_var($value, FILTER_UNSAFE_RAW, static::getFlag($flag));
     }
 
     /**
@@ -70,7 +70,7 @@ class Clean extends AbstractFilter
      */
     public function int($value = '')
     {
-        return filter_var($this->getValue($value), FILTER_SANITIZE_NUMBER_INT);
+        return filter_var($value, FILTER_SANITIZE_NUMBER_INT);
     }
 
     /**
@@ -87,7 +87,7 @@ class Clean extends AbstractFilter
      */
     public function float($value = '', $flag = 'fraction')
     {
-        return filter_var($this->getValue($value), FILTER_SANITIZE_NUMBER_FLOAT, static::getFlag($flag));
+        return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, static::getFlag($flag));
     }
 
     /**
@@ -99,7 +99,7 @@ class Clean extends AbstractFilter
      */
     public function email($email = '')
     {
-        return filter_var($this->getValue($email), FILTER_SANITIZE_EMAIL);
+        return filter_var($email, FILTER_SANITIZE_EMAIL);
     }
 
     /**
@@ -118,7 +118,7 @@ class Clean extends AbstractFilter
      */
     public function quote($str = '')
     {
-        return filter_var($this->getValue($str), FILTER_SANITIZE_MAGIC_QUOTES);
+        return filter_var($str, FILTER_SANITIZE_MAGIC_QUOTES);
     }
 
     /**
@@ -135,7 +135,7 @@ class Clean extends AbstractFilter
      */
     public function escape($str = '', $flag = 'strip_low')
     {
-        return filter_var($this->getValue($str), FILTER_SANITIZE_SPECIAL_CHARS, static::getFlag($flag));
+        return filter_var($str, FILTER_SANITIZE_SPECIAL_CHARS, static::getFlag($flag));
     }
     
     /**
@@ -155,7 +155,7 @@ class Clean extends AbstractFilter
      */
     public function fullEscape($html = '', $flag = null) 
     {
-        return filter_var($this->getValue($html), FILTER_SANITIZE_FULL_SPECIAL_CHARS, static::getFlag($flag));
+        return filter_var($html, FILTER_SANITIZE_FULL_SPECIAL_CHARS, static::getFlag($flag));
     }
 
     /**
@@ -175,7 +175,7 @@ class Clean extends AbstractFilter
      */
     public function url($url = '', $flag = 'scheme')
     {
-        return filter_var($this->getValue($url), FILTER_SANITIZE_URL,  static::getFlag($flag));
+        return filter_var($url, FILTER_SANITIZE_URL,  static::getFlag($flag));
     }
 
     /**
@@ -195,7 +195,7 @@ class Clean extends AbstractFilter
      */
     public function urlencode($url = '', $flag = 'strip_low')
     {
-        return filter_var($this->getValue($url), FILTER_SANITIZE_ENCODED, static::getFlag($flag));
+        return filter_var($url, FILTER_SANITIZE_ENCODED, static::getFlag($flag));
     }
 
 }

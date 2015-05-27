@@ -2,6 +2,7 @@
 
 namespace Obullo\Http;
 
+use Obullo\Http\InputFilter;
 use Obullo\Container\Container;
 use Obullo\Http\Request\Headers;
 
@@ -36,6 +37,9 @@ class Request
         $this->c['request.headers'] = function () {
             return new Headers;
         };
+        $this->c['request.filter'] = function () use ($c) {
+            return new InputFilter($c);
+        };
     }
 
     /**
@@ -63,12 +67,11 @@ class Request
         if (is_bool($key)) {
             return $_GET;
         }
-        $data = isset($_GET[$key]) ? $_GET[$key] : false;
-
+        $value = isset($_GET[$key]) ? $_GET[$key] : false;
         if (is_string($filter)) {
-            return $this->c[$filter]->setValue($data);
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $data;
+        return $value;
     }
 
     /**
@@ -84,12 +87,11 @@ class Request
         if (is_bool($key)) {
             return $_POST;
         }
-        $data = isset($_POST[$key]) ? $_POST[$key] : false;
-
+        $value = isset($_POST[$key]) ? $_POST[$key] : false;
         if (is_string($filter)) {
-            return $this->c[$filter]->setValue($data);
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $data;
+        return $value;
     }
 
     /**
@@ -104,12 +106,11 @@ class Request
         if (is_bool($key)) {
             return $_REQUEST;
         }
-        $data = isset($_REQUEST[$key]) ? $_REQUEST[$key] : false;
-
+        $value = isset($_REQUEST[$key]) ? $_REQUEST[$key] : false;
         if (is_string($filter)) {
-            return $this->c[$filter]->setValue($data);
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $data;
+        return $value;
     }
 
     /**
@@ -187,7 +188,7 @@ class Request
                     }
                 }
             }
-            $ipAddress = ($spoof !== false AND in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
+            $ipAddress = ($spoof !== false && in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
         }
         return $ipAddress;
     }
@@ -212,7 +213,7 @@ class Request
      */
     public function isLayer()
     {
-        if (isset($_SERVER['LAYER_REQUEST']) AND $_SERVER['LAYER_REQUEST'] == true) {
+        if (isset($_SERVER['LAYER_REQUEST']) && $_SERVER['LAYER_REQUEST'] == true) {
             return true;
         }
         return false;
@@ -225,7 +226,7 @@ class Request
      */
     public function isAjax()
     {
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             return true;
         }
         return false;
@@ -297,7 +298,7 @@ class Request
      */
     protected function isMethod($METHOD = 'GET')
     {
-        if (isset($_SERVER['REQUEST_METHOD']) AND $_SERVER['REQUEST_METHOD'] == $METHOD) {
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == $METHOD) {
             return true;
         }
         return false;

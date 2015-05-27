@@ -908,4 +908,4 @@ Sorgu oluşturucu sql sorgularınızı Object Oriented programlama sitilinde kol
 
 #### Dökümentasyon
 
-Bu sınıfa ait dökümentasyona [DoctrineQueryBuilder.md](/Docs/tr/DoctrineQueryBuilder.md) dosyasından ulaşılabilir.
+Bu sınıfa ait dökümentasyona [DoctrineQueryBuilder.md](/Database/Docs/tr/DoctrineQueryBuilder.md) dosyasından ulaşılabilir.

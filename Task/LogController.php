@@ -52,7 +52,15 @@ class LogController extends Controller
         if ($this->cli->argument('help')) {
             return $this->help();
         }
-        $Class = '\\Obullo\Log\Console\Reader\\'.ucfirst($this->logger->getPrimaryWriter());
+
+        $reader = ucfirst($this->logger->getPrimaryWriter());
+
+        if ($reader == 'Null') {
+            echo Console::fail("Logging feature disabled from your config.");
+            echo Console::newline(1);
+            return;
+        }
+        $Class = '\\Obullo\Log\Console\Reader\\'.$reader;
         $class = new $Class;
         $class->follow($this->c, $dir, $db, $table);
     }

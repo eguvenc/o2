@@ -35,42 +35,6 @@ abstract class AbstractFilter
     const V4 = FILTER_FLAG_IPV4;
     const V6 = FILTER_FLAG_IPV6;
     const NO_PRIV_RANGE = FILTER_FLAG_NO_PRIV_RANGE;
-
-    /**
-     * Request package current input value
-     * 
-     * @var mixed
-     */
-    public $value;
-
-    /**
-     * Set latest request input value
-     * 
-     * @param mixed $value value
-     *
-     * @return void
-     */
-    public function setValue($value)
-    {
-        $this->value = $value;
-        return $this;
-    }
-
-    /**
-     * If first parameter == false we know this value comes
-     * from request package.
-     * 
-     * @param mixed $value value first parameter
-     * 
-     * @return mixed
-     */
-    public function getValue($value)
-    {
-        if (empty($value)) {
-            return $this->value;
-        }
-        return $value;
-    }
     
     /**
      * Get default configuration params for filters
