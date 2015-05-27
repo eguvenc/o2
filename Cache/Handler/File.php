@@ -206,8 +206,11 @@ class File implements CacheHandlerInterface
      * @return boolean
      */
     public function delete($key)
-    {
-        return unlink($this->filePath . $key);
+    {   
+        if (file_exists($this->filePath . $key)) {
+            return unlink($this->filePath . $key);
+        }
+        return false;
     }
 
     /**
