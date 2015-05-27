@@ -346,7 +346,7 @@ class Application
     public function __get($key)
     {
         $cid = 'app.'.$key;
-        if ( ($key == 'uri' OR $key == 'router') AND $this->c->has($cid) ) {
+        if ( ($key == 'uri' || $key == 'router') AND $this->c->has($cid) ) {
             return $this->c[$cid];
         }
         if (class_exists('Controller', false) && Controller::$instance != null) {

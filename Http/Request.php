@@ -207,6 +207,18 @@ class Request
     }
 
     /**
+     * Is Cli ?
+     *
+     * Test to see if a request was made from the command line.
+     *
+     * @return  bool
+     */
+    public function isCli()
+    {
+        return $this->c['app']->isCli();
+    }
+    
+    /**
      * Detect the layered vc requests
      * 
      * @return boolean

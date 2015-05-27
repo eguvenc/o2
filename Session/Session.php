@@ -184,13 +184,11 @@ class Session
      */
     public function regenerateId($deleteOldSession = true, $lifetime = null)
     {
-        $oldSessionId = session_id();
         session_regenerate_id((bool) $deleteOldSession);
         $storageLifetime = ($lifetime == null) ? $this->config['storage']['lifetime'] : $lifetime;
         $this->saveHandler->setLifetime($storageLifetime);
-        $this->remove($oldSessionId);  // Removes old Session id value
         $this->meta->create();
-
+        
         return session_id(); // new session_id
     }
 

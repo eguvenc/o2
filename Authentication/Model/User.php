@@ -67,7 +67,7 @@ class User implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier))
+        return $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier))
             ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
             ->execute()
             ->rowArray();
@@ -93,11 +93,11 @@ class User implements UserInterface
      * @param string $token name
      * @param object $user  object GenericUser
      * 
-     * @return void
+     * @return integer
      */
     public function updateRememberToken($token, GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier))
+        return $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier))
             ->bindValue(1, $token, PDO::PARAM_STR)
             ->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR)
             ->execute();
