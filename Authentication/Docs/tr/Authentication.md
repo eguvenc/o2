@@ -3,6 +3,71 @@
 
 Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryolar için size bir API sağlar. O2 yetki doğrulama yalnızca yetki doğrulama ( *authentication* ) ile ilgilidir ve yetkilendirme ( *authorization* ) ile ilgili herhangi bir şeyi içermez.
 
+<ul>
+
+    <li><a href="#flow">Özellikler</a></li>
+    <li><a href="#flow-chart">Akış Şeması</a></li>
+
+    <li>
+        <a href="#configuration">Konfigürasyon</a>
+        <ul>
+            <li><a href="#config-table">Konfigürasyon Değerleri Tablosu</a></li>
+            <li><a href="#adapters">Adaptörler</a></li>
+            <li>
+                <a href="#storages">Hazıfa Depoları</a>
+                <ul>    
+                    <li><a href="#redis-storage">Redis Veritabanı</a></li>
+                    <li><a href="#cache-storage">Cache</a> ( File, Apc, Memcache, Memcached, Redis )</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#running">Çalıştırma</a>
+        <ul>
+            <li>
+                <a href="#service">Servis</a>
+                <ul>
+                    <li><a href="#loading-service">Servisi Yüklemek</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#login">Oturum Açma</a>
+                <ul>
+                    <li><a href="#login-attempt">Oturum Açma Denemesi</a></li>
+                    <li><a href="#login-example">Oturum Açma Örneği</a></li>
+                    <li><a href="#login-results">Oturum Açma Sonuçları</a></li>
+                    <li><a href="#login-error-results">Oturum Açma Sonuçları Hata Tablosu</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#identities">Kimlikler</a>
+        <ul>
+            <li><a href="#identities-table">Kimlikler Tablosu</a></li>
+            <li><a href="#identity-class">Kimlik Sınıfı İşlevleri</a></li>
+            <li><a href="#identity-keys">Kimlik Anahtarları</a></li>
+            <li>
+                <a href="#identity-method-reference">Kimlik Sınıfı Referansı</a>
+                <ul>
+                    <li><a href="#identity-get-methods">Get Metotları</a></li>
+                    <li><a href="#identity-set-methods">Set Metotları</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+
+    <li><a href="#method-reference">Fonksiyon Referansı</a></li>
+
+</ul>
+
+<a name="features"></a>
+
+### Özellikler
+
 O2 yetki doğrulama; 
 
 * Hafıza depoları, ( Storages ) 
@@ -18,11 +83,11 @@ O2 yetki doğrulama;
 
 gibi özellikleri barındırır.
 
+<a name="flow-chart"></a>
+
 ### Akış Şeması
 
-------
-
-Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin nasıl çalıştığı hakkında size bir ön bilgi verecektir:
+Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin gelişmiş özellikleri ile kullanıldığında nasıl çalıştığı hakkında size bir ön bilgi verecektir:
 
 * [Şemayı görmek için buraya tıklayınız](/Authentication/Docs/images/flowchart.png?raw=true)
 
@@ -32,96 +97,15 @@ Akış şemasına göre GenericUser login butonuna bastığı anda ilk önce haf
 
 Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edilen kimlik kartı performans için tekrar hafıza bloğuna yazılır.
 
+<a name="configuration"></a>
 
-### Sınıfları yüklemek
-
-------
-
-Yetki doğrulama paketi sınıflarına erişim <b>User</b> servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>Login</b>, <b>Identity</b> ve <b>Activity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
-
-User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
-
-```php
-$this->c['user']->class->method();
-```
-
-Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.
-
-
-<b>Config</b>, <b>Login</b>, <b>Identity</b> ve <b>Activity</b> sınıfları için birer örnek
-
-```php
-$this->user['variable'];   // Konfigürasyon değeri
-$this->user->login->method();
-$this->user->identity->method();
-$this->user->activity->method();
-```
-
-### Adaptörler
-
-------
-
-Yetki doğrulama adaptörleri uygulamaya esneklik kazandıran otu sorgulama arabirimleridir, yetki doğrulamanın bir veritabanı ile mi yada örnek olarak LDAP gibi bir protokol üzerinden mi yapılacağını belirleyen sınıflardır. Varsayılan arabirim türü <b>Database</b> (RDBMS or NoSQL) dir, farklı türde kimlik doğrulama arabirimleri bu sürümde henüz mevcut değildir.
-
-Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve sorgulardan dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
-
-### Hazıfa Depoları ( Storages )
-
-------
-
-Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
-
-**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> veritabanı ve <b>Cache</b> sürücüsünü desteklemektedir. Cache sürücüsü seçtiğinizde File, Memcache, Memcached, Apc gibi sürücüleri cache.php konfigurasyon dosyanızdan ayarlamanız gerekmektedir.
-
-Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>.
-
-
-#### Redis Deposu
-
-------
-
-Yetki doğrulama sınıfı hafıza deposu için varsayılan olarak redis kullanır. Aşağıdaki resim kullanıcı kimliklerinin hafıza deposunda nasıl tutulduğunu göstermektedir.
-
-![PhpRedisAdmin](/Authentication/Docs/images/redis.png?raw=true "PhpRedisAdmin")
-
-Varsayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
-
-```php
-'cache' => array(
-
-    'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
-    'provider' => array(
-        'driver' => 'redis',
-        'connection' => 'second'
-    ),
-)
-```
-
-#### Cache Deposu
-
-Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
-
-```php
-'cache' => array(
-
-    'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
-    'provider' => array(
-        'driver' => 'memcached',
-        'connection' => 'default'
-    ),
-)
-```
-
-> Yukarıda görüldüğü gibi provider ayarlarından driver sekmesini sürücü ismi ile değiştirmeyi unutmamalısınız.
-
-
-Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı auth konfigürasyon dosyasından değiştererek kullanabilirsiniz.
-
-#### Konfigürasyon
+### Konfigürasyon
 
 ------
 
 Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
+
+<a name="config-table"></a>
 
 #### Konfigürasyon değerleri tablosu
 
@@ -178,8 +162,76 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
     </tbody>
 </table>
 
+<a name="adapters"></a>
 
-#### Servis Yapılandırılması
+#### Adaptörler
+
+Yetki doğrulama adaptörleri uygulamaya esneklik kazandıran otu sorgulama arabirimleridir, yetki doğrulamanın bir veritabanı ile mi yada örnek olarak LDAP gibi bir protokol üzerinden mi yapılacağını belirleyen sınıflardır. Varsayılan arabirim türü <b>Database</b> (RDBMS or NoSQL) dir, farklı türde kimlik doğrulama arabirimleri bu sürümde henüz mevcut değildir.
+
+Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve sorgulardan dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
+
+<a name="storages"></a>
+
+#### Hazıfa Depoları ( Storages )
+
+Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
+
+**Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> veritabanı ve <b>Cache</b> sürücüsünü desteklemektedir. Cache sürücüsü seçtiğinizde File, Memcache, Memcached, Apc gibi sürücüleri cache.php konfigurasyon dosyanızdan ayarlamanız gerekmektedir.
+
+Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>.
+
+<a name="redis-storage"></a>
+
+##### Redis Veritabanı
+
+Yetki doğrulama sınıfı hafıza deposu için varsayılan olarak redis kullanır. Aşağıdaki resim kullanıcı kimliklerinin hafıza deposunda nasıl tutulduğunu göstermektedir.
+
+![PhpRedisAdmin](/Authentication/Docs/images/redis.png?raw=true "PhpRedisAdmin")
+
+Varsayılan hafıza sınıfı auth konfigürasyonundan değiştirilebilir.
+
+```php
+'cache' => array(
+
+    'storage' => '\Obullo\Authentication\Storage\Redis',   // Storage driver uses cache package
+    'provider' => array(
+        'driver' => 'redis',
+        'connection' => 'second'
+    ),
+)
+```
+<a name="cache-storage"></a>
+
+##### Cache ( File, Apc, Memcache, Memcached, Redis )
+
+Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarları aşağıdaki gibi değiştirmeniz yeterli olacaktır.
+
+```php
+'cache' => array(
+
+    'storage' => '\Obullo\Authentication\Storage\Cache',   // Storage driver uses cache package
+    'provider' => array(
+        'driver' => 'memcached',
+        'connection' => 'default'
+    ),
+)
+```
+
+> **Not**:  Yukarıda görüldüğü gibi provider ayarlarından driver sekmesini sürücü ismi ile değiştirmeyi unutmamalısınız.
+
+
+Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı provider driver anahtarını değiştererek kullanabilirsiniz.
+
+
+<a name="running"></a>
+
+#### Çalıştırma
+
+
+
+<a name="service"></a>
+
+#### Servis
 
 ------
 
@@ -253,8 +305,38 @@ Class User implements ServiceInterface
 
 **Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütun isimlerini belirlemenize olanak sağlar. Bu konfigürasyonlar database işlemlerinde kullanılır.
 
+<a name="loading-service"></a>
 
-#### Bir Oturum Açma Denemesi
+#### Servisi Yüklemek
+
+Yetki doğrulama paketi sınıflarına erişim <b>User</b> servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>Login</b>, <b>Identity</b> ve <b>Activity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
+
+User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
+
+```php
+$this->c['user']->class->method();
+```
+
+Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.
+
+
+<b>Config</b>, <b>Login</b>, <b>Identity</b> ve <b>Activity</b> sınıfları için birer örnek
+
+```php
+$this->user['variable'];   // Konfigürasyon değeri
+$this->user->login->method();
+$this->user->identity->method();
+$this->user->activity->method();
+```
+
+<a name="login"></a>
+
+#### Oturum Açma
+
+
+<a name="login-attempt"></a>
+
+##### Oturum Açma Denemesi
 
 ```php
 $this->user->login->attempt(
@@ -266,7 +348,9 @@ $this->user->login->attempt(
 );
 ```
 
-#### Bir Oturum Açma Örneği
+<a name="login-example"></a>
+
+##### Oturum Açma Örneği
 
 Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adlı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım.
 
@@ -383,7 +467,9 @@ if ($results = $this->form->resultsArray()) {
 </section>
 ```
 
-### AuthResult Sınıfı ve Oturum Açma Sonuçları
+<a name="login-results"></a>
+
+##### Oturum Açma Sonuçları
 
 Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir,  <kbd>$this->user->login->attempt()</kbd> metodu ise sonuçları alabilmemiz için AuthResult nesnesine geri dönmektedir.
 
@@ -416,8 +502,9 @@ if ($result->isValid()) {
     */
 }
 ```
+<a name="login-error-results"></a>
 
-#### Hata ve Sonuç Kodları Tablosu
+##### Oturum Açma Sonuçları Hata Tablosu
 
 <table>
     <thead>
@@ -472,8 +559,9 @@ if ($result->isValid()) {
     </tbody>
 </table>
 
+<a name="identities"></a>
 
-#### Yetki Doğrulama Kimlik Sınıfları 
+### Kimlikler
 
 Kimlikler içerisinde kendi fonksiyonlarınızı oluşturabilmeniz için kimlik sınıfları <b>app/classes/Auth</b> klasörü altında gruplanmıştır. Bu klasör o2 auth paketine genişler ve aşağıdaki dizindedir.
 
@@ -489,7 +577,9 @@ Kimlikler içerisinde kendi fonksiyonlarınızı oluşturabilmeniz için kimlik 
 
 <b>AuthorizedUser</b> yetkili kullanıcıların kimliklerine ait metodları, <b>GenericUser</b> sınıfı ise yetkisiz yani Guest diye tanımladığımız kullanıcıların kimliklerine ait metodları içerir. Bu sınıflardaki <b>get</b> metotları kullanıcı kimliklerinden <b>okuma</b>, <b>set</b> metotları ise kimliklere <b>yazma</b> işlemlerini yürütürler. Bu sınıflara metodlar ekleyerek ihtiyaçlarınıza göre düzenleme yapabilirsiniz fakat <b>AuthorizedUserInterface</b> ve <b>GenericUserInterface</b> sınıfları içerisindeki tanımlı metodlardan birini bu sınıflar içerisinden silmemeniz gerekir.
 
-#### Sınıf Açıklamaları
+<a name="identities-table"></a>
+
+#### Kimlikler Tablosu
 
 <table>
     <thead>
@@ -514,34 +604,19 @@ Kimlikler içerisinde kendi fonksiyonlarınızı oluşturabilmeniz için kimlik 
     </tbody>
 </table>
 
+<a name="identity-class"></a>
 
-### User Config Sınıfı İşlevleri
+#### Kimlik Sınıfı İşlevleri
 
-------
-
-<kbd>app/Classes/Sevice/User.php</kbd> dosyasında çağrılan AuthServiceProvider sınıfı içerisinden gönderilen parametreleri ve <b>auth.php</b> konfigürasyon dosyasındaki parametreler ile birleştirerek auth paketine ait konfigurasyon ile ilgili tüm dizileri tek bir elden yönetmeye yardımcı olur. Daha iyi anlamak için aşağıdaki örneğe bir gözatabiliriz.
-
-```php
-echo $this->user['db.identifier'];   // Çıktı username
-echo $this->user['db.password'];     // Çıktı password
-echo $this->user['cache.key'];       // Çıktı Auth
-
-echo $this->user['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
-```
-
-### User Identity Sınıfı İşlevleri
-
-------
-
-Kullanıcı kimliği O2 paketi içerisindedir ve <b>app/Auth/Identities</b> içerisindeki AuthorizedUser sınıfına genişler. Bu sınıf aşağıdaki kimlik işlevlerini yönetir.
+Identity sınıfı bir kulllanıcın kimliğinin olup olmadığını eğer varsa kullanıcıya ait yetkilendirilmiş kimliği yönetmenizi sağlar. Kullanıcı kimliği O2 paketi içerisindedir ve <kbd>app/Auth/Identities/AuthorizedUser</kbd> sınıfına genişler ve bu sınıf aşağıdaki kimlik işlevlerini yönetir.
 
 * Kimlikten veri okuma ve kimliğe veri kaydetme
 * Kullanıcı kimliğinin olup olmadığı kontrolü
 * Kullanıcı kimliğinin kalıcı olup olmadığı
-* Kullanıcı kimliğini kalıcı veya geçici hale dönüştürme. ( makeTemporary, makePermanent )
+* Kullanıcı kimliğini kalıcı veya geçici hale dönüştürme. ( makeTemporary(), makePermanent() )
 * Kullanıcının oturumunu sonlandırma ( logout )
 * Kullanıcı kimliğini tamamen yok etme ( destroy )
-* Beni hatırla özelliği kullanılmışsa kullanıcı kimliğini çerezden kalıcı olarak silme forgetMe )
+* Beni hatırla özelliği kullanılmışsa kullanıcı kimliğini çerezden kalıcı olarak silme ( forgetMe )
 
 Aşağıda örnek bir kullanıcı kimliğini nasıl görüntüleyebileceğinizi gösteriliyor.
 
@@ -558,10 +633,7 @@ Array
     [__isAuthenticated] => 1
     [__isTemporary] => 0
     [__isVerified] => 1
-    [__lastTokenRefresh] => 1413454236
     [__rememberMe] => 0
-    [__token] => 6ODDUT3FtmmXEZ70.86f40e86
-    [__tokenFrequency] => 3
     [__time] => 1414244130.719945
     [id] => 1
     [password] => $2y$10$0ICQkMUZBEAUMuyRYDlXe.PaOT4LGlbj6lUWXg6w3GCOMbZLzM7bm
@@ -570,6 +642,185 @@ Array
 )
 */
 ```
+
+<a name="identity-keys"></a>
+
+#### Kimlik anahtarları
+
+Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
+
+<table>
+    <thead>
+        <tr>
+            <th>Anahtar</th>    
+            <th>Açıklama</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>__activity</td>
+            <td>Online kullanıcı aktivite verilerini içerir: Son aktivite zamanı ve diğer eklemek istediğiniz veriler gibi.</td>
+        </tr>
+        <tr>
+            <td>__isAuthenticated</td>
+            <td>Eğer kullanıcı yetkisi doğrulanmış ise bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
+        </tr>
+        <tr>
+            <td>__isTemporary</td>
+            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->identity->makeTemporary()</kbd> metodu login attempt metodu sonrasında kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->identity->makePermanent()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
+        </tr>
+        <tr>
+            <td>__isVerified</td>
+            <td>Yetki doğrulama onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
+        </tr>
+        <tr>
+            <td>__rememberMe</td>
+            <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
+        </tr>
+        <tr>
+            <td>__time</td>
+            <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
+        </tr>
+
+    </tbody>
+</table>
+
+<a name="identity-method-reference"></a>
+
+#### Kimlik Sınıfı Referansı
+
+------
+
+> Identity sınıfı bir kulllanıcın kimliğinin olup olmadığını varsa kullanıcıya ait yetkilendirilmiş kimliği yönetmenizi sağlar.
+
+##### $this->user->identity->check();
+
+Kullanıcının yetkisinin olup olmadığını kontrol eder. Yetkili ise <b>true</b> değilse <b>false</b> değerine döner.
+
+##### $this->user->identity->guest();
+
+Kullanıcının yetkisi olmayan kullanıcı yani ziyaretçi olup olmadığını kontrol eder. Ziyaretçi ise <b>true</b> değilse <b>false</b> değerine döner.
+
+##### $this->user->identity->exists();
+
+Kimliğin önbellekte olup olmadığını kotrol eder. Varsa <b>true</b> yoksa <b>false</b>değerine döner.
+
+##### $this->user->identity->makeTemporary();
+
+Başarılı giriş yapmış kullanıcıya ait kimliği konfigurasyon dosyasından belirlenmiş sona erme ( expire ) süresine göre geçici hale getirir. Süre sona erdiğinde kimlik hafıza deposundan silinir.
+
+##### $this->user->identity->makePermanent();
+
+Başarılı giriş yapmış kullanıcıya ait geçici kimliği konfigurasyon dosyasından belirlenmiş kalıcı süreye ( lifetime ) göre kalıcı hale getirir. Süre sona erdiğinde veritabanına tekrar sql sorgusu yapılarak kimlik tekrar hafızaya yazılır.
+
+##### $this->user->identity->isVerified();
+
+Onaya tabi olan yetki doğrulamada başarılı oturum açma işleminden sonra kullanıcının onaylanıp onaylanmadığını gösterir. Kullanıcı onaylı ise <b>1</b> değerine değilse <b>0</b> değerine döner.
+
+##### $this->user->identity->isTemporary();
+
+Kullanıcının kimliğinin geçici olup olmadığını gösterir. <b>1</b> yada </b>0</b> değerine döner.
+
+##### $this->user->identity->updateTemporary(string $key, mixed $val);
+
+Geçici olarak oluşturulmuş kimlik bilgilerini güncellemenize olanak tanır.
+
+##### $this->user->identity->logout();
+
+Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile günceller. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kapattı olarak kaydeder.
+
+##### $this->user->identity->destroy();
+
+Önbellekteki kimliği bütünüyle yok eder.
+
+##### $this->user->identity->forgetMe();
+
+Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
+
+##### $this->user->identity->refreshRememberToken();
+
+Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
+
+
+<a name="identity-get-methods"></a>
+
+
+#### Identity "Get" Metotları
+
+------
+
+>Identity get metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine ulaşmanızı sağlar.
+
+##### $this->user->identity->getIdentifier();
+
+Kullanıcın tekil tanımlayıcı sına geri döner. Tanımlayıcı genellikle kullanıcı adı yada id değeridir.
+
+##### $this->user->identity->getPassword();
+
+Kullanıcın hash edilmiş şifresine geri döner.
+
+##### $this->user->identity->getRememberMe();
+
+Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine aksi durumda <b>0</b> değerine döner.
+
+##### $this->user->identity->getTime();
+
+Kimliğin ilk yaratılma zamanını verir. ( Php Unix microtime ).
+
+##### $this->user->identity->getRememberMe();
+
+Kullanıcı beni hatırla özelliğini kullandı ise <b>1</b> değerine kullanmadı ise <b>0</b> değerine döner.
+
+##### $this->user->identity->getPasswordNeedsReHash();
+
+Kullanıcı giriş yaptıktan sonra eğer şifresi yenilenmesi gerekiyorsa hash edilmiş <b>yeni şifreye</b> gerekmiyorsa <b>false</b> değerine döner.
+
+##### $this->user->identity->getRememberToken();
+
+Beni hatırla çerezine döner.
+
+##### $this->user->identity->getArray()
+
+Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
+
+>Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
+
+<a name="identity-set-methods"></a>
+
+#### Identity "Set" Metotları
+
+------
+
+>Identity set metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine yazmanızı sağlar.
+
+##### $this->user->identity->variable = 'value'
+
+Kimlik dizisine yeni bir değer ekler.
+
+##### unset($this->user->identity->variable)
+
+Kimlik dizisinde varolan değeri siler.
+
+##### $this->user->identity->setArray(array $attributes)
+
+Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
+
+
+
+### User Config Sınıfı İşlevleri
+
+------
+
+<kbd>app/Classes/Sevice/User.php</kbd> dosyasında çağrılan AuthServiceProvider sınıfı içerisinden gönderilen parametreleri ve <b>auth.php</b> konfigürasyon dosyasındaki parametreler ile birleştirerek auth paketine ait konfigurasyon ile ilgili tüm dizileri tek bir elden yönetmeye yardımcı olur. Daha iyi anlamak için aşağıdaki örneğe bir gözatabiliriz.
+
+```php
+echo $this->user['db.identifier'];   // Çıktı username
+echo $this->user['db.password'];     // Çıktı password
+echo $this->user['cache.key'];       // Çıktı Auth
+
+echo $this->user['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
+```
+
 
 Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar yetki doğrulama paketi tarafından kullanılan (rezerve anaharlar) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış kullanıcılar ile igili sayısal yada meta verileri için ayrılmış olan size ait bir anahtardır.
 
@@ -861,46 +1112,6 @@ class User extends ModelUser implements UserInterface
 /* Location: .app/classes/Auth/Model/User.php */
 ```
 
-#### Kimlik anahtarları :
-
-Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
-
-<table>
-    <thead>
-        <tr>
-            <th>Anahtar</th>    
-            <th>Açıklama</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>__activity</td>
-            <td>Online kullanıcı aktivite verilerini içerir: Son aktivite zamanı ve diğer eklemek istediğiniz veriler gibi.</td>
-        </tr>
-        <tr>
-            <td>__isAuthenticated</td>
-            <td>Eğer kullanıcı yetkisi doğrulanmış ise bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__isTemporary</td>
-            <td>Eğer yetki doğrulama onayı için <kbd>$this->user->identity->makeTemporary()</kbd> metodu login attempt metodu sonrasında kullanılmışsa bu anahtar <b>1</b> aksi durumda <b>0</b> değerini içerir. Eğer yetki doğrulama onayı kullanıyorsanız kullanıcıyı kendi onay yönteminiz ile onayladıktan sonra <kbd>$this->user->identity->makePermanent()</kbd> metodunu kullanarak doğrulanan kullanıcı yetkisini kalıcı hale getirmeniz gerekir.</td>
-        </tr>
-        <tr>
-            <td>__isVerified</td>
-            <td>Yetki doğrulama onayı kullanıyorsanız kullanıcıyı onayladığınızda bu anahtarın değeri <b>1</b> aksi durumda <b>0</b> olur.</td>
-        </tr>
-        <tr>
-            <td>__rememberMe</td>
-            <td>Kullanıcı giriş yaparken beni hatırla özelliğini kullandıysa bu değer <b>1</b> değerini aksi durumda <b>0</b> değerini içerir.</td>
-        </tr>
-        <tr>
-            <td>__time</td>
-            <td>Kimliğin ilk oluşturulma zamanıdır. Microtime olarak oluşturulur ve unix time formatında kaydedilir.</td>
-        </tr>
-
-    </tbody>
-</table>
-
 
 #### Konfigürasyon Parametrelerine Erişim
 
@@ -974,120 +1185,6 @@ Login denemesinden sonra tüm sonuçları bir dizi içerisinde verir.
 
 Login denemesinden sonra geçerli veritabanı sorgu sonucu yada önbellek verilerine geri döner.
 
-
-#### Identity Sınıfı Referansı
-
-------
-
->Identity sınıfı yetkisi doğrulanmış kullanıcıya ait kimliği yönetmenizi sağlar.
-
-##### $this->user->identity->check();
-
-Kullanıcının yetkisinin olup olmadığını kontrol eder. Yetkili ise <b>true</b> değilse <b>false</b> değerine döner.
-
-##### $this->user->identity->guest();
-
-Kullanıcının yetkisi olmayan kullanıcı yani ziyaretçi olup olmadığını kontrol eder. Ziyaretçi ise <b>true</b> değilse <b>false</b> değerine döner.
-
-##### $this->user->identity->exists();
-
-Kimliğin önbellekte olup olmadığını kotrol eder. Varsa <b>true</b> yoksa <b>false</b>değerine döner.
-
-##### $this->user->identity->makeTemporary();
-
-Başarılı giriş yapmış kullanıcıya ait kimliği konfigurasyon dosyasından belirlenmiş sona erme ( expire ) süresine göre geçici hale getirir. Süre sona erdiğinde kimlik hafıza deposundan silinir.
-
-##### $this->user->identity->makePermanent();
-
-Başarılı giriş yapmış kullanıcıya ait geçici kimliği konfigurasyon dosyasından belirlenmiş kalıcı süreye ( lifetime ) göre kalıcı hale getirir. Süre sona erdiğinde veritabanına tekrar sql sorgusu yapılarak kimlik tekrar hafızaya yazılır.
-
-##### $this->user->identity->isVerified();
-
-Onaya tabi olan yetki doğrulamada başarılı oturum açma işleminden sonra kullanıcının onaylanıp onaylanmadığını gösterir. Kullanıcı onaylı ise <b>1</b> değerine değilse <b>0</b> değerine döner.
-
-##### $this->user->identity->isTemporary();
-
-Kullanıcının kimliğinin geçici olup olmadığını gösterir. <b>1</b> yada </b>0</b> değerine döner.
-
-##### $this->user->identity->updateTemporary(string $key, mixed $val);
-
-Geçici olarak oluşturulmuş kimlik bilgilerini güncellemenize olanak tanır.
-
-##### $this->user->identity->logout();
-
-Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile günceller. Bu method önbellekteki kullanıcı kimliğini bütünü ile silmez sadece kullanıcıyı oturumu kapattı olarak kaydeder.
-
-##### $this->user->identity->destroy();
-
-Önbellekteki kimliği bütünüyle yok eder.
-
-##### $this->user->identity->forgetMe();
-
-Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
-
-##### $this->user->identity->refreshRememberToken();
-
-Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
-
-
-#### Identity "Get" Metotları
-
-------
-
->Identity get metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine ulaşmanızı sağlar.
-
-##### $this->user->identity->getIdentifier();
-
-Kullanıcın tekil tanımlayıcı sına geri döner. Tanımlayıcı genellikle kullanıcı adı yada id değeridir.
-
-##### $this->user->identity->getPassword();
-
-Kullanıcın hash edilmiş şifresine geri döner.
-
-##### $this->user->identity->getRememberMe();
-
-Eğer kullanıcı beni hatırla özelliğini kullanıyorsa <b>1</b> değerine aksi durumda <b>0</b> değerine döner.
-
-##### $this->user->identity->getTime();
-
-Kimliğin ilk yaratılma zamanını verir. ( Php Unix microtime ).
-
-##### $this->user->identity->getRememberMe();
-
-Kullanıcı beni hatırla özelliğini kullandı ise <b>1</b> değerine kullanmadı ise <b>0</b> değerine döner.
-
-##### $this->user->identity->getPasswordNeedsReHash();
-
-Kullanıcı giriş yaptıktan sonra eğer şifresi yenilenmesi gerekiyorsa hash edilmiş <b>yeni şifreye</b> gerekmiyorsa <b>false</b> değerine döner.
-
-##### $this->user->identity->getRememberToken();
-
-Beni hatırla çerezine döner.
-
-##### $this->user->identity->getArray()
-
-Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
-
->Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
-
-
-#### Identity "Set" Metotları
-
-------
-
->Identity set metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine yazmanızı sağlar.
-
-##### $this->user->identity->variable = 'value'
-
-Kimlik dizisine yeni bir değer ekler.
-
-##### unset($this->user->identity->variable)
-
-Kimlik dizisinde varolan değeri siler.
-
-##### $this->user->identity->setArray(array $attributes)
-
-Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
 
 #### Activity Sınıfı Referansı

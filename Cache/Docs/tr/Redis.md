@@ -65,7 +65,7 @@ Redis sürücüsü bağlantı ayarlarınızı <kbd>app/config/env/$env/cache/red
 
 <a name="redis-nodes"></a>
 
-### Çoklu Sunucular ( Nodes )
+#### Çoklu Sunucular ( Nodes )
 
 Birden fazla redis sunucunuz varsa konfigürasyon dosyasındaki diğer sunucu adreslerini aşağıdaki gibi nodes dizisi içerisine girmeniz gerekir.
 
@@ -89,7 +89,7 @@ Birden fazla redis sunucunuz varsa konfigürasyon dosyasındaki diğer sunucu ad
 
 <a name="redis-service-configuration"></a>
 
-### Servis Kurulumu
+#### Servis Kurulumu
 
 Eğer uygulama içerisinde cache servisinin redis kullanmasını istiyorsanız <kbd>app/Classes/Service/Cache.php</kbd> dosyasındaki <b>driver</b> anahtarını <b>redis</b> olarak değiştirin.
 
@@ -101,7 +101,7 @@ Redis sürücüsü seçildiğinde bazı ek özellikler ve metotlar gelir. Aşağ
 
 <a name="redis-service-provider"></a>
 
-### Servis Sağlayıcısı
+#### Servis Sağlayıcısı
 
 Cache kütüphanesi bağımsız olarak kullanılmak istendiği durumlarda servis sağlayıcısından direkt olarak çağrılabilir. Servis sağlayıcı yüklendiği zaman kütüphaneyi bir değişkene atayıp yarattığınız bağlantıya ait metotlara ulaşabilirsiniz.
 
@@ -117,7 +117,7 @@ $this->cache->method();
 
 <a name="redis-service-provider-connections"></a>
 
-### Servis Sağlayıcısı Bağlantıları
+#### Servis Sağlayıcısı Bağlantıları
 
 Servis sağlayıcısı <b>connection</b> anahtarındaki bağlantı değerini önceden <kbd>app/config/$env/cache</kbd> klasöründe tanımlı olan <b>$sürücü.php</b> dosyası connections dizisi içerisinden alır. Aşağıda redis sürücüsü <b>default</b> bağlantısına ait bir örnek görülüyor.
 

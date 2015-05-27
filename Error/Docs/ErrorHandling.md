@@ -1,10 +1,50 @@
 
-## Hata Yönetimi ( Error Handling )
+## Hata Yönetimi ve Uygulama Hataları
 
 ------
 
-Hata kontrolü ( hata raporlama ) uygulama ile tümleşik gelir ve <kbd>app/config/env/$env/config.php</kbd> dosyasından kontrol edilir.  Local çevre ortamında yada <b>error > debug</b> değeri true olduğunda tüm php hataları <dfn>set_exception_handler()</dfn> fonksiyonu ile Obullo\Error\Exception sınıfı içerisinden exception hatalarına dönüştürülür. Çevre ortamı <b>production</b> olarak ayarlandığında <b>log > enabled</b> anahtarı aktif ise log servisi tarafından hatalar log sürücülerine yazılır ve hatalar gösterilmez eğer <b>log > enabled</b> anahtarı konfigürasyon dosyasından aktif değilse doğal php hataları uygulamada görüntülenmeye müsait olur.
+Hata kontrolü ( hata raporlama ) uygulama ile tümleşik gelir ve <kbd>app/config/env/$env/config.php</kbd> dosyasından kontrol edilir.
 
+
+<ul>
+<li>
+    <a href="#error-management">Hata Yönetimi</a>
+    
+    <ul>
+        <li>
+            <a href="#global-errors">Evrensel Hata Yönetimi</a>
+            <ul>
+                <li><a href="#php-errors-and-exceptions">Php Hataları ve İstisnai Hataları Yakalamak</a></li>
+                <li><a href="#php-exception-hierarchy">İstisnai Hatalar Hiyerarşisi</a></li>
+                <li><a href="#database-and-runtime-exceptions">Veritabanı ve Genel İstisnai Hataları Yakalamak</a></li>
+                <li><a href="#fatal-errors">Ölümcül Hataları Yakalamak</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#catching-exceptions-by-manually">Özel İstisnai Hataları Yakalamak</a>
+            <ul>
+                <li><a href="#catching-exception-problem">Özel İstisnai Hataları Yakalama Problemi</a></li>
+            </ul>
+        </li>
+    </ul>
+
+</li>
+
+<li>
+    <a href="#sending-custom-http-errors">Özel Http Hataları Göndermek</a>
+    <ul>
+        <li><a href="#showError">$this->response->showError()</a></li>
+        <li><a href="#show404">$this->response->show404()</a></li>
+        <li><a href="#error-message-customization">Hata Şablonlarını Özelleştirmek</a></li>
+    </ul>
+</li>
+
+</ul>
+
+### Hata Yönetimi
+
+Local çevre ortamı konfigürasyon dosyasında <b>error > debug</b> değeri true olduğunda tüm php hataları <dfn>set_exception_handler()</dfn> fonksiyonu ile Obullo\Error\Exception sınıfı içerisinden exception hatalarına dönüştürülür. Çevre ortamı <b>production</b> olarak ayarlandığında <b>log > enabled</b> anahtarı aktif ise log servisi tarafından hatalar log sürücülerine yazılır ve hatalar gösterilmez eğer <b>log > enabled</b> anahtarı konfigürasyon dosyasından aktif değilse doğal php hataları uygulamada görüntülenmeye müsait olur.
 
 ```php
 return array(
@@ -19,11 +59,15 @@ Uygulamada <b>error > debug</b> değeri true olduğunda her arayüz ( Http istek
 
 ![Http Errors](/Error/Docs/images/error-debug.png?raw=true "Http Errors")
 
-### Evrensel Hata Yönetimi
+<a name="global-errors"></a>
+
+#### Evrensel Hata Yönetimi
 
 Uygulamada evrensel hata yönetimi <kbd>app/errors.php</kbd> dosyasından kontrol edilir. Hata durumunda ne yapılacağı bir isimsiz fonksiyon tarafından belirlenerek uygulama tarafında php error handler fonksiyonlarına kayıt edilir. İsimsiz fonksiyon parametresi önüne istisnai hata tipine ait sınıf ismi yazılarak filtreleme yapılmalıdır. Aksi durumda her bir istisnai hata için bütün error fonksiyonları çalışacaktır.
 
-#### Php Hataları ve İstisnai Hatalar
+<a name="php-errors-and-exceptions"></a>
+
+##### Php Hataları ve İstisnai Hataları Yakalamak
 
 Aşağıdaki örnekte <b>istisnai hatalara</b> dönüştürülmüş <b>doğal php hataları</b> yakalanıp log olarak kaydediliyor.
 
@@ -60,7 +104,9 @@ $c['app']->error(
 
 Eğer fonksiyon içerisindeki hatalar log sınıfı herhangi bir metodunun içerisine exception nesnesi olarak gönderilirse log sınıfı tarafından istisnai hata çözümlenerek log dosyalarına kayıt edilir.
 
-#### İstisnai Hatalar Hiyerarşisi
+<a name="php-exception-hierarchy"></a>
+
+##### İstisnai Hatalar Hiyerarşisi
 
 Hataları yakalarken uygulamaya tüm exception isimleri yazmanıza <b>gerek yoktur</b>. Sadece en üst hiyerarşideki istisnai hata isimlerini girerek aynı kategorideki hataların hepsini yakalayabilirsiniz.
 
@@ -86,7 +132,9 @@ Hataları yakalarken uygulamaya tüm exception isimleri yazmanıza <b>gerek yokt
 
 İstisnai hatalar ile ilgili bu kaynağa bir gözatın. <a href="http://nitschinger.at/A-primer-on-PHP-exceptions">Php Exceptions</a>
 
-#### Veritabanı ve Diğer İstisnai Hatalar Yönetimi
+<a name="database-and-runtime-exceptions"></a>
+
+##### Veritabanı ve Genel İstisnai Hataları Yakalamak
 
 Uygulama hataları varsayılan olarak log sürücülerine kaydedilirler.
 
@@ -124,7 +172,9 @@ $c['app']->error(
 );
 ```
 
-#### Ölümcül Hatalar
+<a name="fatal-errors"></a>
+
+##### Ölümcül Hataları Yakalamak
 
 Aşağıdaki örnekte ise php fatal error türündeki hatalar kontrol altına alınarak log sınıfına gönderiliyor.
 
@@ -146,8 +196,9 @@ Fatal error örneğinde ölümcül hata türündeki hatalar fatal metodu ile php
 
 > **Not:** İstisnai hatalardan faklı olarak $c['app']->fatal() metodu errors.php dosyası içerisinde yalnızca <b>bir kere</b> tanımlanabilir.
 
+<a name="catching-exceptions-by-manually"></a>
 
-### İstisnai Hataları Yakalamak
+### Özel İstisnai Hataları Yakalamak
 
 ------
 
@@ -167,7 +218,9 @@ try
 }
 ```
 
-### İstisnai Hataları Yakalama Problemi
+<a name="catching-exception-problem"></a>
+
+#### Özel İstisnai Hataları Yakalama Problemi
 
 Eğer istisnai hataları alamıyorsanız ve  ekrana boş beyaz bir sayfa geliyorsa büyük ihtimalle bir namespace içerisindesiniz ve <b>fatal error</b> alıyorsunuz. Namespace içerisinde iken kullandığınız sayfa içerisinde en üstte <b>use Exception</b> yada catch kısmında  backslash <b>\</b> ile <b>\Exception</b> kullanmayı deneyin.
 
@@ -179,9 +232,13 @@ Eğer istisnai hataları alamıyorsanız ve  ekrana boş beyaz bir sayfa geliyor
 }
 ```
 
+<a name="sending-custom-http-errors"></a>
+
 ### Özel Http Hataları Göndermek
 
 Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu durumda Http paketi içerisindeki response sınıfına ait metotları uygulamanızda kullanabilirsiniz.
+
+<a name="showError"></a>
 
 ##### $this->response->showError('message')
 
@@ -189,13 +246,19 @@ Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu dur
 $this->response->status(500)->showError('There is an error occured');
 ```
 
-Bu fonksiyon <kbd>app/templates/errors/general.php</kbd> hata şablonunu kullanarak özel hata mesajları gösterir. Hata şablonunu ihtiyaçlarınıza göre özelleştirebilirsiniz. Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.
+Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.
 
+<a name="show404"></a>
 
 ##### $this->response->show404('message')
 
 ```php
 $this->response->show404('Page not found')
 ```
+404 http durum kodu ile birlikte sayfa bulunamadı hatası gösterir.
 
-Bu fonksiyon <kbd>app/templates/errors/404.php</kbd> hata şablonunu kullanarak 404 http durum kodu ile birlikte sayfa bulunamadı hatası gösterir. Hata şablonunu ihtiyaçlarınıza göre özelleştirebilirsiniz.
+<a name="error-message-customization"></a>
+
+##### Hata Şablonlarını Özelleştirmek
+
+Ugyulama içinde gönderdiğiniz yukarıda bahsedilen hata metotlarına ait hata şablonlarını ihtiyaçlarınıza göre özelleştirebilirsiniz. <kbd>showError()</kbd> türündeki hataları düzenlemek için <kbd>app/templates/errors/general.php</kbd> dosyasını, <kbd>show404()</kbd> türündeki hataları düzenlemek içinse <kbd>app/templates/errors/404.php</kbd> dosyasını kullanabilirsiniz.

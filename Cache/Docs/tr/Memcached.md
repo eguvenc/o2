@@ -45,7 +45,7 @@ Memcached sürücüsü bağlantı ayarlarınızı <kbd>app/config/env/$env/cache
 
 <a name="memcached-nodes"></a>
 
-### Çoklu Sunucular ( Nodes )
+#### Çoklu Sunucular ( Nodes )
 
 Birden fazla memcached sunucunuz varsa konfigürasyon dosyasındaki diğer sunucu adreslerini aşağıdaki gibi nodes dizisi içerisine girmeniz gerekir.
 
@@ -71,7 +71,7 @@ Birden fazla memcached sunucunuz varsa konfigürasyon dosyasındaki diğer sunuc
 
 <a name="memcached-service"></a>
 
-### Servis Kurulumu
+#### Servis Kurulumu
 
 Eğer uygulama içerisinde cache servisinin memcached kullanmasını istiyorsanız <kbd>app/Classes/Service/Cache.php</kbd> dosyasındaki <b>driver</b> anahtarını <b>memcached</b> olarak değiştirin.
 
@@ -81,7 +81,7 @@ $this->c['app']->provider('cache')->get(['driver' => 'memcached', 'connection' =
 
 <a name="memcached-service-provider"></a>
 
-### Servis Sağlayıcısı
+#### Servis Sağlayıcısı
 
 Cache kütüphanesi bağımsız olarak kullanılmak istendiği durumlarda servis sağlayıcısından direkt olarak çağrılabilir. Servis sağlayıcı yüklendiği zaman kütüphaneyi bir değişkene atayıp yarattığınız bağlantıya ait metotlara ulaşabilirsiniz.
 
@@ -97,7 +97,7 @@ $this->cache->method();
 
 <a name="memcached-service-provider-connections"></a>
 
-### Servis Sağlayıcısı Bağlantıları
+#### Servis Sağlayıcısı Bağlantıları
 
 Servis sağlayıcısı <b>connection</b> anahtarındaki bağlantı değerini önceden <kbd>app/config/$env/cache</kbd> klasöründe tanımlı olan <b>$sürücü.php</b> dosyası connections dizisi içerisinden alır. Aşağıda memcached sürücüsü <b>default</b> bağlantısına ait bir örnek görülüyor.
 
@@ -135,7 +135,7 @@ return array(
 <a name="memcached-flushAll"></a>
 <a name="memcached-info"></a>
 
-### Memcached Referansı
+#### Memcached Referansı
 
 ------
 

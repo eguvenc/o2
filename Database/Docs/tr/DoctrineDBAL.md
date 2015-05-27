@@ -23,13 +23,30 @@ Doctrine veritabanı katmanı daha çok PDO sınıfı saran ve PDO sınıfına b
     </ul>
 </li>
 
+
 <li>
-    <a href="#service-provider">Servis Sağlayıcısı Konfigürasyonu</a>
+    <a href="#running">Çalıştırma</a>
     <ul>
-        <li><a href="#getting-existing-connection">Varolan Bağlantıyı Almak</a></li>
-        <li><a href="#creating-new-connection">Yeni Bir Bağlantı Oluşturmak</a></li>
-        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
-        <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+        <li>
+            <a href="#service-provider">Servis Sağlayıcısı</a>
+            <ul>
+                <li><a href="#getting-existing-connection">Varolan Bağlantıyı Almak</a></li>
+                <li><a href="#creating-new-connection">Yeni Bir Bağlantı Oluşturmak</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#service">Servis</a>
+            <ul>
+                <li>
+                    <a href="#loading-service">Servisi Yüklemek</a>
+                    <ul>
+                        <li><a href="#loading-in-controller">Kontrolör Sınıfı İçerisinden Yüklemek</a></li>
+                        <li><a href="#loading-in-others">Diğer Sınıflar İçerisinden Yüklemek</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
     </ul>
 </li>
 
@@ -54,13 +71,13 @@ Doctrine veritabanı katmanı daha çok PDO sınıfı saran ve PDO sınıfına b
 
 <li>
     <a href="#writing-database">Veritabanına Yazmak</a>
-    <ul>
+    <ul>    
         <li><a href="#executeUpdate">$this->db->executeUpdate()</a></li>
         <li><a href="#delete">$this->db->delete()</a></li>
         <li><a href="#insert">$this->db->insert()</a></li>
         <li><a href="#update">$this->db->update()</a></li>
     </ul>
-</li>     
+</li>
 
 <li>
     <a href="#query-binding">Hazırlanmış Sorgular Oluşturmak ( Query Binding )</a>
@@ -257,11 +274,15 @@ Böylece <b>veritabanı</b> servis sağlayıcısı sayesinde uygulamada kullanı
 
 > **Not:** Veritabanı bağlantısı teknik olarak <kbd>Obullo/Service/Providers/Database.php</kbd> servis sağlayıcısı üzerinden <kbd>Obullo/Database/Pdo/Handler/$sürücü.php</kbd> dosyasındaki createConnection() metodu aracılığı ile sağlanır.
 
-<a name='service-provider'></a>
+<a name='running'></a>
 
-### Servis Sağlayıcısı Konfigürasyonu
+### Çalıştırma
 
 ------
+
+<a name='service-provider'></a>
+
+#### Servis Sağlayıcısı
 
 Mevcut olan servis sağlayıcısı <b>DatabaseServiceProvider.php</b> olarak tanımlıdır ve <b>DoctirneServiceProvider.php</b> olarak <kbd>app/providers.php</kbd> dosyasından değiştirilmelidir.
 
@@ -279,7 +300,7 @@ Servis sağlayıcısı konfigürasyon dosyasını kullanarak bağlantıları yö
 
 <a name='getting-existing-connection'></a>
 
-#### Varolan Bağlantıyı Almak
+##### Varolan Bağlantıyı Almak
 
 Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımlı</b> olan bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>get</b> metodunu kullanır.
 
@@ -305,7 +326,7 @@ $this->db->query(" .. ");
 
 <a name='creating-new-connection'></a>
 
-#### Yeni Bir Bağlantı Oluşturmak
+##### Yeni Bir Bağlantı Oluşturmak
 
 Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımsız</b> olan yeni bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>factory</b> metodunu kullanır.
 
@@ -322,9 +343,9 @@ $this->db = $this->c['app']->provider('database')->factory(
 );
 ```
 
-<a name='service-configuration'></a>
+<a name='service'></a>
 
-#### Servis Konfigürasyonu
+#### Servis
 
 Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosyası tarafından kontrol edilir. Db servis dosyası ise bağlantı kurabilmek için <b>database</b> servis sağlayıcısını kullanır. Servis konfigürasyonu için <kbd>app/classes/Service/Db.php</kbd> dosyasını açın ve varsayılan bağlantı konfigürasyonunuzu <b>get()</b> metodu içerisine girin.
 
@@ -349,12 +370,15 @@ class Db implements ServiceInterface
 /* End of file Db.php */
 /* Location: .app/classes/Service/Db.php */
 ```
-<a name='loading-class'></a>
+<a name='loading-service'></a>
 
+#### Servisi Yüklemek
 
-#### Sınıfı Yüklemek
+Servisi yüklemenin iki yöntemi vardır.
 
-##### Controller sınıfı içerisinden yüklemek
+<a name='loading-in-controller'></a>
+
+##### Kontrolör sınıfı içerisinden yüklemek
 
 Sınıfı kontrolör sınıfı içerisinden yüklemek için konteyner içerisinden <b>db</b> olarak çağırmanız gerekir.
 
@@ -392,6 +416,8 @@ class Welcome extends \Controller
 /* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```
+
+<a name='loading-in-others'></a>
 
 ##### Diğer sınıflar içinden yüklemek
 

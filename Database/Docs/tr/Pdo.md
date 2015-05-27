@@ -26,12 +26,28 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
 </li>
 
 <li>
-    <a href="#service-provider">Servis Sağlayıcısı Konfigürasyonu</a>
+    <a href="#running">Çalıştırma</a>
     <ul>
-        <li><a href="#getting-existing-connection">Varolan Bağlantıyı Almak</a></li>
-        <li><a href="#creating-new-connection">Yeni Bir Bağlantı Oluşturmak</a></li>
-        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
-        <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+        <li>
+            <a href="#service-provider">Servis Sağlayıcısı</a>
+            <ul>
+                <li><a href="#getting-existing-connection">Varolan Bağlantıyı Almak</a></li>
+                <li><a href="#creating-new-connection">Yeni Bir Bağlantı Oluşturmak</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#service">Servis</a>
+            <ul>
+                <li>
+                    <a href="#loading-service">Servisi Yüklemek</a>
+                    <ul>
+                        <li><a href="#loading-in-controller">Kontrolör Sınıfı İçerisinden Yüklemek</a></li>
+                        <li><a href="#loading-in-others">Diğer Sınıflar İçerisinden Yüklemek</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
     </ul>
 </li>
 
@@ -52,15 +68,18 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#resultArray">$this->db->resultArray()</a></li>
     </ul>
 </li>
+
+
 <li>
     <a href="#writing-database">Veritabanına Yazmak</a>
     <ul>
-        <li><a href="#exec">$this->db->exec()</a></li>
-        <li><a href="#exec">$this->db->insert()</a></li>
-        <li><a href="#exec">$this->db->update()</a></li>
-        <li><a href="#exec">$this->db->delete()</a></li>
+    <li><a href="#exec">$this->db->exec()</a></li>
+    <li><a href="#insert">$this->db->insert()</a></li>
+    <li><a href="#update">$this->db->update()</a></li>
+    <li><a href="#delete">$this->db->delete()</a></li>
     </ul>
-</li>     
+</li>
+
 
 <li>
     <a href="#security">Güvenlik</a>
@@ -77,6 +96,7 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#auto-transaction">Otomatik Transaksiyon</a></li>
     </ul>
 </li>
+
 <li>
     <a href="#helper-functions">Yardımcı Fonksiyonlar</a>
     <ul>
@@ -89,6 +109,7 @@ Veritabanı sınıfı veritabanı bağlantılarını sağlar ve temel veritaban�
         <li><a href="#quoteIdentifier">$this->db->quoteIdentifier()</a></li>
     </ul>
 </li>
+
 <li>
     <a href="#addons">Eklentiler</a>
     <ul>
@@ -235,11 +256,17 @@ Böylece <b>veritabanı</b> servis sağlayıcısı sayesinde uygulamada kullanı
 
 > **Not:** Veritabanı bağlantısı teknik olarak <kbd>Obullo/Service/Providers/Database.php</kbd> servis sağlayıcısı üzerinden <kbd>Obullo/Database/Pdo/Handler/$sürücü.php</kbd> dosyasındaki createConnection() metodu aracılığı ile sağlanır.
 
-<a name='service-provider'></a>
+<a name='running'></a>
 
-### Servis Sağlayıcısı Konfigürasyonu
+### Çalıştırma
 
 ------
+
+Veritabanı sınıfını kullanabilmek için servis ve servis sağlayıcısının aşağıdaki gibi konfigüre edilmiş olması gerekir.
+
+<a name='service-provider'></a>
+
+#### Servis Sağlayıcısı
 
 Veritabanı servis sağlayıcısı <kbd>Obullo/Service/Providers/DatabaseServiceProvider.php</kbd> dosyasıdır. Servis sağlayıcısı konfigürasyon dosyasını kullanarak bağlantıları yönetir eğer var olan bir veritabanı bağlantısını kullanmak yada yeni bir veritabanı bağlantısı açmak isteniyorsa <b>database</b> servis sağlayıcısı kullanılır.
 
@@ -258,7 +285,7 @@ Eğer başka bir servis sağlayıcı kullanamk istityorsanız <kbd>app/providers
 
 <a name='getting-existing-connection'></a>
 
-#### Varolan Bağlantıyı Almak
+##### Varolan Bağlantıyı Almak
 
 Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımlı</b> olan bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>get</b> metodunu kullanır.
 
@@ -284,7 +311,7 @@ $this->db->query(" .. ");
 
 <a name='creating-new-connection'></a>
 
-#### Yeni Bir Bağlantı Oluşturmak
+##### Yeni Bir Bağlantı Oluşturmak
 
 Eğer bir yazılımcı paylaşımlı <b>db</b> servisinin kullandığı veritabanı nesnesi dışında <b>tanımsız</b> olan yeni bir veritabanı bağlantısına ihtiyaç duyuyorsa bunun için servis sağlayıcısı <b>factory</b> metodunu kullanır.
 
@@ -304,9 +331,9 @@ $this->db = $this->c['app']->provider('database')->factory(
 );
 ```
 
-<a name='service-configuration'></a>
+<a name='service'></a>
 
-#### Servis Konfigürasyonu
+### Servis
 
 Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosyası tarafından kontrol edilir. Db servis dosyası ise bağlantı kurabilmek için <b>database</b> servis sağlayıcısını kullanır. Servis konfigürasyonu için <kbd>app/classes/Service/Db.php</kbd> dosyasını açın ve varsayılan bağlantı konfigürasyonunuzu <b>get()</b> metodu içerisine girin.
 
@@ -331,11 +358,15 @@ class Db implements ServiceInterface
 /* End of file Db.php */
 /* Location: .app/classes/Service/Db.php */
 ```
-<a name='loading-class'></a>
+<a name='loading-service'></a>
 
-#### Sınıfı Yüklemek
+#### Servisi Yüklemek
 
-##### Controller sınıfı içerisinden yüklemek
+Servisi yüklemenin iki yöntemi vardır.
+
+<a name='loading-in-controller'></a>
+
+##### Kontrolör sınıfı içerisinden yüklemek
 
 Sınıfı kontrolör sınıfı içerisinden yüklemek için konteyner içerisinden <b>db</b> olarak çağırmanız gerekir.
 
@@ -373,6 +404,8 @@ class Welcome extends \Controller
 /* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```
+
+<a name='loading-in-others'></a>
 
 ##### Diğer sınıflar içinden yüklemek
 

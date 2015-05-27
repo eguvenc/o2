@@ -6,6 +6,7 @@
 Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir arayüz sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası <kbd>app/config/$env/cache/</kbd> dosyasından yönetilir.
 
 <ul>
+
 <li>
     <a href="#configuration">Konfigürasyon</a>
     <ul>
@@ -14,42 +15,46 @@ Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir aray
     </ul>
 </li>
 
+
 <li>
-    <a href="#common-methods">Ortak Metotlar Referansı</a>
+    <a href="#running">Çalıştırma</a>
     <ul>
-        <li><a href="#common-set">$this->cache->set()</a></li>
-        <li><a href="#common-get">$this->cache->get()</a></li>
-        <li><a href="#common-delete">$this->cache->delete()</a></li>
-        <li><a href="#common-replace">$this->cache->replace()</a></li>
-        <li><a href="#common-exists">$this->cache->exists()</a></li>
+        <li><a href="#loading-service">Servisi Yüklemek</a></li>
+        <li><a href="#cache-drivers">Mevcut Cache Sürücüleri</a></li>
+        <li>
+            <a href="#interface">Ortak Arayüz Metotları</a>
+            <ul>
+                <li><a href="#common-set">$this->cache->set()</a></li>
+                <li><a href="#common-get">$this->cache->get()</a></li>
+                <li><a href="#common-delete">$this->cache->delete()</a></li>
+                <li><a href="#common-replace">$this->cache->replace()</a></li>
+                <li><a href="#common-exists">$this->cache->exists()</a></li>
+            </ul>
+        </li>
     </ul>
 </li>
+
+<li>
+    <a href="#drivers">Sürücüler</a>
+    <ul>
+        <li><a href="#file">File</a></li>
+        <li><a href="#file">Apc</a></li>
+        <li><a href="#memcache">Memcache</a></li>
+        <li><a href="#memcached">Memcached</a></li>
+        <li><a href="#redis">Redis</a></li>
+    </ul>
+</li>
+
 </ul>
 
 
-#### Cache Sürcüleri
+### Konfigürasyon
 
-Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
-
-* Apc
-* File
-* Memcache
-* Memcached
-* Redis
-
-Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>app/config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
-
-### Servisi Yüklemek
-
-Cache servisi aracılığı ile cache metotlarına aşğıdaki gibi erişilebilir.
-
-```php
-$this->c['cache']->metod();
-```
+Cache sınıfı konfigürasyonu <kbd>app/config/$env/cache/$driver.php</kbd> dosyasından konfigüre edilir. Örneğin local ortam ve memcached sürücüsü için <kbd>app/config/local/cache/memcached.php</kbd> dosyasını konfigüre etmeniz gerekir.
 
 <a name="service-configuration"></a>
 
-### Servis Konfigürasyonu
+#### Servis Konfigürasyonu
 
 Servisler uygulama içerisinde parametreleri değişmez olan ve tüm kütüphaneler tarafından ortak ( paylaşımlı ) kullanılan sınıflardır. Genellikle servisler kolay yönetilebilmek için bağımsız olan bir servis sağlayıcısına ihtiyaç duyarlar.
 
@@ -57,11 +62,11 @@ Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı 
 
 Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>serializer</b> parametresi ile kullanılmaya konfigüre edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>"none"</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>"none"</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
 
-Bu nedenlerden ötürü cache kütüphanesi aşağıdaki gibi hem servis hem de servis sağlayıcı ( service provider ) olarak kullanılır.
+Bu nedenlerden ötürü cache kütüphanesi aşağıdaki gibi hem servis hem de servis sağlayıcı olarak kullanılır.
 
 <a name="service-setup"></a>
 
-### Servis Kurulumu
+#### Servis Kurulumu
 
 Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağlayıcısının adını service provider get metodu içerisindeki driver anahtarı değerine sürücü adını girmek ve konfigürasyon dosyanızdaki bağlantı adını seçmektir aşağıdaki <b>default</b> bağlantısı seçilmiştir.
 
@@ -92,9 +97,38 @@ class Cache implements ServiceInterface
 /* Location: .classes/Service/Cache.php */
 ```
 
-<a name="common-methods"></a>
+<a name="running"></a>
 
-### HandlerInterface
+### Çalıştırma
+
+------
+
+<a name="loading-service"></a>
+
+#### Servisi Yüklemek
+
+Cache servisi aracılığı ile cache metotlarına aşğıdaki gibi erişilebilir.
+
+```php
+$this->c['cache']->metod();
+```
+<a name="cache-drivers"></a>
+
+#### Mevut Cache Sürcüleri
+
+Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
+
+* Apc
+* File
+* Memcache
+* Memcached
+* Redis
+
+Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>app/config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
+
+<a name="interface"></a>
+
+#### Ortak Arayüz Metotları
 
 Cache sürücüleri handler interface arayüzünü kullanırlar. Handler interface size cache servisinde hangi metotların ortak kullanıldığı gösterir ve eğer yeni bir sürücü yazacaksınız sizi bu metotları sınıfınıza dahil etmeye zorlar. Cache sürücüsü ortak metotları aşağıdaki gibidir.
 
@@ -110,18 +144,11 @@ interface CacheHandlerInterface
 }
 ```
 
-Şimdi bu metotları biraz tanıyalım.
-
-
 <a name="common-set"></a>
 <a name="common-get"></a>
 <a name="common-delete"></a>
 <a name="common-replace"></a>
 <a name="common-exists"></a>
-
-### Ortak Metotlar Referansı
-
--------
 
 ##### $this->cache->set(mixed $key, $value, $ttl = 60);
 
@@ -147,12 +174,40 @@ Varsayılan anahtara ait değeri yeni değer ile günceller.
 
 Eğer girilen anahtar önbellekte mevcut ise <b>true</b> değerine aksi durumda <b>false</b> değerine döner.
 
-<a name="memcached-driver"></a>
+<a name="drivers"></a>
 
-## Memcached Sürücüsü
+### Sürücüler
 
-Memcached sürücüsü kurulum konfigürasyon ve sınıf referansı için [Memcached.md](Docs/tr/Memcached.md) dosyasını okuyunuz.
+------
 
-## Redis Sürücüsü
+Şu anki sürümde aşağıdaki sürücüler desteklenmektedir.
 
-Redis sürücüsü kurulum konfigürasyon ve sınıf referansı için [Redis.md](Docs/tr/Redis.md) dosyasını okuyunuz.
+<a name="file"></a>
+
+#### File
+
+Varsayılan önbellek sürücüsüdür ortak arayüz metotlarını kullanarak text dosyalarına kayıt yapar.
+
+<a name="apc"></a>
+
+#### Apc
+
+PECL eklentisi ile kurulum gerektirir ortak arayüz metotlarını kullanarak sunucu önbelleğine kayıt yapar. Kurulum ve sunucu gereksinimleri için <a href="http://php.net/manual/tr/book.apc.php">http://php.net/manual/tr/book.apc.php</a> adresini ziyaret ediniz.
+
+<a name="memcache"></a>
+
+#### Memcache
+
+Php eklentisi ile kurulum gerektirir ortak arayüz metotlarını kullanarak sunucu önbelleğine kayıt yapar. Kurulum ve sunucu gereksinimleri için <a href="http://php.net/manual/tr/book.memcache.php">http://php.net/manual/tr/book.memcache.php</a> adresini ziyaret ediniz.
+
+<a name="memcached"></a>
+
+#### Memcached
+
+Memcached sürücüsü kurulum konfigürasyon ve sınıf referansı için [Memcached.md](/Cache/Docs/tr/Memcached.md) dosyasını okuyunuz.
+
+<a name="redis"></a>
+
+#### Redis
+
+Redis sürücüsü kurulum konfigürasyon ve sınıf referansı için [Redis.md](/Cache/Docs/tr/Redis.md) dosyasını okuyunuz.

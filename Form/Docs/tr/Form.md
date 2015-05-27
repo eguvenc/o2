@@ -5,19 +5,79 @@
 
 Form sınıfı özel form mesajlarını, validator sınıfı çıktılarını, işlem sonuçlarını, ve form hatalarını yönetir.
 
-### Sınıfı Yüklemek
+<ul>
+<li>
+    <a href="#configuration">Konfigürasyon</a>
+    <ul>
+        <li><a href="#status-table">Durum Metotları Tablosu</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#loading-service">Sınıfı Yüklemek</a></li>
+        <li><a href="#basic-usage">Bir Form Mesajı Göstermek</a></li>
+        <li>
+            <a href="#using-with-validator">Doğrulama Hatalarını Form Sınıfı ile Göstermek</a>
+            <ul>
+                <li><a href="#http-requests">Http İstekleri</a></li>
+                <li><a href="#ajax-requests">Ajax İstekleri</a></li>
+            </ul>
+        </li>
+    </ul>
+</li>
+
+<li>
+    <a href="#customization">Özelleştirme</a>
+    <ul>
+        <li><a href="#adding-custom-data">Özel Form Verileri Eklemek</a></li>
+        <li><a href="#adding-custom-errors">Özel Hataları Form Sınıfına Uyarlamak</a></li>
+        <li><a href="#adding-custom-results">Özel Sonuçları Form Sınıfına Uyarlamak</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#get-methods">Get Metotları</a>
+    <ul>
+        <li><a href="#getMessage">$this->form->getMessage()</a></li>
+        <li><a href="#getValidationErrors">$this->form->getValidationErrors()</a></li>
+        <li><a href="#getError">$this->form->getError()</a></li>
+        <li><a href="#getValue">$this->form->getValue()</a></li>
+        <li><a href="#outputArray">$this->form->outputArray()</a></li>
+        <li><a href="#results">$this->form->results()</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#set-methods">Set Metotları</a>
+    <ul>
+        <li><a href="#setValue">$this->form->setValue()</a></li>
+        <li><a href="#setSelect">$this->form->setSelect()</a></li>
+        <li><a href="#setCheckbox">$this->form->setCheckbox()</a></li>
+        <li><a href="#setRadio">$this->form->setRadio()</a></li>
+        <li><a href="#setMessage">$this->form->setMessage()</a></li>
+        <li><a href="#setKey">$this->form->setKey()</a></li>
+        <li><a href="#setErrors">$this->form->setErrors()</a></li>
+        <li><a href="#setResults">$this->form->setResults()</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#method-reference">Fonksiyon Referansı</a>
+</li>
+
+
+
+</ul>
+
+<a name="configuration"></a>
+
+### Konfigürasyon
 
 -------
 
-```php
-$this->c['form']->method();
-```
-
-#### Konfigürasyon
-
--------
-
-Form sınıfına ait konfigürasyon dosyası <kbd>app/config/form.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası form mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a>
+Form sınıfına ait konfigürasyon dosyası <kbd>app/config/form.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası form mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. Bu adresten <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a> bootstrap css projesine gözatabilirsiniz.
 
 
 ```php
@@ -79,7 +139,9 @@ echo $this->form->getMessage();
 // Çıktı <span class="glyphicon glyphicon-exclamation-sign">Example warning</span> 
 ```
 
-Durum Metotları
+<a name="status-table"></a>
+
+#### Durum Metotları Tablosu
 
 <table>
     <thead>
@@ -113,6 +175,23 @@ Durum Metotları
     </tbody>
 </table>
 
+<a name="runnning"></a>
+
+### Çalıştırma
+
+Form sınıfı <kbd>app/components.php</kbd> dosyası içerisinde tanımlıdır ve konteyner içerisinden çağrılarak çalıştırılır.
+
+<a name="loading-service"></a>
+
+#### Sınıfı Yüklemek
+
+-------
+
+```php
+$this->c['form']->method();
+```
+
+<a name="basic-usage"></a>
 
 #### Bir Form Mesajı Göstermek
 
@@ -159,9 +238,13 @@ Ve aşağıdaki kodu view sayfanızda form etiketi üzerine yerleştirin.
 
 Şimdi form gönderme butonu ile formu post edin eğer form doğrulaması başarılı ise <b>Form saved successfully</b> aksi durumda <b>Form validation failed</b> mesajı almanız gerekir.
 
+<a name="using-with-validator"></a>
+
 #### Doğrulama Hatalarını Form Sınıfı ile Göstermek
 
 Bir form doğrulamasından dönen hataları view sayfasında form sınıfı aracılığı ile kullanabilmek için setErrors fonksiyonu ile hataların form sınıfına aktarılması gerekir. 
+
+<a name="http-requests"></a>
 
 ##### Http İstekleri
 
@@ -202,6 +285,8 @@ Ve view sayfanıza aşağıdaki kodları yerleştirin.
 ```
 
 Yukarıdaki işlemleri yaptıysanız form alanlarını boş girdikten sonra formu çalıştırdığınızda isim ve email alanlarına ait hatalar alamanız gerekir.
+
+<a name="ajax-requests"></a>
 
 ##### Ajax İstekleri
 
@@ -250,7 +335,13 @@ Son aşamada form çıktıları ajax işlemleri için http resonse sınıfı yar
 echo $this->c['response']->json($this->form->outputArray());
 ```
 
-#### Özel Form Verileri Eklemek
+<a name="customization"></a>
+
+#### Özelleştirme
+
+<a name="adding-custom-data"></a>
+
+##### Özel Form Verileri Eklemek
 
 Setkey fonksiyonu ile mevcut array çıktıları içerisine uygulamaya özel form verileri eklenebilir.
 
@@ -280,7 +371,9 @@ Array
 )
 ```
 
-#### Özel Hataları Form Sınıfına Uyarlamak
+<a name="adding-custom-errors"></a>
+
+##### Özel Hataları Form Sınıfına Uyarlamak
 
 Özel bir durum için oluşmuş hataları da form sınıfına gönderebilmek mümkündür bunun için hataları array türünde gönderin.
 
@@ -304,7 +397,9 @@ Doğrulama sınıfı hataları da istenirse array türünde gönderilebilir.
 $this->form->setErrors($this->validator->getErrors());
 ```
 
-#### Bir Servise Yada İşleme Ait Sonuçları Uyarlamak
+<a name="adding-custom-results"></a>
+
+##### Özel Sonuçları Form Sınıfına Uyarlamak
 
 Bir servis yada işlem için oluşmuş hataları da form sınıfına gönderebilmek mümkündür bunun için setResults fonksiyonu kullanılır. Aşağıda yanlış açılan bir oturum açma işlemine ait bir örnek görülüyor.
 
@@ -351,19 +446,27 @@ Array (
 ) 
 ```
 
+<a name="get-methods"></a>
+
 ### Get Metotları
 
 Form get metotları bir http form post işleminden sonra doğrulama sınıfı ile filtrelenen değerleri form elementlerine atamak için kullanılırlar.
 
-#### $this->form->getMessage()
+<a name="getMessage"></a>
+
+##### $this->form->getMessage()
 
 Form doğrulama hatalı ise forma ait genel hata mesajına geri döner.
 
-#### $this->form->getValidationErrors();
+<a name="getValidationErrors"></a>
+
+##### $this->form->getValidationErrors();
 
 Eğer validator sınıfı mevcutsa form post işleminden sonra girilen input alanlarına ait hatalara string formatında geri döner.
 
-#### $this->form->getError(string $field, $prefix = '', $suffix = '');
+<a name="getError"></a>
+
+##### $this->form->getError(string $field, $prefix = '', $suffix = '');
 
 Eğer validator sınıfı mevcutsa form post işleminden sonra girilen input alanına ait hataya geri döner.
 
@@ -378,8 +481,9 @@ Eğer validator sınıfı mevcutsa form post işleminden sonra girilen input ala
         </tr>
 </form>
 ```
+<a name="getValue"></a>
 
-#### $this->form->getValue(string $field);
+##### $this->form->getValue(string $field);
 
 Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input alanına ait değere geri döner.
 
@@ -387,20 +491,27 @@ Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input
 <input type="text" name="price" value="<?php echo $this->form->getValue('price') ?>" size="20" />
 ```
 
-#### $this->form->outputArray();
+<a name="outputArray"></a>
+
+##### $this->form->outputArray();
 
 Bir form doğrulamasından sonra oluşan çıktıları array formatında getirir.
 
-#### $this->form->results();
+<a name="results"></a>
+
+##### $this->form->results();
 
 Bir form doğrulamasından sonra eğer bir servis yada uygulama sonucu için <kbd>$this->form->setResults()</kbd> metodu ile girilen hata değerlerine array formatında geri döner.
 
+<a name="set-methods"></a>
 
 ### Set Metotları
 
 Form set metotları checbox, menü yada radio elementi kullanıyorsanız bir http form post işleminden sonra doğrulama sınıfından gelen güvenli değerlerler ile bu elementlere ait opsiyonları seçili olarak göstermek için kullanılırlar.
 
-#### $this->form->setValue(string $field, $default = '');
+<a name="setValue"></a>
+
+##### $this->form->setValue(string $field, $default = '');
 
 Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input alanına ait değere geri döner. İkinci parametre eğer form post verisinde alana ait değer yoksa geri dönülecek varsayılan değeri belirler.
 
@@ -408,7 +519,9 @@ Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input
 <input type="text" name="price" value="<?php echo $this->form->setValue('price', '0.00') ?>" size="20" />
 ```
 
-#### $this->form->setSelect(string $field, $value = '', $default = false);
+<a name="setSelect"></a>
+
+##### $this->form->setSelect(string $field, $value = '', $default = false);
 
 Eğer bir <b>select</b> menü kullanıyorsanız bu fonksiyon seçilen menü değerine ait opsiyonu seçili olarak göstermenize olanak sağlar.
 
@@ -420,7 +533,9 @@ Eğer bir <b>select</b> menü kullanıyorsanız bu fonksiyon seçilen menü değ
 </select>
 ```
 
-#### $this->form->setCheckbox(string $field, $value = '', $default = false);
+<a name="setCheckbox"></a>
+
+##### $this->form->setCheckbox(string $field, $value = '', $default = false);
 
 Eğer bir <b>checbox</b> elementi kullanıyorsanız bu fonksiyon seçilen değere ait opsiyonu seçili olarak göstermenize olanak sağlar.
 
@@ -429,7 +544,9 @@ Eğer bir <b>checbox</b> elementi kullanıyorsanız bu fonksiyon seçilen değer
 <input type="checkbox" name="mycheck" value="2" <?php echo $this->form->setCheckbox('mycheck', '2') ?> />
 ```
 
-#### $this->form->setRadio(string $field, $value = '', $default = false);
+<a name="setRadio"></a>
+
+##### $this->form->setRadio(string $field, $value = '', $default = false);
 
 Eğer bir <b>radio</b> elementi kullanıyorsanız bu fonksiyon seçilen değere ait opsiyonu seçili olarak göstermenize olanak sağlar.
 
@@ -438,19 +555,27 @@ Eğer bir <b>radio</b> elementi kullanıyorsanız bu fonksiyon seçilen değere 
 <input type="radio" name="myradio" value="2" <?php echo $this->form->setRadio('myradio', '2') ?> />
 ```
 
-#### $this->form->setMessage(string $message = '', integer $status = 0);
+<a name="setMessage"></a>
+
+##### $this->form->setMessage(string $message = '', integer $status = 0);
 
 Bir form doğrulaması çıktısı <kbd>message</kbd> anahtarına bir mesaj değeri atar. İkinci parametere girilirse eğer form success anahtarı <b>0</b> yada <b>1</b> olarak değiştirir.
 
-#### $this->form->setKey(string $key, mixed $val);
+<a name="setKey"></a>
+
+##### $this->form->setKey(string $key, mixed $val);
 
 Bir form doğrulamasından sonra oluşan çıktı dizisindeki anahtarlara değeri ile birlikte yeni bir anahtar ekler yada mevcut anahtarı yeni değeriyle günceller.
 
-#### $this->form->setErrors(array|object $errors);
+<a name="setErrors"></a>
+
+##### $this->form->setErrors(array|object $errors);
 
 Bir form doğrulamasından sonra oluşan çıktı dizisindeki input alanlarına ait anahtar olan <kbd>errors</kbd> anahtarına hatalar ekler. İlk parametre array olarak gönderilirse hatalar olduğu gibi kaydedilir. Nesne olarak sadece validator sınıfı gönderilebilir buradaki amaç validator sınıfındaki hataları kendiliğinden form sınıfına aktarmaktır.
 
-#### $this->form->setResults(array $results);
+<a name="setResults"></a>
+
+##### $this->form->setResults(array $results);
 
 Bir servis yada işlem için oluşmuş özel hataları form sınıfına gönderebilmek için kullanılır. Gönderilen veriler form çıktısında <kbd>results</kbd> anahtarına kaydedilir.
 
@@ -493,7 +618,9 @@ if ($results = $this->form->results()) {
 
 ```
 
-### Form Sınıfı Referansı
+<a name="method-reference"></a>
+
+#### Form Sınıfı Referansı
 
 ------
 

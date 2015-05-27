@@ -5,13 +5,41 @@
 
 Olay sınıfı uygulamada olaylara abone olmak ve onları dinlemek için <a href="http://www.sitepoint.com/understanding-the-observer-pattern/" target="_blank">observer</a> tasarım kalıbı ile oluşturulmuş basit bir sınıftır.
 
-### Sınıfı Yüklemek
+<ul>
+    <li><a href="#flow">İşleyiş</a></li>
+    <li>
+        <a href="#running">Çalıştırma</a>
+        <ul>
+            <li><a href="#loading-service">Sınıfı Yüklemek</a></li>
+            <li><a href="#firing-an-event">Bir Olayı Başlatmak</a></li>
+            <li><a href="#sucscribing-an-event">Bir Olaya Abone Olup Dinlemek</a></li>
+            <li><a href="#subscribe-priority">Olaylara Önemlilik Derecesi İle Abone Olmak</a></li>
+            <li><a href="#stopping-an-event">Bir Olaya Ait Dinlemeleri Durdurmak</a></li>
+            <li><a href="#class-listeners">Sınıfları Dinleyici Olarak Kullanmak</a></li>
+            <li><a href="#method-operator">Hangi Metdodun Dinleneceğini Belirlemek</a></li>
+        </ul>
+    </li>
 
-```php
-$this->c['event']->method();
-```
 
-## İşleyiş
+    <li>
+        <a href="#event-subscribers">Olay Aboneleri</a>
+        <ul>
+            <li><a href="#defining-subscriber">Bir Olay Abonesi Tanımlamak</a></li>
+            <li><a href="#defining-global-subscriber">Olaylara Evrensel Olarak Abone Olmak</a></li>
+            <li><a href="#defining-controller-subscriber">Olaylara Kontrolör Sınıfı İçerisinden Abone Olmak</a></li>
+            <li><a href="#defining-route-subscriber">Olaylara Route Üzerinden Abone Olmak</a></li>
+        </ul>
+    </li>
+
+    <li><a href="#method-reference">Fonksiyon Referansı</a></li>
+
+</ul>
+
+<a name="flow"></a>
+
+### İşleyiş
+
+-------
 
 Uygulamada olaylar belirli bir zaman dilimi içerisinde anlık gerçekleşirler. Event yapısı uygulama içerisindeki olayların gerçekleşeği an için tetikleyici fonksiyonlar ve bu fonksiyonlara bağlı çalışacak programları çalıştırmamızı sağlar. Daha iyi anlaşılması için <b>bir örnek</b> vermek gerekirse; mesela uygulamamız içeriside bir login modülü olsun.
 
@@ -19,7 +47,24 @@ Event <b>fire</b> methodu ile login nesnemiz içerisinde bir olay fırlatılır 
 
 Son olarak olay anını ne kadar çok dinleyicimiz  ( <b>listeners / subscribers</b> ) dinlerse dinlesin olay gerçekleştiğinde dinleyicilere ( aboneler ) tanımlanan fonksiyonlar önemlilik derecelerine göre çözümlenip çalıştırılırlar. Dinleyiciler isimsiz ( anonymous ) birer fonksiyon olabilecekleri gibi <b>subscribe</b> metodu ile abone edilmiş birer <b>sınıf</b> ta olabilirler. Takip eden örnek olay sınıfının temel bir kullanımını gösteriyor.
 
-### Bir Olayı Başlatmak
+
+<a name="running"></a>
+
+### Çalıştırma
+
+Event sınıfı <kbd>app/components.php</kbd> dosyası içerisinde tanımlıdır ve konteyner içerisinden çağrılarak çalıştırılır.
+
+<a name="loading-service"></a>
+
+#### Sınıfı Yüklemek
+
+```php
+$this->c['event']->method();
+```
+
+<a name="firing-an-event"></a>
+
+#### Bir Olayı Başlatmak
 
 ```php
 $this->event->fire('login.success', array($this->c, $userId));
@@ -27,7 +72,9 @@ $this->event->fire('login.success', array($this->c, $userId));
 
 Fire metodu ile bir olayı ilan edebilirsiniz, ikinci parametreden olaya ait parametreleri gönderebilirsiniz olay anı dinlenirken bu parametreler kullanılarak işlemler gerçekleştirebilir.
 
-### Bir Olaya Abone Olup Dinlemek
+<a name="sucscribing-an-event"></a>
+
+#### Bir Olaya Abone Olup Dinlemek
 
 ```php
 $this->event->listen(
@@ -39,7 +86,9 @@ $this->event->listen(
 );
 ```
 
-### Olaylara Önemlilik Derecesi İle Abone Olmak
+<a name="subscribe-priority"></a>
+
+#### Olaylara Önemlilik Derecesi İle Abone Olmak
 
 Olaylara abone olurken her olay için bir önemlilik derecesi belirleyebilirsiniz. Dinleyiciler en yüksek önemlilik değerine sahip olan olayı ilk çalıştırırlar eğer aynı önemlilik derecesine sahip birden fazla olay varsa abone edilme sıralarına göre çalıştırılırlar.
 
@@ -48,7 +97,9 @@ $this->event->listen('login.success', 'Event\ExampleHandler', 10);
 $this->event->listen('login.success', 'Event\OtherHandler', 5);
 ```
 
-### Bir Olayın Yayılımını Durdurmak
+<a name="stopping-an-event"></a>
+
+#### Bir Olaya Ait Dinlemeleri Durdurmak
 
 Bazen bir olayın diğer dinleyicilere yayılmasını önlemek isteyebiliriz böyle bir durumda dinleyici içerisinden false değerine dönmek yeterlidir.
 
@@ -60,6 +111,7 @@ $this->event->listen(
     }
 );
 ```
+<a name="class-listeners"></a>
 
 ### Sınıfları Dinleyici Olarak Kullanmak
 
@@ -74,6 +126,8 @@ Namespace\Of\Class@method
 ```php
 $this->event->listen('event.name', 'Event\Login@method');
 ```
+
+<a name="method-operator"></a>
 
 ### Hangi Metodun Dinleneceğini Belirlemek
 
@@ -98,11 +152,15 @@ Eğer handle metodu yerine başka bir metot ismi kullanmayı tercih ederseniz me
 $this->event->listen('event.name', 'Event\Login@onLogin');
 ```
 
-## Olay Aboneleri
+<a name="event-subscribers"></a>
+
+### Olay Aboneleri
 
 Subscribe komutunu listen komutunundan ayıran en önemli özellik bu metodun dinleyicileri bir sınıf içerisinde gruplayarak kodlarınızı düzenli hale getirmesidir. Listen komutları subscribe komutu içerisinde kullanılırlar.
 
-### Bir Olay Abonesi Tanımlamak
+<a name="defining-subscriber"></a>
+
+#### Bir Olay Abonesi Tanımlamak
 
 Olay aboneleri kendi içerisinde birden fazla olaya abone olabilen sınıflardır. Aboneler subscribe metodu ile tanımlanırlar subscribe metoduna ait ilk parametreye Event sınıfı nesnesi enjekte edilir.
 
@@ -199,7 +257,9 @@ Yine aynı kütüphanede <b>after</b> metodu tarafından dinlenilen olay ise aş
 return $this->c['event']->fire('login.attempt.after', array($authResult));
 ```
 
-### Olaylara Evrensel Olarak Abone Olmak
+<a name="defining-global-subscriber"></a>
+
+#### Olaylara Evrensel Olarak Abone Olmak
 
 Olaylar sınıflar, servisler içerisinde <b>listen</b> yada <b>subsrcibe</b> komutları ile evrensel olarak da dinlenebilirler. Uygulamaya ait evrensel olaylar <b>app/events.php</b> içerisinde tanımlanırlar.
 
@@ -217,7 +277,9 @@ $c['event']->subscribe('Event\YourClassname');
 /* Location: .app/events.php */
 ```
 
-### Olaylara Kontrolör Sınıfı İçerisinden Abone Olmak
+<a name="defining-controller-subscriber"></a>
+
+#### Olaylara Kontrolör Sınıfı İçerisinden Abone Olmak
 
 Aşağıdaki örnekte bir login kontrolörümüz var ve anotasyonlar yardımı ile <b>Event\Login\Attempt</b> sınıfına abone olarak uygulamaya yapılan login denemelerini dinliyoruz.
 
@@ -262,8 +324,9 @@ class Login extends \Controller
 
 Yukarıdaki örnekte post metodu üzerindeki <kbd>@event->subscribe('Event\Login\Attempt')</kbd> notasyonu ile login formuna post isteği gelmesi durumunda <b>Event\Login\Attempt</b> sınıfına abone olunarak bu sınıf içerisindeki subscribe metoduna ait dinleyiciler dinleniyor.
 
+<a name="defining-route-subscriber"></a>
 
-### Olaylara Route Üzerinden Abone Olmak
+#### Olaylara Route Üzerinden Abone Olmak
 
 Eğer bir olay birden fazla kontrolör yada dizin içindeki bir kontrolör grubu içerisinde gerçekleşiyorsa bu durumda olaylara route yapısı üzerinden abone olabilirsiniz.
 
@@ -280,6 +343,8 @@ $c['router']->get(
 ```
 
 Yukarıdaki örnekte <b>membership/login</b> dizini altındaki her bir kontrolör sınıfı çalıştığında <b>Event\ExampleClass</b> nesnesi içerisindeki subscribe metoduna abone olur.
+
+<a name="method-reference"></a>
 
 #### Event Sınıfı Referansı
 
