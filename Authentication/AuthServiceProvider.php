@@ -48,18 +48,10 @@ class AuthServiceProvider implements ArrayAccess
         $this->params = $params = array_merge($params, $this->c['config']->load('auth'));
 
         $this->c['auth.storage'] = function () use ($params) {
-            return new $this['cache']['storage'](
-                $this->c,
-                $this->c['app']->provider('cache')->get(
-                    [
-                        'driver' => $params['cache']['provider']['driver'],
-                        'connection' => $params['cache']['provider']['connection']
-                    ]
-                )
-            );
+            return new $this['cache']['storage']($this->c, $this->c['app']->provider('cache'), $params);
         };
-        $this->c['auth.token'] = function () {
-            return new Token($this->c);
+        $this->c['auth.token'] = function () use ($params) {
+            return new Token($params['login']['rememberMe']['cookie']);
         };
 
         $this->c['auth.adapter'] = function () use ($params) {

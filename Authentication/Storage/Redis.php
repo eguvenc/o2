@@ -5,10 +5,10 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\Cache\Handler\CacheHandlerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
- * O2 Authentication - Memory Storage
+ * O2 Authentication - Redis Storage
  * 
  * @category  Authentication
  * @package   Storage
@@ -23,22 +23,41 @@ class Redis extends AbstractStorage implements StorageInterface
     protected $cache;           // Cache class
     protected $cacheKey;        // Cache key
     protected $session;         // Session class
+    protected $provider;        // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
-    protected $logger;          // Logger
 
     /**
      * Constructor
      * 
-     * @param object $c     container
-     * @param object $cache CacheHandlerInterface
+     * @param object $c        container
+     * @param object $provider provider
+     * @param array  $params   parameters
      */
-    public function __construct(Container $c, CacheHandlerInterface $cache) 
+    public function __construct(Container $c, ServiceProviderInterface $provider, array $params) 
     {
         $this->c = $c;
-        $this->cache = $cache;
+        $this->params = $params;
+        $this->provider = $provider;
         $this->cacheKey = (string)$this->c['user']['cache.key'];
-        $this->logger  = $this->c['logger'];
         $this->session = $this->c['session'];
+
+        $this->connect();
+    }
+
+    /**
+     * Connect to cache provider
+     * 
+     * @return boolean
+     */
+    public function connect()
+    {
+        $this->cache = $this->provider->get(
+            [
+                'driver' => $this->params['cache']['provider']['driver'],
+                'connection' => $this->params['cache']['provider']['connection']
+            ]
+        );
+        return true;
     }
 
     /**
@@ -89,7 +108,7 @@ class Redis extends AbstractStorage implements StorageInterface
             return false;
         }
         $data = $credentials;
-        if ( ! empty($pushData) AND is_array($pushData)) {
+        if ( ! empty($pushData) && is_array($pushData)) {
             $data = array_merge($credentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;

@@ -120,7 +120,7 @@ Yukarıdaki örnek sadece http <b>post</b> ve <b>get</b> isteklerinde index() me
 /**
  * Index
  *
- * @event->subscribe('Event\Login\Attempt');
+ * @event->when("post")->subscribe('Event\Login\Attempt');
  *
  * @return void
  */

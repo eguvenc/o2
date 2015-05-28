@@ -24,6 +24,15 @@ interface ServiceProviderInterface
      * @return void
      */
     public function register(Container $c);
+
+    /**
+     * Get connection
+     *
+     * @param array $params array
+     *
+     * @return object
+     */
+    public function get($params = array());
 }
 
 // END ServiceProviderInterface class

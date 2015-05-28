@@ -62,13 +62,15 @@ class Middleware
             $middleware = array($middleware);
         }
         $allowedMethods = end($this->when);  // Get the last used when method values
+        $when = count($this->when);
 
-        if (count($this->when) > 0 AND in_array($this->httpMethod, $allowedMethods)) {
+        if ($when > 0 && in_array($this->httpMethod, $allowedMethods)) {
             $this->addMiddleware($middleware);
             $this->when = array();  // reset when
             return $this;
+        } elseif ($when == 0) {
+            $this->addMiddleware($middleware);
         }
-        $this->addMiddleware($middleware);
         return $this;
     }
 
@@ -131,7 +133,16 @@ class Middleware
     public function subscribe($namespace)
     {
         $Class = '\\'.ltrim($namespace, '\\');
-        $this->c['event']->subscribe(new $Class($this->c));
+        $allowedMethods = end($this->when);  // Get the last used when method values
+        $when = count($this->when);
+
+        if ($when > 0 && in_array($this->httpMethod, $allowedMethods)) {
+            $this->c['event']->subscribe(new $Class($this->c));
+            $this->when = array();  // Reset when
+            return $this;
+        } elseif ($when == 0) {
+            $this->c['event']->subscribe(new $Class($this->c));
+        }
     }
 
     /**

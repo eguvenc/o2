@@ -4,7 +4,6 @@ namespace Obullo\Authentication;
 
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
-use Obullo\Authentication\Token;
 
 /**
  * O2 Authentication - Recaller

@@ -60,7 +60,7 @@ class Activity
      */
     public function set($key = null, $val = null)
     {
-        if (empty($this->identifier) OR empty($key)) {
+        if (empty($this->identifier) || empty($key)) {
             return false;
         }
         $this->attributes[$key] = $val;

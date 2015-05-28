@@ -2,8 +2,6 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Container\Container;
-
 /**
  * Abstract Adapter
  * 

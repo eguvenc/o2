@@ -32,13 +32,22 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
                     <li><a href="#loading-service">Servisi Yüklemek</a></li>
                 </ul>
             </li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#login">Oturum Açma</a>
+        <ul>
+            <li><a href="#login-attempt">Oturum Açma Denemesi</a></li>
+            <li><a href="#login-example">Oturum Açma Örneği</a></li>
+            <li><a href="#login-results">Oturum Açma Sonuçları</a></li>
+            <li><a href="#login-error-results">Oturum Açma Sonuçları Hata Tablosu</a></li>
+            <li><a href="#login-events">Oturum Açma Olaylarını Dinlemek</a></li>
             <li>
-                <a href="#login">Oturum Açma</a>
+                <a href="#login-middleware">Tekil Oturum Açma Özelliği</a>
                 <ul>
-                    <li><a href="#login-attempt">Oturum Açma Denemesi</a></li>
-                    <li><a href="#login-example">Oturum Açma Örneği</a></li>
-                    <li><a href="#login-results">Oturum Açma Sonuçları</a></li>
-                    <li><a href="#login-error-results">Oturum Açma Sonuçları Hata Tablosu</a></li>
+                    <li><a href="#enabling-uniqueLogin-trait">Tekil Oturum Açma Özelliğini Kapatıp / Açmak</a></li>
+                    <li><a href="#editing-login-middleware">Auth Katmanı Düzenlemek</a></li>
                 </ul>
             </li>
         </ul>
@@ -57,6 +66,30 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
                     <li><a href="#identity-set-methods">Set Metotları</a></li>
                 </ul>
             </li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#getting-configuration-items">Konfigürasyon Parametrelerine Erişim</a>
+    </li>
+
+    <li>
+        <a href="#custom-sql-queries">Database Sorgularını Özelleştirmek</a>
+    </li>
+
+    <li>
+        <a href="#additional-features">Ek Özellikler</a>
+        <ul>
+            <li>
+                <a href="#authentication-verify">Yetki Doğrulama Onay Özelliği</a>
+                <ul>
+                    <li><a href="#temporary-identities">Geçici Kimlikler</a></li>
+                    <li><a href="#making-temporary-identity">Geçici Kimlik Oluşturmak</a></li>
+                    <li><a href="#making-permanent-identity">Kalıcı Kimlik Oluşturmak</a></li>
+                    <li><a href="#temporary-identity-example">Geçici Oturum Açma Örneği</a></li>
+                </ul>
+            </li>
+            <li><a href="#saving-user-activity-data">Kullanıcı Aktivite Verilerini Kaydetmek</a></li>
         </ul>
     </li>
 
@@ -136,7 +169,7 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>cache[block][permanent][lifetime]</td>
-            <td>Oturum açıldıktan sonra kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> hafıza bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler kullanıcının web sitesi üzerinde hareketsiz kaldığı andan itibaren varsayılan olarak <b>3600</b> saniye sonra yok olur.</td>
+            <td>Oturum açıldıktan sonra kullanıcı kalıcı olarak onaylandı ise kullanıcı kimliği verileri <b>permanent</b> hafıza bloğuna kaydedilir. Kalıcı blokta ön belleğe alınan veriler kullanıcının web sitesi üzerinde <b>hareketsiz</b> kaldığı andan itibaren varsayılan olarak <b>3600</b> saniye sonra yok olur.</td>
         </tr>
         <tr>
             <td>cache[block][temporary][lifetime]</td>
@@ -149,15 +182,15 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
         </tr>
         <tr>
             <td>login[rememberMe]</td>
-            <td>Eğer kullanıcı beni hatırla özelliğini kullanarak giriş bilgilerini kalıcı olarak tarayıcısına kaydetmek istiyorsa  <b>__rm</b> isimli bir çerez ilk oturum açmadan sonra tarayıcısına kaydedilir. Bu çerezin sona erme süresi varsayılan olarak 6 aydır. Kullanıcı farklı zamanlarda uygulamanızı ziyaret ettiğinde eğer bu çerez ( remember token ) tarayıcısında kayıtlı ise <b>Authentication\Recaller->recallUser($token)</b> metodu çalışmaya başlar ve beni hatırla çerezi database de kayıtlı olan değer ile karşılaştırılır değerler birbiri ile aynı ise kullanıcı sisteme giriş yapmış olur. Güvenlik amacıyla her oturum açma (login) ve kapatma (logout) işlemlerinden sonra bu değer çereze ve veritabanına yeniden kaydedilir.</td>
+            <td>Eğer kullanıcı beni hatırla özelliğini kullanarak giriş bilgilerini kalıcı olarak tarayıcısına kaydetmek istiyorsa  <b>__rm</b> isimli bir çerez ilk oturum açmadan sonra tarayıcısına kaydedilir. Bu çerezin sona erme süresi varsayılan olarak 6 aydır. Kullanıcı farklı zamanlarda uygulamanızı ziyaret ettiğinde eğer bu çerez ( remember token ) tarayıcısında kayıtlı ise Identity sınıfı içerisinde <b>Authentication\Recaller->recallUser($token)</b> metodu çalışmaya başlar ve beni hatırla çerezi veritabanında kayıtlı olan değer ile karşılaştırılır değerler birbiri ile aynı ise kullanıcı sisteme giriş yapmış olur. Güvenlik amacıyla her oturum açma (login) ve kapatma (logout) işlemlerinden sonra bu değer çereze ve veritabanına yeniden kaydedilir.</td>
         </tr>
         <tr>
             <td>session[regenerateSessionId]</td>
             <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
         </tr>
         <tr>
-            <td>session[unique]</td>
-            <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Eklentiler klasöründeki kullandığınız eklentinin davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique session özelliği <b>Authentication/Middleware</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
+            <td>middleware[uniqueLogin]</td>
+            <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Auth katmanı içerisinde kullandığınız trait sınıfının davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique login özelliği <b>Authentication/Middleware</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
         </tr>
     </tbody>
 </table>
@@ -222,12 +255,11 @@ Eğer cache sürücülerini kullanmak istiyorsanız config dosyasından ayarlar�
 
 Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafıza depolama sınfınızı provider driver anahtarını değiştererek kullanabilirsiniz.
 
-
 <a name="running"></a>
 
-#### Çalıştırma
+### Çalıştırma
 
-
+Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>app/config/auth.php</kbd> dosyasının konfigure edilmesi gerekir.
 
 <a name="service"></a>
 
@@ -235,7 +267,7 @@ Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafız
 
 ------
 
-Yetki doğrulama servisini kullanmadan önce servis dosyasını konfigüre etmeniz gerekir. Bu dosya database tablo ayarları yetki adaptörleri ve model gibi konfigurasyonları içerir. Bunu yapmadan önce eğer mysql benzeri ilişkili bir database kullanıyorsanız aşağıdaki sql kodunu çalıştırarak demo için bir tablo yaratın.
+Yetki doğrulama servisini kullanmadan önce servis dosyasını konfigüre etmeniz gerekir. Bu dosya database tablo ayarları yetki adaptörleri ve model gibi konfigürasyonları içerir. Bunu yapmadan önce eğer mysql benzeri ilişkili bir database kullanıyorsanız aşağıdaki sql kodunu çalıştırarak demo için bir tablo yaratın.
 
 ```sql
 --
@@ -309,7 +341,7 @@ Class User implements ServiceInterface
 
 #### Servisi Yüklemek
 
-Yetki doğrulama paketi sınıflarına erişim <b>User</b> servisi üzerinden sağlanır, bu servis önceden <b>.app/classes/Service</b> dizininde <b>User.php</b> olarak konfigure edilmiştir. <b>User</b> sınıfı yetki doğrulama servisine ait olan <b>Login</b>, <b>Identity</b> ve <b>Activity</b> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
+Yetki doğrulama paketi sınıflarına erişim <kbd>User</kbd> servisi üzerinden sağlanır, bu servis önceden <kbd>app/classes/Service</kbd> dizininde <b>User.php</b> olarak kayıt edilmiştir. <kbd>User</kbd> sınıfı yetki doğrulama servisine ait olan <kbd>Login</kbd>, <kbd>Identity</kbd> ve <kbd>Activity</kbd> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
 
 User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
 
@@ -319,27 +351,49 @@ $this->c['user']->class->method();
 
 Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.
 
-
-<b>Config</b>, <b>Login</b>, <b>Identity</b> ve <b>Activity</b> sınıfları için birer örnek
+##### Konfigürasyon
 
 ```php
 $this->user['variable'];   // Konfigürasyon değeri
+```
+
+##### Login Sınıfı
+
+```php
 $this->user->login->method();
+```
+##### Identity Sınıfı
+
+```php
 $this->user->identity->method();
+```
+##### Activity Sınıfı
+
+```php
 $this->user->activity->method();
 ```
 
+##### Storage Sınıfı
+
+```php
+$this->user->storage->method();
+```
+
+
 <a name="login"></a>
 
-#### Oturum Açma
+### Oturum Açma
 
+Oturum açma işlemi bir uygulamanın en kritik bölümlerinden biridir. Bir oturum açma işleminde oturum açma / kapatma, mevcut kullanıcı oturumları almak gibi işlemleri login sınıfı, oturum açma sonuçlarını ise AuthResult sınıfı kontrol eder. Oturum açma olaylarına abone olmak için ise [Anotasyonlar](/Annotations/Docs/tr/Annotations.md) kullanılır.
 
 <a name="login-attempt"></a>
 
-##### Oturum Açma Denemesi
+#### Oturum Açma Denemesi
+
+Bir kullanıcıya oturum açma girişimi login sınıfı attempt metodu üzerinden gerçekleşir bu metot çalıştıktan sonra oturum açma sonuçlarını kontrol eden <b>AuthResult</b> nesnesi elde edilmiş olur.
 
 ```php
-$this->user->login->attempt(
+$auhtResult = $this->user->login->attempt(
     [
         $this->user['db.identifier'] => $this->request->post('email'), 
         $this->user['db.password'] => $this->request->post('password')
@@ -348,9 +402,24 @@ $this->user->login->attempt(
 );
 ```
 
+Oturum açma sonucunun doğruluğu <b>AuthResult->isValid()</b> metodu ile kontrol edilir eğer oturum açma denemesi başarısız ise dönen tüm hata mesajlarına getArray() metodu ile ulaşılabilir.
+
+```php
+if ($auhtResult->isValid()) {
+    
+    // Success
+
+} else {
+
+    // Fail
+
+    print_r($auhtResult->getArray());
+}
+```
+
 <a name="login-example"></a>
 
-##### Oturum Açma Örneği
+#### Oturum Açma Örneği
 
 Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adlı altında bir dizin açalım ve login controller dosyamızı bu dizin içerisinde yaratalım.
 
@@ -383,11 +452,7 @@ Class Login extends \Controller
     }
 
     /**
-     * Index
-     *
-     * @event->subscribe('Event\Login\Attempt');
-     *  
-     * @return void
+     * @event->when("post")->subscribe('Event\Login\Attempt');
      */
     public function index()
     {
@@ -401,17 +466,17 @@ Class Login extends \Controller
                 $this->form->setErrors($this->validator);
             } else {
 
-                $result = $this->user->login->attempt(
+                $authResult = $this->user->login->attempt(
                     [
                         $this->user['db.identifier'] => $this->request->post('email'), 
                         $this->user['db.password'] => $this->request->post('password')
                     ],
                     $this->request->post('rememberMe')
                 );
-                if ($result->isValid()) {
-                    $this->flash->success('Login success.')->with('url')->redirect('membership/resrticted');
+                if ($authResult->isValid()) {
+                    $this->flash->success('Login success.')->url->redirect('membership/resrticted');
                 } else {
-                    $this->form->setResults($result->getArray());
+                    $this->form->setResults($authResult->getArray());
                 }
             }
         }
@@ -422,7 +487,7 @@ Class Login extends \Controller
 }
 ```
 
-Yukarıdaki örnekte attempt fonksiyonu <b>AuthResult</b> nesnesine geri dönüyor ve Auth result sınıfı isValid() metodu ile yetkilendirmenin başarılı olup olmadığı anlaşılıyor. Yetkilendirme başarılı ise kullanıcı Guest kullanıcılarının erişemeyeceği bir sayfaya yönlendiriliyor. Eğer oturum açma başarısız ise sonuçlar form sınıfına gönderiliyor.
+Yukarıdaki örnekte attempt fonksiyonu <b>AuthResult</b> nesnesine geri dönüyor ve Auth result sınıfı isValid() metodu ile yetkilendirmenin başarılı olup olmadığı anlıyor. Yetkilendirme başarılı ise kullanıcı Guest kullanıcılarının erişemeyeceği bir sayfaya yönlendiriliyor. Eğer oturum açma başarısız ise sonuçlar form sınıfına gönderiliyor.
 
 View dosyası
 
@@ -469,12 +534,12 @@ if ($results = $this->form->resultsArray()) {
 
 <a name="login-results"></a>
 
-##### Oturum Açma Sonuçları
+#### Oturum Açma Sonuçları
 
-Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir,  <kbd>$this->user->login->attempt()</kbd> metodu ise sonuçları alabilmemiz için AuthResult nesnesine geri dönmektedir.
+Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar doğrulama filtresinden geçer ve oluşan hata kodları ve mesajlar bir dizi içerisine kaydedilir.
 
 ```php
-$result = $this->user->login->attempt(
+$authResult = $this->user->login->attempt(
     [
         $this->user['db.identifier'] => $this->request->post('email'), 
         $this->user['db.password'] => $this->request->post('password')
@@ -482,15 +547,15 @@ $result = $this->user->login->attempt(
     $this->request->post('rememberMe')
 );
 
-if ($result->isValid()) {
+if ($authResult->isValid()) {
 
-    $row = $result->getResultRow();
+    $row = $authResult->getResultRow();
 
     // Go ..
 
 } else {
 
-    print_r($result->getArray()); // get errors
+    print_r($authResult->getArray()); // get errors
 
     /* Array ( 
         [code] => -2 
@@ -504,7 +569,7 @@ if ($result->isValid()) {
 ```
 <a name="login-error-results"></a>
 
-##### Oturum Açma Sonuçları Hata Tablosu
+#### Oturum Açma Sonuçları Hata Tablosu
 
 <table>
     <thead>
@@ -558,6 +623,165 @@ if ($result->isValid()) {
 
     </tbody>
 </table>
+
+<a name="login-events"></a>
+
+#### Oturum Açma Olaylarını Dinlemek
+
+Yetki doğrulama paketine ait olaylar <kbd>app/classes/Event/Login/</kbd> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <kbd>Attempt</kbd> olayıdır. Bu olay Login sınıfı içerisindeki attempt metodu içerisinde <kbd>login.attempt.before</kbd> ve <kbd>login.attempt.after</kbd> isimleriyle ile ilan edilmiştir. 
+
+Aşağıdaki örnekte gösterilen Attempt sınıfı subscribe metodu <kbd>login.attempt.after</kbd> olayını dinleyerek oturum denemeleri öncesini ve bu oturumdan sonra oluşan sonuçları dinleyebilmenizi sağlar. 
+
+Şimdi dinleyici sınıfına bir göz atalım.
+
+<a name="login-listener"></a>
+
+##### Dinleyici
+
+
+```php
+namespace Event\Login;
+
+use Obullo\Container\Container;
+use Obullo\Authentication\AuthResult;
+use Obullo\Event\EventListenerInterface;
+
+class Attempt implements EventListenerInterface
+{
+    protected $c;
+
+    public function __construct(Container $c)
+    {
+        $this->c = $c;
+    }
+
+    /**
+     * Before login attempt
+     */
+    public function before($credentials = array())
+    {
+        // ..
+    }
+
+    /**
+     * After login attempts
+     */
+    public function after(AuthResult $authResult)
+    {
+        if ( ! $authResult->isValid()) {
+
+            // Store attemtps
+            // ...
+        
+            // $row = $authResult->getResultRow();  // Get query results
+
+        }
+        return $authResult;
+    }
+
+    /**
+     * Register the listeners for the subscriber.
+     */
+    public function subscribe($event)
+    {
+        $event->listen('login.attempt.before', 'Event\Login\Attempt@before');
+        $event->listen('login.attempt.after', 'Event\Login\Attempt@after');
+    }
+}
+
+// END Attempt class
+
+/* End of file Attempt.php */
+/* Location: .Event/Login/Attempt.php */
+```
+
+Yukarıdaki örnekte <b>after()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetki doğrulama sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
+
+<a name="sucscribe-to-login-event"></a>
+
+##### Dinleyiciye Abone Olmak
+
+Oturum açma olaylarını dinlemek için login metodunuz üzerinde anotasyonlar yardımı ile <b>subscribe()</b> metodu içerisinden <kbd>app/classes/Event/Login/Attempt</kbd> sınıfına abone olunur.
+
+```php
+namespace Membership;
+
+Class Login extends \Controller
+{
+    public function load()
+
+    /**
+     * @event->when("post")->subscribe('Event\Login\Attempt');
+     */
+    public function index()
+}
+```
+
+Dikkat etmeniz gereken nokta sadece http post isteklerinde <b>when</b> anotasyon komutu ile dinleyiciye abone olunmasıdır. View sayfalarının görüntülenmesi aşamasında önceden ilan edilmiş bir olay mevcut olmadığından bu fonksiyon üzerinde http post isteği dışındaki istekler için dinleyiciye abone olmamak gerekir.
+
+<a name="login-middleware"></a>
+
+#### Tekil Oturum Açma Özelliği
+
+Oturum açma özelliği opsiyonel olarak kullanılır. Http Auth katmanı içerisinde bu özellik çağrıldığında birden fazla aygıtta yada birbirinden farklı tarayıcılarda oturum açıldığında açılan tüm önceki oturumlar sonlanır ve en son açılan oturum aktif kalır.
+
+<a name="enabling-uniqueLogin-trait"></a>
+
+##### Tekil Oturum Açma Özelliğini Kapatıp / Açmak
+
+UniqueLogin özelliği <kbd>app/config/auth.php</kbd> konfigürasyon dosyasından kapatılıp açılabilir. UniqueLoginTrait özelliği Auth http katmanı içerisinden çağrılarak kullanılır.
+
+```php
+
+return array(
+
+    'middleware' => [
+        'uniqueLogin' => true
+    ]
+);
+
+/* End of file auth.php */
+/* Location: .app/config/auth.php */
+```
+
+<a name="editing-login-middleware"></a>
+
+##### Auth Katmanını Düzenlemek
+
+Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı içerisinde <kbd>$this->uniqueLoginCheck()</kbd> metodunun aşağıdaki gibi kullanılıyor olması gerekir.
+
+```php
+namespace Http\Middlewares;
+
+use Obullo\Container\Container;
+use Obullo\Application\Middleware;
+use Obullo\Authentication\Middleware\UniqueLoginTrait;
+
+class Auth extends Middleware
+{
+    use UniqueLoginTrait;
+
+    protected $user;
+
+    public function load()
+    {
+        $this->user = $this->c['user'];
+        $this->next->load();
+    }
+
+    public function call()
+    {
+        if ($this->user->identity->check()) {
+            
+            $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
+
+        }
+        $this->next->call();
+    }   
+}
+
+/* Location: .app/classes/Http/Middlewares/Auth.php */
+```
 
 <a name="identities"></a>
 
@@ -647,7 +871,7 @@ Array
 
 #### Kimlik anahtarları
 
-Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir.
+Yetki doğrulama paketi kendi anahtarlarını oluştururup bunları hafıza deposunu kaydederken 2 adet underscore önekini kullanır. Yetki doğrulama paketine ait olan bu anahtarlar yazma işlemlerinde çakışma olmaması için bu "__" önek kullanılarak ayırt edilir. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış kullanıcılar ile igili verileri kaydetmeniz için ayrılmış bir anahtardır.
 
 <table>
     <thead>
@@ -805,208 +1029,33 @@ Kimlik dizisinde varolan değeri siler.
 
 Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
+<a name="getting-configuration-items"></a>
 
-
-### User Config Sınıfı İşlevleri
+### Konfigürasyon Parametrelerine Erişim
 
 ------
 
-<kbd>app/Classes/Sevice/User.php</kbd> dosyasında çağrılan AuthServiceProvider sınıfı içerisinden gönderilen parametreleri ve <b>auth.php</b> konfigürasyon dosyasındaki parametreler ile birleştirerek auth paketine ait konfigurasyon ile ilgili tüm dizileri tek bir elden yönetmeye yardımcı olur. Daha iyi anlamak için aşağıdaki örneğe bir gözatabiliriz.
+> User servisi AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
+
+##### $this->user['variable'];
+
+<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
+
+Servis parametreleri için bir örnek
 
 ```php
 echo $this->user['db.identifier'];   // Çıktı username
 echo $this->user['db.password'];     // Çıktı password
 echo $this->user['cache.key'];       // Çıktı Auth
+```
 
+<kbd>app/config/auth.php</kbd> dosyası için bir örnek
+
+```php
 echo $this->user['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
 ```
 
-
-Yukarıda görüldüğü gibi çift underscore karakteri ile başlayan anaharlar yetki doğrulama paketi tarafından kullanılan (rezerve anaharlar) diğerleri ise size ait verilerin kaydedildiği anahtarlardır. Diğer bir anahtar <b>__activity</b> ise yetkisi doğrulanmış kullanıcılar ile igili sayısal yada meta verileri için ayrılmış olan size ait bir anahtardır.
-
-### Yetki Doğrulama Onayı Özelliği
-
-Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmek için kullanılan ekstra bir özelliktir.
-
-Kullanıcı başarılı olarak giriş yaptıktan sonra kimliği kalıcı olarak ( varsayılan 3600 saniye ) önbelleklenir. Eğer kullanıcı onay adımından geçirilmek isteniyorsa kalıcı kimlikler <kbd>$this->user->identity->makeTemporary()</kbd> metodu ile geçici hale ( varsayılan 300 saniye ) getirilir. Geçici olan bir kimlik 300 saniye içerisinde kendiliğinden yokolur. 
-
-Bu özelliği kullanmak istiyorsanız aşağıda daha detaylı bilgiler bulabilirsiniz.
-
-### Geçiçi Kimlikler Hangi Amaçla Kullanılır ?
-
-Geçici kimlikler genellikle yetki doğrulama onaylaması için kulanılırlar.
-
-Kullanıcının geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerinden herhangi biriyle göndermiş olacağınız onay kodu ile gerçekleşir. Eğer kullanıcı 300 saniye içerisinde ( bu konfigürasyon dosyasından ayarlanabilir bir değişkendir ) kullanıcı kendisine gönderilen onay kodunu onaylayamaz ise geçiçi kimlik kendiliğinden yok olur.
-
-Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <kbd>$this->user->identity->makePermanent()</kbd> metodu ile kimliği kalıcı hale getirmeniz gereklidir.
-Bir kimlik kalıcı yapıldığında kullanıcı tam olarak yetkilendirilmiş olur.
-
-#### Geçici kimliğin oluşturulmasına bir örnek:
-
-```php
-$this->user->identity->makeTemporary();
-```
-Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olarak kaydedilen kimlik hafıza bloğunda geçici hale getirilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
-
-Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
-
-#### Onaylanmış kimliğin kalıcı hale getirilmesine bir örnek:
-
-```php
-$this->user->identity->makePermanent();
-```
-
-Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde tam yetkili konuma gelir. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden elde edilmiş olur. Kalıcı kimliğin önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir. Geçici veya kalıcı kimlik oluşturma fonksiyonları kullanılmamışsa sistem varsayılan olarak kimliği kalıcı olarak kaydedecektir.
-
-#### Bir Geçici Oturum Açma Örneği
-
-Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTemporary();</kbd> metodu ile oturum açıldıktan sonra kimliğin geçici hale getirilmesidir.
-
-Örnek
-
-```php
-$result = $this->user->login->attempt(
-    [
-        $this->user['db.identifier'] => $this->request->post('email'), 
-        $this->user['db.password'] => $this->request->post('password')
-    ],
-    $this->request->post('rememberMe')
-);
-if ($result->isValid()) {
-
-    $this->user->identity->makeTemporary();
-
-    $this->flash->success('Verification code has been sent.');
-    $this->url->redirect('membership/confirm_code');
-
-} else {
-    $this->form->setResults($result->getArray());
-}
-
-/* End of file Login.php */
-/* Location: .modules/membership/Login.php */
-```
-
-Yukarıdaki kod bloğuna login kontrolör içerisine entegre edip çalıştırdığınıza login denemesi başarılı ise geçici kimlik oluşturulur. Sonraki adım için bir <b>membership/confirm_code</b> sayfası oluşturun ve bu sayfada oluşturacağınız formda kullanıcı onay kodunu doğru girdi ise <kbd>$this->user->identity->makePermanent();</kbd> metodunu kullanarak kullanıcıyı yetkilendirin.
-
-
-```php
-+ app
-+ assets
-- modules
-    - membership
-        + view
-        Login.php
-        Confirm_Code.php
-```
-
-
-### User Activity Sınıfı İşlevleri
-
-------
-
-Kullanıcı aktivite sınıfı yetkilendirilmiş kullancılara ait meta verilerini kaydeder. Son aktivite zamanı ve diğer eklemek istediğiniz harici anlık veriler bu sınıfı aracılığıyla activity key içerisinde tutulur.
-
-#### Örnek bir aktivite verisi
-
-```php
-$this->user->activity->set('sid', $this->session->get('session_id'));
-$this->user->activity->set('date', time());
-
-// __activity a:3:{s:3:"sid";s:26:"f0usdabogp203n5df4srf9qrg1";s:4:"date";i:1413539421;}
-```
-
-### Olaylar ( Events )
-
-------
-
-Yetki doğrulama paketine ait olaylar <b>app/classes/Event/Login</b> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <b>Attempt()</b> olayıdır. Bu olay <b>Login</b> sınıfı içerisindeki <b>attempt()</b> metodu içerisinde <b>login.attempt.before</b> ve <b>login.attempt.after</b> isimleriyle ile ilan edilmiştir. 
-
-Aşağıdaki örnekte gösterilen <b>Attempt</b> sınıfı subscribe metodu <b>login.attempt.after</b> olayını dinleyerek oturum denemeleri anını ve bu andan sonra oluşan sonuçları kontrol edebilmenizi sağlar. 
-
-Takip eden örneğe bir göz atalım.
-
-```php
-namespace Event\Login;
-
-use Obullo\Container\Container;
-use Obullo\Authentication\AuthResult;
-use Obullo\Event\EventListenerInterface;
-
-class Attempt implements EventListenerInterface
-{
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct(Container $c)
-    {
-        $this->c = $c;
-    }
-
-    /**
-     * Before login attempt
-     * 
-     * @param array $credentials user login credentials
-     * 
-     * @return void
-     */
-    public function before($credentials = array())
-    {
-        // ..
-    }
-
-    /**
-     * After login attempts
-     *
-     * @param object $authResult AuthResult object
-     * 
-     * @return void
-     */
-    public function after(AuthResult $authResult)
-    {
-        if ( ! $authResult->isValid()) {
-
-            // Store attemtps
-            // ...
-        
-            // $row = $authResult->getResultRow();  // Get query results
-
-        }
-        return $authResult;
-    }
-
-    /**
-     * Register the listeners for the subscriber.
-     * 
-     * @param object $event event class
-     * 
-     * @return void
-     */
-    public function subscribe($event)
-    {
-        $event->listen('login.attempt.before', 'Event\Login\Attempt@before');
-        $event->listen('login.attempt.after', 'Event\Login\Attempt@after');
-    }
-
-}
-
-// END Attempt class
-
-/* End of file Attempt.php */
-/* Location: .Event/Login/Attempt.php */
-```
-
-Yukarıdaki örnekte <b>after()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetki doğrulama sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
-
+<a name="custom-sql-queries"></a>
 
 ### Database Sorgularını Özelleştirmek
 
@@ -1050,7 +1099,7 @@ class User implements ServiceInterface
                     'db.model'         => '\Auth\Model\User', // Değiştirilen bölüm
                     'db.provider'      => 'database',
                     'db.connection'    => 'default',
-                    'db.tablename'     => 'users', // Database column settings
+                    'db.tablename'     => 'users', // Veritabanı sütun ayarları
                     'db.id'            => 'id',
                     'db.identifier'    => 'username',
                     'db.password'      => 'password',
@@ -1112,23 +1161,113 @@ class User extends ModelUser implements UserInterface
 /* Location: .app/classes/Auth/Model/User.php */
 ```
 
+<a name="additional-features"></a>
 
-#### Konfigürasyon Parametrelerine Erişim
+### Ek Özellikler
 
-------
+<a name="authentication-verify"></a>
 
-> User servisi AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
+#### Yetki Doğrulama Onay Özelliği
 
-##### $this->user['variable'];
+Yetki doğrulama onayı kullanıcının kimliğini sisteme giriş yapmadan önce <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerle onay işleminden geçirmek için kullanılan ekstra bir özelliktir.
 
-<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
+Kullanıcı başarılı olarak giriş yaptıktan sonra kimliği kalıcı olarak ( varsayılan 3600 saniye ) önbelleklenir. Eğer kullanıcı onay adımından geçirilmek isteniyorsa kalıcı kimlikler <kbd>$this->user->identity->makeTemporary()</kbd> metodu ile geçici hale ( varsayılan 300 saniye ) getirilir. Geçici olan bir kimlik 300 saniye içerisinde kendiliğinden yokolur. 
 
+Bu özelliği kullanmak istiyorsanız aşağıda daha detaylı bilgiler bulabilirsiniz.
+
+
+<a name="temporary-identities"></a>
+
+##### Geçiçi Kimlikler
+
+Geçici kimlikler genellikle yetki doğrulama onaylaması için kulanılırlar.
+
+Kullanıcının geçici kimliğini onaylaması sizin ona <b>email</b>, <b>sms</b> yada <b>mobil çağrı</b> gibi yöntemlerinden herhangi biriyle göndermiş olacağınız onay kodu ile gerçekleşir. Eğer kullanıcı 300 saniye içerisinde ( bu konfigürasyon dosyasından ayarlanabilir bir değişkendir ) kullanıcı kendisine gönderilen onay kodunu onaylayamaz ise geçiçi kimlik kendiliğinden yok olur.
+
+Eğer kullanıcı onay işlemini başarılı bir şekilde gerçekleştirir ise <kbd>$this->user->identity->makePermanent()</kbd> metodu ile kimliği kalıcı hale getirmeniz gereklidir.
+Bir kimlik kalıcı yapıldığında kullanıcı tam olarak yetkilendirilmiş olur.
+
+<a name="making-temporary-identity"></a>
+
+##### Geçici Kimlik Oluşturmak
+
+```php
+$this->user->identity->makeTemporary();
+```
+Bu fonksiyonun oturum denemesi fonksiyonundan sonra kullanılması gerekmektedir. Bu fonksiyon kullanıldığında eğer oturum açma başarılı ise kalıcı olarak kaydedilen kimlik hafıza bloğunda geçici hale getirilir. Fonksiyonun kullanılmadığı durumlarda ise varsayılan olarak tüm kullanıcılar sistemde kalıcı oturum açmış olurlar.
+
+Bu aşamadan sonra onaya düşen kullanıcı için bir onay kodu oluşturup ona göndermeniz gerekmektedir. Onay kodu onaylanırsa bu onaydan sonra aşağıdaki method ile kullanıcıyı kalıcı olarak yetkilendirebilirsiniz.
+
+<a name="making-permanent-identity"></a>
+
+##### Kalıcı Kimlik Oluşturmak
+
+```php
+$this->user->identity->makePermanent();
+```
+
+Yukarıdaki method geçici kimliği olan kullanıcıyı kalıcı kimlikli bir kullanıcı haline dönüştürür. Kalıcı kimliğine kavuşan kullanıcı artık sistemde tam yetkili konuma gelir. Kalıcılık kullanıcı kimliğinin önbelleklenmesi (cache) lenmesi demektir. Önbelleklenen kullanıcının kimliği tekrar oturum açıldığında database sorgusuna gidilmeden elde edilmiş olur. Kalıcı kimliğin önbelleklenme süresi konfigürasyon dosyasından ayarlanabilir bir değişkendir. Geçici veya kalıcı kimlik oluşturma fonksiyonları kullanılmamışsa sistem <b>varsayılan</b> olarak her kimliği <b>kalıcı</b> olarak kaydedecektir.
+
+<a name="temporary-identity-example"></a>
+
+##### Geçici Oturum Açma Örneği
+
+Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTemporary();</kbd> metodu ile oturum açıldıktan sonra kimliğin geçici hale getirilmesidir.
+
+Örnek
+
+```php
+$authResult = $this->user->login->attempt(
+    [
+        $this->user['db.identifier'] => $this->request->post('email'), 
+        $this->user['db.password'] => $this->request->post('password')
+    ],
+    $this->request->post('rememberMe')
+);
+```
+
+```php
+if ($authResult->isValid()) {
+
+    $this->user->identity->makeTemporary();
+
+    $this->flash->success('Verification code has been sent.');
+    $this->url->redirect('membership/confirm_code');
+} 
+```
+
+Yukarıdaki kod bloğuna login kontrolör içerisine entegre edip çalıştırdığınıza login denemesi başarılı ise geçici kimlik oluşturulur. Sonraki adım için bir <b>membership/confirm_code</b> sayfası oluşturun ve bu sayfada oluşturacağınız formda kullanıcı onay kodunu doğru girdi ise <kbd>$this->user->identity->makePermanent();</kbd> metodunu kullanarak kullanıcıyı yetkilendirin.
+
+
+```php
++ app
++ assets
+- modules
+    - membership
+        + view
+        Login.php
+        Confirm_Code.php
+```
+<a name="saving-user-activity-data"></a>
+
+#### Kullanıcı Aktivite Verilerini Kaydetmek
+
+Kullanıcı aktivite sınıfı yetkilendirilmiş kullancılara ait meta verilerini kaydeder. Son aktivite zamanı ve diğer eklemek istediğiniz harici veriler bu sınıf aracılığıyla activity key içerisinde tutulur. Her sayfa yenilenmesinde bu veriler güncellenir.
+
+```php
+$this->user->activity->set('sid', $this->session->get('session_id'));
+$this->user->activity->set('date', time());
+
+// __activity a:3:{s:3:"sid";s:26:"f0usdabogp203n5df4srf9qrg1";s:4:"date";i:1413539421;}
+```
+
+<a name="method-reference"></a>
 
 #### Login Sınıfı Referansı
 
 ------
 
->Login sınıfı yetkisi doğrulanmamış (GenericUser) yada doğrulanmış (AuthorizedUser) kullanıcıya ait oturum işlemlerini yönetmenizi sağlar.
+> Login sınıfı yetkisi doğrulanmamış (GenericUser) yada doğrulanmış (AuthorizedUser) kullanıcıya ait oturum işlemlerini yönetmenizi sağlar.
 
 ##### $this->user->login->attempt(array $credentials, $rememberMe = false);
 

@@ -72,7 +72,7 @@ class Identity extends AuthorizedUser
         $this->logger = $this->c['logger'];
         $this->initialize();
 
-        if ($this->c['user']['session']['unique']) {
+        if ($this->c['user']['middleware']['uniqueLogin']) {
             register_shutdown_function(array($this, 'close'));
         }
     }
@@ -85,12 +85,11 @@ class Identity extends AuthorizedUser
     public function initialize()
     {
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
-            $this->__isTemporary = 0;
-            $this->attributes['__activity']['last'] = time();
-            $this->setCredentials($this->attributes);
-        } elseif ($this->attributes = $this->storage->getCredentials('__temporary')) {
-            $this->setCredentials($this->attributes);
+            $this->__isTemporary = 0;                   // Refresh memory key expiration time
+            $this->setCredentials($this->attributes); 
+            return;
         }
+        $this->attributes = $this->storage->getCredentials('__temporary');
     }
 
     /**
@@ -102,7 +101,7 @@ class Identity extends AuthorizedUser
      */
     public function check()
     {        
-        if (isset($this->__isAuthenticated) AND $this->__isAuthenticated == 1) {
+        if (isset($this->__isAuthenticated) && $this->__isAuthenticated == 1) {
             return true;
         }
         return false;

@@ -3,7 +3,6 @@
 namespace Obullo\Authentication\Adapter;
 
 use Auth\Identities\GenericUser;
-use Obullo\Container\Container;
 
 /**
  * Adapter Interface
@@ -18,30 +17,14 @@ use Obullo\Container\Container;
 interface AdapterInterface
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container object
-     */
-    public function __construct(Container $c);
-
-    /**
      * Performs an authentication attempt
      *
-     * @param object $genericUser generic identity object
+     * @param object  $genericUser generic identity object
+     * @param boolean $login       whether to authenticate user
      * 
      * @return object authResult
      */
-    public function login(GenericUser $genericUser);
-
-    /**
-     * Login to authetication adapter
-     * 
-     * @param object  $genericUser identity
-     * @param boolean $login       whether to authenticate user
-     * 
-     * @return object
-     */
-    public function authenticate(GenericUser $genericUser, $login = true);
+    public function login(GenericUser $genericUser, $login = true);
 }
 
 // END AdapterInterface.php File

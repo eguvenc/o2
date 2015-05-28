@@ -4,9 +4,7 @@ namespace Obullo\Authentication\Adapter;
 
 use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
-use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\AuthResult;
-use Obullo\Authentication\UserService;
 use Obullo\Authentication\AbstractAdapter;
 
 /**
@@ -97,7 +95,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         $this->columnIdentifier = $c['user']['db.identifier'];
         $this->columnPassword   = $c['user']['db.password'];
 
-        parent::__construct($c);
+        $this->setContainer($c);
     }
 
     /**
@@ -110,9 +108,7 @@ class Database extends AbstractAdapter implements AdapterInterface
     protected function initialize(GenericUser $genericUser)
     {
         if ($this->c['auth.identity']->guest()) {
-
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
-            $this->c['logger']->debug('User identifier stored into session', array('identifier' => $this->storage->getIdentifier()));
         }
         $this->results = array(
             'code' => AuthResult::FAILURE,
@@ -125,14 +121,15 @@ class Database extends AbstractAdapter implements AdapterInterface
     /**
      * Performs an authentication attempt
      *
-     * @param object $genericUser generic identity object
+     * @param object  $genericUser generic identity object
+     * @param boolean $login       whether to authenticate user
      * 
      * @return object authResult
      */
-    public function login(GenericUser $genericUser)
+    public function login(GenericUser $genericUser, $login = true)
     {
         $this->initialize($genericUser);
-        $this->authenticate($genericUser);  // Perform Query
+        $this->authenticate($genericUser, $login);  // Perform Query
         
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
@@ -166,7 +163,7 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
 
-        if (is_array($this->resultRowArray) AND isset($this->resultRowArray[$this->columnIdentifier])) {
+        if (is_array($this->resultRowArray) && isset($this->resultRowArray[$this->columnIdentifier])) {
             $plain = $genericUser->getPassword();
             $hash  = $this->resultRowArray[$this->columnPassword];
 
@@ -228,7 +225,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function formatAttributes(array $attributes, $rehashedPassword = array())
     {
-        if (is_array($rehashedPassword) AND isset($rehashedPassword['hash'])) {
+        if (is_array($rehashedPassword) && isset($rehashedPassword['hash'])) {
             $attributes[$this->columnPassword] = $rehashedPassword['hash'];
             $attributes['__passwordNeedsRehash'] = 1;  // Developer needs to update password field
         }
@@ -265,7 +262,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->results['messages'][] = 'You have already logged in.';
             return $this->createResult();
         }
-        if ( ! is_array($this->resultRowArray) OR $this->failure) {   // We set failure variable when user password is fail.
+        if ( ! is_array($this->resultRowArray) || $this->failure) {   // We set failure variable when user password is fail.
             $this->results['code'] = AuthResult::FAILURE;
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
@@ -275,7 +272,7 @@ class Database extends AbstractAdapter implements AdapterInterface
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
         }
-        if (isset($this->resultRowArray[1]) AND $this->resultRowArray[1][$this->columnIdentifier]) {
+        if (isset($this->resultRowArray[1]) && $this->resultRowArray[1][$this->columnIdentifier]) {
             $this->results['code'] = AuthResult::FAILURE_IDENTITY_AMBIGUOUS;
             $this->results['messages'][] = 'More than one record matches the supplied identity.';
             return $this->createResult();

@@ -16,7 +16,7 @@ use Obullo\Session\MetaData\NullMetaData;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-class Session
+class Session implements SessionInterface
 {
     /**
      * Container

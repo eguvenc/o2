@@ -52,7 +52,7 @@ class Login
 
         $this->c['event']->fire('login.attempt.before', array($credentials)); 
 
-        if ( ! isset($credentials[$this->columnIdentifier]) OR ! isset($credentials[$this->columnPassword]) ) {
+        if ( ! isset($credentials[$this->columnIdentifier]) || ! isset($credentials[$this->columnPassword]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
                 $this->columnIdentifier,
