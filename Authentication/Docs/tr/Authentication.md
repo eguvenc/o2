@@ -218,14 +218,14 @@ Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <
 
 ##### Null ( Session )
 
-Null sınıfı varsayılan depodur depo olarak <kbd>cache</kbd> sınıfı yerine <kbd>session</kbd> paketini kullanır. Deponun aktif olması için auth konfigürasyon dosyasından cache deposunun Null olarak ayarlanması gerekir.
+Null sınıfı varsayılan depodur ve depo olarak <kbd>cache</kbd> sınıfı yerine <kbd>session</kbd> paketini kullanır. Deponun aktif olması için auth konfigürasyon dosyasından cache deposunun Null olarak ayarlanması gerekir.
 
 ```php
 'cache' => array(
 
-    'storage' => '\Obullo\Authentication\Storage\Null',   // Storage driver uses cache package
+    'storage' => '\Obullo\Authentication\Storage\Null',
     'provider' => array(
-        'driver' => 'redis',
+        'driver' => null,
         'connection' => 'second'
     ),
 )
