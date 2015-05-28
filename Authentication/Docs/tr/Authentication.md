@@ -494,7 +494,7 @@ Class Login extends \Controller
                     $this->request->post('rememberMe')
                 );
                 if ($authResult->isValid()) {
-                    $this->flash->success('Login success.')->url->redirect('membership/resrticted');
+                    $this->flash->success('Login success.')->url->redirect('membership/restricted');
                 } else {
                     $this->form->setResults($authResult->getArray());
                 }
