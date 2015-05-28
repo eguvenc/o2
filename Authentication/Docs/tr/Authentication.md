@@ -5,7 +5,7 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
 
 <ul>
 
-    <li><a href="#fetaures">Özellikler</a></li>
+    <li><a href="#features">Özellikler</a></li>
     <li><a href="#flow-chart">Akış Şeması</a></li>
 
     <li>
