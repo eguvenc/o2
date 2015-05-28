@@ -5,7 +5,7 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
 
 <ul>
 
-    <li><a href="#flow">Özellikler</a></li>
+    <li><a href="#fetaures">Özellikler</a></li>
     <li><a href="#flow-chart">Akış Şeması</a></li>
 
     <li>
@@ -16,6 +16,7 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
             <li>
                 <a href="#storages">Hazıfa Depoları</a>
                 <ul>    
+                    <li><a href="#null-storage">Null</a> ( Session )</li>
                     <li><a href="#redis-storage">Redis Veritabanı</a></li>
                     <li><a href="#cache-storage">Cache</a> ( File, Apc, Memcache, Memcached, Redis )</li>
                 </ul>
@@ -205,13 +206,32 @@ Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtem
 
 <a name="storages"></a>
 
-#### Hazıfa Depoları ( Storages )
+#### Hafıza Depoları ( Storages )
 
 Hazıfa deposu yetki doğrulama esnasında kullanıcı kimliğini ön belleğe alır ve tekrar tekrar oturum açıldığında database ile bağlantı kurmayarak uygulamanın performans kaybetmesini önler. Ayrıca yetki doğrulama onayı açıksa onaylama işlemi için geçici bir kimlik oluşturulur ve bu kimliğe ait bilgiler yine hafıza deposu aracılığıyla önbellekte tutulur.
 
 **Not:** O2 Yetki doğrulama şu anda depolama için sadece <b>Redis</b> veritabanı ve <b>Cache</b> sürücüsünü desteklemektedir. Cache sürücüsü seçtiğinizde File, Memcache, Memcached, Apc gibi sürücüleri cache.php konfigurasyon dosyanızdan ayarlamanız gerekmektedir.
 
 Redis veritabanını tercih ediyorsanız, Ubuntu altında redis kurulumu için <b>warmup</b> adı verilen dökümentasyon topluluğumuzun hazırladığı belgeden yararlanabilirsiniz. <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">Redis Kurulumu</a>.
+
+<a name="null-storage"></a>
+
+##### Null ( Session )
+
+Null sınıfı varsayılan depodur depo olarak <kbd>cache</kbd> sınıfı yerine <kbd>session</kbd> paketini kullanır. Deponun aktif olması için auth konfigürasyon dosyasından cache deposunun Null olarak ayarlanması gerekir.
+
+```php
+'cache' => array(
+
+    'storage' => '\Obullo\Authentication\Storage\Null',   // Storage driver uses cache package
+    'provider' => array(
+        'driver' => 'redis',
+        'connection' => 'second'
+    ),
+)
+```
+
+> **Not** Null hafıza deposunda geçici kimlik oluşturma ve sadece bir aygıttan tekil oturum açtırma gibi gelişmiş işlevler çalışmaz.
 
 <a name="redis-storage"></a>
 

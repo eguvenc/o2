@@ -173,7 +173,7 @@ class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Check whether to identify exists
+     * Get all keys
      *
      * @param string $block __temporary or __permanent
      * 

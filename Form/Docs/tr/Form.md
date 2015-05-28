@@ -75,8 +75,6 @@ Form sınıfı özel form mesajlarını, validator sınıfı çıktılarını, i
 
 ### Konfigürasyon
 
--------
-
 Form sınıfına ait konfigürasyon dosyası <kbd>app/config/form.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası form mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. Bu adresten <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a> bootstrap css projesine gözatabilirsiniz.
 
 
@@ -175,7 +173,7 @@ echo $this->form->getMessage();
     </tbody>
 </table>
 
-<a name="runnning"></a>
+<a name="running"></a>
 
 ### Çalıştırma
 
@@ -337,11 +335,11 @@ echo $this->c['response']->json($this->form->outputArray());
 
 <a name="customization"></a>
 
-#### Özelleştirme
+### Özelleştirme
 
 <a name="adding-custom-data"></a>
 
-##### Özel Form Verileri Eklemek
+#### Özel Form Verileri Eklemek
 
 Setkey fonksiyonu ile mevcut array çıktıları içerisine uygulamaya özel form verileri eklenebilir.
 
@@ -373,7 +371,7 @@ Array
 
 <a name="adding-custom-errors"></a>
 
-##### Özel Hataları Form Sınıfına Uyarlamak
+#### Özel Hataları Form Sınıfına Uyarlamak
 
 Özel bir durum için oluşmuş hataları da form sınıfına gönderebilmek mümkündür bunun için hataları array türünde gönderin.
 

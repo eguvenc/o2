@@ -120,8 +120,8 @@ class Colorful
             if ($this->has('--> Final output sent')) {
                 $line = "\033[0m"."\033[0;37m".$line."\033[0m";
             }
-            if ($this->has('--> Header redirect')) {
-                $line = "\033[0m"."\033[0;35m".$line."\033[0m";
+            if ($this->has('--> Redirect header')) {
+                $line = "\033[0m"."\033[0;37m".$line."\033[0m";
             }
             $line = "\033[0;37m".$line."\033[0m";
             echo $line."\n";

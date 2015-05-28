@@ -44,7 +44,7 @@ trait BenchmarkTrait
 
         if ($this->c['config']->load('logger')['app']['benchmark']) {     // Do we need to generate benchmark data ?
             $usage = 'memory_get_usage() function not found on your php configuration.';
-            if (function_exists('memory_get_usage') AND ($usage = memory_get_usage()) != '') {
+            if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
                 $usage = round($usage/1024/1024, 2). ' MB';
             }
             $extra['time'] = number_format($end, 4);

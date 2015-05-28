@@ -41,11 +41,11 @@ Olay sınıfı uygulamada olaylara abone olmak ve onları dinlemek için <a href
 
 -------
 
-Uygulamada olaylar belirli bir zaman dilimi içerisinde anlık gerçekleşirler. Event yapısı uygulama içerisindeki olayların gerçekleşeği an için tetikleyici fonksiyonlar ve bu fonksiyonlara bağlı çalışacak programları çalıştırmamızı sağlar. Daha iyi anlaşılması için <b>bir örnek</b> vermek gerekirse; mesela uygulamamız içeriside bir login modülü olsun.
+Uygulamada olaylar belirli bir zaman dilimi içerisinde anlık gerçekleşirler. Event yapısı uygulama içerisindeki olayların gerçekleşeği an için tetikleyici fonksiyonlar ve bu fonksiyonlara bağlı çalışacak programları çalıştırmamızı sağlar. Daha iyi anlaşılması için <b>bir örnek</b> vermek gerekirse mesela uygulamamız içeriside bir login modülü olsun.
 
-Event <b>fire</b> methodu ile login nesnemiz içerisinde bir olay fırlatılır ve daha sonra listen komutu ile de bu olay gerçekleştiğinde yapılacak işler tanımlanır. Kaydedilen olay anını <b>listen</b> yada <b>subscribe</b> komutu ile fonksiyonlara atarız. Subscribe komutunu listen komutunundan ayıran en önemli özellik bu metodun dinleyicileri bir sınıf içerisinde gruplayarak kodlarınızı daha düzenli hale getirmesidir. Subscribe komutu içerisinde listen komutu kullanılmaktadır.
+Event <kbd>fire</kbd> methodu ile login nesnemiz içerisinde bir olay fırlatılır ve daha sonra listen komutu ile de bu olay gerçekleştiğinde yapılacak işler tanımlanır. Kaydedilen olay anını <kbd>listen</kbd> yada <kbd>subscribe</kbd> komutu ile fonksiyonlara atarız. Subscribe komutunu listen komutunundan ayıran en önemli özellik bu metodun dinleyicileri bir sınıf içerisinde gruplayarak kodlarınızı daha düzenli hale getirmesidir. Bir subscribe metodu listen metotları içerir.
 
-Son olarak olay anını ne kadar çok dinleyicimiz  ( <b>listeners / subscribers</b> ) dinlerse dinlesin olay gerçekleştiğinde dinleyicilere ( aboneler ) tanımlanan fonksiyonlar önemlilik derecelerine göre çözümlenip çalıştırılırlar. Dinleyiciler isimsiz ( anonymous ) birer fonksiyon olabilecekleri gibi <b>subscribe</b> metodu ile abone edilmiş birer <b>sınıf</b> ta olabilirler. Takip eden örnek olay sınıfının temel bir kullanımını gösteriyor.
+Son olarak olay anını ne kadar çok dinleyicimiz  ( <b>listeners / subscribers</b> ) dinlerse dinlesin olay gerçekleştiğinde dinleyicilere ( aboneler ) tanımlanan fonksiyonlar önemlilik derecelerine göre çözümlenip çalıştırılırlar. Dinleyiciler isimsiz ( anonymous ) birer fonksiyon olabilecekleri gibi <kbd>subscribe</kbd>metodu ile abone edilmiş birer <b>sınıf</b> ta olabilirler.
 
 
 <a name="running"></a>
@@ -113,7 +113,7 @@ $this->event->listen(
 ```
 <a name="class-listeners"></a>
 
-### Sınıfları Dinleyici Olarak Kullanmak
+#### Sınıfları Dinleyici Olarak Kullanmak
 
 Bazı durumlarda dinleyiciler için isimsiz bir fonksiyon kullanmak yerine bir sınıf kullanmayı tercih edebilirsiniz. Bir sınıf ve ona ait metodu dinleyici olarak atamak için aşağıdaki şablon kullanılır.
 
@@ -129,7 +129,7 @@ $this->event->listen('event.name', 'Event\Login@method');
 
 <a name="method-operator"></a>
 
-### Hangi Metodun Dinleneceğini Belirlemek
+#### Hangi Metodun Dinleneceğini Belirlemek
 
 Eğer olay için "@" sembolü ile bir method tanımlanmamışsa varsayılan olarak <b>handle</b> metodu çalıştırılır.
 
@@ -281,7 +281,7 @@ $c['event']->subscribe('Event\YourClassname');
 
 #### Olaylara Kontrolör Sınıfı İçerisinden Abone Olmak
 
-Aşağıdaki örnekte bir login kontrolörümüz var ve anotasyonlar yardımı ile <b>Event\Login\Attempt</b> sınıfına abone olarak uygulamaya yapılan login denemelerini dinliyoruz.
+Aşağıdaki örnekte bir login kontrolörümüz var ve anotasyonlar yardımı ile <kbd>Event\Login\Attempt</kbd> sınıfına abone olarak uygulamaya yapılan login denemelerini dinliyoruz.
 
 ```php
 namespace Membership;
@@ -322,7 +322,7 @@ class Login extends \Controller
 }
 ```
 
-Yukarıdaki örnekte post metodu üzerindeki <kbd>@event->subscribe('Event\Login\Attempt')</kbd> notasyonu ile login formuna post isteği gelmesi durumunda <b>Event\Login\Attempt</b> sınıfına abone olunarak bu sınıf içerisindeki subscribe metoduna ait dinleyiciler dinleniyor.
+Yukarıdaki örnekte post metodu üzerindeki <kbd>@event->subscribe('Event\Login\Attempt')</kbd> notasyonu ile login formuna post isteği gelmesi durumunda <kbd>Event\Login\Attempt</kbd> sınıfına abone olunarak bu sınıf içerisindeki subscribe metoduna ait dinleyiciler dinleniyor.
 
 <a name="defining-route-subscriber"></a>
 
@@ -332,7 +332,7 @@ Eğer bir olay birden fazla kontrolör yada dizin içindeki bir kontrolör grubu
 
 ```php
 $c['router']->get(
-    'membership/login(.*)', null, 
+    'membership/login.*', null, 
     function () use ($c) {
         $c['event']->subscribe('Event\ExampleClass');
     }
@@ -342,7 +342,7 @@ $c['router']->get(
 /* Location: .routes.php */
 ```
 
-Yukarıdaki örnekte <b>membership/login</b> dizini altındaki her bir kontrolör sınıfı çalıştığında <b>Event\ExampleClass</b> nesnesi içerisindeki subscribe metoduna abone olur.
+Yukarıdaki örnekte <kbd>membership/login</kbd> dizini altındaki her bir kontrolör sınıfı çalıştığında <kbd>app/classes/Event/ExampleClass</kbd> nesnesi içerisindeki <kbd>subscribe</kbd> metoduna abone olur.
 
 <a name="method-reference"></a>
 

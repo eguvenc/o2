@@ -14,7 +14,7 @@ namespace Obullo\Url;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/url
  */
-Class Url
+class Url
 {
     /**
      * Constructor
@@ -100,7 +100,7 @@ Class Url
         if ($protocol == true) {  // Auto detect
             $protocol = ($this->c['request']->isSecure()) ? 'https://' : 'http://';
         }
-        if ( ! empty($protocol) OR is_bool($protocol)) {
+        if ( ! empty($protocol) || is_bool($protocol)) {
             $uri = preg_replace('#^https?:\/\/#i', '', $uri);
         }
         return $protocol.$uri;
@@ -122,6 +122,18 @@ Class Url
      */
     public function redirect($uri = '', $method = 'location', $httpResponseCode = 302, $suffix = true)
     {
+        if ($this->c['config']->load('logger')['app']['benchmark'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
+
+            $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
+            $usage = 'memory_get_usage() function not found on your php configuration.';
+            if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
+                $usage = round($usage/1024/1024, 2). ' MB';
+            }
+            $extra['time'] = number_format($end, 4);
+            $extra['memory'] = $usage;
+            $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
+        }
+
         if ( ! preg_match('#^https?:\/\/#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
@@ -163,7 +175,7 @@ Class Url
                 $att .= ' ' . $key . '="' . $val . '"';
             }
         }
-        if ($javascript == true AND $att != '') {
+        if ($javascript == true && $att != '') {
             $att = substr($att, 0, -1);
         }
         return $att;
@@ -180,7 +192,7 @@ Class Url
      */
     public function prep($str = '')
     {
-        if ($str == 'http://' OR $str == '') {
+        if ($str == 'http://' || $str == '') {
             return '';
         }
         if ( ! parse_url($str, PHP_URL_SCHEME)) {

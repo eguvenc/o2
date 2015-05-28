@@ -148,7 +148,7 @@ class Router
      */
     public function get($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('get'), $match, $rewrite, $closure = null);
+        $this->route(array('get'), $match, $rewrite, $closure);
         return $this;
     }
 
@@ -163,7 +163,7 @@ class Router
      */
     public function post($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('post'), $match, $rewrite, $closure = null);
+        $this->route(array('post'), $match, $rewrite, $closure);
         return $this;
     }
 
@@ -178,7 +178,7 @@ class Router
      */
     public function put($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('put'), $match, $rewrite, $closure = null);
+        $this->route(array('put'), $match, $rewrite, $closure);
         return $this;
     }
 
@@ -193,7 +193,7 @@ class Router
      */
     public function delete($match, $rewrite = null, $closure = null)
     {
-        $this->route(array('delete'), $match, $rewrite, $closure = null);
+        $this->route(array('delete'), $match, $rewrite, $closure);
         return $this;
     }
 
@@ -209,7 +209,7 @@ class Router
      */
     public function match($methods, $match, $rewrite = null, $closure = null)
     {
-        $this->route($methods, $match, $rewrite, $closure = null);
+        $this->route($methods, $match, $rewrite, $closure);
         return $this;
     }
 
@@ -300,7 +300,7 @@ class Router
             $this->checkErrors();
 
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
-            if ($layerRequest AND $segments === false) {   // Returns to false if we have Layer connection error.
+            if ($layerRequest && $segments === false) {   // Returns to false if we have Layer connection error.
                 return false;  
             }
             $this->setClass($segments[1]);
@@ -377,14 +377,14 @@ class Router
         if ( ! isset($segments[0])) {
             return $segments;
         }
-        if (defined('STDIN') AND ! isset($_SERVER['LAYER_REQUEST'])) {  // Command Line Requests
+        if (defined('STDIN') && ! isset($_SERVER['LAYER_REQUEST'])) {  // Command Line Requests
             array_unshift($segments, 'tasks');
         }
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments  = $this->detectModule($segments);
         $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
 
-        if ( ! empty($segments[1]) AND file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
+        if ( ! empty($segments[1]) && file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
         if (file_exists(MODULES .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
@@ -410,7 +410,7 @@ class Router
      */
     protected function detectModule($segments)
     {
-        if (isset($segments[1]) AND is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
+        if (isset($segments[1]) && is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
         ) {
             $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);
@@ -493,7 +493,7 @@ class Router
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
             $this->c['app']->middleware('MethodNotAllowed', $val['when']);
         }
-        if ( ! empty($val['rewrite']) AND strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
+        if ( ! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
         }
         $segments = (empty($val['rewrite'])) ? $this->uri->segments : explode('/', $val['rewrite']);
@@ -762,12 +762,12 @@ class Router
         $match = $this->detectDomain($this->group);
 
         // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
-        if (isset($this->group['domain']) AND ! $match) {  // If we have defined domain and not match with host don't run the middleware.
+        if (isset($this->group['domain']) && ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }
         $host = str_replace($this->getSubDomain($this->DOMAIN), '', $this->HOST);          // Attach Regex Support
 
-        if ( ! $this->isSubDomain($this->DOMAIN) AND $this->isSubDomain($this->HOST)) {
+        if ( ! $this->isSubDomain($this->DOMAIN) && $this->isSubDomain($this->HOST)) {
             $host = $this->HOST;  // We have a problem when the host is subdomain and config domain not. This fix the isssue.
         }
         if ($this->DOMAIN != $host) {
@@ -868,7 +868,7 @@ class Router
      */
     public function getAttachedRoutes()
     {
-        if (defined('STDIN') OR ! isset($this->attach[$this->DOMAIN])) {  // Disable middlewares for CLI interface
+        if (defined('STDIN') || ! isset($this->attach[$this->DOMAIN])) {  // Disable middlewares for CLI interface
             return array();
         }
         return $this->attach[$this->DOMAIN];
