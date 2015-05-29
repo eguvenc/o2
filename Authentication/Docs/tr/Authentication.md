@@ -200,7 +200,7 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosy
 
 #### Adaptörler
 
-Yetki doğrulama adaptörleri uygulamaya esneklik kazandıran otu sorgulama arabirimleridir, yetki doğrulamanın bir veritabanı ile mi yada örnek olarak LDAP gibi bir protokol üzerinden mi yapılacağını belirleyen sınıflardır. Varsayılan arabirim türü <b>Database</b> (RDBMS or NoSQL) dir, farklı türde kimlik doğrulama arabirimleri bu sürümde henüz mevcut değildir.
+Yetki doğrulama adaptörleri uygulamaya esneklik kazandıran sorgulama arabirimleridir, yetki doğrulamanın bir veritabanı ile mi yoksa farklı bir protokol üzerinden mi yapılacağını belirleyen sınıflardır. Varsayılan arabirim türü <b>Database</b> (RDBMS or NoSQL) dir, farklı türde kimlik doğrulama arabirimleri bu sürümde henüz mevcut değildir.
 
 Farklı adaptörlerin çok farklı seçenekler ve davranışları olması muhtemeldir , ama bazı temel şeyler kimlik doğrulama adaptörleri arasında ortaktır. Örneğin, kimlik doğrulama hizmeti sorgularını gerçekleştirmek ve sorgulardan dönen sonuçlar yetki doğrulama adaptörleri için ortak kullanılır.
 
@@ -993,7 +993,7 @@ Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
 
 ------
 
->Identity get metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine ulaşmanızı sağlar.
+> Identity get metotları hafıza deposu içerisinden yetkisi doğrulanmış kullanıcıya ait kimlik verilerine ulaşmanızı sağlar.
 
 ##### $this->user->identity->getIdentifier();
 
@@ -1027,7 +1027,7 @@ Beni hatırla çerezine döner.
 
 Kullanıcının tüm kimlik değerlerine bir dizi içerisinde geri döner.
 
->Kendi metotlarınızı <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
+> Uygulamanızda ihtiyaç duyduğunuz diğer metotları <kbd>app/classes/Auth/Identities/AuthorizedUser</kbd> sınıfı içerisine eklemeniz önerilir.
 
 <a name="identity-set-methods"></a>
 
@@ -1166,11 +1166,14 @@ class User extends ModelUser implements UserInterface
      *
      * @param object $user GenericUser object to get user's identifier
      * 
-     * @return mixed boolean|object
+     * @return mixed boolean|array
      */
     public function execQuery(GenericUser $user)
     {
-        return parent::execQuery($user);
+        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE %s = ?', $this->tablename, $this->columnIdentifier))
+            ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
+            ->execute()
+            ->rowArray();
     }
 
 }
