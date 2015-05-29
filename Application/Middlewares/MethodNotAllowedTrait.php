@@ -18,13 +18,12 @@ trait MethodNotAllowedTrait
 
         if ( ! in_array($currentMethod, $this->params)) {  // Get injected parameters
 
-            $this->c['response']->showError(
+            $this->c['response']->status(405)->showError(
                 sprintf(
                     "Http Error 405 %s method not allowed.", 
                     ucfirst($currentMethod)
                 ),
-                405,
-                "Method Not Allowed"
+                'Method Not Allowed'
             );
         }
     }

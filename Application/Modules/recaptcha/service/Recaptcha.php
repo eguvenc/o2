@@ -4,7 +4,7 @@ namespace Service;
 
 use Obullo\Container\Container;
 use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
-use Obullo\ServiceProviders\ServiceInterface;
+use Obullo\Service\ServiceInterface;
 
 class Recaptcha implements ServiceInterface
 {

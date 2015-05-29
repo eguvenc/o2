@@ -205,26 +205,7 @@ return array(
     'MONGO_PASSWORD' => '123456',
 
     'REDIS_HOST' => '127.0.0.1',
-    'REDIS_AUTH' => '',  // aZX0bjL
-
-    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
-    'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
-
-    'AMQP_HOST' => '127.0.0.1',
-    'AMQP_USERNAME' => 'root',
-    'AMQP_PASSWORD' => '123456',
-
-    'COOKIE_NAME' => '',
-    'COOKIE_DOMAIN' => '',
-    'COOKIE_PATH' => '/',
-    'COOKIE_SECURE' => false,
-    'COOKIE_HTTP_ONLY' => false,
-
-    'SESSION_COOKIE_NAME' => 'session',
-    'SESSION_COOKIE_DOMAIN' => '',
-    'SESSION_COOKIE_PATH' => '/',
-    'SESSION_COOKIE_SECURE' => false,
-    'SESSION_COOKIE_HTTP_ONLY' => false,
+    'REDIS_AUTH' => '',
 );
 
 /* End of file .env.local.php */
@@ -275,7 +256,7 @@ return array(
     'connections' =>
     [
         'default' => [
-            'server' => 'mongodb://'.$c['env']['MONGO_USERNAME.root'].':'.$c['env']['MONGO_PASSWORD.null'].'@'.$c['env']['MONGO_HOST.required'].':27017',
+            'server' => 'mongodb://root:'.$c['env']['MONGO_PASSWORD.null'].'@localhost:27017',
             'options'  => ['connect' => true]
         ],
         'second' => [
@@ -392,6 +373,7 @@ Yüklü olan bir konfigürasyona dinamik olarak yeni değerler atar.
 ##### $this->config->write(string $filename, array $data);
 
 <kbd>app/config/</kbd> klasöründeki konfigürasyon dosyalarına veri yazmayı sağlar.
+
 
 #### Env Sınıfı Referansı
 

@@ -1,0 +1,93 @@
+<?php
+
+namespace Obullo\Database\Doctrine\DBAL;
+
+use Doctrine\DBAL\Cache\QueryCacheProfile;
+use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
+
+/**
+ * Handle for Doctrine QueryBuilder
+ * 
+ * @category  Database
+ * @package   QueryBuilder
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/database
+ */
+class QueryBuilder extends DoctrineQueryBuilder
+{
+    /**
+     * Run execute methods, set table using from 
+     * if tablename not null
+     * 
+     * @param string $table name
+     * 
+     * @return void
+     */
+    public function get($table = null)
+    {
+        if ($table != null) {
+            $this->from($table);
+        }
+        return parent::execute();
+    }
+
+    /**
+     * Set limit value
+     * 
+     * @param int $limit  value
+     * @param int $offset value ( optional )
+     * 
+     * @return object
+     */
+    public function limit($limit, $offset = null)
+    {
+        $this->setMaxResults((int)$limit);
+        $this->offset($offset);
+        return $this;
+    }
+
+    /**
+     * Set offset value
+     * 
+     * @param int $offset value
+     * 
+     * @return object
+     */
+    public function offset($offset)
+    {
+        if (is_numeric($offset)) {
+            $this->setFirstResult($offset);
+        }
+        return $this;
+    }
+
+    /**
+     * Call connection methods
+     *
+     * This method allows to you reach database connection object methods
+     * 
+     * Example :
+     * 
+     * $this->db->query("..");
+     * 
+     * @param string $method    name
+     * @param array  $arguments method arguments
+     * 
+     * @return mixed
+     */
+    public function __call($method, $arguments)
+    {
+        $connection = $this->getConnection();
+        if ($connection == null) {
+            return;
+        }
+        return call_user_func_array(array($connection, $method), $arguments);
+    }
+}
+
+// END QueryBuilder Class
+/* End of file QueryBuilder.php
+
+/* Location: .Obullo/Database/Doctrine/QueryBuilder.php */

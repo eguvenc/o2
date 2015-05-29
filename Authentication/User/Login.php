@@ -27,13 +27,6 @@ class Login
     protected $c;
 
     /**
-     * Authentication config
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
      * @param object $c container
@@ -41,9 +34,8 @@ class Login
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config = $this->c['auth.config'];
-        $this->columnIdentifier = $this->config['db.identifier'];
-        $this->columnPassword   = $this->config['db.password'];
+        $this->columnIdentifier = $this->c['user']['db.identifier'];
+        $this->columnPassword   = $this->c['user']['db.password'];
     }
 
     /**
@@ -60,7 +52,7 @@ class Login
 
         $this->c['event']->fire('login.attempt.before', array($credentials)); 
 
-        if ( ! isset($credentials[$this->columnIdentifier]) OR ! isset($credentials[$this->columnPassword]) ) {
+        if ( ! isset($credentials[$this->columnIdentifier]) || ! isset($credentials[$this->columnPassword]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
                 $this->columnIdentifier,
@@ -74,8 +66,8 @@ class Login
                 )
             );
         }
-        $rememberMeCookie = $this->config['login']['rememberMe']['cookie'];
-        $credentials['__rememberToken'] = $this->c['cookie']->get($rememberMeCookie['prefix'].$rememberMeCookie['name']);
+        $rememberMeCookie = $this->c['user']['login']['rememberMe']['cookie'];
+        $credentials['__rememberToken'] = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
 
         return $this->createResults($credentials);
 

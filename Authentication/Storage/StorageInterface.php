@@ -3,7 +3,7 @@
 namespace Obullo\Authentication\Storage;
 
 use Obullo\Container\Container;
-use Obullo\Cache\Handler\CacheHandlerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * Cache storage interface
@@ -20,10 +20,11 @@ interface StorageInterface
     /**
      * Constructor
      * 
-     * @param object $c     container
-     * @param object $cache CacheHandlerInterface
+     * @param object $c        container
+     * @param object $provider provider
+     * @param array  $params   parameters
      */
-    public function __construct(Container $c, CacheHandlerInterface $cache);
+    public function __construct(Container $c, ServiceProviderInterface $provider, array $params);
 
     /**
      * Returns true if temporary credentials "not" exists

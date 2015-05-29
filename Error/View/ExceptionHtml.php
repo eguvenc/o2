@@ -10,7 +10,6 @@ $getError = function ($message) {
         $message
     );
 }
-
 ?>
 <div id="middle">
 

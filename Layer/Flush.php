@@ -2,7 +2,6 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Layer\Layer;
 use Obullo\Container\Container;
 
 /**
@@ -63,27 +62,12 @@ class Flush
     public function uri($uri = '', $data = array())
     {
         $hashString = trim($uri, '/');
-        if ( sizeof($data) > 0 ) {  // We can't use count() in sub layers sizeof gives better results.
+        if ( sizeof($data) > 0 ) {      // We can't use count() in sub layers sizeof gives better results.
             $hashString .= str_replace('"', '', json_encode($data)); // remove quotes to fix equality problem
         }
         $KEY = $this->generateId($hashString);
-        if ($this->cache->keyExists($KEY)) {
+        if ($this->cache->exists($KEY)) {
             return $this->cache->delete($KEY);
-        }
-        return false;
-    }
-
-    /**
-     * Removes layer from cache using layer id
-     * 
-     * @param integer $layerId id
-     * 
-     * @return boolean
-     */
-    public function id($layerId)
-    {
-        if (is_numeric($layerId) AND $this->cache->keyExists($layerId)) {
-            return $this->cache->delete($layerId);
         }
         return false;
     }

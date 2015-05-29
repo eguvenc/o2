@@ -5,7 +5,7 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\Cache\Handler\CacheHandlerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * O2 Authentication - Cache Storage
@@ -22,25 +22,42 @@ class Cache extends AbstractStorage implements StorageInterface
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $cacheKey;        // Cache key
-    protected $config;          // Auth config array
     protected $session;         // Session class
+    protected $provider;        // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
-    protected $logger;          // Logger
 
     /**
      * Constructor
      * 
-     * @param object $c     container
-     * @param object $cache CacheHandlerInterface
+     * @param object $c        container
+     * @param object $provider provider
+     * @param array  $params   parameters
      */
-    public function __construct(Container $c, CacheHandlerInterface $cache) 
+    public function __construct(Container $c, ServiceProviderInterface $provider, array $params) 
     {
         $this->c = $c;
-        $this->config = $this->c['auth.config'];
-        $this->cache = $cache;
-        $this->cacheKey = (string)$this->config['cache.key'];
-        $this->logger  = $this->c['logger'];
+        $this->params = $params;
+        $this->provider = $provider;
+        $this->cacheKey = (string)$this->c['user']['cache.key'];
         $this->session = $this->c['session'];
+
+        $this->connect();
+    }
+
+    /**
+     * Connect to cache provider
+     * 
+     * @return boolean
+     */
+    public function connect()
+    {
+        $this->cache = $this->provider->get(
+            [
+                'driver' => $this->params['cache']['provider']['driver'],
+                'connection' => $this->params['cache']['provider']['connection']
+            ]
+        );
+        return true;
     }
 
     /**
@@ -52,7 +69,7 @@ class Cache extends AbstractStorage implements StorageInterface
      */
     public function isEmpty($block = '__permanent')
     {
-        $exists = $this->cache->keyExists($this->getBlock($block));
+        $exists = $this->cache->exists($this->getBlock($block));
         return ($exists) ? false : true;
     }
 
@@ -91,10 +108,10 @@ class Cache extends AbstractStorage implements StorageInterface
             return false;
         }
         $this->data[$block] = array($this->getLoginId() => $credentials);
-        if ( ! empty($pushData) AND is_array($pushData)) {
+        if ( ! empty($pushData) && is_array($pushData)) {
             $this->data[$block] = array($this->getLoginId() => array_merge($credentials, $pushData));
         }
-        $allData = $this->cache->get($this->getMemoryBlockKey($block), false);  // Get all data
+        $allData = $this->cache->get($this->getMemoryBlockKey($block));  // Get all data
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
 
         if ($allData == false) {
@@ -131,7 +148,7 @@ class Cache extends AbstractStorage implements StorageInterface
      */
     public function deleteCredentials($block = '__temporary')
     {
-        $loginID  = $this->getLoginId();
+        $loginID = $this->getLoginId();
         $credentials = $this->cache->get($this->getBlock($block));  // Don't do container cache
 
         if ( ! isset($credentials[$loginID])) {  // already removed
@@ -177,9 +194,8 @@ class Cache extends AbstractStorage implements StorageInterface
         $this->setCredentials($data, null, $block);
     }
 
-
     /**
-     * Check whether to identify exists
+     * Get all keys
      *
      * @param string $block __temporary or __permanent
      * 
@@ -191,7 +207,7 @@ class Cache extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Returns to storage full key of identity data
+     * Returns to full identity block name
      *
      * @param string $block name
      * 
@@ -211,7 +227,6 @@ class Cache extends AbstractStorage implements StorageInterface
     {
         $sessions = array();
         $dbSessions = $this->cache->get($this->getMemoryBlockKey('__permanent'));
-        
         if ($dbSessions == false) {
             return $sessions;
         }

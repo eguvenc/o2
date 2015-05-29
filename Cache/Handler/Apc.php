@@ -70,7 +70,7 @@ class Apc implements CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function keyExists($key)
+    public function exists($key)
     {
         return apc_exists($key);
     }

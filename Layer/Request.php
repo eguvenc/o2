@@ -3,8 +3,6 @@
 namespace Obullo\Layer;
 
 use Controller;
-use Obullo\Layer\Json;
-use Obullo\Layer\Error;
 use Obullo\Container\Container;
 
 /**
@@ -35,6 +33,10 @@ class Request
     {   
         $this->c = $c;
         $this->params = $c['config']['layer'];
+
+        $this->c['layer.flush'] = function () use ($c) {
+            return new Flush($c);
+        };
     }
 
     /**
@@ -52,8 +54,7 @@ class Request
             $expiration = $data;
             $data = array();
         }
-        $raw = $this->raw('GET', $uri, $data, $expiration);
-        return $this->isJson($uri, $raw);
+        return $this->request('GET', $uri, $data, $expiration);
     }
 
     /**
@@ -71,37 +72,7 @@ class Request
             $expiration = $data;
             $data = array();
         }
-        $raw = $this->raw('POST', $uri, $data, $expiration);
-        return $this->isJson($uri, $raw);
-    }
-
-    /**
-     * Check request is json
-     * 
-     * @param string $uri layer uri
-     * @param string $raw data
-     * 
-     * @return boolean
-     */
-    protected function isJson($uri, $raw)
-    {
-        if (strpos(trim($uri, '/'), 'jsons/') === 0) {
-            return $this->json($raw);
-        }
-        return $raw;
-    }
-
-    /**
-     * Json Response Request
-     *
-     * @param string $raw json encoded string
-     * 
-     * @return string
-     */
-    public function json($raw)
-    {
-        $json = new Json($this->c);
-        return $json->decode($raw);
+        return $this->request('POST', $uri, $data, $expiration);
     }
 
     /**
@@ -114,7 +85,7 @@ class Request
      * 
      * @return string
      */
-    public function raw($method, $uriString, $data = array(), $expiration = '')
+    public function request($method, $uriString, $data = array(), $expiration = '')
     {
         $layer = new Layer($this->c, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
@@ -124,12 +95,26 @@ class Request
         $response = $layer->execute($expiration); // Execute the process
         $layer->restore();  // Restore controller objects
 
-        if (strpos(trim($response), '@ErrorTemplate@') === 0) {  // Error template support
+        if (strpos(trim($response), '@LayerNotFound@') === 0) {  // Error template support
             $error = new Error($this->c);
-            return $error->getError(str_replace('@ErrorTemplate@', '', $response));
+            return $error->getError(str_replace('@LayerNotFound@', '', $response));
         }
         return (string)$response;
     }
+
+    /**
+     * Call helpers ( flush class .. ) $this->c['layer']->flush('views/header');
+     * 
+     * @param string $uri  string
+     * @param array  $data params
+     * 
+     * @return boolean
+     */
+    public function flush($uri, $data = array())
+    {
+        return $this->c['layer.flush']->uri($uri, $data);
+    }
+    
 }
 
 // END Request class

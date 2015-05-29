@@ -3,6 +3,7 @@
 namespace Obullo\Form;
 
 use Controller;
+use Obullo\Container\Container;
 
 /**
  * Form Class
@@ -10,27 +11,24 @@ use Controller;
  * @category  Form
  * @package   Form
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/form
  */
 class Form
 {
     /**
-     * Form operation keys
-     */
-    const NOTICE  = 'notice';
-    const STATUS  = 'status';
-    const MESSAGE = 'message';
-    const SUCCESS = 'success';
-    const ERRORS  = 'errors';
-    /**
      * Form status values
      */
-    const NOTICE_ERROR = 0;
-    const NOTICE_SUCCESS = 1;
-    const NOTICE_WARNING = 2;
-    const NOTICE_INFO = 3;
+    const ERROR = 0;
+    const SUCCESS = 1;
+    /**
+     * Form code values
+     */
+    const CODE_ERROR = 0;
+    const CODE_SUCCESS = 1;
+    const CODE_WARNING = 2;
+    const CODE_INFO = 3;
 
     /**
      * Container
@@ -40,6 +38,13 @@ class Form
     public $c;
 
     /**
+     * Config Parameters
+     * 
+     * @var array
+     */
+    public $form = array();
+
+    /**
      * Store form notification and errors
      *
      * @var array
@@ -47,37 +52,20 @@ class Form
     public $messages = array();
 
     /**
-     * Config Parameters
-     * 
-     * @var array
-     */
-    public $params = array();
-
-    /**
      * Constructor
      * 
-     * @param string $c      container
-     * @param string $params parameters
+     * @param string $c container
      */
-    public function __construct($c, $params = array())
+    public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->params = (count($params) == 0) ? $c['config']->load('form') : $params;
+        $this->form = $c['config']->load('form');
         $this->logger = $this->c['logger'];
-        $this->logger->debug('Form Class Initialized');
-    }
+        
+        $this->messages['success'] = static::ERROR;
+        $this->messages['code'] = 0;
 
-    /**
-     * Set success message and set status to "1".
-     * 
-     * @param string $message success message
-     * 
-     * @return void
-     */
-    public function success($message)
-    {
-        $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = static::NOTICE_SUCCESS;
+        $this->logger->debug('Form Class Initialized');
     }
 
     /**
@@ -89,21 +77,23 @@ class Form
      */
     public function error($message)
     {
-        $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = static::NOTICE_ERROR;
+        $this->messages['message'] = (string)$message;
+        $this->messages['success'] = static::ERROR;
+        $this->messages['code'] = 0;
     }
 
     /**
-     * Set info message
+     * Set success message and set status to "1".
      * 
      * @param string $message success message
      * 
      * @return void
      */
-    public function info($message)
+    public function success($message)
     {
-        $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = static::NOTICE_INFO;
+        $this->messages['message'] = (string)$message;
+        $this->messages['success'] = static::SUCCESS;
+        $this->messages['code'] = 1;
     }
 
     /**
@@ -115,12 +105,47 @@ class Form
      */
     public function warning($message)
     {
-        $this->messages[static::MESSAGE] = (string)$message;
-        $this->messages[static::SUCCESS] = static::NOTICE_WARNING;
+        $this->messages['message'] = (string)$message;
+        $this->messages['code'] = 2;
     }
 
     /**
-     * Sets form status
+     * Set info message
+     * 
+     * @param string $message success message
+     * 
+     * @return void
+     */
+    public function info($message)
+    {
+        $this->messages['message'] = (string)$message;
+        $this->messages['code'] = 3;
+    }
+
+    /**
+     * Set status code
+     * 
+     * @param integer $code status code
+     * 
+     * @return void
+     */
+    public function code($code = 0)
+    {
+        $this->messages['code'] = (int)$code;
+    }
+
+    /**
+     * Returns to status code
+     * 
+     * @return integer
+     */
+    public function getCode()
+    {
+        return $this->messages['code'];
+    }
+
+    /**
+     * Set form status
      * 
      * @param integer $status 1 or 0
      * 
@@ -128,7 +153,7 @@ class Form
      */
     public function status($status = 0)
     {
-        $this->messages[static::SUCCESS] = (int)$status;
+        $this->messages['success'] = (int)$status;
     }
 
     /**
@@ -138,7 +163,7 @@ class Form
      */
     public function getStatus()
     {
-        return $this->messages[static::SUCCESS];
+        return $this->messages['success'];
     }
 
     /**
@@ -157,6 +182,18 @@ class Form
     }
 
     /**
+     * Set api results
+     * 
+     * @param array $results api result messages
+     *
+     * @return void
+     */
+    public function setResults($results)
+    {
+        $this->messages['results'] = $results;
+    }
+
+    /**
      * Set validator errors array to form e.g. : array('field' => 'error', 'field2' => 'error' )
      * 
      * @param mixed $errors error array or validator object 
@@ -168,10 +205,10 @@ class Form
         if (is_object($errors)) {
             $errors = $errors->getErrors();  // Get "Validator" object errors
         }
-        if (is_array($errors) AND count($errors) > 0) {
-            $this->messages[static::SUCCESS] = 0;
+        if (is_array($errors) && count($errors) > 0) {
+            $this->messages['success'] = 0;
         }
-        $this->messages[static::ERRORS]  = $errors;
+        $this->messages['errors'] = $errors;
     }
 
     /**
@@ -185,31 +222,29 @@ class Form
     public function setMessage($message, $status = 0)
     {
         $this->status($status);
-        $this->messages[static::MESSAGE] = (string)$message;
+        $this->messages['message'] = (string)$message;
     }
 
     /**
      * Get notification message for valid post.
      * 
-     * @param string $notice notice message
-     * @param int    $status status
+     * @param string $msg custom user message
      * 
      * @return string
      */
-    public function getMessage($notice = '', $status = 0)
+    public function getMessage($msg = '')
     {
-        if ( ! empty($notice) AND is_string($notice)) {
-            $this->setMessage($notice, $status);
+        if ( ! empty($msg) && is_string($msg)) {
+            $this->messages['message'] = (string)$msg;
         }
-        $message = isset($this->messages[static::MESSAGE]) ? $this->messages[static::MESSAGE] : '';
-        if (empty($message)) {
+        if (empty($this->messages['message'])) {
             return '';
         }
         $array = $this->getValidTemplate();
-        return $this->messages[static::MESSAGE] = str_replace(
+        return $this->messages['message'] = str_replace(
             array('{class}','{icon}','{message}'), 
-            array($array['class'], $array['icon'], $message),
-            $this->params[static::MESSAGE]
+            array($array['class'], $array['icon'], $this->messages['message']),
+            $this->form['message']
         );
     }
 
@@ -220,10 +255,17 @@ class Form
      */
     public function getValidTemplate()
     {
-        if ( ! isset($this->messages[static::SUCCESS])) {
-            return 'empty';
+        $code = $this->messages['code'];
+        $errors = [
+            static::CODE_ERROR => 'error',
+            static::CODE_SUCCESS => 'success',
+            static::CODE_WARNING => 'warning',
+            static::CODE_INFO => 'info',
+        ];
+        if (isset($errors[$code]) && isset($this->form[$errors[$code]])) {
+            return $this->form[$errors[$code]];
         }
-        return $this->params[$this->messages[static::SUCCESS]];
+        return ($this->getStatus()) ? $this->form['success'] : $this->form['error'];
     }
 
     /**
@@ -237,6 +279,36 @@ class Form
     }
 
     /**
+     * Get all outputs of the form 
+     *
+     * @param array $assoc whether to return associative array
+     * 
+     * @return object|array|false
+     */
+    public function results($assoc = false)
+    {
+        if (isset($this->messages['results'])) {
+            return ($assoc) ? $this->messages['results'] : (object)$this->messages['results'];
+        }
+        return false;
+    }
+
+    /**
+     * Get validation error from validator object
+     * 
+     * @param string $prefix error prefix
+     * @param string $suffix error suffix
+     * 
+     * @return string
+     */
+    public function getValidationErrors($prefix = '', $suffix = '')
+    {
+        if ($this->c->has('validator')) {
+            return $this->c['validator']->getErrorString($prefix, $suffix);
+        }
+    }
+
+    /**
      * Get error
      * 
      * @param string $field  fieldname
@@ -247,7 +319,7 @@ class Form
      */
     public function getError($field, $prefix = '', $suffix = '')
     {
-        if ($this->c->exists('validator')) {  // If we have validator object
+        if ($this->c->has('validator')) {  // If we have validator object
             return $this->c['validator']->getError($field, $prefix, $suffix);
         }
     }
@@ -265,7 +337,7 @@ class Form
      */    
     public function getValue($field = '', $default = '')
     {
-        if ($this->c->exists('validator')) { // If we have validator object
+        if ($this->c->has('validator')) { // If we have validator object
             return $this->c['validator']->getValue($field, $default);
         }
         return $default;
@@ -276,9 +348,9 @@ class Form
      * 
      * @param string $field   the field name
      * @param string $default value
-     * 
-     * @return void
-     */    
+     *
+     * @return mixed string or null
+     */
     public function setValue($field = '', $default = '')
     {
         return $this->getValue($field, $default);
@@ -300,8 +372,8 @@ class Form
     public function setSelect($field = '', $value = '', $default = false, $selectedString = ' selected="selected"')
     {
         $validator = $this->c['validator'];
-        if ( ! isset($validator->fieldData[$field]) OR ! isset($validator->fieldData[$field]['postdata'])) {
-            if ($default === true AND count($validator->fieldData) === 0) {
+        if ( ! isset($validator->fieldData[$field]) || ! isset($validator->fieldData[$field]['postdata'])) {
+            if ($default === true && count($validator->fieldData) === 0) {
                 return $selectedString;
             }
             return '';
@@ -312,7 +384,7 @@ class Form
                 return '';
             }
         } else {
-            if (($field == '' OR $value == '') OR ($field != $value)) {
+            if (($field == '' || $value == '') || ($field != $value)) {
                 return '';
             }
         }
@@ -320,7 +392,7 @@ class Form
     }
 
     /**
-     * Set Checkbox
+     * Selet Checkbox Item
      *
      * Enables checkboxes to be set to the value the user
      * selected in the event of an error
@@ -337,7 +409,7 @@ class Form
     }
 
     /**
-     * Set Radio
+     * Select Radio Item
      *
      * Enables radio buttons to be set to the value the user
      * selected in the event of an error

@@ -3,7 +3,6 @@
 namespace Obullo\Authentication;
 
 use Obullo\Utils\Random;
-use Obullo\Container\Container;
 
 /**
  * O2 Authentication - Token
@@ -18,28 +17,20 @@ use Obullo\Container\Container;
 class Token
 {
     /**
-     * Container
-     *
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Authentication config
+     * Cookie params
      *
      * @var array
      */
-    protected $config;
+    protected $cookie;
 
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param array $cookie params
      */
-    public function __construct(Container $c)
+    public function __construct(array $cookie)
     {
-        $this->c = $c;
-        $this->config = $this->c['auth.config'];
+        $this->cookie = $cookie;
     }
 
     /**
@@ -49,12 +40,10 @@ class Token
      */
     public function getRememberToken()
     {
-        $cookie = $this->config['login']['rememberMe']['cookie'];
+        $this->cookie['value'] = Random::generate('alnum', 32);
+        $this->c['cookie']->set($this->cookie);
 
-        $cookie['value'] = Random::generate('alnum', 32);
-        $this->c['cookie']->queue($cookie);
-
-        return $cookie['value'];
+        return $this->cookie['value'];
     }
 }
 

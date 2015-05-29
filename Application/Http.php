@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
-use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
+use Obullo\Http\Debugger\WebSocket;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,14 +81,16 @@ class Http extends Application
 
         $this->middleware = array($this); // Define default middleware stack
 
-        include OBULLO_CONTROLLER;
+        include APP .'errors.php';
+        $this->registerErrorHandlers();     
+        include OBULLO .'Controller'. DS .'Controller.php';
 
-        include APP_COMPONENTS;
-        include APP_PROVIDERS;
-        include APP_EVENTS;
-        include APP_ROUTES;
+        include APP .'components.php';
+        include APP .'providers.php';
+        include APP .'events.php';
+        include APP .'routes.php';
 
-        if ($this->c['config']['debugger']['enabled']) {
+        if ($this->c['config']['http-debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
@@ -155,24 +157,23 @@ class Http extends Application
                 $this->middleware($value['name'], $value['options']);
             }
         }
-        include APP_MIDDLEWARES;  // Include app/middlewares.php
+        include APP .'middlewares.php';
     }
 
     /**
      * Add middleware
      *
      * This method prepends new middleware to the application middleware stack.
-     * The argument must be an instance that subclasses Slim_Middleware.
      *
      * @param mixed $middleware class name or \Http\Middlewares\Middleware object
-     * @param array $params     parameters
+     * @param array $params     parameters we inject the parmeters inside middleware as a variable. ( $this->params )
      *
-     * @return void
+     * @return object
      */
     public function middleware($middleware, $params = array())
     {
         if (is_string($middleware)) {
-            $Class = '\\Http\\Middlewares\\'.ucfirst($middleware);
+            $Class = strpos($middleware, '\Middlewares\\') ?  $middleware : '\\Http\\Middlewares\\'.ucfirst($middleware);
             $middleware = new $Class;
         }
         $middleware->params = $params;      // Inject Parameters
@@ -183,10 +184,11 @@ class Http extends Application
 
         $name = get_class($middleware);
         $this->middlewareNames[$name] = $name;  // Track names
+        return $this;
     }
 
     /**
-     * Removes middleware ( Only works with annotations )
+     * Removes middleware
      * 
      * @param string $middleware name
      * 
@@ -199,8 +201,7 @@ class Http extends Application
             return;
         }
         foreach ($this->middleware as $key => $value) {
-            $current = get_class($value);
-            if ($current == $removal) {
+            if (get_class($value) == $removal) {
                 unset($this->middleware[$key]);
             }
         }
@@ -223,9 +224,9 @@ class Http extends Application
      */
     public function call()
     {
-        if ($this->c['config']['output']['compress'] AND extension_loaded('zlib')  // Do we need to output compression ?
-            AND isset($_SERVER['HTTP_ACCEPT_ENCODING'])
-            AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
+        if ($this->c['config']['output']['compress'] && extension_loaded('zlib')  // Do we need to output compression ?
+            && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
+            && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
         ) {
             ob_start('ob_gzhandler');
         } else {
@@ -239,17 +240,19 @@ class Http extends Application
      *
      * 1 . Write cookies if package loaded and we have queued cookies.
      * 2 . Check debugger module
+     * 3 . Register fatal error handler
      * 
      * @return void
      */
     public function close()
     {
-        if ($this->c->loaded('cookie') AND count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+        if ($this->c->loaded('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }
         }
         $this->checkDebugger();
+        $this->registerFatalError();
     }
 
     /**
@@ -259,7 +262,7 @@ class Http extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['debugger']['enabled'] AND ! isset($_REQUEST['o_debugger'])) {
+        if ($this->c['config']['http-debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit();
         }
     }

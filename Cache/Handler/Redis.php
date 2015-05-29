@@ -74,7 +74,7 @@ class Redis implements CacheHandlerInterface
     {
         $this->openNodeConnections();
 
-        if ($this->isConnected()) {
+        if ($this->redis->isConnected()) {
             return true;
         }
         return false;
@@ -114,16 +114,6 @@ class Redis implements CacheHandlerInterface
     public function __call($method, $arguments)
     {
         return call_user_func_array(array($this->redis, $method), $arguments);
-    }
-
-    /**
-     * Method to determine if a phpredis object thinks it's connected to a server
-     * 
-     * @return boolean true or false
-     */
-    public function isConnected()
-    {
-        return $this->redis->isConnected();
     }
 
     /**
@@ -200,7 +190,7 @@ class Redis implements CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function keyExists($key)
+    public function exists($key)
     {
         return $this->redis->exists($key);
     }
@@ -427,16 +417,13 @@ class Redis implements CacheHandlerInterface
     }
 
     /**
-     * Get Meta Data
+     * Flush all items in 1 seconds (default)
      * 
-     * @param string $key cache key.
-     * 
-     * @return object
+     * @return boolean
      */
-    public function getMetaData($key)
+    public function flushAll()
     {
-        $key = null;
-        throw new RuntimeException('This function not implemented for redis driver.');
+        return $this->redis->flushDB();
     }
 
 }

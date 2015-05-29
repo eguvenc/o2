@@ -2,7 +2,7 @@
 
 namespace Debugger;
 
-use Obullo\Debugger\DebugManager;
+use Obullo\Http\Debugger\DebugManager;
 
 class Debugger extends \Controller
 {

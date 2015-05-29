@@ -107,12 +107,31 @@ class View
     /**
      * Set variables
      * 
+     * @param mixed $key view key => data or combined array
+     * @param mixed $val mixed
+     * 
+     * @return void
+     */
+    public function assign($key, $val = null)
+    {
+        if (is_array($key)) {
+            foreach ($key as $_k => $_v) {
+                $this->assignVar($_k, $_v);
+            }
+        } else {
+            $this->assignVar($key, $val);
+        }
+    }
+
+    /**
+     * Set variables
+     * 
      * @param string $key view key data
      * @param mixed  $val mixed
      * 
      * @return void
      */
-    public function assign($key, $val)
+    protected function assignVar($key, $val)
     {
         if (is_int($val)) {
             $this->_stringStack[$key] = $val;
@@ -133,7 +152,6 @@ class View
             }
         }
         if (is_object($val)) {
-            //  do filter
             $this->_objectStack[$key] = $val;
             $this->_arrayStack = array();
             return;
@@ -182,7 +200,7 @@ class View
          * which contains the view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
-        if ( ! class_exists('Controller', false) OR Controller::$instance == null) {
+        if ( ! class_exists('Controller', false) || Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
             $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )
@@ -235,7 +253,7 @@ class View
      */
     public function __get($key)
     {
-        if (class_exists('Controller', false) AND Controller::$instance != null) {
+        if (class_exists('Controller', false) && Controller::$instance != null) {
             return is_object(Controller::$instance->{$key}) ? Controller::$instance->{$key} : null;
         }
     }

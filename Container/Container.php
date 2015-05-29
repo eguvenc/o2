@@ -10,21 +10,15 @@ use SplObjectStorage;
 use RuntimeException;
 use InvalidArgumentException;
 
-/*
- * Container for Obullo (c) 2015
- * 
- * This file after modeled Pimple Software ( Dependency Container ).
- * 
- * http://pimple.sensiolabs.org/
- */
-
 /**
- * Container class.
+ * Container class
+ *
+ * This file after modeled Pimple Software ( Dependency Container )
  * 
  * @category  Container
  * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
@@ -34,12 +28,11 @@ class Container implements ArrayAccess
     protected $frozen = array();
     protected $raw = array();
     protected $keys = array();
-    protected $aliases = array();
+    protected $aliases = array();          // Stores define() object aliases
     protected $unset = array();            // Stores classes we want to remove
     protected $unRegistered = array();     // Whether to stored in controller instance
-    protected $return = array();           // Stores return requests
-    protected $resolved = array();         // Stores resolved class names
-    protected $resolvedCommand = array();  // Stores resolved commands to prevent preg match loops.
+    protected $get = array();              // Stores get() (return) requests
+    protected $alias = array();            // Stores alias() requests
     protected $services = array();         // Defined services
     protected $registeredServices = array();  // Lazy loading for service wrapper class
     protected $registeredProviders = array();  // Stack data for service provider wrapper class
@@ -51,7 +44,8 @@ class Container implements ArrayAccess
     public function __construct() 
     {
         $this->aliases = new SplObjectStorage;
-        $this->services = array_flip(scandir(APP .'classes'. DS . 'Service'));  // Scan service folder
+        $services = scandir(APP .'classes'. DS . 'Service'); // Scan service folder
+        $this->services = array_flip($services);             // Normalize service array
         unset($this->services['Providers']);
     }
 
@@ -62,7 +56,7 @@ class Container implements ArrayAccess
      *
      * @return Boolean
      */
-    public function exists($cid) 
+    public function has($cid) 
     {
         return $this->offsetExists($cid);
     }
@@ -98,9 +92,6 @@ class Container implements ArrayAccess
         if (isset($this->frozen[$cid])) {
             return;
         }
-        if ( ! is_callable($value) AND is_object($value)) {
-            return $this->bind($cid, $value);
-        }
         $this->values[$cid] = $value;
         $this->keys[$cid] = true;
     }
@@ -109,48 +100,27 @@ class Container implements ArrayAccess
      * Gets a parameter or an object.
      *
      * @param string $cid     The unique identifier for the parameter or object
-     * @param string $params  The construct arguments
      * @param string $matches Registry Command requests
-     *
+     * @param array  $params  Parameters
+     * 
      * @return mixed The value of the parameter or an object
      *
      * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function offsetGet($cid, $params = array(), $matches = array())
+    public function offsetGet($cid, $matches = array(), $params = array())
     {
-        $key = isset($matches['key']) ? $matches['key'] : $cid;
-        $noReturn = empty($matches['return']);
-        $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, ['app','router','uri','config','logger','exception','error','env']);
+        list($key, $noReturn, $controllerExists, $isCoreFile) = $this->resolveLoaderParts($cid, $matches);
 
-        // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
-        // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
-        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they available.
-        if ($noReturn
-            AND $controllerExists
-            AND Controller::$instance == null
-            AND $isCoreFile == false
-        ) {
-            $this->unRegistered[$cid] = $cid;   // Mark them as unregistered then we will assign back into controller.
-        }
         if ( ! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
             return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
         }
+        $isAllowedToStore = static::isSuitable($key, $noReturn, $controllerExists, $isCoreFile);
+
         if (isset($this->raw[$cid])             // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
-            if ($noReturn AND $controllerExists AND Controller::$instance != null) {
-                
-                $value = ! empty($matches['new']) ?  $this->runClosure($this->raw[$cid], $params) : $this->values[$cid];
-                if ( ! isset(Controller::$instance->{$key})) {      // If user use $this->c['uri'] in load method 
-                    return Controller::$instance->{$key} = $value;  // it overrides instance of the current controller uri and effect to layers
-                }
-            }
-            if ( ! empty($matches['new'])) {
-                return $this->runClosure($this->raw[$cid], $params);  // Return to new instance if Controller::$instance == null.
-            }
-            return $this->values[$cid];
+            return ($isAllowedToStore) ? Controller::$instance->{$key} = $this->values[$cid] : $this->values[$cid];
         }
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
@@ -162,14 +132,78 @@ class Container implements ArrayAccess
         // In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
         // it says "$this->view" undefined object that's why we need to assign libraries also for sub layers.
         
-        if ($controllerExists
-            AND $noReturn  //  Store class into controller instance if return not used.
-            AND Controller::$instance != null  // Sometimes in router level controller instance comes null.
-            AND $isCoreFile == false  // Ignore core classes which they have already loaded
-        ) {
-            return Controller::$instance->{$key} = $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        if ($isAllowedToStore) {
+            return Controller::$instance->{$key} = $this->values[$cid] = $this->closure($this->values[$cid], $params);
         }
-        return $this->values[$cid] = $this->runClosure($this->values[$cid], $params);
+        return $this->values[$cid] = $this->closure($this->values[$cid], $params);
+    }
+
+    /**
+     * Check class is suitable to store Controller
+     * 
+     * @param string  $key              class key
+     * @param boolean $noReturn         whether to return used
+     * @param boolean $controllerExists whether to controller file is included
+     * @param boolean $isCoreFile       prevent core files
+     * 
+     * @return boolean
+     */
+    protected static function isSuitable($key, $noReturn, $controllerExists, $isCoreFile)
+    {
+        if ($noReturn
+            && $controllerExists
+            && Controller::$instance != null
+            && $isCoreFile == false
+            && ! isset(Controller::$instance->{$key})    // Warning: If user use $this->c['uri'] in load method 
+        ) {                                              // it overrides instance of the current controller uri and effect to layers
+            return true;                                 // we need to check the key using isset
+        }
+        return false;
+    }
+
+    /**
+     * Resolve loader items
+     * 
+     * @param string $cid     class id
+     * @param array  $matches loader matches
+     * 
+     * @return array list
+     */
+    protected function resolveLoaderParts($cid, $matches)
+    {
+        $key = isset($matches['key']) ? $matches['key'] : $cid;
+        $noReturn = empty($matches['return']);
+        $controllerExists = class_exists('Controller', false);
+        $isCoreFile = in_array($key, ['app','router','uri','config','logger','exception','error','env']);
+
+        $this->markUnregisteredObjects($cid, $noReturn, $controllerExists, $isCoreFile);
+
+        return [$key, $noReturn, $controllerExists, $isCoreFile];
+    }
+
+    /**
+     * Mark unregistered libraries
+     * 
+     * @param string  $cid              class id
+     * @param boolean $noReturn         whether to return used
+     * @param boolean $controllerExists whether to controller file is included
+     * @param boolean $isCoreFile       prevent core files
+     * 
+     * @return boolean
+     */
+    protected function markUnregisteredObjects($cid, $noReturn, $controllerExists, $isCoreFile)
+    {
+        // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
+        // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
+        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they availabl
+
+        if ($noReturn
+            && $controllerExists
+            && Controller::$instance == null
+            && $isCoreFile == false
+        ) {
+            $this->unRegistered[$cid] = $cid;   // Mark them as unregistered then we will assign back into controller.
+        }
     }
 
     /**
@@ -180,7 +214,7 @@ class Container implements ArrayAccess
     * 
     * @return object closure
     */
-    protected function runClosure(Closure $closure, $params = array())
+    protected function closure(Closure $closure, $params = array())
     {
         if (count($params) > 0) {
             return $closure($params);
@@ -222,29 +256,30 @@ class Container implements ArrayAccess
      * Class and Sercice loader
      *
      * @param string $classString class command
-     * @param mixed  $params      array
+     * @param array  $params      closure params
      * 
      * @return void
      */
     public function load($classString, $params = array())
     {
         $matches = $this->resolveCommand($classString);
-        $class = strtolower($matches['class']);
-        $serviceName = ucfirst($matches['class']);
 
         $isService = false;
+        $class = strtolower($matches['class']);
+        $serviceName = ucfirst($matches['class']);
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
-        if ($isDirectory OR isset($this->services[$serviceName.'.php'])) {  // Resolve services
+        if ($isDirectory || isset($this->services[$serviceName.'.php'])) {  // Resolve services
             $isService = true;
             $data['cid'] = $data['key'] = $class;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
             if ( ! isset($this->registeredServices[$serviceName])) {
-                $service = new $serviceClass($this);
-                $service->register($this, $params, $matches);
 
-                if ( ! $this->exists($data['cid'])) {
+                $service = new $serviceClass($this);
+                $service->register($this);
+
+                if ( ! $this->has($data['cid'])) {
                     throw new RuntimeException(
                         sprintf(
                             "%s service configuration error service class name must be same with container key.",
@@ -255,44 +290,44 @@ class Container implements ArrayAccess
                 $this->registeredServices[$serviceName] = true;
             }
         }
-        // $data = $this->getClassInfo($matches['class']);
         $data = [
             'key' => $matches['class'],
             'cid' => $class,
             'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
         ];
-        $matches['key'] = $key = $this->getAlias($data['cid'], $data['key'], $matches);
+        $matches['key'] = $key = $this->fetchAlias($data['cid'], $data['key']);
         
-        if ( ! $this->exists($data['cid']) AND ! $isService) {   // Don't register service again.
-            $this->registerClass($data['cid'], $key, $matches, $data['class'], $params);
+        if ( ! $this->has($data['cid']) && ! $isService) {   // Don't register service again.
+            $this->registerClass($data['cid'], $key, $matches, $data['class']);
         }
-        return $this->offsetGet($data['cid'], $params, $matches);
+        return $this->offsetGet($data['cid'], $matches, $params);
     }
     
     /**
      * Returns to provider instance
      * 
-     * @param string $class provider name
+     * @param string $name provider name
      * 
-     * @return object \Obullo\ServiceProviders\ServiceProviderInterface
+     * @return object \Obullo\Service\Providers\ServiceProviderInterface
      */
-    public function resolveProvider($class)
+    public function resolveProvider($name)
     {
-        if ( ! isset($this->registeredProviders[$class])) {
+        $name = strtolower($name);
+        if ( ! isset($this->registeredProviders[$name])) {
             throw new RuntimeException(
                 sprintf(
                     "%s provider is not registered, please register it in providers.php",
-                    ucfirst($class)
+                    ucfirst($name)
                 )
             );
         }
-        $providerName = $this->registeredProviders[$class];
-        if ( ! isset($this->registeredConnections[$class])) {
-            $provider = new $providerName;
+        $Class = $this->registeredProviders[$name];
+        if ( ! isset($this->registeredConnections[$name])) {
+            $provider = new $Class;
             $provider->register($this);
-            $this->registeredConnections[$class] = $provider;
+            $this->registeredConnections[$name] = $provider;
         }
-        return $this->registeredConnections[$class];
+        return $this->registeredConnections[$name];
     }
 
     /**
@@ -312,34 +347,16 @@ class Container implements ArrayAccess
     /**
      * Get alias name if we have "as" match
      * 
-     * @param string $cid     identifier
-     * @param string $key     default key
-     * @param array  $matches array data
+     * @param string $cid identifier
+     * @param string $key default key
      * 
      * @return string
      */
-    protected function getAlias($cid, $key, $matches) 
+    protected function fetchAlias($cid, $key) 
     {   
         $callable = $this->raw($cid);
-
-        if ( ! is_null($callable) AND $this->aliases->contains($callable)) {
+        if ( ! is_null($callable) && $this->aliases->contains($callable)) {
             $key = $this->aliases[$callable];
-        }
-        return $this->searchAs($key, $matches);
-    }
-
-    /**
-     * Search "as" keyword
-     * 
-     * @param string $key     class key
-     * @param array  $matches loader command matches
-     * 
-     * @return string
-     */
-    protected function searchAs($key, $matches)
-    {
-        if ( ! empty($matches['last'])) {  // Replace key with alias if we have it
-            $key = substr(trim($matches['last']), 3);
         }
         return trim($key);
     }
@@ -351,25 +368,64 @@ class Container implements ArrayAccess
      * @param string $key       alias
      * @param string $matches   commands
      * @param string $ClassName classname
-     * @param string $params    array
      * 
      * @return mixed object or null
      */
-    protected function registerClass($cid, $key, $matches, $ClassName, $params = array())
+    protected function registerClass($cid, $key, $matches, $ClassName)
     {
-        if ( ! isset($this->keys[$cid]) AND class_exists('Controller', false) AND ! isset($this->unset[$cid])) {
+        if ( ! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
 
-            $this[$cid] = function ($params = array()) use ($key, $matches, $ClassName) {
+            $this[$cid] = function () use ($key, $matches, $ClassName) {
 
-                $Object = is_string($ClassName) ? new $ClassName($this, $params) : $ClassName;
+                $Object = is_string($ClassName) ? new $ClassName($this) : $ClassName;
 
-                if (Controller::$instance != null AND empty($matches['return'])) {  // Let's sure controller instance available and not null           
+                if (Controller::$instance != null && empty($matches['return'])) {  // Let's sure controller instance available and not null
                     return Controller::$instance->{$key} = $Object;
                 }
                 return $Object;
             };
         }
         return null;
+    }
+
+    /**
+     * Get instance of the class without 
+     * register it into Controller object
+     * 
+     * @param string  $cid    class id
+     * @param boolean $params if array params not empty execute the closure() method
+     * 
+     * @return object
+     */
+    public function get($cid, $params = null)
+    {
+        if ($params === false) {
+            $params = array();
+        }
+        if (is_array($params)) {
+            return $this->getClosure($cid, $params);
+        }
+        $this->get[$cid] = $cid;
+        return $this[$cid];
+    }
+
+    /**
+     * Get closure function of object
+     * 
+     * @param string $cid    class id
+     * @param array  $params closure params
+     * 
+     * @return object Closure
+     */
+    protected function getClosure($cid, $params = array())
+    {
+        if ( ! isset($this->keys[$cid])) {  // First load class to container if its not loaded
+            return $this->load($cid, $params);
+        }
+        if (isset($this->raw[$cid])) {  // Check is it available if yes return to closure()
+            return $this->raw[$cid]($params);
+        }
+        return $this->values[$cid]($params);     // else return to object
     }
 
     /**
@@ -382,24 +438,14 @@ class Container implements ArrayAccess
     protected function resolveCommand($class)
     {
         $class = trim($class);
-        if (isset($this->resolvedCommand[$class])) {
-            return $this->resolvedCommand[$class];
-        }
         $matches = array(
-            'return' => '',
+            'return' => '',   // fill return if get() function used.
             'new' => '',
             'class' => $class,
-            'last' => '',
-            'as' => ''
         );
-        if (strrpos($class, ' ')) {  // If we have command request
-            $regex = "^(?<return>(?:)return|)\s*(?<new>(?:)new|)\s*(?<class>[a-zA-Z_\/.:]+)(?<last>.*?)$";
-            preg_match('#'.$regex.'#', $class, $matches);
-            if ( ! empty($matches['last'])) {
-                $matches['as'] = substr(trim($matches['last']), 3);
-            }
+        if (isset($this->get[$class])) {
+            $matches['return'] = 'return';
         }
-        $this->resolvedCommand[$class] = $matches;
         return $matches;
     }
 
@@ -460,55 +506,30 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Bind classes into the container if its not exists.
-     * 
-     * @param string $cid       class id
-     * @param string $namespace class
-     * 
-     * @return void
-     */
-    protected function bind($cid, $namespace = null)
-    {
-        if ( ! is_object($namespace)) {
-            throw new InvalidArgumentException('Bind method second parameter must be object.');
-        }
-        if ( ! $this->exists($cid)) {   // Don't register service again.
-            $this->registerClass($cid, null, array('return' => 'return'), $namespace);
-        }
-        if (isset($this->frozen[$cid])) {
-            return $this->values[$cid];
-        }
-        $this->frozen[$cid] = true;
-        $this->raw[$cid] = $this->values[$cid];
-        return $this->values[$cid] = $this->runClosure($this->values[$cid]);
-    }
-
-    /**
      * Registers a service provider.
      *
-     * @param object $provider A Service Provider instance
+     * @param array $providers provider name and namespace array
      *
      * @return static
      */
-    public function register($provider)
+    public function register($providers)
     {
-        $classname = explode('\\', $provider);
-        $cid = strtolower(str_replace('ServiceProvider', '', end($classname)));
-
-        $this->registeredProviders[$cid] = $provider;
+        foreach ((array)$providers as $name => $namespace) {
+            $this->registeredProviders[$name] = $namespace;
+        }
         return $this;
     }
 
     /**
      * Check provider is registered
      * 
-     * @param string $provider key like cache, redis, memcache
+     * @param string $name provider key like cache, redis, memcache
      * 
      * @return boolean
      */
-    public function isRegistered($provider)
+    public function isRegistered($name)
     {
-        return isset($this->registeredProviders[$provider]);
+        return isset($this->registeredProviders[$name]);
     }
 
 }

@@ -6,9 +6,11 @@ use PDO;
 use Closure;
 use Exception;
 use Controller;
-use Obullo\Config\Config;
-use Obullo\Log\LoggerInterface;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use RuntimeException;
+use Obullo\Container\Container;
+use Obullo\Database\AdapterInterface;
+use Obullo\Database\SQLLoggerInterface;
+use Obullo\Service\ServiceProviderInterface;
     
 /**
  * Adapter Class
@@ -20,157 +22,128 @@ use Obullo\ServiceProviders\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-abstract class Adapter
+class Adapter implements AdapterInterface
 {
-    public $sql;
-    public $pdo = array();      // Pdo config
-    public $stmt = null;        // PDOStatement Object
-    public $connection = null;  // Pdo connection object.
-    public $startQueryTimer;    // Timer
-    public $escapeChar = '`';   // The character used for escaping
-    public $config;             // Config class
-    public $logger;             // Logger class
-    public $host = '';
-    public $username = '';
-    public $password = '';
-    public $database = '';
-    public $driver = '';      // optional
-    public $charset = 'utf8'; // optional
-    public $port = '';        // optional
-    public $dsn = '';         // optional
-    public $options = array(); // optional
-    public $autoinit = array(); // optional
-    public $prefix = '';
-    public $prepare = false;    // Prepare used or not
-    public $lastSql = null;     // stores last queried sql
-    public $lastValues = array();  // stores last executed PDO values by execCount
-    public $queryCount = 0;        // count all queries.
-    public $execCount = 0;        // count exec methods.
-    public $prepQueries = array();
-    public $useBindValues = false;    // bind value usage switch
-    public $useBindParams = false;    // bind param usage switch
-    public $lastBindValues = array();  // Last bindValues and bindParams
-    public $lastBindParams = array();  // We store binds values to array()
-    public $protectIdentifiers = true;
-    public $reservedIdentifiers = array('*'); // Identifiers that should NOT be escaped
-    
+    /**
+     * Stores last executed sql query
+     * 
+     * @var string
+     */
+    protected $sql;
+
+    /**
+     * Pdo connection object
+     * 
+     * @var object
+     */
+    protected $conn;
+
+    /**
+     * PDOStatement Object
+     * 
+     * @var null
+     */
+    protected $stmt;
+
+    /**
+     * Timer
+     * 
+     * @var int
+     */
+    protected $start;
+
+    /**
+     * Connection Params
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
+     * SQLLogger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
+     * Available drivers
+     * 
+     * @var array
+     */
+    protected $drivers = [
+        'pdo_mysql',
+        'pdo_pgsql',
+    ];
+
+    /**
+     * Stores last executed PDO params
+     * 
+     * @var array
+     */
+    protected $parameters = array();
+
     /**
      * Constructor
      * 
-     * @param object $config   \Obullo\Config\Config
-     * @param object $logger   \Obullo\Log\LoggerInterface
-     * @param object $provider \Obullo\ServiceProviders\ServiceProviderInterface
-     * @param array  $params   service providers parameters
+     * @param array $params connection params
      */
-    public function __construct(Config $config, LoggerInterface $logger, ServiceProviderInterface $provider, array $params)
+    public function __construct(array $params)
     {
-        $this->config = $config;
         $this->params = $params;
-        $this->logger = $logger;
-        $this->provider = $provider;
+        $this->logger = $this->getSQLLogger();
     }
 
     /**
-     * Connect to pdo
+     * Get sql logger object
+     * 
+     * @return void
+     */
+    protected function getSQLLogger()
+    {
+        if (isset($this->params['logger']) && $this->params['logger'] instanceof SQLLoggerInterface) {
+            return $this->params['logger'];
+        }
+    }
+
+    /**
+     * Generate db results
+     * 
+     * @param string $method    name
+     * @param array  $arguments method arguments
+     * 
+     * @return mixed
+     */
+    public function __call($method, $arguments)
+    {
+        if ($this->stmt == null) {
+            return;
+        }
+        return call_user_func_array(array(new Result($this->stmt), $method), $arguments);
+    }
+
+    /**
+     * Returns the list of supported drivers.
+     *
+     * @return array
+     */
+    public function drivers()
+    {
+        return $this->drivers;
+    }
+
+    /**
+     * Connect to pdo, open db connections only when we need to them
      * 
      * @return void
      */
     public function connect()
-    {
-        if ($this->connection) { // Lazy loading, If connection is ok .. not need to again connect..
-            return $this;
+    {   
+        if ($this->conn) {    // Lazy loading, If connection is ok not need to again connect.
+            return false;
         }
         $this->createConnection();
-    }
-
-    /**
-     * Connect to PDO
-     * 
-     * @return void
-     */
-    public function createConnection()
-    {
-        $this->connection = (isset($this->params['connection'])) ? $this->provider->get($this->params) : $this->provider->factory($this->params);
-
-        // We set exception attribute for always showing the pdo exceptions errors.
-
-        $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // PDO::ERRMODE_SILENT 
-    }
-
-    /**
-     * Set pdo prepare function
-     *
-     * @param string $sql     prepared query
-     * @param array  $fields  array fields
-     * @param array  $options prepare options
-     *
-     * @return object adapter
-     */
-    public function prepare($sql, $fields = array(), $options = array())
-    {
-        $this->connect();
-        $this->startQueryTimer = microtime(true);
-        $this->lastSql = $this->sprintf($sql, $fields);
-
-        $this->stmt = $this->connection->prepare($this->lastSql, $options);
-        $this->prepQueries[] = $this->lastSql;  // Save the  query for debugging
-        $this->prepare = true;
-        ++$this->queryCount;
-        return $this;
-    }
-
-    /**
-     * Prepared or Direct Pdo Query
-     *
-     * @param string $sql     query
-     * @param array  $sprintf values
-     * @param array  $values  bind values
-     *
-     * @return object pdo
-     */
-    public function query($sql, $sprintf = null, $values = array())
-    {
-        $this->connect();
-        $this->lastSql = $this->sprintf($sql, $sprintf);
-        $this->startQueryTimer = microtime(true);
-
-        if (count($values) > 0) {
-            $this->prepare($this->lastSql);
-            $this->execute($values);
-            return $this;
-        } else {
-            $this->stmt = $this->connection->query($this->lastSql);
-        }
-        ++$this->queryCount;
-        $this->sqlLog($this->lastSql);
-
-        return ($this);
-    }
-
-    /**
-     * Protect array values
-     * 
-     * @param string $sql   sql strings
-     * @param array  $array protect values
-     * 
-     * @return array rendered array
-     */
-    protected function sprintf($sql, $array)
-    {
-        if (count($array) == 0) {   // If we have no sprintf data
-            return $sql;
-        }
-        return vsprintf($sql, $array);
-    }
-
-    /**
-     * PDO Last Insert Id
-     *
-     * @return object PDO::Statement
-     */
-    public function insertId()
-    {
-        return $this->connection->lastInsertId();
+        return true;
     }
 
     /**
@@ -178,137 +151,53 @@ abstract class Adapter
      * 
      * @return object of pdo
      */
-    public function getConnection()
+    public function connection()
     {
-        return $this->connection;
+        return $this->conn;
     }
 
     /**
-     * Test if a connection is active
-     *
-     * @return boolean
-     */
-    public function isConnected()
-    {
-        return ((bool) ($this->connection instanceof PDO));
-    }
-
-    /**
-     * Reconnect
-     *
-     * Keep / reestablish the db connection if no queries have been
-     * sent for a length of time exceeding the server's idle timeout
-     *
-     * @return void
-     */
-    public function reconnect()
-    {
-        $this->connect();
-    }
-
-    /**
-     * Begin transactions or run auto 
-     * transaction with a closure.
-     *
-     * @param object $closure or null
+     * Get the pdo statement object and use native pdo functions.
      * 
-     * @return boolean | object $e exception
-     */
-    public function transaction($closure = null)
-    {
-        $this->connect();
-        $this->connection->beginTransaction();
-        if (is_callable($closure)) {
-            try
-            {
-                $closure();
-                $this->commit();
-            }
-            catch(Exception $e)
-            {
-                $this->rollBack();
-                return $e;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Commit the transaction
+     * Example: $this->db->stmt()->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
      * 
      * @return object
      */
-    public function commit()
+    public function stmt()
     {
-        $this->connect();
-        return $this->connection->commit();
+        return $this->stmt;
     }
 
     /**
-     * Check active transaction status
-     * 
-     * @return bool
-     */
-    public function inTransaction()
-    {
-        return $this->connection->inTransaction();
-    }
-
-    /**
-     * Rollback transaction
-     * 
-     * @return object
-     */
-    public function rollBack()
-    {
-        $this->connect();      
-        return $this->connection->rollBack();
-    }
-
-    /**
-     * Set attribute
-     * 
-     * @param string $key name
-     * @param string $val value
+     * Set pdo prepare function
      *
-     * @return void
-     */
-    public function setAttribute($key, $val)
-    {
-        $this->connect();
-        $this->connection->setAttribute($key, $val);
-    }
-
-    /**
-     * Get pdo attribute
-     * 
-     * @param string $key key
-     * 
-     * @return mixed 
-     */
-    public function getAttribute($key)
-    {
-        return $this->connection->getAttribute($key);
-    }
-
-    /**
-     * Return error info in PDO::PDO::ERRMODE_SILENT mode
-     * 
-     * @return type 
-     */
-    public function errorInfo()
-    {
-        return $this->connection->errorInfo();
-    }
-
-    /**
-     * Get available drivers on your host
+     * @param string $sql     prepared query
+     * @param array  $options prepare options
      *
-     * @return object PDO::Statement
+     * @return object adapter
      */
-    public function getDrivers()
+    public function prepare($sql, $options = array())
     {
-        return $this->connection->getAvailableDrivers();
+        $this->connect();       // Open db connections only when we need to them
+        $this->sql = $sql;
+        $this->stmt = $this->conn->prepare($sql, $options);
+        return $this;
+    }
+
+    /**
+     * Prepared or Direct Pdo Query
+     *
+     * @return object pdo
+     */
+    public function query()
+    {
+        $args = func_get_args();
+
+        $this->connect();
+        $this->startQuery($args[0]);
+        $this->stmt = $this->conn->query($args[0]);
+        $this->stopQuery();
+        return $this;
     }
 
     /**
@@ -325,8 +214,7 @@ abstract class Adapter
     public function bindParam($param, $val, $type, $length = null, $options = null)
     {
         $this->stmt->bindParam($param, $val, $type, $length, $options);
-        $this->useBindParams = true;
-        $this->lastBindParams[$param] = $val;
+        $this->trackParams($param, $val);
         return $this;
     }
 
@@ -342,196 +230,407 @@ abstract class Adapter
     public function bindValue($param, $val, $type)
     {
         $this->stmt->bindValue($param, $val, $type);
-        $this->useBindValues = true;
-        $this->lastBindValues[$param] = $val;
+        $this->trackParams($param, $val);
         return $this;
-    }
-
-    /**
-     * Smart Escape String via PDO Escapes data based on type
-     * Sets boolean and null types
-     *
-     * @param mixed $data escape value(s)
-     * 
-     * @return mixed
-     */
-    public function escape($data)
-    {
-        return $this->_escape($data);
     }
 
     /**
      * Execute prepared query
      *
-     * @param array $array bound : default must be null.
+     * @param array $params bound : default must be null.
      * 
      * @return object of Stmt
      */
-    public function execute($array = null)
+    public function execute($params = null)
     {
-        $this->stmt->execute($array);
-
-        if (isset($this->prepQueries[0])) {
-            $this->sqlLog(end($this->prepQueries));
-        }
-        $this->prepare = false;  // reset prepare variable and prevent collision with next query ..
-        ++$this->execCount;      // count execute of prepared statements ..
-
-        $this->lastValues = array();   // reset last bind values ..
-
-        if (is_array($array)) {         // store last executed bind values for last_query method.
-            $this->lastValues[$this->execCount] = $array;
-        } elseif ($this->useBindValues) {
-            $this->lastValues[$this->execCount] = $this->lastBindValues;
-        } elseif ($this->useBindParams) {
-            $this->lastValues[$this->execCount] = $this->lastBindParams;
-        }
-        $this->useBindValues  = false;         // reset query bind usage data ..
-        $this->useBindParams  = false;
-        $this->lastBindValues = array();
-        $this->lastBindParams = array();
-
-        return $this->stmt;
+        $this->trackParams($params);     // Store last executed bind values for last_query method.
+        $this->startQuery($this->sql);
+        $this->stmt->execute($params);
+        $this->stopQuery();
+        return $this;
     }
 
     /**
-     * Exec used just for CREATE, DELETE, INSERT and UPDATE operations it returns to
-     * number of [affected rows] after the write operations.
+     * Exec just CREATE, DELETE, INSERT and UPDATE operations.
+     * 
+     * Returns to number of affected rows.
      *
-     * @param string $sql    query sql
-     * @param array  $fields array fields
+     * @param string $sql query sql
      * 
      * @return boolean
      */
-    public function exec($sql, $fields = array())
+    public function exec($sql)
     {
         $this->connect();
-        $this->lastSql = $this->sprintf($sql, $fields);
-
-        $this->startQueryTimer = microtime(true);
-        $affectedRows = $this->connection->exec($this->lastSql);
-        ++$this->queryCount;
-
-        $this->sqlLog($this->lastSql);
-
-        return $affectedRows;
+        $this->startQuery($sql);
+        $return = $this->conn->exec($sql);
+        $this->stopQuery();
+        return $return;
     }
 
     /**
-     * Returns number of rows.
+     * Begin transaction
+     * 
+     * @return void
+     */
+    public function beginTransaction()
+    {
+        $this->connect();
+        return $this->conn->beginTransaction();
+    }
+
+    /**
+     * Begin transactions or run auto transaction with a closure.
      *
-     * @return integer
-     */
-    public function count()
-    {
-        return $this->stmt->rowCount();
-    }
-
-    /**
-     * Get row as object & if fail return false
-     *
-     * @param boolean $failArray return array if fail
+     * @param object $func Closure
      * 
-     * @return array | object otherwise false
+     * @return void
      */
-    public function row($failArray = false)
+    public function transactional(Closure $func)
     {
-        $result = $this->stmt->fetch(PDO::FETCH_OBJ);
-        if ($result === false AND $failArray == true) {
-            return array();
+        $this->beginTransaction();
+        try
+        {
+            $return = $func();
+            $this->commit();
+            return $return ?: true;  // Only fail if we have exceptions
         }
-        return $result;
-    }
-
-    /**
-     * Get row as array & if fail return 
-     * 
-     * @param boolean $failArray return array if fail
-     * 
-     * @return array | object otherwise false
-     */
-    public function rowArray($failArray = false)
-    {
-        $result = $this->stmt->fetch(PDO::FETCH_ASSOC);
-        if ($result === false AND $failArray == true) {
-            return array();
+        catch(Exception $e)
+        {
+            $this->rollBack();
+            throw $e;           // throw a PDOException developer will catch it 
         }
-        return $result;
     }
 
     /**
-     * Get results as array & if fail return ARRAY
-     *
-     * @param boolean $failArray return array if fail
-     * 
-     * @return array | object otherwise false
-     */
-    public function result($failArray = false)
-    {
-        $result = $this->stmt->fetchAll(PDO::FETCH_OBJ);
-        if ($result === false AND $failArray == true) {
-            return array();
-        }
-        return $result;
-    }
-
-    /**
-     * Get results as array & if fail return ARRAY
-     * 
-     * @param boolean $failArray return array if fail
-     * 
-     * @return array | object otherwise false
-     */
-    public function resultArray($failArray = false)
-    {
-        $result = $this->stmt->fetchAll(PDO::FETCH_ASSOC);
-        if ($result === false AND $failArray == true) {
-            return array();
-        }
-        return $result;
-    }
-
-    /**
-     * Get the pdo statement object and use native pdo functions.
-     *
-     *  Example: 
-     *  $stmt = $this->db->getStatement();
-     *  $stmt->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
+     * Commit the transaction
      * 
      * @return object
      */
-    public function getStatement()
+    public function commit()
     {
-        return $this->stmt;
-    }
-    
-    /**
-     * Get last executed pdo query
-     * 
-     * @return string
-     */
-    public function lastQuery()
-    {
-        if (sizeof($this->lastValues) > 0) {
-            $values = $this->lastValues[$this->execCount];
-            $sql = preg_replace('/(?:[?])/', '%s', $this->lastSql);
-            $newValues = array();
-            foreach ($values as $key => $value) {
-                if (is_int($value)) {
-                    $newValues[$key] = $value;
-                } else {
-                    $newValues[$key] = $this->quote($value);
-                }
-            }
-            $this->lastValues = array();  // Reset values
-            return vsprintf($sql, $newValues);
-        }
-        return $this->lastSql;
+        $this->connect();
+        return $this->conn->commit();
     }
 
     /**
-     * Assign all controller objects into db class
-     * to available closure $this->object support in transaction() method.
+     * Check active transaction status
+     * 
+     * @return bool
+     */
+    public function inTransaction()
+    {
+        $this->connect();
+        return $this->conn->inTransaction();
+    }
+
+    /**
+     * Rollback transaction
+     * 
+     * @return object
+     */
+    public function rollBack()
+    {
+        $this->connect();      
+        return $this->conn->rollBack();
+    }
+
+    /**
+     * Alias of lastInsertId()
+     *
+     * @param string $name name null
+     * 
+     * @return object PDO::Statement
+     */
+    public function insertId($name = null)
+    {
+        return $this->conn->lastInsertId($name);
+    }
+
+    /**
+     * Pdo quote function.
+     * 
+     * @param mixed $str string
+     * 
+     * @return string
+     */
+    public function escape($str)
+    {
+        if (is_array($str)) {
+            foreach ($str as $key => $val) {
+                if (is_string($val)) {
+                    $str[$key] = $this->escape($val);
+                }
+            }
+            return $str;
+        }
+        $this->connect();
+        return $this->conn->quote($str, PDO::PARAM_STR);
+    }
+
+    /**
+     * Track pdo executed values
+     * 
+     * @param mixed $key key
+     * @param mixed $val value
+     * 
+     * @return void
+     */
+    protected function trackParams($key, $val = '')
+    {
+        if (empty($key)) {
+            return;
+        }
+        if (is_array($key)) {
+            $this->parameters = $key;
+            return;
+        }
+        $this->parameters[$key] = $val;
+    }
+
+    /**
+     * Start query timer & add sql log
+     * 
+     * @param string     $sql    sql
+     * @param array|null $params parameters
+     * @param array|null $types  types
+     * 
+     * @return void
+     */
+    protected function startQuery($sql, $params = null, $types = null)
+    {
+        $this->sql = $sql;
+        if (is_null($params)) {
+            $params = $this->getParameters(null);
+        }
+        if ($this->logger) {
+            $this->logger->startQuery($sql, $params, $types);
+        }
+    }
+
+    /**
+     * Stop query timer & write sql log
+     * 
+     * @return void
+     */
+    protected function stopQuery()
+    {
+        if ($this->logger) {
+            $this->logger->stopQuery();
+        }
+        $this->parameters = array();
+    }
+
+    /**
+     * Executes an SQL INSERT/UPDATE/DELETE query with the given parameters and returns the number of affected rows.
+     *
+     * @param string $query  The SQL query.
+     * @param array  $params The query parameters.
+     * @param array  $types  The parameter types.
+     *
+     * @return integer The number of affected rows.
+     */
+    public function executeUpdate($query, array $params = array(), array $types = array())
+    {
+        $this->connect();
+        $this->startQuery($query, $params, $types);
+        if ($params) {
+            $this->stmt = $this->conn->prepare($query);
+            if ($types) {
+                $i = -1;
+                foreach ($types as $type) {
+                    ++$i;
+                    $this->stmt->bindValue($i + 1, $params[$i], $type);
+                }
+                $this->stmt->execute();
+            } else {
+                $this->stmt->execute($params);
+            }
+            $result = $this->stmt->rowCount();
+
+        } else {
+            $result = $this->exec($query);
+        }
+        $this->stopQuery();
+        return $result;
+    }
+
+    /**
+     * Executes an SQL UPDATE statement on a table.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table to update quoted or unquoted.
+     * @param array  $data       An associative array containing column-value pairs.
+     * @param array  $identifier The update criteria. An associative array containing column-value pairs.
+     * @param array  $types      Types of the merged $data and $identifier arrays in that order.
+     *
+     * @return integer The number of affected rows.
+     */
+    public function update($expression, array $data, array $identifier, array $types = array())
+    {
+        $this->connect();
+        $set = array();
+        foreach ($data as $columnName => $value) {
+            $value = null;
+            $set[] = $columnName . ' = ?';
+        }
+        if (is_string(key($types))) {
+            $types = $this->extractTypeValues(array_merge($data, $identifier), $types);
+        }
+        $params = array_merge(array_values($data), array_values($identifier));
+
+        $sql  = 'UPDATE ' . $expression . ' SET ' . implode(', ', $set)
+                . ' WHERE ' . implode(' = ? AND ', array_keys($identifier))
+                . ' = ?';
+        return $this->executeUpdate($sql, $params, $types);
+    }
+
+    /**
+     * Inserts a table row with specified data.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table to insert data into, quoted or unquoted.
+     * @param array  $data       An associative array containing column-value pairs.
+     * @param array  $types      Types of the inserted data.
+     *
+     * @return integer The number of affected rows.
+     */
+    public function insert($expression, array $data, array $types = array())
+    {
+        $this->connect();
+        if (empty($data)) {
+            return $this->executeUpdate('INSERT INTO ' . $expression . ' ()' . ' VALUES ()');
+        }
+        return $this->executeUpdate(
+            'INSERT INTO ' . $expression . ' (' . implode(', ', array_keys($data)) . ')' .
+            ' VALUES (' . implode(', ', array_fill(0, count($data), '?')) . ')',
+            array_values($data),
+            is_string(key($types)) ? $this->extractTypeValues($data, $types) : $types
+        );
+    }
+
+    /**
+     * Extract ordered type list from two associate key lists of data and types.
+     *
+     * @param array $data  values
+     * @param array $types types
+     *
+     * @return array
+     */
+    protected function extractTypeValues(array $data, array $types)
+    {
+        $typeValues = array();
+        foreach ($data as $k => $_) {
+            $_ = null;
+            $typeValues[] = isset($types[$k]) ? $types[$k] : \PDO::PARAM_STR;
+        }
+        return $typeValues;
+    }
+
+    /**
+     * Executes an SQL DELETE statement on a table.
+     *
+     * Table expression and columns are not escaped and are not safe for user-input.
+     *
+     * @param string $expression The expression of the table on which to delete.
+     * @param array  $identifier The deletion criteria. An associative array containing column-value pairs.
+     * @param array  $types      The types of identifiers.
+     *
+     * @return integer The number of affected rows.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function delete($expression, array $identifier, array $types = array())
+    {
+        if (empty($identifier)) {
+            throw new RuntimeException("Delete identifier cannot be empty.");
+        }
+        $this->connect();
+        $criteria = array();
+
+        foreach (array_keys($identifier) as $columnName) {
+            $criteria[] = $columnName . ' = ?';
+        }
+        return $this->executeUpdate(
+            'DELETE FROM ' . $expression . ' WHERE ' . implode(' AND ', $criteria),
+            array_values($identifier),
+            is_string(key($types)) ? $this->extractTypeValues($identifier, $types) : $types
+        );
+    }
+    
+    /**
+     * Closes the cursor, freeing the database resources used by this statement.
+     *
+     * @return boolean TRUE on success, FALSE on failure.
+     */
+    public function closeCursor()
+    {
+        $this->stmt->closeCursor();
+    }
+
+    /**
+     * Quotes a string so that it can be safely used as a table or column name,
+     * even if it is a reserved word of the platform. This also detects identifier
+     * chains separated by dot and quotes them independently.
+     *
+     * NOTE: Just because you CAN use quoted identifiers doesn't mean
+     * you SHOULD use them. In general, they end up causing way more
+     * problems than they solve.
+     *
+     * @param string $str The identifier name to be quoted.
+     *
+     * @return string The quoted identifier string.
+     */
+    public function quoteIdentifier($str)
+    {
+        if (strpos($str, ".") !== false) {
+            $parts = array_map(array($this, "quoteSingleIdentifier"), explode(".", $str));
+
+            return implode(".", $parts);
+        }
+        return $this->quoteSingleIdentifier($str);
+    }
+
+    /**
+     * Quotes a single identifier (no dot chain separation).
+     *
+     * @param string $str The identifier name to be quoted.
+     *
+     * @return string The quoted identifier string.
+     */
+    public function quoteSingleIdentifier($str)
+    {
+        $c = $this->getIdentifierQuoteCharacter();
+        return $c . str_replace($c, $c.$c, $str) . $c;
+    }
+
+    /**
+     * Get identifier char
+     * 
+     * @return string
+     */
+    public function getIdentifierQuoteCharacter()
+    {
+        return $this->escapeIdentifier;
+    }
+
+    /**
+     * Get prepared parameters
+     *
+     * @param mixed $failure result value if empty
+     * 
+     * @return array|null
+     */
+    public function getParameters($failure = array())
+    {
+        return empty($this->parameters) ? $failure : $this->parameters;
+    }
+
+    /**
+     * Assign controller objects into db class
+     * to available closure $this->db support in transactional() method.
      *
      * @param string $key Controller variable
      * 
@@ -545,48 +644,16 @@ abstract class Adapter
     }
 
     /**
-     * Return to last sql query string
-     *
-     * @param string $sqlStr string sql
-     * 
-     * @return void
-     */
-    protected static function getSqlString($sqlStr)
-    {
-        $sql = preg_replace('/\n/', ' ', $sqlStr);
-        return trim($sql, "\n");
-    }
-
-    /**
-     * Log sql
-     * 
-     * @param string $sql sql query
-     * 
-     * @return void
-     */
-    protected function sqlLog($sql)
-    {
-        $time  = microtime(true) - $this->startQueryTimer;
-
-        if ($this->config['logger']['extra']['queries']) {
-            $this->logger->debug(
-                '$_SQL '.$this->queryCount.' ( Query ):', 
-                array('time' => number_format($time, 4), 'output' => self::getSqlString($sql)), 
-                ($this->queryCount * -1 )
-            );
-        }
-    }
-
-    /**
      * Close the database connetion.
      */
     public function __destruct()
     {
-        $this->connection = null;
+        $this->conn = null;
     }
 
 }
 
 // END Adapter Class
+
 /* End of file Adapter.php
 /* Location: .Obullo/Database/Pdo/Adapter.php */

@@ -1,9 +1,143 @@
 
 ## Uygulama Sınıfı ( Application )
 
-Uygulama sınıfı, uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/Applicaiton/Http.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam değişkeni  olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile ortam çözümlenir.
+Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middleware eklemek, servis sağlayıcıya ulaşmak, uygulamaya versiyonu  gibi uygulamanın ana fonksiyonlarını barındıran sınıftır. Bu sınıf uygulamanın yüklenmesinden önce O2 çekirdek dosyası ( o2/Applicaiton/Http.php ) içerisinden konteyner (ioc) içine komponent olarak tanımlanır. Uygulama ortam değişkeni olmadan çalışamaz ve bu nedenle ortam çözümlemesi çekirdek yükleme seviyesinde <b>app/environments.php</b> dosyası okunarak <kbd>$c['app']->detectEnvironment();</kbd> metodu ile yapılır ve ortam değişkenine <kbd>$c['app']->env()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
 
-Ortam değişkenine <kbd>$c['app']->env()</kbd> metodu ile uygulamanın her yerinden ulaşılabilir.
+<ul>
+
+<li>
+    <a href="#application-flow">Genel Uygulama Akışı</a>
+    <ul>
+        <li><a href="#index-file">Index.php dosyası</a></li>
+        <li><a href="#dispatcing-routes">Route Çözümlemeleri ve Http Katmanları</a></li>
+        <li><a href="#http-and-console-requests">Http ve Konsol ( Cli ) İstekleri</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#configuration-and-run">Konfigürasyon ve Çalıştırma</a>
+    <ul>
+        <li><a href="#create-env-file">Ortam Dosyası Değişkenleri ( .env.*.php ) Oluşturmak</a></li>
+        <li><a href="#get-env-variable">Geçerli Ortam Değişkenini Almak</a></li>
+        <li><a href="#existing-env-variables">Mevcut Ortam Değişkenleri</a></li>
+        <li><a href="#create-env-variable-for-env-file">Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak</a></li>
+        <li><a href="#config-php-example">Config.php Örneği</a></li>
+        <li><a href="#env-class">Env Sınıfı</a></li>
+        <li><a href="#create-a-new-env-variable">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#service-providers">Servis Sağlayıcıları</a>
+    <ul>
+        <li><a href="#service-providers">Servis Sağlayıcısı Nedir ?</a></li>
+        <li><a href="#service-providers">Servis Sağlayıcılarını Tanımlamak</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#get-methods">Get Metotları</a>
+    <ul>
+        <li><a href="#get-methods-env">$c['app']->env()</a></li>
+        <li><a href="#get-methods-environments">$c['app']->environments()</a></li>
+        <li><a href="#get-methods-envArray">$c['app']->envArray()</a></li>
+        <li><a href="#get-methods-envPath">$c['app']->envPath()</a></li>
+        <li><a href="#get-methods-version">$c['app']->version()</a></li>
+        <li><a href="#get-methods-provider">$c['app']->provider()</a></li>
+        <li><a href="#get-methods-x">$c['app']->x()</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#set-methods">Set Metotları</a>
+    <ul>
+        <li><a href="#set-methods-register">$c['app']->register()</a></li>
+        <li><a href="#set-methods-middleware">$c['app']->middleware()</a></li>
+        <li><a href="#set-methods-remove">$c['app']->remove()</a></li>
+    </ul>
+</li>
+
+<li><a href="#application-class-references">Application Sınıfı Referansı</a>
+    <ul>
+        <li><a href="#application-class-references">$this->c['app']->env()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->middleware(string | object $class, $params = array())</a></li>
+        <li><a href="#application-class-references">$this->c['app']->x()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->router->x()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->uri->x()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->register(array $providers)</a></li>
+        <li><a href="#application-class-references">$this->c['app']->provider(string $name)->get(array $params)</a></li>
+        <li><a href="#application-class-references">$this->c['app']->version()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->environments()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->envArray()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->envPath()</a></li>
+    </ul>
+</li>
+</ul>
+
+<a name='application-flow'></a>
+
+### Genel Uygulama Akışı
+
+Uygulamaya ait tüm isteklerin çözümlendiği dosya index.php dosyasıdır bu dosya sayesinde uygulama başlatılır. Tüm route çözümlemeleri bu dosya üzerinden yürütülür. 
+
+<a name="index-file"></a>
+
+#### Index.php dosyası
+
+Bu dosyanın tarayıcıda gözükmemesini istiyorsanız bir <kbd>.htaccess</kbd> dosyası içerisine aşağıdaki kuralları yazmanız yeterli olacaktır.
+
+```php
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php|assets|robots\.txt)
+RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
+```
+
+<a name="dispatcing-routes"></a>
+
+#### Route Çözümlemeleri ve Http Katmanları
+
+index.php gelen bir http isteğinden sonra uri ve route sınıfı yüklenir uri sınıfı url değerlerini çözümleyerek route sınıfına göndereri gerçek url çözümlemesi ise route sınıfında gerçekleşir. Çünkü route sınıfı <kbd>app/routes.php</kbd> dosyasında tanımlı olan route verilerini url değerleriyle karşılaştırarak çözümler ve çözümlenen route değerine ait Controller sınıfı <b>modules/</b> dosyasından çağrılarak çalıştırılır.
+
+Bir http GET isteği çözümlemesi
+
+```php                   
+(Request) http://example.com/product/4   (Rewrite) http://example.com/shop/product/4  
+                 _ _ _ _ _ _ _           _ _ _ _ _ _ _ _
+                        |                        |
+                        |                        |
+$c['router']->get('product/([0-9])', 'shop/product/$1');                            
+```
+
+Bir http POST isteği çözümlemesi
+
+```php
+$c['router']->post('product/post', 'shop/product/post')->middleware('Csrf'); 
+```
+
+Sadece yetkilendirilmiş kullanıcılara ait bir route örneği
+
+```php
+$c['router']->group(
+    ['name' => 'AuthorizedUsers', 'middleware' => array('Auth', 'Guest')],
+    function () {
+
+        $this->defaultPage('welcome');
+        $this->attach('membership/restricted');
+    }
+);
+```
+
+> Route çözümlemeleri ilgili daha fazla bilgi için [Router.md](/Router/Docs/tr/Router.md) dosyasını gözden geçirebilirsiniz.
+
+Eğer route yapınızda <b>middleware()</b> fonksiyonu ile yada middleware anahtarı içerisine tanımlanmış bir http katmanınız varsa ve gelen route isteği ile eşleşirse bu katman <b>app/Http/Middlewares</b> klasöründen çağrılarak çalıştırılır.
+
+> Http katmanları ile ilgili daha fazla bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasını gözden geçirebilirsiniz.
+
+<a name='http-and-console-requests'></a>
+
+#### Http ve Konsol ( Cli ) İstekleri
 
 Obullo da uygulama http ve console isteklerine göre Http ve Cli sınıfları olarak ikiye ayrılır. Http isteğinden sonraki çözümlemede controller dosyası <b>modules/</b> klasöründen çağrılırken Cli istekleri ise konsoldan <kbd>$php task command</kbd> yöntemi ile <b>modules/tasks</b> klasörüne yönlendirilir.
 
@@ -38,80 +172,63 @@ class Htttp extends Obullo {
 /* Location: .Obullo/Application/Http.php */
 ```
 
->Obullo Http sınıfı konteyner içerisine $c['app'] olarak kaydedilir. Konsol ortamında ise o2/Application/Cli.php çağırıldığı için bu sınıf Http değil artık Cli sınıfıdır.
+> Obullo Http sınıfı konteyner içerisine $c['app'] olarak kaydedilir. Konsol ortamında ise o2/Application/Cli.php çağırıldığı için bu sınıf Http değil artık Cli sınıfıdır.
 
 Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve konfigürasyon dosyasının yüklemesinden hemen sonraki aşamada tanımlı olarak gelir. Bunu daha iyi anlayabilmek için <b>kök dizindeki</b> index.php dosyasına bir göz atalım.
 
 
-### index.php dosyası
+<a name="configuration-and-run"></a>
 
-Uygulamaya ait tüm isteklerin çözümlendiği dosya index.php dosyasıdır bu dosya sayesinde uygulama başlatılır. Bu dosyanın tarayıcıda gözükmemesini istiyorsanız bir .htaccess dosyası içerisine aşağıdaki kuralları yazmanız yeterli olacaktır.
+### Konfigürasyon ve Çalıştırma
 
-```php
-RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond $1 !^(index\.php|assets|robots\.txt)
-RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
-```
+Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişkenleri dosyası yaratmanız gerekir. Eğer uygulamayı yerel bir ortamda çalıştırıyorsanız proje ana dizinine <b>.env.local.php</b> yaratın. Ayrıca diğer mevcut olan her bir ortam için test veya production gibi aşamalara geldiğinizde iligili sunucularda bir <b>.env.ortam.php</b> dosyası yaratmanız gerekir.
 
-### Ortam Klasörü için Config Dosyalarını Yaratmak
 
-Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
+<a name="create-env-file"></a>
 
-Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
+#### Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak
 
-```php
-- app
-    - config
-        + local
-        - production
-            config.php
-            database.php
-        + test
-        - myenv
-            config.php
-            database.php
-```
+------
 
-Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
-
-#### config.php Örneği
+<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
 ```php
 return array(
-                    
-    'error' => [
-        'debug' => false,  // Friendly debugging feature "disabled"" in "production" environment.
-    ],
+    
+    'MYSQL_USERNAME' => 'root',
+    'MYSQL_PASSWORD' => '123456',
 
-    'log' =>   [
-        'enabled' => false,
-    ],
+    'MONGO_HOST'     => 'localhost',
+    'MONGO_USERNAME' => 'root',
+    'MONGO_PASSWORD' => '123456',
 
-    'url' => [
-        'webhost' => 'example.com',
-        'baseurl' => '/',
-        'assets' => 'http://cdn.example.com/assets/',
-    ],
-
-    'debugger' => [
-        'enabled' => false,
-    ],
-
-    'cookie' => [
-        'domain' => ''  // Set to .your-domain.com for site-wide cookies
-
-    ],
+    'REDIS_HOST' => '127.0.0.1',
+    'REDIS_AUTH' => '',
 );
 
-/* End of file config.php */
-/* Location: .app/config/env/production/config.php */
+/* End of file .env.local.php */
+/* Location: .env.local.php */
 ```
 
-### environments.php Dosyası
+> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env.local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
 
-Uygulamanızın hangi ortamda çalıştığını belirleyen konfigürasyon dosyasıdır. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
+
+Ortam değişikliği sözkonusu olduğunda .env* dosyalarını her bir ortam için bir defalığına kurmuş olamanız gerekir. Env dosyaları için dosya varmı kontrolü yapılmaz bu nedenle eğer uygulamanızda bu dosya mevcut değilse aşağıdaki gibi <b>php warning</b> hataları alırsınız.
+
+```php
+Warning: include(/var/www/example/.env.local.php): failed to open stream: 
+No such file or directory in /o2/Config/Config.php on line 79
+```
+
+> **Not:**  Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
+
+<a name="environment-configuration"></a>
+
+#### Ortam Konfigürasyonu
+
+Uygulamanız local, test, production veya yeni ekleyebileceğiniz çevre ortamlarında farklı konfigürasyonlar ile çalışabilir. Geçerli çevre ortamı bir konfigürasyon dosyasında oluşturmuş olduğunuz sunucu isimlerinin mevcut sunucu ismi ile karşılaştırılması sonucu elde edilir. Uygulamanızın hangi ortamda çalıştığını belirleyen konfigürasyon dosyası <b>app/environments.php</b> dosyasıdır.
+
+Aşağıda <b>app/environments.php</b> dosyasına ait bir örneğini inceleyebilirsiniz.
 
 ```php
 return array(
@@ -148,15 +265,19 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
-### Ortam Değişkeni
+<a name="get-env-variable"></a>
 
-Geçerli ortam değişkenine geri döner.
+#### Geçerli Ortam Değişkenini Almak
+
+Geçerli ortam değişkenine env() metodu ile ulaşılır.
 
 ```php
 echo $c['app']->env();  // Çıktı  local
 ```
 
-### Mevcut Ortam Değişkenleri
+<a name="existing-env-variables"></a>
+
+#### Mevcut Ortam Değişkenleri
 
 <table>
     <thead>
@@ -181,109 +302,66 @@ echo $c['app']->env();  // Çıktı  local
     </tbody>
 </table>
 
-### $c['app']->environments();
+<a name="create-env-variable-for-env-file"></a>
 
-Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
+#### Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak
 
-```php
-print_r($c['app']->environments());
+Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
 
-/* Çıktı
-Array
-(
-    [0] => local
-    [1] => test
-    [2] => production
-)
-*/   
-```
-
-### $c['app']->envArray();
-
-Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
+Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
 
 ```php
-print_r($c['app']->envArray());
-
-/* Çıktı
-Array ( 
-    'local' => array(
-            [0] => my-desktop 
-            [1] => someone.computer 
-            [2] => anotherone.computer 
-            [3] => john-desktop 
-    ),
-    'production' => array( .. )
-)
-*/
+- app
+    - config
+        + local
+        - production
+            config.php
+            database.php
+        + test
+        - myenv
+            config.php
+            database.php
 ```
 
-### $c['app']->envPath();
+Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
 
-Geçerli ortam değişkeninin dosya yoluna geri döner.
+<a name="config-php-example"></a>
 
-```php
-echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
-```
-
-### .env.*.php Dosyaları
-
-------
-
-<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
+#### Config.php Örneği
 
 ```php
 return array(
-    
-    'MYSQL_USERNAME' => 'root',
-    'MYSQL_PASSWORD' => '123456',
+                    
+    'error' => [
+        'debug' => false,
+    ],
 
-    'MONGO_HOST'     => 'localhost',
-    'MONGO_USERNAME' => 'root',
-    'MONGO_PASSWORD' => '123456',
+    'log' =>   [
+        'enabled' => false,
+    ],
 
-    'REDIS_HOST' => '127.0.0.1',
-    'REDIS_AUTH' => '',  // aZX0bjL
+    'url' => [
+        'webhost' => 'example.com',
+        'baseurl' => '/',
+        'assets' => 'http://cdn.example.com/assets/',
+    ],
 
-    'MANDRILL_API_KEY' => 'BIK8O7xt1Kp7aZyyQ55uOQ',
-    'MANDRILL_USERNAME' => 'obulloframework@gmail.com',
+    'debugger' => [
+        'enabled' => false,
+    ],
 
-    'AMQP_HOST' => '127.0.0.1',
-    'AMQP_USERNAME' => 'root',
-    'AMQP_PASSWORD' => '123456',
-
-    'COOKIE_NAME' => '',
-    'COOKIE_DOMAIN' => '',
-    'COOKIE_PATH' => '/',
-    'COOKIE_SECURE' => false,
-    'COOKIE_HTTP_ONLY' => false,
-
-    'SESSION_COOKIE_NAME' => 'session',
-    'SESSION_COOKIE_DOMAIN' => '',
-    'SESSION_COOKIE_PATH' => '/',
-    'SESSION_COOKIE_SECURE' => false,
-    'SESSION_COOKIE_HTTP_ONLY' => false,
+    'cookie' => [
+        'domain' => ''  // Set to .your-domain.com for site-wide cookies
+    ],
 );
 
-/* End of file .env.local.php */
-/* Location: .env.local.php */
+/* End of file config.php */
+/* Location: .app/config/env/production/config.php */
 ```
 
-> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env.local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
+<a name="env-class"></a>
 
-
-Ortam değişikliği sözkonusu olduğunda .env* dosyalarını her bir ortam için bir defalığına kurmuş olamanız gerekir. Env dosyaları için dosya varmı kontrolü yapılmaz bu nedenle eğer uygulamanızda bu dosya mevcut değilse aşağıdaki gibi <b>php warning</b> hataları alırsınız.
-
-```php
-Warning: include(/var/www/example/.env.local.php): failed to open stream: 
-No such file or directory in /o2/Config/Config.php on line 79
-```
-
-Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
-
-> **Not:** Boş sayfa hatası aldığınızda eğer konfigürasyon dosyasından error > debug açıksa ve buna rağmen hatayı göremiyorsanız <kbd>error > reporting</kbd> değerini true yaparak doğal php hataları görebilirsiniz.
-
-### Env Sınıfı
+#### Env Sınıfı
 
 Env sınıfı <b>o2/Application/Http.php</b> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<b>.env.*.php</b> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>Obullo\Config\Env</b> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
@@ -313,7 +391,7 @@ return array(
     'connections' =>
     [
         'default' => [
-            'server' => 'mongodb://'.$c['env']['MONGO_USERNAME.root'].':'.$c['env']['MONGO_PASSWORD.null'].'@'.$c['env']['MONGO_HOST.required'].':27017',
+            'server' => 'mongodb://root:'.$c['env']['MONGO_PASSWORD.null'].'@localhost:27017',
             'options'  => ['connect' => true]
         ],
         'second' => [
@@ -328,11 +406,11 @@ return array(
 /* Location: .app/config/local/mongo.php */
 ```
 
-### Yeni Bir Ortam Değişkeni Yaratmak
+<a name="create-a-new-env-variable"></a>
+
+#### Yeni Bir Ortam Değişkeni Yaratmak
 
 Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adını küçük harflerle girin. Aşağıdaki örnekte biz <b>myenv</b> adında bir ortam yaratttık.
-
-#### environments.php
 
 ```php
 return array(
@@ -351,6 +429,186 @@ return array(
 
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
+<a name="service-providers"></a>
+
+### Servis Sağlayıcıları
+
+Bir servis sağlayıcısı yazımlıcılara uygulamada kullandıkları yinelenen farklı konfigürasyonlara ait parçaları uygulamanın farklı bölümlerinde güvenli bir şekilde tekrar kullanabilmelerine olanak tanır. Bağımsız olarak kullanılabilecekleri gibi bir servis konfigürasyonunun içerisinde de kullanılabilirler.
+
+#### Servis Sağlayıcısı Nedir ? 
+
+Servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi için [Container.md](/Container/Docs/tr/Container.md) dosyasına bir gözatın.
+
+#### Servis Sağlayıcılarını Tanımlamak
+
+Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımlama sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
+
+Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Register application service providers
+|--------------------------------------------------------------------------
+*/
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
+        'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
+        'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
+        'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
+    ]
+);
+```
+
+<a name="get-methods"></a>
+
+### Get Metotları
+
+Get türündeki metotları uygulama sınıfında varolan verilere ulaşmanızı sağlar.
+
+<a name="get-methods-env"></a>
+
+##### $c['app']->env();
+
+Geçerli ortam değişkenine döner.
+
+```php
+echo $c['app']->env();  // local
+```
+
+<a name="get-methods-environments"></a>
+
+##### $c['app']->environments();
+
+Ortam konfigürasyon dosyasında ( <b>app/environments.php</b> ) tanımlı olan ortam adlarına bir dizi içerisinde geri döner.
+
+```php
+print_r($c['app']->environments());
+
+/* Çıktı
+Array
+(
+    [0] => local
+    [1] => test
+    [2] => production
+)
+*/   
+```
+
+<a name="get-methods-envArray"></a>
+
+##### $c['app']->envArray();
+
+Ortam konfigürasyon dosyasının ( <b>app/environments.php</b> ) içerisindeki tanımlı tüm diziye geri döner.
+
+```php
+print_r($c['app']->envArray());
+
+/* Çıktı
+Array ( 
+    'local' => array(
+            [0] => my-desktop 
+            [1] => someone.computer 
+            [2] => anotherone.computer 
+            [3] => john-desktop 
+    ),
+    'production' => array( .. )
+)
+*/
+```
+
+<a name="get-methods-envPath"></a>
+
+##### $c['app']->envPath();
+
+Geçerli ortam değişkeninin dosya yoluna geri döner.
+
+```php
+echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
+```
+<a name="get-methods-version"></a>
+
+##### $c['app']->version();
+
+Geçerli ortam değişkeninin dosya yoluna geri döner.
+
+```php
+echo $c['app']->version();  // Çıktı  2.1
+```
+
+<a name="get-methods-provider"></a>
+
+##### $c['app']->provider($name)->x();
+
+```php
+$this->db = $c['app']->provider('database')->get(['connection' => 'default']);
+```
+
+Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
+
+
+<a name="get-methods-x"></a>
+
+##### $this->c['app']->x();
+
+Uygulama sınıfında eğer metod ( x ) tanımlı değilse Controller sınfından çağırır.
+
+```php
+$this->c['app']->test();  // Contoller sınıfı içerisindeki test metodunu çalıştırır.
+```
+
+<a name="set-methods"></a>
+
+### Set Metotları
+
+Set türündeki metotlar uygulama sınıfındaki varolan değişkenlere yeni değerler atamanızı yada etkilemenizi sağlar.
+
+<a name="set-methods-register"></a>
+
+##### $this->c['app']->register(mixed $provider);
+
+<kbd>app/routes.php</kbd> dosyası içerisinde servis sağlayıcısı tanımlanmasını sağlar.
+
+```php
+$c['app']->register(
+    [
+        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+        'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
+        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
+    ]
+);
+```
+
+<a name="set-methods-middleware"></a>
+
+##### $this->c['app']->middleware(mixed $middleware);
+
+<kbd>app/middlewres.php</kbd> dosyası içerisinde uygulamaya yeni bir <b>evrensel</b> http katmanı eklenmesini sağlar. 
+
+```php
+$c['app']->middleware(new Http\Middlewares\Request);
+```
+
+Katman bu dosyada yada bir Controller sınıfı içerisinde dinamik olarak projeye dahil edilebilir.
+
+```php
+$this->c['app']->middleware('Test');
+```
+
+<a name="set-methods-remove"></a>
+
+##### $this->c['app']->remove(string $middleware);
+
+Tanımlı olan bir http katmanını uygulamadan siler.
+
+
+<a name="application-class-references"></a>
 
 #### Application Sınıfı Referansı
 
@@ -364,25 +622,29 @@ Geçerli ortam değişkenine geri döner.
 
 Uygulamaya dinamik olarak http katmanı ekler. Birinci parametre sınıf ismi veya nesnenin kendisi, ikinci parametre ise sınıf içerisine enjekte edilebilecek parametrelerdir.
 
-##### $this->c['app']->method();
+##### $this->c['app']->x();
 
-Uygulama sınıfında eğer metod tanımlı değilse Controller sınfından çağırır.
+Uygulama sınıfında eğer metod ( x ) tanımlı değilse Controller sınfından çağırır.
 
-##### $this->c['app']->router->method();
+##### $this->c['app']->router->x();
 
-Uygulamada kullanılan evrensel <b>router</b> nesnesine geri döner. Uygulama içerisinde bir hiyerarşik katman ( HMVC bknz. Layer paketi  ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>router</b> nesnesine geri dönerek bu nesnenin metotlarına ulaşmanızı sağlar. Uygulama içerisinde bir hiyerarşik katman ( HMVC bknz. [Layer](/Layer/Docs/tr/Layer.md) paketi  ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method ( x ) sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
 
-##### $this->c['app']->uri->method();
+##### $this->c['app']->uri->x();
 
-Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri döner. Uygulama içerisinde bir katman ( bknz. Layer paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri dönerek bu nesnenin metotlarına ulaşmanızı sağlar. Uygulama içerisinde bir katman ( HMVC bknz. [Layer](/Layer/Docs/tr/Layer.md) paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
 
-##### $this->c['app']->provider(string $name);
+##### $this->c['app']->register(array $providers);
+
+<kbd>.app/providers.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
+
+##### $this->c['app']->provider(string $name)->get(array $params);
 
 Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
-##### $this->c['app']->isCli();
+##### $this->c['app']->version();
 
-Uygulamaya eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
+Geçerli Obullo versiyonuna geri döner.
 
 ##### $this->c['app']->environments();
 

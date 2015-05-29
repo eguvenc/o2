@@ -40,7 +40,13 @@ class Uri
     {
         $this->c = $c;
         $this->config = $c['config'];
-        $this->c['logger']->debug('Uri Class Initialized', array(), 8); // Warning : Don't load any library in __construct level you may get a Fatal Error.
+
+        $this->c['logger']->debug(
+            'Uri Class Initialized', 
+            array('uri' => $this->getRequestUri().' 😊'), 
+            11
+        );
+        // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
 
     /**
@@ -402,10 +408,10 @@ class Uri
             $uri_str = implode('/', $uri_str);
         }
         if ($uri_str == '') {
-            return $this->getBaseUrl() . $this->config['rewrite']['indexPage'];
+            return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
         } else {
             $suffix = ($this->config['url']['rewrite']['suffix'] == false OR $suffix == false) ? '' : $this->config['url']['rewrite']['suffix'];
-            return $this->getBaseUrl() . $this->config['url']['rewrite']['indexPage'] . trim($uri_str, '/') . $suffix;
+            return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uri_str, '/') . $suffix;
         }
     }
 

@@ -25,13 +25,6 @@ class Activity
     protected $c;
 
     /**
-     * Authentication config
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
      * User identifier ( id or username )
      * 
      * @var mixed
@@ -53,8 +46,6 @@ class Activity
     public function __construct(Container $c)
     {
         $this->c = $c;
-        $this->config  = $this->c['config']->load('auth');
-
         $this->attributes = $this->c['auth.identity']->__activity;
         $this->identifier = $this->c['auth.identity']->getIdentifier();
     }
@@ -69,7 +60,7 @@ class Activity
      */
     public function set($key = null, $val = null)
     {
-        if (empty($this->identifier) OR empty($key)) {
+        if (empty($this->identifier) || empty($key)) {
             return false;
         }
         $this->attributes[$key] = $val;

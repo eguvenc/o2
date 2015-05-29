@@ -131,48 +131,52 @@ if ( ! $this->request->isValidIp($ip)) {
 }
 ```
 
-#### $this->request->get($key);
+##### $this->request->get($key);
 
-#### $this->request->post($key);
+##### $this->request->post($key);
 
-#### $this->request->all($key);
+##### $this->request->all($key);
 
-#### $this->request->server($key);
+##### $this->request->server($key);
 
-#### $this->request->headers->get($key = null);
+##### $this->request->headers->get($key = null);
 
-#### $this->request->method();
+##### $this->request->method();
 
-#### $this->request->getIpAddress();
+##### $this->request->getIpAddress();
 
-#### $this->request->isValidIp();
+##### $this->request->isValidIp();
 
-#### $this->request->isLayer();
+###### $this->request->isCli();
+
+Uygulamaya eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
+
+##### $this->request->isLayer();
 
 Returns "true" if the secure connection ( Https ) available in server header.
 
-#### $this->request->isAjax();
+##### $this->request->isAjax();
 
 Returns "true" if xmlHttpRequest ( Ajax ) available in server header.
 
-#### $this->request->isSecure();
+##### $this->request->isSecure();
 
 Returns "true" if the secure connection ( Https ) available in server header.
 
-#### $this->request->isPost();
+##### $this->request->isPost();
 
 If http request method equal to POST returns to true otherwise false.
 
-#### $this->request->isGet();
+##### $this->request->isGet();
 
 If http request method equal to GET returns to true otherwise false.
 
-#### $this->request->isPut();
+##### $this->request->isPut();
 
 If http request method equal to PUT returns to true otherwise false.
 
-#### $this->request->isDelete();
+##### $this->request->isDelete();
 
 If http request method equal to DELETE returns to true otherwise false.
 
-#### $this->request->global->object->method();
+##### $this->request->global->object->method();

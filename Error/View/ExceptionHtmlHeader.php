@@ -1,13 +1,5 @@
 <style type="text/css">
     body{ margin:0 !important; padding:20px !important; font-family:Arial,Verdana,sans-serif !important; }
-    
-    #head {
-        margin:0 !important;
-        padding-top:8px !important;
-        padding-left:8px !important;
-        font-size:42px !important;
-        font-weight:normal !important; 
-    }
 
     #middle { font-size:12px;font-family:Arial,Verdana,sans-serif;font-weight:normal;padding:5px;}
     #middle h1 {font-size:18px;color:#E53528;margin:0;}
@@ -15,10 +7,18 @@
     #middle strong{display:inline-block;width:65px; line-height: 18px; }
     #middle span { font-size:22px; display:block; margin-top:0px !important; }
 
-    #headerContent { padding:5px;}
-    #headerContent strong{display:inline-block;width:65px;}
-
-    #exceptionContent {font-family:Arial,Verdana,Sans-serif;font-size:12px;width:99%;margin-top:5px;padding:5px;background-color: #FFFAED;}
+    #headerContent { padding:5px !important; height: 60px; }
+    #headerContent strong{ display:inline-block; width:65px; }
+    #headerContent #head {
+        height: 45px;
+        margin:0 !important;
+        margin-top: 8px !important;
+        margin-bottom:8px !important;
+        padding-left:8px !important;
+        font-size:42px !important;
+        font-weight:normal !important; 
+    }
+    #exceptionContent {font-family:Arial,Verdana,Sans-serif;font-size:12px;width:99%;padding:5px;background-color: #FFFAED;}
     #exceptionContent  h1 {font-size:18px;color:#E53528;margin:0;}
     #exceptionContent  h2 {font-size:13px;color:#333;margin:0;margin-top:3px;}
     #exceptionContent .errorFile { line-height: 2.0em; }
@@ -59,7 +59,7 @@
     }
 </script>
 <div id="headerContent">
-    <span style="float:left"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAABBCAYAAACKAhl4AAAExElEQVR42u3bb0wTZxwH8KN/KAHm
+    <div style="float:left"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAABBCAYAAACKAhl4AAAExElEQVR42u3bb0wTZxwH8KN/KAHm
     WrCFIiAbUmoRBVtQWlqLhihbk4pLlwWoIWnSJWzu1ZJNt4wsmfONxFGKijFYFyZ6YyZzdpljSU2M
     LmZ1c6xRIk5oexUdui06E83AW6+lXUuvynOUXlueS75vf7n79Lnnnqf3OwShcLg1qrI7hpaznhox
     Tms0mzHnjkaF3WhkI/E8HHp9MdYoH6EdIFoUax/ebt3etqgI4+3tGe4a8YOERYjMjOsNrTLmEJ7X
@@ -81,7 +81,7 @@
     jmVyokKgatX7wMteV/NWbbJBXBEVRWzEQtMvKhuivg8wStkeTYMZS3CEEXFRtHVEMF82btkfk83R
     Ob1eMLCci/9YKkwYAIekBEe9E6RpHp9j9EtXr4/5jnFQodgbnJG9Idb65jjGxAL7JuXz6ion8fHy
     om2hiY9lj0kke3vSWdOJ8iHO3PTx+RZbuzojrv8toB0d2cfr6jSWCskjWi9emI+f1mrf+aqtTUjl
-    Ov4DWLTRBbAc7WQAAAAASUVORK5CYII=" /></span>
-    <span><div id="head" style="float:left">Application Error</div></span>
+    Ov4DWLTRBbAc7WQAAAAASUVORK5CYII=" /></div>
+    <div id="head" style="float:left;">Application Error</div>
 </div>
 <div style="clear:both;"></div>

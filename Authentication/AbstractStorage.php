@@ -2,8 +2,6 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Container\Container;
-
 /**
  * Abstract Adapter
  * 
@@ -238,9 +236,9 @@ abstract class AbstractStorage
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->config['cache']['block']['temporary']['lifetime'];
+            return (int)$this->c['user']['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->config['cache']['block']['permanent']['lifetime'];
+        return (int)$this->c['user']['cache']['block']['permanent']['lifetime'];
     }
 
 }

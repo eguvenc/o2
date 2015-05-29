@@ -170,7 +170,7 @@ php task queue list --channel=Log --route=my-hostname.Logger
 
 namespace Obullo\Cli\Controller;
 
-use Obullo\Process\Process;
+use Obullo\Utils\Process\Process;
 
 /**
  * Queue Controller

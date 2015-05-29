@@ -201,7 +201,7 @@ class Memcached implements CacheHandlerInterface
      * 
      * @return boolean true or false
      */
-    public function keyExists($key)
+    public function exists($key)
     {
         if ($this->memcached->get($key)) {
             return true;

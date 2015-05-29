@@ -12,7 +12,7 @@ namespace Obullo\Log;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-class NullLogger extends AbstractLogger
+class NullLogger extends AbstractLogger implements LoggerInterface
 {
     /**
      * Load defined log handler

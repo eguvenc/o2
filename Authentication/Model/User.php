@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\UserProviderInterface;
-use Obullo\ServiceProviders\ServiceProviderInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * O2 User Model
@@ -27,10 +27,7 @@ class User implements UserInterface
     public $columnId;               // Primary key column name
     public $columnIdentifier;       // Username column name
     public $columnPassword;         // Password column name
-    public $columnRememberToken;    // Remember token column name  
-    public $sqlUser;                // User query sql
-    public $sqlRecalledUser;        // Recalled user sql
-    public $sqlUpdateRememberToken; // Remember token update sql
+    public $columnRememberToken;    // Remember token column name
 
      /**
      * Constructor
@@ -41,21 +38,29 @@ class User implements UserInterface
     public function __construct(Container $c, ServiceProviderInterface $provider)
     {
         $this->c = $c;
+        $this->tablename           = $this->c['user']['db.tablename'];      // Db users tablename
+        $this->columnId            = $this->c['user']['db.id'];
+        $this->columnIdentifier    = $this->c['user']['db.identifier'];
+        $this->columnPassword      = $this->c['user']['db.password'];
+        $this->columnRememberToken = $this->c['user']['db.rememberToken'];  // RememberMe token column name
+
+        $this->connect($provider);
+    }
+
+    /**
+     * Set database provider connection variable ( We don't open the db connection in here ) 
+     * 
+     * @param object $provider [description]
+     * 
+     * @return void
+     */
+    public function connect($provider)
+    {
         $this->db = $provider->get(
             [
-                'connection' => $this->c['auth.config']['db.connection']
+                'connection' => $this->c['user']['db.connection']
             ]
         );
-        $this->tablename           = $this->c['auth.config']['db.tablename'];      // Db users tablename
-        $this->columnId            = $this->c['auth.config']['db.id'];
-        $this->columnIdentifier    = $this->c['auth.config']['db.identifier'];
-        $this->columnPassword      = $this->c['auth.config']['db.password'];
-        $this->columnRememberToken = $this->c['auth.config']['db.rememberToken'];  // RememberMe token column name
-
-        $this->sqlUser = 'SELECT * FROM %s WHERE BINARY %s = ?';      // Login attempt SQL
-        $this->sqlRecalledUser = 'SELECT * FROM %s WHERE %s = ?';     // Recalled user for remember me SQL
-        $this->sqlUpdateRememberToken = 'UPDATE %s SET %s = ? WHERE BINARY %s = ?';  // RememberMe token update SQL
-
     }
 
     /**
@@ -67,11 +72,10 @@ class User implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUser, $this->tablename, $this->columnIdentifier));
-        $this->db->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR);
-        $this->db->execute();
-        
-        return $this->db->rowArray();  // returns to false if fail
+        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE BINARY %s = ?', $this->tablename, $this->columnIdentifier))
+            ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
+            ->execute()
+            ->rowArray();
     }
 
     /**
@@ -83,11 +87,9 @@ class User implements UserInterface
      */
     public function execRecallerQuery($token)
     {
-        $this->db->prepare(sprintf($this->sqlRecalledUser, $this->tablename, $this->columnRememberToken));
-        $this->db->bindValue(1, $token, PDO::PARAM_STR);
-        $this->db->execute();
-
-        return $this->db->rowArray();  // returns to false if fail
+        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE %s = ?', $this->tablename, $this->columnRememberToken))
+            ->bindValue(1, $token, PDO::PARAM_STR)
+            ->execute()->rowArray();
     }
 
     /**
@@ -96,14 +98,14 @@ class User implements UserInterface
      * @param string $token name
      * @param object $user  object GenericUser
      * 
-     * @return void
+     * @return integer
      */
     public function updateRememberToken($token, GenericUser $user)
     {
-        $this->db->prepare(sprintf($this->sqlUpdateRememberToken, $this->tablename, $this->columnRememberToken, $this->columnIdentifier));
-        $this->db->bindValue(1, $token, PDO::PARAM_STR);
-        $this->db->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR);
-        $this->db->execute();
+        return $this->db->prepare(sprintf('UPDATE %s SET %s = ? WHERE BINARY %s = ?', $this->tablename, $this->columnRememberToken, $this->columnIdentifier))
+            ->bindValue(1, $token, PDO::PARAM_STR)
+            ->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR)
+            ->execute();
     }
 }
 

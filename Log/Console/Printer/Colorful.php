@@ -54,14 +54,17 @@ class Colorful
      */
     protected function writeHeader($line)
     {
+        $header = $this->has('Uri Class Initialized');
         $break = "\n------------------------------------------------------------------------------------------";
+
+        if ($header) {
+            $line  = "\033[0;37m".$break."\n".$line.$break."\033[0m";
+        }
         if ($this->has('$_')) {
             $line = preg_replace('/\s+/', ' ', $line);
             $line = preg_replace('/\[/', "[", $line);  // Do some cleaning
 
-            if ($this->has('$_URI')) {
-                $line  = "\033[0;37m".$break."\n".$line.$break."\033[0m";
-            } elseif ($this->has('$_LAYER')) {
+            if ($this->has('$_LAYER')) {
                 $line = "\033[0;37m".strip_tags($line)."\033[0m";
             } else {
                 $line = "\033[0;37m".$line."\033[0m";
@@ -117,8 +120,8 @@ class Colorful
             if ($this->has('--> Final output sent')) {
                 $line = "\033[0m"."\033[0;37m".$line."\033[0m";
             }
-            if ($this->has('--> Header redirect')) {
-                $line = "\033[0m"."\033[0;35m".$line."\033[0m";
+            if ($this->has('--> Redirect header')) {
+                $line = "\033[0m"."\033[0;37m".$line."\033[0m";
             }
             $line = "\033[0;37m".$line."\033[0m";
             echo $line."\n";
@@ -161,13 +164,13 @@ class Colorful
     /**
      * Check has colorful level
      * 
-     * @param string $level name
+     * @param string $string name
      * 
      * @return boolean
      */
-    protected function has($level)
+    protected function has($string)
     {
-        if (strpos($this->message, $level) !== false) {
+        if (strpos($this->message, $string) !== false) {
             return true;
         }
         return false;

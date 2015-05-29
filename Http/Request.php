@@ -2,6 +2,7 @@
 
 namespace Obullo\Http;
 
+use Obullo\Http\InputFilter;
 use Obullo\Container\Container;
 use Obullo\Http\Request\Headers;
 
@@ -33,9 +34,11 @@ class Request
     {
         $this->c = $c;
         $this->c['logger']->debug('Request Class Initialized');
-
         $this->c['request.headers'] = function () {
             return new Headers;
+        };
+        $this->c['request.filter'] = function () use ($c) {
+            return new InputFilter($c);
         };
     }
 
@@ -54,37 +57,41 @@ class Request
     /**
      * GET wrapper
      * 
-     * @param string $key key
+     * @param string  $key    key
+     * @param boolean $filter name
      * 
      * @return mixed
      */
-    public function get($key)
+    public function get($key, $filter = null)
     {
         if (is_bool($key)) {
             return $_GET;
         }
-        if ( ! isset($_GET[$key])) {
-            return false;
+        $value = isset($_GET[$key]) ? $_GET[$key] : false;
+        if (is_string($filter)) {
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $_GET[$key];
+        return $value;
     }
 
     /**
      * POST wrapper
      * 
-     * @param string $key key
+     * @param string  $key    key
+     * @param boolean $filter name
      * 
      * @return mixed
      */
-    public function post($key)
+    public function post($key, $filter = null)
     {
         if (is_bool($key)) {
             return $_POST;
         }
-        if ( ! isset($_POST[$key])) {
-            return false;
+        $value = isset($_POST[$key]) ? $_POST[$key] : false;
+        if (is_string($filter)) {
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $_POST[$key];
+        return $value;
     }
 
     /**
@@ -99,10 +106,11 @@ class Request
         if (is_bool($key)) {
             return $_REQUEST;
         }
-        if ( ! isset($_REQUEST[$key])) {
-            return false;
+        $value = isset($_REQUEST[$key]) ? $_REQUEST[$key] : false;
+        if (is_string($filter)) {
+            return $this->c['request.filter']->setFilter($filter)->setValue($value);
         }
-        return $_REQUEST[$key];
+        return $value;
     }
 
     /**
@@ -146,7 +154,6 @@ class Request
             return $ipAddress;
         }
         $ipAddress = $this->getRealIp($REMOTE_ADDR);
-
         if ( ! $this->isValidIp($ipAddress)) {
             $ipAddress = '0.0.0.0';
         }
@@ -181,7 +188,7 @@ class Request
                     }
                 }
             }
-            $ipAddress = ($spoof !== false AND in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
+            $ipAddress = ($spoof !== false && in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
         }
         return $ipAddress;
     }
@@ -190,28 +197,27 @@ class Request
     /**
      * Validate IP adresss
      * 
-     * @param string $ip    ip address
-     * @param string $which flag
+     * @param string $ip ip address
      * 
      * @return boolean
      */
-    public function isValidIp($ip, $which = '')
+    public function isValidIp($ip)
     {
-        $which = strtolower($which);
-        switch ($which) {
-        case 'ipv4':
-            $flag = FILTER_FLAG_IPV4;
-            break;
-        case 'ipv6':
-            $flag = FILTER_FLAG_IPV6;
-            break;
-        default:
-            $flag = '';
-            break;
-        }
-        return (bool) filter_var($ip, FILTER_VALIDATE_IP, $flag);
+        return (bool) filter_var($ip, FILTER_VALIDATE_IP);
     }
 
+    /**
+     * Is Cli ?
+     *
+     * Test to see if a request was made from the command line.
+     *
+     * @return  bool
+     */
+    public function isCli()
+    {
+        return $this->c['app']->isCli();
+    }
+    
     /**
      * Detect the layered vc requests
      * 
@@ -219,7 +225,7 @@ class Request
      */
     public function isLayer()
     {
-        if (isset($_SERVER['LAYER_REQUEST']) AND $_SERVER['LAYER_REQUEST'] == true) {
+        if (isset($_SERVER['LAYER_REQUEST']) && $_SERVER['LAYER_REQUEST'] == true) {
             return true;
         }
         return false;
@@ -232,7 +238,7 @@ class Request
      */
     public function isAjax()
     {
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             return true;
         }
         return false;
@@ -304,7 +310,7 @@ class Request
      */
     protected function isMethod($METHOD = 'GET')
     {
-        if (isset($_SERVER['REQUEST_METHOD']) AND $_SERVER['REQUEST_METHOD'] == $METHOD) {
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == $METHOD) {
             return true;
         }
         return false;

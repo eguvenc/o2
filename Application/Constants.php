@@ -34,17 +34,6 @@ define('INDEX_PHP', 'index.php');
 */
 define('OBULLO_CLI', OBULLO .'Application'. DS .'Cli.php');
 define('OBULLO_HTTP', OBULLO .'Application'. DS .'Http.php');
-define('OBULLO_CONTROLLER', OBULLO .'Controller'. DS .'Controller.php');
-/*
-|--------------------------------------------------------------------------
-| APPLICATION
-|--------------------------------------------------------------------------
-*/
-define('APP_PROVIDERS', APP .'providers.php');
-define('APP_COMPONENTS', APP .'components.php');
-define('APP_EVENTS', APP .'events.php');
-define('APP_ROUTES', APP .'routes.php');
-define('APP_MIDDLEWARES', APP .'middlewares.php');
 
 // END Constants.php File
 /* End of file Constants.php

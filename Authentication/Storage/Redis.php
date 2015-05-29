@@ -5,10 +5,10 @@ namespace Obullo\Authentication\Storage;
 use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Authentication\AbstractStorage;
-use Obullo\Cache\Handler\CacheHandlerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
- * O2 Authentication - Memory Storage
+ * O2 Authentication - Redis Storage
  * 
  * @category  Authentication
  * @package   Storage
@@ -22,25 +22,42 @@ class Redis extends AbstractStorage implements StorageInterface
     protected $c;               // Container
     protected $cache;           // Cache class
     protected $cacheKey;        // Cache key
-    protected $config;          // Auth config array
     protected $session;         // Session class
+    protected $provider;        // Session class
     protected $identifier;      // Identify of user ( username, email * .. )
-    protected $logger;          // Logger
 
     /**
      * Constructor
      * 
-     * @param object $c     container
-     * @param object $cache CacheHandlerInterface
+     * @param object $c        container
+     * @param object $provider provider
+     * @param array  $params   parameters
      */
-    public function __construct(Container $c, CacheHandlerInterface $cache) 
+    public function __construct(Container $c, ServiceProviderInterface $provider, array $params) 
     {
         $this->c = $c;
-        $this->config = $this->c['auth.config'];
-        $this->cache = $cache;
-        $this->cacheKey = (string)$this->config['cache.key'];
-        $this->logger  = $this->c['logger'];
+        $this->params = $params;
+        $this->provider = $provider;
+        $this->cacheKey = (string)$this->c['user']['cache.key'];
         $this->session = $this->c['session'];
+
+        $this->connect();
+    }
+
+    /**
+     * Connect to cache provider
+     * 
+     * @return boolean
+     */
+    public function connect()
+    {
+        $this->cache = $this->provider->get(
+            [
+                'driver' => $this->params['cache']['provider']['driver'],
+                'connection' => $this->params['cache']['provider']['connection']
+            ]
+        );
+        return true;
     }
 
     /**
@@ -52,7 +69,7 @@ class Redis extends AbstractStorage implements StorageInterface
      */
     public function isEmpty($block = '__permanent')
     {
-        $exists = $this->cache->keyExists($this->getBlock($block));
+        $exists = $this->cache->exists($this->getBlock($block));
         return ($exists) ? false : true;
     }
 
@@ -91,7 +108,7 @@ class Redis extends AbstractStorage implements StorageInterface
             return false;
         }
         $data = $credentials;
-        if ( ! empty($pushData) AND is_array($pushData)) {
+        if ( ! empty($pushData) && is_array($pushData)) {
             $data = array_merge($credentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
@@ -156,7 +173,7 @@ class Redis extends AbstractStorage implements StorageInterface
     }
 
     /**
-     * Check whether to identify exists
+     * Get all keys
      *
      * @param string $block __temporary or __permanent
      * 

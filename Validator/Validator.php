@@ -46,6 +46,7 @@ class Validator
         $this->logger = $c['logger'];
         $this->translator = $c['translator'];
         $this->translator->load('validator');     // Load validator language file from app/translations.
+
         $this->logger->debug('Validator Class Initialized');
     }
 
@@ -263,7 +264,7 @@ class Validator
             }
             return $data;
         }
-        if ($this->safeFormData == false OR $data === '') {
+        if ($this->safeFormData == false || $data === '') {
             return $data;
         }
         return str_replace(array("'", '"', '<', '>'), array("&#39;", "&quot;", '&lt;', '&gt;'), stripslashes($data));
@@ -570,7 +571,7 @@ class Validator
      */
     public function getError($field = '', $prefix = '', $suffix = '')
     {
-        if ($prefix == '' AND $suffix == '') {
+        if ($prefix == '' && $suffix == '') {
             $prefix = $this->errorPrefix;
             $suffix = $this->errorSuffix;
         }
@@ -589,7 +590,7 @@ class Validator
      */
     public function isError($field)
     {
-        if ( ! isset($this->fieldData[$field]['error']) OR $this->fieldData[$field]['error'] == '') {
+        if ( ! isset($this->fieldData[$field]['error']) || $this->fieldData[$field]['error'] == '') {
             return false;
         }
         return true;
@@ -613,7 +614,7 @@ class Validator
         $str = '';        
         foreach ($this->errorArray as $val) { // Generate the error string
             if ($val != '') {
-                if ($prefix == '' AND $suffix == '') {
+                if ($prefix == '' && $suffix == '') {
                     $str .= $this->errorPrefix.$val.$this->errorSuffix;
                 } else {
                     $str .= $prefix.$val.$suffix."\n";

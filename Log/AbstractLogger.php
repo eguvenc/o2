@@ -51,6 +51,26 @@ abstract Class AbstractLogger
     );
     
     /**
+     * Returns all or selected priorities
+     * 
+     * @return array
+     */
+    public function getPriorities()
+    {
+        return static::$priorities;
+    }
+
+    /**
+     * Returns to all error priorities
+     * 
+     * @return array
+     */
+    public function getErrorPriorities()
+    {
+        return static::$errorPriorities;
+    }
+
+    /**
      * Load defined log handler
      * 
      * @param string $name defined log handler name
@@ -108,14 +128,7 @@ abstract Class AbstractLogger
      * @return array
      */
     abstract public function getWriters();
-
-    /**
-     * Enable html debugger
-     * 
-     * @return void
-     */
-    abstract public function printDebugger();
-
+    
     /**
      * Store log data into array
      * 

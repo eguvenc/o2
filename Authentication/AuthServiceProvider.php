@@ -2,9 +2,9 @@
 
 namespace Obullo\Authentication;
 
+use ArrayAccess;
 use Obullo\Container\Container;
 use Obullo\Authentication\User\Login;
-use Obullo\Authentication\User\Config;
 use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
 
@@ -18,7 +18,7 @@ use Obullo\Authentication\User\Identity;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service_providers
  */
-class AuthServiceProvider
+class AuthServiceProvider implements ArrayAccess
 {
     /**
      * Container class
@@ -26,6 +26,13 @@ class AuthServiceProvider
      * @var object
      */
     protected $c;
+
+    /**
+     * Config array
+     * 
+     * @var array
+     */
+    protected $params;    
 
     /**
      * Create classes
@@ -38,24 +45,13 @@ class AuthServiceProvider
     public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
-        $this->c['auth.config'] = function () use ($params) {
-            return new Config(array_merge($params, $this->c['config']->load('auth')));
-        };
+        $this->params = $params = array_merge($params, $this->c['config']->load('auth'));
 
-        $this->c['auth.storage'] = function () {
-            return new $this->config['cache']['storage'](
-                $this->c,
-                $this->c['app']->provider('cache')->get(
-                    [
-                        'driver' => $this->config['cache']['provider']['driver'],
-                        'connection' => $this->config['cache']['provider']['connection']
-                    ]
-                )
-            );
+        $this->c['auth.storage'] = function () use ($params) {
+            return new $this['cache']['storage']($this->c, $this->c['app']->provider('cache'), $params);
         };
-
-        $this->c['auth.token'] = function () {
-            return new Token($this->c);
+        $this->c['auth.token'] = function () use ($params) {
+            return new Token($params['login']['rememberMe']['cookie']);
         };
 
         $this->c['auth.adapter'] = function () use ($params) {
@@ -63,7 +59,7 @@ class AuthServiceProvider
         };
 
         $this->c['user.model'] = function () use ($params) {
-            return new $params['db.model']($this->c, $this->c['app']->provider($this->config['db.provider']));
+            return new $params['db.model']($this->c, $this->c['app']->provider($params['db.provider']));
         };
 
         $this->c['auth.login'] = function () {
@@ -90,6 +86,59 @@ class AuthServiceProvider
     {
         return $this->c['auth.'.strtolower($class)]; // Services: $this->user->config, $this->user->login, $this->user->identity, $this->user->activity ..
     }
+
+    /**
+     * Sets a parameter or an object.
+     *
+     * @param string $key   The unique identifier for the parameter
+     * @param mixed  $value The value of the parameter
+     *
+     * @return void
+     */
+    public function offsetSet($key, $value)
+    { 
+        $this->params[$key] = $value;
+    }
+
+    /**
+     * Gets a parameter or an object.
+     *
+     * @param string $key The unique identifier for the parameter
+     *
+     * @return mixed The value of the parameter or an object
+     */
+    public function offsetGet($key)
+    {
+        if ( ! isset($this->params[$key])) {
+            return false;
+        }
+        return $this->params[$key];
+    }
+
+    /**
+     * Checks if a parameter or an object is set.
+     *
+     * @param string $key The unique identifier for the parameter
+     *
+     * @return Boolean
+     */
+    public function offsetExists($key)
+    {
+        return isset($this->params[$key]);
+    }
+
+    /**
+     * Unsets a parameter or an object.
+     *
+     * @param string $key The unique identifier for the parameter
+     *
+     * @return void
+     */
+    public function offsetUnset($key)
+    {
+        unset($this->params[$key]);
+    }
+
 }
 
 // END AuthServiceProvider class

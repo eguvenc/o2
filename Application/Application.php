@@ -3,7 +3,10 @@
 namespace Obullo\Application;
 
 use Closure;
+use Exception;
 use Controller;
+use ErrorException;
+use ReflectionFunction;
 use Obullo\Error\Debug;
 
 /**
@@ -18,7 +21,7 @@ use Obullo\Error\Debug;
  */
 class Application
 {
-    const VERSION = '2.0';
+    const VERSION = '2.0@alpha-2';
 
     protected $c;                  // Container
     protected $env = null;         // Current environment
@@ -27,6 +30,8 @@ class Application
     protected $method;             // Current method
     protected $className;          // Current controller name
     protected $websocket;          // Debugger websocket
+    protected $exceptions = array();
+    protected $fatalError;
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -57,16 +62,6 @@ class Application
      * @return void
      */
     public function setErrorReporting()
-    {
-        $this->restoreErrors();
-    }
-
-    /**
-     * Restore application error configuration
-     * 
-     * @return void
-     */
-    public function restoreErrors()
     {
         if ($this->c['config']['error']['debug'] == false) {
             error_reporting(E_ALL | E_STRICT | E_NOTICE);
@@ -99,44 +94,91 @@ class Application
     }
     
     /**
-     * PSR-0 Autoloader
+     * Sets application exception errors
      * 
-     * @param string $realname classname 
-     *
-     * @see http://www.php-fig.org/psr/psr-0/
+     * @param Closure $closure function
      * 
      * @return void
      */
-    public static function autoload($realname)
+    public function error(Closure $closure)
     {
-        if (class_exists($realname, false)) {  // Don't use autoloader
-            return;
+        $reflection = new ReflectionFunction($closure);
+        $parameters = $reflection->getParameters();
+        if (isset($parameters[0])) {
+            $this->exceptions[] = array('closure' => $closure, 'exception' => $parameters[0]->getClass());
         }
-        $className = ltrim($realname, '\\');
-        $fileName  = '';
-        $namespace = '';
-        if ($lastNsPos = strrpos($className, '\\')) {
-            $namespace = substr($className, 0, $lastNsPos);
-            $className = substr($className, $lastNsPos + 1);
-            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-        }
-        $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className);
-
-        if (strpos($fileName, 'Obullo') === 0) {     // Check is it Obullo Package ?
-            include_once OBULLO .substr($fileName, 7). '.php';
-            return;
-        }
-        include_once CLASSES .$fileName. '.php'; // Otherwise load it from user directory
     }
 
     /**
-     * Register Slim's PSR-0 autoloader
+     * Sets application fatal errors
+     * 
+     * @param Closure $closure function
      * 
      * @return void
      */
-    public static function registerAutoloader()
+    public function fatal(Closure $closure)
     {
-        spl_autoload_register(__NAMESPACE__ . "\\Application::autoload");
+        $this->fatalError = $closure;
+    }
+
+    /**
+     * Error handler, convert all errors to exceptions
+     * 
+     * @param integer $level   name
+     * @param string  $message error message
+     * @param string  $file    file
+     * @param integer $line    line
+     * 
+     * @return boolean whether to continue displaying php errors
+     */
+    public function handleError($level, $message, $file = '', $line = 0)
+    {
+        return $this->handleException(new ErrorException($message, $level, 0, $file, $line));
+    }
+
+    /**
+     * Exception error handler
+     * 
+     * @param Exception $e exception class
+     * 
+     * @return boolean
+     */
+    public function handleException(Exception $e)
+    {
+        $return = false;
+        foreach ($this->exceptions as $val) {
+            if ($val['exception']->isInstance($e)) {
+                $return = $val['closure']($e);
+            }
+        }
+        return $return;
+    }
+
+    /**
+     * Set error handlers
+     *
+     * @return void
+     */
+    public function registerErrorHandlers()
+    {
+        if ($this->c['config']['error']['debug'] == false) {  // If debug "disabled" from config use app handler otherwise use Error/Debug package.
+            set_error_handler(array($this, 'handleError'));
+            set_exception_handler(array($this, 'handleException'));
+        }
+    }
+
+    /**
+     * Register fatal error handler
+     * 
+     * @return mixed
+     */
+    public function registerFatalError()
+    {
+        $closure = $this->fatalError;
+        if (null != $error = error_get_last()) {  // If we have a fatal error
+            $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
+            $this->c['logger']->close();          // Close the logger if have fatal error otherwise log writers not write to drivers
+        }
     }
 
     /**
@@ -183,8 +225,8 @@ class Application
      */
     protected function getCurrentRoute()
     {
-        $route = $this->c['uri']->getUriString();   // Get current uri
-        if ($this->c->exists('app.uri')) {                 // If layer used, use global request uri object instead of current.
+        $route = $this->c['uri']->getUriString();       // Get current uri
+        if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
             $route = $this->c['app']->uri->getUriString();                             
         }
         return $route;
@@ -243,6 +285,18 @@ class Application
     }
 
     /**
+     * Register provider
+     * 
+     * @param string $provider name
+     * 
+     * @return Obullo\Container\Contaiiner
+     */
+    public function register($provider)
+    {
+        return $this->c->register($provider);
+    }
+
+    /**
      * Load service provider
      * 
      * @param string $name provider name
@@ -252,6 +306,16 @@ class Application
     public function provider($name)
     {
         return $this->c->resolveProvider($name);
+    }
+
+    /**
+     * Returns current version of Obullo
+     * 
+     * @return string
+     */
+    public function version()
+    {
+        return static::VERSION;
     }
 
     /**
@@ -273,7 +337,7 @@ class Application
      * Returns 
      *
      * This function similar with Codeigniter getInstance(); 
-     * method.
+     * instead of getInstance()->class->method() we use $this->c['app']->class->metod();
      * 
      * @param string $key application object
      * 
@@ -282,10 +346,13 @@ class Application
     public function __get($key)
     {
         $cid = 'app.'.$key;
-        if ( ($key == 'uri' OR $key == 'router') AND $this->c->exists($cid) ) {
+        if ( ($key == 'uri' || $key == 'router') AND $this->c->has($cid) ) {
             return $this->c[$cid];
         }
-        return Controller::$instance->{$key};
+        if (class_exists('Controller', false) && Controller::$instance != null) {
+            return Controller::$instance->{$key};
+        }
+        return $this->c[$cid];
     }
 
 }

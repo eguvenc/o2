@@ -1,20 +1,20 @@
 
-## Dipnotlar ( Annotations )
+## Anotasyonlar ( Annotations )
 
 ------
 
-Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır.Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
+Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Anotasyonlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
 
-> **Not:** Dipnotarı kullanmak herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan dipnotlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
+> **Not:** Anotasyonlar herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan anotasyonlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
 
-Şu anki sürümde biz dipnotları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
+Şu anki sürümde biz anotasyonları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
-### Mevcut olan dipnotlar
+### Mevcut Olan Anotasyonlar
 
 <table>
     <thead>
         <tr>
-            <th>Dipnot</th>    
+            <th>Anotasyon</th>    
             <th>Açıklama</th>
         </tr>
     </thead>
@@ -33,7 +33,7 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
         </tr>
          <tr>
             <td><b>@middleware->when()->add()</b></td>
-            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu dipnotun kullanıldığı katman uygulumaya eklenmez.</td>
+            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu anotasyonun kullanıldığı katman uygulumaya eklenmez.</td>
         </tr>
         <tr>
             <td><b>@event->subscribe();</b></td>
@@ -42,9 +42,9 @@ Bir dipnot aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım bi
     </tbody>
 </table>
 
-### Controller için dipnotları aktif etmek
+### Kontrolör için Anotasyonları aktif etmek
 
-Config.php konfigürasyon dosyasını açın ve annotations enabled anahtarının değerini <b>true</b> olarak güncelleyin.
+Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
 'annotations' => array(
@@ -52,7 +52,7 @@ Config.php konfigürasyon dosyasını açın ve annotations enabled anahtarını
 )
 ```
 
-Artık controller sınıfı metotları üzerinde dipnotları aşağıdaki gibi kullanabilirsiniz.
+Artık kontrolör sınıfı metotları üzerinde anotasyonları aşağıdaki gibi kullanabilirsiniz.
 
 ```php
 /**
@@ -120,20 +120,20 @@ Yukarıdaki örnek sadece http <b>post</b> ve <b>get</b> isteklerinde index() me
 /**
  * Index
  *
- * @event->subscribe('Event\Login\Attempt');
+ * @event->when("post")->subscribe('Event\Login\Attempt');
  *
  * @return void
  */
 ```
 
-Bu örnekte ise bu dipnotun yazıldığı Controller sınıfına ait index metodu çalıştığında <kbd>@event->subscribe</kbd> dipnotu arkaplanda <kbd>\Obullo\Event->subscribe()</kbd> metodunu çalıştırır ve uygulama  <kbd>app/classes/Event/Login/Attemp.php</kbd> sınıfı içerisine tanımlanmış olayları dinlemeye başlar.
+Bu örnekte ise bu anotasyonun yazıldığı kontrolör sınıfına ait index metodu çalıştığında <kbd>@event->subscribe</kbd> anotasyonu arkaplanda <kbd>\Obullo\Event->subscribe()</kbd> metodunu çalıştırır ve uygulama  <kbd>app/classes/Event/Login/Attemp.php</kbd> sınıfı içerisine tanımlanmış olayları dinlemeye başlar.
 
 > **Not:** Olaylar ( Events ) hakkında daha detaylı bilgiye Event paketi dökümentasyonundan ulaşabilirsiniz.
 
 
-#### Bir katmanı tüm sınıf metotlarında geçerli kılmak
+#### Bir Katmanı Tüm Sınıf Metotlarında Geçerli Kılmak
 
-Bazı durumlarda yüklenen controller ın tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
+Bazı durumlarda yüklenen kontrolör sınıfının tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
 
 ```php
 /**

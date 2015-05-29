@@ -1,5 +1,5 @@
 
-## Http Katmanları ( Middlewares ) ( Filtreler )
+## Http Katmanları ( Middlewares ) ( Http Filtreleri )
 
 Http katmanı Rack protokolünün php ye uyarlanmış bir versiyonudur. Bknz. <a href="http://en.wikipedia.org/wiki/Rack_%28web_server_interface%29">http://en.wikipedia.org/wiki/Rack_%28web_server_interface%29</a>
 
@@ -144,7 +144,7 @@ Yukarıda maintenance katmanında görüldüğü gibi <b>use</b> komutu ile Unde
 
 ## Katmanlar
 
-#### Maintenance Middleware
+#### Maintenance Katmanı
 
 > Maintenance eklentisi uygulamanıza ait domain adreslerini bakıma alma özelliği sunan popüler bir eklentidir. 
 
@@ -171,7 +171,7 @@ return array(
 );
 
 /* End of file */
-/* Location: ./var/www/framework/app/config/env/local/domain.php */
+/* Location: .app/config/env/local/domain.php */
 ```
 
 Dosya içerisindeki <b>"maintenance"</b> anahtarları domain adresinin bakıma alınıp alınmadığını kontrol eder, <b>"regex"</b> anahtarı ise geçerli route adresleriyle eşleşme yapılabilmesine olanak sağlar. Domain adresinize uygun düzenli ifadeyi regex kısmına girin.
@@ -224,7 +224,7 @@ Uygulamanızı bakımdan çıkarmak için aşağıdaki komutu çalıştırın.
 php task domain up --name=root
 ```
 
-#### Auth Middleware
+#### Auth Katmanı
 
 > Başarılı oturum açmış ( yetkinlendirilmiş ) kullanıcılara ait katmandır. 
 
@@ -255,7 +255,7 @@ $c['router']->group(
 
 Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfalarda <b>Auth</b> ve <b>Guest</b> katmanları çalışır.
 
-#### Guest Middleware
+#### Guest Katmanı
 
 > Oturum açmamış ( yetkinlendirilmemiş ) kullanıcılara ait bir katman oluşturur. Bu katman auth paketini çağırarak kullanıcının sisteme yetkisi olup olmadığını kontrol eder ve yetkisi olmayan kullanıcıları sistem dışına yönlendirir. Genellikle route yapısında Auth katmanı ile birlikte kullanılır.
 
@@ -310,7 +310,7 @@ $c['router']->group(
 Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfalarda <b>Auth</b> ve <b>Guest</b> katmanları çalışır.
 
 
-#### MethodNotAllowed Middleware
+#### MethodNotAllowed Katmanı
 
 > Uygulamaya gelen Http isteklerine göre metot türlerini filtrelemeyi sağlar. Belirlenen http metotları ( get, post, put, delete ) dışında bir istek gelirse isteği HTTP Error 405 Method not allowed sayfası ile engeller.
 
@@ -362,7 +362,7 @@ Yukarıdaki örnekte <kbd>/hello</kbd> adresine yalnızca <b>POST</b> ve <b>DELE
 
 Şimdi <b>/hello</b> adresini ziyaret ettiğinizde bir "HTTP Error 405 Method Not Allowed" hatası almamız gerekir.
 
-#### Request Middleware
+#### Request Katmanı
 
 > Uygulamaya gelen Http isteklerinin tümünü evrensel olarak filtrelemeyi sağlayan çekirdek katmandır.
 
@@ -373,7 +373,7 @@ Framework çekirdeğinde çalışan bir filtredir herhangi bir kurulum ve konfig
 > **Not:** Http katmanlarında önemlilik sırası en yüksek olan katman en son tanımlanandır.
 
 ```php
-$c['app']->middleware(new Http\Middlewares\Request);
+$c['app']->middleware('Http\Middlewares\Request');
 
 /* End of file middlewares.php */
 /* Location: .middlewares.php */
@@ -404,7 +404,7 @@ class Request extends Middleware
 }
 ```
 
-#### Https Middleware
+#### Https Katmanı
 
 > Uygulamada belirli adreslere gelen <b>http://</b> isteklerini <b>https://</b> protokolüne yönlendirir.
 
@@ -421,7 +421,7 @@ php task middleware remove --name=Https
 ```
 
 Eğer route yapınızda bu katmanı kullandıysanız app/routes.php dosyasından ayrıca silin.
-Eğer Annotations ile Controller sınıfları üzerinde kullanıldıysa bir Search - Replace operasyonu ile ilgili dipnotları silin.
+Eğerbu katmana ait anotasyonlar kontrolör sınıfları üzerinde kullanıldıysa bir <b>Search - Replace</b> operasyonu ile ilgili anotasyonları silin.
 
 ##### Çalıştırma
 
@@ -446,7 +446,7 @@ $c['router']->group(
 );
 ```
 
-#### Translation Middleware
+#### Translation Katmanı
 
 > Uygulamaya gelen http isteklerinin tümü için <b>locale</b> anahtarlı çereze varsayılan yerel dili yada url den gönderilen dili kaydeder.
 
@@ -562,7 +562,7 @@ Uygulamanızı <kbd>http://myproject/en/welcome</kbd> gibi ziyaret ettiğinizde 
 Artık geçerli yerel dili <kbd>$this->c['translator']->getLocale()</kbd> fonksiyonu ile çağırabilirsiniz.
 
 
-#### RewriteLocale Middleware
+#### RewriteLocale Katmanı
 
 > Bu katman uygulamaya <b>http://example.com/welcome</b> olarak gelen istekleri mevcut yerel dili ekleyerek <b>http://example.com/en/welcome</b> adresine yönlendirir.
 
@@ -603,7 +603,7 @@ $c['router']->group(
 );
 ```
 
-#### Csrf Middleware
+#### Csrf Katmanı
 
 > Csrf katmanı Cross Request Forgery güvenlik tehdidine karşı uygulamanızdaki formlarda oluşturduğunuz güvenlik algoritmasını http POST istekleri geldiğinde sunucu tarafında doğrular, doğrulama başarılı olmazsa katman içerisinden kullanıcı hata sayfasına yönlendirilir.
 
@@ -673,19 +673,19 @@ Csrf doğrulama katmanının uygulamanın her yerinde çalışmasını istiyorsa
 | Csrf
 |--------------------------------------------------------------------------
 */
-$c['app']->middleware(new Http\Middlewares\Csrf);
+$c['app']->middleware('Http\Middlewares\Csrf');
 /*
 |--------------------------------------------------------------------------
 | Request
 |--------------------------------------------------------------------------
 */
-$c['app']->middleware(new Http\Middlewares\Request);
+$c['app']->middleware('Http\Middlewares\Request');
 
 /* End of file middlewares.php */
 /* Location: .app/middlewares.php */
 ```
 
-Katman evrensel olarak eklendiğinde tüm http POST isteklerinde çalışır. Fakat çalışmasını <b>istemediğiniz</b> metotlarda katmanı aşağıdaki gibi dipnotlar ( annotations ) yardımı ile kaldırabilirsiniz.
+Katman evrensel olarak eklendiğinde tüm http POST isteklerinde çalışır. Fakat çalışmasını <b>istemediğiniz</b> metotlarda katmanı aşağıdaki gibi anotasyonlar ( annotations ) yardımı ile kaldırabilirsiniz.
 
 ```php
 /**

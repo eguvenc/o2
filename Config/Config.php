@@ -210,9 +210,13 @@ class Config implements ArrayAccess
      */
     protected static function configurationError($errorStr = null)
     {
+        $heading = $message = '';
         $error = error_get_last();
-        $message = (is_null($errorStr)) ? $error['message'] : $errorStr;
-        die('<b>Configuration error:</b> '.$message. ' line: '.$error['line']);
+        $heading = 'Configuration Error';
+        $message = 'Config file error '.(is_null($errorStr)) ? $error['message'] : $errorStr. ' at line: '.$error['line'];
+        include APP. 'templates'. DS . 'errors'. DS .'general.php';
+        die;
+
     }
 
 }
