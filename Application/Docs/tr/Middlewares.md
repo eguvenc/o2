@@ -70,16 +70,16 @@ class Hello extends Middleware
 {
     public function load()
     {
-        $this->c['response']->append('<pre>Hello im a <b>before</b> middleware of load() method.</pre>');
+        $this->c['response']->append('<pre>Hello <b>before</b> middleware of load()</pre>');
         $this->next->load();
-        $this->c['response']->append('<pre>Hello im a <b>after</b> middleware of load() method.</pre>');
+        $this->c['response']->append('<pre>Hello <b>after</b> middleware of load()</pre>');
     }
 
     public function call()
     {
-        $this->c['response']->append('<pre>Hello im a <b>before</b> middleware of index method.</pre>');
+        $this->c['response']->append('<pre>Hello <b>before</b> middleware of index</pre>');
         $this->next->call();
-        $this->c['response']->append('<pre>Hello im a <b>after</b> middleware of index method.</pre>');
+        $this->c['response']->append('<pre>Hello <b>after</b> middleware of index</pre>');
     }
 }
 
