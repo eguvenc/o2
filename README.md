@@ -3,4 +3,4 @@
 
 O2 Packages
 
-Default branch is "default".
+Default branch is "master".
