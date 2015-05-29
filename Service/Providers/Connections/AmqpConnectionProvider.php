@@ -1,8 +1,8 @@
 <?php
 
-namespace Obullo\Service\Providers\Connections;
+namespace Obullo\ServiceProviders\Connections;
 
-use AMQPConnection;
+use AmqpConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\Container;
@@ -10,12 +10,12 @@ use Obullo\Container\Container;
 /**
  * AMQP Connection Provider
  * 
- * @category  Connections
- * @package   Service
+ * @category  ConnectionProvider
+ * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/service
+ * @link      http://obullo.com/package/provider
  */
 class AmqpConnectionProvider extends AbstractConnectionProvider
 {
@@ -53,6 +53,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     public function register()
     {
         foreach ($this->config['connections'] as $key => $val) {
+
             $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
                 return $this->createConnection($val);
             };
@@ -119,7 +120,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     {
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->has($cid)) { //  create shared connection if not exists
+        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
             $this->c[$cid] = function () use ($params) {  //  create shared connections
                 return $this->createConnection($params);
             };
@@ -140,7 +141,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     }
 }
 
-// END AMQPConnectionProvider.php class
-/* End of file AMQPConnectionProvider.php */
+// END AmqpConnectionProvider.php class
+/* End of file AmqpConnectionProvider.php */
 
-/* Location: .Obullo/Service/Providers/Connections/AMQPConnectionProvider.php */
+/* Location: .Obullo/ServiceProviders/Connections/AmqpConnectionProvider.php */

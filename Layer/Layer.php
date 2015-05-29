@@ -368,7 +368,7 @@ class Layer
         }
         $this->processDone = false;
     }
-
+    
 }
 
 // END Layer class

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Obullo\Queue\Handler;
 
