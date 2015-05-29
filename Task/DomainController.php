@@ -40,12 +40,14 @@ class DomainController extends Controller
 
     /**
      * Enter the maintenance mode
+     *
+     * @param string $name domain
      * 
      * @return void
      */
-    public function down()
+    public function down($name = null)
     {
-        $name = $this->cli->argument('name', null);
+        $name = (empty($name)) ? $this->cli->argument('name', null) : $name;
         $this->isEmpty($name);
 
         $newArray = $this->config['domain'];
@@ -59,11 +61,13 @@ class DomainController extends Controller
     /**
      * Leave from maintenance mode
      *
+     * @param string $name domain
+     * 
      * @return void
      */
-    public function up()
+    public function up($name = null)
     {
-        $name = $this->cli->argument('name', null);
+        $name = (empty($name)) ? $this->cli->argument('name', null) : $name;
         $this->isEmpty($name);
 
         $newArray = $this->config['domain'];
@@ -117,7 +121,7 @@ Available Arguments
 echo Console::newline(2);
 echo Console::help("Usage:", true);
 echo Console::newline(2);
-echo Console::help("php task domain [command] --name=site");
+echo Console::help("php task domain [command] name");
 echo Console::newline(2);
 echo Console::help("Description:", true);
 echo Console::newline(2);

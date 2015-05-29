@@ -1,5 +1,5 @@
 
-### Debugger
+### Http Debugger
 
 Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden sonra oluşan ortam bileşenleri ve arka plan log debug verilerini görselleştirir. Debugger modülü aktifken uygulama ziyaret edildiğinde sayfa html frameset etiketleri ile iki ayrı çerçeveye ayrılır orta pencerede uygulama çalışırken, alt çerçeve de; http, konsol, ajax log verileri ve ortam bilgileri ( $_POST, $_SERVER, $_GET, $_SESSION, $_COOKIE, http başlıkları, http gövdesi ) websocket bağlantısı ile dinamik olarak görüntülenir.
 
@@ -21,13 +21,13 @@ Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden s
 Aşağıdaki komutu konsoldan çalıştırın.
 
 ```php
-php task module add --name=debugger
+php task module add debugger
 ```
 
 ##### Kaldırma
 
 ```php
-php task module remove --name=debugger
+php task module remove debugger
 ```
 
 İşlem bittiğinde debugger modülüne ait dosyalar <b>modules/debugger</b>  ve <b>modules/tasks</b> klasörü altına kopyalanırlar.
@@ -48,7 +48,6 @@ http://mylocalproject/debugger
 
 Eğer debugger kurulumu doğru gerçekleşti ise aşağıdaki gibi bir panel uygulamanızın altında belirmiş olmalı.
 
-![Debugger](/Debugger/Docs/images/debugger.png?raw=true "Debugger Ekran Görüntüsü")
+![Debugger](/Http/Docs/images/debugger.png?raw=true "Debugger Ekran Görüntüsü")
 
-
-Websocket bağlantısı bazı tarayıcılarda kendiliğinden kopabilir panel üzerindeki ![Closed](/Debugger/Docs/images/socket-closed.png?raw=true "Socket Closed") simgesi debugger sunucusuna ait bağlantının koptuğunu ![Open](/Debugger/Docs/images/socket-open.png?raw=true "Socket Open") simgesi ise bağlantının aktif olduğunu gösterir. Eğer bağlantı koparsa verileri sayfa yenilemesi olmadan takip edemezsiniz. Böyle bir durumda debugger sunucunuzu ve tarayıcınızı yeniden başlatmayı deneyin.
+Websocket bağlantısı bazı tarayıcılarda kendiliğinden kopabilir panel üzerindeki ![Closed](/Http/Docs/images/socket-closed.png?raw=true "Socket Closed") simgesi debugger sunucusuna ait bağlantının koptuğunu ![Open](/Http/Docs/images/socket-open.png?raw=true "Socket Open") simgesi ise bağlantının aktif olduğunu gösterir. Eğer bağlantı koparsa verileri sayfa yenilemesi olmadan takip edemezsiniz. Böyle bir durumda debugger sunucunuzu ve tarayıcınızı yeniden başlatmayı deneyin.

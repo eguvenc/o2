@@ -1,24 +1,93 @@
 
-## Form Elementleri Oluşturmak
+## Form Element Sınıfı
 
-Form element sınıfı html formları, html form elementleri ve form etiketi ile ilgili girdileri kolayca oluşturmanıza yardımcı olur. Ayrıca form güvenliğine ilişkin veriler örneğin Csrf token form metodu kullanıldığında otomatik olarak oluşturulur.
+Form element sınıfı html formları, html form elementleri ve form etiketi ile ilgili girdileri kolayca oluşturmanıza yardımcı olur. Ayrıca form güvenliğine ilişkin verileri oluşturabilir, örneğin Csrf token form metodu kullanıldığında otomatik olarak oluşturulur.
 
 <ul>
-    <li><a href="#form">$this->element->form()</a></li>
-    <li><a href="#formClose">$this->element->formClose()</a></li>
-    <li><a href="#formMultipart">$this->element->formMultipart()</a></li>
+
+<li>
+    <a href="#configuration">Konfigürasyon</a>
+    <ul>
+        <li><a href="#service">Servis Kurulumu</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#loading-service">Servisi Yüklemek</a></li>
+        <li><a href="#form">$this->element->form()</a>
+            <ul>
+                <li><a href="#adding-attributes">Nitelikler Eklemek</a> ( Attributes )</li>
+                <li><a href="#adding-hidden-inputs">Gizli Girdi Alanları Oluşturmak</a></li>
+            </ul>
+        </li>
+        <li><a href="#formMultipart">$this->element->formMultipart()</a></li>
+        <li><a href="#formClose">$this->element->formClose()</a></li>
+        <li><a href="#input">$this->element->input()</a></li>
+        <li><a href="#password">$this->element->password()</a></li>
+        <li><a href="#upload">$this->element->upload()</a></li>
+        <li><a href="#textarea">$this->element->textarea()</a></li>
+        <li><a href="#dropdown">$this->element->dropdown()</a></li>
+        <li><a href="#checkbox">$this->element->checkbox()</a></li>
+        <li><a href="#radio">$this->element->radio()</a></li>
+        <li><a href="#submit">$this->element->submit()</a></li>
+        <li><a href="#reset">$this->element->reset()</a></li>
+        <li><a href="#button">$this->element->button()</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#form-class">Form Sınıfı</a>
+    <ul>
+        <li>
+            <a href="#get-methods">Get Metotları</a>
+            <ul>
+                <li><a href="#getMessage">$this->form->getMessage()</a></li>
+                <li><a href="#getValidationErrors">$this->form->getValidationErrors()</a></li>
+                <li><a href="#getError">$this->form->getError()</a></li>
+                <li><a href="#getValue">$this->form->getValue()</a></li>
+                <li><a href="#outputArray">$this->form->outputArray()</a></li>
+                <li><a href="#results">$this->form->results()</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#set-methods">Set Metotları</a>
+            <ul>
+                <li><a href="#setValue">$this->form->setValue()</a></li>
+                <li><a href="#setSelect">$this->form->setSelect()</a></li>
+                <li><a href="#setCheckbox">$this->form->setCheckbox()</a></li>
+                <li><a href="#setRadio">$this->form->setRadio()</a></li>
+                <li><a href="#setMessage">$this->form->setMessage()</a></li>
+                <li><a href="#setKey">$this->form->setKey()</a></li>
+                <li><a href="#setErrors">$this->form->setErrors()</a></li>
+                <li><a href="#setResults">$this->form->setResults()</a></li>
+            </ul>
+        </li>
+    </ul>
+</li>
+
+<li>
+    <a href="#security">Güvenlik</a>
+    <ul>
+        <li><a href="#dangerous-inputs">Tehlikeli Girdilerden Kaçış</a></li>
+    </ul>
+</li>
+
+
 </ul>
 
+<a name="configuration"></a>
 
-### Sınıfı Yüklemek
+### Konfigürasyon
 
 -------
 
-```php
-$this->c['element']->method();
-```
+Form element sınıfı herhangi bir konfigürasyon dosyasına ihtiyaç duymaz.
 
-### Servis Kurulumu
+<a name="service"></a>
+
+#### Servis Kurulumu
 
 Form element sınıfı opsiyonel olarak kullanılır bu yüzden çalışabilmesi için aşağıdaki gibi bir servis kurulumuna ihtiyaç duyar.
 
@@ -31,13 +100,6 @@ use Obullo\Service\ServiceInterface;
 
 class Element implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
     public function register(Container $c)
     {
         $c['element'] = function () use ($c) {
@@ -52,76 +114,102 @@ class Element implements ServiceInterface
 /* Location: .app/classes/Service/Element.php */
 ```
 
+<a name="running"></a>
+
+### Çalıştırma
+
+Servis yüklendikten sonra aşağıdaki gibi form element sınıfı metotlarına ulaşılabilir.
+
+<a name="loading-service"></a>
+
+#### Servisi Yüklemek
+
+-------
+
+```php
+$this->c['element']->method();
+```
+
 <a name="form"></a>
 
+#### $this->element->form($action, $attributes = '', $hidden = array())
 
-#### $this->element->form()
-
-Creates an opening form tag with a base URL <b>built from your config preferences</b>. It will optionally let you add form attributes and hidden input fields.
-
-The main benefit of using this tag rather than hard coding your own HTML is that it permits your site to be more portable in the event your URLs ever change.
-
-Here's a simple example:
+Ana konfigürasyon dosyasında tanımlı olan base > url değerine göre form tagı oluşturur. Form taglarını HTML olarak yazmak yerine bu fonksiyon kullanılarak yazılmasının ana faydası web site base url değeri değiştiğinde tüm form url adreslerinizi değiştirmek zorunda kalmamanızdır.
 
 ```php
-echo $this->element->form('email/send');
+echo $this->element->form('email/send', " method=get ");
 ```
 
-The above example would create a form that points to your base URL plus the "email/send" URI segments, like this:
+```html
+<form method="get" action="http:/example.com/index.php/email/send" />
+```
+
+<a name="adding-attributes"></a>
+
+##### Nitelikler ( Attributes ) Eklemek
 
 ```php
-<form method="post" action="http:/example.com/index.php/email/send" />
+echo $this->element->form('email/send', ['class' => 'email', 'id' => 'myform']);
 ```
-
-<b>Adding Attributes</b>
-
-Attributes can be added by passing an associative array to the second parameter, like this:
-
-```php
-$attributes = array('class' => 'email', 'id' => 'myform');
-echo $this->element->form('email/send', $attributes);
-```
-
-The above example would create a form similar to this:
 
 ```php
 <form method="post" action="http:/example.com/index.php/email/send"  class="email"  id="myform" />
 ```
 
-<b>Adding Hidden Input Fields</b>
+<a name="adding-hidden-inputs"></a>
 
-Hidden fields can be added by passing an associative array to the third parameter, like this:
+##### Gizli Girdi Alanları Oluşturmak
 
 ```php
-$hidden = array('username' => 'Joe', 'member_id' => '234');
-echo $this->element->form('email/send', '', $hidden);
+echo $this->element->form('email/send', '', ['username' => 'Joe', 'member_id' => '234']);
 ```
 
-The above example would create a form similar to this:
-
-```php
+```html
 <form method="post" action="http:/example.com/index.php/email/send">
 <input type="hidden" name="username" value="Joe" />
 <input type="hidden" name="member_id" value="234" />
 ```
 
-#### $this->element->formMultipart()
+#### $this->element->formMultipart($action, $attributes = array(), $hidden = array())
 
-This function is absolutely identical to the $this->element->open() tag above except that it adds a multipart attribute, which is necessary if you would like to use the form to upload files with.
-
-#### $this->element->hidden('name', 'value' , $attributes = '')
-
-Lets you generate hidden input fields. You can either submit a name/value string to create one field:
+Bu fonksiyon <kbd>$this->element->form()</kbd> metotu ile aynı işlevleri yerine getirir form metodundan ayrılan yek yönü <kbd>upload</kbd> işlemleri için multipart özelliği eklemesidir.
 
 ```php
-<?php
-$this->element->hidden('username', 'johndoe',  $attr = " id='username' " );
+echo $this->element->formMultipart('file/upload');
+```
 
-// Would produce:
+```html
+<form action="/file/upload" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+```
+
+<a name="formClose"></a>
+
+#### $this->element->formClose($extra = '')
+
+```php
+echo $this->element->formClose("</div></div>");
+```
+
+```html
+</form>
+</div></div>
+```
+
+<a name="hidden"></a>
+
+#### $this->element->hidden($name, $value , $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="hidden"</kbd> olarak ayarlar.
+
+```php
+$this->element->hidden('username', 'johndoe',  $attr = " id='username' " );
+```
+
+```html
 <input type="hidden" name="username" value="johndoe" id='username'  />
 ```
 
-Or you can submit an associative array to create multiple fields:
+Array türünden veri gönderilerek de yaratılabilirler.
 
 ```php
 $data = array(
@@ -130,23 +218,36 @@ $data = array(
               'url'   => 'http://example.com'
         );
 echo $this->element->hidden($data);
+```
 
-// Would produce:
-
+```html
 <input type="hidden" name="name" value="John Doe" />
 <input type="hidden" name="email" value="john@example.com" />
 <input type="hidden" name="url" value="http://example.com" />
 ```
 
-#### $this->element->input('name', 'value',$attributes = '')
+<a name="input"></a>
 
-Lets you generate a standard text input field. You can minimally pass the field name and value in the first and second parameter:
+#### $this->element->input($name, $value, $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="text"</kbd> olarak ayarlar.
 
 ```php
-echo $this->element->input('username', 'johndoe', $attributes = '');
+echo $this->element->input('username', 'johndoe', ' maxlength="100" size="50" style="width:50%"');
 ```
 
-Or you can pass an associative array containing any data you wish your form to contain:
+```html
+<input type="text" name="username" id="username" 
+value="johndoe" maxlength="100" size="50" style="width:50%" />
+```
+
+JavaScript nitelikleri de ekleyebilirsiniz.
+
+```php
+echo $this->element->input('username', 'johndoe', ' onclick="someFunction()" ');
+```
+
+Array türünden veri gönderilerek de yaratılabilirler.
 
 ```php
 $data = array(
@@ -157,36 +258,48 @@ $data = array(
     'size'      => '50',
     'style'     => 'width:50%',
 );
-
 echo $this->element->input($data);
-
-// Would produce:
-
-<input type="text" name="username" id="username" value="johndoe" maxlength="100" size="50" style="width:50%" />
 ```
 
-If you would like your form to contain some additional data, like Javascript, you can pass it as a string in the third parameter:
+<a name="password"></a>
+
+#### $this->element->password($name, $value, $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="password"</kbd> olarak ayarlar ve diğer işlevleri <kbd>$this->element->input()</kbd> metodu ile aynıdır.
+
+<a name="upload"></a>
+
+#### $this->element->upload($name, $value, $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="file"</kbd> olarak ayarlar. Geri kalan diğer işlevleri <kbd>$this->element->input()</kbd> metodu ile aynıdır.
+
+<a name="textarea"></a>
+
+#### $this->element->textarea($name, $value, $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="textarea"</kbd> olarak ayarlar. Geri kalan diğer işlevleri <kbd>$this->element->input()</kbd> metodu ile aynıdır.
 
 ```php
-$js = 'onclick="someFunction()"';
-echo $this->element->input('username', 'johndoe', $js);
+$data = array(
+    'name'      => 'entry',
+    'id'        => 'article',
+    'value'     => '',
+    'maxlength' => '800',
+    'rows'      => '10',
+    'cols'      => '5',
+);
+echo $this->element->textarea($data);
 ```
 
-#### $this->element->password()
+```html
+<textarea name="entry" cols="40" rows="10" id="article" maxlength="800" ></textarea>
+```
 
-This function is identical in all respects to the <dfn>$this->element->input()</dfn> function above except that it sets a "password" type.
+<a name="dropdown"></a>
 
-#### $this->element->upload()
+#### $this->element-> dropdown($name, $options = '', $selected = '', $attributes = '')
 
-This function is identical in all respects to the <dfn>$this->element->input()</dfn> function above except that it sets a "file" type, allowing it to be used to upload files.
-
-#### $this->element->textarea()
-
-This function is identical in all respects to the <dfn>$this->element->input()</dfn> function above except that it generates a "textarea" type. Note: Instead of the "maxlength" and "size" attributes in the above example, you will specify "rows" and "cols".
-
-#### $this->element->dropdown()
-
-Lets you create a standard drop-down field. The first parameter will contain the name of the field, the second parameter will contain an associative array of options, and the third parameter will contain the value you wish to be selected. You can also pass an array of multiple items through the third parameter, and Obullo will create a multiple select for you. Example:
+Seçilebilir opsiyonlar girdisi oluşturur. İlk parametre girdi ismini, ikinci parametre seçme opsiyonlarını, üçüncü parametre seçili olan opsiyonları son parametre ise ekstra nitelikleri göndermenizi sağlar.
 
 ```php
 $options = array(
@@ -196,22 +309,23 @@ $options = array(
     'xlarge' => 'Extra Large Shirt',
 );
 
-$shirtsOnSale = array('small', 'large');
 echo $this->element->dropdown('shirts', $options, 'large');
+```
 
-// Would produce:
-
+```html
 <select name="shirts">
 <option value="small">Small Shirt</option>
 <option value="med">Medium Shirt</option>
 <option value="large" selected="selected">Large Shirt</option>
 <option value="xlarge">Extra Large Shirt</option>
 </select>
+```
 
-echo $this->element->dropdown('shirts', $options, 'shirtsOnSale');
+```php
+echo $this->element->dropdown('shirts', $options, ['small', 'large']);
+```
 
-// Would produce:
-
+```html
 <select name="shirts" multiple="multiple">
 <option value="small" selected="selected">Small Shirt</option>
 <option value="med">Medium Shirt</option>
@@ -220,110 +334,126 @@ echo $this->element->dropdown('shirts', $options, 'shirtsOnSale');
 </select>
 ```
 
-If you would like the opening <b>select</b> to contain additional data, like an id attribute or JavaScript, you can pass it as a string in the fourth parameter:
+JavaScript nitelikleri de ekleyebilirsiniz.
 
 ```php
-$js = 'id="shirts" onChange="someFunction();"';
-echo $this->element->dropdown('shirts', $options, 'large', $js);
+echo $this->element->dropdown('shirts', $options, 'large', ' id="shirts" onChange="someFunction();" ');
 ```
 
-If the array passed as $options is a multidimensional array, $this->element->dropdown() will return the array keys as the label.
+<a name="fieldset"></a>
+
+#### $this->element->fieldset($legent_text = '', $attributes = array())
 
 ```php
-<?php
-echo $this->element->dropdown('business_size', '@getSchema.users.business_size.func', 'xlarge');
-```
-
-Adding custom options.
-
-```php
-<?php
-echo $this->element->dropdown('business_size', array(array('' => 'Please specify a field .. '), '@getSchema.users.business_size.func'));
-```
-
-```php
-<?php
-echo $this->element->dropdown('business_size', '@getSchema.users.business_size.func.list', 'medium');
-```
-
-#### $this->element->fieldset()
-
-Lets you generate fieldset/legend fields.
-
-```php
-<?php
 echo $this->element->fieldset('Address Information');
 echo "<p>fieldset content here</p>\n";
 echo $this->element->fieldsetClose();
+```
 
-// Produces
+```html
 <fieldset>
 <legend>Address Information</legend>
 <p>form content here</p>
 </fieldset>
 ```
 
-#### $this->element->fieldsetClose()
+<a name="fieldsetClose"></a>
 
-Produces a closing <b>fieldset</b> tag. The only advantage of using this function is it permits you to pass data to it which will be added below the tag. For example:
+#### $this->element->fieldsetClose($extra = '')
 
 ```php
-<?php
-$string = "</div></div>";
+echo $this->element->fieldsetClose("</div></div>");
+```
 
-echo $this->element->fieldsetClose($string);
-
-// Would produce:
+```html
 </fieldset>
 </div></div>
 ```
 
-As with other functions, if you would like the tag to contain additional data, like JavaScript, you can pass it as a string in the fourth parameter:
+<a name="checkbox"></a>
+
+#### $this->element->checkbox($data = '', $value = '', $checked = false, $attributes = '')
 
 ```php
-<?php
-$js = 'onClick="someFunction()"';
-
-echo $this->element->checkbox('newsletter', 'accept', true, $js)
+echo $this->element->checkbox('newsletter', 'accept', true);
 ```
 
-#### $this->element->radio()
+```html
+<input type="checkbox" name="newsletter" value="accept" checked="checked" />
+```
 
-This function is identical in all respects to the <dfn>$this->element->checkbox()</dfn> function above except that is sets it as a "radio" type.
+Üçüncü parametre true/false değeri alır ve kutunun seçili olup olmadığını belirler. Array türünden veri gönderilerek de yaratılabilirler.
+
+```php
+$data = array(
+    'name'        => 'newsletter',
+    'id'          => 'newsletter',
+    'value'       => 'accept',
+    'checked'     => true,
+    'style'       => 'margin:10px',
+    );
+
+echo $this->element->checkbox($data);
+```
+
+```html
+<input type="checkbox" name="newsletter" id="newsletter" 
+value="accept" checked="checked" style="margin:10px" />
+```
+
+JavaScript nitelikleri de ekleyebilirsiniz.
+
+```php
+echo $this->element->checkbox('newsletter', 'accept', true, ' onClick="someFunction()" ')
+```
+
+<a name="radio"></a>
+
+#### $this->element->radio($data = '', $value = '', $checked = false, $attributes = '')
+
+Bu fonksiyon girdi türünü <kbd>type="radio"</kbd> olarak ayarlar. Geri kalan diğer işlevleri <kbd>$this->element->checkbox()</kbd> metodu ile aynıdır.
+
+<a name="submit"></a>
 
 #### $this->element->submit()
 
-Lets you generate a standard submit button. Simple example:
-
 ```php
-<?php
 echo $this->element->submit('mysubmit', 'Submit Post!');
-
-// Would produce:
-
-<input type="submit" name="mysubmit" value="Submit Post!" />
 ```
+
+```
+<input type="submit" name="mysubmit" value="Submit Post" />
+```
+
+<a name="reset"></a>
 
 #### $this->element->reset()
 
-Lets you generate a standard reset button. Use is identical to <dfn>$this->element->submit()</dfn>.
+```php
+echo $this->element->reset('myreset', 'Reset Form');
+```
+
+```
+<input type="reset" name="myreset" value="Reset Form"  />
+```
+
+<a name="button"></a>
 
 #### $this->element->button()
 
-Lets you generate a standard button element. You can minimally pass the button name and content in the first and second parameter:
 
 ```php
-<?php
-echo $this->element->button('name','content');
+echo $this->element->button('name', 'Content');
+```
 
-// Would produce
+```html
 <button name="name" type="button">Content</button> 
 ```
 
-Or you can pass an associative array containing any data you wish your form to contain: 
+Array türünden veri gönderilerek de yaratılabilirler.
+
 
 ```php
-<?php
 $data = array(
     'name'    => 'button',
     'id'      => 'button',
@@ -333,151 +463,227 @@ $data = array(
 );
 
 echo $this->element->button($data);
+```
 
-// Would produce:
+```html
 <button name="button" id="button" value="true" type="reset">Reset</button>  
 ```
 
-If you would like your form to contain some additional data, like JavaScript, you can pass it as a string in the third parameter: 
+JavaScript nitelikleri de ekleyebilirsiniz.
 
 ```php
-<?php
-$js = 'onClick="someFunction()"';
-echo $this->element->button('mybutton', 'Click Me', $js);
+echo $this->element->button('mybutton', 'Click Me', ' onClick="someFunction()" ');
 ```
 
-#### $this->element->formClose()
+<a name="form-class"></a>
 
-Produces a closing tag. The only advantage of using this function is it permits you to pass data to it which will be added below the tag. For example:
+## Form Sınıfı
+
+Form sınıfı get metotları validator sınıfı yada kendi oluşturduğunuz form doğrulama hataları, genel form mesajları, form input değerlerini yönetir aynı zamanda form aksiyonundan sonra geri dönen sonuçlara göre form girdilerindeki opsiyonları seçili olarak göstermeye olanak sağlar.
+
+Form sınıfı metotlarına ulaşabilmek için sınıfın bir kez yüklenmesi gerekir.
 
 ```php
-<?php
-$string = "</div></div>";
+$this->c['form'];
+```
 
-echo $this->element->formClose($string);
+<a name="get-methods"></a>
 
-// Would produce:
+### Get Metotları
 
+Form get metotları bir http form post işleminden sonra doğrulama sınıfı ile filtrelenen değerleri elde etmek veya form elementlerine atamak için kullanılırlar.
+
+<a name="getMessage"></a>
+
+##### $this->form->getMessage()
+
+Form doğrulama hatalı ise forma ait genel hata mesajına geri döner.
+
+<a name="getValidationErrors"></a>
+
+##### $this->form->getValidationErrors();
+
+Eğer validator sınıfı mevcutsa form post işleminden sonra girilen input alanlarına ait hatalara string formatında geri döner.
+
+<a name="getError"></a>
+
+##### $this->form->getError(string $field, $prefix = '', $suffix = '');
+
+Eğer validator sınıfı mevcutsa form post işleminden sonra girilen input alanına ait hataya geri döner.
+
+```php
+<form action="/user/post/index" method="POST">
+    <table width="100%">
+        <tr>
+            <td>Email</td>
+            <td><?php echo $this->form->getError('email'); ?>
+            <input type="text" name="email" value="<?php echo $this->form->getValue('email') ?>" />
+            </td>
+        </tr>
 </form>
-</div></div>
 ```
+<a name="getValue"></a>
 
-#### $this->element->prep()
+##### $this->form->getValue(string $field);
 
-Allows you to safely use HTML and characters such as quotes within form elements without breaking out of the form. Consider this example:
+Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input alanına ait değere geri döner.
 
 ```php
-$string = 'Here is a string containing <strong>"quoted"</strong> text.';
-<input type="text" name="myform" value="$string" />
+<input type="text" name="price" value="<?php echo $this->form->getValue('price') ?>" size="20" />
 ```
 
-Since the above string contains a set of quotes it will cause the form to break. The form\prep function converts HTML so that it can be used safely:
+<a name="outputArray"></a>
+
+##### $this->form->outputArray();
+
+Bir form doğrulamasından sonra oluşan çıktıları array formatında getirir.
+
+<a name="results"></a>
+
+##### $this->form->results();
+
+Bir form doğrulamasından sonra eğer bir servis yada uygulama sonucu için <kbd>$this->form->setResults()</kbd> metodu ile girilen hata değerlerine array formatında geri döner.
+
+<a name="set-methods"></a>
+
+### Set Metotları
+
+Form set metotları checbox, menü yada radio elementi kullanıyorsanız bir http form post işleminden sonra doğrulama sınıfından gelen güvenli değerlerler ile bu elementlere ait opsiyonları seçili olarak göstermek için kullanılırlar.
+
+<a name="setValue"></a>
+
+##### $this->form->setValue(string $field, $default = '');
+
+Eğer validator sınıfı mevcutsa form post işleminden sonra filtrelenen input alanına ait değere geri döner. İkinci parametre eğer form post verisinde alana ait değer yoksa geri dönülecek varsayılan değeri belirler.
 
 ```php
-<input type="text" name="myform" value="<?php echo $this->element->prep($string); ?>" />
+<input type="text" name="price" value="<?php echo $this->form->setValue('price', '0.00') ?>" size="20" />
 ```
 
+<a name="setSelect"></a>
 
-**Note:** If you use any of the form helper functions listed in this page the form values will be prepped automatically, so there is no need to call this function. Use it only if you are creating your own form elements.
+##### $this->form->setSelect(string $field, $value = '', $default = false);
 
-
-### Tehlikeli Girdi Değerlerinden Kaçış
-
-You may need to use HTML and characters such as quotes within your form elements. In order to do that safely, you’ll need to use common function html_escape().
-
-Aşağıdaki örneği gözönünde bulundurursak:
+Eğer bir <b>select</b> menü kullanıyorsanız bu fonksiyon seçilen menü değerine ait opsiyonu seçili olarak göstermenize olanak sağlar.
 
 ```php
-$string = 'Here is a string containing "quoted" text.';
-
-<input type="text" name="myfield" value="<?php echo $string; ?>" />
+<select name="myselect">
+        <option value="one" <?php echo $this->form->setSelect('myselect', 'one', true) ?> >One</option>
+        <option value="two" <?php echo $this->form->setSelect('myselect', 'two') ?> >Two</option>
+        <option value="three" <?php echo $this->form->setSelect('myselect', 'three') ?> >Three</option>
+</select>
 ```
 
-Since the above string contains a set of quotes, it will cause the form to break. The html_escape() function converts HTML special characters so that it can be used safely:
+<a name="setCheckbox"></a>
+
+##### $this->form->setCheckbox(string $field, $value = '', $default = false);
+
+Eğer bir <b>checbox</b> elementi kullanıyorsanız bu fonksiyon seçilen değere ait opsiyonu seçili olarak göstermenize olanak sağlar.
 
 ```php
-<input type="text" name="myfield" value="<?php echo $this->c['clean']->escape($string); ?>" />
-Note
+<input type="checkbox" name="mycheck" value="1" <?php echo $this->form->setCheckbox('mycheck', '1') ?> />
+<input type="checkbox" name="mycheck" value="2" <?php echo $this->form->setCheckbox('mycheck', '2') ?> />
 ```
 
-If you use any of the form helper functions listed on this page, the form values will be automatically escaped, so there is no need to call this function. Use it only if you are creating your own form elements.
+<a name="setRadio"></a>
+
+##### $this->form->setRadio(string $field, $value = '', $default = false);
+
+Eğer bir <b>radio</b> elementi kullanıyorsanız bu fonksiyon seçilen değere ait opsiyonu seçili olarak göstermenize olanak sağlar.
+
+```php
+<input type="radio" name="myradio" value="1" <?php echo $this->form->setRadio('myradio', '1', true) ?> />
+<input type="radio" name="myradio" value="2" <?php echo $this->form->setRadio('myradio', '2') ?> />
+```
+
+<a name="setMessage"></a>
+
+##### $this->form->setMessage(string $message = '', integer $status = 0);
+
+Bir form doğrulaması çıktısı <kbd>message</kbd> anahtarına bir mesaj değeri atar. İkinci parametere girilirse eğer form success anahtarı <b>0</b> yada <b>1</b> olarak değiştirir.
+
+<a name="setKey"></a>
+
+##### $this->form->setKey(string $key, mixed $val);
+
+Bir form doğrulamasından sonra oluşan çıktı dizisindeki anahtarlara değeri ile birlikte yeni bir anahtar ekler yada mevcut anahtarı yeni değeriyle günceller.
+
+<a name="setErrors"></a>
+
+##### $this->form->setErrors(array|object $errors);
+
+Bir form doğrulamasından sonra oluşan çıktı dizisindeki input alanlarına ait anahtar olan <kbd>errors</kbd> anahtarına hatalar ekler. İlk parametre array olarak gönderilirse hatalar olduğu gibi kaydedilir. Nesne olarak sadece validator sınıfı gönderilebilir buradaki amaç validator sınıfındaki hataları kendiliğinden form sınıfına aktarmaktır.
+
+<a name="setResults"></a>
+
+##### $this->form->setResults(array $results);
+
+Bir servis yada işlem için oluşmuş özel hataları form sınıfına gönderebilmek için kullanılır. Gönderilen veriler form çıktısında <kbd>results</kbd> anahtarına kaydedilir.
+
+```php
+$result = $exampleApi->exec();
+$this->form->setResults($result->getArray());
+```
+
+Örnek Çıktı
+
+```php
+print_r($this->form->results());
+```
+
+```php
+/*
+Array
+(
+    [success] => 0
+    [code] => 0
+    [results] => Array
+        (
+            [messages] => Array
+                (
+                    [0] => Supplied credential is invalid.
+                )
+
+            [identifier] => user@example.com
+        )
+)
+*/
+```
+
+Results anahtarına kaydedilen verilere view sayfasından nesne olarak ulaşılabilir. Aşağıdaki örnekte sonuçlardan alınan mesajlar form sınıfı html şablonuna aktarılıyor.
+
+```php
+if ($results = $this->form->results()) {
+    foreach ($results->messages as $message) {
+        echo $this->form->getMessage($message);  // Mesajlar form sınıfı html şablonuna aktarılıyor.
+    }
+}
+
+```
+
+<a name="security"></a>
+
+### Güvenlik
+
+<a name="dangerous-inputs"></a>
+
+#### Tehlikeli Girdilerden Kaçış
+
+Form içerisinde Quote gibi form yapısını bozan karakterler ve HTML karakterlerini güvenli bir şekilde kullanmanıza olanak tanır.
+
+```php
+$string = 'Tehlikeli girdiler içeren <strong>"alıntılı"</strong> yazı.';
+
+<input type="text" name="myform" value="<?php echo $string ?>" />
+```
+
+Yukarıdaki veri çift tırnak karakterleri içerir ve form girdi yapısını bozar. <kbd>$this->c['clean']->escape()</kbd> metodu ise aşağıdaki gibi HTML karakterlerini kodlayarak form içinde güvenli bir şekilde kullanılmasını sağlar.
+
+```php
+<input type="text" name="myform" value="<?php echo $this->c['clean']->escape($string); ?>" />
+```
+
+> **Not:** Eğer form element sınıfı fonksiyonlarını zaten kullanıyorsanız bu fonksiyonu kullanmaya ihtiyacınız kalmaz çünkü form değerleri otomatik olarak güvenli formata dönüştürülür. Bu fonksiyonu yalnızca kendi form elementlerinizi oluşturduğunuz zaman kullanmanız önerilir.
 
 
-
-
-### Function Reference
-
------
-
-#### $this->element->form($action = '', $attributes = '', $hidden = array());
-
-Form Declaration Creates the opening portion of the form.
-
-#### $this->element->formClose($extra = '');
-
-Form close tag
-
-#### $this->element->button($data = '', $content = '', $extra = '');
-
-Form button
-
-#### $this->element->checkbox($data = '', $value = '', $checked = false, $extra = '');
-
-Checkbox field
-
-#### $this->element->dropdown($name = '', $options = '', $selected = array(), $extra = '');
-
-Drop-down Menu
-
-#### $this->element->fieldset($legend_text = '', $attributes = array());
-
-Used to produce ```<fieldset><legend>text</legend>```. To close fieldset use form_fieldset_close()
-
-#### $this->element->fieldsetClose($extra = '');
-
-Fieldset Close
-
-#### $this->element->hidden($name, $value = '', $extra = '', $recursing = false);
-
-Generates hidden fields.  You can pass a simple key/value string or an associative array with multiple values.
-
-#### $this->element->input($data = '', $value = '', $extra = '');
-
-Text input field
-
-#### $this->element->label($label_text = '', $id = '', $attributes = "");
-
-Form label
-
-
-#### $this->element->formMultipart($action, $attributes = array(), $hidden = array());
-
-Form Declaration - Multipart type Creates the opening portion of the form, but with "multipart/form-data".
-
-#### $this->element->password($data = '', $value = '', $extra = '');
-
-Identical to the input function but adds the "password" type
-
-#### $this->element->prep($str = '', $field_name = '');
-
-Formats text so that it can be safely placed in a form field in the event it has HTML tags.
-
-#### $this->element->radio($data = '', $value = '', $checked = false, $extra = '')
-
-Radio button
-
-#### $this->element->reset($data = '', $value = '', $extra = '')
-
-Reset button
-
-#### $this->element->submit($data = '', $value = '', $extra = '')
-
-Submit button
-
-#### $this->element->textarea($data = '', $value = '', $extra = '')
-
-Textarea filed
-
-#### $this->element->upload($data = '', $value = '', $extra = '')
-
-Identical to the input function but adds the "file" type
+<kbd>Clean</kbd> ve diğer <kbd>Girdi Filtreleri</kbd> için filtre paketine ait [Filter.md](/Filters/Docs/tr/Filter.md) dökümentasyonunu gözden geçirmeyi unutmayın.

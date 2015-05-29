@@ -15,12 +15,11 @@ Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir aray
     </ul>
 </li>
 
-
 <li>
     <a href="#running">Çalıştırma</a>
     <ul>
         <li><a href="#loading-service">Servisi Yüklemek</a></li>
-        <li><a href="#cache-drivers">Mevcut Cache Sürücüleri</a></li>
+        <li><a href="#cache-drivers">Önbellek Sürücüleri</a></li>
         <li>
             <a href="#interface">Ortak Arayüz Metotları</a>
             <ul>
@@ -114,7 +113,7 @@ $this->c['cache']->metod();
 ```
 <a name="cache-drivers"></a>
 
-#### Mevut Cache Sürcüleri
+#### Önbellek Sürcüleri
 
 Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
 

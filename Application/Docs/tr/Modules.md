@@ -8,18 +8,18 @@ Modüller daha önceden hazırlanmış eklentilerdir. Aslında daha basitçe sö
 Bir modülü eklemek için konsolunuza aşağıdaki komutu yazmanız gerekir.
 
 ```php
-php task module add --name=modulismi
+php task module add modulismi
 ```
 
 Yine bir modülü kaldırmak için konsolunuza aşağıdaki komutu yazmanız yeterli olacaktır.
 
 ```php
-php task module remove --name=modulismi
+php task module remove modulismi
 ```
 
 ### Debugger Modülü
 
-Ayrıntılı kurulum için Debugger paketi [Debbuger.md](/Debugger/Docs/tr/Debugger.md) belgesine bakınız.
+Ayrıntılı kurulum için Debugger paketi [Debbuger.md](/Http/Docs/tr/Debugger.md) belgesine bakınız.
 
 ### Captcha Modülü
 

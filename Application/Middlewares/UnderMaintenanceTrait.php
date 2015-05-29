@@ -41,7 +41,7 @@ trait UnderMaintenanceTrait
         if ($this->params['domain'] == $this->c['config']['url']['webhost']) {
             $this->params['domain'] = array('regex' => $this->c['config']['url']['webhost']);
         }
-        if ( ! is_array($this->params['domain']) OR ! isset($this->params['domain']['regex'])) {
+        if ( ! is_array($this->params['domain']) || ! isset($this->params['domain']['regex'])) {
             throw new RuntimeException(
                 sprintf(
                     'Correct your routes.php domain value it must be like this <pre>%s</pre>', 
