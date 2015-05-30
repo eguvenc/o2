@@ -5,7 +5,39 @@ Composer PHP için geliştirilmiş bir bağımlılık ( paket ) yönetim aracıd
 
 Composer projesi hakkında daha detaylı bilgi için <a href="http://getcomposer.org" target="_blank">http://getcomposer.org</a> adresini ziyaret edebilirsiniz.
 
-### Linux / Unix / OSX İşletim Sistemleri İçin Kurulum
+<ul>
+    <li>
+        <a href="#step1">Adım 1 - Kurulum</a>
+        <ul>
+            <li><a href="#linux-setup">Linux / Unix / OSX İşletim Sistemleri İçin Kurulum</a></li>
+            <li><a href="#windows-setup">Windows İşletim Sistemleri İçin Kurulum</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#step2">Adım 2 - Konfigürasyon</a>
+        <ul>
+            <li><a href="#index.php">index.php</a></li>
+            <li><a href="#index.php">cli.php</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#step3">Adım 3 - Obullo Yükleyicilerini Tanımlayın</a>
+    </li>
+
+    <li>
+        <a href="#step4">Adım 4 - Autoload Önbelleğini Tazeleyin</a>
+    </li>
+</ul>
+
+<a name='step1'></a>
+
+### Adım 1 - Kurulum
+
+<a name='linux-setup'></a>
+
+#### Linux / Unix / OSX İşletim Sistemleri İçin Kurulum
 
 Proje kök dizininde <b>composer.json</b> dosyanızı oluşturun ve obullo yükleyicilerini tanımlayın.
 
@@ -55,13 +87,19 @@ Eğer henüz composer paketleri kurulmadıysa aşağıdaki gibi yükleme işlemi
 php composer install
 ```
 
-### Windows İşletim Sistemleri İçin Kurulum
+<a name='windows-setup'></a>
+
+#### Windows İşletim Sistemleri İçin Kurulum
 
 Composer.json konfigürasyonu Linux / Unix / OSX İşletim Sistemlerinde olduğu gibidir, composer paketinin Windows kurulumu için ise <a href="https://getcomposer.org/doc/00-intro.md#installation-windows">bu linkten</a> faydalanabilirsiniz.
 
-### Konfigürasyon
+<a name='step2'></a>
+
+### Adım 2 - Konfigürasyon
 
 Composer ile çalışmaya başlayabilmek için aşağıdaki 4 kolay adımı uygulama ana dizininde gerçekleştirmeniz gerekiyor.
+
+<a name='index.php'></a>
 
 #### index.php 
 
@@ -84,6 +122,8 @@ require 'vendor/autoload.php';
 $c['app']->run();
 ```
 
+<a name='cli.php'></a>
+
 Aynı işlemi aşağıdaki gibi konsol arayüzü içinde yapmanız gerekiyor.
 
 #### cli.php 
@@ -105,7 +145,9 @@ require 'vendor/autoload.php';
 $c['app']->run();
 ```
 
-#### Obullo Yükleyicilerini Tanımlayın
+<a name='step3'></a>
+
+### Adım 3 - Obullo Yükleyicilerini Tanımlayın
 
 Proje kök dizininde bir <b>composer.json</b> dosyanızı oluşturun ve obullo yükleyicilerini tanımlayın. Eğer bu işlemi yukarıda yaptıysanız dikkate almayın.
 
@@ -120,7 +162,9 @@ Proje kök dizininde bir <b>composer.json</b> dosyanızı oluşturun ve obullo y
 }
 ```
 
-#### Autoload Önbelleğini Tazeleyin
+<a name='step4'></a>
+
+### Adım 4 - Autoload Önbelleğini Tazeleyin
 
 Son olarak yeni eklediğimiz yükleyicilerin çalışabilmesi için composer dan autoload dosyalarını aşağıdaki gibi yeniden oluşturmasını istememiz gerekiyor. Konsolonuza giderek aşağıdaki komutu yazın.
 

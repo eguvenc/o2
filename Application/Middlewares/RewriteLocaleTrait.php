@@ -74,7 +74,7 @@ trait RewriteLocaleTrait
             throw new RuntimeException(
                 sprintf(
                     'RewriteLocale middleware requires Translation middleware. Run this task. <pre>%s</pre>Then add this code to app/middlewares.php <pre>%s</pre>',
-                    'php task middleware add --name=Translation',
+                    'php task middleware add translation',
                     '$c[\'app\']->middleware(new Http\Middlewares\Translation);'
                 )
             );

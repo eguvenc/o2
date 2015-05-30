@@ -1,22 +1,23 @@
 <?php
 
-namespace Obullo\Http;
+namespace Obullo\Curl;
 
 use LogicException;
 use InvalidArgumentException;
+use Obullo\Container\Container;
 
 /**
- * Http Client
+ * Curl Class
  * 
- * @category  Http
+ * @category  Curl
  * @package   Client
  * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/client
+ * @link      http://obullo.com/package/curl
  */
-class Client
+class Curl
 {
     /**
      * Curl init
@@ -79,12 +80,14 @@ class Client
 
     /**
      * Constructor
+     *
+     * @param \Obullo\Container\Container $c container
      */
-    public function __construct()
+    public function __construct(Container $c)
     {
-        if (! extension_loaded('curl')) {
+        if ( ! extension_loaded('curl')) {
             $error = 'The cURL IO handler requires the cURL extension to be enabled';
-            $this->c['logger']->error($error);
+            $c['logger']->error($error);
             throw new LogicException($error);
         }
     }
@@ -355,3 +358,8 @@ class Client
         return $data;
     }
 }
+
+// END Curl.php File
+/* End of file Curl.php
+
+/* Location: .Obullo/Curl/Curl.php */

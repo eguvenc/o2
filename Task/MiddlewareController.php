@@ -39,13 +39,15 @@ class MiddlewareController extends Controller
     }
 
     /**
-     * Add a new module
+     * Add a new middleware
      *
+     * @param string $name name
+     * 
      * @return void
      */
-    public function add()
+    public function add($name = null)
     {   
-        $name = $this->cli->argument('name');
+        $name = (empty($name)) ? $this->cli->argument('name') : $name;
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");
@@ -73,11 +75,13 @@ class MiddlewareController extends Controller
     /**
      * Remove 
      * 
+     * @param string $name name
+     * 
      * @return void
      */
-    public function remove()
+    public function remove($name = null)
     {
-        $name = $this->cli->argument('name');
+        $name = (empty($name)) ? $this->cli->argument('name') : $name;
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");

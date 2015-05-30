@@ -397,7 +397,7 @@ $this->form->setErrors($this->validator->getErrors());
 
 <a name="adding-custom-results"></a>
 
-##### Özel Sonuçları Form Sınıfına Uyarlamak
+#### Özel Sonuçları Form Sınıfına Uyarlamak
 
 Bir servis yada işlem için oluşmuş hataları da form sınıfına gönderebilmek mümkündür bunun için setResults fonksiyonu kullanılır. Aşağıda yanlış açılan bir oturum açma işlemine ait bir örnek görülüyor.
 
@@ -434,6 +434,7 @@ Form sonuçlarını eğer ekrana yazdırsaydık aşağıdaki gibi bir çıktı i
 ```php
 print_r($this->form->results(true));
 
+/*
 Array (
 
     [code] => 0 
@@ -441,14 +442,15 @@ Array (
         [0] => Supplied credential is invalid. 
     ) 
     [identifier] => user@example.com
-) 
+)
+*/
 ```
 
 <a name="get-methods"></a>
 
 ### Get Metotları
 
-Form get metotları bir http form post işleminden sonra doğrulama sınıfı ile filtrelenen değerleri form elementlerine atamak için kullanılırlar.
+Form get metotları bir http form post işleminden sonra doğrulama sınıfı ile filtrelenen değerleri elde etmek veya form elementlerine atamak için kullanılırlar.
 
 <a name="getMessage"></a>
 
@@ -589,6 +591,7 @@ print_r($this->form->results());
 ```
 
 ```php
+/*
 Array
 (
     [success] => 0
@@ -603,6 +606,7 @@ Array
             [identifier] => user@example.com
         )
 )
+*/
 ```
 
 Results anahtarına kaydedilen verilere view sayfasından nesne olarak ulaşılabilir. Aşağıdaki örnekte sonuçlardan alınan mesajlar form sınıfı html şablonuna aktarılıyor.

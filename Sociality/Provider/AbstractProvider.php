@@ -2,7 +2,7 @@
 
 namespace Obullo\Sociality\Provider;
 
-use Obullo\Http\Client;
+use Obullo\Curl\Curl;
 use InvalidArgumentException;
 
 /**
@@ -351,7 +351,7 @@ abstract class AbstractProvider
     protected function getHttpClient()
     {
         if ($this->httpClient == null) {
-            return $this->httpClient = new Client;
+            return $this->httpClient = new Curl($this->c);
         }
         return $this->httpClient;
     }

@@ -37,11 +37,10 @@ class Element
     * @param string $action     the URI segments of the form destination
     * @param array  $attributes a key/value pair of attributes
     * @param array  $hidden     a key/value pair hidden data
-    * @param array  $protection csrf protection
     * 
     * @return   string
     */
-    public function form($action = '', $attributes = '', $hidden = array(), $protection = true)
+    public function form($action, $attributes = '', $hidden = array())
     {
         if ($attributes == '') {
             $attributes = 'method="post"';
@@ -56,7 +55,7 @@ class Element
 
         // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
 
-        if ($security['csrf']['protection'] && $protection && ! stripos($form, 'method="get"')) {
+        if ($security['csrf']['protection'] && ! stripos($form, 'method="get"')) {
             $hidden[$this->c['csrf']->getTokenName()] = $this->c['csrf']->getToken();
         }
         if (is_array($hidden) && count($hidden) > 0) {
@@ -245,17 +244,17 @@ class Element
      * Generates hidden fields.  You can pass a simple key/value string or an associative
      * array with multiple values.
      * 
-     * @param mixed   $name      name
-     * @param string  $value     value
-     * @param string  $extra     extra data
-     * @param boolean $recursing recursing
+     * @param mixed   $name       name
+     * @param string  $value      value
+     * @param string  $attributes extra data
+     * @param boolean $recursing  recursing
      * 
      * @return string
      */
-    public function hidden($name, $value = '', $extra = '', $recursing = false)
+    public function hidden($name, $value = '', $attributes = '', $recursing = false)
     {
         static $hiddenTag;
-        if (is_object($value)) { // $_POST & Db value
+        if (is_object($value)) {    // $_POST & Db value
             $value = $this->getRowValue($value, $name); 
         }
         if ($recursing === false) {
@@ -263,12 +262,12 @@ class Element
         }
         if (is_array($name)) {
             foreach ($name as $key => $val) {
-                $this->hidden($key, $val, $extra, true);
+                $this->hidden($key, $val, $attributes, true);
             }
             return $hiddenTag;
         }
         if ( ! is_array($value)) {
-            $hiddenTag .= '<input type="hidden" name="' . $name . '" value="'. $this->prep($value, $name) .'" '.  trim($extra) . '/>' . "\n";
+            $hiddenTag .= '<input type="hidden" name="' . $name . '" value="'. $this->prep($value, $name) .'" '.  trim($attributes) . '/>' . "\n";
         } else {
             foreach ($value as $k => $v) {
                 $k = (is_int($k)) ? '' : $k;
@@ -390,7 +389,7 @@ class Element
      * 
      * @return string
      */
-    public function radio($data = '', $value = '', $checked = false, $extra = '')
+    public function radio($data = array(), $value = '', $checked = false, $extra = '')
     {
         if ( ! is_array($data)) {
             $data = array('name' => $data); 

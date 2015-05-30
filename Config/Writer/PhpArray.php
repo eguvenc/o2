@@ -28,7 +28,7 @@ class PhpArray extends AbstractWriter
      * 
      * @var boolean
      */
-    protected $useBracketArraySyntax = false;
+    protected $useBracketArraySyntax = true;
 
     /**
      * processConfig(): defined by AbstractWriter.
@@ -45,8 +45,7 @@ class PhpArray extends AbstractWriter
         );
 
         return "<?php\n\n" .
-               "return " . $arraySyntax['open'] . "\n\n" . $this->processIndented($config, $arraySyntax) .
-               $arraySyntax['close'] . ";\n".$this->docs;
+               "return array(\n\n" . $this->processIndented($config, $arraySyntax).");\n".$this->docs;
     }
 
     /**

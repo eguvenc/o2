@@ -44,11 +44,13 @@ class ModuleController extends Controller
     /**
      * Add a new module
      *
+     * @param string $module name
+     * 
      * @return void
      */
-    public function add()
+    public function add($module = null)
     {   
-        $module = strtolower($this->cli->argument('name'));
+        $module = (empty($module)) ? strtolower($this->cli->argument('name')) : $module;
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
@@ -86,12 +88,14 @@ class ModuleController extends Controller
 
     /**
      * Remove 
+     *
+     * @param string $module name
      * 
      * @return void
      */
-    public function remove()
+    public function remove($module = null)
     {
-        $module = strtolower($this->cli->argument('name'));
+        $module = (empty($module)) ? strtolower($this->cli->argument('name')) : $module;
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
@@ -111,16 +115,16 @@ class ModuleController extends Controller
             echo Console::fail("We could not remove directories in modules folder please check write permissions.");
             return;
         }
-        if (is_dir($moduleFolder. DS .'controllers') AND is_dir(MODULES .$module)) {
+        if (is_dir($moduleFolder. DS .'controllers') && is_dir(MODULES .$module)) {
             $this->recursiveRemove(MODULES .$module);
         }
-        if (is_dir($moduleFolder. DS .'config') AND is_dir(APP .'config'. DS .$module)) {
+        if (is_dir($moduleFolder. DS .'config') && is_dir(APP .'config'. DS .$module)) {
             $this->recursiveRemove(APP .'config'. DS .$module);
         }
-        if (is_dir($moduleFolder. DS .'tasks') AND is_dir(MODULES .'tasks'. DS .$module)) {
+        if (is_dir($moduleFolder. DS .'tasks') && is_dir(MODULES .'tasks'. DS .$module)) {
             $this->recursiveRemove(MODULES .'tasks'. DS .$module);
         }
-        if (is_dir($moduleFolder. DS .'service') AND is_file(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php')) {
+        if (is_dir($moduleFolder. DS .'service') && is_file(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php')) {
             unlink(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
         }
         echo Console::success("Module #$module removed successfully.");
@@ -190,10 +194,10 @@ echo Console::newline(2);
 echo Console::help("Usage:", true);
 echo Console::newline(2);
 echo Console::help(
-"php task module [command] --name=value
+"php task module [command] name
 
-    php task module add --name=value 
-    php task module remove --name=value");
+    php task module add name
+    php task module remove name");
 echo Console::newline(2);
 echo Console::help("Description:", true);
 echo Console::newline(2);
