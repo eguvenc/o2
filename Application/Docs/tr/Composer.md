@@ -97,15 +97,19 @@ Composer.json konfigürasyonu Linux / Unix / OSX İşletim Sistemlerinde olduğu
 
 ### Adım 2 - Konfigürasyon
 
-Composer ile çalışmaya başlayabilmek için aşağıdaki 4 kolay adımı uygulama ana dizininde gerçekleştirmeniz gerekiyor.
+Composer ile çalışmaya başlayabilmek için aşağıdaki 4 kolay işlemi uygulama ana dizininde gerçekleştirmeniz gerekiyor.
 
 <a name='index.php'></a>
 
 #### index.php 
 
-Proje ana dizininde index.php dosyası içerisinden <kbd>Obullo\Application\Autoloader::register();</kbd> satırını silin ve yerine <kbd>require 'vendor/autoload.php';</kbd> satırını ekleyin.
+Proje ana dizininde index.php dosyası içerisinden <kbd>require OBULLO .'Application/Autoloader.php'</kbd> ve <kbd>Obullo\Application\Autoloader::register();</kbd> satırlarını silin. 
+
+Composer autoloader kütüphanesini <kbd>require 'vendor/autoload.php';</kbd> aşağıdaki gibi ekleyin.
 
 ```php
+require OBULLO. 'Application/Http.php';
+// require OBULLO .'Application/Autoloader.php';
 /*
 |--------------------------------------------------------------------------
 | Autoloader
@@ -129,6 +133,8 @@ Aynı işlemi aşağıdaki gibi konsol arayüzü içinde yapmanız gerekiyor.
 #### cli.php 
 
 ```php
+require OBULLO. 'Application/Cli.php';
+// require OBULLO .'Application/Autoloader.php';
 /*
 |--------------------------------------------------------------------------
 | Autoloader

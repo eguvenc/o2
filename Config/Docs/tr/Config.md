@@ -85,8 +85,8 @@ return array(
         'assets' => 'http://cdn.example.com/assets/',
     ],
 
-    'debugger' => [
-        'enabled' => false,
+    'http' => [
+        'debugger' => false,
     ],
 
     'cookie' => [

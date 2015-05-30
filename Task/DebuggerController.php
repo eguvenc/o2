@@ -9,6 +9,8 @@ use Obullo\Cli\Console;
 class DebuggerController extends Controller
 {
     protected $socket;
+    protected $msg;
+    protected $length;
     protected $connection;
     protected $maxByte = 1048576;  // 1 Mb / 1024 Kb
     protected $clients = array();
@@ -44,7 +46,7 @@ class DebuggerController extends Controller
     {
         ob_implicit_flush();   /* Turn on implicit output flushing so we see what we're getting as it comes in. */
 
-        if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['http-debugger']['socket'], $matches)) {
+        if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['http']['debugger']['socket'], $matches)) {
             throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
         }
         $this->connection = $matches;
@@ -67,30 +69,55 @@ class DebuggerController extends Controller
         $host = $this->connection['host'];
         $port = $this->connection['port'];
         $url  = $this->connection['url'];
+        $null = null;
 
         while (true) {
-            $connections = $this->clients;   // Manage multiple connections
-            socket_select($connections, $null, $null, 0);
 
+            $connections = $this->clients; // Manage multiple connections
+
+            foreach ($connections as $k => $socket) {
+                if (get_resource_type($socket) != 'Socket') {
+                    unset($connections[$k], $this->clients[$k]);
+                }
+            }
             if (in_array($this->socket, $connections)) {   // Check for new socket
 
-                if (($newSocket = socket_accept($this->socket)) === false) {
+                // WARNING : Socket select must be declared after that in_array
+                // otherwise we get cpu usage warning !!!
+
+                if (socket_select($connections, $null, $null, 0) < 1) {
+                    sleep(1);  // WARNING : Don't increase the cpu usage !!!
+                    // continue;
+                }
+
+                // Add socket to client array
+
+                if (($this->clients[] = $newSocket = socket_accept($this->socket)) === false) {
                     echo "socket_accept() failed: " . socket_strerror(socket_last_error($newSocket)) . "\n";
                     break;
                 }
-                $this->clients[] = $newSocket; // Add socket to client array
                 
                 $header = socket_read($newSocket, $this->maxByte); // Read data sent by the socket
                 $headers = $this->handshake($header, $newSocket, $host, $port, $url); // Perform websocket handshake
                 
-                if (is_array($headers) AND isset($headers['Request'])) {
-                    $this->sendRequest($headers, $newSocket);
+                if ($headers == false) {
+                    // ..
                 }
+
+                if (is_array($headers) && isset($headers['Request'])) {
+                    $sent = $this->sendRequest($headers, $newSocket);
+                    if ($sent == false) {
+                        // ..
+                    }
+                }
+                // remove the listening socket from the clients-with-data array
+
                 $foundSocket = array_search($this->socket, $connections);
                 unset($connections[$foundSocket]);
             }
-            $this->readStreamResources($connections);  // Read socket data
 
+            // No need to broadcast
+            // $this->readStreamResources($connections);  // Read socket data
         }
         socket_close($this->socket);
     }
@@ -112,45 +139,15 @@ class DebuggerController extends Controller
         }
         if ($headers['Request'] == 'Http') {
             $data['message'] = 'HTTP_REQUEST';
-            $this->send($data);
+            return $this->send($data);
         } elseif ($headers['Request'] == 'Ajax') {
             $data['message'] = 'AJAX_REQUEST';
-            $this->send($data);
+            return $this->send($data);
         } elseif ($headers['Request'] == 'Cli') {
             $data['message'] = 'CLI_REQUEST';
-            $this->send($data);
+            return $this->send($data);
         }
-    }
-
-    /**
-     * Read stream data
-     * 
-     * @param array $sockets resource array
-     * 
-     * @return void
-     */
-    protected function readStreamResources($sockets)
-    {
-        foreach ($sockets as $changedSocket) {     // Loop through all connected sockets
-                
-            while (socket_recv($changedSocket, $buf, $this->maxByte, 0) >= 1) {    // Check for any incomming data
-
-                $receivedText = static::unmask($buf);  // Unmask data
-                $data = json_decode($receivedText);
-
-                if (is_object($data) AND isset($data->type)) {
-
-                    $message = ['type' => $data->type, 'message' => $data->message];
-                    
-                    if (isset($data->env)) {
-                        $message['env'] = $data->env;
-                    }
-                    $this->send(json_encode($message));
-                }
-                break 2; // Exist this loop
-            }
-            socket_close($changedSocket);  // Don't close the sockets otherwise we socket connection errors.
-        }
+        return false;
     }
 
     /**
@@ -163,7 +160,7 @@ class DebuggerController extends Controller
     public function send($data)
     {
         $responseText = static::mask(json_encode($data));
-        $this->broadcast($responseText);    // Send data
+        return $this->broadcast($responseText);    // Send data
     }
 
     /**
@@ -175,12 +172,24 @@ class DebuggerController extends Controller
      */
     public function broadcast($msg)
     {
+        $this->msg = $msg;
+        $this->length = strlen($this->msg);
+
+        $sent = true;
         foreach ($this->clients as $socket) {
-            @socket_write($socket, $msg, strlen($msg));
+            if (is_resource($socket) && get_resource_type($socket) == 'Socket') {
+                $write = $this->socketWrite($socket);
+                if ($write == false) {
+                    $sent = false;
+                }
+            }
         }
+        return $sent;
     }
 
     /**
+     * Silent Errors
+     * 
      * Register debugger system as an error handler PHP errors
      * 
      * @return mixed Returns result of set_error_handler
@@ -189,6 +198,7 @@ class DebuggerController extends Controller
     {
         return set_error_handler(
             function ($level, $message, $file, $line) {
+                // echo $message.' Line:'.$line."\n";
                 return $level = $message = $file = $line = 0;
                 return;
             }
@@ -196,6 +206,8 @@ class DebuggerController extends Controller
     }
 
     /**
+     * Silent Exceptions
+     * 
      * Register logging system as an exception handler to log PHP exceptions
      * 
      * @return boolean
@@ -203,8 +215,9 @@ class DebuggerController extends Controller
     public static function registerExceptionHandler()
     {
         set_exception_handler(
-            function ($exception) {
-                return $exception = null;
+            function ($e) {
+                echo $e->getMessage();
+                return $e = null;
             }
         );
     }
@@ -220,7 +233,6 @@ class DebuggerController extends Controller
     {
         $b1 = 0x80 | (0x1 & 0x0f);
         $length = strlen($text);
-        
         if($length <= 125)
             $header = pack('CC', $b1, $length);
         elseif($length > 125 && $length < 65536)
@@ -268,7 +280,7 @@ class DebuggerController extends Controller
      * 
      * @return boolean
      */
-    protected static function handshake($header, $socket, $host, $port, $url)
+    protected function handshake($header, $socket, $host, $port, $url)
     {
         $headers = array();
         $lines = preg_split("/\r\n/", $header);
@@ -279,20 +291,50 @@ class DebuggerController extends Controller
             }
         }
         if (isset($headers['Sec-WebSocket-Key'])) {
-
             $secKey = $headers['Sec-WebSocket-Key'];
             $secAccept = base64_encode(pack('H*', sha1($secKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
-
             $upgrade  = "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" .
             "Upgrade: websocket\r\n" .
             "Connection: Upgrade\r\n" .
             "WebSocket-Origin: $host\r\n" .
             "WebSocket-Location: ws://$host:$port$url\r\n".
             "Sec-WebSocket-Accept:$secAccept\r\n\r\n";
-            socket_write($socket, $upgrade, strlen($upgrade));
-            return true;
+
+            $this->msg = $upgrade;
+            $this->length = strlen($this->msg);
+            return $this->socketWrite($socket);
         }
         return $headers;
+    }
+
+    /**
+     * Write to socket
+     * 
+     * @param resource $socket socket
+     * 
+     * @return boolean
+     */
+    public function socketWrite($socket)
+    {
+        $sent = socket_write($socket, $this->msg, $this->length);
+
+        if ($sent === false) {
+            return false;
+        }
+        // Check if the entire message has been sented
+        if ($sent < $this->length) {
+                
+            // If not sent the entire message.
+            // Get the part of the message that has not yet been sented as message
+            $this->msg = substr($this->msg, $sent);
+                
+            // Get the length of the not sented part
+            $this->length -= $sent;
+
+        } else {   
+            return false;
+        }
+        return true;
     }
 
     /**

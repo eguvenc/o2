@@ -55,7 +55,11 @@ class WebSocket
     public function __construct(Container $c)
     {
         $this->c = $c;
-        if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['http-debugger']['socket'], $matches)) {
+        if (false == preg_match(
+            '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
+            $this->c['config']['http']['debugger']['socket'], 
+            $matches
+        )) {
             throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
         }
         $this->host = $matches['host'];
@@ -108,7 +112,7 @@ class WebSocket
     {
         if (isset($_COOKIE['o_debugger_active_tab']) AND $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
             setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
-        } elseif ( ! isset($_COOKIE['o_debugger_active_tab'])) {
+        } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
             setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
         }
         $this->handshake('Ajax');
@@ -154,7 +158,7 @@ class WebSocket
         "WebSocket-Origin: $this->host\r\n" .
         "WebSocket-Location: ws://$this->host:$this->port\r\n";
 
-        if ($this->socket === false OR $this->connect == false) {
+        if ($this->socket === false || $this->connect == false) {
             return;
         }
         socket_write($this->socket, $upgrade, strlen($upgrade));

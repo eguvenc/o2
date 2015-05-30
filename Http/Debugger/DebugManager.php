@@ -52,12 +52,11 @@ class DebugManager
     public function __construct(Container $c)
     {
         $this->c = $c;
-
-        if ( ! $this->c['config']['http-debugger']['enabled']) {
+        if (! $this->c['config']['http']['debugger']['enabled']) {
             $this->c['response']->status(300)->showError('Debugger disabled from your application config file.', "Debugger Disabled");
         }
         $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
-        $this->websocketUrl = $this->c['config']['http-debugger']['socket'];
+        $this->websocketUrl = $this->c['config']['http']['debugger']['socket'];
 
         $this->debugOutput = new DebugOutput($this->c);
     }

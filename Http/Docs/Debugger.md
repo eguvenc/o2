@@ -10,10 +10,11 @@ Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden s
 <kbd>app/config/local/env/config.php</kbd> dosyasından debugger modülü websocket bağlantısını aktif edin.
 
 ```php
-'http-debugger' => [
+return array(
+
     'enabled' => true,
     'socket'  => 'ws://127.0.0.1:9000'  // Port
-],
+)
 ```
 
 ##### Kurulum

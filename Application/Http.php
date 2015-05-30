@@ -90,7 +90,7 @@ class Http extends Application
         include APP .'events.php';
         include APP .'routes.php';
 
-        if ($this->c['config']['http-debugger']['enabled']) {
+        if ($this->c['config']['http']['debugger']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
@@ -197,7 +197,7 @@ class Http extends Application
     public function remove($middleware)
     {
         $removal = 'Http\\Middlewares\\'.ucfirst($middleware);
-        if ( ! isset($this->middlewareNames[$removal])) {  // Check middleware exist
+        if (! isset($this->middlewareNames[$removal])) {  // Check middleware exist
             return;
         }
         foreach ($this->middleware as $key => $value) {
@@ -262,7 +262,7 @@ class Http extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['http-debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
+        if ($this->c['config']['http']['debugger'] && ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit();
         }
     }
