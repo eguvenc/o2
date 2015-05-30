@@ -21,7 +21,7 @@ use Obullo\Error\Debug;
  */
 class Application
 {
-    const VERSION = '2.0@alpha-2';
+    const VERSION = '2.0@alpha-2.4';
 
     protected $c;                  // Container
     protected $env = null;         // Current environment
@@ -52,7 +52,7 @@ class Application
             }
         }
         if ($this->env == null) {
-            die('We could not detect your application environment, please correct your <b>app/environments.php</b> hostnames.');
+            die('We could not detect your application environment, please correct your app/environments.php hostnames.');
         }
     }
     
@@ -201,7 +201,7 @@ class Application
      */
     protected function dispatchClass()
     {
-        if ( ! class_exists($this->className, false)) {
+        if (! class_exists($this->className, false)) {
             $this->c['response']->show404($this->getCurrentRoute());
         }
     }
@@ -213,7 +213,10 @@ class Application
      */
     protected function dispatchMethod()
     {
-        if ( ! method_exists($this->class, $this->method) OR $this->method == 'load' OR $this->method == 'extend') { // load method reserved
+        if (! method_exists($this->class, $this->method)
+            || $this->method == 'load' 
+            || $this->method == 'extend'
+        ) {
             $this->c['response']->show404($this->getCurrentRoute());
         }
     }
@@ -237,7 +240,7 @@ class Application
      *
      * Test to see if a request was made from the command line.
      *
-     * @return  bool
+     * @return bool
      */
     public function isCli()
     {
@@ -346,7 +349,7 @@ class Application
     public function __get($key)
     {
         $cid = 'app.'.$key;
-        if ( ($key == 'uri' || $key == 'router') AND $this->c->has($cid) ) {
+        if (($key == 'uri' || $key == 'router') && $this->c->has($cid) ) {
             return $this->c[$cid];
         }
         if (class_exists('Controller', false) && Controller::$instance != null) {

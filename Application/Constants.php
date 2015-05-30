@@ -27,13 +27,6 @@ define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
 define('CLI_PHP', 'cli.php');
 define('INDEX_PHP', 'index.php');
-/*
-|--------------------------------------------------------------------------
-| OBULLO
-|--------------------------------------------------------------------------
-*/
-define('OBULLO_CLI', OBULLO .'Application'. DS .'Cli.php');
-define('OBULLO_HTTP', OBULLO .'Application'. DS .'Http.php');
 
 // END Constants.php File
 /* End of file Constants.php

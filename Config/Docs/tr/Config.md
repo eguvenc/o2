@@ -197,10 +197,11 @@ echo $c['app']->env();  // Çıktı  local
 ```php
 return array(
     
+    'COOKIE_DOMAIN' => '',
+    
     'MYSQL_USERNAME' => 'root',
     'MYSQL_PASSWORD' => '123456',
 
-    'MONGO_HOST'     => 'localhost',
     'MONGO_USERNAME' => 'root',
     'MONGO_PASSWORD' => '123456',
 

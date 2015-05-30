@@ -195,10 +195,11 @@ Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişke
 ```php
 return array(
     
+    'COOKIE_DOMAIN' => '',
+
     'MYSQL_USERNAME' => 'root',
     'MYSQL_PASSWORD' => '123456',
 
-    'MONGO_HOST'     => 'localhost',
     'MONGO_USERNAME' => 'root',
     'MONGO_PASSWORD' => '123456',
 
