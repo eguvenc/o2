@@ -21,7 +21,6 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#get-env-variable">Geçerli Ortam Değişkenini Almak</a></li>
         <li><a href="#existing-env-variables">Mevcut Ortam Değişkenleri</a></li>
         <li><a href="#create-env-variable-for-env-file">Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak</a></li>
-        <li><a href="#config-php-example">Config.php Örneği</a></li>
         <li><a href="#env-class">Env Sınıfı</a></li>
         <li><a href="#create-a-new-env-variable">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
     </ul>
@@ -32,6 +31,13 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
     <ul>
         <li><a href="#service-providers">Servis Sağlayıcısı Nedir ?</a></li>
         <li><a href="#service-providers">Servis Sağlayıcılarını Tanımlamak</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#components">Bileşenler</a>
+    <ul>
+        <li><a href="#defining-components">Bileşenleri Tanımlamak</a></li>
     </ul>
 </li>
 
@@ -188,8 +194,6 @@ Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişke
 
 #### Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak
 
-------
-
 <b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
 ```php
@@ -326,9 +330,7 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
 
 Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
 
-<a name="config-php-example"></a>
-
-#### Config.php Örneği
+Takip eden örnekte <kbd>production</kbd> ortamı için örnek bir <b>config.php</b> dosyası görülüyor.
 
 ```php
 return array(
@@ -362,9 +364,10 @@ return array(
 
 <a name="env-class"></a>
 
+
 #### Env Sınıfı
 
-Env sınıfı <b>o2/Application/Http.php</b> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<b>.env.*.php</b> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>Obullo\Config\Env</b> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+Env sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<kbd>.env.*.php</kbd> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <kbd>Obullo\Config\Env</kbd> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
 Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek bir dosyadan yönetilmiş olur.
 
@@ -374,9 +377,9 @@ Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek b
 echo $c['env']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
 ```
 
-Yukarıdaki örnekte fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
+Yukarıdaki örnekte fonksiyonun birinci parametresi <kbd>$_ENV</kbd> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
 
-Eğer en <b>son</b> parametre <b>required</b> olarak girilirse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+Eğer en son parametre <kbd>required</kbd> olarak girilirse <kbd>$_ENV</kbd> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <kbd>die()</kbd> metodu ile sonlanacaktır.
 
 Boş gelemez zorunluluğuna bir örnek
 
@@ -406,6 +409,7 @@ return array(
 /* End of file mongo.php */
 /* Location: .app/config/local/mongo.php */
 ```
+
 
 <a name="create-a-new-env-variable"></a>
 
@@ -464,6 +468,52 @@ $c['app']->register(
     ]
 );
 ```
+
+<a name="components"></a>
+
+### Bileşenler
+
+Bileşenler uygulamada yüklendiğinde önceden tanımlanmış çekirdek sınıflardır uygulama içerisine takma adlar ile atanırlar ve uygulama çalıştığında bu takma isimlerle çağrılırlar.
+
+<a name="defining-components"></a>
+
+#### Bileşenleri Tanımlamak
+
+Bir bileşenin uygulama içerisinde çalışabilmesi için <kbd>app/components.php</kbd> dosyasına tanımlı olması gerekir. Bileşenler uygulamanın her yerinde kullanılan yada kullanılma ihtimalleri yüksek olan sınıflardır. Bir bileşeni onun uygulama içerisindeki görevini bilmeden kaldırdıysanız uygulamanız düzgün çalışmayabilir. Bunun yanısıra uygulamanızda sık kullandığınız bileşenleri bu dosyaya tanımlayabilirsiniz. Bir bileşen tanımlandıktan sonra konteyner sınıfı içerisinde kayıt edilir ve çağrılmadığı sürece uygulamaya yüklenmez. Bileşenin yüklenmesi için aşağıdaki gibi en az bir defa çağrılması gerekir.
+
+```php
+$this->c['class'];
+```
+
+Mevcut bileşenler <kbd>app/components.php</kbd> dosyasında aşağıdaki gibi tanımlıdırlar.
+
+```php
+/*
+|--------------------------------------------------------------------------
+| Register core components
+|--------------------------------------------------------------------------
+*/
+$c['app']->component(
+    [
+        'event' => 'Obullo\Event\Event',
+        'exception' => 'Obullo\Error\Exception',
+        'translator' => 'Obullo\Translation\Translator',
+        'request' => 'Obullo\Http\Request',
+        'response' => 'Obullo\Http\Response',
+        'is' => 'Obullo\Http\Filters\Is',
+        'clean' => 'Obullo\Http\Filters\Clean',
+        'agent' => 'Obullo\Http\UserAgent',
+        'layer' => 'Obullo\Layer\Request',
+        'uri' => 'Obullo\Uri\Uri',
+        'router' => 'Obullo\Router\Router',
+    ]
+);
+
+/* End of file components.php */
+/* Location: .app/components.php */
+```
+
+> **Not:** Mevcut bir bileşeni değiştirmek istiyorsanız isimlere karşılık gelen sınıf yolunu kendi sınıf yolunuz ile güncellemeniz gerekir.
 
 <a name="get-methods"></a>
 

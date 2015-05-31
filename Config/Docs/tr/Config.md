@@ -5,35 +5,59 @@
 
 Konfigürasyon sınıfı <kbd>app/config</kbd> klasöründeki uygulamanıza ait konfigürasyon dosyalarını yönetir. Bu sınıf uygulama içerisinde konfigürasyon dosyalarını çevre ortamına ( environments ) göre geçerli klasörden yükler ve çağrıldığında tüm yüklenen konfigürasyon dosyalarına ait konfigürasyonlardan oluşan bir diziye geri döner. 
 
-> *Not:* Varsayılan konfigürasyon dosyası <kbd>app/config/env/local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
+> *Not:* Varsayılan konfigürasyon dosyası <kbd>app/config/env.local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
 
-### Sınıfı Yüklemek
 
-------
+<ul>
+
+<li>
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+        <li><a href="#loading-config-files">Konfigürasyon Dosyalarını Yüklemek</a></li>
+        <li><a href="#accessing-config-variables">Konfigürasyon Dosyalarına Erişim</a></li>
+        <li><a href="#writing-config-files">Konfigürasyon Dosyalarına Yazmak</a></li>
+        <li><a href="#shared-config-files">Paylaşımlı Konfigürasyon Dosyaları</a></li>
+    </ul>
+
+    <a href="#environment-config">Ortam Konfigürasyonu</a>
+    <ul>
+        <li><a href="#environent-variable">Ortam Değişkeni</a></li>
+        <li><a href="#environent-variables">Mevcut Ortam Değişkenleri</a></li>
+        <li><a href="#env-files">Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak</a></li>
+        <li><a href="#env-class">Env Sınıfı</a></li>
+        <li><a href="#create-your-environment">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
+        <li><a href="#creating-environment-config">Ortam Konfigürasyon Dosyası Yaratmak</a></li>
+    </ul>
+</li>
+
+</ul>
+
+<a name="running"></a>
+
+### Çalıştırma
+
+Konfigürasyon sınıfı uygulamaya çalışmaya başladığında yüklenir ve her zaman uygulama içerisinde yüklüdür.
+
+<a name="loading-class"></a>
+
+#### Sınıfı Yüklemek
 
 ```php
 $this->c['config']->method();
 ```
 
-### Konfigürasyon Dosyalarına Erişim
+<a name="loading-config-files"></a>
 
-Bir konfigürasyon dizisine erişim dizi erişimi ( Array Access ) yöntemi ile gerçekleşir. Bu yöntem konfigürasyon sekmelerine aşağıdaki biçiminde erişmemizi sağlayarak konfigürasyonlara erişimi kolaylaştırır.
+#### Konfigürasyon Dosyalarını Yüklemek
 
-```php
-$this->c['config']['item']['subitem'];
-```
-
-Array Access yöntemi ile ilgili daha fazla bilgiye Php dökümentasyonu <a href="http://php.net/manual/tr/class.arrayaccess.php" target="_blank">http://php.net/manual/tr/class.arrayaccess.php</a> sayfasından ulaşabilirsiniz.
-
-### Konfigürasyon Dosyalarını Yüklemek
-
-Bir konfigürasyon dosyası config sınıfı içerisindeki <b>load()</b> metodu ile yüklenir.
+Bir konfigürasyon dosyası config sınıfı içerisindeki <kbd>load()</kbd> metodu ile yüklenir.
 
 ```php
 $this->c['config']->load('database');
 ```
 
-Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>app/config/env/local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
+Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>app/config/env.local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
 
 ```php
 echo $this->c['config']['database']['connections']['db']['host'];  // Çıktı localhost
@@ -45,71 +69,90 @@ Bununla beraber config sınıfı içerisindeki load metodu yüklenen dosyanın k
 echo $this->c['config']->load('database')['connections']['db']['host'];   // Çıktı localhost
 ```
 
-### Ortam Klasörü için Konfigürasyon Yaratmak
+<a name="accessing-config-variables"></a>
 
-Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
+#### Konfigürasyon Dosyalarına Erişim
 
-Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
+Bir konfigürasyon dizisine erişim dizi erişimi ( Array Access ) yöntemi ile gerçekleşir. Bu yöntem konfigürasyon sekmelerine aşağıdaki biçiminde erişmemizi sağlayarak konfigürasyonlara erişimi kolaylaştırır. Array Access yöntemi ile ilgili daha fazla bilgiye Php dökümentasyonu <a href="http://php.net/manual/tr/class.arrayaccess.php" target="_blank">http://php.net/manual/tr/class.arrayaccess.php</a> sayfasından ulaşabilirsiniz.
 
 ```php
-- app
-    - config
-        + local
-        - production
-            config.php
-            database.php
-        + test
-        - myenv
-            config.php
-            database.php
+$this->c['config']['item']['subitem'];
+```
+<a name="writing-config-files"></a>
+
+#### Konfigürasyon Dosyalarına Yazmak
+
+Config sınıfı içerisindeki write metodu <kbd>app/config/env/$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>app/config/env.local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
+
+```php
+$newArray = $this->c['config']['domain'];
+$newArray['root']['maintenance'] = 'down';  // Yeni değerleri atayalım
+
+$this->c['config']->write('domain.php', $newArray);
 ```
 
-Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
-
-#### config.php Örneği
+Şimdi domain.php dosyanız aşağıdaki gibi güncellenmiş olmalı.
 
 ```php
 return array(
-                    
-    'error' => [
-        'debug' => false,  // Friendly debugging feature "disabled"" in "production" environment.
+
+    'root' => [
+        'maintenance' => 'down',
+        'regex' => null,
     ],
-
-    'log' =>   [
-        'enabled' => false,
+    'mydomain.com' => [
+        'maintenance' => 'up',
+        'regex' => '^framework$',
     ],
-
-    'url' => [
-        'webhost' => 'example.com',
-        'baseurl' => '/',
-        'assets' => 'http://cdn.example.com/assets/',
-    ],
-
-    'http' => [
-        'debugger' => false,
-    ],
-
-    'cookie' => [
-        'domain' => ''  // Set to .your-domain.com for site-wide cookies
-
+    'sub.domain.com' => [
+        'maintenance' => 'up',
+        'regex' => '^sub.domain.com$',
     ],
 );
 
-/* End of file config.php */
-/* Location: .app/config/env.production/config.php */
+/* End of file */
+/* Location: ./var/www/framework/app/config/env.local/domain.php */
 ```
 
-### Paylaşımlı Konfigürasyon Dosyaları
+Yukarıdaki örnek <kbd>app/config/env/$env/</kbd> klasörü altındaki dosyalara yazma işlemi yapar. Eğer env klasörü dışında olan yani paylaşımlı bir konfigürasyon dosyasına yazma işlemi gerçekleştimek istiyorsak <b>"../"</b> dizinden çıkma karakteri kullanarak kaydetme işlemini gerçekleştirmemiz gerekir.
 
-Herhangi bir ortam değişkeni klasörü içerisinde yer almayıp <kbd>app/config/</kbd> klasörü kök dizininde yer alan diğer bir deyişle dışarıda kalan konfigürasyon dosyaları paylaşımlı konfigürasyon dosyaları olarak adlandırılırlar.
+```php
+$newArray = $this->c['config']->load('agents');
+$newArray['platforms']['pc']['test'] = 'Merhaba yeni platform';  // Yeni değerleri atayalım
 
-Paylaşımlı konfigürasyon dosyalarınının yüklenme biçimleri ortam değişkeni konfigürasyon dosyaları ile aynıdır bir konfigürasyon dosyasının paylaşımlı mı yoksa ortam değişkeni mi olup olmadığı uygulama tarafından kendiliğinden belirlenir.
+$this->c['config']->write('../agents.php', $newArray);
+```
+
+Şimdi <kbd>.app/config/agents.php</kbd> dosyasına bir gözatın.
+
+```php
+return array(
+    
+    'platforms' => [
+
+        'pc' => [
+            'gnu' => 'GNU/Linux',
+            'unix' => 'Unknown Unix OS',
+            'test' => 'Merhaba yeni platform',
+
+
+/* End of file agents.php */
+/* Location: .app/config/agents.php */
+```
+
+<a name="shared-config-files"></a>
+
+#### Paylaşımlı Konfigürasyon Dosyaları
+
+Herhangi bir ortam değişkeni klasörü içerisinde yer almayıp <kbd>app/config/</kbd> klasörü kök dizininde yer alan diğer bir deyişle dışarıda kalan konfigürasyon dosyaları paylaşımlı konfigürasyon dosyaları olarak adlandırılırlar. Bir konfigürasyon dosyasının paylaşımlı mı yoksa ortam klasörüne mi ait olup olmadığı uygulama tarafından kendiliğinden belirlenir.
 
 ```php
 $this->config->load('security');
 ```
 
-### environments.php Dosyası
+<a name="environment-config"></a>
+
+### Ortam Konfigürasyonu
 
 Uygulamanızın hangi ortamda çalıştığını belirleyen konfigürasyon dosyasıdır. Ortam değişkeni <b>app/environments.php</b> dosyasına tanımlayacağınız sunucu isimlerinin ( <b>hostname</b> ) geçerli sunucu ismi ile karşılaştırması sonucu ile elde edilir. Aşağıda <b>app/environments.php</b> dosyasının bir örneğini inceleyebilirsiniz.
 
@@ -154,7 +197,9 @@ Konfigürasyon yapılmadığında yada sunucu isimleri geçerli sunucu ismi ile 
 We could not detect your application environment, please correct your app/environments.php hostnames.
 ```
 
-### Ortam Değişkeni
+<a name="environment-variable"></a>
+
+#### Ortam Değişkeni
 
 Geçerli ortam değişkenine geri döner.
 
@@ -162,7 +207,9 @@ Geçerli ortam değişkenine geri döner.
 echo $c['app']->env();  // Çıktı  local
 ```
 
-### Mevcut Ortam Değişkenleri
+<a name="environment-variables"></a>
+
+#### Mevcut Ortam Değişkenleri
 
 <table>
     <thead>
@@ -187,10 +234,9 @@ echo $c['app']->env();  // Çıktı  local
     </tbody>
 </table>
 
+<a name="env-files"></a>
 
-### .env.*.php Dosyaları
-
-------
+#### Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak
 
 <b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
@@ -198,7 +244,7 @@ echo $c['app']->env();  // Çıktı  local
 return array(
     
     'COOKIE_DOMAIN' => '',
-    
+
     'MYSQL_USERNAME' => 'root',
     'MYSQL_PASSWORD' => '123456',
 
@@ -223,13 +269,13 @@ Warning: include(/var/www/example/.env.local.php): failed to open stream:
 No such file or directory in /o2/Config/Config.php on line 79
 ```
 
-Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
+> **Not:**  Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
 
-> **Not:** Boş sayfa hatası aldığınızda eğer konfigürasyon dosyasından error > debug açıksa ve buna rağmen hatayı göremiyorsanız <kbd>error > reporting</kbd> değerini true yaparak doğal php hataları görebilirsiniz.
+<a name="env-class"></a>
 
-### Env Sınıfı
+#### Env Sınıfı
 
-Env sınıfı <b>o2/Application/Http.php</b> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<b>.env.*.php</b> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <b>$_ENV</b> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <b>Obullo\Config\Env</b> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+Env sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<kbd>.env.*.php</kbd> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <kbd>Obullo\Config\Env</kbd> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
 
 Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek bir dosyadan yönetilmiş olur.
 
@@ -239,9 +285,9 @@ Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek b
 echo $c['env']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
 ```
 
-Yukarıdaki örnekte fonksiyonun <b>birinci</b> parametresi <b>$_ENV</b> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
+Yukarıdaki örnekte fonksiyonun birinci parametresi <kbd>$_ENV</kbd> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
 
-Eğer en <b>son</b> parametre <b>required</b> olarak girilirse <b>$_ENV</b> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <b>die()</b> metodu ile sonlanacaktır.
+Eğer en son parametre <kbd>required</kbd> olarak girilirse <kbd>$_ENV</kbd> değişkeni içerisinden anahtar değeri boş geldiğinde uygulama hata vererek işlem php <kbd>die()</kbd> metodu ile sonlanacaktır.
 
 Boş gelemez zorunluluğuna bir örnek
 
@@ -272,11 +318,11 @@ return array(
 /* Location: .app/config/local/mongo.php */
 ```
 
-### Yeni Bir Ortam Değişkeni Yaratmak
+<a name="create-your-environment"></a>
 
-Yeni bir ortam yaratmak için <b>app/environments.php</b> dosyasına ortam adını küçük harflerle girin. Aşağıdaki örnekte biz <b>myenv</b> adında bir ortam yaratttık.
+#### Yeni Bir Ortam Değişkeni Yaratmak
 
-#### environments.php
+Yeni bir ortam yaratmak için <kbd>app/environments.php</kbd> dosyasına ortam adını küçük harflerle girin. Aşağıdaki örnekte biz <kbd>env.my</kbd> adında bir ortam yaratttık.
 
 ```php
 return array(
@@ -295,64 +341,62 @@ return array(
 
 Yeni yarattığınız ortam klasörüne içine gerekli ise bir <b>config.php</b> dosyası ve database.php gibi diğer config dosyalarını yaratabilirsiniz. 
 
-#### Konfigürasyon Dosyalarına Yazmak
+<a name="creating-environment-config"></a>
 
-Config sınıfı içerisindeki write metodu <kbd>app/config/env/$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>app/config/env/local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
+#### Ortam Konfigürasyon Dosyası Yaratmak
+
+Prodüksiyon ortamı üzerinden örnek verecek olursak bu klasöre ait config dosyaları içerisine yalnızca ortam değiştiğinde değişen anahtar değerlerini girmeniz yeterli olur. Çünkü konfigürasyon paketi geçerli ortam klasöründeki konfigürasyonlara ait değişen anahtarları <b>local</b> ortam anahtarlarıyla eşleşirse değiştirir aksi durumda olduğu gibi bırakır.
+
+Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> dosyası ekleseydik config.php dosyası içerisine sadece değişen anahtarları eklememiz yeterli olacaktı.
 
 ```php
-$newArray = $this->c['config']['domain'];
-$newArray['root']['maintenance'] = 'down';  // Yeni değerleri atayalım
-
-$this->c['config']->write('domain.php', $newArray);
+- app
+    - config
+        + env.local
+        - env.production
+            config.php
+            database.php
+        + env.test
+        - env.my
+            config.php
+            database.php
 ```
 
-Şimdi domain.php dosyanız aşağıdaki gibi güncellenmiş olmalı.
+Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan env.local ortam anahtarları ile değiştirilirler.
+
+Takip eden örnekte <kbd>production</kbd> ortamı için örnek bir <b>config.php</b> dosyası görülüyor.
 
 ```php
 return array(
+                    
+    'error' => [
+        'debug' => false,   // Debugging feature "disabled"" in "production" environment.
+    ],
 
-    'root' => [
-        'maintenance' => 'down',
-        'regex' => null,
+    'log' =>   [
+        'enabled' => false,
     ],
-    'mydomain.com' => [
-        'maintenance' => 'up',
-        'regex' => '^framework$',
+
+    'url' => [
+        'webhost' => 'example.com',
+        'baseurl' => '/',
+        'assets' => 'http://cdn.example.com/assets/',
     ],
-    'sub.domain.com' => [
-        'maintenance' => 'up',
-        'regex' => '^sub.domain.com$',
+
+    'http' => [
+        'debugger' => [
+            'enabled' => false
+        ]
+    ],
+
+    'cookie' => [
+        'domain' => ''  // Set to .your-domain.com for site-wide cookies
+
     ],
 );
 
-/* End of file */
-/* Location: ./var/www/framework/app/config/env/local/domain.php */
-```
-
-Yukarıdaki örnek <kbd>app/config/env/$env/</kbd> klasörü altındaki dosyalara yazma işlemi yapar. Eğer env klasörü dışında olan yani paylaşımlı bir konfigürasyon dosyasına yazma işlemi gerçekleştimek istiyorsak <b>"../"</b> dizinden çıkma karakteri kullanarak kaydetme işlemini gerçekleştirmemiz gerekir.
-
-```php
-$newArray = $this->c['config']->load('agents');
-$newArray['platforms']['pc']['test'] = 'Merhaba yeni platform';  // Yeni değerleri atayalım
-
-$this->c['config']->write('../agents.php', $newArray);
-```
-
-Şimdi <kbd>.app/config/agents.php</kbd> dosyasına bir gözatın.
-
-```php
-return array(
-    
-    'platforms' => [
-
-        'pc' => [
-            'gnu' => 'GNU/Linux',
-            'unix' => 'Unknown Unix OS',
-            'test' => 'Merhaba yeni platform',
-
-
-/* End of file agents.php */
-/* Location: .app/config/agents.php */
+/* End of file config.php */
+/* Location: .app/config/env.production/config.php */
 ```
 
 #### Config Sınıfı Referansı

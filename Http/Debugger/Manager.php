@@ -53,9 +53,13 @@ class Manager
     {
         $this->c = $c;
         if (! $this->c['config']['http']['debugger']['enabled']) {
-            $this->c['response']->status(300)->showError('Debugger disabled from your application config file.', "Debugger Disabled");
+            $this->c['response']->status(300)->showError(
+                'Debugger disabled from your application config file.', 
+                'Debugger Disabled'
+            );
         }
-        $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
+        // Disable logs sending by _debugger=1 params.
+        $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1');
         $this->websocketUrl = $this->c['config']['http']['debugger']['socket'];
         $this->debugOutput  = new Output($this->c);
     }
@@ -135,7 +139,6 @@ class Manager
                     connectedImg.src = base64DeactiveSrc;
 
                     var wsUri = "'.$this->websocketUrl.'";           // Create webSocket connection
-                    console.log(wsUri);
                     var websocket =  new WebSocket(wsUri);
 
                     websocket.onopen = function(data) {        // Connection is open 

@@ -41,12 +41,18 @@ class WebSocket
     protected $port;
 
     /**
+     * Web socket
+     * 
+     * @var object
+     */
+    protected $socket;
+
+    /**
      * Websocket connect
      * 
      * @var boolean
      */
     protected $connect;
-    protected $socket;
 
     /**
      * Constructor
@@ -81,7 +87,7 @@ class WebSocket
             return;
         }
         if ($this->connect == false) {
-            $message = "Debugger server is not running. Please run debugger from your console: <pre>php task debugger</pre>";
+            $message = "Debugger enabled in your config file but server is not running. Please run debugger from your console: <pre>php task debugger</pre>";
             if ($this->c['request']->isAjax()) {
                 $message = strip_tags($message);
             }

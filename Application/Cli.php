@@ -70,7 +70,7 @@ class Cli extends Application
         include APP .'events.php';
         include APP .'routes.php';
         
-        if ($this->c['config']['http']['debugger']) {
+        if ($this->c['config']['http']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c);
             $this->websocket->connect();
         }
@@ -166,7 +166,7 @@ class Cli extends Application
      */
     public function checkDebugger()
     {
-        if ($this->c['config']['http']['debugger']) {
+        if ($this->c['config']['http']['debugger']['enabled']) {
             $this->websocket->cliHandshake();
         }
     }

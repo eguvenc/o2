@@ -105,7 +105,7 @@ if ($id = $this->request->post('id', 'is')->int()) {
 	echo $id;
 }
 ```
-Eğer parametre kullanmak istiyorsanız request değerini alabilmek için ilk parametre <b>null</b> girilmelidir.
+Eğer parametre kullanmak istiyorsanız int() fonksiyonun ilk parametresini atlayarak diğer parametreleri girin.
 
 ```php
 if ($id = $this->request->post('id', 'is')->int(false, 0, 1000)) {
