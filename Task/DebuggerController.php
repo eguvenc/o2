@@ -321,6 +321,7 @@ class DebuggerController extends Controller
         if ($sent === false) {
             return false;
         }
+
         // Check if the entire message has been sented
         if ($sent < $this->length) {
                 

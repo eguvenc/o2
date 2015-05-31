@@ -188,7 +188,7 @@ class Application
      */
     protected function dispatchAnnotations()
     {
-        if ($this->c['config']['annotations']['enabled']) {
+        if ($this->c['config']['controller']['annotations']) {
             $docs = new \Obullo\Annotations\Controller($this->c, $this->class, $this->method);
             $docs->parse();
         }
@@ -285,6 +285,23 @@ class Application
     public function envPath()
     {
         return APP .'config'. DS . $this->env() . DS;
+    }
+
+    /**
+     * Register core components
+     *
+     * @param array $namespaces component class name & namespaces
+     * 
+     * @return void
+     */
+    public function component(array $namespaces)
+    {
+        foreach ($namespaces as $name => $Class) {
+            $this->c[$name] = function () use ($Class) {
+                $Class = '\\'.ltrim($Class, '\\');
+                return new $Class($this->c);
+            };
+        }
     }
 
     /**

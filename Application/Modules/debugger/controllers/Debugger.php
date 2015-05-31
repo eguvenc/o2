@@ -2,7 +2,7 @@
 
 namespace Debugger;
 
-use Obullo\Http\Debugger\DebugManager;
+use Obullo\Http\Debugger\Manager;
 
 class Debugger extends \Controller
 {
@@ -16,7 +16,7 @@ class Debugger extends \Controller
         if ($this->c['app']->env() == 'production') {  // Disable debugger in production mode
             $this->c['response']->show404();
         }
-        $this->debugger = new DebugManager($this->c);
+        $this->debugger = new Manager($this->c);
     }
 
     /**

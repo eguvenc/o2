@@ -60,8 +60,8 @@ class Config implements ArrayAccess
         $this->c = $c;
         $this->env = $c['app']->env();
 
-        $this->path  = APP .'config'. DS . 'env'. DS .$this->env. DS;
-        $this->local = APP .'config'. DS . 'env'. DS .'local'. DS;
+        $this->path  = APP .'config'. DS .'env.'.$this->env. DS;
+        $this->local = APP .'config'. DS .'env.local'. DS;
         
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
@@ -82,7 +82,7 @@ class Config implements ArrayAccess
     {
         $dotenv = '.env.'. $this->env .'.php';
         $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
-        if ( ! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
+        if (! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
             static::configurationError();
         }
         $_ENV = $envVariables;
@@ -119,7 +119,7 @@ class Config implements ArrayAccess
         }
         $config = include $file;
 
-        if ($this->env != 'local' AND $isEnvFile) { // Merge config variables if env not local.
+        if ($this->env != 'local' && $isEnvFile) { // Merge config variables if env not local.
             $localConfig = include $this->local . $fileUrl .'.php';
             return $this->array[$filename] = array_replace_recursive($localConfig, $config);
         } else {
@@ -138,14 +138,14 @@ class Config implements ArrayAccess
      */
     public function write($filename, $data)
     {
-        $fullpath = APP .'config'. DS .'env'. DS .$this->env. DS;
+        $fullpath = APP .'config'. DS .'env.'.$this->env. DS;
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
             $fullpath = APP .'config'. DS;
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file */\n/* Location: .app/config/env/$this->env/$filename */");
+        $writer->addDoc("\n/* End of file */\n/* Location: .app/config/env.$this->env/$filename */");
         $writer->toFile($fullpath . str_replace('/', DS, $filename), $data);
     }
 
@@ -171,7 +171,7 @@ class Config implements ArrayAccess
      */
     public function offsetGet($key)
     {
-        if ( ! isset($this->array[$key])) {
+        if (! isset($this->array[$key])) {
             return false;
         }
         return $this->array[$key];

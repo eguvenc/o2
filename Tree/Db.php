@@ -8,7 +8,7 @@ use RunTimeException;
 /**
  * Nested Set Model Tree Class
  *
- * Modeled after https://github.com/olimortimer/ci-nested-sets
+ * Modeled after https://github.com/olimortimer/ci-nested-sets (✿◠‿◠)
  *
  * @category  Tree
  * @package   Db

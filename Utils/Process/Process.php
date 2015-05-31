@@ -11,7 +11,7 @@ use Obullo\Utils\Process\Exception\ProcessTimedOutException;
  * Process is a thin wrapper around proc_* functions to easily
  * start independent PHP processes.
  *
- * This file is borrowed from Symfony process package.
+ * This file is borrowed from Symfony process package (✿◠‿◠)
  * 
  * @category  Process
  * @package   Process

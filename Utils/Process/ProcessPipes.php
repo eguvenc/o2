@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * ProcessPipes manages descriptors and pipes for the use of proc_open.
  *
- * This file is borrowed from Symfony process package.
+ * This file is borrowed from Symfony process package (✿◠‿◠)
  * 
  * @category  Process
  * @package   ProcessPipes

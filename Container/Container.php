@@ -13,7 +13,7 @@ use InvalidArgumentException;
 /**
  * Container class
  *
- * This file after modeled Pimple Software ( Dependency Container )
+ * This file modeled after Pimple Software (✿◠‿◠)
  * 
  * @category  Container
  * @package   Container

@@ -5,7 +5,7 @@ namespace Obullo\Http\Debugger;
 use Obullo\Container\Container;
 
 /**
- * Debug Manager Class
+ * Manager Class
  * 
  * @category  Debug
  * @package   Debugger
@@ -14,7 +14,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/debugger
  */
-class DebugManager
+class Manager
 {
     /**
      * Container
@@ -57,8 +57,7 @@ class DebugManager
         }
         $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1'); // Disable logs sending by _debugger=1 params.
         $this->websocketUrl = $this->c['config']['http']['debugger']['socket'];
-
-        $this->debugOutput = new DebugOutput($this->c);
+        $this->debugOutput  = new Output($this->c);
     }
 
     /**
@@ -247,7 +246,6 @@ class DebugManager
     {   
         $redirectUrl = preg_replace('#\/debugger\/off$#', '', $this->c['uri']->getRequestUri());
         $redirectUrl = '/'.trim($redirectUrl, '/');
-        
         echo '<html>';
         echo '<head>';
         echo '<script type="text/javascript">';
@@ -270,7 +268,7 @@ class DebugManager
 
 }
 
-// END DebugManager class
-/* End of file DebugManager.php */
+// END Manager class
+/* End of file Manager.php */
 
-/* Location: .Obullo/Http/Debbuger/DebugManager.php */
+/* Location: .Obullo/Http/Debbuger/Manager.php */

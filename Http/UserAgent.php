@@ -5,6 +5,8 @@ namespace Obullo\Http;
 /**
  * Identifies the platform, browser, robot, or mobile devise of the browsing agent
  *
+ * This file modeled after Codeigniter User Agent class (✿◠‿◠)
+ * 
  * @category  UserAgent
  * @package   Agent
  * @author    Obullo Framework <obulloframework@gmail.com>

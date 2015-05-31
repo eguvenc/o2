@@ -357,7 +357,7 @@ return array(
 );
 
 /* End of file config.php */
-/* Location: .app/config/env/production/config.php */
+/* Location: .app/config/env.production/config.php */
 ```
 
 <a name="env-class"></a>

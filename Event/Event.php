@@ -8,7 +8,7 @@ use Obullo\Container\Container;
 /**
  * Event Class
  * 
- * Modeled after Laravel event package.
+ * Modeled after Laravel event package (✿◠‿◠)
  * 
  * @category  Event
  * @package   Event
@@ -68,7 +68,7 @@ class Event
      */
     public function listen($events, $listener, $priority = 0)
     {
-        if ( ! is_string($listener) AND ! is_callable($listener)) {
+        if (! is_string($listener) && ! is_callable($listener)) {
             throw new RuntimeException('Listen method second parameter must be class name or closure function.');
         }
         foreach ((array) $events as $event) {
@@ -130,7 +130,7 @@ class Event
     public function fire($event, $payload = array(), $halt = false)
     {
         $responses = array();
-        if ( ! is_array($payload)) {      // If an array is not given to us as the payload, we will turn it into one so
+        if (! is_array($payload)) {      // If an array is not given to us as the payload, we will turn it into one so
             $payload = array($payload);   // we can easily use call_user_func_array on the listeners, passing in the
         }                                 // payload to each of them so that they receive each of these arguments.
         $this->firing[] = $event;
@@ -139,7 +139,7 @@ class Event
         foreach ($listeners as $listener) {
             $response = call_user_func_array($listener, $payload);
 
-            if ( ! is_null($response) AND $halt) {   // If a response is returned from the listener and event halting is enabled
+            if (! is_null($response) AND $halt) {   // If a response is returned from the listener and event halting is enabled
                 array_pop($this->firing);            // we will just return this response, and not call the rest of the event
                 return $response;                    // listeners. Otherwise we will add the response on the response list.
             }
@@ -162,7 +162,7 @@ class Event
      */
     public function getListeners($event)
     {
-        if ( ! isset($this->sorted[$event])) {
+        if (! isset($this->sorted[$event])) {
             $this->sortListeners($event);
         }
         return $this->sorted[$event];
@@ -211,7 +211,7 @@ class Event
             // received in this method into this listener class instance's methods.
             $data = func_get_args();
 
-            if ( ! isset($this->subscribers[$handler])) {  // Lazy loading
+            if (! isset($this->subscribers[$handler])) {  // Lazy loading
                 $this->subscribers[$handler] = new $handler($this->c);
             }
             return call_user_func_array(array($this->subscribers[$handler], $method), $data);  // Container make

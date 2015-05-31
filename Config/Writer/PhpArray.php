@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * PhpArray Writer
  *
- * Borrowed from Zend Framework
+ * Borrowed from Zend Framework (✿◠‿◠)
  * 
  * @category  Config
  * @package   Writer
@@ -19,6 +19,8 @@ use RuntimeException;
 class PhpArray extends AbstractWriter
 {
     /**
+     * Index string
+     * 
      * @var string
      */
     const INDENT_STRING = '    ';
@@ -31,7 +33,7 @@ class PhpArray extends AbstractWriter
     protected $useBracketArraySyntax = true;
 
     /**
-     * processConfig(): defined by AbstractWriter.
+     * Defined by AbstractWriter.
      *
      * @param array $config config
      * 
@@ -62,7 +64,7 @@ class PhpArray extends AbstractWriter
     }
 
     /**
-     * toFile(): defined by Writer interface.
+     * Defined by Writer interface.
      *
      * @param string $filename      filename
      * @param mixed  $config        config
@@ -79,7 +81,7 @@ class PhpArray extends AbstractWriter
         if (empty($filename)) {
             throw new RuntimeException('No file name specified');
         }
-        if ( ! is_writable($filename)) {   // Check file is writable
+        if (! is_writable($filename)) {   // Check file is writable
             throw new RuntimeException(
                 sprintf(
                     '%s file is not writable.', 

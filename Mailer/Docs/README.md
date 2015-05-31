@@ -163,7 +163,7 @@ return array(
 );
 
 /* End of file transport.php */
-/* Location: .app/config/env/local/mailer/transport.php */
+/* Location: .app/config/env.local/mailer/transport.php */
 ```
 
 ### Setting Preferences Manually

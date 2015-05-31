@@ -6,7 +6,7 @@ namespace Obullo\Utils;
  * Utility class for testing and manipulation of PHP arrays. 
  * Declared abstract, as we have no need for instantiation.
  *
- * Borrowed from Zend Framework
+ * Borrowed from Zend Framework (✿◠‿◠)
  * 
  * @category  Utilities
  * @package   ArrayUtils
@@ -27,10 +27,10 @@ abstract class ArrayUtils
      */
     public static function hasStringKeys($value, $allowEmpty = false)
     {
-        if ( ! is_array($value)) {
+        if (! is_array($value)) {
             return false;
         }
-        if ( ! $value) {
+        if (! $value) {
             return $allowEmpty;
         }
         return count(array_filter(array_keys($value), 'is_string')) > 0;
@@ -39,7 +39,7 @@ abstract class ArrayUtils
     /**
      * Test whether an array contains one or more integer keys
      *
-     * @param mixed $value
+     * @param mixed $value      value
      * @param bool  $allowEmpty Should an empty array() return true
      * 
      * @return bool
@@ -65,16 +65,17 @@ abstract class ArrayUtils
      * - a float: 2.2120, -78.150999
      * - a string with float:  '4000.99999', '-10.10'
      *
-     * @param  mixed $value
-     * @param  bool  $allowEmpty    Should an empty array() return true
+     * @param mixed $value      value
+     * @param bool  $allowEmpty Should an empty array() return true
+     * 
      * @return bool
      */
     public static function hasNumericKeys($value, $allowEmpty = false)
     {
-        if ( ! is_array($value)) {
+        if (! is_array($value)) {
             return false;
         }
-        if ( ! $value) {
+        if (! $value) {
             return $allowEmpty;
         }
         return count(array_filter(array_keys($value), 'is_numeric')) > 0;
@@ -96,16 +97,17 @@ abstract class ArrayUtils
      * );
      * </code>
      *
-     * @param  mixed $value
-     * @param  bool  $allowEmpty    Is an empty list a valid list?
+     * @param mixed $value      value
+     * @param bool  $allowEmpty Is an empty list a valid list?
+     * 
      * @return bool
      */
     public static function isList($value, $allowEmpty = false)
     {
-        if ( ! is_array($value)) {
+        if (! is_array($value)) {
             return false;
         }
-        if ( ! $value) {
+        if (! $value) {
             return $allowEmpty;
         }
         return (array_values($value) === $value);
@@ -136,8 +138,9 @@ abstract class ArrayUtils
      * );
      * </code>
      *
-     * @param  mixed $value
-     * @param  bool  $allowEmpty    Is an empty array() a valid hash table?
+     * @param mixed $value      value
+     * @param bool  $allowEmpty Is an empty array() a valid hash table?
+     * 
      * @return bool
      */
     public static function isHashTable($value, $allowEmpty = false)
@@ -161,9 +164,10 @@ abstract class ArrayUtils
      * non-strict check is implemented. if $strict = -1, the default in_array
      * non-strict behaviour is used.
      *
-     * @param mixed $needle
-     * @param array $haystack
-     * @param int|bool $strict
+     * @param mixed    $needle   needle
+     * @param array    $haystack haystack
+     * @param int|bool $strict   strict
+     * 
      * @return bool
      */
     public static function inArray($needle, array $haystack, $strict = false)
@@ -201,9 +205,11 @@ abstract class ArrayUtils
      * Converts an iterator to an array. The $recursive flag, on by default,
      * hints whether or not you want to do so recursively.
      *
-     * @param  array|Traversable  $iterator     The array or Traversable object to convert
-     * @param  bool               $recursive    Recursively check all nested structures
+     * @param array|Traversable $iterator  The array or Traversable object to convert
+     * @param bool              $recursive Recursively check all nested structures
+     * 
      * @throws Exception\InvalidArgumentException if $iterator is not an array or a Traversable object
+     * 
      * @return array
      */
     public static function iteratorToArray($iterator, $recursive = true)
@@ -254,9 +260,10 @@ abstract class ArrayUtils
      * from the second array will be appended to the first array. If both values are arrays, they
      * are merged together, else the value of the second array overwrites the one of the first array.
      *
-     * @param  array $a
-     * @param  array $b
-     * @param  bool  $preserveNumericKeys
+     * @param array $a                   a
+     * @param array $b                   b
+     * @param bool  $preserveNumericKeys preserve keys
+     * 
      * @return array
      */
     public static function merge(array $a, array $b, $preserveNumericKeys = false)

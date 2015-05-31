@@ -36,7 +36,7 @@ return array(
     ),
    
 /* End of file mailer.php */
-/* Location: .app/config/env/local/mailer.php */ 
+/* Location: .app/config/env.local/mailer.php */ 
 ```
 
 #### Queue opsiyonu

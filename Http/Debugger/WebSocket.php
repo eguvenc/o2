@@ -46,6 +46,7 @@ class WebSocket
      * @var boolean
      */
     protected $connect;
+    protected $socket;
 
     /**
      * Constructor

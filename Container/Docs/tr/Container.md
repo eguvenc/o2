@@ -308,7 +308,7 @@ return array(
 );
 
 /* End of file redis.php */
-/* Location: .app/config/env/local/cache/redis.php */
+/* Location: .app/config/env.local/cache/redis.php */
 ```
 
 Eğer <b>second</b> bağlantısına ait bir bağlantı isteseydik o zaman servis sağlayıcımızı aşağıdaki gibi çağırmalıydık.

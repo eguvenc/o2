@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 /**
  * Uri Class
  *
- * Modeled after Codeigniter Uri class.
+ * Modeled after Codeigniter Uri class (✿◠‿◠)
  * 
  * @category  Http
  * @package   Uri

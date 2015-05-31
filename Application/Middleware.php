@@ -7,7 +7,7 @@ use Obullo\Container\Container;
 /**
  * Abstract Middleware
  *
- * Modeled After Slim Framework Middleware
+ * Modeled after Slim Framework Middleware (✿◠‿◠)
  * 
  * @category  Http
  * @package   Midddleware

@@ -6,6 +6,8 @@ use Obullo\Container\Container;
 
 /**
  * Element Class
+ *
+ * Modeled after Codeigniter form helper (✿◠‿◠)
  * 
  * @category  Form
  * @package   Element
@@ -38,7 +40,7 @@ class Element
     * @param array  $attributes a key/value pair of attributes
     * @param array  $hidden     a key/value pair hidden data
     * 
-    * @return   string
+    * @return string
     */
     public function form($action, $attributes = '', $hidden = array())
     {
@@ -108,7 +110,7 @@ class Element
     public function button($data = '', $content = '', $extra = '')
     {
         $defaults = array('name' => (( ! is_array($data)) ? $data : ''), 'type' => 'button');
-        if ( is_array($data) && isset($data['content'])) {
+        if (is_array($data) && isset($data['content'])) {
             $content = $data['content'];
             unset($data['content']); // content is not an attribute
         }

@@ -9,7 +9,7 @@ use Obullo\Utils\ArrayUtils;
 /**
  * Abstract Writer Class
  *
- * Borrowed from Zend Framework
+ * Borrowed from Zend Framework (✿◠‿◠)
  * 
  * @category  Config
  * @package   Writer
@@ -21,7 +21,7 @@ use Obullo\Utils\ArrayUtils;
 abstract class AbstractWriter
 {
     /**
-     * toFile(): defined by Writer interface.
+     * Defined by Writer interface.
      *
      * @param string $filename      filename
      * @param mixed  $config        config
@@ -37,7 +37,7 @@ abstract class AbstractWriter
         if (empty($filename)) {
             throw new RuntimeException('No file name specified');
         }
-        if ( ! is_writable($filename)) {        // Check file is writable
+        if (! is_writable($filename)) {        // Check file is writable
             throw new RuntimeException(
                 sprintf(
                     '%s file is not writable.', 
@@ -69,11 +69,11 @@ abstract class AbstractWriter
     }
 
     /**
-     * toString(): defined by Writer interface.
+     * Defined by Writer interface.
      *
      * @param mixed $config config
      * 
-     * @see   WriterInterface::toString()
+     * @see    WriterInterface::toString()
      * @throws Exception\InvalidArgumentException
      * 
      * @return string
@@ -82,7 +82,7 @@ abstract class AbstractWriter
     {
         if ($config instanceof Traversable) {
             $config = ArrayUtils::iteratorToArray($config);
-        } elseif ( ! is_array($config)) {
+        } elseif (! is_array($config)) {
             throw new RuntimeException(__METHOD__ . ' expects an array or Traversable config');
         }
         return $this->processConfig($config);

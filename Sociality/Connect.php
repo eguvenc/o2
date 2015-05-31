@@ -7,6 +7,8 @@ use Obullo\Container\Container;
 
 /**
  * Socality Connector
+ *
+ * This package modeled after Laravel sociality package (✿◠‿◠)
  * 
  * @category  Socality
  * @package   Connect
