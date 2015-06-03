@@ -4,7 +4,7 @@ namespace Obullo\Service\Providers;
 
 use Obullo\Log\Logger;
 use Obullo\Log\NullLogger;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
@@ -33,7 +33,7 @@ class LoggerServiceProvider implements ServiceProviderInterface
      *
      * @return void
      */
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $this->c = $c;
     }

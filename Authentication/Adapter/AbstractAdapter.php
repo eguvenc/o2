@@ -1,8 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
-
-use Obullo\Container\Container;
+namespace Obullo\Authentication\Adapter;
 
 /**
  * Abstract Adapter
@@ -14,27 +12,8 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-abstract class AbstractAdapter
+abstract class AbstractAdapter implements AdapterInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Set container
-     * 
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function setContainer(Container $c)
-    {
-        $this->c = $c;
-    }
-
     /**
      * Regenerate the session id
      *
@@ -57,12 +36,11 @@ abstract class AbstractAdapter
      */
     public function verifyPassword($plain, $hash)
     {
-        $cost = $this->c['user']['security']['passwordNeedsRehash']['cost'];
-        $password = $this->c['password'];
+        $cost = $this->params['security']['passwordNeedsRehash']['cost'];
 
-        if ($password->verify($plain, $hash)) {
-            if ($password->needsRehash($hash, array('cost' => $cost))) {
-                $value = $password->hash($plain, array('cost' => $cost));
+        if ($this->c['password']->verify($plain, $hash)) {
+            if ($this->c['password']->needsRehash($hash, array('cost' => $cost))) {
+                $value = $this->c['password']->hash($plain, array('cost' => $cost));
                 return array('hash' => $value);
             }
             return true;
@@ -91,4 +69,4 @@ abstract class AbstractAdapter
 // END AbstractAdapter.php File
 /* End of file AbstractAdapter.php
 
-/* Location: .Obullo/Authentication/AbstractAdapter.php */
+/* Location: .Obullo/Authentication/Adapter/AbstractAdapter.php */

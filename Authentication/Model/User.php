@@ -3,10 +3,8 @@
 namespace Obullo\Authentication\Model;
 
 use Pdo;
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
-use Obullo\Authentication\UserProviderInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
@@ -21,8 +19,7 @@ use Obullo\Service\ServiceProviderInterface;
  */
 class User implements UserInterface
 {
-    public $c;                      // Container
-    public $db;                     // Database
+    public $db;                     // Database object
     public $tablename;              // Users tablename
     public $columnId;               // Primary key column name
     public $columnIdentifier;       // Username column name
@@ -32,33 +29,33 @@ class User implements UserInterface
      /**
      * Constructor
      * 
-     * @param object $c        container
      * @param object $provider ServiceProviderInterface
+     * @param object $params   Auth configuration & service configuration parameters
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider)
+    public function __construct(ServiceProviderInterface $provider, array $params)
     {
-        $this->c = $c;
-        $this->tablename           = $this->c['user']['db.tablename'];      // Db users tablename
-        $this->columnId            = $this->c['user']['db.id'];
-        $this->columnIdentifier    = $this->c['user']['db.identifier'];
-        $this->columnPassword      = $this->c['user']['db.password'];
-        $this->columnRememberToken = $this->c['user']['db.rememberToken'];  // RememberMe token column name
+        $this->tablename           = $params['db.tablename'];      // Db users tablename
+        $this->columnId            = $params['db.id'];
+        $this->columnIdentifier    = $params['db.identifier'];
+        $this->columnPassword      = $params['db.password'];
+        $this->columnRememberToken = $params['db.rememberToken'];  // RememberMe token column name
 
-        $this->connect($provider);
+        $this->connect($provider, $params);
     }
 
     /**
      * Set database provider connection variable ( We don't open the db connection in here ) 
      * 
-     * @param object $provider [description]
+     * @param object $provider service provider object
+     * @param array  $params   parameters
      * 
      * @return void
      */
-    public function connect($provider)
+    public function connect(ServiceProviderInterface $provider, array $params)
     {
         $this->db = $provider->get(
             [
-                'connection' => $this->c['user']['db.connection']
+                'connection' => $params['db.connection']
             ]
         );
     }

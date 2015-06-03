@@ -2,8 +2,6 @@
 
 namespace Obullo\Http\Request;
 
-use Obullo\Container\Container;
-
 /**
  * Parse Http Request Headers
  * 

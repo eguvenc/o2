@@ -5,7 +5,7 @@ namespace Obullo\View;
 use Closure;
 use Controller;
 use Obullo\Layer\Layer;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * View Class
@@ -43,7 +43,7 @@ class View
      * 
      * @param array $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->_staticVars = array(

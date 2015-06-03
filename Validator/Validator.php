@@ -4,7 +4,7 @@ namespace Obullo\Validator;
 
 use Closure;
 use Controller;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Validator Class
@@ -38,7 +38,7 @@ class Validator
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {    
         mb_internal_encoding($c['config']['locale']['charset']);
         

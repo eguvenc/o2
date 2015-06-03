@@ -10,8 +10,8 @@ use AMQPException;
 use AMQPConnection;
 use RuntimeException;
 use Obullo\Queue\Queue;
-use Obullo\Container\Container;
 use Obullo\Queue\JobHandler\AMQPJob;
+use Obullo\Container\ContainerInterface;
 
 /**
  * AMQP Handler
@@ -67,7 +67,7 @@ class AMQP extends Queue implements HandlerInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('queue/amqp');

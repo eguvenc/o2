@@ -2,10 +2,10 @@
 
 namespace Obullo\Captcha\Adapter;
 
-use Obullo\Container\Container;
 use Obullo\Captcha\CaptchaResult;
 use Obullo\Captcha\AbstractAdapter;
 use Obullo\Captcha\AdapterInterface;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Captcha ReCaptcha Adapter
@@ -74,7 +74,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $c['config']->load('recaptcha/recaptcha');

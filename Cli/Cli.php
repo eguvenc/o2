@@ -2,9 +2,9 @@
 
 namespace Obullo\Cli;
 
-use Obullo\Log\Logger;
 use InvalidArgumentException;
-use Obullo\Container\Container;
+use Obullo\Log\LoggerInterface;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Console Argument Parser Class
@@ -47,10 +47,10 @@ class Cli
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->logger = $c['logger'];
-        if ($this->logger instanceof Logger) {  // We need to sure logger object is available
+        if ($this->logger instanceof LoggerInterface) {  // We need to sure logger object is available
             $this->logger->debug('Cli Class Initialized');
         }
     }
@@ -64,7 +64,7 @@ class Cli
      */
     public function parse($parameters = array())
     {
-        if ( ! is_array($parameters) OR ! isset($parameters[0])) {
+        if ( ! is_array($parameters) || ! isset($parameters[0])) {
             return array();
         }
         $this->arguments['command'] = $parameters[0];
@@ -79,7 +79,7 @@ class Cli
                 $params[] = trim($value, static::SIGN);
             }
         }
-        if ($this->logger instanceof Logger) {
+        if ($this->logger instanceof LoggerInterface) {
             $this->logger->debug('Cli parameters resolved', array('parameters' => $params));
         }
         $this->segments = $params;
@@ -96,7 +96,7 @@ class Cli
      */
     public function segment($segment, $default = null)
     {
-        if (is_numeric($segment) AND isset($this->segments[$segment])) {
+        if (is_numeric($segment) && isset($this->segments[$segment])) {
             return $this->segments[$segment];
         }
         return $default;
@@ -122,7 +122,7 @@ class Cli
      */
     public function argument($key, $default = null)
     {
-        if (is_string($key) AND isset($this->arguments[$key])) {
+        if (is_string($key) && isset($this->arguments[$key])) {
             return $this->arguments[$key];
         }
         return $default;
@@ -151,7 +151,7 @@ class Cli
 
 }
 
-// END Parser.php File
-/* End of file Parser.php
+// END Cli.php File
+/* End of file Cli.php
 
-/* Location: .Obullo/Cli/Parser.php */
+/* Location: .Obullo/Cli/Cli.php */

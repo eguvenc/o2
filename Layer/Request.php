@@ -3,7 +3,7 @@
 namespace Obullo\Layer;
 
 use Controller;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Request Class
@@ -29,7 +29,7 @@ class Request
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {   
         $this->c = $c;
         $this->params = $c['config']['layer'];

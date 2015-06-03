@@ -8,7 +8,6 @@ use LogicException;
 use ErrorException;
 use RuntimeException;
 use Obullo\Queue\Queue;
-use Obullo\Container\Container;
 use Obullo\Error\ErrorHandler;
 
 /**
@@ -23,11 +22,9 @@ trait LoggerTrait
      */
     public function initialize()
     {
-        $this->c['config']->load('logger');  // Load logger package configuration
-
-        $this->channel = $this->c['config']['logger']['default']['channel'];
-        $this->queries = $this->c['config']['logger']['app']['query']['log'];
-        $this->benchmark = $this->c['config']['logger']['app']['benchmark'];
+        $this->channel = $this->config['default']['channel'];
+        $this->queries = $this->config['app']['query']['log'];
+        $this->benchmark = $this->config['app']['benchmark'];
 
         $this->detectRequest();  
     }
@@ -61,9 +58,9 @@ trait LoggerTrait
         if (defined('STDIN')) {  // Cli request
             $this->request = 'cli';
         }
-        if (isset($_SERVER['argv'][1]) AND $_SERVER['argv'][1] == 'worker') {  // Job Server request
+        if (isset($_SERVER['argv'][1]) && $_SERVER['argv'][1] == 'worker') {  // Job Server request
             $this->request = 'worker';
-            if ($this->c['config']['logger']['queue']['workers']['logging'] == false) {
+            if ($this->config['queue']['workers']['logging'] == false) {
                 $this->enabled = false;
             }
         }      
@@ -211,7 +208,7 @@ trait LoggerTrait
             $recordUnformatted['message'] = $message;
             $recordUnformatted['context'] = $context;
             $this->sendToQueue($recordUnformatted, $priority); // Send to Job queue
-            $this->channel($this->c['config']['logger']['default']['channel']);          // reset channel to default
+            $this->channel($this->config['default']['channel']);          // reset channel to default
         }
         return $this;
     }
@@ -231,7 +228,7 @@ trait LoggerTrait
     {
         foreach ($this->writers as $name => $val) {
             $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
-            if (is_array($filteredRecords) AND count($filteredRecords) > 0) {  // If we have records.
+            if (is_array($filteredRecords) && count($filteredRecords) > 0) {  // If we have records.
                 $this->connect(true);  // Lazy connections ...
                 $this->priorityQueue[$name]->insert($filteredRecords, (empty($messagePriority)) ? $val['priority'] : $messagePriority);
             }

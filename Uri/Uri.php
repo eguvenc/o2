@@ -2,7 +2,7 @@
 
 namespace Obullo\Uri;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Uri Class
@@ -36,7 +36,7 @@ class Uri
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $c['config'];
@@ -350,9 +350,9 @@ class Uri
      */
     public function getAssetsUrl($uri = '', $folder = true)
     {
-        $assetsFolder = ($folder) ? trim($this->c['config']['url']['assets']['folder'], '/').'/' : '';
+        $assetsFolder = ($folder) ? trim($this->config['url']['assets']['folder'], '/').'/' : '';
         
-        return $this->c['config']['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
+        return $this->config['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
     }
 
     /**
@@ -442,7 +442,7 @@ class Uri
      */
     public function getWebHost()
     {
-        return trim($this->c['config']['url']['webhost'], '/');
+        return trim($this->config['url']['webhost'], '/');
     }
 
     /**

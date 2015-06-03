@@ -4,6 +4,7 @@ namespace Obullo\Mailer\Transport;
 
 use Obullo\Mailer\Text;
 use Obullo\Mailer\Validator;
+use Obullo\Container\ContainerInterface;
 
 /**
  * StandartMailer Class
@@ -65,7 +66,7 @@ abstract class StandartMailer
      * 
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->init();

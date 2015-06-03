@@ -2,8 +2,8 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\Container;
 use Obullo\Http\Response\Headers;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Http response Class.
@@ -61,7 +61,7 @@ class Response
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->c['config']->load('response');
@@ -155,7 +155,9 @@ class Response
             $this->c['response.headers']->remove('Content-Length');
         }
         $headers = $options = array();
-        if ($this->c->loaded('response.headers')) {  // If response headers object loaded
+        
+        if ($this->c->used('response.headers')) {  // If response headers object loaded
+
             $headers = $this->c['response.headers']->all();
             $options = $this->c['response.headers']->options();
         }

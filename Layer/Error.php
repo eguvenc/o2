@@ -2,8 +2,6 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Container\Container;
-
 /**
  * Error Class
  * 
@@ -34,23 +32,6 @@ class Error
     color:#E53528;
     font-size:12px;">';
     const ERROR_FOOTER = '</div>';
-
-    /**
-     * Container class
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct(Container $c)
-    {
-        $this->c = $c;
-    }
 
     /**
      * Format layer errors

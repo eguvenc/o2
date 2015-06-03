@@ -4,6 +4,7 @@ namespace Obullo\Sociality\Provider;
 
 use Obullo\Curl\Curl;
 use InvalidArgumentException;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Provider
@@ -85,11 +86,11 @@ abstract class AbstractProvider
      * Create a new provider instance.
      *
      * @param object $c      container instance
-     * @param string $params parameters
+     * @param array  $params parameters
      * 
      * @return void
      */
-    public function __construct($c, $params)
+    public function __construct(ContainerInterface $c, $params)
     {
         $this->c       = $c;
         $this->params  = $params;

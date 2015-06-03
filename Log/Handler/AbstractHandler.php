@@ -2,7 +2,8 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\Container;
+use Obullo\Log\Formatter\LineFormatter;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Log Handler
@@ -17,14 +18,20 @@ use Obullo\Container\Container;
 abstract class AbstractHandler
 {
     /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $config = array();
+
+    /**
      * Constructor
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-        $this->c['config']->load('logger');
+        $this->config = $c['config']->load('logger');
     }
 
     /**
@@ -41,7 +48,7 @@ abstract class AbstractHandler
             return false;
         }
         if ($record['request'] == 'worker') {
-            return $this->c['config']['logger']['queue']['workers']['logging'];  //  If worker logs allowed from config file.
+            return $this->config['queue']['workers']['logging'];  //  If worker logs allowed from config file.
         }
         if (in_array($record['request'], array(null, 'http','ajax','cli'))) {
             return true;
@@ -60,7 +67,7 @@ abstract class AbstractHandler
     public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($this->c['config']['logger']['format']['date'], $data['time']),
+            'datetime' => date($this->config['format']['date'], $data['time']),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -68,7 +75,7 @@ abstract class AbstractHandler
             'context'  => null,
             'extra'    => null,
         );
-        if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
+        if (isset($unformattedRecord['context']['extra']) && count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = var_export($unformattedRecord['context']['extra'], true);
             unset($unformattedRecord['context']['extra']);     
         }
@@ -77,6 +84,18 @@ abstract class AbstractHandler
             $record['context'] = strtr($str, array("\r\n" => '', "\r" => '', "\n" => ''));
         }
         return $record; // formatted record
+    }
+
+    /**
+     * Format the line defined in app/config/env.$env/config.php
+     * 
+     * @param array $record one log data
+     * 
+     * @return string
+     */
+    public function lineFormat(array $record)
+    {
+        return LineFormatter::format($record, $this->config['format']['line']);
     }
 
     /**
@@ -99,5 +118,5 @@ abstract class AbstractHandler
 
 // END AbstractHandler class
 
-/* End of file AbstractLogHandler.php */
+/* End of file AbstractHandler.php */
 /* Location: .Obullo/Log/Handler/AbstractHandler.php */

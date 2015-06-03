@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class IsBool
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-    
-    /**
      * Is Boolean
      * 
      * @param string $str string

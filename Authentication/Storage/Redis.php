@@ -2,9 +2,7 @@
 
 namespace Obullo\Authentication\Storage;
 
-use Obullo\Container\Container;
-use Obullo\Authentication\AuthResult;
-use Obullo\Authentication\AbstractStorage;
+use Obullo\Session\SessionInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
@@ -19,39 +17,37 @@ use Obullo\Service\ServiceProviderInterface;
  */
 class Redis extends AbstractStorage implements StorageInterface
 {
-    protected $c;               // Container
+    protected $params;          // Config parameters
     protected $cache;           // Cache class
     protected $cacheKey;        // Cache key
     protected $session;         // Session class
-    protected $provider;        // Session class
-    protected $identifier;      // Identify of user ( username, email * .. )
 
     /**
      * Constructor
      * 
-     * @param object $c        container
+     * @param object $session  session
      * @param object $provider provider
      * @param array  $params   parameters
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider, array $params) 
+    public function __construct(SessionInterface $session, ServiceProviderInterface $provider, array $params)
     {
-        $this->c = $c;
         $this->params = $params;
-        $this->provider = $provider;
-        $this->cacheKey = (string)$this->c['user']['cache.key'];
-        $this->session = $this->c['session'];
+        $this->cacheKey = (string)$params['cache.key'];
+        $this->session = $session;
 
-        $this->connect();
+        $this->connect($provider);
     }
 
     /**
      * Connect to cache provider
      * 
+     * @param object $provider service provider
+     * 
      * @return boolean
      */
-    public function connect()
+    public function connect($provider)
     {
-        $this->cache = $this->provider->get(
+        $this->cache = $provider->get(
             [
                 'driver' => $this->params['cache']['provider']['driver'],
                 'connection' => $this->params['cache']['provider']['connection']

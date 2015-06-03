@@ -2,7 +2,7 @@
 
 namespace Obullo\Flash;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Flash Session Class
@@ -68,7 +68,7 @@ class Session
      *
      * @param object $c container
      */
-    public function __construct(Container $c) 
+    public function __construct(ContainerInterface $c) 
     {
         $this->c = $c;
         $this->session = $c['session'];
@@ -77,7 +77,7 @@ class Session
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
         
-        $this->c['logger']->debug('Session Flash Class Initialized');
+        $c['logger']->debug('Session Flash Class Initialized');
     }
 
     /**

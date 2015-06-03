@@ -3,7 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * File Caching Class
@@ -31,7 +31,7 @@ class File implements CacheHandlerInterface
      * 
      * @param array $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->filePath = $c['config']->load('cache/file')['path'];
         $filePath = ltrim($this->filePath, '/');

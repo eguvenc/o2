@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Email
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Valid Email
      *
      * @param string  $str email
@@ -35,7 +25,7 @@ class Email
     public function isValid($str, $dns = false)
     {
         $isValid = ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? false : true;
-        if ($isValid AND $dns) {
+        if ($isValid && $dns) {
             $username = null;
             $domain   = null;
             list($username, $domain) = explode('@', $str);

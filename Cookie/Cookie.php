@@ -3,7 +3,7 @@
 namespace Obullo\Cookie;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Control cookie set, get, delete and queue operations
@@ -15,7 +15,7 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cookie
  */
-class Cookie
+class Cookie implements CookieInterface
 {
     /**
      * Cookie unique id
@@ -23,6 +23,20 @@ class Cookie
      * @var string
      */
     protected $id;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
 
     /**
      * Queued cookies
@@ -43,10 +57,12 @@ class Cookie
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-        $this->c['logger']->debug('Cookie Class Initialized');
+        $this->config = $c['config'];
+        $this->logger = $c['logger'];
+
+        $this->logger->debug('Cookie Class Initialized');
     }
 
     /**
@@ -252,7 +268,7 @@ class Cookie
      */
     public function queued($name, $prefix = '')
     {
-        $prefix = empty($prefix) ? $this->c['config']['cookie']['prefix'] : $prefix;
+        $prefix = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
         return isset($this->queued[$prefix.$name]) ? $this->queued[$prefix.$name]['value'] : false;
     }
 
@@ -266,7 +282,7 @@ class Cookie
      */
     public function unqueue($name, $prefix = '')
     {
-        $prefix = empty($prefix) ? $this->c['config']['cookie']['prefix'] : $prefix;
+        $prefix = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
         unset($this->queued[$prefix.$name]);
     }
 
@@ -280,8 +296,8 @@ class Cookie
      */
     public function get($key, $prefix = '')
     {
-        if ( ! isset($_COOKIE[$key]) && $prefix == '' && $this->c['config']['cookie']['prefix'] != '') {
-            $prefix = $this->c['config']['cookie']['prefix'];
+        if ( ! isset($_COOKIE[$key]) && $prefix == '' && $this->config['cookie']['prefix'] != '') {
+            $prefix = $this->config['cookie']['prefix'];
         }
         if ( ! isset($_COOKIE[$prefix.$key])) {
             return false;
@@ -335,7 +351,7 @@ class Cookie
             if (array_key_exists($k, $params)) {
                 $cookie[$k] = $params[$k];
             } else {
-                $cookie[$k] = $this->c['config']['cookie'][$k];
+                $cookie[$k] = $this->config['cookie'][$k];
             }
         }
         $cookie['expire'] = $this->getExpiration($cookie['expire']);

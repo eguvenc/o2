@@ -3,7 +3,7 @@
 namespace Obullo\Form;
 
 use Controller;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Form Class
@@ -56,7 +56,7 @@ class Form
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->form = $c['config']->load('form');

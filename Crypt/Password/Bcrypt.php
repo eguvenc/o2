@@ -22,7 +22,7 @@ class Bcrypt
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $c = null;
         $Class = (version_compare(phpversion(), '5.5.0', '<')) ? 'Obullo\Crypt\Password\OldVersion' : 'Obullo\Crypt\Password\NewVersion';

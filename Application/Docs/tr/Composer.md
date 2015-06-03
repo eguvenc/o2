@@ -18,7 +18,7 @@ Composer projesi hakkında daha detaylı bilgi için <a href="http://getcomposer
         <a href="#step2">Adım 2 - Konfigürasyon</a>
         <ul>
             <li><a href="#index.php">index.php</a></li>
-            <li><a href="#index.php">cli.php</a></li>
+            <li><a href="#cli.php">cli.php</a></li>
         </ul>
     </li>
 
@@ -81,10 +81,10 @@ mv composer.phar /usr/local/bin/composer
 composer update
 ```
 
-Eğer henüz composer paketleri kurulmadıysa aşağıdaki gibi yükleme işlemini başlatın.
+Eğer henüz composer paketleri kurulmadıysa aşağıdaki gibi yükleme işlemini başlatmalısınız.
 
 ```php
-php composer install
+composer install
 ```
 
 <a name='windows-setup'></a>
@@ -108,11 +108,21 @@ Proje ana dizininde index.php dosyası içerisinden <kbd>require OBULLO .'Applic
 Composer autoloader kütüphanesini <kbd>require 'vendor/autoload.php';</kbd> aşağıdaki gibi ekleyin.
 
 ```php
-require OBULLO. 'Application/Http.php';
-// require OBULLO .'Application/Autoloader.php';
+/*
+|--------------------------------------------------------------------------
+| Constants.
+|--------------------------------------------------------------------------
+*/
+require 'constants';
 /*
 |--------------------------------------------------------------------------
 | Autoloader
+|--------------------------------------------------------------------------
+*/
+// require OBULLO .'Application/Autoloader.php';
+/*
+|--------------------------------------------------------------------------
+| Register Autoloader
 |--------------------------------------------------------------------------
 */
 require 'vendor/autoload.php';
@@ -120,10 +130,20 @@ require 'vendor/autoload.php';
 // Obullo\Application\Autoloader::register();
 /*
 |--------------------------------------------------------------------------
+| Http Requests
+|--------------------------------------------------------------------------
+*/
+require OBULLO .'Application/Http.php';
+/*
+|--------------------------------------------------------------------------
 | Initialize
 |--------------------------------------------------------------------------
 */
 $c['app']->run();
+
+
+/* End of file index.php */
+/* Location: .index.php */
 ```
 
 <a name='cli.php'></a>
@@ -133,11 +153,15 @@ Aynı işlemi aşağıdaki gibi konsol arayüzü içinde yapmanız gerekiyor.
 #### cli.php 
 
 ```php
-require OBULLO. 'Application/Cli.php';
-// require OBULLO .'Application/Autoloader.php';
 /*
 |--------------------------------------------------------------------------
 | Autoloader
+|--------------------------------------------------------------------------
+*/
+// require OBULLO .'Application/Autoloader.php';
+/*
+|--------------------------------------------------------------------------
+| Register Autoloader
 |--------------------------------------------------------------------------
 */
 require 'vendor/autoload.php';
@@ -145,10 +169,20 @@ require 'vendor/autoload.php';
 // Obullo\Application\Autoloader::register();
 /*
 |--------------------------------------------------------------------------
+| Cli Requests
+|--------------------------------------------------------------------------
+*/
+require OBULLO .'Application/Cli.php';
+/*
+|--------------------------------------------------------------------------
 | Initialize
 |--------------------------------------------------------------------------
 */
 $c['app']->run();
+
+
+/* End of file cli.php */
+/* Location: .cli.php */
 ```
 
 <a name='step3'></a>

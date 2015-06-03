@@ -2,10 +2,13 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\Container;
+use Obullo\Authentication\Token;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\Recaller;
+use Obullo\Session\SessionInterface;
+use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\Storage\StorageInterface;
 
 /**
  * O2 Authentication - User Identity Class
@@ -17,14 +20,28 @@ use Obullo\Authentication\Recaller;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-class Identity extends AuthorizedUser
+class Identity extends AuthorizedUser implements IdentityInterface
 {
     /**
-     * Logger
-     *
+     * Container
+     * 
      * @var object
      */
-    protected $logger;
+    protected $c;
+
+    /**
+     * Auth configuration params
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
+     * Session
+     * 
+     * @var object
+     */
+    protected $session;
 
     /**
      * Memory Storage
@@ -32,20 +49,6 @@ class Identity extends AuthorizedUser
      * @var object
      */
     protected $storage;
-
-    /**
-     * Recaller
-     *
-     * @var object
-     */
-    protected $recaller = null;
-
-    /**
-     * If user already is verified
-     *
-     * @var mixed
-     */
-    protected $isVerified = null;
 
     /**
      * Keeps unique session login ids to destroy them
@@ -58,21 +61,25 @@ class Identity extends AuthorizedUser
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c       container
+     * @param object $session storage
+     * @param object $storage auth storage
+     * @param object $params  auth config parameters
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params)
     {
-        $this->setContainer($c);
-        $this->storage = $this->c['auth.storage'];
+        $this->c = $c;
+        $this->params = $params;
+        $this->session = $session;
+        $this->storage = $storage;
 
         if ($rememberToken = $this->recallerExists()) {   // Remember the user if recaller cookie exists
-            $this->recaller = new Recaller($this->c);
-            $this->recaller->recallUser($rememberToken);
+            $recaller = new Recaller($c, $storage, $c['auth.model'], $this, $params);
+            $recaller->recallUser($rememberToken);
         }
-        $this->logger = $this->c['logger'];
         $this->initialize();
 
-        if ($this->c['user']['middleware']['uniqueLogin']) {
+        if ($this->params['middleware']['uniqueLogin']) {
             register_shutdown_function(array($this, 'close'));
         }
     }
@@ -86,7 +93,7 @@ class Identity extends AuthorizedUser
     {
         if ($this->attributes = $this->storage->getCredentials('__permanent')) {
             $this->__isTemporary = 0;                   // Refresh memory key expiration time
-            $this->setCredentials($this->attributes); 
+            $this->setCredentials($this->attributes);
             return;
         }
         $this->attributes = $this->storage->getCredentials('__temporary');
@@ -127,7 +134,7 @@ class Identity extends AuthorizedUser
      */
     public function recallerExists()
     {
-        $name = $this->c['user']['login']['rememberMe']['cookie']['name'];
+        $name = $this->params['login']['rememberMe']['cookie']['name'];
         $token = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
      
         if ( ! $this->storage->hasIdentifier() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
@@ -173,11 +180,7 @@ class Identity extends AuthorizedUser
      */
     public function isVerified()
     {
-        if ($this->isVerified != null) { // We store it into variable for application performance
-            return 1;
-        }
         if (isset($this->__isVerified) && $this->__isVerified == 1) {
-            $this->isVerified = 1;
             return true;
         }
         return false;
@@ -263,7 +266,7 @@ class Identity extends AuthorizedUser
     }
 
     /**
-     * Sets authority of user to "0".
+     * Sets authority of user to "0" don't touch to cached data
      *
      * @return void
      */
@@ -277,7 +280,7 @@ class Identity extends AuthorizedUser
     }
 
     /**
-     * Logout User and destroy all identity data
+     * Logout User and destroy cached identity data
      *
      * @return void
      */
@@ -303,20 +306,23 @@ class Identity extends AuthorizedUser
     /**
      * Update remember token if it exists in the memory and browser header
      *
-     * @return void
+     * @return int|boolean
      */
     public function updateRememberToken()
     {
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
 
-            $rememberMeCookie = $this->c['user']['login']['rememberMe']['cookie'];
+            $rememberMeCookie = $this->params['login']['rememberMe']['cookie'];
             $rememberToken = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
 
             $genericUser = new GenericUser;
-            $genericUser->setContainer($this->c);
-            $genericUser->setCredentials([$this->c['user']['db.identifier'] => $this->getIdentifier(), '__rememberToken' => $rememberToken]);
-
-            $this->refreshRememberToken($genericUser);
+            $genericUser->setCredentials(
+                [
+                    $this->params['db.identifier'] => $this->getIdentifier(),
+                    '__rememberToken' => $rememberToken
+                ]
+            );
+            return $this->refreshRememberToken($genericUser);
         }
     }
 
@@ -325,11 +331,13 @@ class Identity extends AuthorizedUser
      *
      * @param object $genericUser GenericUser
      *
-     * @return void
+     * @return int|boolean
      */
     public function refreshRememberToken(GenericUser $genericUser)
     {
-        $this->c['user.model']->updateRememberToken($this->c['auth.token']->getRememberToken(), $genericUser); // refresh rememberToken
+        $token = Token::getRememberToken($this->c['cookie'], $this->params);
+
+        return $this->c['auth.model']->updateRememberToken($token, $genericUser); // refresh rememberToken
     }
 
     /**
@@ -339,11 +347,16 @@ class Identity extends AuthorizedUser
      */
     public function forgetMe()
     {
-        $cookie = $this->c['user']['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
-        if ( ! $this->c['cookie']->get($cookie['name'], $cookie['prefix'])) {
-            return;
-        }
-        $this->c['cookie']->domain($cookie['domain'])->path($cookie['path'])->delete($cookie['name'], $cookie['prefix']);
+        $cookie = $this->params['login']['rememberMe']['cookie']; // Delete rememberMe cookie if exists
+        setcookie(
+            $cookie['prefix'].$cookie['name'], 
+            null,
+            -1,
+            $cookie['path'],
+            $cookie['domain'],   //  Get domain from global config
+            $cookie['secure'], 
+            $cookie['httpOnly']
+        );
     }
 
     /**
@@ -372,7 +385,6 @@ class Identity extends AuthorizedUser
             $this->storage->killSession($loginId);
         }
     }
-
 }
 
 // END Identity.php File

@@ -2,8 +2,7 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\Container;
-use Obullo\Authentication\UserService;
+use Obullo\Container\ContainerInterface;
 
 /**
  * O2 Authentication - Online Users Activity Class
@@ -18,11 +17,18 @@ use Obullo\Authentication\UserService;
 class Activity
 {
     /**
-     * Container
+     * Storage
      * 
      * @var object
      */
-    protected $c;
+    protected $storage;
+
+    /**
+     * Identity
+     * 
+     * @var object
+     */
+    protected $identity;
 
     /**
      * User identifier ( id or username )
@@ -43,11 +49,13 @@ class Activity
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-        $this->attributes = $this->c['auth.identity']->__activity;
-        $this->identifier = $this->c['auth.identity']->getIdentifier();
+        $this->storage = $c['auth.storage'];
+        $this->identity = $c['auth.identity'];
+
+        $this->attributes = $this->identity->_activity;
+        $this->identifier = $this->identity->getIdentifier();
     }
 
     /**
@@ -64,7 +72,7 @@ class Activity
             return false;
         }
         $this->attributes[$key] = $val;
-        return $this->c['auth.storage']->update('__activity', $this->attributes);
+        return $this->storage->update('__activity', $this->attributes);
     }
 
     /**
@@ -77,7 +85,7 @@ class Activity
     public function get($key)
     {
         if (isset($this->attributes[$key])) {
-            $this->attributes = $this->c['auth.identity']->__activity;
+            $this->attributes = $this->identity->__activity;
         }
         return isset($this->attributes[$key]) ? $this->attributes[$key] : false;
     }
@@ -95,7 +103,7 @@ class Activity
             return false;
         }
         unset($this->attributes[$key]);
-        $this->c['auth.storage']->remove('__activity', $key);
+        $this->storage->remove('__activity', $key);
         return true;
     }
 
@@ -109,13 +117,13 @@ class Activity
         if (empty($this->identifier)) {
             return false;
         }
-        unset($this->c['auth.identity']->__activity);
-        $this->c['auth.storage']->remove('__activity');
+        unset($this->identity->__activity);
+        $this->storage->remove('__activity');
         return true;
     }
 }
 
-// END UserActivity.php File
+// END Activity.php File
 /* End of file Activity.php
 
 /* Location: .Obullo/Authentication/User/Activity.php */

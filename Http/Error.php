@@ -2,7 +2,7 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Show http errors
@@ -17,6 +17,27 @@ use Obullo\Container\Container;
 class Error
 {
     /**
+     * Application
+     * 
+     * @var object
+     */
+    protected $app;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
+     * Response
+     * 
+     * @var object
+     */
+    protected $response;
+
+    /**
      * Constructor
      * 
      * @param object $c        Container
@@ -24,11 +45,11 @@ class Error
      * 
      * @return void
      */
-    public function __construct(Container $c, Response $response)
+    public function __construct(ContainerInterface $c, Response $response)
     {
-        $this->c = $c;
-        $this->response = $response;
+        $this->app = $c['app'];
         $this->logger = $c['logger'];
+        $this->response = $response;
     }
 
     /**
@@ -41,7 +62,7 @@ class Error
     public function show404($page = '')
     {
         if ($this->c->has('app.uri') && empty($page)) {
-            $page = $this->c['app']->uri->getUriString();
+            $page = $this->app->uri->getUriString();
         }
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;

@@ -2,6 +2,8 @@
 
 namespace Obullo\Url;
 
+use Obullo\Container\ContainerInterface;
+
 /**
  * Url Class
  *
@@ -21,7 +23,7 @@ class Url
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->uri = $c['uri'];

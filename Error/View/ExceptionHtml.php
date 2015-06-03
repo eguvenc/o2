@@ -36,7 +36,7 @@ endif;
 ?>
 
 <?php
-if (isset($lastQuery) AND ! empty($lastQuery)) {
+if (isset($lastQuery) && ! empty($lastQuery)) {
     echo '<div class="errorFile"><pre>' . $lastQuery . '</pre></div>';
 }
 ?>
@@ -46,23 +46,23 @@ if (isset($lastQuery) AND ! empty($lastQuery)) {
     $debugTraces = array();
 
     foreach ($fullTraces as $key => $val) {
-        if (isset($val['file']) AND isset($val['line'])) {
+        if (isset($val['file']) && isset($val['line'])) {
             $debugTraces[] = $val;
         }
     }
-    if (isset($debugTraces[0]['file']) AND isset($debugTraces[0]['line'])) {
+    if (isset($debugTraces[0]['file']) && isset($debugTraces[0]['line'])) {
 
-        if (isset($debugTraces[1]['file']) AND isset($debugTraces[1]['line'])) {
+        if (isset($debugTraces[1]['file']) && isset($debugTraces[1]['line'])) {
             
             $html = '';
             foreach ($debugTraces as $key => $trace) {
                 $prefix = uniqid() . '_';
                 if (isset($trace['file'])) {
                     $html = '';
-                    if (isset($trace['class']) AND isset($trace['function'])) {
+                    if (isset($trace['class']) && isset($trace['function'])) {
                         $html.= $trace['class'] . '->' . $trace['function'];
                     }
-                    if (!isset($trace['class']) AND isset($trace['function'])) {
+                    if (!isset($trace['class']) && isset($trace['function'])) {
                         $html.= $trace['function'];
                     }
                     if (isset($trace['args'])) {
@@ -79,7 +79,7 @@ if (isset($lastQuery) AND ! empty($lastQuery)) {
                                 $html.= '<tr>';
                                 $html.= '<td>' . $arg_key . '</td>';
 
-                                if ($trace['function'] == 'createConnection' AND ($arg_key == 2 OR $arg_key == 1)) { // Hide database password for security.
+                                if ($trace['function'] == 'createConnection' || $trace['function'] == 'connect') { // Hide database password for security.
                                     $html.= '<td>***********</td>';
                                 } else {
                                     $html.= '<td>' . DebugOutput::dumpArgument($arg_val) . '</td>';

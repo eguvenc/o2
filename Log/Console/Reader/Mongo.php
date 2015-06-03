@@ -2,8 +2,8 @@
 
 namespace Obullo\Log\Console\Reader;
 
-use Obullo\Container\Container;
 use Obullo\Log\Console\Printer\Colorful;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Mongo Reader
@@ -27,7 +27,7 @@ class Mongo
      * 
      * @return void
      */
-    public function follow(Container $c, $dir = 'http', $db = null, $collection = null)
+    public function follow(ContainerInterface $c, $dir = 'http', $db = null, $collection = null)
     {
         $c['config']->load('logger');
 
@@ -39,7 +39,8 @@ class Mongo
             [
                 'connection' => 'default'
             ]
-        )->selectDb($db); 
+        )->selectDb($db);
+        
         $mongoCollection = $mongo->{$collection};
         $resultArray = $mongoCollection->find();
         

@@ -2,7 +2,7 @@
 
 namespace Obullo\Annotations;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Annotations Middleware Class
@@ -24,6 +24,20 @@ class Middleware
     protected $c;
 
     /**
+     * Event
+     * 
+     * @var object
+     */
+    protected $event;
+
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $count = 0;
+
+    /**
      * When counter
      * 
      * @var array
@@ -42,10 +56,9 @@ class Middleware
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->count = 0;
         $this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
     }
 

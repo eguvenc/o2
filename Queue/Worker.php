@@ -8,7 +8,7 @@ use Obullo\Cli\Cli;
 use Obullo\Queue\Job;
 use Obullo\Log\Logger;
 use Obullo\Cli\Console;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Queue Worker Class
@@ -199,7 +199,7 @@ class Worker
      * @param object $c   container
      * @param array  $cli Obullo\Cli\Cli
      */
-    public function __construct(Container $c, Cli $cli)
+    public function __construct(ContainerInterface $c, Cli $cli)
     {
         $this->c = $c;
         $this->c['config']->load('queue/workers');  // Load queue configuration

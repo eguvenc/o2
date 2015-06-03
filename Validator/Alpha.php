@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Alpha
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Alpha
      * 
      * @param string $str  string

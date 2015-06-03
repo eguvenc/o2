@@ -2,7 +2,7 @@
 
 namespace Obullo\Http\Debugger;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Manager Class
@@ -17,11 +17,11 @@ use Obullo\Container\Container;
 class Manager
 {
     /**
-     * Container
+     * Application
      * 
      * @var object
      */
-    protected $c;
+    protected $app;
 
     /**
      * Debugger url
@@ -49,19 +49,20 @@ class Manager
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-        if (! $this->c['config']['http']['debugger']['enabled']) {
-            $this->c['response']->status(300)->showError(
+        if (! $c['config']['http']['debugger']['enabled']) {
+            $c['response']->status(300)->showError(
                 'Debugger disabled from your application config file.', 
                 'Debugger Disabled'
             );
         }
+        $this->app = $c['app'];
+
         // Disable logs sending by _debugger=1 params.
-        $this->debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1');
-        $this->websocketUrl = $this->c['config']['http']['debugger']['socket'];
-        $this->debugOutput  = new Output($this->c);
+        $this->debuggerUrl  = $this->app->uri->getBaseUrl(INDEX_PHP.'/debugger/console?o_debugger=1');
+        $this->websocketUrl = $c['config']['http']['debugger']['socket'];
+        $this->debugOutput  = new Output($c);
     }
 
     /**
@@ -224,7 +225,7 @@ class Manager
         </head>
 
         <frameset rows="60%,40%" frameborder="0">
-             <frame id ="f1" name="frame1" onload="load();" src="'.$this->c['app']->uri->getBaseUrl(INDEX_PHP.'?o_debugger=1').'">
+             <frame id ="f1" name="frame1" onload="load();" src="'.$this->app->uri->getBaseUrl(INDEX_PHP.'?o_debugger=1').'">
              <frame id ="f2" src="'.$this->debuggerUrl.'">
         </frameset>
         </html>';
@@ -247,7 +248,7 @@ class Manager
      */
     public function off()
     {   
-        $redirectUrl = preg_replace('#\/debugger\/off$#', '', $this->c['uri']->getRequestUri());
+        $redirectUrl = preg_replace('#\/debugger\/off$#', '', $this->app->uri->getRequestUri());
         $redirectUrl = '/'.trim($redirectUrl, '/');
         echo '<html>';
         echo '<head>';

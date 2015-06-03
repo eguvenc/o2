@@ -3,7 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Apc Caching Class
@@ -24,10 +24,9 @@ class Apc implements CacheHandlerInterface
      * 
      * @param array $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $c = null;
-        
         if ( ! extension_loaded('apc') OR ini_get('apc.enabled') != '1') {
             throw new RunTimeException(
                 sprintf(

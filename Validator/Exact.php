@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Exact
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-    
-    /**
      * Exact length
      * 
      * @param string $str string

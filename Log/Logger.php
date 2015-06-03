@@ -3,7 +3,7 @@
 namespace Obullo\Log;
 
 use LogicException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Logger Class
@@ -19,6 +19,8 @@ class Logger extends AbstractLogger implements LoggerInterface
 {
     use LoggerTrait;
 
+    public $c;
+    public $config;
     public $options = array();                // Service parameters
     public $enabled = true;                   // On / Off Logging
     public $queries = false;                  // Whether to log sql queries
@@ -50,13 +52,15 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @param object $c       container
      * @param array  $options parameters
      */
-    public function __construct(Container $c, $options = array())
+    public function __construct(ContainerInterface $c, $options = array())
     {
         $this->c = $c;
         $this->options = $options;
-        $this->enabled = $this->c['config']['log']['enabled'];
+        $this->enabled = $c['config']['log']['enabled'];
+        $this->config  = $c['config']->load('logger');  // Load logger package configuration
 
         $this->initialize();
+
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -67,22 +71,25 @@ class Logger extends AbstractLogger implements LoggerInterface
      */
     public function close()
     {
-        if ($this->enabled AND $this->connect) {    // Lazy loading for Logger service
+
+        if ($this->enabled && $this->connect) {    // Lazy loading for Logger service
                                                     // if connect method executed one time then we open connections and load classes
                                                     // When connect booelan is true we execute standart worker or queue.
             $this->exec();  // Set payload data
 
             // QUEUE LOGGER
-        
-            if (isset($this->options['queue']) AND $this->options['queue']) {     // Send data to queue
+    
 
-                $queue = $this->c['return '.$this->c['config']['logger']['queue']['service']];  // Connect to Queue service
-                $queue->channel($this->c['config']['logger']['queue']['channel']); // Push to Queue
+            if (isset($this->options['queue']) && $this->options['queue']) {     // Send data to queue
+                
+                $queue = $this->c->get($this->config['queue']['service']);  // Connect to Queue service
+
+                $queue->channel($this->config['queue']['channel']);    // Push to Queue
                 $queue->push(
-                    $this->c['config']['logger']['queue']['worker'],
-                    $this->c['config']['logger']['queue']['route'],
+                    $this->config['queue']['worker'],
+                    $this->config['queue']['route'],
                     $this->payload,
-                    $this->c['config']['logger']['queue']['delay']
+                    $this->config['queue']['delay']
                 );
 
             } else {  // STANDART LOGGER

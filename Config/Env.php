@@ -3,7 +3,7 @@
 namespace Obullo\Config;
 
 use ArrayAccess;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;;
 
 /**
  * Config Object Class
@@ -18,11 +18,11 @@ use Obullo\Container\Container;
 class Env implements ArrayAccess
 {
     /**
-     * Container
+     * Current Environment
      * 
-     * @var object
+     * @var string
      */
-    protected $c;
+    protected $env;
 
     /**
      * Resolved items
@@ -36,9 +36,9 @@ class Env implements ArrayAccess
      * 
      * @param Container $c object
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
+        $this->env = $c['app']->env();
     }
 
     /**
@@ -117,22 +117,21 @@ class Env implements ArrayAccess
      */
     protected function env($key, $default = '', $required = false)
     {
-        $env = $this->c['app']->env();
         $empty = empty($_ENV[$key]);
         $heading = $message = '';
         
-        if ($required AND $empty) {
+        if ($required && $empty) {
             $heading = 'Env Variable Not Defined';
-            $message = 'Env variable <b>'.$key.'</b> key not defined or empty in your <b>.env.'.$env.'.php</b> file.';
+            $message = 'Env variable <b>'.$key.'</b> key not defined or empty in your <b>.env.'.$this->env.'.php</b> file.';
             include APP. 'templates'. DS . 'errors'. DS .'general.php';
             die;
         }
-        if ($empty AND $default != '') {     // default value
+        if ($empty && $default != '') {     // default value
             return $default;
         }
         if ( ! isset($_ENV[$key])) {
             $heading = 'Env Variable Not Exists';
-            $message = 'Env variable <b>'.$key.'</b> key defined in your <b>.env.'.$env.'.php</b> file.';
+            $message = 'Env variable <b>'.$key.'</b> key defined in your <b>.env.'.$this->env.'.php</b> file.';
             include APP. 'templates'. DS . 'errors'. DS .'general.php';
             die;
         }
@@ -157,7 +156,7 @@ class Env implements ArrayAccess
             $exp = explode('.', $value);
             $arguments['value'] = strstr($value, '.', true);
             $arguments['default'] = $exp[1];
-            if (strtolower($exp[1]) == 'null' OR empty($exp[1])) {
+            if (strtolower($exp[1]) == 'null' || empty($exp[1])) {
                 $arguments['default'] = null;
             }
             $arguments['required'] = ($arguments['default'] == 'required' || isset($exp[2])) ? true : false;

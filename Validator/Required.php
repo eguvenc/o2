@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Required
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-    
-    /**
      * Empty or not
      * 
      * @param string $val value

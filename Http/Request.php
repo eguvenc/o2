@@ -3,8 +3,8 @@
 namespace Obullo\Http;
 
 use Obullo\Http\InputFilter;
-use Obullo\Container\Container;
 use Obullo\Http\Request\Headers;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Request Class
@@ -30,7 +30,7 @@ class Request
      *
      * @param array $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->c['logger']->debug('Request Class Initialized');

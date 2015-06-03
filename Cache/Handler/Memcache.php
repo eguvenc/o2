@@ -3,7 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Memcache Caching Class
@@ -44,7 +44,7 @@ class Memcache implements CacheHandlerInterface
      * @param array  $c        container
      * @param object $memcache Memcache
      */
-    public function __construct(Container $c, \Memcache $memcache)
+    public function __construct(ContainerInterface $c, \Memcache $memcache)
     {
         $this->c = $c;
         $this->memcache = $memcache;
@@ -72,7 +72,7 @@ class Memcache implements CacheHandlerInterface
      */
     protected function openNodeConnections()
     {
-        if ( ! empty($this->config['nodes'][0]['host']) AND ! empty($this->config['nodes'][0]['port'])) {
+        if ( ! empty($this->config['nodes'][0]['host']) && ! empty($this->config['nodes'][0]['port'])) {
             array_unshift($this->config['nodes'], $this->defaultConnection);  // Add default connection to nodes
         } else {
             return;  // If there is no node.

@@ -2,7 +2,7 @@
 
 namespace Obullo\Application;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Middleware
@@ -24,14 +24,7 @@ abstract class Middleware
      * @var object
      */
     protected $c;
-
-    /**
-     * Reference to the primary application instance
-     * 
-     * @var object
-     */
-    protected $app;
-
+    
     /**
      * Reference to the next downstream middleware
      * 
@@ -46,34 +39,9 @@ abstract class Middleware
      *
      * @return void
      */
-    public function setContainer(Container $c)
+    public function setContainer(ContainerInterface $c)
     {
         $this->c = $c;
-    }
-
-    /**
-     * Set application
-     * 
-     * @param object $application obullo class
-     *
-     * @return void
-     */
-    final public function setApplication($application)
-    {
-        $this->app = $application;
-    }
-
-    /**
-     * Get application
-     *
-     * This method retrieves the application previously injected
-     * into this middleware.
-     *
-     * @return \Obullo\Obullo
-     */
-    final public function getApplication()
-    {
-        return $this->app;
     }
 
     /**

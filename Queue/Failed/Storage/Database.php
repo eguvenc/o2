@@ -4,8 +4,8 @@ namespace Obullo\Queue\Failed\Storage;
 
 use PDO;
 use SimpleXMLElement;
-use Obullo\Container\Container;
 use Obullo\Queue\Failed\FailedJob;
+use Obullo\Container\ContainerInterface;
 
 /**
  * FailedJob Database Handler
@@ -24,7 +24,7 @@ class Database extends FailedJob implements StorageInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         parent::__construct($c);
     }

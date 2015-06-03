@@ -4,7 +4,7 @@ namespace Obullo\Service\Providers\Connections;
 
 use RuntimeException;
 use UnexpectedValueException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Mongo Connection Provider
@@ -29,7 +29,7 @@ class MongoConnectionProvider extends AbstractConnectionProvider
      *
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c          = $c;
         $this->config     = $this->c['config']->load('mongo');  // Load nosql configuration file
@@ -132,7 +132,7 @@ class MongoConnectionProvider extends AbstractConnectionProvider
         foreach ($this->config['connections'] as $key => $val) {  //  Close shared connections
             $val = null;
             $key = $this->getKey($key);
-            if ($this->c->loaded($key)) {
+            if ($this->c->used($key)) {
                 $connection = $this->c[$key];
                 foreach ($connection->getConnections() as $con) {
                     $connection->close($con['hash']);

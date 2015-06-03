@@ -2,8 +2,8 @@
 
 namespace Obullo\Log\Console\Reader;
 
-use Obullo\Container\Container;
 use Obullo\Log\Console\Printer\Colorful;
+use Obullo\Container\ContainerInterface;
 
 /**
  * File Reader
@@ -26,7 +26,7 @@ class File
      * 
      * @return void
      */
-    public function follow(Container $c, $dir = 'http', $table = null)
+    public function follow(ContainerInterface $c, $dir = 'http', $table = null)
     {
         $c['config']->load('logger');
 

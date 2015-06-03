@@ -5,8 +5,6 @@ namespace Obullo\Container;
 use Closure;
 use stdClass;
 use Controller;
-use ArrayAccess;
-use SplObjectStorage;
 use RuntimeException;
 use InvalidArgumentException;
 
@@ -22,17 +20,15 @@ use InvalidArgumentException;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
-class Container implements ArrayAccess
+class Container implements ContainerInterface
 {
     protected $values = array();
     protected $frozen = array();
     protected $raw = array();
     protected $keys = array();
-    protected $aliases = array();          // Stores define() object aliases
     protected $unset = array();            // Stores classes we want to remove
     protected $unRegistered = array();     // Whether to stored in controller instance
     protected $get = array();              // Stores get() (return) requests
-    protected $alias = array();            // Stores alias() requests
     protected $services = array();         // Defined services
     protected $registeredServices = array();  // Lazy loading for service wrapper class
     protected $registeredProviders = array();  // Stack data for service provider wrapper class
@@ -43,7 +39,6 @@ class Container implements ArrayAccess
      */
     public function __construct() 
     {
-        $this->aliases = new SplObjectStorage;
         $services = scandir(APP .'classes'. DS . 'Service'); // Scan service folder
         $this->services = array_flip($services);             // Normalize service array
         unset($this->services['Providers']);
@@ -62,13 +57,13 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Checks package is on hand
+     * Checks package is old / loaded before
      * 
      * @param string $cid package id
      * 
      * @return boolean
      */
-    public function loaded($cid) 
+    public function used($cid) 
     {
         return isset($this->frozen[$cid]);
     }    
@@ -136,6 +131,36 @@ class Container implements ArrayAccess
             return Controller::$instance->{$key} = $this->values[$cid] = $this->closure($this->values[$cid], $params);
         }
         return $this->values[$cid] = $this->closure($this->values[$cid], $params);
+    }
+
+    /**
+     * Checks if a parameter or an object is set.
+     *
+     * @param string $cid The unique identifier for the parameter or object
+     *
+     * @return Boolean
+     */
+    public function offsetExists($cid)
+    {
+        return isset($this->keys[$cid]);
+    }
+
+    /**
+     * Unsets a parameter or an object.
+     *
+     * @param string $cid The unique identifier for the parameter or object
+     *
+     * @return void
+     */
+    public function offsetUnset($cid)
+    {
+        if (isset($this->keys[$cid])) {
+            if (is_object($this->values[$cid])) {
+                unset($this->protected[$this->values[$cid]]);
+            }
+            unset($this->values[$cid], $this->frozen[$cid], $this->raw[$cid], $this->keys[$cid]);
+        }
+        $this->unset[$cid] = true;
     }
 
     /**
@@ -223,37 +248,7 @@ class Container implements ArrayAccess
     }
 
     /**
-     * Checks if a parameter or an object is set.
-     *
-     * @param string $cid The unique identifier for the parameter or object
-     *
-     * @return Boolean
-     */
-    public function offsetExists($cid)
-    {
-        return isset($this->keys[$cid]);
-    }
-
-    /**
-     * Unsets a parameter or an object.
-     *
-     * @param string $cid The unique identifier for the parameter or object
-     *
-     * @return void
-     */
-    public function offsetUnset($cid)
-    {
-        if (isset($this->keys[$cid])) {
-            if (is_object($this->values[$cid])) {
-                unset($this->protected[$this->values[$cid]]);
-            }
-            unset($this->values[$cid], $this->frozen[$cid], $this->raw[$cid], $this->keys[$cid]);
-        }
-        $this->unset[$cid] = true;
-    }
-
-    /**
-     * Class and Sercice loader
+     * Class and Service loader
      *
      * @param string $classString class command
      * @param array  $params      closure params
@@ -295,7 +290,7 @@ class Container implements ArrayAccess
             'cid' => $class,
             'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
         ];
-        $matches['key'] = $key = $this->fetchAlias($data['cid'], $data['key']);
+        $matches['key'] = $key = $data['key'];
         
         if ( ! $this->has($data['cid']) && ! $isService) {   // Don't register service again.
             $this->registerClass($data['cid'], $key, $matches, $data['class']);
@@ -328,37 +323,6 @@ class Container implements ArrayAccess
             $this->registeredConnections[$name] = $provider;
         }
         return $this->registeredConnections[$name];
-    }
-
-    /**
-     * Define service with an alias
-     * 
-     * @param string  $alias    alias
-     * @param closure $callable object
-     * 
-     * @return void
-     */
-    public function alias($alias, $callable)
-    {
-        $this->aliases->attach($callable, $alias);
-        return $callable;
-    }
-
-    /**
-     * Get alias name if we have "as" match
-     * 
-     * @param string $cid identifier
-     * @param string $key default key
-     * 
-     * @return string
-     */
-    protected function fetchAlias($cid, $key) 
-    {   
-        $callable = $this->raw($cid);
-        if ( ! is_null($callable) && $this->aliases->contains($callable)) {
-            $key = $this->aliases[$callable];
-        }
-        return trim($key);
     }
 
     /**

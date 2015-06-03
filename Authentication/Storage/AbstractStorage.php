@@ -3,7 +3,7 @@
 namespace Obullo\Authentication;
 
 /**
- * Abstract Null Adapter
+ * Abstract Adapter
  * 
  * @category  Authentication
  * @package   Adapter
@@ -12,7 +12,7 @@ namespace Obullo\Authentication;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-abstract class AbstractNull
+abstract class AbstractStorage
 {
     /**
      * Sets identifier value to session
@@ -67,7 +67,10 @@ abstract class AbstractNull
      */
     public function createTemporary(array $credentials)
     {
-        return $credentials = null;
+        $credentials['__isAuthenticated'] = 0;
+        $credentials['__isTemporary'] = 1;
+        $credentials['__isVerified'] = 0;
+        $this->setCredentials($credentials, null, '__temporary', $this->getMemoryBlockLifetime('__temporary'));
     }
 
     /**
@@ -92,6 +95,21 @@ abstract class AbstractNull
      */
     public function makePermanent()
     {
+        if ($this->isEmpty('__temporary')) {
+            return false;
+        }
+        $credentials = $this->getCredentials('__temporary');
+        if ($credentials == false) {  // If already permanent
+            return;
+        }
+        $credentials['__isAuthenticated'] = 1;
+        $credentials['__isTemporary'] = 0;
+        $credentials['__isVerified'] = 1;
+
+        if ($this->setCredentials($credentials, null, '__permanent')) {
+            $this->deleteCredentials('__temporary');
+            return $credentials;
+        }
         return false;
     }
 
@@ -102,6 +120,21 @@ abstract class AbstractNull
      */
     public function makeTemporary()
     {
+        if ($this->isEmpty('__permanent')) {
+            return false;
+        }
+        $credentials = $this->getCredentials('__permanent');
+        if ($credentials == false) {  // If already permanent
+            return;
+        }
+        $credentials['__isAuthenticated'] = 0;
+        $credentials['__isTemporary'] = 1;
+        $credentials['__isVerified'] = 0;
+
+        if ($this->setCredentials($credentials, null, '__temporary')) {
+            $this->deleteCredentials('__permanent');
+            return $credentials;
+        }
         return false;
     }
 
@@ -141,7 +174,8 @@ abstract class AbstractNull
      */
     public function setLoginId()
     {
-        $userAgent = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);  // First 50 characters of the user agent
+        $agentStr = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null;
+        $userAgent = substr($agentStr, 0, 50);  // First 50 characters of the user agent
         $id = hash('adler32', trim($userAgent));
         $this->session->set($this->getCacheKey().'/LoginId', $id);
         return $id;
@@ -203,14 +237,14 @@ abstract class AbstractNull
     protected function getMemoryBlockLifetime($block = '__temporary')
     {
         if ($block == '__temporary') {
-            return (int)$this->c['user']['cache']['block']['temporary']['lifetime'];
+            return (int)$this->params['cache']['block']['temporary']['lifetime'];
         }
-        return (int)$this->c['user']['cache']['block']['permanent']['lifetime'];
+        return (int)$this->params['cache']['block']['permanent']['lifetime'];
     }
 
 }
 
-// END AbstractNull.php File
-/* End of file AbstractNull.php
+// END AbstractStorage.php File
+/* End of file AbstractStorage.php
 
-/* Location: .Obullo/Authentication/AbstractNull.php */
+/* Location: .Obullo/Authentication/AbstractStorage.php */

@@ -3,7 +3,7 @@
 namespace Obullo\Error;
 
 use ErrorException;
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface;
 
 /**
  * Error Handler Class
@@ -139,7 +139,7 @@ class ErrorHandler
         }
         $logger = $c['logger'];
         if ($level & (E_USER_DEPRECATED | E_DEPRECATED)) {
-            if (is_object($c) AND $logger instanceof Logger) {
+            if (is_object($c) && $logger instanceof LoggerInterface) {
                 $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
                 $logger->channel($c['config']['logger']['default']['channel']);
                 $logger->warning($message, array('type' => self::TYPE_DEPRECATION, 'stack' => $stack));
@@ -147,14 +147,14 @@ class ErrorHandler
             return true;
         }
         unset($context); // Remove context data 
-        if ($logger instanceof Logger) {          // Log for local environment
+        if ($logger instanceof LoggerInterface) {          // Log for local environment
             $logger->channel($c['config']['logger']['default']['channel']);
             $logger->error($message, array('level' => $this->level, 'file' => DebugOutput::getSecurePath($file), 'line' => $line, 'extra' => null));
         }
         if ($this->displayErrors 
-            AND $level 
-            AND $this->level 
-            AND $level
+            && $level 
+            && $this->level 
+            && $level
         ) {
             $e = new ErrorException($message, $level, 0, $file, $line);
             $c['exception']->toString($e);
@@ -181,7 +181,7 @@ class ErrorHandler
         $filename = end($exp);
         if ($filename != 'Logger.php') {  // Don't log logger class fatal errors.
             $logger = $c['logger'];
-            if ($logger instanceof Logger) {
+            if ($logger instanceof LoggerInterface) {
                 $logger->channel($c['config']['logger']['default']['channel']);
                 $logger->error($error['message'], array('level' => $type, 'file' => $error['file'], 'line' => $error['line']));
             }

@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Queue Class
@@ -22,7 +22,7 @@ abstract class Queue
      *
      * @param object $c container
      */
-    abstract function __construct(Container $c);
+    abstract function __construct(ContainerInterface $c);
 
     /**
      * Create exchange if not exists

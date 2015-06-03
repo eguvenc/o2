@@ -981,7 +981,7 @@ Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile
 
 Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
-##### $this->user->identity->refreshRememberToken();
+##### $this->user->identity->refreshRememberToken(\Obullo\Authentication\Model\UserInterface $model, GenericUser $genericUser);
 
 Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
 

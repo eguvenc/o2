@@ -3,7 +3,6 @@
 namespace Obullo\Utils;
 
 use Obullo\Uri\Uri;
-use Obullo\Container\Container;
 
 /**
  * Uri Utilities

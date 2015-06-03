@@ -266,7 +266,7 @@ class Adapter extends Connection
     /**
      * Get the pdo statement object and use native pdo functions.
      * 
-     * Example: $this->db->stmt()->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
+     * Returns Doctrine\DBAL\Statement Object you can get Real PDOStatement using $this->stmt()->getIterator()
      * 
      * @return object
      */
@@ -300,7 +300,7 @@ class Adapter extends Connection
     {
         return $this->lastInsertId($name);
     }
-
+    
     /**
      * Pdo quote function.
      * 

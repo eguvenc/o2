@@ -4,7 +4,7 @@ namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
 use RunTimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Redis Caching Class
@@ -18,13 +18,6 @@ use Obullo\Container\Container;
  */
 class Redis implements CacheHandlerInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Php redis client
      * 
@@ -49,11 +42,10 @@ class Redis implements CacheHandlerInterface
      * @param array  $c     container
      * @param object $redis Redis
      */
-    public function __construct(Container $c, \Redis $redis)
+    public function __construct(ContainerInterface $c, \Redis $redis)
     {
-        $this->c = $c;
         $this->redis = $redis;
-        $this->config = $this->c['config']['cache/redis'];
+        $this->config = $c['config']['cache/redis'];
 
         if ( ! $this->connect()) {
             throw new RunTimeException(

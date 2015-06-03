@@ -2,6 +2,8 @@
 
 namespace Obullo\Authentication\Middleware;
 
+use Obullo\Authentication\AuthConfig;
+
 trait UniqueLoginTrait
 {
      /**
@@ -11,10 +13,11 @@ trait UniqueLoginTrait
      */
     public function uniqueLoginCheck()
     {
-        if ($this->c['user']['middleware']['uniqueLogin']) {  // Unique Session is the property whereby a single action of activity
+         $middleware = AuthConfig::get('middleware');
 
-            $sessions = $this->c['user']->storage->getUserSessions();
+        if ($middleware['uniqueLogin']) {  // Unique session is the property whereby a single action of login activity
 
+            $sessions = $this->user->storage->getUserSessions();
             if (empty($sessions) || sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
                 return;
             }
@@ -27,9 +30,8 @@ trait UniqueLoginTrait
             unset($sessions[$protectedSession]);            // Don't touch the current session
 
             foreach (array_keys($sessions) as $loginID) {       // Destroy all other sessions
-                $this->c['user']->identity->killSignal($loginID);
+                $this->user->identity->killSignal($loginID);
             }
-            $this->c['logger']->debug('Unique login middleware initialized, user session has been terminated.');
         }
     }
 

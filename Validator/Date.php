@@ -27,16 +27,6 @@ class Date
      * @var string
      */
     public $format = '';
-
-    /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
     
     /**
      * Date check
@@ -65,12 +55,10 @@ class Date
         if ($value instanceof \DateTime) {
             return $value;
         }
-
         $type = gettype($value);
         if (!in_array($type, array('string', 'integer'))) {
             return false;
         }
-
         $convertMethod = 'convert' . ucfirst($type);
         return $this->{$convertMethod}($value);
     }

@@ -5,26 +5,67 @@
 
 ReCAPTCHA google şirketi tarafından geliştirilen popüler bir captcha servisidir. ReCaptcha servisini kurmak için önce <a href="https://www.google.com/recaptcha/intro/index.html" target="_blank">bu sayfayı</a> ziyaret ederek site key ve secret key bilgilerinizi almanız gerekir.
 
+<ul>
+<li>
+    <a href="#setup">Kurulum</a>
+    <ul>
+        <li><a href="#adding-module">Modülü Kurmak</a></li>
+        <li><a href="#removing-module">Modülü Kaldırmak</a></li>
+        <li><a href="#configuration">Konfigürasyon</a></li>
+        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#module">ReCaptcha Modülü</a></li>
+        <li><a href="#loading-service">Servisi Yüklemek</a></li>
+    </ul>
+</li>
+    
+<li>
+    <a href="#create-operations">ReCaptcha İşlemleri</a>
+    <ul>
+        <li>
+            <a href="#creating-captcha">ReCaptcha Oluşturma</a>
+            <ul>
+                <li><a href="#printJs">$this->captcha->printJs()</a></li>
+                <li><a href="#printHtml">$this->captcha->printHtml()</a></li>
+            </ul>
+        </li>
+        <li><a href="#validation">ReCaptcha Doğrulama</a></li>    
+        <li><a href="#validation-with-validator">Validator Sınıfı İle Doğrulama</a></li>
+    </ul>
+</li>
+
+<li><a href="#method-reference">Fonksiyon Referansı</a></li>
+</ul>
+
+
+
+<a name="setup"></a>
+
 ### Kurulum
+
+ReCaptcha modülü kurulduğunda modüle ait konfigürasyon dosyaları <kbd>app/config/recaptcha</kbd> klasörü altına kopyalanır.
+
+<a name="adding-module"></a>
+
+#### Modülü Kurmak
 
 ```php
 php task module add recaptcha
 ```
 
-### Kaldırma
+<a name="removing-module"></a>
+
+#### Modülü Kaldırmak
 
 ```php
 php task module remove recaptcha
 ```
-
-### Örnek Dosyalar
-
-Modül yaratıldığına örnek recaptcha oluşturma dosyaları <kbd>.modules/recaptcha/examples</kbd> dizini altına kopyalanır. Bu kapsamlı örnekleri incelemek için tarayıcınızdan aşğıdaki adresleri ziyaret edin.
-
-```html
-http://myproject/recaptcha/examples/form
-http://myproject/recaptcha/examples/ajax
-```
+<a name="configuration"></a>
 
 #### Konfigürasyon
 
@@ -66,6 +107,8 @@ return array(
 /* Location: .app/config/captcha/recaptcha.php */
 ```
 
+<a name="service-configuration"></a>
+
 #### Servis Konfigürasyonu
 
 Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</kbd> klasörü altına kopyalanır. Servis dosyasındaki reCaptcha özelliklerini ihtiyaçlarınıza göre konfigüre etmeniz gerekebilir.
@@ -95,7 +138,48 @@ class Recaptcha implements ServiceInterface
 /* Location: .app/classes/Service/Recaptcha.php */
 ```
 
-#### $this->recaptcha->printJs();
+<a name="running"></a>
+
+### Çalıştırma
+
+Recaptcha uygulama programı arayüzüne bağlanmak için recaptcha servisi kullanılır.
+
+<a name="module"></a>
+
+#### ReCaptcha Modülü
+
+Modül yaratıldığına örnek recaptcha oluşturma dosyaları <kbd>.modules/recaptcha/examples</kbd> dizini altına kopyalanır. Bu kapsamlı örnekleri incelemek için tarayıcınızdan aşğıdaki adresleri ziyaret edin.
+
+```html
+http://myproject/recaptcha/examples/form
+http://myproject/recaptcha/examples/ajax
+```
+
+<a name="loading-service"></a>
+
+#### Servisi Yüklemek
+
+ReCaptcha servisi aracılığı ile recaptcha metotlarına aşağıdaki gibi erişilebilir.
+
+```php
+$this->c['recaptcha']->method();
+```
+
+<a name="create-operations"></a>
+
+### ReCaptcha İşlemleri
+
+ReCaptcha işlemleri recaptcha html ve javascript kodunu oluşturma, yenileme tuşu oluşturma ve doğrulama işlemlerini kapsar.
+
+<a name="creating-captcha"></a>
+
+#### ReCaptcha Oluşturma
+
+ReCaptcha oluşturma metotları recaptcha elemetlerini oluşturur.
+
+<a name="printJs"></a>
+
+##### $this->recaptcha->printJs();
 
 Formlarınıza ReCAPTCHA eklemek için aşağıdaki gibi <b>head</b> tagları arasına javascript çıktısını ekrana dökmeniz gerekir.
 
@@ -112,7 +196,9 @@ Formlarınıza ReCAPTCHA eklemek için aşağıdaki gibi <b>head</b> tagları ar
 </html>
 ```
 
-#### $this->recaptcha->printHtml();
+<a name="printHtml"></a>
+
+##### $this->recaptcha->printHtml();
 
 ReCAPTCHA nın görüntülenmesi için aşağıdaki gibi captcha çıktıyı ekrana dökmeniz gerekir.
 
@@ -123,7 +209,9 @@ ReCAPTCHA nın görüntülenmesi için aşağıdaki gibi captcha çıktıyı ekr
 </form>
 ```
 
-#### Doğrulama 
+<a name="validation"></a>
+
+#### ReCaptcha Doğrulama 
 
 ReCaptcha doğrulama için bütün sürücüler için ortak olarak kullanılan CaptchaResult sınıfı kullanılır. Bir captcha kodunun doğru olup olmadığı aşağıdaki gibi isValid() komutu ile anlaşılır.
 
@@ -140,9 +228,11 @@ Bir doğrulamaya ait hata kodu alma örneği
 echo $this->c['recaptcha']->result()->getCode();  // -2  ( Invalid Code )
 ```
 
+<a name="validation-with-validator"></a>
+
 #### Validator Sınıfı İle Doğrulama 
 
-Eğer varolan formunuz içerisinde bir captcha doğrulaması yapıyorsanız ve konfigürasyon dosyasından <kbd>validation</kbd> ve <kbd>callback</kbd> anahtarları aktif ise doğrulama için aşağıdaki kodlar haricinde herhangi bir kod yazmanıza gerek kalmaz.
+Eğer varolan formunuz içerisinde bir recaptcha doğrulaması yapıyorsanız ve konfigürasyon dosyasından <kbd>validation</kbd> ve <kbd>callback</kbd> anahtarları aktif ise doğrulama için aşağıdaki kodlar haricinde herhangi bir kod yazmanıza gerek kalmaz.
 
 ```php
 namespace ReCaptcha\Examples;
@@ -174,7 +264,10 @@ class Form extends \Controller
     }
 }
 ```
-#### Recaptcha Sınıfı Referansı
+
+<a name="method-reference"></a>
+
+#### Fonskiyon Referansı
 
 ------
 

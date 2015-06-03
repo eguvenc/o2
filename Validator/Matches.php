@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Matches
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-    
-    /**
      * Match one field to another
      * 
      * @param string $str   string

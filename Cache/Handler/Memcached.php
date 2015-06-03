@@ -4,7 +4,7 @@ namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
 use RunTimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
     
 /**
  * Memcached Caching Class
@@ -18,13 +18,6 @@ use Obullo\Container\Container;
  */
 class Memcached implements CacheHandlerInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Memcached client
      * 
@@ -50,11 +43,10 @@ class Memcached implements CacheHandlerInterface
      * @param array  $c         container
      * @param object $memcached Memcached
      */
-    public function __construct(Container $c, \Memcached $memcached)
+    public function __construct(ContainerInterface $c, \Memcached $memcached)
     {
-        $this->c = $c;
         $this->memcached = $memcached; 
-        $this->config = $this->c['config']['cache/memcached'];
+        $this->config = $c['config']['cache/memcached'];
 
         $this->connect();
     }
@@ -77,11 +69,11 @@ class Memcached implements CacheHandlerInterface
      */
     protected function openNodeConnections()
     {
-        if (empty($this->config['nodes'][0]['host']) OR empty($this->config['nodes'][0]['port'])) {  // If we have no slave servers
+        if (empty($this->config['nodes'][0]['host']) || empty($this->config['nodes'][0]['port'])) {  // If we have no slave servers
             return;
         }
         foreach ($this->config['nodes'] as $servers) {
-            if (empty($servers['host']) OR empty($servers['port'])) {
+            if (empty($servers['host']) || empty($servers['port'])) {
                 throw new RunTimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',

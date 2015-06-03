@@ -3,8 +3,7 @@
 namespace Obullo\Log\Handler;
 
 use Closure;
-use Obullo\Container\Container;
-use Obullo\Log\Formatter\LineFormatterTrait;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Email Handler Class
@@ -18,15 +17,6 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  */
 class Email extends AbstractHandler implements HandlerInterface
 {
-    use LineFormatterTrait;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-    
     /**
      * Mail message
      * 
@@ -53,7 +43,7 @@ class Email extends AbstractHandler implements HandlerInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         parent::__construct($c);
     }

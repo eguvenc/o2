@@ -2,7 +2,7 @@
 
 namespace Obullo\Service\Providers;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 use Obullo\Service\Providers\Connections\AmqpConnectionProvider;
 
@@ -32,7 +32,7 @@ class AmqpServiceProvider implements ServiceProviderInterface
      * 
      * @return void
      */
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $this->connector = new AmqpConnectionProvider($c);
         $this->connector->register();

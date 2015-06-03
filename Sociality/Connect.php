@@ -3,7 +3,7 @@
 namespace Obullo\Sociality;
 
 use LogicException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Socality Connector
@@ -31,7 +31,7 @@ class Connect
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }

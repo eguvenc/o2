@@ -22,7 +22,7 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
-class Adapter implements AdapterInterface
+class Adapter
 {
     /**
      * Stores last executed sql query
@@ -389,6 +389,18 @@ class Adapter implements AdapterInterface
     }
 
     /**
+     * Get prepared parameters
+     *
+     * @param mixed $failure result value if empty
+     * 
+     * @return array|null
+     */
+    protected function getParameters($failure = array())
+    {
+        return empty($this->parameters) ? $failure : $this->parameters;
+    }
+
+    /**
      * Start query timer & add sql log
      * 
      * @param string     $sql    sql
@@ -434,6 +446,7 @@ class Adapter implements AdapterInterface
     {
         $this->connect();
         $this->startQuery($query, $params, $types);
+
         if ($params) {
             $this->stmt = $this->conn->prepare($query);
             if ($types) {
@@ -602,8 +615,8 @@ class Adapter implements AdapterInterface
      */
     public function quoteSingleIdentifier($str)
     {
-        $c = $this->getIdentifierQuoteCharacter();
-        return $c . str_replace($c, $c.$c, $str) . $c;
+        $chr = $this->getIdentifierQuoteCharacter();
+        return $chr . str_replace($chr, $chr.$chr, $str) . $chr;
     }
 
     /**
@@ -614,18 +627,6 @@ class Adapter implements AdapterInterface
     public function getIdentifierQuoteCharacter()
     {
         return $this->escapeIdentifier;
-    }
-
-    /**
-     * Get prepared parameters
-     *
-     * @param mixed $failure result value if empty
-     * 
-     * @return array|null
-     */
-    public function getParameters($failure = array())
-    {
-        return empty($this->parameters) ? $failure : $this->parameters;
     }
 
     /**

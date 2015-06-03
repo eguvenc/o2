@@ -2,10 +2,13 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\Container;
+use Obullo\Event\EventInterface;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\AuthResult;
+use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\User\IdentityInterface;
+use Obullo\Authentication\Storage\StorageInterface;
 
 /**
  * O2 Authentication - Login Class
@@ -29,13 +32,19 @@ class Login
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c        \Obullo\Container\Container
+     * @param object $event    \Obullo\Event\Event
+     * @param object $storage  \Obullo\Authentication\Storage\Storage
+     * @param object $identity \Obullo\Authentication\Identity\Identity
+     * @param array  $params   Auth config parameters
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c, EventInterface $event, StorageInterface $storage, IdentityInterface $identity, array $params)
     {
         $this->c = $c;
-        $this->columnIdentifier = $this->c['user']['db.identifier'];
-        $this->columnPassword   = $this->c['user']['db.password'];
+        $this->event = $event;
+        $this->storage = $storage;
+        $this->params = $params;
+        $this->identity = $identity;
     }
 
     /**
@@ -50,9 +59,12 @@ class Login
     {
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
-        $this->c['event']->fire('login.attempt.before', array($credentials)); 
+        $this->event->fire('login.attempt.before', array($credentials)); 
 
-        if ( ! isset($credentials[$this->columnIdentifier]) || ! isset($credentials[$this->columnPassword]) ) {
+        $identifier = $this->params['db.identifier'];
+        $password   = $this->params['db.password'];
+
+        if ( ! isset($credentials[$identifier]) || ! isset($credentials[$password]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
                 $this->columnIdentifier,
@@ -66,7 +78,7 @@ class Login
                 )
             );
         }
-        $rememberMeCookie = $this->c['user']['login']['rememberMe']['cookie'];
+        $rememberMeCookie = $this->params['login']['rememberMe']['cookie'];
         $credentials['__rememberToken'] = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
 
         return $this->createResults($credentials);
@@ -83,14 +95,14 @@ class Login
     protected function createResults($credentials)
     {
         $genericUser = new GenericUser;
-        $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
 
         $authResult = $this->c['auth.adapter']->login($genericUser);
-        $this->c['user']->identity->initialize();
 
-        $eventResult = $this->c['event']->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
-        return isset($eventResult[0]) ? current($eventResult) : $authResult;                // Event fire returns multiple array response but we use one.
+        $this->identity->initialize();
+        $eventResult = $this->event->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
+
+        return isset($eventResult[0]) ? current($eventResult) : $authResult;           // Event fire returns multiple array response but we use one.
     }
 
     /**
@@ -101,11 +113,10 @@ class Login
      * @return bool
      */
     public function validate(array $credentials = array())
-    {
+    {        
         $genericUser = new GenericUser;
-        $genericUser->setContainer($this->c);
         $genericUser->setCredentials($credentials);
-        
+
         return $this->c['auth.adapter']->authenticate($genericUser, false);
     }
 
@@ -121,7 +132,7 @@ class Login
      */
     public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
-        $plain = $credentials[$this->columnPassword];
+        $plain = $credentials[$this->params['db.password']];
 
         return $this->c['password']->verify($plain, $user->getPassword());
     }
@@ -136,7 +147,7 @@ class Login
      */
     public function getUserSessions()
     {
-        return $this->c['auth.storage']->getUserSessions();
+        return $this->storage->getUserSessions();
     }
 
 }

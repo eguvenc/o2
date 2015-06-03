@@ -2,8 +2,7 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\Container;
-use Obullo\Log\Formatter\LineFormatterTrait;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Syslog LogHandler Class
@@ -17,15 +16,6 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  */
 class Syslog extends AbstractHandler implements HandlerInterface
 {
-    use LineFormatterTrait;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
     /**
      * Facility used by this syslog instance
      * 
@@ -46,10 +36,8 @@ class Syslog extends AbstractHandler implements HandlerInterface
      * @param object $c      container
      * @param array  $params parameters
      */
-    public function __construct(Container $c, array $params = array())
+    public function __construct(ContainerInterface $c, array $params = array())
     {
-        $this->c = $c;
-
         parent::__construct($c);
 
         if (isset($params['facility'])) {

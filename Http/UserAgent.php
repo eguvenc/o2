@@ -2,6 +2,8 @@
 
 namespace Obullo\Http;
 
+use Obullo\Container\ContainerInterface;
+
 /**
  * Identifies the platform, browser, robot, or mobile devise of the browsing agent
  *
@@ -152,11 +154,11 @@ class UserAgent
     public $version = '';
 
     /**
-     * Container
+     * Config
      * 
      * @var object
      */
-    protected $c;
+    protected $config;
 
     /**
      * Constructor
@@ -167,30 +169,30 @@ class UserAgent
      *
      * @return void
      */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $this->agent = trim($_SERVER['HTTP_USER_AGENT']);
         }
         if ( ! is_null($this->agent)) {
-            if ($this->loadAgentFile()) {
+            if ($this->loadAgentFile($c['config'])) {
                 $this->compileData();
             }
         }
-        $this->c['logger']->debug('Agent Class Initialized');
+        $c['logger']->debug('Agent Class Initialized');
     }
 
     /**
      * Compile the User Agent Data
      *
+     * @param object $config \Obullo\Config\Config
+     * 
      * @return bool
      */
-    protected function loadAgentFile()
+    protected function loadAgentFile($config)
     {
         $return = false;
-        $userAgents = $this->c['config']->load('agents');
+        $userAgents = $config->load('agents');
 
         if (isset($userAgents['platforms'])) {
             $this->platforms = &$userAgents['platforms'];
@@ -243,7 +245,7 @@ class UserAgent
     {
         $platform = ($this->isMobile()) ? 'mobile' : 'pc';
 
-        if (is_array($this->platforms[$platform]) AND count($this->platforms[$platform]) > 0) {
+        if (is_array($this->platforms[$platform]) && count($this->platforms[$platform]) > 0) {
             foreach ($this->platforms[$platform] as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . "|i", $this->agent)) {
                     $this->platform['key'] = $key;
@@ -263,7 +265,7 @@ class UserAgent
      */
     protected function setBrowser()
     {
-        if (is_array($this->browsers) AND count($this->browsers) > 0) {
+        if (is_array($this->browsers) && count($this->browsers) > 0) {
             foreach ($this->browsers as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . ".*?([0-9\.]+)|i", $this->agent, $match)) {
                     $this->isBrowser = true;
@@ -287,7 +289,7 @@ class UserAgent
      */
     protected function setRobot()
     {
-        if (is_array($this->robots) AND count($this->robots) > 0) {
+        if (is_array($this->robots) && count($this->robots) > 0) {
             foreach ($this->robots as $key => $val) {
                 if (preg_match("|" . preg_quote($key) . "|i", $this->agent)) {
                     $this->isRobot = true;
@@ -308,7 +310,7 @@ class UserAgent
      */
     protected function setMobile()
     {
-        if (is_array($this->mobiles) AND count($this->mobiles) > 0) {
+        if (is_array($this->mobiles) && count($this->mobiles) > 0) {
             foreach ($this->mobiles as $key => $val) {
                 if (false !== (stripos($this->agent, $key))) {
                     $this->isMobile = true;
@@ -328,7 +330,7 @@ class UserAgent
      */
     protected function setLanguages()
     {
-        if ((count($this->languages) == 0) AND isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $_SERVER['HTTP_ACCEPT_LANGUAGE'] != '' AND is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        if ((count($this->languages) == 0) && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && $_SERVER['HTTP_ACCEPT_LANGUAGE'] != '' && is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             $this->languages = explode(',', preg_replace('/(;\s?q=[0-9\.]+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_LANGUAGE']))));
         }
         if (count($this->languages) == 0) {
@@ -343,7 +345,7 @@ class UserAgent
      */
     protected function setCharsets()
     {
-        if ((count($this->charsets) == 0) AND isset($_SERVER['HTTP_ACCEPT_CHARSET']) AND ! empty($_SERVER['HTTP_ACCEPT_CHARSET'])) {
+        if ((count($this->charsets) == 0) && isset($_SERVER['HTTP_ACCEPT_CHARSET']) && ! empty($_SERVER['HTTP_ACCEPT_CHARSET'])) {
             $this->charsets = explode(',', preg_replace('/(;\s?q=.+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_CHARSET']))));
         }
         if (count($this->charsets) == 0) {
@@ -388,7 +390,7 @@ class UserAgent
      */
     public function isReferral()
     {
-        return ( ! isset($_SERVER['HTTP_REFERER']) OR $_SERVER['HTTP_REFERER'] == '') ? false : true;
+        return ( ! isset($_SERVER['HTTP_REFERER']) || $_SERVER['HTTP_REFERER'] == '') ? false : true;
     }
 
     /**
@@ -458,7 +460,7 @@ class UserAgent
      */
     public function getReferrer()
     {
-        return ( ! isset($_SERVER['HTTP_REFERER']) OR empty($_SERVER['HTTP_REFERER'])) ? '' : trim($_SERVER['HTTP_REFERER']);
+        return ( ! isset($_SERVER['HTTP_REFERER']) || empty($_SERVER['HTTP_REFERER'])) ? '' : trim($_SERVER['HTTP_REFERER']);
     }
 
     /**

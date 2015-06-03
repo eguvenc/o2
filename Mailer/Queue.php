@@ -3,8 +3,8 @@
 namespace Obullo\Mailer;
 
 use Obullo\Mailer\Response;
-use Obullo\Container\Container;
 use Obullo\Mailer\Transport\HttpMailer;
+use Obullo\Container\ContainerInterface;
 use Obullo\Mailer\Transport\MailerInterface;
 
 /**
@@ -68,7 +68,7 @@ class Queue extends HttpMailer implements MailerInterface
      * 
      * @return void
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->queueService = $c['queue'];
         $this->config = $c['config']->load('mailer/transport');

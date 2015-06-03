@@ -5,7 +5,7 @@ namespace Obullo\Service\Providers\Connections;
 use Memcache;
 use RuntimeException;
 use UnexpectedValueException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Memcache Connection Provider
@@ -30,7 +30,7 @@ class MemcacheConnectionProvider extends AbstractConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('cache/memcache');  // Load memcache configuration file
@@ -156,7 +156,7 @@ class MemcacheConnectionProvider extends AbstractConnectionProvider
     {
         foreach (array_keys($this->config['connections']) as $key) {
             $key = $this->getKey($key);
-            if ($this->c->loaded($key)) {   // Close any open connections
+            if ($this->c->used($key)) {   // Close any open connections
                 $this->c[$key]->close();    // http://php.net/manual/tr/memcache.close.php
             }
         }

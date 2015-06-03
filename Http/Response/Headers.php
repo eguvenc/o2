@@ -2,8 +2,6 @@
 
 namespace Obullo\Http\Response;
 
-use Obullo\Container\Container;
-
 /**
  * Manage Http Response Headers
  * 

@@ -3,7 +3,7 @@
 namespace Obullo\Annotations;
 
 use ReflectionClass;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Annotations Reader for Controller
@@ -40,7 +40,7 @@ class Controller
      * @param object $class  controller object
      * @param string $method controller method
      */
-    public function __construct(Container $c, $class, $method = 'index')
+    public function __construct(ContainerInterface $c, $class, $method = 'index')
     {
         $this->c = $c;
         $reflection = new ReflectionClass($class);
@@ -68,7 +68,7 @@ class Controller
         $docs = str_replace('*', '', $this->blocks);
         $docs = explode("@", $docs);
 
-        if (strpos($this->blocks, 'middleware->') > 0 OR strpos($this->blocks, 'event->')) {
+        if (strpos($this->blocks, 'middleware->') > 0 || strpos($this->blocks, 'event->')) {
             foreach ($docs as $line) {
                 $methods = explode('->', $line);  // explode every methods
                 array_shift($methods);            // remove class name "filter"

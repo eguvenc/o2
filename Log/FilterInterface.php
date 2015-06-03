@@ -2,7 +2,7 @@
 
 namespace Obullo\Log;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Logger Filter Interface
@@ -21,7 +21,7 @@ interface FilterInterface
      * 
      * @param object $c container
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 
     /**
      * Filter unformatted log records

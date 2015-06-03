@@ -23,10 +23,10 @@ class Application
 {
     const VERSION = '2.0@alpha-2.4';
 
-    protected $c;                  // Container
     protected $env = null;         // Current environment
     protected $envArray = array(); // Environments config
     protected $class;              // Current controller
+    protected $config;             // Config object
     protected $method;             // Current method
     protected $className;          // Current controller name
     protected $websocket;          // Debugger websocket
@@ -230,7 +230,7 @@ class Application
     {
         $route = $this->c['uri']->getUriString();       // Get current uri
         if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
-            $route = $this->c['app']->uri->getUriString();                             
+            $route = $this->c['app.uri']->getUriString();                             
         }
         return $route;
     }
@@ -337,7 +337,7 @@ class Application
     {
         return static::VERSION;
     }
-
+    
     /**
      * Call controller methods from view files
      *

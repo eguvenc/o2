@@ -4,7 +4,7 @@ namespace Obullo\Layer;
 
 use stdClass;
 use Controller;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
@@ -79,7 +79,7 @@ class Layer
      * @param array $c      container
      * @param array $params config 
      */
-    public function __construct(Container $c, $params)
+    public function __construct(ContainerInterface $c, $params)
     {
         $this->c = $c;
         $this->params = $params;

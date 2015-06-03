@@ -2,7 +2,8 @@
 
 namespace Obullo\Task;
 
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Task Class
@@ -28,10 +29,10 @@ class Task
      *
      * @param object $c container
      */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
         $this->logger = $c['logger'];
-        if ($this->logger instanceof Logger) {  // We need to sure logger object is available
+        if ($this->logger instanceof LoggerInterface) {  // We need to sure logger object is available
             $this->logger->debug('Task Class Initialized');
         }
     }
@@ -58,14 +59,14 @@ class Task
 
         if ($debug) {  // Enable debug output to log folder.
             $output = preg_replace(array('/\033\[36m/', '/\033\[31m/', '/\033\[0m/'), array('', '', ''), shell_exec($shell)); // Clean cli color codes
-            if ($this->logger instanceof Logger) {
+            if ($this->logger instanceof LoggerInterface) {
                 $this->logger->debug('$_TASK request', array('command' => $shell, 'output' => $output));
             }
             return $output;
         }
         shell_exec($shell . ' > /dev/null &');  // Async task
 
-        if ($this->logger instanceof Logger) {
+        if ($this->logger instanceof LoggerInterface) {
             $this->logger->debug('$_TASK executed', array('shell' => $shell));
         }
     }

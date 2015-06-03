@@ -3,7 +3,7 @@
 namespace Obullo\Http\Debugger;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Debugger Environment Tab Builder
@@ -18,20 +18,20 @@ use Obullo\Container\Container;
 class EnvTab
 {
     /**
-     * Container
+     * Request
      * 
      * @var object
      */
-    protected $c;
+    protected $request;
 
     /**
      * Constructor
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
+        $this->request = $c['request'];
     }
 
     /**
@@ -60,10 +60,10 @@ class EnvTab
     {
         $ENVIRONMENTS = static::buildSuperGlobals();
 
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->c['request']->headers->all();
+        $ENVIRONMENTS['HTTP_REQUEST'] = $this->request->headers->all();
         $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
 
-        $method = $this->c['request']->method();
+        $method = $this->request->method();
 
         $output = '';
         foreach ($ENVIRONMENTS as $key => $value) {

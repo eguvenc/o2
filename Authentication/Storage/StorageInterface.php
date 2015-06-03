@@ -2,14 +2,14 @@
 
 namespace Obullo\Authentication\Storage;
 
-use Obullo\Container\Container;
+use Obullo\Session\SessionInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
- * Cache storage interface
+ * Auth cache storage interface
  * 
  * @category  Authentication
- * @package   StorageInterface
+ * @package   Storage
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -20,11 +20,11 @@ interface StorageInterface
     /**
      * Constructor
      * 
-     * @param object $c        container
+     * @param object $session  session
      * @param object $provider provider
      * @param array  $params   parameters
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider, array $params);
+    public function __construct(SessionInterface $session, ServiceProviderInterface $provider, array $params);
 
     /**
      * Returns true if temporary credentials "not" exists
@@ -119,7 +119,7 @@ interface StorageInterface
     public function killSession($loginId);
 }
 
-// END StorageInterface.php File
-/* End of file StorageInterface.php
+// END Storage.php File
+/* End of file Storage.php
 
-/* Location: .Obullo/Authentication/Storage/StorageInterface.php */
+/* Location: .Obullo/Authentication/Storage/Storage.php */

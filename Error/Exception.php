@@ -2,10 +2,6 @@
 
 namespace Obullo\Error;
 
-use Controller;
-use Obullo\Log\Logger;
-use Obullo\Container\Container;
-
 /**
  * Exception Class
  * 
@@ -19,23 +15,6 @@ use Obullo\Container\Container;
 class Exception
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct(Container $c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Display the exception view
      * 
      * @param object  $e          exception object
@@ -48,35 +27,34 @@ class Exception
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
             return;
         }
-        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Hide shmop function errors in debug mode.
+        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Hide socket errors in debug mode.
             return;
         }
         if ($fatalError == false) { 
             unset($fatalError);  // Fatal error variable used in view file
         }
-        if (defined('STDIN')) {      // Cli
+        if (defined('STDIN')) {  // Cli
             echo $this->loadView('ExceptionConsole', $e);
             return;
         }
-        if (is_object($this->c)) {
-            $isAjax = false;
-            if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                $isAjax = true;
-            }
-            if ($isAjax) {    // Ajax
-                echo $this->loadView('ExceptionAjax', $e);
-                return;
-            }
-            $lastQuery = '';             
-            if (class_exists('Controller', false)
-                AND Controller::$instance != null 
-                AND isset(Controller::$instance->db) 
-                AND is_object(Controller::$instance->db) 
-                AND method_exists(Controller::$instance->db, 'lastQuery')
-            ) {  
-                $lastQuery = Controller::$instance->db->lastQuery();        // Show the last sql query
-            }
+        $isAjax = false;
+        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $isAjax = true;
         }
+        if ($isAjax) {    // Ajax
+            echo $this->loadView('ExceptionAjax', $e);
+            return;
+        }
+        // $lastQuery = '';             
+        // if (class_exists('Controller', false)
+        //     AND Controller::$instance != null 
+        //     AND isset(Controller::$instance->db) 
+        //     AND is_object(Controller::$instance->db) 
+        //     AND method_exists(Controller::$instance->db, 'lastQuery')
+        // ) {  
+        //     $lastQuery = Controller::$instance->db->lastQuery();        // Show the last sql query
+        // }
+        
         // Html
         echo '<!DOCTYPE html> 
         <html>

@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class IsJson
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-    
-    /**
      * is Json
      * 
      * @param string $str string

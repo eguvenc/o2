@@ -17,11 +17,6 @@ use Obullo\Http\Debugger\WebSocket;
 if (error_get_last() != null) {
     include TEMPLATES .'errors'. DS .'startup.php';
 }
-require OBULLO .'Container'. DS .'Container.php';
-require OBULLO .'Config'. DS .'Config.php';
-
-require 'Application.php';
-
 /**
  * Container
  * 
@@ -73,7 +68,6 @@ class Http extends Application
     {
         global $c;
         $this->c = $c;
-
         $this->detectEnvironment();
         $this->setErrorReporting();
         $this->setDefaultTimezone();
@@ -178,7 +172,6 @@ class Http extends Application
         }
         $middleware->params = $params;      // Inject Parameters
         $middleware->setContainer($this->c);
-        $middleware->setApplication($this);
         $middleware->setNextMiddleware(current($this->middleware));
         array_unshift($this->middleware, $middleware);
 
@@ -246,7 +239,7 @@ class Http extends Application
      */
     public function close()
     {
-        if ($this->c->loaded('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+        if ($this->c->used('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }

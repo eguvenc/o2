@@ -9,11 +9,6 @@ use BadMethodCallException;
 use Obullo\Container\Container;
 use Obullo\Http\Debugger\WebSocket;
 
-require OBULLO .'Container'. DS .'Container.php';
-require OBULLO .'Config'. DS .'Config.php';
-
-require 'Application.php';
-
 /**
  * Container
  * 

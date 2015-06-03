@@ -2,10 +2,12 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
+use Obullo\Session\SessionInterface;
 use Obullo\Authentication\AuthResult;
-use Obullo\Authentication\AbstractAdapter;
+use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\User\IdentityInterface;
+use Obullo\Authentication\Storage\StorageInterface;
 
 /**
  * O2 Authentication - Database Adapter
@@ -17,8 +19,22 @@ use Obullo\Authentication\AbstractAdapter;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-class Database extends AbstractAdapter implements AdapterInterface
+class Database extends AbstractAdapter
 {
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Parameters
+     * 
+     * @var array
+     */
+    protected $params;
+
     /**
      * Session class
      * 
@@ -85,17 +101,22 @@ class Database extends AbstractAdapter implements AdapterInterface
     /**
      * Constructor
      * 
-     * @param object $c container object
+     * @param object $c        container
+     * @param object $session  session
+     * @param object $storage  storage
+     * @param object $identity user identity
+     * @param array  $params   config parameters
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, IdentityInterface $identity, array $params)
     {
-        $this->storage = $c['auth.storage'];
-        $this->session = $c['session'];
+        $this->c = $c;
+        $this->params = $params;
+        $this->storage = $storage;
+        $this->session = $session;
+        $this->identity = $identity;
 
-        $this->columnIdentifier = $c['user']['db.identifier'];
-        $this->columnPassword   = $c['user']['db.password'];
-
-        $this->setContainer($c);
+        $this->columnIdentifier = $params['db.identifier'];
+        $this->columnPassword   = $params['db.password'];
     }
 
     /**
@@ -107,7 +128,7 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     protected function initialize(GenericUser $genericUser)
     {
-        if ($this->c['auth.identity']->guest()) {
+        if ($this->identity->guest()) {
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
         }
         $this->results = array(
@@ -152,16 +173,16 @@ class Database extends AbstractAdapter implements AdapterInterface
      */
     public function authenticate(GenericUser $genericUser, $login = true)
     {
-        if ($this->c['auth.identity']->check()) {
+        if ($this->identity->check()) {
             $this->alreadyLoggedIn = true;
             return false;
         }
         $storageResult = $this->storage->query();  // First do query to permanent memory block if user exists return to cached auth
 
         /**
-         * If user auth does not exist in memory do SQL query
+         * If cached identity does not exist in memory do SQL query
          */
-        $this->resultRowArray = ($storageResult === false) ? $this->c['user.model']->execQuery($genericUser) : $storageResult;
+        $this->resultRowArray = ($storageResult === false) ? $this->c['auth.model']->execQuery($genericUser) : $storageResult;
 
         if (is_array($this->resultRowArray) && isset($this->resultRowArray[$this->columnIdentifier])) {
             $plain = $genericUser->getPassword();
@@ -202,11 +223,11 @@ class Database extends AbstractAdapter implements AdapterInterface
          */
         $attributes = $this->formatAttributes(array_merge($resultRowArray, $attributes), $passwordNeedsRehash);
 
-        if ($this->c['user']['session']['regenerateSessionId']) {
-            $this->regenerateSessionId(true);  // Delete old session after regenerate !
+        if ($this->params['session']['regenerateSessionId']) {
+            $this->regenerateSessionId(true); // Delete old session after regenerate !
         }
         if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $this->c['user.model']->updateRememberToken($this->c['auth.token']->getRememberToken(), $genericUser); // refresh rememberToken
+            $this->c['auth.model']->updateRememberToken(Token::getRememberToken($this->c['cookie'], $this->params), $genericUser); // refresh rememberToken
         }
         if ($this->storage->isEmpty('__temporary')) {
             $this->storage->createPermanent($attributes);
@@ -298,6 +319,8 @@ class Database extends AbstractAdapter implements AdapterInterface
         $result->setResultRow($this->resultRowArray);
         return $result;
     }
+
+
 }
 
 // END Database.php File

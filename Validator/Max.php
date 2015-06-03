@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Max
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Minimum length
      * 
      * @param string $str string

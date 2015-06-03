@@ -2,7 +2,6 @@
 
 namespace Obullo\Authentication\Model;
 
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Obullo\Service\ServiceProviderInterface;
 
@@ -18,13 +17,13 @@ use Obullo\Service\ServiceProviderInterface;
  */
 interface UserInterface
 {
-    /**
+     /**
      * Constructor
      * 
-     * @param object $c        container
      * @param object $provider ServiceProviderInterface
+     * @param object $params   Auth configuration & service configuration parameters
      */
-    public function __construct(Container $c, ServiceProviderInterface $provider);
+    public function __construct(ServiceProviderInterface $provider, array $params);
 
     /**
      * Execute sql query

@@ -1,28 +1,21 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\Authentication\Identity;
 
-use Obullo\Container\Container;
+use Obullo\Authentication\AuthConfig;
 
 /**
- * O2 Authentication - Abstract User Identity
+ * O2 Authentication - General Identity
  *
  * @category  Authentication
- * @package   AbstractUserIdentity
+ * @package   UserIdentity
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
-class AbstractUserIdentity
+abstract class AbstractIdentity
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Credentials
      * 
@@ -31,16 +24,18 @@ class AbstractUserIdentity
     protected $attributes = array();
 
     /**
-     * Set Container
-     * 
-     * @param object $c container
+     * Get the identifier column (value/input)
      *
-     * @return void
+     * @return mixed
      */
-    public function setContainer(Container $c)
-    {
-        $this->c = $c;
-    }
+    abstract function getIdentifier();
+
+    /**
+     * Get the identifier password (value/input)
+     *
+     * @return mixed
+     */
+    abstract function getPassword();
 
     /**
      * Set credentials
@@ -61,7 +56,7 @@ class AbstractUserIdentity
      */
     public function getColumnIdentifier()
     {
-        return $this->c['user']['db.identifier'];
+        return AuthConfig::get('db.identifier');
     }
 
     /**
@@ -71,7 +66,7 @@ class AbstractUserIdentity
      */
     public function getColumnPassword()
     {
-        return $this->c['user']['db.password'];
+        return AuthConfig::get('db.password');
     }
 
     /**
@@ -117,7 +112,7 @@ class AbstractUserIdentity
     public function __set($key, $val)
     {
         if ($this->__isAuthenticated == 1) {  // Reserved symbol
-            $this->c['auth.storage']->update($key, $val);  // save to storage
+            $this->storage->update($key, $val);  // save to storage
         }
         return $this->attributes[$key] = $val;
     }
@@ -144,14 +139,14 @@ class AbstractUserIdentity
     public function __unset($key)
     {
         if ($this->__isAuthenticated == 1) {
-            $this->c['auth.storage']->remove($key);
+            $this->storage->remove($key);
         }
         unset($this->attributes[$key]);
     }
 
 }
 
-// END AbstractUserIdentity.php File
-/* End of file AbstractUserIdentity.php
+// END AbstractIdentity.php File
+/* End of file AbstractIdentity.php
 
-/* Location: .Obullo/Authentication/AbstractUserIdentity.php */
+/* Location: .Obullo/Authentication/AbstractIdentity.php */

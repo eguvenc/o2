@@ -5,7 +5,7 @@ namespace Obullo\ServiceProviders\Connections;
 use AmqpConnection;
 use RuntimeException;
 use UnexpectedValueException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * AMQP Connection Provider
@@ -30,7 +30,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('queue/amqp');  // Load database configuration file
@@ -134,7 +134,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     public function __destruct()
     {
         foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
-            if ($this->c->loaded($key)) {
+            if ($this->c->used($key)) {
                  $this->c[$key]->disconnect();
             }
         }

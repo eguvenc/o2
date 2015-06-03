@@ -3,7 +3,7 @@
 namespace Obullo\Event;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Event Class
@@ -17,10 +17,10 @@ use Obullo\Container\Container;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/event
  */
-class Event
+class Event implements EventInterface
 {
     /**
-     * Container
+     * Application
      * 
      * @var object
      */
@@ -52,7 +52,7 @@ class Event
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }
@@ -139,7 +139,7 @@ class Event
         foreach ($listeners as $listener) {
             $response = call_user_func_array($listener, $payload);
 
-            if (! is_null($response) AND $halt) {   // If a response is returned from the listener and event halting is enabled
+            if (! is_null($response) && $halt) {   // If a response is returned from the listener and event halting is enabled
                 array_pop($this->firing);            // we will just return this response, and not call the rest of the event
                 return $response;                    // listeners. Otherwise we will add the response on the response list.
             }

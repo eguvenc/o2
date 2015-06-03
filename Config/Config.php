@@ -3,10 +3,8 @@
 namespace Obullo\Config;
 
 use ArrayAccess;
-use LogicException;
-use RuntimeException;
-use Obullo\Container\Container;
 use Obullo\Config\Writer\PhpArray;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Config Class
@@ -21,20 +19,6 @@ use Obullo\Config\Writer\PhpArray;
 class Config implements ArrayAccess
 {
     /**
-     * Array stack
-     * 
-     * @var array
-     */
-    public $array = array();    // Configuration files stack
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
      * Current environment
      * 
      * @var string
@@ -46,7 +30,14 @@ class Config implements ArrayAccess
      * 
      * @var string
      */
-    protected $path;            // Config folder full path with current environment
+    protected $path;
+
+    /**
+     * Array stack
+     * 
+     * @var array
+     */
+    public $array = array();
 
     /**
      * Constructor
@@ -55,9 +46,8 @@ class Config implements ArrayAccess
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
         $this->env = $c['app']->env();
 
         $this->path  = APP .'config'. DS .'env.'.$this->env. DS;

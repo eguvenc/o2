@@ -2,7 +2,7 @@
 
 namespace Obullo\Service\Providers;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 use Obullo\Service\Providers\Connections\RedisConnectionProvider;
 
@@ -32,7 +32,7 @@ class RedisServiceProvider implements ServiceProviderInterface
      * 
      * @return void
      */
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $this->connector = new RedisConnectionProvider($c);    // Register all Connectors as shared services
         $this->connector->register();

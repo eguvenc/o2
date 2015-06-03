@@ -3,6 +3,7 @@
 namespace Obullo\Authentication;
 
 use Obullo\Utils\Random;
+use Obullo\Cookie\CookieInterface;
 
 /**
  * O2 Authentication - Token
@@ -17,33 +18,20 @@ use Obullo\Utils\Random;
 class Token
 {
     /**
-     * Cookie params
-     *
-     * @var array
-     */
-    protected $cookie;
-
-    /**
-     * Constructor
-     *
-     * @param array $cookie params
-     */
-    public function __construct(array $cookie)
-    {
-        $this->cookie = $cookie;
-    }
-
-    /**
      * Run cookie reminder
      *
+     * @param object $cookie CookieInterface
+     * @param array  $params parameters
+     * 
      * @return string token
      */
-    public function getRememberToken()
+    public static function getRememberToken(CookieInterface $cookie, array $params)
     {
-        $this->cookie['value'] = Random::generate('alnum', 32);
-        $this->c['cookie']->set($this->cookie);
+        $cookieParams = $params['login']['rememberMe']['cookie'];
 
-        return $this->cookie['value'];
+        $token = $cookieParams['value'] = Random::generate('alnum', 32);
+        $cookie->set($cookieParams);
+        return $token;
     }
 }
 

@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Job Interface
@@ -21,7 +21,7 @@ interface JobInterface
      * 
      * @param object $c container
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 
     /**
      * Fire the job

@@ -4,7 +4,7 @@ namespace Obullo\Service\Providers\Connections;
 
 use RuntimeException;
 use UnexpectedValueException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 
@@ -31,7 +31,7 @@ class DoctrineDBALConnectionProvider extends AbstractConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
@@ -127,7 +127,7 @@ class DoctrineDBALConnectionProvider extends AbstractConnectionProvider
     {
         foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
             $key = $this->getKey($key);
-            if ($this->c->loaded($key)) {  // Connection is active ? 
+            if ($this->c->used($key)) {  // Connection is active ? 
                  unset($this->c[$key]);
             }
         }

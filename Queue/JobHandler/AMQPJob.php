@@ -5,7 +5,7 @@ namespace Obullo\Queue\JobHandler;
 use AMQPQueue;
 use AMQPEnvelope;
 use Obullo\Queue\Job;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * AMQPJob Handler
@@ -22,11 +22,11 @@ class AMQPJob extends Job
     /**
      * Constructor
      * 
-     * @param object $c        Container
+     * @param object $c        ContainerInterface
      * @param object $queue    AMQPQueue object
      * @param object $envelope AMQPEnvelope object
      */
-    public function __construct(Container $c, AMQPQueue $queue, AMQPEnvelope $envelope)
+    public function __construct(ContainerInterface $c, AMQPQueue $queue, AMQPEnvelope $envelope)
     {  
         $this->c = $c; 
         $this->queue = $queue;

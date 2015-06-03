@@ -2,8 +2,7 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\Container;
-use Obullo\Log\Formatter\LineFormatterTrait;
+use Obullo\Container\ContainerInterface;
 
 /**
  * File Handler Class
@@ -17,24 +16,13 @@ use Obullo\Log\Formatter\LineFormatterTrait;
  */
 class File extends AbstractHandler implements HandlerInterface
 {
-    use LineFormatterTrait;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Config Constructor
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
-
         parent::__construct($c);
     }
 
@@ -52,12 +40,13 @@ class File extends AbstractHandler implements HandlerInterface
             $record = $this->arrayFormat($data, $record);
             $lines .= $this->lineFormat($record);
         }
-        $this->path = static::replacePath($this->c['config']['logger']['file']['path']['http']); // Default http requests
+        $this->path = File::replacePath($this->config['file']['path']['http']); // Default http requests
+
         if ($data['request'] == 'ajax') {
-            $this->path = static::replacePath($this->c['config']['logger']['file']['path']['ajax']); // Replace with ajax request path
+            $this->path = File::replacePath($this->config['file']['path']['ajax']); // Replace with ajax request path
         }
         if ($data['request'] == 'cli') {
-            $this->path = static::replacePath($this->c['config']['logger']['file']['path']['cli']); // Replace with cli request path
+            $this->path = File::replacePath($this->config['file']['path']['cli']); // Replace with cli request path
         }
         if ( ! $fop = fopen($this->path, 'ab')) {
             return false;

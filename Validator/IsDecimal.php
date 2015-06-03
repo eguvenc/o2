@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class IsDecimal
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * IsDecimal
      * 
      * @param string $str string

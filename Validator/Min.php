@@ -15,16 +15,6 @@ namespace Obullo\Validator;
 class Min
 {
     /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-    }
-
-    /**
      * Minimum length
      * 
      * @param string $str string

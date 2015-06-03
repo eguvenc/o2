@@ -3,7 +3,7 @@
 namespace Obullo\Service\Providers\Connections;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Obullo\Cache\Handler\HandlerInterface;
 
 /**
@@ -25,7 +25,7 @@ class CacheConnectionProvider extends AbstractConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->setKey('cache.connection.');  // Set container key

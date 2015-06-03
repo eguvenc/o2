@@ -2,8 +2,6 @@
 
 namespace Obullo\Cache\Handler;
 
-use Obullo\Container\Container;
-
 /**
  * Cache Handler Interface
  * 

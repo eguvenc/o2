@@ -2,7 +2,7 @@
 
 namespace Obullo\Security;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Csrf Class
@@ -56,7 +56,7 @@ class Csrf
      * 
      * @return  void
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->logger = $c['logger'];

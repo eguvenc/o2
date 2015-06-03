@@ -3,7 +3,7 @@
 namespace Obullo\Mailer\Transport;
 
 use Obullo\Mailer\Response;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Mandrill Transactional Email Api Client
@@ -53,10 +53,11 @@ class Mandrill extends HttpMailer implements MailerInterface
      * 
      * @return void
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->config = $c['config']->load('mailer/mandrill');
         $this->logger = $c['logger'];
+        
         $this->logger->debug('Madrill Class Initialized');
 
         parent::__construct($c);

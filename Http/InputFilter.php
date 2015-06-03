@@ -2,7 +2,7 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Input Filter
@@ -35,7 +35,7 @@ class InputFilter
      * 
      * @param Contaner $c object
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }

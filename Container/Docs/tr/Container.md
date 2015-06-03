@@ -31,7 +31,7 @@ Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakk�
     </ul>
 </li>
 <li><a href="#application-doc">Uygulama Sınıfı Belgelerine Bir Gözatın</a></li>
-<li><a href="#container-reference">Konteyner Sınıfı Referansı</a></li>
+<li><a href="#nethod-reference">Fonksiyon Referansı</a></li>
 </ul>
 
 <a name="services"></a>
@@ -471,9 +471,9 @@ $c['app']->register(
 
 Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel olan çoğu şeyi öğrendiniz demektir fakat çerçeveye daha hakim olmak için [Application.md](/Application/Docs/tr/Application.md) dökümentasyonuna da bir gözatmanızı istiyoruz.
 
-<a name="container-reference"></a>
+<a name="method-reference"></a>
 
-### Konteyner Sınıfı Referansı
+### Fonksiton Referansı
 
 ------
 
@@ -489,9 +489,9 @@ Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve
 
 Bir sınıfın uygulamadaki kısa adının konteyner içerisine kayıtlı olup olmadığını kontrol eder. Kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 
-#### $c->loaded(string $class);
+#### $c->used(string $class);
 
-Bir sınıfın uygulamaya konteyner içerisinden önceden yüklenip yüklenmediğini kontrol eder. Yüklenmiş ise <b>true</b> değilse <b>false</b> değerine geri döner.
+Bir sınıfın uygulama içerisinde daha önceden kullanılıp kullanılmadığını kontrol eder. Kullanılmış ise sınıf o seviyede uygulamada yüklüdür ve <b>true</b> değerine yüklü değilse <b>false</b> değerine geri döner.
 
 #### $c->isRegistered(string $provider)
 

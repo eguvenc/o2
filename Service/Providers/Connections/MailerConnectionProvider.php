@@ -4,7 +4,7 @@ namespace Obullo\Service\Providers\Connections;
 
 use RuntimeException;
 use Obullo\Mailer\Queue;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Mailer Connection Provider
@@ -28,7 +28,7 @@ class MailerConnectionProvider extends AbstractConnectionProvider
      * 
      * @param string $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('mailer/transport');

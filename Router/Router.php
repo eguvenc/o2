@@ -6,7 +6,7 @@ use Closure;
 use Controller;
 use LogicException;
 use BadMethodCallException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Router Class
@@ -53,7 +53,7 @@ class Router
      * 
      * @param array $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->uri    = $this->c['uri'];
@@ -63,7 +63,7 @@ class Router
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
-        if ($this->HOST != 'Cli' AND strpos($this->HOST, $c['config']['url']['webhost']) === false) {
+        if ($this->HOST != 'Cli' && strpos($this->HOST, $c['config']['url']['webhost']) === false) {
             $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 7);

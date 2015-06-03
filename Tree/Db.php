@@ -4,6 +4,7 @@ namespace Obullo\Tree;
 
 use PDO;
 use RunTimeException;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Nested Set Model Tree Class
@@ -127,7 +128,7 @@ class Db
      * @param object $c      container
      * @param array  $params config
      */
-    public function __construct($c, $params = array())
+    public function __construct(ContainerInterface $c, $params = array())
     {
         $this->c = $c;
         $this->params = $params;

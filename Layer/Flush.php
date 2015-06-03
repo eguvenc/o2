@@ -2,7 +2,7 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Flush Class
@@ -16,13 +16,6 @@ use Obullo\Container\Container;
  */
 class Flush
 {
-    /**
-     * Container class
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Cache service
      * 
@@ -42,13 +35,11 @@ class Flush
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
         $this->cache = $c['cache'];
-        $this->logger = $this->c['logger'];
         
-        $this->logger->debug('Layer Flush Class Initialized');
+        $c['logger']->debug('Layer Flush Class Initialized');
     }
 
     /**

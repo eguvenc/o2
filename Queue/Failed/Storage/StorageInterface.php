@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue\Failed\Storage;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Storage Handler Interface
@@ -21,7 +21,7 @@ interface StorageInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 
     /**
      * Insert failde job data to table

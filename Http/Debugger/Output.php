@@ -3,7 +3,7 @@
 namespace Obullo\Http\Debugger;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 use Obullo\Log\Formatter\LineFormatterTrait;
 
 /**
@@ -46,7 +46,7 @@ class Output
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->logger = $c['logger'];

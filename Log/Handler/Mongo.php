@@ -4,7 +4,7 @@ namespace Obullo\Log\Handler;
 
 use MongoDate;
 use InvalidArgumentException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Mongo Log Handler Class
@@ -19,18 +19,11 @@ use Obullo\Container\Container;
 class Mongo extends AbstractHandler implements HandlerInterface
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
-    /**
-     * Config params
+     * Options
      * 
      * @var array
      */
-    public $config;
+    public $options;
 
     /**
      * mongoClient object
@@ -60,15 +53,15 @@ class Mongo extends AbstractHandler implements HandlerInterface
      * @param object $mongo  $mongo service provider
      * @param array  $params parameters
      */
-    public function __construct(Container $c, $mongo, array $params = array())
+    public function __construct(ContainerInterface $c, $mongo, array $params = array())
     {
-        $this->c = $c;
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
 
         parent::__construct($c);
         
+        $this->options = $params;
         $this->mongoClient = $mongo;
 
         self::checkConfigurations($collection, $database, $mongo);
@@ -94,7 +87,7 @@ class Mongo extends AbstractHandler implements HandlerInterface
         if (null === $database) {
             throw new InvalidArgumentException('The database parameter cannot be empty');
         }
-        if (get_class($mongo) != 'MongoClient' AND get_class($mongo) != 'Mongo') {
+        if (get_class($mongo) != 'MongoClient' && get_class($mongo) != 'Mongo') {
             throw new InvalidArgumentException(
                 sprintf(
                     'Parameter of type %s is invalid; must be MongoClient or Mongo instance.', 
@@ -115,7 +108,7 @@ class Mongo extends AbstractHandler implements HandlerInterface
     public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($this->c['config']['logger']['format']['date'], $data['time']))),
+            'datetime' => new MongoDate(strtotime(date($this->config['format']['date'], $data['time']))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -123,16 +116,16 @@ class Mongo extends AbstractHandler implements HandlerInterface
             'context'  => null,
             'extra'    => null,
         );
-        if (isset($unformattedRecord['context']['extra']) AND count($unformattedRecord['context']['extra']) > 0) {
+        if (isset($unformattedRecord['context']['extra']) && count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
-            if ($this->config['format']['extra'] == 'json') { // if extra data format json ?
+            if ($this->options['format']['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = $unformattedRecord['context'];
-            if ($this->config['format']['context'] == 'json') {
+            if ($this->options['format']['context'] == 'json') {
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
         }

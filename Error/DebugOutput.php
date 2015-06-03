@@ -2,7 +2,7 @@
 
 namespace Obullo\Error;
 
-use Obullo\Logger\Logger;
+use Obullo\Logger\LoggerInterface;
 
 /**
  * DebugOutput Class
@@ -38,7 +38,7 @@ class DebugOutput
         global $c;
         $this->config = $c['config'];
         $this->logger = $c['logger'];
-        if ($this->logger instanceof Logger) {
+        if ($this->logger instanceof LoggerInterface) {
             $this->logger->debug('Debug Output Class Initialized');
         }
     }

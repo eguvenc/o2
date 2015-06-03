@@ -3,7 +3,7 @@
 namespace Obullo\Http\Debugger;
 
 use RuntimeException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Debugger Websocket 
@@ -59,7 +59,7 @@ class WebSocket
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         if (false == preg_match(

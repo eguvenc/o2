@@ -3,8 +3,9 @@
 namespace Obullo\Curl;
 
 use LogicException;
+use RuntimeException;
 use InvalidArgumentException;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Curl Class
@@ -83,12 +84,11 @@ class Curl
      *
      * @param \Obullo\Container\Container $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
+        $c = null;
         if ( ! extension_loaded('curl')) {
-            $error = 'The cURL IO handler requires the cURL extension to be enabled';
-            $c['logger']->error($error);
-            throw new LogicException($error);
+            throw new RuntimeException('The cURL IO handler requires the cURL extension to be enabled');
         }
     }
 

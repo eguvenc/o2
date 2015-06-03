@@ -2,13 +2,13 @@
 
 namespace Obullo\Service;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Service Provider Interface
  * 
  * @category  Interface
- * @package   Service
+ * @package   ServiceProviderInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -23,7 +23,7 @@ interface ServiceProviderInterface
      * 
      * @return void
      */
-    public function register(Container $c);
+    public function register(ContainerInterface $c);
 
     /**
      * Get connection
@@ -35,7 +35,7 @@ interface ServiceProviderInterface
     public function get($params = array());
 }
 
-// END ServiceProviderInterface class
+// END ServiceProvider class
 
 /* End of file ServiceProviderInterface.php */
 /* Location: .Obullo/Service/ServiceProviderInterface.php */

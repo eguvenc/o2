@@ -11,7 +11,7 @@ if (isset($fatalError)) {
 }
 echo "\33[1;31mException Error\n". DebugOutput::getSecurePath($e->getMessage())."\33[0m\n";
 
-if (isset($lastQuery) AND ! empty($lastQuery)) {
+if (isset($lastQuery) && ! empty($lastQuery)) {
     echo "\33[0;31m".'SQL: ' . $lastQuery . "\33[0m\n";
 }
 echo "\33[0;31m".$e->getCode().' '.DebugOutput::getSecurePath($e->getFile()). ' Line : ' . $e->getLine() ."\33[0m\n";
@@ -24,25 +24,25 @@ $fullTraces  = $e->getTrace();
 $debugTraces = array();
 
 foreach ($fullTraces as $key => $val) {
-    if (isset($val['file']) AND isset($val['line'])) {
+    if (isset($val['file']) && isset($val['line'])) {
         $debugTraces[] = $val;
     }
 }
-if (isset($debugTraces[0]['file']) AND isset($debugTraces[0]['line'])) {
+if (isset($debugTraces[0]['file']) && isset($debugTraces[0]['line'])) {
 
     echo "\33[1;31mDetails: \33[0m\n\33[0;31m";
 
-    if (isset($debugTraces[1]['file']) AND isset($debugTraces[1]['line'])) {    
+    if (isset($debugTraces[1]['file']) && isset($debugTraces[1]['line'])) {    
         $output = '';
         $i = 0;
         foreach ($debugTraces as $key => $trace) {
             ++$i;
-            if (isset($trace['file']) AND $i == 1) { // Just show the head class path
+            if (isset($trace['file']) && $i == 1) { // Just show the head class path
                 $output = '';
-                if (isset($trace['class']) AND isset($trace['function'])) {
+                if (isset($trace['class']) && isset($trace['function'])) {
                     $output.= $trace['class'] . '->' . $trace['function'];
                 }
-                if ( ! isset($trace['class']) AND isset($trace['function'])) {
+                if ( ! isset($trace['class']) && isset($trace['function'])) {
                     $output.= $trace['function'];
                 }
                 $output.= (isset($trace['function'])) ? '()' : '';

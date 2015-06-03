@@ -3,7 +3,7 @@
 namespace Obullo\Error;
 
 use Exception;
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface;
 
 /**
  * Exception Handler Class
@@ -62,7 +62,7 @@ class ExceptionHandler
         $file    = $e->getFile();
         $line    = $e->getLine();
         $logger  = $c['logger'];
-        if ($logger instanceof Logger) {         // Log for local environment
+        if ($logger instanceof LoggerInterface) {         // Log for local environment
             $logger->channel($c['config']['logger']['default']['channel']);
             $logger->error($message, array('file' => DebugOutput::getSecurePath($file), 'line' => $line));
         }

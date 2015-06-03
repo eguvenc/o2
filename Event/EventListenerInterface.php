@@ -2,7 +2,7 @@
 
 namespace Obullo\Event;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Event Listener Interface
@@ -21,7 +21,7 @@ interface EventListenerInterface
      * 
      * @param object $c container object
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 }
 
 // END EventListenerInterface.php File

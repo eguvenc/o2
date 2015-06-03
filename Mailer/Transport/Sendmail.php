@@ -3,7 +3,7 @@
 namespace Obullo\Mailer\Transport;
 
 use Obullo\Mailer\Text;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Sendmail Protocol Class
@@ -29,7 +29,7 @@ class Sendmail extends StandartMailer implements MailerInterface
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         parent::__construct($c);
 

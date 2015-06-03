@@ -2,8 +2,11 @@
 
 namespace Obullo\Authentication;
 
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
+use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\Model\UserInterface;
+use Obullo\Authentication\User\IdentityInterface;
+use Obullo\Authentication\Storage\StorageInterface;
 
 /**
  * O2 Authentication - Recaller
@@ -21,11 +24,11 @@ use Auth\Identities\GenericUser;
 class Recaller
 {
     /**
-     * Container
+     * Model
      * 
      * @var object
      */
-    protected $c;
+    protected $model;
 
     /**
      * Storage
@@ -35,17 +38,38 @@ class Recaller
     protected $storage;
 
     /**
+     * Datababase identifier column ( username or email .. )
+     * 
+     * @var string
+     */
+    protected $columnIdentifier;
+
+    /**
+     * Remember token column name
+     * 
+     * @var string
+     */
+    protected $columnRememberToken;
+
+    /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c        \Obullo\Container\Container
+     * @param object $storage  \Obullo\Authentication\Storage\Storage
+     * @param object $model    \Obullo\Authetication\Model\User
+     * @param array  $identity \Obullo\Authentication\Identity\Identity
+     * @param array  $params   auth
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c, StorageInterface $storage, UserInterface $model, IdentityInterface $identity, array $params)
     {
         $this->c = $c;
-        $this->storage = $this->c['auth.storage'];
+        $this->model = $model;
+        $this->params = $params;
+        $this->storage = $storage;
+        $this->identity = $identity;
 
-        $this->columnIdentifier = $this->c['user']['db.identifier'];
-        $this->rememberToken = $this->c['user']['db.rememberToken'];
+        $this->columnIdentifier = $params['db.identifier'];
+        $this->columnRememberToken = $params['db.rememberToken'];
     }
 
     /**
@@ -57,27 +81,26 @@ class Recaller
      */
     public function recallUser($token)
     {
-        $resultRowArray = $this->c['user.model']->execRecallerQuery($token);
+        $resultRowArray = $this->model->execRecallerQuery($token);
 
         if ( ! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
-            $this->removeCookie();
+            $this->identity->forgetMe();
             return;
         }
         $id = $resultRowArray[$this->columnIdentifier];
         $this->storage->setIdentifier($id);
 
-        $credentials = array(
-            $this->columnIdentifier => $id,
-            '__rememberMe' => 1,
-            '__rememberToken' => $resultRowArray[$this->rememberToken]
-        );
         $genericUser = new GenericUser;
-        $genericUser->setContainer($this->c);
-        $genericUser->setCredentials($credentials);
-        $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray, true);
-
-        $this->removeInactiveSessions(); // Kill all inactive sessions
+        $genericUser->setCredentials(
+            [
+                $this->columnIdentifier => $id,
+                '__rememberMe' => 1,
+                '__rememberToken' => $resultRowArray[$this->columnRememberToken]
+            ]
+        );
+        $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray);  // Generate authenticated user without validation
+        $this->removeInactiveSessions(); // Kill all inactive sessions of current user
     }
 
     /**
@@ -92,31 +115,11 @@ class Recaller
             return;
         }
         foreach ($sessions as $loginID => $val) {       // Destroy all inactive sessions
-            if (isset($val['__isAuthenticated']) AND $val['__isAuthenticated'] == 0) {  
+            if (isset($val['__isAuthenticated']) && $val['__isAuthenticated'] == 0) {  
                 $this->storage->killSession($loginID);
             }
         }
     }
-
-    /**
-     * Delete rememberMe cookie
-     * 
-     * @return void
-     */
-    public function removeCookie()
-    {
-        $cookie = $this->c['user']['login']['rememberMe']['cookie']; // Delete rememberMe cookie
-        setcookie(
-            $cookie['prefix'].$cookie['name'], 
-            null,
-            -1,
-            $cookie['path'],
-            $cookie['domain'],   //  Get domain from global config
-            $cookie['secure'], 
-            $cookie['httpOnly']
-        );
-    }
-
 }
 
 // END Recaller.php File

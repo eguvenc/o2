@@ -2,7 +2,7 @@
 
 namespace Obullo\Mailer\Transport;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * HttpMailerInterface for Http Apis
@@ -21,7 +21,7 @@ interface MailerInterface
      * 
      * @param array $c container
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 
     /**
      * Set Recipients

@@ -2,7 +2,7 @@
 
 namespace Obullo\Service;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Service Interface
@@ -23,7 +23,7 @@ interface ServiceInterface
      * 
      * @return void
      */
-    public function register(Container $c);
+    public function register(ContainerInterface $c);
 }
 
 // END ServiceInterface class
