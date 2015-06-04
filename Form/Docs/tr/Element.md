@@ -94,13 +94,13 @@ Form element sınıfı opsiyonel olarak kullanılır bu yüzden çalışabilmesi
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
-use Obullo\Form\Element as FormElement;
 use Obullo\Service\ServiceInterface;
+use Obullo\Form\Element as FormElement;
+use Obullo\Container\ContainerInterface;
 
 class Element implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['element'] = function () use ($c) {
             return new FormElement($c);

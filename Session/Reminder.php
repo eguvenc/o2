@@ -2,7 +2,7 @@
 
 namespace Obullo\Session;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Session Reminder Class
@@ -35,7 +35,7 @@ class Reminder
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->session = $c['session'];
         $this->config = $c['config']['session'];

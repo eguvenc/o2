@@ -1,8 +1,6 @@
 
 ## Memcached Sürücüsü
 
-------
-
 Memcached sürücüsü sunucunuza php extension olarak kurulmayı gerektirir. Ubuntu ve benzer linux sistemleri altında memcached kurulumuna dair <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı <a href="https://github.com/obullo/warmup/tree/master/Memcached" target="_blank">bu belgeden</a> yararlanabilirsiniz.
 
 <ul>
@@ -41,7 +39,7 @@ Memcached sürücüsü sunucunuza php extension olarak kurulmayı gerektirir. Ub
 
 ### Konfigürasyon
 
-Memcached sürücüsü bağlantı ayarlarınızı <kbd>app/config/env/$env/cache/memcached.php</kbd> dosyasında tanımlamanız gerekir.
+Memcached sürücüsü bağlantı ayarlarınızı <kbd>app/config/env.$env/cache/memcached.php</kbd> dosyasında tanımlamanız gerekir.
 
 <a name="memcached-nodes"></a>
 

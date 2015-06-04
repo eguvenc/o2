@@ -2,8 +2,8 @@
 
 namespace Obullo\Session;
 
-use Obullo\Container\Container;
 use Obullo\Session\MetaData\MetaData;
+use Obullo\Container\ContainerInterface;
 use Obullo\Session\MetaData\NullMetaData;
 
 /**
@@ -58,7 +58,7 @@ class Session implements SessionInterface
      *
      * @param array $c container
      */
-    public function __construct(Container $c) 
+    public function __construct(ContainerInterface $c) 
     {
         $this->c = $c;
         $this->config = $c['config']->load('session');

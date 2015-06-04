@@ -199,7 +199,7 @@ class Container implements ContainerInterface
         $key = isset($matches['key']) ? $matches['key'] : $cid;
         $noReturn = empty($matches['return']);
         $controllerExists = class_exists('Controller', false);
-        $isCoreFile = in_array($key, ['app','router','uri','config','logger','exception','error','env']);
+        $isCoreFile = $this->isCore($key);
 
         $this->markUnregisteredObjects($cid, $noReturn, $controllerExists, $isCoreFile);
 
@@ -260,13 +260,12 @@ class Container implements ContainerInterface
         $matches = $this->resolveCommand($classString);
 
         $isService = false;
-        $class = strtolower($matches['class']);
+        $cid = strtolower($matches['class']);
         $serviceName = ucfirst($matches['class']);
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
         if ($isDirectory || isset($this->services[$serviceName.'.php'])) {  // Resolve services
             $isService = true;
-            $data['cid'] = $data['key'] = $class;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
             if ( ! isset($this->registeredServices[$serviceName])) {
@@ -274,7 +273,7 @@ class Container implements ContainerInterface
                 $service = new $serviceClass($this);
                 $service->register($this);
 
-                if ( ! $this->has($data['cid'])) {
+                if ( ! $this->has($cid)) {
                     throw new RuntimeException(
                         sprintf(
                             "%s service configuration error service class name must be same with container key.",
@@ -287,15 +286,15 @@ class Container implements ContainerInterface
         }
         $data = [
             'key' => $matches['class'],
-            'cid' => $class,
+            'cid' => $cid,
             'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
         ];
-        $matches['key'] = $key = $data['key'];
+        $matches['key'] = $data['key'];
         
-        if ( ! $this->has($data['cid']) && ! $isService) {   // Don't register service again.
-            $this->registerClass($data['cid'], $key, $matches, $data['class']);
+        if ( ! $this->has($cid) && ! $isService) {   // Don't register service again.
+            $this->registerClass($cid, $data['key'], $matches, $data['class']);
         }
-        return $this->offsetGet($data['cid'], $matches, $params);
+        return $this->offsetGet($cid, $matches, $params);
     }
     
     /**
@@ -467,6 +466,18 @@ class Container implements ContainerInterface
             return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->env());
         }
         return '\Service\\'.$serviceClass;
+    }
+
+    /**
+     * Check class is core
+     * 
+     * @param string $cid class id
+     * 
+     * @return boolean
+     */
+    public function isCore($cid)
+    {
+        return in_array($cid, ['app','router','uri','config','logger','exception','error','env']);
     }
 
     /**

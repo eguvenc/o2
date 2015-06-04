@@ -1,7 +1,7 @@
 
 ### Http Debugger
 
-Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden sonra oluşan ortam bileşenleri ve arka plan log debug verilerini görselleştirir. Debugger modülü aktifken uygulama ziyaret edildiğinde sayfa html frameset etiketleri ile iki ayrı çerçeveye ayrılır orta pencerede uygulama çalışırken, alt çerçeve de; http, konsol, ajax log verileri ve ortam bilgileri ( $_POST, $_SERVER, $_GET, $_SESSION, $_COOKIE, http başlıkları, http gövdesi ) websocket bağlantısı ile dinamik olarak görüntülenir.
+Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden sonra oluşan ortam bileşenleri ve arka plan log verilerini görselleştirir. Debugger modülü aktifken uygulama ziyaret edildiğinde sayfa html frameset etiketleri ile iki ayrı çerçeveye ayrılır orta pencerede uygulama çalışırken, alt çerçeve de; http, konsol, ajax log verileri ve ortam bilgileri ( $_POST, $_SERVER, $_GET, $_SESSION, $_COOKIE, http başlıkları, http gövdesi ) websocket bağlantısı ile dinamik olarak görüntülenir.
 
 > ***Not:*** Şu anki sürümde debugger paketi yalnızca logger <b>file</b> sürücüsü log servisinde tanımlı iken log debug verilerini görselleştirebilir.
 

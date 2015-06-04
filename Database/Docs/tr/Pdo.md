@@ -340,12 +340,12 @@ Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosy
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 
 class Db implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['db'] = function () use ($c) {
             return $c['app']->provider('database')->get(['connection' => 'default']);

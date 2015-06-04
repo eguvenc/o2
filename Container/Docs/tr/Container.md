@@ -1,8 +1,6 @@
 
 ## Konteyner Sınıfı ( Container )
 
-------
-
 Bir Dependency Injection Container <b>DIC</b> veya kısaca konteyner, servisleri yaratmak ve uygulamaya yüklemek için kullanılır. Konteyner sınıfı yinelemeli olarak istenenen servislerin bağımlılıklarını yaratır ve onları uygulamaya enjekte eder.
 
 Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakkında çok fazla bilgiye sahip değilseniz bu konsept hakkında birşeyler okumak iyi bir başlangıç olabilir. İsterseniz konteynırlar arasında en basit ve popüler bir sınıf olan <a href="http://pimple.sensiolabs.org/" target="_blank">Pimple</a>  adlı projenin dökümentasyonuna bir gözatın. Obullo içerisinde kullanılan konteyner bu sınıfın biraz daha sadeleştirilip çerçeveye göre uyarlanmış versiyonudur.
@@ -52,13 +50,13 @@ Obullo da servisler servis klasörü içerisindeki aracı sınıflar tarafından
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 use Obullo\Session\Session as SessionClass;
 
 class Session implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['session'] = function () use ($c) {
             $session = new SessionClass($c);
@@ -420,8 +418,8 @@ Eğer kendi oluşturduğunuz servis sağlayıcınızı çalıştırmak istiyorsa
 ```php
 namespace Service\Providers;
 
-use Obullo\Container\Container;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 use Obullo\Service\Providers\Connections\CacheConnectionProvider;
 
@@ -429,7 +427,7 @@ class CacheServiceProvider implements ServiceProviderInterface
 {
     public $connector;
     
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $this->connector = new CacheConnectionProvider($c);
     }

@@ -104,7 +104,7 @@ RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
 
 #### Route Çözümlemeleri ve Http Katmanları
 
-index.php gelen bir http isteğinden sonra uri ve route sınıfı yüklenir uri sınıfı url değerlerini çözümleyerek route sınıfına göndereri gerçek url çözümlemesi ise route sınıfında gerçekleşir. Çünkü route sınıfı <kbd>app/routes.php</kbd> dosyasında tanımlı olan route verilerini url değerleriyle karşılaştırarak çözümler ve çözümlenen route değerine ait Controller sınıfı <b>modules/</b> dosyasından çağrılarak çalıştırılır.
+<kbd>index.php</kbd> dosyasına gelen bir http isteğinden sonra uri ve route sınıfı yüklenir uri sınıfı url değerlerini çözümleyerek route sınıfına gönderir, gerçek url çözümlemesi ise route sınıfında gerçekleşir. Çünkü route sınıfı <kbd>app/routes.php</kbd> dosyasında tanımlı olan route verilerini url değerleriyle karşılaştırarak çözümler ve çözümlenen route değerine ait Controller sınıfı <b>modules/</b> klasöründen çağrılarak çalıştırılır.
 
 Bir http GET isteği çözümlemesi
 
@@ -120,6 +120,12 @@ Bir http POST isteği çözümlemesi
 
 ```php
 $c['router']->post('product/post', 'shop/product/post')->middleware('Csrf'); 
+```
+
+Filterlenmemiş bir route çözümlenmesi
+
+```php
+$c['router']->match(['get', 'post'], 'product/page', 'shop/product/page');
 ```
 
 Sadece yetkilendirilmiş kullanıcılara ait bir route örneği
@@ -140,6 +146,7 @@ $c['router']->group(
 Eğer route yapınızda <b>middleware()</b> fonksiyonu ile yada middleware anahtarı içerisine tanımlanmış bir http katmanınız varsa ve gelen route isteği ile eşleşirse bu katman <b>app/Http/Middlewares</b> klasöründen çağrılarak çalıştırılır.
 
 > Http katmanları ile ilgili daha fazla bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasını gözden geçirebilirsiniz.
+
 
 <a name='http-and-console-requests'></a>
 

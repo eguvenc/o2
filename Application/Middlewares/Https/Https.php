@@ -2,7 +2,6 @@
 
 namespace Http\Middlewares;
 
-use Obullo\Container\Container;
 use Obullo\Application\Middleware;
 use Obullo\Application\Middlewares\RewriteHttpsTrait;
 
@@ -18,7 +17,6 @@ class Https extends Middleware
     public function load()
     {   
         $this->rewrite();
-
         $this->next->load();
     }
 

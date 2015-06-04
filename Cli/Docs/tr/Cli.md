@@ -1,8 +1,6 @@
 
 ## Konsol Arayüzü ( Cli )
 
-------
-
 Cli paketi yani Command Line Interface komut satırından yürütülen işlemler için yardımcı paketler içerir. Framework konsol arayüzü projenizin ana dizinindeki **task** dosyası üzerinden çalışır.
 
 <ul>
@@ -17,7 +15,7 @@ Cli paketi yani Command Line Interface komut satırından yürütülen işlemler
         <li><a href="#middleware-command">Middleware Komutu</a></li>
         <li><a href="#module-command">Module Komutu</a></li>
         <li><a href="#domain-command">Domain Komutu</a></li>
-        <li><a href="#domain-command">Debugger Komutu</a></li>
+        <li><a href="#debugger-command">Debugger Komutu</a></li>
         <li><a href="#queue-command">Queue Komutu</a></li>
         <li><a href="#run-your-commands">Kendi Komutlarınızı Çalıştırmak</a></li>
     </ul>
@@ -71,6 +69,28 @@ php task hello --planet=World
 ```
 
 > **Not:** Herhangi bir task controller sınıfı içerisinden http controller sınıfında olduğu gibi gerekli durumlarda <b>load()</b> metodunu kullanabilirsiniz.
+
+Standart parametrelerde desteklenmektedir.
+
+```php
+class Hello extends Controller {
+
+    public function index($planet = '')
+    {
+        echo Console::logo("Welcome to Hello Controller");
+        echo Console::description("This is my first task controller.");
+
+        echo Console::text("Hello ".$planet, 'yellow');
+        echo Console::newline(2);
+    }
+}
+```
+
+Konsoldan hello komutunu <b>planet</b> argümanı ile aşağıdaki gibi çalıştırdığınızda bir **Hello World** çıktısı almanız gerekir.
+
+```php
+php task hello World
+```
 
 <a name="running-console-commands"></a>
 
@@ -195,7 +215,7 @@ Https katmanı için örnek bir kaldırma
 php task middleware remove https
 ```
 
-> Katmanlar hakkında daha geniş bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasına gözatın
+> Katmanlar hakkında daha geniş bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasına gözatın.
 
 <a name="module-command"></a>
 
@@ -215,7 +235,7 @@ Debugger modülü için örnek bir kaldırma
 php task module remove debugger
 ```
 
-> Modüller hakkında daha geniş bilgi için [Modules.md](/Application/Docs/tr/Modules.md) dosyasına gözatın
+> Modüller hakkında daha geniş bilgi için [Modules.md](/Application/Docs/tr/Modules.md) dosyasına gözatın.
 
 <a name="domain-command"></a>
 
@@ -247,11 +267,13 @@ Uygulamanızı bakımdan çıkarmak için aşağıdaki komutu çalıştırın.
 php task domain up root
 ```
 
-> Maintenance katmanı hakkında daha geniş bilgi için [MaintenanceMiddleware.md](/Application/Docs/tr/MaintenanceMiddleware.md) dosyasına gözatın
+> Maintenance katmanı hakkında daha geniş bilgi için [MaintenanceMiddleware.md](/Application/Docs/tr/MaintenanceMiddleware.md) dosyasına gözatın.
 
 <a name="debugger-command"></a>
 
 #### Debugger Komutu
+
+Debugger modülü uygulamanın geliştirilmesi esnasında uygulama isteklerinden sonra oluşan ortam bileşenleri ve arka plan log verilerini görselleştirir.
 
 Debugger modülü için örnek bir kurulum
 
@@ -270,7 +292,13 @@ Debug sunucusunu çalıştırmak için aşağıdaki komutu kullanın.
 php task debugger
 ```
 
-> Ayrıntılı kurulum için Debugger paketi [Debbuger.md](/Http/Docs/tr/Debugger.md) belgesine bakınız.
+Debugger konsolonu görüntülemek için <kbd>/debugger</kbd> sayfasını ziyaret edin
+
+```php
+http://myproject/debugger
+```
+
+> Debugger modülü hakkında daha geniş bilgi için Debugger paketi [Debbuger.md](/Http/Docs/tr/Debugger.md) belgesine gözatın.
 
 <a name="queue-command"></a>
 
@@ -284,7 +312,7 @@ Kuyruğa atılan işleri <kbd>Obullo\Task\QueueController</kbd> sınıfına iste
 php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --sleep=3--tries=0 --debug=1
 ```
 
-> Queue komutu hakkında daha geniş bilgi için [Queue.md](/Queue/Docs/tr/Queue.md) dosyasına gözatın
+> Queue komutu hakkında daha geniş bilgi için [Queue.md](/Queue/Docs/tr/Queue.md) dosyasına gözatın.
 
 <a name="run-your-commands"></a>
 

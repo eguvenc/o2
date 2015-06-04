@@ -1,15 +1,64 @@
 
-## Anotasyonlar ( Annotations )
+## Anotasyonlar
 
-------
-
-Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Anotasyonlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
+Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Uygulama içinde anotasyonlar sınıflar yada sınıf metotları üzerine açıklama biçiminde yazılarak belirli işlevleri kontrol ederler.
 
 > **Not:** Anotasyonlar herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan anotasyonlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
 
-Şu anki sürümde biz anotasyonları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
+Şu anki sürümde biz anotasyonları sadece <kbd>Http Katmanlarını</kbd> atamak ve <kbd>Event</kbd> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
-### Mevcut Olan Anotasyonlar
+<ul>
+    <li>
+        <a href="#running">Çalıştırma</a>
+        <ul>
+            <li><a href="#enabling-annotations">Anotasyonları aktif etmek</a></li>
+            <li><a href="#available-annotations">Mevcut Anotasyonlar</a></li>
+            <li><a href="#middleware">Middleware</a></li>
+            <li><a href="#event">Event</a></li>
+            <li><a href="#loader-annotations">Yükleyici Anotasyonları</a></li>
+        </ul>
+    </li>
+</ul>
+
+<a name="running"></a>
+
+### Çalıştırma
+
+<a name="enabling-annotations"></a>
+
+#### Anotasyonları aktif etmek
+
+Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> anahtarının değerini <b>true</b> olarak güncelleyin.
+
+```php
+'controller' => [
+    'annotations' => true,
+],
+```
+
+Artık kontrolör sınıfı metotları üzerinde anotasyonları aşağıdaki gibi kullanabilirsiniz.
+
+```php
+/**
+ * Index
+ *
+ * @middleware->when("get", "post")->add("Example")
+ * 
+ * @return void
+ */
+public function index()
+{
+    // ..
+}
+
+
+/* End of file welcome.php */
+/* Location: .modules/welcome/welcome.php */
+```
+
+<a name="available-annotations"></a>
+
+#### Mevcut Olan Anotasyonlar
 
 <table>
     <thead>
@@ -42,40 +91,11 @@ Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım
     </tbody>
 </table>
 
-### Kontrolör için Anotasyonları aktif etmek
+<a name="middleware"></a>
 
-Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> anahtarının değerini <b>true</b> olarak güncelleyin.
+#### Middleware
 
-```php
-'annotations' => array(
-    'enabled' => true,
-)
-```
-
-Artık kontrolör sınıfı metotları üzerinde anotasyonları aşağıdaki gibi kullanabilirsiniz.
-
-```php
-/**
- * Index
- *
- * @middleware->when("get", "post")->add("Example")
- * 
- * @return void
- */
-public function index()
-{
-    // ..
-}
-
-
-/* End of file welcome.php */
-/* Location: .modules/welcome/welcome.php */
-```
-
-Aşağıdaki örneklere bir göz atın.
-
-
-#### Örnekler
+@middleware komutu ile bir kontrolör sınıfı içerisindeb uygulamaya bir katman eklenebilir yada bir katman uygulamadan kaldıralabilir.
 
 ```php
 /**
@@ -88,7 +108,7 @@ Aşağıdaki örneklere bir göz atın.
  */
 ```
 
-Yukarıdaki örnek Controller sınıfı index ( middleware call ) metodundan önce <b>Example</b> katmanını çalıştırır ve sadece <b>get</b> ve <b>post</b> isteklerinde erişime izin verir.
+Yukarıdaki örnek Controller sınıfı index ( middleware call ) metodundan önce uygulamaya <b>Example</b> katmanını ekler ve sadece <b>get</b> ve <b>post</b> isteklerinde erişime izin verir.
 
 ```php
 /**
@@ -100,7 +120,7 @@ Yukarıdaki örnek Controller sınıfı index ( middleware call ) metodundan ön
  */
 ```
 
-Yukarıdaki örnek sadece http <b>post</b> isteklerinde ve index() metodunun çalışmasından önce tanımlamış olduğunuz <b>XssFilter</b> gibi örnek bir katmanı çalıştırır.
+Yukarıdaki örnek sadece http <b>post</b> isteklerinde ve index() metodunun çalışmasından önce tanımlamış olduğunuz <b>XssFilter</b> gibi örnek bir katman çalıştırır.
 
 
 ```php
@@ -115,6 +135,9 @@ Yukarıdaki örnek sadece http <b>post</b> isteklerinde ve index() metodunun ça
 
 Yukarıdaki örnek sadece http <b>post</b> ve <b>get</b> isteklerinde index() metodunun çalışmasından önce varolan <b>Csrf</b> katmanını uygulamadan siler.
 
+<a name="event"></a>
+
+#### Event
 
 ```php
 /**
@@ -126,12 +149,13 @@ Yukarıdaki örnek sadece http <b>post</b> ve <b>get</b> isteklerinde index() me
  */
 ```
 
-Bu örnekte ise bu anotasyonun yazıldığı kontrolör sınıfına ait index metodu çalıştığında <kbd>@event->subscribe</kbd> anotasyonu arkaplanda <kbd>\Obullo\Event->subscribe()</kbd> metodunu çalıştırır ve uygulama  <kbd>app/classes/Event/Login/Attemp.php</kbd> sınıfı içerisine tanımlanmış olayları dinlemeye başlar.
+Bu örnekte index metodu çalıştığında <kbd>@event->subscribe</kbd> anotasyonu arkaplanda <kbd>\Obullo\Event->subscribe()</kbd> metodunu çalıştırır ve uygulama  <kbd>app/classes/Event/Login/Attemp.php</kbd> sınıfı içerisine tanımlanmış olayları dinlemeye başlar.
 
-> **Not:** Olaylar ( Events ) hakkında daha detaylı bilgiye Event paketi dökümentasyonundan ulaşabilirsiniz.
+> **Not:** Olaylar hakkında daha detaylı bilgiye [Event.md](/Event/Docs/tr/Event.md) dökümentasyonundan ulaşabilirsiniz.
 
+<a name="loader-annotations"></a>
 
-#### Bir Katmanı Tüm Sınıf Metotlarında Geçerli Kılmak
+#### Yükleyici Anotasyonları
 
 Bazı durumlarda yüklenen kontrolör sınıfının tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
 

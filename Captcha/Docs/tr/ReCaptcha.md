@@ -1,8 +1,6 @@
 
 ## ReCAPTCHA Sınıfı
 
--------
-
 ReCAPTCHA google şirketi tarafından geliştirilen popüler bir captcha servisidir. ReCaptcha servisini kurmak için önce <a href="https://www.google.com/recaptcha/intro/index.html" target="_blank">bu sayfayı</a> ziyaret ederek site key ve secret key bilgilerinizi almanız gerekir.
 
 <ul>
@@ -116,13 +114,13 @@ Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</k
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 
 class Recaptcha implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['recaptcha'] = function () use ($c) {
             $captcha = new ReCaptchaClass($c);            

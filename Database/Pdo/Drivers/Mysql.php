@@ -3,7 +3,6 @@
 namespace Obullo\Database\Pdo\Drivers;
 
 use PDO;
-use Obullo\Container\Container;
 use Obullo\Database\Pdo\Adapter;
 use Obullo\Service\ServiceProviderInterface;
 

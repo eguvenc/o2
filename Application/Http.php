@@ -76,7 +76,7 @@ class Http extends Application
         $this->middleware = array($this); // Define default middleware stack
 
         include APP .'errors.php';
-        $this->registerErrorHandlers();     
+        $this->registerErrorHandlers();
         include OBULLO .'Controller'. DS .'Controller.php';
 
         include APP .'components.php';

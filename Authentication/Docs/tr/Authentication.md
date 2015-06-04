@@ -28,9 +28,17 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
         <a href="#running">Çalıştırma</a>
         <ul>
             <li>
-                <a href="#service">Servis</a>
+                <a href="#service">Servis Konfigürasyonu</a>
                 <ul>
                     <li><a href="#loading-service">Servisi Yüklemek</a></li>
+                    <li><a href="#making-service">Servisi Yeniden Yaratmak</a></li>
+                    <li><a href="#calling-classes">Sınıfları Çağırmak</a></li>
+                    <li>
+                        <a href="#accessing-config-variables">Konfigürasyon Değerlerine Erişmek</a>
+                        <ul>
+                            <li><a href="#authconfig">AuthConfig::get()</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
         </ul>
@@ -68,10 +76,6 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
                 </ul>
             </li>
         </ul>
-    </li>
-
-    <li>
-        <a href="#getting-configuration-items">Konfigürasyon Parametrelerine Erişim</a>
     </li>
 
     <li>
@@ -283,7 +287,7 @@ Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>app/c
 
 <a name="service"></a>
 
-#### Servis
+#### Servis Konfigürasyonu
 
 ------
 
@@ -310,33 +314,28 @@ INSERT INTO `users` (`id`, `username`, `password`, `remember_token`) VALUES
 (1, 'user@example.com', '$2y$06$6k9aYbbOiVnqgvksFR4zXO.kNBTXFt3cl8xhvZLWj4Qi/IpkYXeP.', '');
 ```
 
-Yukarıdaki sql kodu için kullanıcı adı <b>user@example.com</b> ve şifre <b>123456</b> dır.
-
-Aşağıda görüldüğü gibi yetki doğrulama <b>User</b> servisi üzerinden yönetilir <kbd>app/classes/Service/User.php</kbd> dosyasını açarak servisi konfigüre edebilirsiniz.
+Yukarıdaki sql kodu için kullanıcı adı <b>user@example.com</b> ve şifre <b>123456</b> dır. Aşağıda görüldüğü gibi yetki doğrulama <b>User</b> servisi üzerinden yönetilir <kbd>app/classes/Service/User.php</kbd> dosyasını açarak servisi konfigüre edebilirsiniz.
 
 ```php
 Class User implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
-        $c['user'] = function () use ($c) {
+        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
 
-            $user = new AuthServiceProvider(
-                $c,
-                array(
-                	'cache.key'		   => 'Auth',
-                    'db.adapter'       => '\Obullo\Authentication\Adapter\Database',
-                    'db.model'         => '\Obullo\Authentication\Model\User',
-                    'db.provider'      => 'database',
-                    'db.connection'    => 'default',
-                    'db.tablename'     => 'users',    // Database column settings
-                    'db.id'            => 'id',
-                    'db.identifier'    => 'username',
-                    'db.password'      => 'password',
-                    'db.rememberToken' => 'remember_token'
-                )
-            );
-            return $user;
+            $parameters = [
+                'cache.key'     => 'Auth',
+                'url.login'     => '/membership/login',
+                'db.adapter'    => '\Obullo\Authentication\Adapter\Database', // Adapter
+                'db.model'      => '\Obullo\Authentication\Model\User',       // User model
+                'db.provider'   => 'database',
+                'db.connection' => 'default',
+                'db.tablename'  => $params['table'],
+            ];
+            $manager = new AuthManager($c);
+            $manager->setConfiguration($parameters);
+
+            return $manager;
         };
     }
 }
@@ -363,19 +362,51 @@ Class User implements ServiceInterface
 
 Yetki doğrulama paketi sınıflarına erişim <kbd>User</kbd> servisi üzerinden sağlanır, bu servis önceden <kbd>app/classes/Service</kbd> dizininde <b>User.php</b> olarak kayıt edilmiştir. <kbd>User</kbd> sınıfı yetki doğrulama servisine ait olan <kbd>Login</kbd>, <kbd>Identity</kbd> ve <kbd>Activity</kbd> gibi sınıfları bu servis üzerinden kontrol eder, böylece paket içerisinde kullanılan tüm sınıf metodlarına tek bir servis üzerinden erişim sağlanmış olur.
 
-User servisi bir kez çağrıldığı zaman bu servis içerisinden ilgili kütüphane metotları aşağıdaki gibi çalıştırılabilir.
+```php
+$this->user = $this->c->get('user');
+```
+
+<a name="making-service"></a>
+
+#### Servisi Yeniden Yaratmak
 
 ```php
-$this->c['user']->class->method();
+$this->user = $this->c->get('user', ['table' => 'users']);
 ```
+Auth servisi varsayılan olarak auth.php konfigürasyon dosyasında tanımlı users tablosuna ait sütün isimleriyle çalışmaya başlar. Varsayılan konfigurasyona tablo ekleyip projenizde aşağıdaki gibi birden fazla auth servisi kullanabilirsiniz.
+
+```php
+
+    'tables' => [
+        'users' => [
+            'db.id' => 'id',
+            'db.identifier' => 'username',
+            'db.password' => 'password',
+            'db.rememberToken' => 'remember_token',
+        ],
+        'admins' => [
+            'db.id' => 'id',
+            'db.identifier' => 'username',
+            'db.password' => 'password',
+            'db.rememberToken' => 'remember_token',
+        ]
+    ],
+
+/* End of file auth.php */
+/* Location: .app/config/auth.php */
+```
+
+```php
+$this->user = $this->c->get('user', ['table' => 'admins']);
+```
+
+> **Not:** Kendinize özgü servis parametrelerini yukarıdaki gibi servisin ikinci parametresi üzerinden gönderebilirsiniz.
+
+<a name="calling-classes"></a>
+
+#### Sınıfları Çağırmak
 
 Aşağıda verilen örnek prototipler size yetki doğrulama sınıfı metodlarına <b>user</b> servisi üzerinden nasıl erişim sağlandığı hakkında bir fikir verebilir.
-
-##### Konfigürasyon
-
-```php
-$this->user['variable'];   // Konfigürasyon değeri
-```
 
 ##### Login Sınıfı
 
@@ -399,6 +430,33 @@ $this->user->activity->method();
 $this->user->storage->method();
 ```
 
+<a name="accessing-config-variables"></a>
+
+#### Konfigürasyon Değerlerine Erişmek
+
+> User servisi AuthManager sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur.
+
+<a name="authconfig"></a>
+
+##### AuthConfig::get();
+
+<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
+
+Servis parametreleri için bir örnek
+
+```php
+echo AuthConfig::get('db.identifier');   // Çıktı username
+echo AuthConfig::get('db.password');     // Çıktı password
+echo AuthConfig::get('cache.key');       // Çıktı Auth
+```
+
+Tüm değerleri almak için parametre girilmez.
+
+```php
+$params = AuthConfig::get();
+
+print_r($params);  // Konfigürasyon değerleri
+```
 
 <a name="login"></a>
 
@@ -415,8 +473,8 @@ Bir kullanıcıya oturum açma girişimi login sınıfı attempt metodu üzerind
 ```php
 $auhtResult = $this->user->login->attempt(
     [
-        $this->user['db.identifier'] => $this->request->post('email'), 
-        $this->user['db.password'] => $this->request->post('password')
+        AuthConfig::get('db.identifier') => $this->request->post('email'), 
+        AuhtConfig::get('db.password') => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -488,8 +546,8 @@ Class Login extends \Controller
 
                 $authResult = $this->user->login->attempt(
                     [
-                        $this->user['db.identifier'] => $this->request->post('email'), 
-                        $this->user['db.password'] => $this->request->post('password')
+                        AuthConfig::get('db.identifier') => $this->request->post('email'), 
+                        AuthConfig::get('db.password') => $this->request->post('password')
                     ],
                     $this->request->post('rememberMe')
                 );
@@ -561,8 +619,8 @@ Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar
 ```php
 $authResult = $this->user->login->attempt(
     [
-        $this->user['db.identifier'] => $this->request->post('email'), 
-        $this->user['db.password'] => $this->request->post('password')
+        AuthConfig::get('db.identifier') => $this->request->post('email'), 
+        AuthConfig::get('db.password') => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -662,15 +720,15 @@ Aşağıdaki örnekte gösterilen Attempt sınıfı subscribe metodu <kbd>login.
 ```php
 namespace Event\Login;
 
-use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
 use Obullo\Event\EventListenerInterface;
+use Obullo\Container\ContainerInterface;
 
 class Attempt implements EventListenerInterface
 {
     protected $c;
 
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }
@@ -773,7 +831,6 @@ Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı
 ```php
 namespace Http\Middlewares;
 
-use Obullo\Container\Container;
 use Obullo\Application\Middleware;
 use Obullo\Authentication\Middleware\UniqueLoginTrait;
 
@@ -785,7 +842,7 @@ class Auth extends Middleware
 
     public function load()
     {
-        $this->user = $this->c['user'];
+        $this->user = $this->c->get('user');
         $this->next->load();
     }
 
@@ -1049,31 +1106,6 @@ Kimlik dizisinde varolan değeri siler.
 
 Tüm kullanıcı kimliği dizisinin üzerine girilen diziyi yazar.
 
-<a name="getting-configuration-items"></a>
-
-### Konfigürasyon Parametrelerine Erişim
-
-------
-
-> User servisi AuthServiceProvider sınıfı içerisinden gönderilen parametreleri auth konfigürasyon dosyasındaki parametreler ile birleştirerek tüm konfigurasyonu tek bir elden yönetmeye yardımcı olur. Konfigürasyon değişkenlerine ArrayAccess bileşenleri ile erişilir.
-
-##### $this->user['variable'];
-
-<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
-
-Servis parametreleri için bir örnek
-
-```php
-echo $this->user['db.identifier'];   // Çıktı username
-echo $this->user['db.password'];     // Çıktı password
-echo $this->user['cache.key'];       // Çıktı Auth
-```
-
-<kbd>app/config/auth.php</kbd> dosyası için bir örnek
-
-```php
-echo $this->user['cache']['storage'];  // Çıktı \Obullo\Authentication\Storage\Redis
-```
 
 <a name="custom-sql-queries"></a>
 
@@ -1090,13 +1122,13 @@ Aşağıda O2 yetki doğrulama paketi içerisindeki <kbd>\Obullo\Authentication\
 ```php
 namespace Obullo\Authentication\Model;
 
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
+use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 interface UserInterface
 {
-    public function __construct(Container $c, ServiceProviderInterface $provider);
+    public function __construct(ContainerInterface $c, ServiceProviderInterface $provider);
     public function execQuery(GenericUser $user);
     public function execRecallerQuery($token);
     public function updateRememberToken($token, GenericUser $user);
@@ -1108,25 +1140,23 @@ interface UserInterface
 ```php
 class User implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
-        $c['user'] = function () use ($c) {
-            $user = new AuthServiceProvider(
-                $c,
-                array(
-                    'cache.key'        => 'Auth',
-                    'db.adapter'       => '\Obullo\Authentication\Adapter\Database',
-                    'db.model'         => '\Auth\Model\User', // Değiştirilen bölüm
-                    'db.provider'      => 'database',
-                    'db.connection'    => 'default',
-                    'db.tablename'     => 'users', // Veritabanı sütun ayarları
-                    'db.id'            => 'id',
-                    'db.identifier'    => 'username',
-                    'db.password'      => 'password',
-                    'db.rememberToken' => 'remember_token'
-                )
-            );
-            return $user;
+        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
+
+            $parameters = [
+                'cache.key'     => 'Auth',
+                'url.login'     => '/membership/login',
+                'db.adapter'    => '\Obullo\Authentication\Adapter\Database', // Adapter
+                'db.model'      => '\Auth\Model\User',       // My User model
+                'db.provider'   => 'database',
+                'db.connection' => 'default',
+                'db.tablename'  => $params['table'],
+            ];
+            $manager = new AuthManager($c);
+            $manager->setConfiguration($parameters);
+
+            return $manager;
         };
     }
 }
@@ -1141,26 +1171,13 @@ Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarı
 ```php
 namespace Auth\Model;
 
-use Obullo\Container\Container;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
-use Obullo\Service\ServiceProviderInterface;
 use Obullo\Authentication\Model\UserInterface;
-use Obullo\Authentication\Model\User as ModelUser;
+use Obullo\Authentication\Model\User as AuthModel;
 
-class User extends ModelUser implements UserInterface
+class User extends AuthModel implements UserInterface
 {
-     /**
-     * Constructor
-     * 
-     * @param object $c        container
-     * @param object $provider ServiceProviderInterface
-     */
-    public function __construct(Container $c, ServiceProviderInterface $provider)
-    {
-        parent::__construct($c, $provider);
-    }
-    
     /**
      * Execute sql query
      *
@@ -1170,7 +1187,9 @@ class User extends ModelUser implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE %s = ?', $this->tablename, $this->columnIdentifier))
+        return $this->db->prepare(sprintf(
+            'SELECT * FROM %s WHERE %s = ?', $this->tablename, $this->columnIdentifier
+        ))
             ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
             ->execute()
             ->rowArray();
@@ -1242,8 +1261,8 @@ Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTempo
 ```php
 $authResult = $this->user->login->attempt(
     [
-        $this->user['db.identifier'] => $this->request->post('email'), 
-        $this->user['db.password'] => $this->request->post('password')
+        AuthConfig::get('db.identifier') => $this->request->post('email'), 
+        AuthConfig::get('db.password') => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );

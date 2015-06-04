@@ -1,8 +1,6 @@
 
 ## Redis Sürücüsü
 
-------
-
 Memcached sürücüsü sunucunuza php extension olarak kurulmayı gerektirir. Ubuntu ve benzer linux sitemleri altında redis kurulumuna dair <b>warmup</b> adı verilen dökümentasyon topluluğunun hazırladığı <a href="https://github.com/obullo/warmup/tree/master/Redis" target="_blank">bu belgeden</a> yararlanabilirsiniz.
 
 <ul>
@@ -61,7 +59,7 @@ Memcached sürücüsü sunucunuza php extension olarak kurulmayı gerektirir. Ub
 
 ### Konfigürasyon
 
-Redis sürücüsü bağlantı ayarlarınızı <kbd>app/config/env/$env/cache/redis.php</kbd> dosyasında tanımlamanız gerekir.
+Redis sürücüsü bağlantı ayarlarınızı <kbd>app/config/env.$env/cache/redis.php</kbd> dosyasında tanımlamanız gerekir.
 
 <a name="redis-nodes"></a>
 

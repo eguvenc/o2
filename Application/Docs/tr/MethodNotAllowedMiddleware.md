@@ -9,7 +9,7 @@ Framework çekirdeğinde çalışan bir katmandır herhangi bir kurulum ve konfi
 
 #### Çalıştırma
 
-Dipnotlar ( annotations ) ile controller sınıfı içerisinden veya route yapısı içerisinden çalıştırılabilir.
+Anotasyonlar ile controller sınıfı içerisinden veya route yapısı içerisinden çalıştırılabilir.
 
 #### Anotasyonlar ile kontrolör sınıfı içerisinden çalıştırma
 

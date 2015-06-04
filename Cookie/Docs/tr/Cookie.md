@@ -1,43 +1,61 @@
 
-## Çerez Sınıfı ( Cookie )
+## Çerez Sınıfı
 
-------
+Çerez, herhangi bir internet sitesi tarafından son kullanıcının bilgisayarına bırakılan bir tür tanımlama dosyasıdır. Çerez dosyalarında oturum bilgileri ve benzeri veriler saklanır. Çerez kullanan bir siteyi ziyaret ettiğinizde, bu site tarayıcınıza bir ya da birden fazla çerez bırakma konusunda talep gönderebilir.
+> **Not:** Bir çereze kayıt edilebilecek maksimum veri 4KB tır.
 
-Çerez, herhangi bir internet sitesi tarafından bilgisayara bırakılan bir tür tanımlama dosyasıdır. Çerez dosyalarında oturum bilgileri ve benzeri veriler saklanır. Çerez kullanan bir siteyi ziyaret ettiğinizde, bu site tarayıcınıza bir ya da birden fazla çerez bırakma konusunda talep gönderebilir.
+<ul>
+    <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+    <li>
+        <a href="#setcookie">Bir Çereze Veri Kaydetmek</a>
+        <ul>
+            <li><a href="#arrays">Array Yöntemi</a></li>
+            <li><a href="#method-chaining">Zincirleme Method Yöntemi</a></li>
+        </ul>
+    </li>
+    <li><a href="#parameters">Parametre Açıklamaları</a></li>
+    <li><a href="#readcookie">Bir Çerez Verisini Okumak</a></li>
+    <li><a href="#removecookie">Bir Çerezi Silmek</a></li>
+    <li><a href="#queue">Çerezleri Kuyruğa Göndermek</a></li>
+    <li><a href="#method-reference">Fonksiyon Referansı</a></li>
+</ul>
 
-Çerez sınıfı http çerezleri ilgili operasyonları yönetmenize yardımcı olur.
+<a name="loading-class"></a>
 
-### Sınıfı Yüklemek
-
--------
+#### Sınıfı Yüklemek
 
 ```php
 $this->c['cookie']->method();
 ```
 
+<a name="setcookie"></a>
+
 #### Bir Çereze Veri Kaydetmek
 
 Çerez sınıfını kullandığınızda bir çereze iki tür yöntemle veri kaydedebilirsiniz. Birinci yöntem array türü ile kayıt ikinci yöntem ise parametre göndererek kaydetmektir.
 
-#### Zincirleme Method Yöntemi ile Kayıt
+<a name="method-chaining"></a>
+
+##### Zincirleme Method Yöntemi
 
 ```php
 $this->cookie->expire(0)->set('name', 'value'); 
 ```
 
-Bu yöntemi kullanarak konfigürasyon dosyasından gelen varsayılan değerleri devre dışı bırakarak girilen değerleri çereze kaydedebilirsiniz. Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env/$env/config.php</kbd> konfigürasyon dosyasından okunarak varsayılan değerler olarak kabul edilirler.
+Bu yöntemi kullanarak konfigürasyon dosyasından gelen varsayılan değerleri devre dışı bırakarak girilen değerleri çereze kaydedebilirsiniz. Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env.$env/config.php</kbd> konfigürasyon dosyasından okunarak varsayılan değerler olarak kabul edilirler.
 
 Zincirleme method yöntemine tam bir örnek:
 
 ```php
 $this->cookie->name('hello')->value('world')->expire(86400)->domain('')->path('/')->set(); 
 ```
+<a name="arrays"></a>
 
-#### Array ile Kayıt Yöntemi
+##### Array ile Kayıt Yöntemi
 
 Bu yöntemde kayıt set metodu içerisine array türünden parametre gönderilerek yapılır.
 
-Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env/$env/config.php</kbd> konfigürasyon dosyasından okunur. Eğer konfigürasyon dosyasını ezerek bir çerez kaydetmek istiyorak aşağıdaki gibi tüm parametreleri göndermelisiniz.
+Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env.$env/config.php</kbd> konfigürasyon dosyasından okunur. Eğer konfigürasyon dosyasını ezerek bir çerez kaydetmek istiyorak aşağıdaki gibi tüm parametreleri göndermelisiniz.
 
 ```php
 $cookie = array(
@@ -53,6 +71,8 @@ $cookie = array(
 
 $this->cookie->set($cookie); 
 ```
+
+<a name="parameters"></a>
 
 #### Parametre Açıklamaları
 
@@ -99,6 +119,7 @@ $this->cookie->set($cookie);
         </tbody>
 </table>
 
+<a name="readcookie"></a>
 
 #### Bir Çerez Verisini Okumak
 
@@ -117,6 +138,7 @@ if ($value = $this->cookie->get('name', 'prefix')) {
 	echo $value;
 }
 ```
+<a name="removecookie"></a>
 
 #### Bir Çerezi Silmek
 
@@ -143,6 +165,8 @@ Veya
 $this->cookie->name('name')->prefix('prf_')->domain('my.subdomain.com')->path('/')->delete();
 ```
 
+<a name="queue"></a>
+
 #### Çerezleri Kuyruğa Göndermek
 
 Uygulamada bir http çıktısı yaratılmış olsa bile çerezleri queue komutu ile tarayıcıya sonradan kaydedebilirsiniz. Böyle bir durumda kuyruğa atılan çerezler bir konteyner içerisinde toplanırlar ve en son http çıktısından sonra <b>Application/Http</b> sınıfı tarafından http başlıklarına kaydedilirler ve bir sonraki http isteğinde mevcut olurlar.
@@ -157,7 +181,9 @@ Queue komutu parametreleri set metodu parametreleri ile eşdeğerdir. Kuyruktan 
 $this->cookie->unqueue("name");
 ```
 
-### Çerez Sınıfı Referansı
+<a name="method-reference"></a>
+
+#### Fonksiyon Referansı
 
 -------
 

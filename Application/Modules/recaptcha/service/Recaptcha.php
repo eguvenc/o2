@@ -2,9 +2,9 @@
 
 namespace Service;
 
-use Obullo\Container\Container;
-use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
+use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 
 class Recaptcha implements ServiceInterface
 {
@@ -15,7 +15,7 @@ class Recaptcha implements ServiceInterface
      * 
      * @return void
      */
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['recaptcha'] = function () use ($c) {
 

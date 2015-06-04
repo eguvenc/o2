@@ -1,12 +1,90 @@
 
-## Kontrolör Sınıfı ( Controller )
+## Kontrolör Sınıfı
 
 Kontrolör sınıfı uygulamanın kalbidir ve uygulamaya gelen HTTP isteklerinin nasıl yürütüleceğini kontrol eder. Uygulama çalıştığı anda uygulama içerisinde kullanılan temel sınıflar ( config, uri, route, logger ) kontrolör sınıfı içerisine atanırlar.
 
+<ul>
 
-### Kontrolör Nedir ?
+<li>
+    <a href="#flow">İşleyiş</a>
 
-------
+    <ul>
+        <li><a href="#what-is-the-controller">Kontrolör Nedir ?</a></li>
+    </ul>
+
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#container-loader">Konteyner Yükleyici</a></li>
+        <li><a href="#example-page">Örnek Bir Açılış Sayfası</a></li>
+        <li><a href="#without-container-loader">Sınıf Yükleyicinin Kullanılmadığı Durumlar</a></li>
+        <li><a href="#method-arguments">Method Argümanları</a></li>
+        <li><a href="#modules">Modüller</a></li>
+        <li><a href="#welcome-page">İlk Açılış Sayfası</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#annotations">Anotasyonlar</a>
+    <ul>
+        <li><a href="#enabling-annotations">Anotasyonları Aktif Etmek</a></li>
+    </ul>
+</li>
+
+<li><a href="#reserved-methods">Rezerve Edilmiş Metotlar</a></li>
+
+</ul>
+
+<a name="flow"></a>
+
+### İşleyiş
+
+<kbd>index.php</kbd> dosyasına gelen bir http isteğinden sonra uri ve route sınıfı yüklenir uri sınıfı url değerlerini çözümleyerek route sınıfına gönderir, gerçek url çözümlemesi ise route sınıfında gerçekleşir. Çünkü route sınıfı <kbd>app/routes.php</kbd> dosyasında tanımlı olan route verilerini url değerleriyle karşılaştırarak çözümler ve çözümlenen route değerine ait Controller sınıfı <b>modules/</b> klasöründen çağrılarak çalıştırılır.
+
+Bir http GET isteği çözümlemesi
+
+```php                   
+(Request) http://example.com/product/4   (Rewrite) http://example.com/shop/product/4  
+                 _ _ _ _ _ _ _           _ _ _ _ _ _ _ _
+                        |                        |
+                        |                        |
+$c['router']->get('product/([0-9])', 'shop/product/$1');                            
+```
+
+Bir http POST isteği çözümlemesi
+
+```php
+$c['router']->post('product/post', 'shop/product/post')->middleware('Csrf'); 
+```
+
+Filterlenmemiş bir route çözümlenmesi
+
+```php
+$c['router']->match(['get', 'post'], 'product/page', 'shop/product/page');
+```
+
+Sadece yetkilendirilmiş kullanıcılara ait bir route örneği
+
+```php
+$c['router']->group(
+    ['name' => 'AuthorizedUsers', 'middleware' => array('Auth', 'Guest')],
+    function () {
+
+        $this->defaultPage('welcome');
+        $this->attach('membership/restricted');
+    }
+);
+```
+
+> Route çözümlemeleri ilgili daha fazla bilgi için [Router.md](/Router/Docs/tr/Router.md) dosyasını gözden geçirebilirsiniz.
+
+Eğer route yapınızda <b>middleware()</b> fonksiyonu ile yada middleware anahtarı içerisine tanımlanmış bir http katmanınız varsa ve gelen route isteği ile eşleşirse bu katman <b>app/Http/Middlewares</b> klasöründen çağrılarak çalıştırılır.
+
+> Http katmanları ile ilgili daha fazla bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasını gözden geçirebilirsiniz.
+
+
+<a name="what-is-the-controller"></a>
+
+#### Kontrolör Nedir ?
 
 Kontrolör dosyaları uygulamada http adres satırından çağrıldığı ismi ile bağlantılı olarak çözümlenebilen basit php sınıflarıdır. Kontrolör dosyaları uygulamada <kbd>.modules/modüladı/</kbd> klasörü altında tutulurlar. Uygulama içerisinde her bir kontrolör kendine ait isim alanı ( namespace ) ile belirtilmek zorundadır aksi takdirde çözümlenemezler.
 
@@ -21,12 +99,15 @@ Yukarıdaki örnekte uygulama modüller altında önce <kbd>blog</kbd> isimli kl
 
 > **Not:** Metod ismi son segment olarak girilmediğinde varsayılan olarak index metodu çalışır.
 
+<a name="running"></a>
 
-### Sınıf Yükleyici
+### Çalıştırma
 
-------
+<a name="container-loader"></a>
 
-Obullo da bir kontrolör sınıfı <b>load</b> metodu içerebilir. Load metodu php __construct() metodu gibi çalışır. Load metodu mevcut ise içerisinde ilan edilen tüm container nesneleri controller içerisine kaydedilir.
+#### Konteyner Yükleyici
+
+Obullo da bir kontrolör sınıfı <kbd>load</kbd> metodu içerebilir. Load metodu php __construct() metodu gibi çalışır. Load metodu mevcut ise içerisinde ilan edilen tüm container nesneleri controller içerisine kaydedilir.
 
 
 ```php
@@ -45,9 +126,30 @@ class Welcome extends \Controller
 
 > **Not:** Kontrolör sınıfları içerisinde <kbd>construct</kbd> yerine load yönteminin kullanılmasının birinci nedeni <kbd>parent::__construct()</kbd> yazımından bağımsız bir loader elde edebilmektir, ikinci nedeni ise uygulama içerisinde load için tanımlanmış http katmanının ( middleware ) kullanımını kolaylaştırmaktır.
 
-### Bir Hello World Örneği
+Konteyner içerisinden yüklenen sınıflara diğer metotlar içerisinden aşağıdaki gibi <kbd>$this</kbd> nesnesi yardımı ile ulaşabilir.
 
--------
+```php
+namespace Welcome;
+
+class Welcome extends \Controller
+{
+    public function load()
+    {
+        $this->c['url'];
+        $this->c['view'];
+    }
+
+    public function index()
+    {
+        $this->view->load('welcome');
+    }
+
+}
+```
+
+<a name="example-page"></a>
+
+#### Örnek Bir Açılış Sayfası
 
 Şimdi kontrolör sınıfını birazda iş başında görelim, aşağıdaki gibi <kbd>welcome</kbd> adında bir klasör yaratın.
 
@@ -96,17 +198,19 @@ example.com/index.php/welcome
 
 Sayfayı ziyaret ettiğinizde <kbd>welcome/welcome/index</kbd> metodu çalışmış olmalı.
 
-Klasör ismi ve sınıf ismi <kbd>welcome/welcome</kbd> şeklinde aynı olduğunda route sınıfı adres çözümlemesi için sınıf ismine ihtiyaç duymaz. Eğer <kbd>welcome/hello</kbd> adında bir kontrolör sınıfımız olsaydı bu durumda adres satırını aşağıdaki gibi değiştirmemiz gerekirdi.
+Klasör ismi ve sınıf ismi <kbd>welcome/welcome</kbd> şeklinde aynı olduğunda route sınıfı adres çözümlemesi için sınıf ismine ihtiyaç duymaz yani <kbd>welcome/index</kbd> şeklinde sayfayı ziyaret ettiğinizde sayfa yine çalışmış olur. Eğer <kbd>welcome/hello</kbd> adında bir kontrolör sınıfımız olsaydı bu durumda adres satırını aşağıdaki gibi değiştirmemiz gerekirdi.
 
 ```php
 example.com/index.php/welcome/hello/index
 ```
 
-### Sınıf Yükleyicinin Kullanılmadığı Durumlar
+<a name="without-container-loader"></a>
 
-Bazı sınıflar uygulamanın yüklenmesinin başında yani <b>load()</b> metodu içerisinde yüklenmek istenmeyebilir bu gibi durumlarda sınıflara array access <b>$this->c['class']</b> yöntemi ile konteyner içerisinden direkt erişilir.
+#### Sınıf Yükleyicinin Kullanılmadığı Durumlar
 
-Örneğin <b>view</b> sınıfına sadece <b>index()</b> metodu içerisinde ihtiyaç duysaydık <b>$this->view</b> yöntemini kullanmak yerine array access <b>$this->c['view']</b> yöntemini kullanarak ona aşağıdaki gibi erişmeliydik.
+Bazı sınıflar uygulamanın yüklenmesinin başında yani <kbd>load()</kbd> metodu içerisinde yüklenmek istenmeyebilir bu gibi durumlarda sınıflara array access <kbd>$this->c['class']</kbd> yöntemi ile konteyner içerisinden direkt erişilir.
+
+Örneğin <kbd>view</kbd> sınıfına sadece <kbd>index()</kbd> metodu içerisinde ihtiyaç duysaydık <kbd>$this->view</kbd> yöntemini kullanmak yerine array access <kbd>$this->c['view']</kbd> yöntemini kullanarak ona aşağıdaki gibi erişebilirdik.
 
 
 ```php
@@ -129,11 +233,9 @@ class Welcome extends \Controller
 /* Location: .modules/welcome/welcome.php */
 ```
 
-Bunun gibi bazı durumlarda uygulamanızda bir performans sorunu yaşamamanız için array access yöntemi ile kütüphaneleri sadece ihtiyacınız olduğu yerlerde yüklemeniz gerekebilir.
+<a name="method-arguments"></a>
 
-### Method Argümanları
-
-------
+#### Method Argümanları
 
 Eğer adres satırında bir metot dan sonra gelen segmentler birden fazla ise bu segmentler metot argümanları olarak çözümlenir. Örneğin aşağıdaki gibi bir url adresimizin olduğunu varsayalım:
 
@@ -171,12 +273,13 @@ class Computer extends \Controller
 
 > **Not:** Eğer URI route özelliğini kullanıyorsanız fonksiyonunuza gelen segmentler route edilmiş segment değerleri olacaktır.
 
+<a name="modules"></a>
 
-### Modüller
+#### Modüller
 
-Modüller klasörleri kapsayan en dışdaki ana dizinlerdir ve alt dizinleri içerirler. Bir klasörü bir modül getirmek mümkündür, bunun için yapmanız gereken tek şey ana bir dizin açıp alt klasörlerinizi bu anadizin içerisine taşımak. 
+Modüller klasörleri kapsayan en dışdaki ana dizinlerdir ve alt dizinleri içerirler. Bir klasörü bir modül haline getirmek mümkündür, bunun için yapmanız gereken tek şey ana bir dizin açıp alt klasörlerinizi bu anadizin içerisine taşımak. 
 
-Örneğin bir önceki örnekte kullandığımız <b>products</b> adlı dizini <b>shop</b> adında bir modül oluşturup bu modül içerisine taşıyalım.
+Örneğin bir önceki örnekte kullandığımız <b>products</b> adlı dizini, <b>shop</b> adında bir modül oluşturup bu modül içerisine taşıyalım.
 
 ```php
 -  app
@@ -194,11 +297,11 @@ Böyle bir değişiklikten sonra url adresini artık aşağıdaki gibi çağırm
 example.com/index.php/shop/products/computer/index/desktop/123
 ```
 
-### İlk Açılış Sayfası
+<a name="welcome-page"></a>
 
-------
+#### İlk Açılış Sayfası
 
-Uygulamaya eğer domain adresinizden sonra herhangi bir kontrolör segmenti gönderilmezse ilk açılış sayfası için varsayılan bir kontrolör tanımlamasına ihtiyaç duyar. Varsayılan kontrolör <kbd>app/routes.php</kbd> dosyasında tanımlı olmadığında uygulama hata verecektir.
+Uygulamaya eğer domain adresinizden sonra herhangi bir kontrolör segmenti gönderilmezse uygulama ilk açılış sayfası için varsayılan bir kontrolör tanımlamasına ihtiyaç duyar. Varsayılan kontrolör <kbd>app/routes.php</kbd> dosyasında tanımlı olmadığında uygulama hata verecektir.
 
 Bu nedenle route dosyanızı açıp varsayılan kontrolör sınıfınızı defaultPage() metodu ile aşağıdaki gibi belirlemeniz gerekir.
 
@@ -210,81 +313,32 @@ $c['router']->defaultPage('welcome/index');
 /* Location: .routes.php */
 ```
 
+<a name="annotations"></a>
+
 ### Anotasyonlar ( Annotations )
 
-------
-
-Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Dipnotlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
+Bir anotasyon aslında bir metadata yı (örneğin yorum,  açıklama, tanıtım biçimini) yazıya, resime veya diğer veri türlerine tutturmaktır. Anotasyonlar genellikle orjinal bir verinin belirli bir bölümümü refere ederler.
 
 > **Not:** Anotasyonlar herhangi bir kurulum yapmayı gerektirmez ve uygulamanıza performans açısından ek bir yük getirmez. Php ReflectionClass sınıfı ile okunan anotasyonlar çekirdekte herhangi bir düzenli ifade işlemi kullanılmadan kolayca çözümlenir.
 
 Şu anki sürümde biz anotasyonları sadece <b>Http Katmanlarını</b> atamak ve <b>Event</b> sınıfına tayin edilen <b>Olayları Dinlemek</b> için kullanıyoruz.
 
-### Mevcut olan anotasyonlar
+<a name="enabling-annotations"></a>
 
-<table>
-    <thead>
-        <tr>
-            <th>Anotasyon</th>    
-            <th>Açıklama</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><b>@middleware->add();</b></td>
-            <td>Bir middleware katmanını uygulamaya ekler. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
-        </tr>
-        <tr>
-            <td><b>@middleware->remove();</b></td>
-            <td>Varolan bir middleware katmanını uygulamadan çıkarır. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
-        </tr>
-        <tr>
-            <td><b>@middleware->method();</b></td>
-            <td>Http protokolü tarafından gönderilen istek metodu belirlenen metotlardan biri ile eşleşmez ise sayfaya erişime izin verilmez. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
-        </tr>
-         <tr>
-            <td><b>@middleware->when()->add()</b></td>
-            <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu anotasyonun kullanıldığı katman uygulumaya eklenmez.</td>
-        </tr>
-        <tr>
-            <td><b>@event->subscribe();</b></td>
-            <td>Event sınıfını çağırarak subscribe metodu ile varsayılan controller için bir dinleyici atamanızı sağlar.</td>
-        </tr>
-    </tbody>
-</table>
-
-### Kontrolör İçin Anotasyonları Aktif Etmek
+#### Anotasyonları Aktif Etmek
 
 Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> anahtarının değerini <b>true</b> olarak güncelleyin.
 
 ```php
-'annotations' => array(
-    'enabled' => true,
-)
+'controller' => [
+    'annotations' => true,
+],
 ```
 
-Artık kontrolör sınıfı metotları üzerinde anotasyonları aşağıdaki gibi kullanabilirsiniz.
-
-```php
-/**
- * Index
- *
- * @middleware->when("get", "post")->add("Example")
- * 
- * @return void
- */
-public function index()
-{
-    // ..
-}
+> **Not:** Anotasyonlar hakkında daha fazla bilgiye [Annotations.md](/Application/Docs/tr/Annotations.md) dökümentasyonundan ulaşabilirsiniz.
 
 
-/* End of file welcome.php */
-/* Location: .modules/welcome/welcome.php */
-```
-
-> **Not:** Anotasyonlar hakkında daha fazla bilgiye <b>Annotations</b> paketi dökümentasyonundan ulaşabilirsiniz.
-
+<a name="reserved-methods"></a>
 
 ### Rezerve Edilmiş Metotlar
 
@@ -304,7 +358,7 @@ Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı 
         </tr>
         <tr>
             <td><b>extend()</b></td>
-            <td>View servisi tarafından kontrolör sınıfı içerisinde bir şablona genişlemek için kullanılır. Detaylı bilgi için <b>View</b> paketi dökümentasyonunu inceleyiniz.</td>
+            <td>View servisi tarafından kontrolör sınıfı içerisinde bir şablona genişlemek için kullanılır. </td>
         </tr>
     </tbody>
 </table>
@@ -312,3 +366,5 @@ Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı 
 ```php
 http://example.com/welcome/load  // Çıktı 404 sayfa bulunamadı
 ```
+
+<kbd>extend()</kbd> metodu hakkında daha detaylı bilgi için [View.md](/View/Docs/tr/View.md) dökümentasyonunu inceleyiniz.

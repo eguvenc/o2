@@ -2,7 +2,7 @@
 
 namespace Obullo\Crypt\Password;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Password Bcrypt class.

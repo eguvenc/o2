@@ -1,8 +1,6 @@
 
 ## Cache Sınıfı
 
-------
-
 Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir arayüz sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası <kbd>app/config/$env/cache/</kbd> dosyasından yönetilir.
 
 <ul>
@@ -72,14 +70,15 @@ Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağla
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 
 class Cache implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['cache'] = function () use ($c) {
+        
             return $this->c['app']->provider('cache')->get(
                 [
                   'driver' => 'redis',

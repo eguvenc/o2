@@ -2,7 +2,6 @@
 
 namespace Http\Middlewares;
 
-use Obullo\Container\Container;
 use Obullo\Application\Middleware;
 
 class Csrf extends Middleware

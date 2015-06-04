@@ -3,7 +3,7 @@
 namespace Obullo\Session\MetaData;
 
 use Obullo\Session\Session;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * MetaData Storage
@@ -17,13 +17,6 @@ use Obullo\Container\Container;
  */
 class MetaData
 {
-    /**
-     * Container 
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Unix time
      * 
@@ -53,6 +46,13 @@ class MetaData
     protected $config;
 
     /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
      * Ip address
      * 
      * @var string
@@ -79,15 +79,15 @@ class MetaData
      * @param object $c       container
      * @param object $session \Obullo\Session\Session
      */
-    public function __construct(Container $c, Session $session)
+    public function __construct(ContainerInterface $c, Session $session)
     {
-        $this->c = $c;
         $this->session = $session;
+        $this->logger = $c['logger'];
         $this->config = $c['config']->load('session');
 
         $this->now = $this->session->getTime();
-        $this->ipAddress = $this->c['request']->getIpAddress();
-        $this->userAgent = substr($this->c['request']->server('HTTP_USER_AGENT'), 0, 50);
+        $this->ipAddress = $c['request']->getIpAddress();
+        $this->userAgent = substr($c['request']->server('HTTP_USER_AGENT'), 0, 50);
     }
 
     /**
@@ -122,7 +122,7 @@ class MetaData
     protected function checkSessionIsExpired()
     {
         if (($this->meta['la'] + $this->config['storage']['lifetime']) < $this->now) {
-            $this->c['logger']->notice('Session expired', array('session_id' => session_id()));
+            $this->logger->notice('Session expired', array('session_id' => session_id()));
             $this->return = false;
         }
     }
@@ -135,7 +135,7 @@ class MetaData
     protected function checkSessionIpAddress()
     {
         if ($this->config['meta']['matchIp'] == true AND $this->meta['ip'] != $this->ipAddress) {
-            $this->c['logger']->notice('Session meta data is not valid', $this->meta);
+            $this->logger->notice('Session meta data is not valid', $this->meta);
             $this->return = false;
         }
     }
@@ -148,7 +148,7 @@ class MetaData
     protected function checkSessionUserAgent()
     {
         if ($this->config['meta']['matchUserAgent'] == true AND trim($this->meta['ua']) != $this->userAgent) {
-            $this->c['logger']->notice('Session user agent is not valid', array('session_id' => session_id()));
+            $this->logger->notice('Session user agent is not valid', array('session_id' => session_id()));
             $this->return = false;
         }
     }

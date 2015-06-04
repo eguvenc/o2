@@ -17,11 +17,11 @@ use Obullo\Container\ContainerInterface;
 class Error
 {
     /**
-     * Application
+     * Container
      * 
      * @var object
      */
-    protected $app;
+    protected $c;
 
     /**
      * Logger
@@ -47,7 +47,7 @@ class Error
      */
     public function __construct(ContainerInterface $c, Response $response)
     {
-        $this->app = $c['app'];
+        $this->c = $c;
         $this->logger = $c['logger'];
         $this->response = $response;
     }
@@ -62,7 +62,7 @@ class Error
     public function show404($page = '')
     {
         if ($this->c->has('app.uri') && empty($page)) {
-            $page = $this->app->uri->getUriString();
+            $page = $this->c['app.uri']->getUriString();
         }
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;

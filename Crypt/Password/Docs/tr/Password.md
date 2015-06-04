@@ -3,9 +3,43 @@
 
 Şifre sınıfı uygulamanıza kaydettiğiniz kullanıcılar için Bcrypt algoritması ile güvenli şifreler üretir.
 
-------
+<ul>
 
-### Neden Bcrypt Kullanmalıyım ?
+
+    <li>
+        <a href="#information">Önbilgi</a>
+        <ul>
+            <li><a href="#why-bcrypt">Neden Bcrypt Kullanmalıyım</a></li>
+            <li><a href="#scheme-identifiers">Şema Tanımlayıcıları</a></li>
+            <li><a href="#structure">Yapı</a></li>
+            <li><a href="#diagram">Diagram</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#running">Çalıştırma</a>
+        <ul>
+            <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
+            <li><a href="#loading-service">Servis Yüklemek</a></li>
+            <li><a href="#secure-passwords">Güvenli Şifre Yaratmak</a></li>
+            <li><a href="#verify">Güvenli Şifreyi Doğrulamak</a></li>
+            <li><a href="#rehash">Güvenli Şifreyi Yeniden Şifreleme</a></li>
+            <li><a href="#getinfo">Şifre Bilgileri</a></li>
+        </ul>
+    </li>
+
+    <li><a href="#method-reference">Fonksiyon Referansı</a></li>
+</ul>
+
+<a name="information"></a>
+
+### Önbilgi
+
+Güvenli şifreler üretebilmek bilinmesi gerekenleri aşağıda sizin için sıraladık.
+
+<a name="why-bcrypt"></a>
+
+#### Neden Bcrypt Kullanmalıyım ?
 
 Bcrypt blowfish algoritmasını kullanarak güvenli şifreler üretir. Neden bcrypt kullanılması gerektiğini bir kaç madde ile özetlersek;
 
@@ -19,6 +53,8 @@ Bcrypt blowfish algoritmasını kullanarak güvenli şifreler üretir. Neden bcr
 
 > Daha fazla bilgi için bu makaleye gözatabilirsiniz. <a href="http://phpmaster.com/why-you-should-use-bcrypt-to-hash-stored-passwords/" target="_blank">Why you should use Bcrypt</a>.
 
+<a name="scheme-identifiers"></a>
+
 #### Şema Tanımlayıcıları
 
 Bcrypt şifreleme yönteminde algoritma şema tanımlayıcıları şifrelenmiş güvenli şifre hakkında bilgiler verir.
@@ -28,6 +64,8 @@ Bcrypt şifreleme yönteminde algoritma şema tanımlayıcıları şifrelenmiş 
 - `$2y$` - Varolan en yeni şema ile yaratılmış versiyon *(crypt_blowfish 1.1 ve yeni sürümlerde)*.
 
 > **Not:** Varsayılan şema en yeni şema olan `$2y$` değeridir. Diğer şemalar eski versiyonlar da üretilen şifreler için kullanılır.
+
+<a name="structure"></a>
 
 #### Yapı
 
@@ -41,6 +79,8 @@ $2a$12$Some22CharacterSaltXXO6NC3ydPIrirIzk1NdnTz0L/aCaHnlBa
 - `12$` şifreleme mekanizmasının çalışma faktörü yani "cost" değeridir.
 - `Some22CharacterSaltXXO` rastgele oluşturulan bir tuzlama değeridir *(OpenSSL tarafından oluşturulur)*
 - `6NC3ydPIrirIzk1NdnTz0L/aCaHnlBa` güvenli şifre değeridir 31 karakterden oluşur.
+
+<a name="diagram"></a>
 
 #### Diagram
 
@@ -60,40 +100,30 @@ $2a$12$Some22CharacterSaltXXO6NC3ydPIrirIzk1NdnTz0L/aCaHnlBa
                \ Hash Header
 ```
 
-> Diagram buradan alınmıştır [Andrew Moore's structure](http://stackoverflow.com/a/5343655).
+> Diagram bu kaynaktan alınmıştır [Andrew Moore's structure](http://stackoverflow.com/a/5343655).
 
+<a name="running"></a>
 
-### Servisi Yüklemek
+### Çalıştırma
 
-------
+Şifre sınıfın çalışabilmesi için servis klasöründen konfigüre edilmelidir.
 
-Pasword servisi metotlarına aşağıdaki gibi erişilebilir.
+<a name="service-configuration"></a>
 
-```php
-$this->c['password']->method();
-```
-
-#### Şifre Servisi Konfigürasyonu
+#### Servisi Konfigürasyonu
 
 Şifre servisi <kbd>app/classes/Service</kbd> klasörü altına yeralır. Servis dosyasındaki şifre özelliklerini ihtiyaçlarınıza göre konfigüre etmeniz gerekebilir.
 
 ```php
 namespace Service;
 
-use Obullo\Container\Container;
 use Obullo\Crypt\Password\Bcrypt;
 use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
 
 class Password implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
         $c['password'] = function () use ($c) {
             $bcrypt = new Bcrypt($c);
@@ -105,8 +135,20 @@ class Password implements ServiceInterface
 // END Password service
 
 /* End of file Password.php */
-/* Location: .classes/Service/Password.php */
+/* Location: .app/classes/Service/Password.php */
 ```
+
+<a name="loading-service"></a>
+
+#### Servisi Yüklemek
+
+Pasword servisi metotlarına aşağıdaki gibi erişilebilir.
+
+```php
+$this->c['password']->method();
+```
+
+<a name="secure-passwords"></a>
 
 #### Güvenli Şifre Yaratmak
 
@@ -122,6 +164,8 @@ echo $this->password->hash('obulloFramework', ['cost' => 10])
 Eğer işlem başarısız olur metot <b>false</b> değerine başarılı ise güvenli şifre değerine geri döner.
 
 > **Not:** Cost değeri uygulamanın güvenliği ve donanımınızın kuvvetine göre ayarlanmalıdır. Zira sunucunuzun donanınımı zayıfsa yada şifre doğrulama aşamasında performans sorunları yaşıyorsanız bu değeri 6 olarak ayarlamanız önerilir. 8 veya 10 değerleri orta donanımlı bilgisayarlar için 12 ise güçlü donanımlı ( çekirdek sayısı fazla ) bilgisayarlar için tavsiye edilir.
+
+<a name="verify"></a>
 
 #### Güvenli Şifreyi Doğrulamak
 
@@ -139,6 +183,8 @@ if ($this->password->verify($value, $hash)) {
 ```
 
 Eğer doğrulama başarılı ise metot <b>true</b> değerine aksi durumda <b>false</b> değerine döner.
+
+<a name="rehash"></a>
 
 #### Güvenli Şifreyi Yeniden Şifreleme
 
@@ -169,6 +215,8 @@ if ($this->password->verify($value, $hash)) {
 
 > **Not:** Bu metot php 5.5.0 ve üzeri sürümlerde çalışır. Diğer sürümlerde <b>false</b> değerine geri dönecektir.
 
+<a name="getinfo"></a>
+
 #### Şifre Bilgileri
 
 Eğer şifrenlenmiş şifre hakkında detaylı bilgiler isteniyorsa bunun için getInfo() metodu kullanılır.
@@ -192,9 +240,11 @@ array(3) {
 }
 ```
 
-> **Not:** Bu metot php 5.5.0 ve üzeri sürümlerde çalışır. Diğer sürümlerde <b>null</b> değerine geri dönecektir.
+> **Not:** getInfo() metodu php 5.5.0 ve üzeri sürümlerde çalışır. Diğer sürümlerde <b>null</b> değerine geri dönecektir.
 
-#### Şifre Sınıfı Referansı
+<a name="method-reference"></a>
+
+#### Fonksiyon Referansı
 
 -----
 

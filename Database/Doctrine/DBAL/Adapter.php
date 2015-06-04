@@ -4,7 +4,6 @@ namespace Obullo\Database\Doctrine\DBAL;
 
 use PDO;
 use Controller;
-use Obullo\Container\Container;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\CommonAdapterTrait;
 use Obullo\Service\ServiceProviderInterface;

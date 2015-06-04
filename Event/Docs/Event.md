@@ -169,8 +169,8 @@ Aşağıdaki Event/Login klasörü altında login işlemleri için tanımlanmı�
 ```php
 namespace Event\Login;
 
-use Obullo\Container\Container;
 use Obullo\Authentication\AuthResult;
+use Obullo\Container\ContainerInterface;
 use Obullo\Event\EventListenerInterface;
 
 class Attempt implements EventListenerInterface
@@ -187,7 +187,7 @@ class Attempt implements EventListenerInterface
      *
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }

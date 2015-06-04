@@ -2,7 +2,7 @@
 
 namespace Obullo\Session\SaveHandler;
 
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Save Handler Interface
@@ -24,7 +24,7 @@ interface SaveHandlerInterface
      *
      * @return void
      */
-    public function __construct(Container $c);
+    public function __construct(ContainerInterface $c);
 
     /**
     * Php5 session handler interface open function

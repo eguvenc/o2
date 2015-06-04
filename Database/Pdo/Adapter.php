@@ -7,7 +7,6 @@ use Closure;
 use Exception;
 use Controller;
 use RuntimeException;
-use Obullo\Container\Container;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\SQLLoggerInterface;
 use Obullo\Service\ServiceProviderInterface;

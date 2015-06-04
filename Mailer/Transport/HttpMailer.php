@@ -6,7 +6,7 @@ use RuntimeException;
 use Obullo\Mailer\Text;
 use Obullo\Mailer\File;
 use Obullo\Mailer\Validator;
-use Obullo\Container\Container;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Http Mailer - Send emails using HTTP request ( CURL )
@@ -54,7 +54,7 @@ abstract class HttpMailer
      * 
      * @param object $c container
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->init();
