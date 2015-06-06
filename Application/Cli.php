@@ -88,10 +88,6 @@ class Cli extends Application
         $this->init();
         $this->c['router']->init();       // Initialize Routes
 
-        $route = $this->c['uri']->getUriString();   // Get current uri
-        if ($this->c->has('app.uri')) {                 // If layer used, use global request uri object instead of current.
-            $route = $this->c['app']->uri->getUriString();                             
-        }
         $class = $this->c['router']->fetchClass();
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
@@ -99,8 +95,6 @@ class Cli extends Application
         include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
 
         $this->className = '\\'.$namespace.'\\'.$class;
-        $this->notFoundUri = $route;
-
         $this->dispatchClass();
 
         $this->class = new $this->className;  // Call the controller
@@ -125,7 +119,7 @@ class Cli extends Application
     public function call()
     {
         $argumentSlice = 3;
-        if ( ! method_exists($this->class, $this->method) || $this->method == 'load' || $this->method == 'extend') { // load method reserved
+        if (! method_exists($this->class, $this->method) || $this->method == 'load' || $this->method == 'extend') { // load method reserved
             $argumentSlice = 2;
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';

@@ -29,7 +29,7 @@ Eğer servis konteynerların yada bağımlılık enjeksiyonunun ne olduğu hakk�
     </ul>
 </li>
 <li><a href="#application-doc">Uygulama Sınıfı Belgelerine Bir Gözatın</a></li>
-<li><a href="#nethod-reference">Fonksiyon Referansı</a></li>
+<li><a href="#method-reference">Fonksiyon Referansı</a></li>
 </ul>
 
 <a name="services"></a>
@@ -94,10 +94,15 @@ $this->c['session'];	 // eski nesne
 $this->c['session'];	 // eski nesne
 ```
 
-Bir servisin paylaşımlı <b>olmaması</b> demek onun her çağrıldığında yeni bir nesneye dönmesi demektir. Uygulama içerisinde <b>çok nadir</b> durumlarda bir servisin yeni değişkenler ile gelmesi istenebilir. Eğer servis yada sınıf yeni parametereler gönderilerek oluşturulması gerekiyorsa konteyner içerisinden <b>get('class', $params = array())</b> komutu kullanılarak nesnenin kayıtlı olduğu closure fonksiyonu yeniden çalıştırılır ve sınıfın yeni nesneye dönmesi sağlanır.
+Bir servisin paylaşımlı <b>olmaması</b> demek onun her çağrıldığında yeni bir nesneye dönmesi demektir. Uygulama içerisinde <b>çok nadir</b> durumlarda bir servisin yeni değişkenler ile gelmesi istenebilir. Eğer servis yada sınıf yeni parametereler gönderilerek oluşturulması gerekiyorsa konteyner içerisinden <kbd>$c->get('class', $params = array())</kbd> komutu kullanılarak nesnenin kayıtlı olduğu closure fonksiyonu yeniden çalıştırılır ve sınıfın yeni nesneye dönmesi sağlanır.
+
+Eğer get() fonksiyonu kullanılarak parametreler ile bir nesne yaratıldıysa fonksiyon aynı parametreler ile her çağrıldığında aynı nesneye geri döner.
 
 ```php
-$this->session = $this->c->get('session', ['test' => 1]);
+$this->c->get('user', ['table' => 'users']); // yeni nesne
+$this->c->get('user', ['table' => 'users']); // eski nesne
+$this->c->get('user', ['table' => 'admin']); // yeni nesne
+$this->c->get('user', ['table' => 'admin']); // eski nesne
 ```
 
 Controller sınıfında <b>$c</b> nesnesi bu sınıfa önceden <kbd>$this->c</kbd> olarak kayıtlı geldiğinden Controller sınıfı içerisinde <b>$c</b> değişkeni hep <kbd>$this->c</kbd> olarak kullanılır. 
@@ -164,10 +169,16 @@ $this->nesne = $this->c->get('nesne', ['example' => 'parameter']);
 Eğer parametre gönderilmezse nesne ilk oluşturulan parametereler ile oluşturulan eski nesne değerlerine ( instance ) döner.
 
 ```php
-$this->c->get('nesne', ['example' => 'old']);  // yeni nesne
-$this->c->get('nesne');  // eski nesne
-$this->c->get('nesne');  // eski nesne
-$this->c->get('nesne', ['example' => 'new']); // yeni nesne
+$this->c->get('nesne', ['example' => 'one']);  // yeni nesne
+$this->c->get('nesne', ['example' => 'one']);  // eski nesne
+$this->c->get('nesne', ['example' => 'two']);  // yeni nesne
+$this->c->get('nesne', ['example' => 'two']);  // eski nesne
+```
+
+Her durumda son parametre false gönderilirse singleton özelliği kapatılmış olur ve nesne her zaman yeniden oluşturulur.
+
+```php
+$this->c->get('nesne', ['example' => 'three'], $singleton = false); // her zaman yeni nesne
 ```
 
 <a name="service-loading-a-class"></a>
@@ -471,30 +482,26 @@ Eğer konteyner sınıfını kavradıysanız Obullo çerçevesi hakkında temel 
 
 <a name="method-reference"></a>
 
-### Fonksiton Referansı
+#### Fonksiton Referansı
 
 ------
 
-#### $c['class'];
+##### $c['class'];
 
 Eğer bir sınıf uygulamadaki kısa adı ile ( örneğin: session, cookie vb. ) çağrıldı ise ilk önce uygulamada servis olarak kayıtlı olup olmadığına bakılır; eğer kayıtlı ise servisler içerisinden yüklenir. Eğer bu sınıf konteyner içerisinde yada servislerde mevcut olmayan bir sınıf ise bu durumda sınıf <b>Obullo\*</b> dizininden konteyner içerisine kaydedilerek geçerli sınıf nesnesine geri dönülür ve Controller içerisine 'class' ismi ile kaydedilir.
 
-#### $c->get(string $class, mixed $params = false|array());
+##### $c->get(string $class, mixed $params = false|array(), $singleton = true);
 
-Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez. Eğer <b>$params</b> parametresine <b>false</b> yada <b>array</b> değeri gönderilirse closure fonksiyonuna parametre gönderilerek yeni bir nesne elde edilebilir.
+Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve nesne Controller sınıfı içerisine kaydedilmez.Eğer <b>$params</b> yada son parametreye <b>false</b> değeri gönderilirse yeni bir nesne elde edilebilir.
 
-#### $c->has(string $class);
+##### $c->has(string $class);
 
 Bir sınıfın uygulamadaki kısa adının konteyner içerisine kayıtlı olup olmadığını kontrol eder. Kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 
-#### $c->used(string $class);
+##### $c->used(string $class);
 
-Bir sınıfın uygulama içerisinde daha önceden kullanılıp kullanılmadığını kontrol eder. Kullanılmış ise sınıf o seviyede uygulamada yüklüdür ve <b>true</b> değerine yüklü değilse <b>false</b> değerine geri döner.
+Bir sınıfın uygulama içerisinde daha önceden kullanılıp kullanılmadığını kontrol eder. Kullanılmış ise sınıf o seviyede uygulamada yüklüdür ve <b>true</b> aksi durumda <b>false</b> değerine geri döner.
 
-#### $c->isRegistered(string $provider)
-
-Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
-
-#### $c->keys();
+##### $c->keys();
 
 Tanımlı tüm sınıfların anahtar adlarına bir dizi içerisinde geri döner.

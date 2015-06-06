@@ -140,7 +140,7 @@ class Http extends Application
     protected function dispatchMiddlewares()
     {
         global $c;
-        $currentRoute = $this->getCurrentRoute();
+        $currentRoute = $this->getUriString();
 
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter

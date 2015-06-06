@@ -71,11 +71,13 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#application-class-references">$this->c['app']->router->x()</a></li>
         <li><a href="#application-class-references">$this->c['app']->uri->x()</a></li>
         <li><a href="#application-class-references">$this->c['app']->register(array $providers)</a></li>
+        <li><a href="#application-class-references">$this->c['app']->isRegistered()</a></li>
         <li><a href="#application-class-references">$this->c['app']->provider(string $name)->get(array $params)</a></li>
         <li><a href="#application-class-references">$this->c['app']->version()</a></li>
         <li><a href="#application-class-references">$this->c['app']->environments()</a></li>
         <li><a href="#application-class-references">$this->c['app']->envArray()</a></li>
         <li><a href="#application-class-references">$this->c['app']->envPath()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->getUriString()</a></li>
     </ul>
 </li>
 </ul>
@@ -696,13 +698,17 @@ Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri dönerek bu nesnenin m
 
 <kbd>.app/providers.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
 
+##### $this->c['app']->isRegistered(string $provider)
+
+Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
+
 ##### $this->c['app']->provider(string $name)->get(array $params);
 
 Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
 ##### $this->c['app']->version();
 
-Geçerli Obullo versiyonuna geri döner.
+Güncel Obullo versiyonuna geri döner.
 
 ##### $this->c['app']->environments();
 
@@ -715,3 +721,7 @@ Ortam konfigürasyon dosyasının ( app/environments.php ) içerisindeki tanıml
 ##### $this->c['app']->envPath();
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.
+
+##### $this->c['app']->getUriString();
+
+Layer ( Hmvc ) isteklerinden etkilenmeden geçerli evrensel http uri değerine geri döner.

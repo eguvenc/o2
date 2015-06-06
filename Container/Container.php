@@ -33,6 +33,8 @@ class Container implements ContainerInterface
     protected $registeredServices = array();  // Lazy loading for service wrapper class
     protected $registeredProviders = array();  // Stack data for service provider wrapper class
     protected $registeredConnections = array(); // Lazy loading for service provider register method
+    protected $getParams = array();         // Stores get() method parameters
+    protected $valuesWithParams = array();  // Stores object values which they used with with get(, $params) 
 
     /**
      * Constructor
@@ -106,7 +108,7 @@ class Container implements ContainerInterface
     {
         list($key, $noReturn, $controllerExists, $isCoreFile) = $this->resolveLoaderParts($cid, $matches);
 
-        if ( ! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
+        if (! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
             return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
         }
         $isAllowedToStore = static::isSuitable($key, $noReturn, $controllerExists, $isCoreFile);
@@ -268,12 +270,12 @@ class Container implements ContainerInterface
             $isService = true;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
-            if ( ! isset($this->registeredServices[$serviceName])) {
+            if (! isset($this->registeredServices[$serviceName])) {
 
                 $service = new $serviceClass($this);
                 $service->register($this);
 
-                if ( ! $this->has($cid)) {
+                if (! $this->has($cid)) {
                     throw new RuntimeException(
                         sprintf(
                             "%s service configuration error service class name must be same with container key.",
@@ -291,7 +293,7 @@ class Container implements ContainerInterface
         ];
         $matches['key'] = $data['key'];
         
-        if ( ! $this->has($cid) && ! $isService) {   // Don't register service again.
+        if (! $this->has($cid) && ! $isService) {   // Don't register service again.
             $this->registerClass($cid, $data['key'], $matches, $data['class']);
         }
         return $this->offsetGet($cid, $matches, $params);
@@ -307,7 +309,7 @@ class Container implements ContainerInterface
     public function resolveProvider($name)
     {
         $name = strtolower($name);
-        if ( ! isset($this->registeredProviders[$name])) {
+        if (! isset($this->registeredProviders[$name])) {
             throw new RuntimeException(
                 sprintf(
                     "%s provider is not registered, please register it in providers.php",
@@ -316,7 +318,7 @@ class Container implements ContainerInterface
             );
         }
         $Class = $this->registeredProviders[$name];
-        if ( ! isset($this->registeredConnections[$name])) {
+        if (! isset($this->registeredConnections[$name])) {
             $provider = new $Class;
             $provider->register($this);
             $this->registeredConnections[$name] = $provider;
@@ -336,7 +338,7 @@ class Container implements ContainerInterface
      */
     protected function registerClass($cid, $key, $matches, $ClassName)
     {
-        if ( ! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
+        if (! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
 
             $this[$cid] = function () use ($key, $matches, $ClassName) {
 
@@ -355,21 +357,45 @@ class Container implements ContainerInterface
      * Get instance of the class without 
      * register it into Controller object
      * 
-     * @param string  $cid    class id
-     * @param boolean $params if array params not empty execute the closure() method
+     * @param string  $cid       class id
+     * @param boolean $params    if array params not empty execute the closure() method
+     * @param boolean $singleton on / off singleton
      * 
      * @return object
      */
-    public function get($cid, $params = null)
+    public function get($cid, $params = null, $singleton = true)
     {
-        if ($params === false) {
-            $params = array();
+        if ($params == false || $singleton == false) {
+            return $this->getClosure($cid, array());   // Create new object wihout params
         }
         if (is_array($params)) {
+
+            $pid = self::getParamsId($cid, $params);  // Get parameter id of object
+
+            if (isset($this->getParams[$pid])) {
+                return $this->valuesWithParams[$cid];  // Return cached serialized object
+            } else {
+                $this->get[$cid] = $cid;
+                $this->getParams[$pid] = $pid;
+                return $this->valuesWithParams[$cid] = $this->getClosure($cid, $params);  // Create and store object with params
+            }
             return $this->getClosure($cid, $params);
         }
         $this->get[$cid] = $cid;
         return $this[$cid];
+    }
+
+    /**
+     * Serialize class parameters
+     * 
+     * @param string $cid    class key
+     * @param array  $params parameters
+     * 
+     * @return string
+     */
+    protected static function getParamsId($cid, array $params)
+    {
+        return sprintf("%u", crc32(serialize($params).$cid));
     }
 
     /**
@@ -382,7 +408,7 @@ class Container implements ContainerInterface
      */
     protected function getClosure($cid, $params = array())
     {
-        if ( ! isset($this->keys[$cid])) {  // First load class to container if its not loaded
+        if (! isset($this->keys[$cid])) {  // First load class to container if its not loaded
             return $this->load($cid, $params);
         }
         if (isset($this->raw[$cid])) {  // Check is it available if yes return to closure()
@@ -406,7 +432,7 @@ class Container implements ContainerInterface
             'new' => '',
             'class' => $class,
         );
-        if (isset($this->get[$class])) {
+        if (isset($this->get[$class])) {   // Don't store into controller instance if we have get() method.
             $matches['return'] = 'return';
         }
         return $matches;
@@ -421,7 +447,7 @@ class Container implements ContainerInterface
      */
     public function raw($cid)
     {
-        if ( ! isset($this->keys[$cid])) {
+        if (! isset($this->keys[$cid])) {
             return null;
         }
         if (isset($this->raw[$cid])) {
