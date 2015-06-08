@@ -85,16 +85,15 @@ abstract class AbstractProvider
     /**
      * Create a new provider instance.
      *
-     * @param object $c      container instance
-     * @param array  $params parameters
+     * @param object $storage storage class
+     * @param array  $params  parameters
      * 
      * @return void
      */
-    public function __construct(ContainerInterface $c, $params)
+    public function __construct($storage, $params)
     {
-        $this->c       = $c;
         $this->params  = $params;
-        $this->storage = $this->c['session'];
+        $this->storage = $storage;
         $this->init();
     }
 
@@ -282,18 +281,15 @@ abstract class AbstractProvider
         if ($this->token || ($this->token = $this->storage->get('access_token'))) {
             return $this->token;
         }
-        $response = $this->getHttpClient()
-            ->setRequestUrl($this->getTokenUrl())
-            ->setMethod($this->requestMethod)
-            ->setFields($this->getTokenFields($code))
-            ->setOption(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret)
-            ->setHeaders(
-                [
-                    // 'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Accept : application/json'
-                ]
-            )
-            ->send();
+        $method = $this->requestMethod;
+        $data   = $this->getTokenFields($code);
+
+        $response = $this->request()
+            ->setUrl($this->getTokenUrl())
+            ->setOpt(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret)
+            ->setHeader('Accept', 'application/json')
+            // ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
+            ->$method($data);
             
         return $this->parseAccessToken($response);
     }
@@ -307,7 +303,7 @@ abstract class AbstractProvider
      */
     protected function parseAccessToken($body)
     {
-        $response = $this->getHttpClient()->jsonDecode($body, true);
+        $response = $this->request()->jsonDecode($body, true);
 
         if (isset($response['access_token'])) {
             $this->setAccessToken($response['access_token']);
@@ -349,10 +345,10 @@ abstract class AbstractProvider
      *
      * @return Http\Client
      */
-    protected function getHttpClient()
+    protected function request()
     {
         if ($this->httpClient == null) {
-            return $this->httpClient = new Curl($this->c);
+            return $this->httpClient = new Curl;
         }
         return $this->httpClient;
     }

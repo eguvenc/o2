@@ -7,7 +7,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Identifies the platform, browser, robot, or mobile devise of the browsing agent
  *
- * This file modeled after Codeigniter User Agent class (✿◠‿◠)
+ * This file modeled after Codeigniter User Agent class 
  * 
  * @category  UserAgent
  * @package   Agent

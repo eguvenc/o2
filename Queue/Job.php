@@ -7,7 +7,7 @@ use DateTime;
 /**
  * Job Class
  *
- * This modeled after Laravel job class (✿◠‿◠)
+ * This modeled after Laravel job class 
  * 
  * @category  Queue
  * @package   Queue

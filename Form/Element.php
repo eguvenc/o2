@@ -7,7 +7,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Element Class
  *
- * Modeled after Codeigniter form helper (✿◠‿◠)
+ * Modeled after Codeigniter form helper 
  * 
  * @category  Form
  * @package   Element

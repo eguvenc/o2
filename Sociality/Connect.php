@@ -8,7 +8,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Socality Connector
  *
- * This package modeled after Laravel sociality package (✿◠‿◠)
+ * This package modeled after Laravel sociality package 
  * 
  * @category  Socality
  * @package   Connect
@@ -20,11 +20,18 @@ use Obullo\Container\ContainerInterface;
 class Connect
 {
     /**
-     * Container
+     * Config
      * 
      * @var object
      */
-    protected $c;
+    protected $config;
+
+    /**
+     * Storage
+     * 
+     * @var object
+     */
+    protected $storage;
 
     /**
      * Constructor
@@ -33,7 +40,8 @@ class Connect
      */
     public function __construct(ContainerInterface $c)
     {
-        $this->c = $c;
+        $this->config = $c['config'];
+        $this->storage = $c['session'];
     }
 
     /**
@@ -49,29 +57,28 @@ class Connect
         if (isset($this->{$name})) {
             return $this->{$name};
         }
-
         return $this->{$name} = $this->buildProvider(
             'Obullo\Sociality\Provider\\'. ucfirst($name),
-            $this->c['config']->load('sociality/'. $name)
+            $name
         );
     }
 
     /**
      * Build an OAuth 2 provider instance.
      *
-     * @param string $provider provider
-     * @param array  $config   configuration
+     * @param string $provider provider class
+     * @param array  $name     provider config name
      * 
      * @return \Obullo\Sociality\Provider\Abstract
      */
-    protected function buildProvider($provider, $config)
+    protected function buildProvider($provider, $name)
     {
         if (! class_exists($provider)) {
             throw new LogicException("No Sociality driver was specified.");
         }
         return new $provider(
-            $this->c,
-            $config
+            $this->storage
+            $this->config->load('sociality/'. $name)
         );
     }
 }

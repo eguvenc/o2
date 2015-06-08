@@ -6,7 +6,7 @@ namespace Obullo\Utils;
  * Utility class for testing and manipulation of PHP arrays. 
  * Declared abstract, as we have no need for instantiation.
  *
- * Borrowed from Zend Framework (✿◠‿◠)
+ * Borrowed from Zend Framework 
  * 
  * @category  Utilities
  * @package   ArrayUtils

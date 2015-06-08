@@ -7,7 +7,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Url Class
  *
- * Modeled after Codeigniter Url helper (✿◠‿◠)
+ * Modeled after Codeigniter Url helper 
  * 
  * @category  Url
  * @package   Url

@@ -17,12 +17,6 @@ trait BenchmarkTrait
          *  Console log header
          * ------------------------------------------------------
          */
-        if (count($_REQUEST) > 0) {
-            $this->c['logger']->debug('$_REQUEST: ', $_REQUEST, 10);
-        }
-        if (count($_COOKIE) > 0) {
-            $this->c['logger']->debug('$_COOKIE: ', $_COOKIE, 9);
-        }
     }
 
     /**

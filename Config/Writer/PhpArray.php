@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * PhpArray Writer
  *
- * Borrowed from Zend Framework (✿◠‿◠)
+ * Borrowed from Zend Framework 
  * 
  * @category  Config
  * @package   Writer

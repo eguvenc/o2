@@ -11,7 +11,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Router Class
  *
- * Modeled after Codeigniter router class (✿◠‿◠)
+ * Modeled after Codeigniter router class 
  * 
  * @category  Router
  * @package   Router

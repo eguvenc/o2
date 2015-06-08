@@ -9,7 +9,7 @@ use Obullo\Utils\ArrayUtils;
 /**
  * Abstract Writer Class
  *
- * Borrowed from Zend Framework (✿◠‿◠)
+ * Borrowed from Zend Framework 
  * 
  * @category  Config
  * @package   Writer

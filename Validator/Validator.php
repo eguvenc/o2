@@ -9,7 +9,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Validator Class
  *
- * Modeled after Codeigniter form validation library (✿◠‿◠)
+ * Modeled after Codeigniter form validation library 
  * 
  * @category  Validator
  * @package   Validator

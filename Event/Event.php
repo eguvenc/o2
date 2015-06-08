@@ -8,7 +8,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Event Class
  * 
- * Modeled after Laravel event package (✿◠‿◠)
+ * Modeled after Laravel event package 
  * 
  * @category  Event
  * @package   Event

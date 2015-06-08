@@ -58,7 +58,7 @@ class Google extends AbstractProvider implements ProviderInterface
     protected function init()
     {
         $this->clientId      = $this->params['client']['id'];
-        $this->clientSecret  = $this->params['client']['secret']; 
+        $this->clientSecret  = $this->params['client']['secret'];
         $this->requestMethod = 'post';
     }
 
@@ -114,16 +114,15 @@ class Google extends AbstractProvider implements ProviderInterface
         if ($this->token || ($this->token = $this->storage->get('access_token'))) {
             return $this->token;
         }
-        $response = $this->getHttpClient()
-            ->setRequestUrl($this->getTokenUrl())
-            ->setMethod($this->requestMethod)
-            ->setFields($this->getTokenFields($code))
-            ->setHeaders(
+        $data = $this->getTokenFields($code);
+        $response = $this->request()
+            ->setUrl($this->getTokenUrl())
+            ->setHeader(
                 [
                     'Accept : application/json'
                 ]
             )
-            ->send();
+            ->post($data);
             
         return $this->parseAccessToken($response);
     }
@@ -137,24 +136,20 @@ class Google extends AbstractProvider implements ProviderInterface
      */
     protected function getContactsByToken($token)
     {
-        $querys = [
+        $data = [
             'max-results' => $this->params['maxResults'],
             'oauth_token' => $token
         ];
-        $response = $this->getHttpClient()
-            ->setRequestUrl(
-                'https://www.google.com/m8/feeds/contacts/default/full'
-            )
-            ->setFields($querys)
-            ->setMethod('get')
-            ->setHeaders(
+        $response = $this->request()
+            ->setUrl('https://www.google.com/m8/feeds/contacts/default/full')
+            ->setHeader(
                 [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '. $token,
                 ]
             )
-            ->send();
+            ->get($data);
             
         return $this->parseContactXml($response);
     }
@@ -187,18 +182,12 @@ class Google extends AbstractProvider implements ProviderInterface
      */
     public function gPlusListOfVisiblePeoples()
     {
-        $response = $this->getHttpClient()
-            ->setRequestUrl(
-                'https://www.googleapis.com/plus/v1/people/me/people/visible'
+        $response = $this->request()
+            ->setUrl(
+                'https://www.googleapis.com/plus/v1/people/me/people/visible?access_token='.$this->getAccessToken($this->getCode())
             )
-            ->setFields('access_token='. $this->getAccessToken($this->getCode()))
-            ->setMethod('get')
-            ->setHeaders(
-                [
-                    'Accept' => 'application/json',
-                ]
-            )
-            ->send();
+            ->setHeader('Accept', 'application/json')
+            ->get();
 
         return $response;
     }

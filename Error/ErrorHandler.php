@@ -8,7 +8,7 @@ use Obullo\Log\LoggerInterface;
 /**
  * Error Handler Class
  * 
- * Modeled after Symfony ErrorHandler (✿◠‿◠)
+ * Modeled after Symfony ErrorHandler 
  * 
  * @category  Error
  * @package   ErrorHandler

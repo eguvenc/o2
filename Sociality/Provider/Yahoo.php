@@ -4,6 +4,7 @@ namespace Obullo\Sociality\Provider;
 
 use LogicException;
 use SimpleXMLElement;
+use InvalidArgumentException;
 use Obullo\Sociality\Provider\ProviderInterface;
 
 /**
@@ -72,7 +73,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     public function getTokenUrl()
     {
-        $this->getHttpClient()->setOption(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret);
+        $this->request()->setOpt(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret);
         return $this->params['oauth']['token'];
     }
 
@@ -104,22 +105,16 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function getContactsByToken($token)
     {
-        $response = $this->getHttpClient()
-            ->setRequestUrl(
-                sprintf(
-                    'https://social.yahooapis.com/v1/user/me/contacts', $this->storage->get('xoauth_yahoo_guid')
-                )
-            )
-            ->setMethod('get')
-            ->setFields('format=json')
-            ->setHeaders(
+        $response = $this->request()
+            ->setUrl('https://social.yahooapis.com/v1/user/me/contacts?format=json')
+            ->setHeader(
                 [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '.$token
                 ]
             )
-            ->send();
+            ->get();
 
         return $this->parseContacts($response);
     }
@@ -133,7 +128,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function parseAccessToken($body)
     {
-        $response = $this->getHttpClient()->jsonDecode($body, true);
+        $response = $this->request()->jsonDecode($body, true);
 
         if (isset($response['access_token'])) {
             $this->storage->set($response);
@@ -151,7 +146,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function parseContacts($response)
     {
-        if (($data = $this->getHttpClient()->jsonDecode($response, true)) && isset($data['contacts'])) {
+        if (($data = $this->request()->jsonDecode($response, true)) && isset($data['contacts'])) {
             foreach ($data['contacts']['contact'] as $val) {
                 $contacts = array();
                 foreach ($val['fields'] as $user) {

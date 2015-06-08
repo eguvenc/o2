@@ -7,7 +7,7 @@ use Obullo\Container\ContainerInterface;
 /**
  * Uri Class
  *
- * Modeled after Codeigniter Uri class (✿◠‿◠)
+ * Modeled after Codeigniter Uri class 
  * 
  * @category  Http
  * @package   Uri
@@ -43,7 +43,7 @@ class Uri
 
         $this->c['logger']->debug(
             'Uri Class Initialized', 
-            array('uri' => $this->getRequestUri().' 😊'), 
+            array('uri' => $this->getRequestUri()), 
             11
         );
         // Warning : Don't load any library in __construct level you may get a Fatal Error.
@@ -229,7 +229,7 @@ class Uri
         $uris = array();
         $tok = strtok($uri, '/');
         while ($tok !== false) {
-            if (( ! empty($tok) OR $tok === '0') && $tok !== '..') {
+            if (( ! empty($tok) || $tok === '0') && $tok !== '..') {
                 $uris[] = $tok;
             }
             $tok = strtok('/');

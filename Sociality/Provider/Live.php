@@ -109,18 +109,12 @@ class Live extends AbstractProvider implements ProviderInterface
      */
     protected function getContactsByToken($token)
     {
-        $response = $this->getHttpClient()
-            ->setRequestUrl(
-                'https://apis.live.net/v5.0/me/contacts?access_token='. $token
-            )
-            ->setMethod($this->requestMethod)
-            ->setHeaders(
-                [
-                    'Accept' => 'application/json',
-                    // 'Authorization' => 'Bearer '. $token,
-                ]
-            )
-            ->send();
+        $method = $this->requestMethod;
+        $response = $this->request()
+            ->setUrl('https://apis.live.net/v5.0/me/contacts?access_token='. $token)
+            ->setHeader('Accept', 'application/json')
+            // ->setHeader('Authorization', 'Bearer '. $token)
+            ->$method();
 
         return $this->parseContacts($response);
     }
@@ -134,7 +128,7 @@ class Live extends AbstractProvider implements ProviderInterface
      */
     protected function parseContacts($response)
     {
-        if (($data = $this->getHttpClient()->jsonDecode($response, true)) && isset($data['data'])) {
+        if (($data = $this->request()->jsonDecode($response, true)) && isset($data['data'])) {
             $outputArray = [];
             foreach ($data['data'] as $val) {
                 // Initialize an array out here.

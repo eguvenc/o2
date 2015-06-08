@@ -11,7 +11,7 @@ use InvalidArgumentException;
 /**
  * Container class
  *
- * This file modeled after Pimple Software (✿◠‿◠)
+ * This file modeled after Pimple Software 
  * 
  * @category  Container
  * @package   Container
