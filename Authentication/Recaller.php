@@ -38,6 +38,13 @@ class Recaller
     protected $storage;
 
     /**
+     * User identity
+     * 
+     * @var object
+     */
+    protected $identity;
+
+    /**
      * Datababase identifier column ( username or email .. )
      * 
      * @var string

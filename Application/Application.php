@@ -202,7 +202,7 @@ class Application
     protected function dispatchClass()
     {
         if (! class_exists($this->className, false)) {
-            $this->c['response']->show404($this->getCurrentRoute());
+            $this->c['response']->show404($this->getUriString());
         }
     }
 
@@ -217,7 +217,7 @@ class Application
             || $this->method == 'load' 
             || $this->method == 'extend'
         ) {
-            $this->c['response']->show404($this->getCurrentRoute());
+            $this->c['response']->show404($this->getUriString());
         }
     }
 
@@ -226,7 +226,7 @@ class Application
      * 
      * @return string
      */
-    protected function getCurrentRoute()
+    protected function getUriString()
     {
         $route = $this->c['uri']->getUriString();       // Get current uri
         if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
@@ -244,7 +244,7 @@ class Application
      */
     public function isCli()
     {
-        return (PHP_SAPI === 'cli' OR defined('STDIN'));
+        return (PHP_SAPI === 'cli' || defined('STDIN'));
     }
 
     /**
@@ -303,7 +303,7 @@ class Application
             };
         }
     }
-
+    
     /**
      * Register provider
      * 
@@ -314,6 +314,18 @@ class Application
     public function register($provider)
     {
         return $this->c->register($provider);
+    }
+
+    /**
+     * Check provider is registered
+     * 
+     * @param string $name provider key like cache, redis, memcache
+     * 
+     * @return boolean
+     */
+    public function isRegistered($name)
+    {
+        return $this->c->isRegistered($name);
     }
 
     /**
