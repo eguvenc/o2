@@ -16,8 +16,8 @@
 | INDEX_PHP         - The path of your index.php file.
 */
 define('APP',  ROOT .'app'. DS);
-define('ASSETS',  ROOT .'assets'. DS);
 define('RESOURCES',  ROOT .'resources'. DS);
+define('ASSETS',  RESOURCES .'assets'. DS);
 define('DATA',  RESOURCES .'data'. DS);
 define('TRANSLATIONS',  RESOURCES .'translations'. DS);
 define('CLASSES',  APP .'classes'. DS);

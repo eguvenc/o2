@@ -21,7 +21,7 @@ use Obullo\Error\Debug;
  */
 class Application
 {
-    const VERSION = '2.0@alpha-2.4';
+    const VERSION = 'alpha-2.4';
 
     protected $env = null;         // Current environment
     protected $envArray = array(); // Environments config
@@ -345,9 +345,9 @@ class Application
      * 
      * @return string
      */
-    public function version()
+    public static function version()
     {
-        return static::VERSION;
+        return 'Obullo/'.static::VERSION;
     }
     
     /**

@@ -33,14 +33,14 @@ class Live extends AbstractProvider implements ProviderInterface
     /**
      * The scopes being requested.
      * 
-     * This "contacts_emails" I found it the answer.
-     * You can see stackoverflow link.
+     * This "contacts_emails" I found it from this link
+     * 
      * @link http://stackoverflow.com/a/15414222/2866158
      * 
      * You can also find all scopes on the microsoft link.
      * @link https://msdn.microsoft.com/en-us/library/hh243646.aspx
      * 
-     * @var  array
+     * @var array
      */
     protected $scopes = [
         'wl.basic',
@@ -110,11 +110,11 @@ class Live extends AbstractProvider implements ProviderInterface
     protected function getContactsByToken($token)
     {
         $method = $this->requestMethod;
-        $response = $this->request()
-            ->setUrl('https://apis.live.net/v5.0/me/contacts?access_token='. $token)
+        $response = $this->client()
             ->setHeader('Accept', 'application/json')
             // ->setHeader('Authorization', 'Bearer '. $token)
-            ->$method();
+            ->$method('https://apis.live.net/v5.0/me/contacts?access_token='. $token)
+            ->getBody();
 
         return $this->parseContacts($response);
     }
@@ -128,7 +128,7 @@ class Live extends AbstractProvider implements ProviderInterface
      */
     protected function parseContacts($response)
     {
-        if (($data = $this->request()->jsonDecode($response, true)) && isset($data['data'])) {
+        if (($data = $this->client()->jsonDecode($response, true)) && isset($data['data'])) {
             $outputArray = [];
             foreach ($data['data'] as $val) {
                 // Initialize an array out here.

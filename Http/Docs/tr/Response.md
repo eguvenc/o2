@@ -3,9 +3,23 @@
 
 The Response class is a small class with one main function: To send the finalized web page to the requesting browser. It is also responsible for compress your web pages, if you use that feature.
 
-### Initializing the Class
+<ul>
+    <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+    <li>
+        <a href="#super-globals">Girdi Değerlerine Erişmek</a>
+        <ul>
+            <li><a href="#sget">$this->request->get()</a></li>
+            <li><a href="#spost">$this->request->post()</a></li>
+            <li><a href="#sall">$this->request->all()</a></li>
+            <li><a href="#sserver">$this->request->server()</a></li>
+            <li><a href="#smethod">$this->request->method()</a></li>
+            <li><a href="#sip">$this->request->getIpAddress()</a></li>
+            <li><a href="#sheaders-get">$this->request->headers->get()</a></li>
+            <li><a href="#sheaders-all">$this->request->headers->all()</a></li>
+        </ul>
+    </li>
+</ul>
 
-------
 
 ```php
 $this->response->method();
@@ -22,7 +36,6 @@ It is possible, however, for you to manually intervene with the <b>Response</b> 
 Permits you to manually set the final output string. Usage example:
 
 ```php
-<?php
 $this->response->setOutput($data);
 ```
 
@@ -34,7 +47,6 @@ $this->response->setOutput($data);
 Permits you to manually append to final output string. Usage example:
 
 ```php
-<?php
 $this->response->setOutput($data);
 ```
 
@@ -43,7 +55,6 @@ $this->response->setOutput($data);
 Permits you to manually retrieve any output that has been sent for storage in the output class. Usage example:
 
 ```php
-<?php
 $string = $this->response->getOutput();
 ```
 
@@ -54,39 +65,23 @@ Note that data will only be retrievable from this function if it has been previo
 Compress output using <b>ob_gz_handler</b> if global compression disabled from your config.
 
 ```php
-<?php
+namespace Welcome;
 
-Class Hello_World extends Controller
+class HelloWorld extends \Controller
 {
-    /**
-     * Loader
-     * 
-     * @return void
-     */
     public function load()
     {
         $this->c['view'];
     }
-
-    /**
-     * Index
-     * 
-     * @return void
-     */
+    
     public function index()
     {
-        $this->c['view']->load(
-            'hello_world',
-            function () {
-                $this->assign('name', 'Obullo');
-                $this->assign('footer', $this->template('footer'));
-            }
-        );
+        $this->view->load('hello_world');
     }
 }
 
 /* End of file hello_world.php */
-/* Location: .public/tutorials/controller/hello_world.php */
+/* Location: .modules/Welcome/HelloWorld.php */
 ```
 
 #### $this->response->headers->set(string $header, string $value = null, $replace = true);

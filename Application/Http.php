@@ -6,8 +6,8 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
+use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
-use Obullo\Http\Debugger\WebSocket;
 
 /*
 |--------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace Obullo\Mailer\Transport;
 
 use Obullo\Mailer\Text;
 use Obullo\Mailer\Validator;
+use Obullo\Application\Application;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -22,7 +23,7 @@ abstract class StandartMailer
 {
     use MailerTrait;
     
-    public $useragent = 'Obullo Mailer';
+    public $useragent = '';
     public $mailpath = '/usr/sbin/sendmail';    // Sendmail path
     public $wordwrap = true;       // true/false  Turns word-wrap on/off
     public $mailtype = 'text';     // text/html  Defines email formatting
@@ -84,6 +85,7 @@ abstract class StandartMailer
     {
         $this->clear();
         $transport = $this->c['config']->load('mailer/transport');
+        $this->useragent = Application::version();
 
         $this->bccBatchMode = $transport['bccBatch']['mode'];
         $this->bccBatchSize = $transport['bccBatch']['size'];
@@ -168,7 +170,7 @@ abstract class StandartMailer
         }
         if ($name != '') {  // Prepare the display name
                             // Only use Q encoding if there are characters that would require it
-            if ( ! preg_match('/[\200-\377]/', $name)) {
+            if (! preg_match('/[\200-\377]/', $name)) {
                 // add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
                 $name = '"' . addcslashes($name, "\0..\37\177'\"\\") . '"';
             } else {

@@ -40,7 +40,7 @@ class Connect
      */
     public function __construct(ContainerInterface $c)
     {
-        $this->config = $c['config'];
+        $this->config  = $c['config'];
         $this->storage = $c['session'];
     }
 
@@ -77,7 +77,7 @@ class Connect
             throw new LogicException("No Sociality driver was specified.");
         }
         return new $provider(
-            $this->storage
+            $this->storage,
             $this->config->load('sociality/'. $name)
         );
     }

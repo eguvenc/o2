@@ -2,7 +2,7 @@
 
 namespace Debugger;
 
-use Obullo\Http\Debugger\Manager;
+use Obullo\Debugger\Manager;
 
 class Debugger extends \Controller
 {
@@ -37,6 +37,16 @@ class Debugger extends \Controller
     }
 
     /**
+     * Server ping
+     * 
+     * @return int 1 or 0
+     */
+    public function ping()
+    {
+        echo $this->debugger->ping();
+    }
+
+    /**
      * Clear all log data
      * 
      * @return voide
@@ -44,7 +54,7 @@ class Debugger extends \Controller
     public function clear()
     {
         $this->debugger->clear();
-        echo $this->debugger->printConsole();
+        $this->index();
     }
 
 }

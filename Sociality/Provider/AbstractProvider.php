@@ -2,9 +2,8 @@
 
 namespace Obullo\Sociality\Provider;
 
-use Obullo\Curl\Curl;
+use Obullo\Utils\Curl\Client;
 use InvalidArgumentException;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Provider
@@ -27,7 +26,7 @@ abstract class AbstractProvider
     protected $redirectUri;
 
     /**
-     * Sociality\Http\Client instance.
+     * Utils\Curl instance.
      * 
      * @var null
      */
@@ -284,7 +283,7 @@ abstract class AbstractProvider
         $method = $this->requestMethod;
         $data   = $this->getTokenFields($code);
 
-        $response = $this->request()
+        $response = $this->client()
             ->setUrl($this->getTokenUrl())
             ->setOpt(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret)
             ->setHeader('Accept', 'application/json')
@@ -303,7 +302,7 @@ abstract class AbstractProvider
      */
     protected function parseAccessToken($body)
     {
-        $response = $this->request()->jsonDecode($body, true);
+        $response = $this->client()->jsonDecode($body, true);
 
         if (isset($response['access_token'])) {
             $this->setAccessToken($response['access_token']);
@@ -345,10 +344,10 @@ abstract class AbstractProvider
      *
      * @return Http\Client
      */
-    protected function request()
+    protected function client()
     {
         if ($this->httpClient == null) {
-            return $this->httpClient = new Curl;
+            return $this->httpClient = new Client;
         }
         return $this->httpClient;
     }

@@ -7,7 +7,7 @@ Obullo da filtreleme iki ayrı sınıf ile yapılır doğrulama filtresi için <
 
 <ul>
 <li>
-    <a href="#is">Is Sınıfı</a>
+    <a href="#is">Is Sınıfı</a>  ( Doğrulama )
     <ul>
         <li><a href="#is-int">$this->is->int()</a></li>
         <li><a href="#is-float">$this->is->float()</a></li>
@@ -19,7 +19,7 @@ Obullo da filtreleme iki ayrı sınıf ile yapılır doğrulama filtresi için <
 </li>
 
 <li>
-    <a href="#clean">Clean Sınıfı</a>
+    <a href="#clean">Clean Sınıfı</a> ( Temizleme )
     <ul>
         <li><a href="#clean-str">$this->clean->str()</a></li>
         <li><a href="#clean-raw">$this->clean->raw()</a></li>
@@ -37,13 +37,13 @@ Obullo da filtreleme iki ayrı sınıf ile yapılır doğrulama filtresi için <
 
 <a name="is"></a>
 
-## Is Sınıfı
+### Is Sınıfı
 
 ------
 
 Is sınıfı php filter_var() fonksiyonlarını kullanarak belirli data tipleri üzerinde doğrulama kontrolü sağlar. Filtreleme özellikleri gönderilen çeşitli parametreler ile değiştirilebilir.
 
-### Sınıfı Yüklemek
+#### Sınıfı Yüklemek
 
 -------
 
@@ -330,14 +330,14 @@ if ($this->request->post('url_adress', 'is')->url('host|query')) {
 
 <a name="clean"></a>
 
-## Clean Sınıfı
+### Clean Sınıfı
 
 ------
 
 Clean sınıfı php filter_var() fonksiyonlarını kullanarak belirli data tipleri yardımı ile girilen değeri <b>arındırır</b>. Filtreleme özellikleri gönderilen çeşitli parametreler ile değiştirilebilir.
 
 
-### Sınıfı Yüklemek
+#### Sınıfı Yüklemek
 
 -------
 

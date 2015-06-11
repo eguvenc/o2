@@ -6,7 +6,7 @@ namespace Obullo\Http\Request;
  * Parse Http Request Headers
  * 
  * @category  Http
- * @package   Error
+ * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license

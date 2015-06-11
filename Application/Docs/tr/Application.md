@@ -48,7 +48,7 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#get-methods-environments">$c['app']->environments()</a></li>
         <li><a href="#get-methods-envArray">$c['app']->envArray()</a></li>
         <li><a href="#get-methods-envPath">$c['app']->envPath()</a></li>
-        <li><a href="#get-methods-version">$c['app']->version()</a></li>
+        <li><a href="#get-methods-version">Application::version()</a></li>
         <li><a href="#get-methods-provider">$c['app']->provider()</a></li>
         <li><a href="#get-methods-x">$c['app']->x()</a></li>
     </ul>
@@ -592,12 +592,12 @@ echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
 ```
 <a name="get-methods-version"></a>
 
-##### $c['app']->version();
+##### Obullo\Application\Application::version()
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.
 
 ```php
-echo $c['app']->version();  // Çıktı  2.1
+\Obullo\Application\Application::version() // Çıktı  2.1
 ```
 
 <a name="get-methods-provider"></a>
@@ -706,7 +706,7 @@ Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı is
 
 Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
-##### $this->c['app']->version();
+##### Obullo\Application\Application::version();
 
 Güncel Obullo versiyonuna geri döner.
 

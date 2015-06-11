@@ -446,7 +446,7 @@ class Image extends AbstractAdapter implements AdapterInterface
         $this->calculateWidth();
 
         // PHP.net recommends imagecreatetruecolor(), but it isn't always available
-        if (function_exists('imagecreatetruecolor') AND $this->config['image']['trueColor']) {
+        if (function_exists('imagecreatetruecolor') && $this->config['image']['trueColor']) {
             $this->image = imagecreatetruecolor($this->width, $this->config['image']['height']);
         } else {
             $this->image = imagecreate($this->width, $this->config['image']['height']) or die('Cannot initialize new GD image stream');
@@ -699,7 +699,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     protected function validationSet()
     {
-        if ( ! $this->config['form']['validation']['enabled']) {
+        if (! $this->config['form']['validation']['enabled']) {
             return;
         }
         $label = $this->c['translator']['OBULLO:CAPTCHA:LABEL'];

@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Http\Debugger;
+namespace Obullo\Debugger;
 
 use RuntimeException;
 use Obullo\Container\ContainerInterface;
@@ -97,6 +97,16 @@ class WebSocket
     }
 
     /**
+     * Check socket is connected
+     * 
+     * @return boolean
+     */
+    public function isConnected()
+    {
+        return $this->connect;
+    }
+
+    /**
      * Emit http request data for debugger
      * 
      * @return void
@@ -118,7 +128,7 @@ class WebSocket
      */
     public function ajaxHandshake()
     {
-        if (isset($_COOKIE['o_debugger_active_tab']) AND $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
+        if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
             setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
         } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
             setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
@@ -177,4 +187,4 @@ class WebSocket
 // END WebSocket.php File
 /* End of file WebSocket.php
 
-/* Location: .Obullo/Http/Debugger/WebSocket.php */
+/* Location: .Obullo/Debugger/WebSocket.php */

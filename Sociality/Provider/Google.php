@@ -33,6 +33,7 @@ class Google extends AbstractProvider implements ProviderInterface
      * 
      * The following scopes, with user consent,
      * provide access to otherwise restricted user data.
+     * 
      * @link texthttps://developers.google.com/+/api/oauth#scopes
      * 
      * Here's the OAuth 2.0 scope information for the Google Contacts API:
@@ -115,14 +116,10 @@ class Google extends AbstractProvider implements ProviderInterface
             return $this->token;
         }
         $data = $this->getTokenFields($code);
-        $response = $this->request()
-            ->setUrl($this->getTokenUrl())
-            ->setHeader(
-                [
-                    'Accept : application/json'
-                ]
-            )
-            ->post($data);
+        $response = $this->client()
+            ->setHeader('Accept : application/json')
+            ->post($this->getTokenUrl(), $data)
+            ->getBody();
             
         return $this->parseAccessToken($response);
     }
@@ -140,8 +137,7 @@ class Google extends AbstractProvider implements ProviderInterface
             'max-results' => $this->params['maxResults'],
             'oauth_token' => $token
         ];
-        $response = $this->request()
-            ->setUrl('https://www.google.com/m8/feeds/contacts/default/full')
+        $response = $this->client()
             ->setHeader(
                 [
                     'Accept' => 'application/json',
@@ -149,7 +145,8 @@ class Google extends AbstractProvider implements ProviderInterface
                     'Authorization' => 'Bearer '. $token,
                 ]
             )
-            ->get($data);
+            ->get('https://www.google.com/m8/feeds/contacts/default/full', $data)
+            ->getBody();
             
         return $this->parseContactXml($response);
     }
@@ -182,12 +179,10 @@ class Google extends AbstractProvider implements ProviderInterface
      */
     public function gPlusListOfVisiblePeoples()
     {
-        $response = $this->request()
-            ->setUrl(
-                'https://www.googleapis.com/plus/v1/people/me/people/visible?access_token='.$this->getAccessToken($this->getCode())
-            )
+        $response = $this->client()
             ->setHeader('Accept', 'application/json')
-            ->get();
+            ->get('https://www.googleapis.com/plus/v1/people/me/people/visible?access_token='.$this->getAccessToken($this->getCode()))
+            ->getBody();
 
         return $response;
     }

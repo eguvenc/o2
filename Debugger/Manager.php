@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Http\Debugger;
+namespace Obullo\Debugger;
 
 use RuntimeException;
 use Obullo\Container\ContainerInterface;
@@ -60,8 +60,14 @@ class Manager
         $envtab = new EnvTab($this->c);
         $envHtml = $envtab->printHtml();
 
+        /**
+         * View variables
+         * 
+         * @var string
+         */
         $websocketUrl = $this->c['config']['http']['debugger']['socket'];
-        $debuggerUrl = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/index?o_debugger=1');
+        $debuggerOff  = (int)$this->c['config']['http']['debugger']['enabled'];
+        $debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/index?o_debugger=1');
 
         ob_start();
         include_once 'Views/Debugger.php';
@@ -109,6 +115,29 @@ class Manager
     }
 
     /**
+     * Ping socket connection
+     * 
+     * @return int 1 or 0
+     */
+    public function ping()
+    {
+        if (false == preg_match(
+            '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
+            $this->c['config']['http']['debugger']['socket'], 
+            $matches
+        )) {
+            throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
+        }
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $connect = socket_connect($socket, $matches['host'], $matches['port']);
+        if ($connect == 1) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
      * Get log html
      * 
      * @param string $request type
@@ -124,7 +153,7 @@ class Manager
             'cli' => '{{CONSOLE:LOGS}}',
         );
         $file = $this->getLogPath($request);
-        if ( ! file_exists($file)) {
+        if (! file_exists($file)) {
             return str_replace($VARS[$request], '', $view);
         }
         $data = file_get_contents($file);
@@ -175,4 +204,4 @@ class Manager
 // END Manager class
 /* End of file Manager.php */
 
-/* Location: .Obullo/Http/Debugger/Manager.php */
+/* Location: .Obullo/Debugger/Manager.php */

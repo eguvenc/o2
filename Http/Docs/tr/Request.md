@@ -1,129 +1,235 @@
 
 ## Request Class
 
-Request class detects the server request method, secure connection, ip address, ajax requests and other similar things.
+Http request sınıfı gelen istek türü, bağlantının güvenli olup olmadığı, ip adresi, ajax istekleri ve buna benzer sunucuda dinamik oluşan bilgilere ulaşmanızı sağlar. Bunun yanında süper küresel değişkenlerden elde edilen girdileri [filters](/Filters/Docs/tr/Filters.md) paketi yardımı ile opsiyonel doğrulama ve filtreleme işlevlerinden geçirerek güvenilir girdiler elde etmenizi yardımcı olur.
 
-### Initializing the Class
+<ul>
+    <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+    <li>
+    	<a href="#super-globals">Girdi Değerlerine Erişmek</a>
+    	<ul>
+    		<li><a href="#sget">$this->request->get()</a></li>
+    		<li><a href="#spost">$this->request->post()</a></li>
+    		<li><a href="#sall">$this->request->all()</a></li>
+    		<li><a href="#sserver">$this->request->server()</a></li>
+    		<li><a href="#smethod">$this->request->method()</a></li>
+    		<li><a href="#sip">$this->request->getIpAddress()</a></li>
+    		<li><a href="#sheaders-get">$this->request->headers->get()</a></li>
+    		<li><a href="#sheaders-all">$this->request->headers->all()</a></li>
+    	</ul>
+    </li>
 
-------
+    <li>
+    	<a href="#input-filters">Girdi Doğrulama / Filtreleme</a>
+    	<ul>
+    		<li><a href="#re-get">$this->request->get()</a></li>
+    		<li><a href="#re-post">$this->request->post()</a></li>
+			<li><a href="#isValidIp">$this->request->isValidIp()</a></li>
+    	</ul>
+    </li>
+
+    <li>
+    	<a href="#filtering-http-requests">Http İsteklerini Filtrelemek</a>
+    	<ul>
+    		<li><a href="#isCLi">$this->request->isCli()</a></li>
+    		<li><a href="#isAjax">$this->request->isAjax()</a></li>
+    		<li><a href="#isSecure">$this->request->isSecure()</a></li>
+    		<li><a href="#isLayer">$this->request->isLayer()</a></li>
+    	</ul>
+    </li>
+
+    <li>
+    	<a href="#filtering-http-methods">Http Metodunu Filtrelemek</a>
+    	<ul>
+    		<li><a href="#isPost">$this->request->isPost()</a></li>
+    		<li><a href="#isGet">$this->request->isGet()</a></li>
+    		<li><a href="#isPut">$this->request->isPut()</a></li>
+    		<li><a href="#isDelete">$this->request->isDelete()</a></li>
+    		<li><a href="#isHead">$this->request->isHead()</a></li>
+    		<li><a href="#isOption">$this->request->isOption()</a></li>
+    		<li><a href="#isPatch">$this->request->isPatch()</a></li>
+    		<li><a href="#isMethod">$this->request->isMethod()</a></li>
+    	</ul>
+    </li>
+</ul>
+
+<a name="loading-class"></a>
+
+### Sınıfı Yüklemek
 
 ```php
-<?php
-$this->c['request'];
-$this->request->method();
+$this->c['request']->method();
 ```
 
-Once loaded, the Request object will be available using: <dfn>$this->request->method()</dfn>
+Request sınıfı <kbd>app/components.php</kbd> dosyasında tanımlı olduğundan çağrıldığında conteiner sınıfı içerisinden yüklenir.
 
-### Using GET Data
+<a name="super-globals"></a>
 
-------
+### Girdi Değerlerine Erişmek
 
-Get class comes with input helper functions that let you fetch $_GET items. The main advantage of using the provided functions rather than fetching an item directly ($_GET['something']) is that the functions will check to see if the item is set and return false (boolean) if not. 
+<a name="sget"></a>
 
-This lets you conveniently use data without having to test whether an item exists first. In other words, normally you might do something like this:
+##### $this->request->get(mixed $key, $filter = '')
+
+<kbd>$_GET</kbd> süper küresel değişkeninden değerler almanıza yardımcı olur. Değişkenlere direkt olarak $_GET['variable'] şeklinde ulaşmak yerine get fonksiyonu kullanmanın ana avantajı değişkenin varlığını kontrol etme durumunda isset() fonksiyonu kullanımı ortadan kaldırmasıdır. Eğer girdi $_GET küresel değişkeni içerisinde yoksa <kbd>false (boolean)</kbd> değerine var ise kendi değerine geri döner. 
+
+Normal şartlarda isset($_GET['variable']) bloğunu her seferinde yazmamak için aşağıdaki gibi request sınıfı get metodu kullanmanız tavsiye edilir.
 
 ```php
-<?php
-if ( ! isset($_GET['variable'])) {
-    $variable = false;
-} else {
-    $variable = $_GET['variable'];
+if ($variable = $this->request->get('variable')) {
+	echo $variable;
 }
 ```
 
-With "Get" class built in functions you can simply do this:
+Eğer tüm get değerlerine ulaşmak isteseydik ilk parametreye true değerini göndermeliydik.
 
 ```php
-<?php
-if ($this->request->get('variable')) {
-	echo $this->request->get('variable');
+$GET = $this->request->get(true);
+print_r($GET);
+```
+
+<a name="spost"></a>
+
+##### $this->request->post(mixed $key, $filter = '')
+
+<kbd>$_POST</kbd> süper küresel değişkeninden değerler almanıza yardımcı olur.
+
+```php
+if ($variable = $this->request->post('variable')) {
+	echo $variable;
 }
 ```
 
-### Using POST Data
+<a name="sall"></a>
 
-------
+##### $this->request->all(mixed $key, $filter = '')
 
-Post class comes with input helper functions that let you fetch $_POST items. The main advantage of using the provided functions rather than fetching an item directly ($_POST['something']) is that the functions will check to see if the item is set and return false (boolean) if not. 
-
-This lets you conveniently use data without having to test whether an item exists first. In other words, normally you might do something like this:
+<kbd>$_REQUEST</kbd> süper küresel değişkeninden değerler almanıza yardımcı olur.
 
 ```php
-<?php
-if ( ! isset($_POST['variable'])) {
-    $variable = false;
-} else {
-    $variable = $_POST['variable'];
+if ($variable = $this->request->all('variable')) {
+	echo $variable;
 }
 ```
 
-With "Post" class built in functions you can simply do this:
+<a name="sserver"></a>
+
+##### $this->request->server(mixed $key)
+
+<kbd>$_SERVER</kbd> süper küresel değişkeninden değerler almanıza yardımcı olur. Eğer girilen anahtar $_SERVER küresel değişkeni içerisinde mevcut değilse fonksiyon <b>null</b> değerine döner.
 
 ```php
-<?php
-if ($this->request->post('variable')) {
-	echo $this->request->post('variable');
+if ($variable = $this->request->server('variable')) {
+	echo $variable;
 }
 ```
 
-#### $this->request->getHeader(string $key);
+<a name="smethod"></a>
 
-Fetches the http server header.
+##### $this->request->method()
 
-Using getHeader() method
-
-```php
-<?php
-echo $this->request->getHeader('host'); // demo_blog
-echo $this->request->getHeader('content-type'); // gzip, deflate
-echo $this->request->getHeader('connection'); // keep-alive
-```
-An example http header output
+Php <kbd>$_SERVER['REQUEST_METHOD']</kbd> değerine ger döner.
 
 ```php
-print_r(getallheaders());
-
-// 
-// EXAMPLE HEADER OUTPUT
-// Host: demo_blog 
-// User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/\*;q=0.8
-// Accept-Language: en-US,en;q=0.5 
-// Accept-Encoding: gzip, deflate 
-// 
-// Cookie: frm_session=uqdp8hvjsfhen759eucgp31h74; frm_session_userdata=a%3A4%3A%7Bs%3A10%3A%22session_id%22%3Bs%3A26%3A%22uqdp8hvjsfhen759eucgp31h74%22%3Bs%3A10%3A%22ip_address%22%3Bs%3A9%3A%22127.0.0.1%22%3Bs%3A10%3A%22user_agent%22%3Bs%3A50%3A%22Mozilla%2F5.0+%28X11%3B+Ubuntu%3B+Linux+x86_64%3B+rv%3A26.0%29+G%22%3Bs%3A13%3A%22last_activity%22%3Bi%3A1389947182%3B%7D75f0224d5214efb875c685a30eda7f06
-// 
-// Connection: keep-alive 
+$this->request->method();  // GET
 ```
 
-#### $this->request->getIpAddress();
+<a name="sip"></a>
 
-Returns the IP address for the current user. If the IP address is not valid, the function will return an IP of: 0.0.0.0
+##### $this->request->getIpAddress()
 
 ```php
-<?php
-echo $this->request->getIpAddress();  // 216.185.81.90
+echo $this->request->getIpAddress(); // 88.54.844.15
 ```
 
-#### $this->request->server($key);
+<a name="sheaders-get"></a>
 
-Fetches $_SERVER variable items.
+##### $this->request->headers->get($key)
+
+Seçilen http sunucu başlığına geri döner.
 
 ```php
-<?php
-$this->request->server('HTTP_USER_AGENT');  
-
-// gives Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0 
+echo $this->request->headers->get('host'); // demo_blog
+echo $this->request->headers->get('content-type'); // gzip, deflate
 ```
 
-#### $this->request->isValidIp($ip);
+<a name="sheaders-all"></a>
 
-Gets the IP address as input and returns true or false (boolean) depending on it is valid or not. 
+##### $this->request->headers->all()
 
-***Note:*** The $this->request->ipAddress() method also validates the IP automatically.
+Tüm http sunucu başlıklarına geri döner.
 
 ```php
-<?php
+$headers = $this->request->headers->all();
+print_r($headers);
+```
+
+```php
+Array
+(
+    [Host] => framework
+    [User-Agent] => Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0
+    [Accept] => text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+    [Accept-Language] => en-US,en;q=0.5
+    [Accept-Encoding] => gzip, deflate
+    ...
+)
+```
+
+<a name="input-filters"></a>
+
+### Girdi Doğrulama / Filtreleme
+
+Request sınıfındaki get, post ve all metotlarına ikinci parametre olarak filtre ismi girilerek [Filters](/Filters/Docs/tr/Filters.md) paketine ait filtreler çalıştırılabilir. 
+
+<a name="re-get"></a>
+
+##### $this->request->get($key, $filter = null);
+
+Doğrulama filtresi
+
+```php
+if ($variable = $this->request->get('variable', 'is')->int()) {
+	echo 'variable is integer';
+}
+```
+Temizleme filtresi
+
+```php
+$cleanVariable = $this->request->get('variable', 'clean')->int();
+
+echo $cleanVariable;
+```
+
+> **Not:** Daha fazla filtreleme örnekleri için filters paketine ait [Filters.md](/Filters/Docs/tr/Filters.md) sayfasını ziyaret edin.
+
+<a name="re-post"></a>
+
+##### $this->request->post($key, $filter = null);
+
+Doğrulama filtresi
+
+```php
+if ($variable = $this->request->get('variable', 'is')->str()) {
+	echo 'variable is string';
+}
+```
+Temizleme filtresi
+
+```php
+$cleanVariable = $this->request->get('variable', 'clean')->str('strip_high');
+echo $cleanVariable;
+```
+
+<a name="isValidIp"></a>
+
+##### $this->request->isValidIp($ip);
+
+Girilen ip adresi doğru ise true değerine aksi durumda false değerine geri döner.
+
+> **Not:** $this->request->getIpAddress() fonksiyonu ip doğrulama işlevini kendi içerisinde zaten yapar.
+
+```php
 if ( ! $this->request->isValidIp($ip)) {
 	echo 'Not Valid';
 } else {
@@ -131,52 +237,93 @@ if ( ! $this->request->isValidIp($ip)) {
 }
 ```
 
-##### $this->request->get($key);
+<a name="filtering-http-requests"></a>
 
-##### $this->request->post($key);
+### Http İsteklerini Filtrelemek
 
-##### $this->request->all($key);
+Http isteklerini metotlar yardımı ile filtelenebilir.
 
-##### $this->request->server($key);
+<a name="isCli"></a>
 
-##### $this->request->headers->get($key = null);
+##### $this->request->isCli();
 
-##### $this->request->method();
+Uygulama eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
 
-##### $this->request->getIpAddress();
-
-##### $this->request->isValidIp();
-
-###### $this->request->isCli();
-
-Uygulamaya eğer bir konsol arayüzünden çalışıyorsa true değerine aksi durumda false değerine geri döner.
+<a name="isLayer"></a>
 
 ##### $this->request->isLayer();
 
-Returns "true" if the secure connection ( Https ) available in server header.
+Uygulama gelen istek eğer katman ( Layer diğer bir adıyla Hmvc ) isteği ise true değerine aksi durumda false değerine geri döner.
+
+<a name="isAjax"></a>
 
 ##### $this->request->isAjax();
 
-Returns "true" if xmlHttpRequest ( Ajax ) available in server header.
+Uygulama gelen istek eğer xmlHttpRequest ( Ajax ) isteği ise true değerine aksi durumda false değerine geri döner.
+
+<a name="isSecure"></a>
 
 ##### $this->request->isSecure();
 
-Returns "true" if the secure connection ( Https ) available in server header.
+Uygulamaya gelen istek eğer https protokülünden geliyorsa true aksi durumda false değerine geri döner.
+
+
+<a name="filtering-http-methods"></a>
+
+#### Http Metodunu Filtrelemek
+
+Uygulamanıza gelen http istekleri metot türüne göre filtrelenebilir.
+
+<a name="isPost"></a>
 
 ##### $this->request->isPost();
 
-If http request method equal to POST returns to true otherwise false.
+Eğer http metodu <kbd>POST</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isGet"></a>
 
 ##### $this->request->isGet();
 
-If http request method equal to GET returns to true otherwise false.
+Eğer http metodu <kbd>GET</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isPut"></a>
 
 ##### $this->request->isPut();
 
-If http request method equal to PUT returns to true otherwise false.
+Eğer http metodu <kbd>PUT</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isDelete"></a>
 
 ##### $this->request->isDelete();
 
-If http request method equal to DELETE returns to true otherwise false.
+Eğer http metodu <kbd>DELETE</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
 
-##### $this->request->global->object->method();
+<a name="isOptions"></a>
+
+##### $this->request->isOptions();
+
+Eğer http metodu <kbd>OPTIONS</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isPatch"></a>
+
+##### $this->request->isPatch();
+
+Eğer http metodu <kbd>PATCH</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isHead"></a>
+
+##### $this->request->isHead();
+
+Eğer http metodu <kbd>HEAD</kbd> değerinde geliyorsa true değerine aksi durumda false değerine döner.
+
+<a name="isMethod"></a>
+
+##### $this->request->isMethod($method);
+
+Eğer http metodu sizin belirlediğiniz <kbd>ÖZEL</kbd> metot türüne eşitse true değerine aksi durumda false değerine döner.
+
+```php
+if ($this->request->isMethod('COPY')) {
+
+}
+```

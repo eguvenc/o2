@@ -533,6 +533,18 @@ class Container implements ContainerInterface
         return isset($this->registeredProviders[$name]);
     }
 
+    /**
+     * Var dump wrapper ( for PHP 5.6.0  and newer versions )
+     * 
+     * @return array
+     */
+    public function __debugInfo()
+    {
+        return [
+            'classes' => $this->keys()
+        ];
+    }
+
 }
 
 // END Container class

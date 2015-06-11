@@ -1,100 +1,41 @@
 <?php
 
-namespace Obullo\Curl;
+namespace Obullo\Utils\Curl;
 
-use LogicException;
 use RuntimeException;
 use InvalidArgumentException;
+
+use Obullo\Utils\Curl\Request;
+use Obullo\Utils\Curl\Response;
+use Obullo\Application\Application;
 use Obullo\Utils\CaseInsensitiveArray;
-use Obullo\Container\ContainerInterface;
+
+Class ClientException extends RuntimeException {}
 
 /**
- * Curl Class
- *
- * Modeled after https://github.com/php-curl-class/php-curl-class
+ * Curl Helper
  * 
  * @category  Curl
- * @package   Curl
- * @author    Ali İhsan ÇAĞLAYAN <ihsancaglayan@gmail.com>
- * @author    Ersin Güvenç <eguvenc@gmail.com>
+ * @package   Utils
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/curl
  */
-class Curl
+class Client
 {
-    const DEFAULT_TIMEOUT = 30;
+    const TIMEOUT = 30;
 
-    /**
-     * Curl init
-     * 
-     * @var resource
-     */
-    protected $ch;
-
-    /**
-     * Get or post request fields
-     * 
-     * @var mixed
-     */
-    protected $fields;
-
-    /**
-     * Request method
-     * 
-     * @var string
-     */
-    protected $method;
-
-    /**
-     * Headers
-     * 
-     * @var array
-     */
-    protected $headers = [];
-
-    /**
-     * Cookies
-     * 
-     * @var array
-     */
-    protected $cookies = [];
-
-    /**
-     * Curl constants
-     * 
-     * @var array
-     */
-    protected $constants = [];
-
-    /**
-     * Query parameters
-     * 
-     * @var array
-     */
-    protected $queryParams = [];
-
-    /**
-     * Request headers
-     * 
-     * @var array
-     */
-    protected $requestHeaders;
-
-    /**
-     * Response headers
-     * 
-     * @var array
-     */
-    protected $responseHeaders;
-
-    /**
-     * Callback respoonse headers storage
-     * 
-     * @var string
-     */
-    protected $rawResponseHeaders;
+    protected $ch;                  // Curl init
+    protected $fields;              // Get or post request fields
+    protected $method;              // Request method
+    protected $headers = [];        // Headers
+    protected $body = null;         // Body content
+    protected $cookies = [];        // Cookies
+    protected $constants = [];      // Curl constants
+    protected $queryParams = [];    // Query parameters
+    protected $postParams = [];     // Post parameters
+    protected $rawResponseHeaders;  // Callback respoonse headers storage
 
     /**
      * Curl options
@@ -127,12 +68,14 @@ class Curl
      */
     public function __construct()
     {
-        if ( ! extension_loaded('curl')) {
+        if (! extension_loaded('curl')) {
             throw new RuntimeException('The cURL IO handler requires the cURL extension to be enabled');
         }
+        $this->headers = new CaseInsensitiveArray;
         $this->setOpt(CURLINFO_HEADER_OUT, true);
         $this->setOpt(CURLOPT_HEADERFUNCTION, array($this, 'headerCallback'));
-        $this->setTimeout(static::DEFAULT_TIMEOUT);
+        $this->setUserAgent(Application::version());
+        $this->setTimeout(static::TIMEOUT);
     }
 
     /**
@@ -155,14 +98,14 @@ class Curl
      * 
      * @return void
      */
-    public function setUrl($url, array $queryParams = array())
+    protected function setUrl($url, array $queryParams = array())
     {
         $this->url = $url;
         $sign = '?';
         if (strpos($url, '?') !== false) {
             $sign = '&';
         }
-        if ( ! empty($queryParams)) {
+        if (! empty($queryParams)) {
             $queryParams = $sign. http_build_query($queryParams);
             $url = $this->url.$queryParams;
         }
@@ -178,9 +121,15 @@ class Curl
      *
      * @return object
      */
-    public function setHeader($k, $v)
+    public function setHeader($k, $v = null)
     {
-        $this->headers[$k] = $v;
+        if (is_array($k)) {
+            foreach ($k as $key => $value) {
+                $this->headers[$key] = $value;
+            }
+        } else {
+            $this->headers[$k] = $v;
+        }
         return $this;
     }
 
@@ -203,7 +152,8 @@ class Curl
      * @param string $key key
      * @param mixed  $val value
      * 
-     * @link  http://php.net/manual/en/curl.constants.php
+     * @link http://php.net/manual/en/curl.constants.php
+     * 
      * @return void
      */
     public function setOpt($key, $val)
@@ -262,10 +212,13 @@ class Curl
      * Set Port
      *
      * @param int $port number
+     *
+     * @return object
      */
     public function setPort($port)
     {
         $this->setOpt(CURLOPT_PORT, intval($port));
+        return $this;
     }
 
     /**
@@ -296,15 +249,33 @@ class Curl
     }
 
     /**
+     * Set Authentication
+     *
+     * @param string $username username
+     * @param string $password password
+     * @param string $type     Basic / Digest
+     * 
+     * @return object
+     */
+    public function setAuth($username, $password = '', $type = 'basic')
+    {
+        $method = 'set'.ucfirst($type).'Authentication';
+        return $this->$method($username, $password);
+    }
+
+    /**
      * Set Basic Authentication
      *
      * @param string $username username
      * @param string $password password
+     * 
+     * @return object
      */
-    public function setBasicAuthentication($username, $password = '')
+    protected function setBasicAuthentication($username, $password = '')
     {
         $this->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         $this->setOpt(CURLOPT_USERPWD, $username . ':' . $password);
+        return $this;
     }
 
     /**
@@ -312,69 +283,84 @@ class Curl
      *
      * @param string $username username
      * @param string $password password
+     *
+     * @return object
      */
-    public function setDigestAuthentication($username, $password = '')
+    protected function setDigestAuthentication($username, $password = '')
     {
         $this->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
         $this->setOpt(CURLOPT_USERPWD, $username . ':' . $password);
+        return $this;
     }
 
     /**
      * Verbose
      * 
      * @param bool $on on / off
+     * 
+     * @return object
      */
-    public function verbose($on = true)
+    public function setVerbose($on = true)
     {
         $this->setOpt(CURLOPT_VERBOSE, $on);
+        return $this;
     }
 
     /**
      * Get
      * 
-     * @param mixed $data string or array data
+     * @param string $url         url
+     * @param mixed  $queryParams array data
      *
      * @return string
      */
-    public function get($data = array())
+    public function get($url, $queryParams = array())
     {
-        $this->setUrl($this->url, $data);
+        $this->method = 'GET';
+        $this->setUrl($url, $queryParams);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'GET');
         $this->setOpt(CURLOPT_HTTPGET, true);
         return $this->exec();
     }
 
     /**
-     * Post
+     * Post ( Insert )
      *
-     * @param array $data data
+     * @param string $url        url
+     * @param mixed  $postFields array data
      * 
      * @return string
      */
-    public function post($data = array())
+    public function post($url, $postFields = array())
     {
-        if (is_array($data) && empty($data)) {
-            $this->unsetHeader('Content-Length');
+        $this->method = 'POST';
+        if (is_array($postFields) && empty($postFields)) {
+            $this->unsetHeader('content-length');
         }
+        $this->setUrl($url);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'POST');
         $this->setOpt(CURLOPT_POST, true);
-        $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($data));
+        $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($postFields));
         return $this->exec();
     }
 
     /**
-     * Put
+     * Put ( Update )
      * 
-     * @param array $data data
+     * @param string $url  url
+     * @param mixed  $data array data
      * 
      * @return string
      */
-    public function put($data = array())
+    public function put($url, $data = null)
     {
+        $this->method = 'PUT';
+        $this->setUrl($url);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'PUT');
+
         $putData = $this->buildPostData($data);
         if (empty($this->options[CURLOPT_INFILE]) && empty($this->options[CURLOPT_INFILESIZE])) {
-            $this->setHeader('Content-Length', strlen($putData));
+            $this->setHeader('content-length', strlen($putData));
         }
         $this->setOpt(CURLOPT_POSTFIELDS, $putData);
         return $this->exec();
@@ -383,57 +369,67 @@ class Curl
     /**
      * Delete
      *
-     * @param mixed $data string or array data
+     * @param string $url        url
+     * @param mixed  $postFields array data
      * 
      * @return string
      */
-    public function delete($data = array())
+    public function delete($url, $postFields = array())
     {
+        $this->method = 'DELETE';
+        $this->setUrl($url);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'DELETE');
-        $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($data));
+        $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($postFields));
         return $this->exec();
     }
 
     /**
      * Patch
      *
-     * @param mixed $data string or array data
-     *
+     * @param string $url  url
+     * @param mixed  $data array data
+     * 
      * @return string
      */
-    public function patch($data = array())
+    public function patch($url, $data = null)
     {
-        $this->unsetHeader('Content-Length');
+        $this->method = 'PATCH';
+        $this->setUrl($url);
+        $this->unsetHeader('content-length');
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'PATCH');
-        $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($data));
+        $this->setOpt(CURLOPT_POSTFIELDS, $data);
         return $this->exec();
     }
 
     /**
      * Options
      *
-     * @param mixed $data string or array data
+     * @param string $url         url
+     * @param mixed  $queryParams array postFields
      * 
      * @return string
      */
-    public function options($data = array())
+    public function options($url, $queryParams = array())
     {
+        $this->method = 'OPTIONS';
         $this->unsetHeader('Content-Length');
-        $this->setUrl($this->url, $data);
+        $this->setUrl($url, $queryParams);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'OPTIONS');
         return $this->exec();
     }
 
     /**
-     * Head
+     * Head ( Like GET )
      *
-     * @param mixed $data string or array data
+     * @param string $url         url
+     * @param mixed  $queryParams array data
      * 
      * @return string
      */
-    public function head($data = array())
+    public function head($url, $queryParams = array())
     {
-        $this->setURL($this->url, $data);
+        $this->method = 'HEAD';
+        $this->setURL($url, $queryParams);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, 'HEAD');
         $this->setOpt(CURLOPT_NOBODY, true);
         return $this->exec();
@@ -443,12 +439,15 @@ class Curl
      * Build custom method
      * 
      * @param string $method name
+     * @param string $url    name
      * @param array  $data   post data
      * 
      * @return string
      */
-    public function custom($method, $data = array())
+    public function createRequest($method, $url, $data = null)
     {
+        $this->method = ucfirst($method);
+        $this->setURL($url);
         $this->setOpt(CURLOPT_CUSTOMREQUEST, strtoupper($method));
         $this->setOpt(CURLOPT_POSTFIELDS, $this->buildPostData($data));
         return $this->exec();
@@ -456,14 +455,72 @@ class Curl
 
     /**
      * Buil post data
-     * 
+     *
      * @param array $data data
      * 
      * @return array
      */
     protected function buildPostData($data)
     {
-        return http_build_query($data);
+        $this->postParams = $data;
+        if (isset($data['body'])) {
+            $this->detectContentType($data['body']);
+            return $data['body'];
+        }
+        if ($this->body != null) {
+            $this->detectContentType($this->body);
+            return $this->body;
+        }
+        if (isset($this->headers['content-type'])  
+            && 0 === strpos($this->headers['content-type'], 'multipart/form-data')  // If we have multipart header
+        ) {
+            return $data;
+        }
+        return $this->buildRawData($data);
+    }
+
+    /**
+     * Detect content type
+     * 
+     * @param string $body body
+     * 
+     * @return void
+     */
+    protected function detectContentType($body)
+    {
+        if (is_object(json_decode($body))) {  // Is Json ?
+            $this->setHeader('content-type', 'application/json; charset=utf-8');
+        } elseif (false !== simplexml_load_string($body)) {
+            $this->setHeader('content-type', 'application/xml; charset=utf-8');
+        } else {
+            $this->setHeader('content-type', 'text/plain'); // http://stackoverflow.com/questions/871431/raw-post-using-curl-in-php
+        }
+        $this->setHeader('content-length', strlen($body));
+    }
+
+    /**
+     * Build raw data
+     * 
+     * @param mixed $data data
+     * 
+     * @return string
+     */
+    protected function buildRawData($data)
+    {
+        return http_build_query($data, '', '&');
+    }
+
+    /**
+     * Set body
+     * 
+     * @param string $body plain-text
+     * 
+     * @return object
+     */
+    public function setBody($body)
+    {
+        $this->body = $body;
+        return $this;
     }
 
     /**
@@ -475,13 +532,13 @@ class Curl
     {
         $headers = array();
         foreach ($this->headers as $key => $value) {
-            $headers[$key] = $key .':'. $value;
+            $name = implode('-', array_map('ucfirst', explode('-', $key)));
+            $headers[$key] = $name .':'. $value;
         }
-        if ( ! empty($headers)) {
-            print_r($headers);
+        if (! empty($headers)) {
             $this->setOpt(CURLOPT_HTTPHEADER, $headers);
         }
-        if ( ! empty($this->cookies)) {
+        if (! empty($this->cookies)) {
             $this->setOpt(CURLOPT_COOKIE, str_replace(' ', '%20', urldecode(http_build_query($this->cookies, '', '; '))));
         }
     }
@@ -489,7 +546,7 @@ class Curl
     /**
      * Execute curl
      * 
-     * @return object Response
+     * @return object
      */
     protected function exec()
     {
@@ -499,79 +556,36 @@ class Curl
             $this->ch,
             $this->options
         );
-        $this->rawResponse = curl_exec($this->ch);
+        if (false == $this->rawResponse = curl_exec($this->ch)) {
+            throw new ClientException(curl_error($this->ch));
+        }
+        $this->body = null;  // Reset body data
         return $this;
     }
 
     /**
-     * Curl raw response
+     * Returns response or request objects
      * 
-     * @return mixed
+     * @param string $key object name
+     * 
+     * @return object|null
+     */
+    public function __get($key)
+    {
+        if ($key == 'request') {
+            return new Request($this->ch, $this->method, $this->body, $this->postParams);
+        }
+        return new Response($this->ch, $this->rawResponse, $this->rawResponseHeaders);
+    }
+
+    /**
+     * Echo raw response without using response class
+     * 
+     * @return string
      */
     public function getBody()
     {
         return $this->rawResponse;
-    }
-
-    /**
-     * Returns to curl_error()
-     * 
-     * @return string
-     */
-    public function getError()
-    {
-        return curl_error($this->ch);
-    }
-
-    /**
-     * Returns to curl_errno() error number if no errors
-     * returns "0".
-     * 
-     * @return integer
-     */
-    public function getErrorNo()
-    {
-        return curl_errno($this->ch);
-    }
-
-    /**
-     * Get all info
-     * 
-     * @return array
-     */
-    public function getInfo()
-    {
-        return curl_getinfo($this->ch);
-    }
-
-    /**
-     * Returns curl http status code
-     * 
-     * @return string
-     */
-    public function getStatusCode()
-    {
-        return curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-    }
-
-    /**
-     * Return to request headers
-     * 
-     * @return string
-     */
-    public function getRequestHeaders()
-    {
-        return ($this->requestHeaders == null) ? $this->parseRequestHeaders(curl_getinfo($this->ch, CURLINFO_HEADER_OUT)) : $this->requestHeaders;
-    }
-
-    /**
-     * Returns to response headers
-     * 
-     * @return array
-     */
-    public function getResponseHeaders()
-    {
-        return ($this->responseHeaders == null) ? $this->parseResponseHeaders($this->rawResponseHeaders) : $this->responseHeaders;
     }
 
     /**
@@ -644,81 +658,9 @@ class Curl
      */
     public function headerCallback($ch, $header)
     {
+        $ch = null;
         $this->rawResponseHeaders .= $header;
         return strlen($header);
-    }
-
-    /**
-     * Parse Request Headers
-     *
-     * @param string $rawHeader raw request headers
-     *
-     * @return array
-     */
-    protected function parseRequestHeaders($rawHeader)
-    {
-        $requestHeader = new CaseInsensitiveArray();
-        list($firstLine, $headers) = $this->parseHeaders($rawHeader);
-
-        $requestHeader['Request-Line'] = $firstLine;
-        foreach ($headers as $key => $value) {
-            $requestHeader[$key] = $value;
-        }
-        return $requestHeader;
-    }
-
-    /**
-     * Parse Response Headers
-     *
-     * @param string $rawResponseHeader raw response headers
-     *
-     * @return array
-     */
-    protected function parseResponseHeaders($rawResponseHeader)
-    {
-        $responseHeaderArray = explode("\r\n\r\n", $rawResponseHeader);
-        $responseHeader  = '';
-        for ($i = count($responseHeaderArray) - 1; $i >= 0; $i--) {
-            if (stripos($responseHeaderArray[$i], 'HTTP/') === 0) {
-                $responseHeader = $responseHeaderArray[$i];
-                break;
-            }
-        }
-        $responseHeaders = new CaseInsensitiveArray();
-        list($firstLine, $headers) = $this->parseHeaders($responseHeader);
-
-        $responseHeaders['Status-Line'] = $firstLine;
-        foreach ($headers as $key => $value) {
-            $responseHeaders[$key] = $value;
-        }
-        return $responseHeaders;
-    }
-
-   /**
-     * Parse Headers
-     * 
-     * @param string $rawHeaders raw headers
-     *
-     * @return array
-     */
-    protected function parseHeaders($rawHeaders)
-    {
-        $rawHeaders = preg_split('/\r\n/', $rawHeaders, null, PREG_SPLIT_NO_EMPTY);
-        $httpHeaders = new CaseInsensitiveArray();
-
-        $rawHeadersCount = count($rawHeaders);
-        for ($i = 1; $i < $rawHeadersCount; $i++) {
-            list($key, $value) = explode(':', $rawHeaders[$i], 2);
-            $key = trim($key);
-            $value = trim($value);
-
-            if (isset($httpHeaders[$key])) {  // Use isset() as array_key_exists() and ArrayAccess are not compatible.
-                $httpHeaders[$key] .= ',' . $value;
-            } else {
-                $httpHeaders[$key] = $value;
-            }
-        }
-        return array(isset($rawHeaders['0']) ? $rawHeaders['0'] : '', $httpHeaders);
     }
 
     /**
@@ -729,10 +671,9 @@ class Curl
         $this->close();
         $this->ch = null;
     }
-
 }
 
 // END Curl.php File
 /* End of file Curl.php
 
-/* Location: .Obullo/Curl/Curl.php */
+/* Location: .Obullo/Utils/Curl/Client.php */

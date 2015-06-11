@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Http\Debugger;
+namespace Obullo\Debugger;
 
 use RuntimeException;
 use Obullo\Container\ContainerInterface;
@@ -123,4 +123,4 @@ class EnvTab
 // END EnvTab.php File
 /* End of file EnvTab.php
 
-/* Location: .Obullo/Http/Debugger/EnvTab.php */
+/* Location: .Obullo/Debugger/EnvTab.php */

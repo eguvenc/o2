@@ -73,7 +73,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     public function getTokenUrl()
     {
-        $this->request()->setOpt(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret);
+        $this->client()->setOpt(CURLOPT_USERPWD, $this->clientId .':'. $this->clientSecret);
         return $this->params['oauth']['token'];
     }
 
@@ -105,8 +105,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function getContactsByToken($token)
     {
-        $response = $this->request()
-            ->setUrl('https://social.yahooapis.com/v1/user/me/contacts?format=json')
+        $response = $this->client()
             ->setHeader(
                 [
                     'Accept' => 'application/json',
@@ -114,7 +113,8 @@ class Yahoo extends AbstractProvider implements ProviderInterface
                     'Authorization' => 'Bearer '.$token
                 ]
             )
-            ->get();
+            ->get('https://social.yahooapis.com/v1/user/me/contacts?format=json')
+            ->getBody();
 
         return $this->parseContacts($response);
     }
@@ -128,7 +128,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function parseAccessToken($body)
     {
-        $response = $this->request()->jsonDecode($body, true);
+        $response = $this->client()->jsonDecode($body, true);
 
         if (isset($response['access_token'])) {
             $this->storage->set($response);
@@ -146,7 +146,7 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      */
     protected function parseContacts($response)
     {
-        if (($data = $this->request()->jsonDecode($response, true)) && isset($data['contacts'])) {
+        if (($data = $this->client()->jsonDecode($response, true)) && isset($data['contacts'])) {
             foreach ($data['contacts']['contact'] as $val) {
                 $contacts = array();
                 foreach ($val['fields'] as $user) {

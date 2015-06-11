@@ -43,18 +43,6 @@ class Request
     }
 
     /**
-     * Request headers loader
-     * 
-     * @param string $variable name
-     * 
-     * @return object | bool
-     */
-    public function __get($variable)
-    {   
-        return $this->c['request.'.$variable];
-    }
-
-    /**
      * GET wrapper
      * 
      * @param string  $key    key
@@ -97,11 +85,12 @@ class Request
     /**
      * REQUEST wrapper
      * 
-     * @param string $key key
+     * @param string  $key    key
+     * @param boolean $filter name
      * 
      * @return mixed
      */
-    public function all($key)
+    public function all($key, $filter = null)
     {
         if (is_bool($key)) {
             return $_REQUEST;
@@ -122,6 +111,9 @@ class Request
      */
     public function server($key) 
     {
+        if (is_bool($key)) {
+            return $_SERVER;
+        }
         if (isset($_SERVER[$key])) {
             return $_SERVER[$key];
         }
@@ -154,7 +146,7 @@ class Request
             return $ipAddress;
         }
         $ipAddress = $this->getRealIp($REMOTE_ADDR);
-        if ( ! $this->isValidIp($ipAddress)) {
+        if (! $this->isValidIp($ipAddress)) {
             $ipAddress = '0.0.0.0';
         }
         return $ipAddress;
@@ -172,7 +164,7 @@ class Request
         $proxyIps  = $this->c['config']['proxy']['ips'];
         $ipAddress = $REMOTE_ADDR;
 
-        if ( ! empty($proxyIps)) {
+        if (! empty($proxyIps)) {
             $proxyIps = explode(',', str_replace(' ', '', $proxyIps));
             foreach (array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP') as $header) {
                 $spoof = (isset($_SERVER[$header])) ? $_SERVER[$header] : false;
@@ -181,7 +173,7 @@ class Request
                         $spoof = explode(',', $spoof, 2);  // e.g. client_ip, proxy_ip1, proxy_ip2, etc.
                         $spoof = $spoof[0];
                     }
-                    if ( ! $this->isValidIp($spoof)) {
+                    if (! $this->isValidIp($spoof)) {
                         $spoof = false;
                     } else {
                         break;
@@ -211,7 +203,7 @@ class Request
      *
      * Test to see if a request was made from the command line.
      *
-     * @return  bool
+     * @return bool
      */
     public function isCli()
     {
@@ -238,7 +230,7 @@ class Request
      */
     public function isAjax()
     {
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             return true;
         }
         return false;
@@ -251,11 +243,11 @@ class Request
      */
     public function isSecure()
     {
-        if ( ! empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+        if (! empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
             return true;
         } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
             return true;
-        } elseif ( ! empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') {
+        } elseif (! empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') {
             return true;
         }
         return false;
@@ -292,6 +284,36 @@ class Request
     }
 
     /**
+     * If http request type equal to PATCH returns to true otherwise false.
+     * 
+     * @return boolean
+     */
+    public function isPatch()
+    {
+        return $this->isMethod('PATCH');
+    }
+
+    /**
+     * Check method is head
+     * 
+     * @return boolean
+     */
+    public function isHead()
+    {
+        return $this->isMethod('HEAD');
+    }
+
+    /**
+     * Check method is options
+     * 
+     * @return boolean
+     */
+    public function isOptions()
+    {
+        return $this->isMethod('OPTIONS');
+    }
+
+    /**
      * If http request type equal to DELETE returns to true otherwise false.
      * 
      * @return boolean
@@ -308,12 +330,24 @@ class Request
      * 
      * @return boolean
      */
-    protected function isMethod($METHOD = 'GET')
+    public function isMethod($METHOD = 'GET')
     {
-        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == $METHOD) {
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == strtoupper($METHOD)) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Request headers loader
+     * 
+     * @param string $variable name
+     * 
+     * @return object | bool
+     */
+    public function __get($variable)
+    {   
+        return $this->c['request.'.$variable];
     }
 
 }

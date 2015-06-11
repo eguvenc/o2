@@ -6,6 +6,7 @@ use RuntimeException;
 use Obullo\Mailer\Text;
 use Obullo\Mailer\File;
 use Obullo\Mailer\Validator;
+use Obullo\Application\Application;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -22,7 +23,7 @@ abstract class HttpMailer
 {
     use MailerTrait;
 
-    public $useragent = 'Obullo Mailer';
+    public $useragent = '';
     public $wordwrap = true;        // true/false  Turns word-wrap on/off
     public $wrapchars = 76;
     public $mailtype = 'text';      // text/html  Defines email formatting
@@ -69,6 +70,7 @@ abstract class HttpMailer
     {
         $this->clear();
         $transport = $this->c['config']->load('mailer/transport');
+        $this->useragent = Application::version();
 
         foreach ($transport as $key => $val) {
             if (isset($this->$key)) {
