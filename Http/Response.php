@@ -2,6 +2,7 @@
 
 namespace Obullo\Http;
 
+use Closure;
 use Obullo\Http\Response\Headers;
 use Obullo\Container\ContainerInterface;
 
@@ -29,6 +30,13 @@ class Response
     public $c;
 
     /**
+     * Final output string
+     * 
+     * @var string
+     */
+    public $output;
+
+    /**
      * Response last error
      * 
      * @var string
@@ -43,18 +51,18 @@ class Response
     public $status = 200;
 
     /**
-     * Final output string
-     * 
-     * @var string
-     */
-    public $output;
-
-    /**
      * Enable / Disable flush ( send output to browser )
      * 
      * @var boolean
      */
     protected $enabled = true;
+
+    /**
+     * Run callback function
+     * 
+     * @var object
+     */
+    protected $callback;
 
     /**
      * Constructor
@@ -70,18 +78,6 @@ class Response
         $this->c['response.headers'] = function () {
             return new Headers;
         };
-    }
-
-    /**
-     * Response headers loader
-     * 
-     * @param string $variable name
-     * 
-     * @return object | bool
-     */
-    public function __get($variable)
-    {   
-        return $this->c['response.'.$variable];
     }
 
     /**
@@ -131,7 +127,7 @@ class Response
     }
 
     /**
-     * Get page output length
+     * Get content length
      * 
      * @return int
      */
@@ -181,14 +177,15 @@ class Response
 
             if (count($headers) > 0) {  // Are there any server headers to send ?
                 $replace = true;
-                foreach ($headers as $header => $value) {
-                    if (isset($options[$header]['replace'])) {
-                        $replace = $options[$header]['replace'];
+                foreach ($headers as $key => $value) {
+                    if (isset($options[$key]['replace'])) {
+                        $replace = $options[$key]['replace'];
                     }
-                    if (strpos($header, ':') === false && ! empty($value)) {
-                        $header = $header.': '.$value;
+                    if (! empty($value) && strpos($key, '-') > 0) {
+                        $key = array_map('ucfirst', explode('-', $key, 2)); // Normalize header
+                        $key = implode('-', $key).': '.$value;
                     }
-                    header($header, $replace);
+                    header($key, $replace);
                 }            
             }
         }
@@ -202,12 +199,32 @@ class Response
      */
     public function flush()
     {
-        if ($this->enabled) {  // Send output
+        if ($this->isAllowed()) {  // Send output
+
             list($status, $headers, $options, $output) = $this->finalize();
             $this->sendHeaders($status, $headers, $options);
 
             echo $output; // Send output
+
+        } elseif (is_callable($this->callback)) {
+            
+            $callback = $this->callback;
+            $callback($this);
         }
+        return $this;
+    }
+
+    /**
+     * Set custom response function
+     *
+     * @param object $closure callback
+     * 
+     * @return object
+     */
+    public function callback(Closure $closure)
+    {
+        $this->disableOutput();
+        $this->callback = $closure;
         return $this;
     }
 
@@ -309,11 +326,11 @@ class Response
     }
 
     /**
-     * Returns to true output enabled otherwise false
+     * Returns to true if output enabled otherwise false
      * 
      * @return boolean
      */
-    public function isEnabled()
+    public function isAllowed()
     {
         return $this->enabled;
     }
@@ -352,6 +369,17 @@ class Response
         return $this;
     }
 
+    /**
+     * Response headers loader
+     * 
+     * @param string $variable name
+     * 
+     * @return object | bool
+     */
+    public function __get($variable)
+    {   
+        return $this->c['response.'.$variable];
+    }    
 }
 
 // END Response.php File

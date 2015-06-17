@@ -46,6 +46,13 @@ $c['app'] = function () {
 class Http extends Application
 {
     /**
+     * Final html output
+     * 
+     * @var null
+     */
+    protected $finalOutput = null;
+
+    /**
      * Middleware objects
      * 
      * @var array
@@ -128,8 +135,6 @@ class Http extends Application
             $this->class->extend();                       // could not load view variables.
         }
         $middleware->call();
-
-        $this->c['response']->flush();
     }
 
     /**
@@ -226,6 +231,9 @@ class Http extends Application
             ob_start();
         }
         call_user_func_array(array($this->class, $this->method), array_slice($this->class->uri->rsegments, 3));
+
+        $this->c['response']->flush();
+        echo $this->finalOutput = ob_get_clean();
     }
 
     /**
@@ -256,7 +264,11 @@ class Http extends Application
     public function checkDebugger()
     {
         if ($this->c['config']['http']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
-            $this->websocket->emit();
+
+            $payload = $this->c['logger']->getPayload();
+            $primary = $payload['primary'];
+            
+            $this->websocket->emit($this->finalOutput, $payload[$primary]);
         }
     }
 }

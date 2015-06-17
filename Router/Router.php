@@ -229,10 +229,10 @@ class Router
         $match = trim($match, '/');
         $rewrite = trim($rewrite, '/');
 
-        if ( ! isset($this->group['name'])) {
+        if (! isset($this->group['name'])) {
             $this->group['name'] = 'UNNAMED';
         }
-        if ($domainMatch === false AND $this->group['domain'] !== null) {
+        if ($domainMatch === false && $this->group['domain'] !== null) {
             return;
         }
         $scheme = (strpos($match, '}') !== false) ? $match : null;
@@ -267,7 +267,7 @@ class Router
             return;
         };
         $domain = $this->ROOT;
-        if ( ! empty($this->routes[$this->DOMAIN][$count]['sub.domain'])) {
+        if (! empty($this->routes[$this->DOMAIN][$count]['sub.domain'])) {
             $domain = $this->routes[$this->DOMAIN][$count]['sub.domain'];
         }
         if ($this->DOMAIN == $domain) {
@@ -353,7 +353,7 @@ class Router
             return;
         }
         $this->setClass($segments[1]);
-        if ( ! empty($segments[2])) {
+        if (! empty($segments[2])) {
             $this->setMethod($segments[2]); // A standard method request
         } else {
             $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
@@ -374,7 +374,7 @@ class Router
      */
     public function validateRequest($segments)
     {
-        if ( ! isset($segments[0])) {
+        if (! isset($segments[0])) {
             return $segments;
         }
         if (defined('STDIN') && ! isset($_SERVER['LAYER_REQUEST'])) {  // Command Line Requests
@@ -384,14 +384,14 @@ class Router
         $segments  = $this->detectModule($segments);
         $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
 
-        if ( ! empty($segments[1]) && file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
+        if (! empty($segments[1]) && file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
             return $segments;
         }
         if (file_exists(MODULES .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }
-        if ( ! empty($this->pageNotFoundController)) {
+        if (! empty($this->pageNotFoundController)) {
             return $this->pageNotFound();
         }
         if (isset($_SERVER['LAYER_REQUEST'])) {
@@ -410,7 +410,9 @@ class Router
      */
     protected function detectModule($segments)
     {
-        if (isset($segments[1]) && is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
+        if (isset($segments[1])
+            && strtolower($segments[1]) != 'view'  // http://example/debugger/view/index bug fix
+            && is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
         ) {
             $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);
@@ -456,7 +458,7 @@ class Router
         $uri = $this->uri->getUriString();  // Warning !: don't use $this->uri->segments in here instead of use getUriString otherwise
                                             // we could not get url suffix ".html".
 
-        if ( ! isset($this->routes[$this->DOMAIN])) {
+        if (! isset($this->routes[$this->DOMAIN])) {
             $this->setRequest($this->uri->segments); 
             return;
         }
@@ -493,7 +495,7 @@ class Router
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
             $this->c['app']->middleware('MethodNotAllowed', $val['when']);
         }
-        if ( ! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false AND strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
+        if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
         }
         $segments = (empty($val['rewrite'])) ? $this->uri->segments : explode('/', $val['rewrite']);
@@ -546,7 +548,7 @@ class Router
      */
     public function bind($closure, $args = array(), $useCallUserFunc = false)
     {
-        if ( ! is_callable($closure)) {
+        if (! is_callable($closure)) {
             return;
         }
         if (Controller::$instance != null) {
@@ -591,7 +593,9 @@ class Router
      */
     public function fetchClass()
     {
-        return self::ucwordsUnderscore($this->class);
+        $class = self::ucwordsUnderscore($this->class);
+
+        return $class;
     }
 
     /**
@@ -767,13 +771,13 @@ class Router
         }
         $host = str_replace($this->getSubDomain($this->DOMAIN), '', $this->HOST);          // Attach Regex Support
 
-        if ( ! $this->isSubDomain($this->DOMAIN) && $this->isSubDomain($this->HOST)) {
+        if (! $this->isSubDomain($this->DOMAIN) && $this->isSubDomain($this->HOST)) {
             $host = $this->HOST;  // We have a problem when the host is subdomain and config domain not. This fix the isssue.
         }
         if ($this->DOMAIN != $host) {
             return;
         }
-        if ( ! isset($this->group['domain'])) {
+        if (! isset($this->group['domain'])) {
             $this->group['domain'] = $this->ROOT;
         }
         if (isset($this->group['middleware'])) {
@@ -851,7 +855,7 @@ class Router
         if ($this->detectDomain($group) == false) {   // When run the group if domain not match with regex don't run the group function.
             return;                                   // Forexample we define a sub domain in group but regex does not match with this domain
         }                                             // we need to stop group process.
-        if ( ! isset($group['name'])) {
+        if (! isset($group['name'])) {
             throw new LogicException('Please give a name to your route group.');
         }
         $this->group = $group;

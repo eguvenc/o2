@@ -200,7 +200,7 @@ class View
          * which contains the view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
-        if ( ! class_exists('Controller', false) || Controller::$instance == null) {
+        if (! class_exists('Controller', false) || Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
             $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )

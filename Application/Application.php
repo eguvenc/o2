@@ -362,6 +362,9 @@ class Application
      */
     public function __call($method, $arguments)
     {
+        if ($method == 'extend') {
+            return;
+        }
         return Controller::$instance->$method($arguments);
     }
 

@@ -138,6 +138,16 @@ class NullLogger extends AbstractLogger implements LoggerInterface
         return;
     }
 
+    /**
+     * Returns to rendered log records
+     * 
+     * @return array
+     */
+    public function getPayload()
+    {
+        return array();
+    }
+
 }
 
 // END NullLogger

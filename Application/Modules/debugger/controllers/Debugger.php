@@ -23,7 +23,7 @@ class Debugger extends \Controller
      */
     public function index()
     {
-        echo $this->debugger->printConsole();
+        echo $this->debugger->printHtml();
     }
 
     /**

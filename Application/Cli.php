@@ -38,6 +38,13 @@ $c['app'] = function () {
 class Cli extends Application
 {
     /**
+     * Final html output
+     * 
+     * @var null
+     */
+    protected $finalOutput = null;
+
+    /**
      * Constructor
      *
      * @return void
@@ -127,7 +134,9 @@ class Cli extends Application
         $this->dispatchMethod();  // Display 404 error if method doest not exist also run extend() method.
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
+        ob_start();
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
+        echo $this->finalOutput = ob_get_clean();
 
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
@@ -156,7 +165,9 @@ class Cli extends Application
     public function checkDebugger()
     {
         if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket->cliHandshake();
+            $payload = $this->c['logger']->getPayload();
+            $primary = $payload['primary'];
+            $this->websocket->emit($this->finalOutput, $payload[$primary]);
         }
     }
 

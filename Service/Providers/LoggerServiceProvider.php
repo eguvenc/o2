@@ -41,16 +41,16 @@ class LoggerServiceProvider implements ServiceProviderInterface
     /**
      * Returns to logger instance
      *
-     * @param array $options provider options
+     * @param array $params provider parameters
      * 
      * @return object
      */
-    public function get($options = array('queue' => false))
+    public function get($params = array())
     {
-        if ( ! $this->c['config']['log']['enabled']) {
+        if (! $this->c['config']['log']['enabled']) {
             return new NullLogger;  // Use null handler if config disabled.
         }
-        return new Logger($this->c, $options);
+        return new Logger($this->c, $params);
     }
 }
 

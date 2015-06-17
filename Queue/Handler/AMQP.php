@@ -49,13 +49,6 @@ class AMQP extends Queue implements HandlerInterface
     protected $AMQPconnection;
 
     /**
-     * Store declared channels
-     * 
-     * @var array
-     */
-    protected $channels;
-
-    /**
      * Default queue name if its not provided
      * 
      * @var string
@@ -86,14 +79,10 @@ class AMQP extends Queue implements HandlerInterface
      * @param object $type available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
      * @param object $flag available flags AMQP_DURABLE, AMQP_PASSIVE
      *
-     * @return object AMQPExchange
+     * @return object
      */
     public function channel($name, $type = null, $flag = null)
     {
-        if (isset($this->channels[$name])) {
-            $this->exchange = $this->channels[$name];
-            return $this->channels[$name];  // Return to instance of it.
-        }
         $type = (empty($type)) ? constant($this->config['exchange']['type']) : $type;
         $flag = (empty($flag)) ? constant($this->config['exchange']['flag']) : $flag;
 
@@ -102,7 +91,7 @@ class AMQP extends Queue implements HandlerInterface
         $this->exchange->setFlags($flag);
         $this->exchange->setType($type);
         $this->exchange->declareExchange();
-        return $this->channels[$name] = $this->exchange; // Register channel.
+        return $this;
     }
 
     /**
@@ -115,6 +104,7 @@ class AMQP extends Queue implements HandlerInterface
      * @param array  $options   delivery options
      *
      * @link(Set Delivery Mode, http://stackoverflow.com/questions/6882995/setting-delivery-mode-for-amqp-rabbitmq)
+     * 
      * @throws AMQPException
      * @return bool
      */
@@ -124,9 +114,10 @@ class AMQP extends Queue implements HandlerInterface
             throw new AMQPException('Before push you need to set a channel.');
         }
         $options = empty($options) ? array(
-            'delivery_mode' => 2,  // 2 = "Persistent", 1 = "Non-persistent"
+            'delivery_mode' => 2,           // 2 = "Persistent", 1 = "Non-persistent"
             'content_type' => 'text/json'
-        ) : $options;        
+        ) : $options;
+
         if ($delay > 0) {
             $queue = $this->declareDelayedQueue($queue, $delay); 
         } else {
@@ -139,7 +130,7 @@ class AMQP extends Queue implements HandlerInterface
             AMQP_MANDATORY, 
             $options
         );
-        if ( ! $job) {
+        if (! $job) {
             throw new AMQPException('Could not push job to a queue');
         }
         return $job;
@@ -218,7 +209,7 @@ class AMQP extends Queue implements HandlerInterface
      *
      * @param string $name queue name
      * 
-     * @return void
+     * @return object
      */
     public function purgeQueue($name)
     {
@@ -226,6 +217,7 @@ class AMQP extends Queue implements HandlerInterface
         $queue = new AMQPQueue($channel);
         $queue->setName($name);
         $queue->purge();
+        return $this;
     }
 
     /**
@@ -233,7 +225,7 @@ class AMQP extends Queue implements HandlerInterface
      *
      * @param string $name queue name
      * 
-     * @return void
+     * @return object
      */
     public function deleteQueue($name)
     {
@@ -241,6 +233,7 @@ class AMQP extends Queue implements HandlerInterface
         $queue = new AMQPQueue($channel);
         $queue->setName($name);
         $queue->delete();
+        return $this;
     }
 
 }

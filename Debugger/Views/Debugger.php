@@ -92,25 +92,25 @@ body
     z-index:99;
     border-width: 0 1px 1px 1px;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul
+ul
 {
     list-style-type:none;
     height:100%;
     display: block;
     height:22px;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul:after
+ul:after
 {
     content: '';
     display: block;
     clear: both;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav ul > li
+li
 {
     float: left;
     display: block;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav ul > li > a
+li > a
 {
     padding:0 12px;
     text-decoration:none;
@@ -124,36 +124,36 @@ body
     -moz-transition:.2s;
     outline:none;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav ul > li > a:hover
+li > a:hover
 {
     background: #ddd;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav ul > li:nth-child(2) > a
+li:nth-child(2) > a
 {
     border-left:1px solid #ccc;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.obulloDebugger-activeTab > a
+li.obulloDebugger-activeTab > a
 {
     color: #E53528;
     background: #ddd;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.closeBtn
+li.closeBtn
 {
     float: right;
     margin-right:7px;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.closeBtn > a
+li.closeBtn > a
 {
     border:none;
     font-weight:bold;
     font-size:13px;
     color:#B8A4A4;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.closeBtn > a:hover
+li.closeBtn > a:hover
 {
     color:#AC8282;
 }
-.obulloDebugger-wrapper > .obulloDebugger-container
+
 {
     padding:12px;
     margin:25px 5px 2px 5px;
@@ -166,48 +166,49 @@ body
     overflow-y:auto;
     overflow-x:hidden;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.favicon
+li.favicon
 {
     margin-right:10px;
 }
-.obulloDebugger-wrapper > .obulloDebugger-nav > ul > li.favicon img
+li.favicon img
 {
     margin-top:3px;
     margin-left:3px;
     display: block;
 }
-.obulloDebugger-wrapper > .obulloDebugger-container  p
+  p
 {
     padding: 1px 0;
     background:white;
     cursor:pointer;
     position: relative;
 }
-.obulloDebugger-wrapper > .obulloDebugger-container  p:hover
+  p:hover
 {
     background:rgb(234, 234, 234);
     color:#000;
 
 }
-.obulloDebugger-wrapper .obulloDebugger-container p:hover  span.date
+p:hover  span.date
 {
     color:#000;
 }
-.obulloDebugger-wrapper .obulloDebugger-container  p  span.date
+
+p span.date
 {
     /*font-weight:bold;*/
     padding-right:3px;
     border-right:1px solid #ccc;
     color: #e53528;
 }
-.obulloDebugger-wrapper .obulloDebugger-container  img.icon
+ img.icon
 {
     width:12px;
     height:12px;
     position: absolute;
     left:5px;
 }
-.obulloDebugger-wrapper > .obulloDebugger-container p span.info
+ p span.info
 {
     padding-left:3px;
 }
@@ -408,29 +409,42 @@ function getCookie(cname) {
     }
     return "";
 }
-function refreshDebugger(sock, env) {
-    if (sock !=0 && refreshDebugger.socket == sock) {  // Just one time refresh the content for same socket id
+function refreshDebugger(msg) {
+    if (msg.socket !=0 && refreshDebugger.socket == msg.socket) {  // Just one time refresh the content for same socket id
         return;
     }
-    refreshDebugger.socket = sock;
-    ajax.get(<?php echo "'".$debuggerUrl."'" ?>, function(html){
+    refreshDebugger.socket = msg.socket;
 
-            document.body.innerHTML = html;
-            var ajaxDiv       = document.getElementById("obulloDebugger-ajax-log");
-            var httpDiv       = document.getElementById("obulloDebugger-http-log");
-            var consoleDiv    = document.getElementById("obulloDebugger-console-log");
-            var wrapper       = document.getElementById("obulloDebugger");
-            
-            ajaxDiv.scrollTop    = ajaxDiv.scrollHeight;
-            httpDiv.scrollTop    = httpDiv.scrollHeight;
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
-            wrapper.scrollTop    = wrapper.scrollHeight;
+    if (typeof msg.log != "undefined" &&  msg.message == 'HTTP_REQUEST') {
 
-            if (typeof env != "undefined") {
-                document.getElementById("obulloDebugger-environment").innerHTML = decode64(env);
-            }
-        }
-    );
+
+        document.getElementById("obulloDebugger-http-log").innerHTML = decode64(msg.log);
+    }
+    if (typeof msg.log != "undefined" &&  msg.message == 'AJAX_REQUEST') {
+        document.getElementById("obulloDebugger-ajax-log").innerHTML = decode64(msg.log);
+    }
+    if (typeof msg.log != "undefined" &&  msg.message == 'CONSOLE_REQUEST') {
+        document.getElementById("obulloDebugger-console-log").innerHTML = decode64(msg.log);
+    }
+    if (typeof msg.env != "undefined") {
+        document.getElementById("obulloDebugger-environment").innerHTML = decode64(msg.env);
+    }
+    // ajax.get(<?php echo "'".$debuggerUrl."'" ?>, function(html){
+
+    //         document.body.innerHTML = html;
+
+    //         // document.getElementById("obulloDebugger-ajax-log").innerHTML = 
+    //         // document.getElementById("obulloDebugger-http-log").innerHTML =
+    //         // document.getElementById("obulloDebugger-console-log").innerHTML = 
+    //         // document.getElementById("obulloDebugger").innerHTML = 
+
+    //         // ajaxDiv.scrollTop    = ajaxDiv.scrollHeight;
+    //         // httpDiv.scrollTop    = httpDiv.scrollHeight;
+    //         // consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    //         // wrapper.scrollTop    = wrapper.scrollHeight;
+
+    //     }
+    // );
 }
 
 var wsUri = <?php echo "'".$websocketUrl."'"?>;           // Create webSocket connection
@@ -460,30 +474,27 @@ function load(refresh){
         }
         websocket.onmessage = function(response) { // Received messages from server
             var msg = JSON.parse(response.data);   // Php sends Json data
+
             if (msg.type == "system") {
                 if (msg.message == "HTTP_REQUEST") {
-
                     if (getCookie("o_debugger_active_tab") != 'obulloDebugger-environment') {
                         debuggerShowTab(document.getElementById("obulloDebugger-http-log"), 'obulloDebugger-http-log');
                     }
-                    refreshDebugger(msg.socket, msg.env);
-
+                    refreshDebugger(msg);
                 } else if (msg.message == "AJAX_REQUEST") {
-
                     if (getCookie("o_debugger_active_tab") != 'obulloDebugger-environment') {
                         debuggerShowTab(document.getElementById("obulloDebugger-ajax-log"), 'obulloDebugger-ajax-log');
                     }
-                    refreshDebugger(msg.socket, msg.env);
+                    refreshDebugger(msg);
 
                 } else if (msg.message == "CLI_REQUEST") {
-                    refreshDebugger(msg.socket, msg.env);
+                    refreshDebugger(msg);
                 }
             }
         };
         websocket.onclose = function(data) {        // Connection is closed connect again ?
             console.log("Debugger websocket connection closed.");
             disconnect();
-            // websocket.close();
         }
         websocket.onerror = function(error) {
             return;
@@ -494,6 +505,21 @@ function load(refresh){
         console.log("Debugger exception error:" + ex.message + " at line " + ex.lineNumber);
     }
 }
+function reconnect() {
+    if (websocket.readyState == 3) {
+        ajax.get(<?php echo "'".$getDebuggerURl('ping')."'" ?>, function(html){
+                if (html == 1) {
+                    window.location = <?php echo "'".$getDebuggerURl()."'" ?>;
+                } else {
+                    disconnect();
+                    console.log('Connection closed');
+                }
+            }
+        );
+    }
+}
+setInterval(reconnect, 2000);
+
 
 var keyStr = "ABCDEFGHIJKLMNOP" +
                "QRSTUVWXYZabcdef" +
@@ -506,16 +532,13 @@ function decode64(input) {
      var chr1, chr2, chr3 = "";
      var enc1, enc2, enc3, enc4 = "";
      var i = 0;
-
-     // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
-     var base64test = /[^A-Za-z0-9\+\/\=]/g;
+     var base64test = /[^A-Za-z0-9\+\/\=]/g;       // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
      if (base64test.exec(input)) {
         alert("There were invalid base64 characters in the input text.\n" +
               "Valid base64 characters are A-Z, a-z, 0-9, \'+\', \'/\',and \'=\'\n" +
               "Expect errors in decoding.");
      }
      input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-
      do {
         enc1 = keyStr.indexOf(input.charAt(i++));
         enc2 = keyStr.indexOf(input.charAt(i++));
@@ -540,20 +563,6 @@ function decode64(input) {
 
      return unescape(output);
 }
-function refresh() {
-    if (websocket.readyState == 3) {
-        ajax.get(<?php echo "'".$getDebuggerURl('ping')."'" ?>, function(html){
-                if (html == 1) {
-                    window.location = <?php echo "'".$getDebuggerURl()."'" ?>;
-                } else {
-                    disconnect();
-                    console.log('Connection closed');
-                }
-            }
-        );
-    }
-}
-setInterval(refresh, 2000);
 </script>
 </head>
 <body onload="load();">
@@ -565,16 +574,16 @@ setInterval(refresh, 2000);
             </li>
             <?php $activeTab = isset($_COOKIE['o_debugger_active_tab']) ? $_COOKIE['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 
-            <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-http-log');">
+            <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-http-log');">
                 <a href="javascript:void(0);">HTTP</a>
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-ajax-log')">
+            <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-ajax-log')">
                 <a href="javascript:void(0);">AJAX</a>
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-console-log')">
+            <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-console-log')">
                 <a href="javascript:void(0);">CONSOLE</a>
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this,'obulloDebugger-environment')">
+            <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-environment')">
                 <a href="javascript:void(0);">ENVIRONMENTS</a>
             </li>
             <li>

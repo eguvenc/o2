@@ -3,7 +3,7 @@
 
 Daniel Stenberg tarafından yazılan libcurl kütüphanesi farklı türdeki sunuculara bağlanmaya ve farklı protokollerle iletişim kurmaya yarar. libcurl http, https, ftp, gopher, telnet, dict, file ve ldap protokollerini destekler. Ayrıca, HTTPS sertifikalarını, HTTP isteklerini, HTTP form karşıya yüklemesini, vekilleri, çerezleri, kullanıcı ve parolalı kimlik doğrulamasını desteklemektedir.
 
-Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılmıştır multiCurl ve upload özelliklerini desteklemez. Daha kapsamlı bir paket için <a href="http://guzzle3.readthedocs.org/" target="_blank">Guzzle</a> paketini <kbd>app/classes/Service</kbd> klasörü altında <b>http servisi</b> olarak konfigüre edin.
+Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılmıştır multiCurl ve upload özelliklerini desteklemez. Daha kapsamlı bir paket için <a href="http://guzzle3.readthedocs.org/" target="_blank">Guzzle</a> paketini <kbd>app/classes/Service</kbd> klasörü altında <b>guzzle servisi</b> olarak konfigüre edin.
 
 <ul>
     <a href="#running">Çalıştırma</a>

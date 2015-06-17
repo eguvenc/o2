@@ -25,6 +25,18 @@ trait LogPriorityFilterTrait
     }
 
     /**
+     * Filter in array
+     * 
+     * @param array $record unformatted record data
+     * 
+     * @return array
+     */
+    public function in(array $record)
+    {
+        return $this->filter($record);
+    }
+
+    /**
      * Filter "not" in array
      * 
      * @param array $record unformatted record data
@@ -36,7 +48,7 @@ trait LogPriorityFilterTrait
         $priorities = $this->c['logger']->getPriorities();
 
         $priority = $priorities[$record['level']];
-        if ( ! in_array($priority, $this->params)) {
+        if (! in_array($priority, $this->params)) {
             return $record;
         }
         return array();  // To remove the record we return to empty array.

@@ -40,6 +40,7 @@ class Headers
      */
     public function set($name, $value = null, $replace = true)
     {
+        $name = strtolower($name);
         $this->options[$name] = ['replace' => $replace];
         $this->headers[$name] = $value;
     }
@@ -53,6 +54,7 @@ class Headers
      */
     public function get($name)
     {
+        $name = strtolower($name);
         return $this->headers[$name];
     }
 
@@ -65,6 +67,7 @@ class Headers
      */
     public function remove($name)
     {
+        $name = strtolower($name);
         unset($this->headers[$name]);
     }
 

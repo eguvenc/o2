@@ -1,7 +1,7 @@
 
 ## Response Class
 
-The Response class is a small class with one main function: To send the finalized web page to the requesting browser. It is also responsible for compress your web pages, if you use that feature.
+Http response sınıfının ana fonksiyonu finalize edilmiş web çıktısını tarayıcıya göndermektir. Tarayıcı başlıklarını göndermek, json yanıtı göndermek, http durum kodu, 404 page not found yada özel bir hata mesajı göstermek response sınıfının diğer fonksiyonlarındandır. Ayrıca response sınıfı tarayıcıya gönderilen çıktıyı gzip yöntemi ile sıkıştırabilir fakat bu özellik opsiyoneldir ve bütün tarayıcılar desteklemeyebilir.
 
 <ul>
     <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
@@ -20,16 +20,13 @@ The Response class is a small class with one main function: To send the finalize
     </li>
 </ul>
 
+### Sınıfı Yüklemek
 
 ```php
-$this->response->method();
+$this->c['response']->method();
 ```
 
-Uygulamada response sınıfı otomatik olarak yüklü gelir.
-
-Under normal circumstances you won't even notice the <b>Response</b> class since it works transparently without your intervention. For example, when you use the <kbd>new keyword</kbd> to load a view file, it's automatically passed to the <b>Reponse</b> class, which will be called automatically by Obullo at the end of system execution.
-
-It is possible, however, for you to manually intervene with the <b>Response</b> if you need to, using either of the two following functions:
+Container nesnesi yüklenmesi gerelir. Response sınıfı <kbd>app/components.php</kbd> komponent olarak tanımlıdır.
 
 #### $this->response->setOutput(string $data);
 
@@ -91,10 +88,10 @@ Permits you to manually set server headers, which the output class will send for
 ```php
 $this->reponse->headers->set("HTTP/1.0 200 OK");
 $this->reponse->headers->set("HTTP/1.1 200 OK");
-$this->reponse->headers->set("Last-Modified", gmdate('D, d M Y H:i:s', $lastUpdate).' GMT');
-$this->reponse->headers->set("Cache-Control", "no-store, no-cache, must-revalidate");
-$this->reponse->headers->set("Cache-Control", "post-check=0, pre-check=0");
-$this->reponse->headers->set("Pragma", "no-cache");
+$this->reponse->headers->set("last-modified", gmdate('D, d M Y H:i:s', $lastUpdate).' GMT');
+$this->reponse->headers->set("cache-control", "no-store, no-cache, must-revalidate");
+$this->reponse->headers->set("cache-control", "post-check=0, pre-check=0");
+$this->reponse->headers->set("pragma", "no-cache");
 ```
 
 ```php
@@ -155,14 +152,18 @@ Append output to response body.
 
 #### $this->response->disableOutput();
 
+#### $this->response->isAllowed();
+
+#### $this->response->sendHeaders();
+
+#### $this->response->flush();
+
 #### $this->response->headers->set();
 #### $this->response->headers->get();
 #### $this->response->headers->remove();
 #### $this->response->headers->all();
 
-#### $this->response->sendHeaders();
 
-#### $this->response->flush();
 
 Writes output to screen.
 

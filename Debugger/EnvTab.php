@@ -18,6 +18,13 @@ use Obullo\Container\ContainerInterface;
 class EnvTab
 {
     /**
+     * Application output
+     * 
+     * @var string
+     */
+    protected $output;
+
+    /**
      * Request
      * 
      * @var object
@@ -27,11 +34,13 @@ class EnvTab
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c      container
+     * @param string $output output
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, $output = null)
     {
         $this->request = $c['request'];
+        $this->output = $output;
     }
 
     /**
@@ -60,8 +69,9 @@ class EnvTab
     {
         $ENVIRONMENTS = static::buildSuperGlobals();
 
-        $ENVIRONMENTS['HTTP_REQUEST'] = $this->request->headers->all();
-        $ENVIRONMENTS['HTTP_RESPONSE'] = headers_list();
+        $ENVIRONMENTS['HTTP_REQUEST']  = $this->request->headers->all();
+        $ENVIRONMENTS['HTTP_HEADERS']  = headers_list();
+        $ENVIRONMENTS['HTTP_RESPONSE'] = [htmlentities($this->output)];
 
         $method = $this->request->method();
 
@@ -72,26 +82,32 @@ class EnvTab
 
             $style = static::getDefaultTab($method, $key);
 
+            if ($key == 'HTTP_RESPONSE') {
+                $style = 'style="display:block;"';
+            }
             $output.= '<div id="'.strtolower($key).'"'.$style.'>'."\n";
             $output.= "<table>\n";
             $output.= "<tbody>\n";
+
             if (empty($value)) {
                 $output.= "<tr>\n";
                 $output.= "<th><pre>\"\"</pre></th>\n";
                 $output.= "</tr>\n";
-            }
-            foreach ($value as $k => $v) {
-                $output.= "<tr>\n";
-                $output.= "<th><pre>$k</pre></th>\n";
-                $output.= "<td>\n";
-                if (is_array($v)) {
-                    $output.= "<pre><span>".var_export($v, true)."</span></pre>\n";
-                } else {
-                    $output.= "<pre><span>\"$v\"</span></pre>\n";
+            } else {
+                foreach ($value as $k => $v) {
+                    $output.= "<tr>\n";
+                    $output.= "<th><pre>$k</pre></th>\n";
+                    $output.= "<td>\n";
+                    if (is_array($v)) {
+                        $output.= "<pre><span>".var_export($v, true)."</span></pre>\n";
+                    } else {
+                        $output.= "<pre><span>\"$v\"</span></pre>\n";
+                    }
+                    $output.= "</td>\n";
+                    $output.= "</tr>\n";
                 }
-                $output.= "</td>\n";
-                $output.= "</tr>\n";
             }
+
             $output.= "</tbody>\n";
             $output.= "</table>\n";
             $output.= "</div>\n";

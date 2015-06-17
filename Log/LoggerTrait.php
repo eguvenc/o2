@@ -52,7 +52,7 @@ trait LoggerTrait
     protected function detectRequest()
     {
         $this->request = 'http'; // Http request
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) AND strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             $this->request ='ajax';  // Ajax request
         }
         if (defined('STDIN')) {  // Cli request
@@ -75,7 +75,7 @@ trait LoggerTrait
      */
     public function load($name)
     {
-        if ( ! isset($this->registeredHandlers[$name])) {
+        if (! isset($this->registeredHandlers[$name])) {
             throw new LogicException(
                 sprintf(
                     'The push handler %s is not defined in your logger service.', 
@@ -152,7 +152,7 @@ trait LoggerTrait
         if (strpos($name, '@') > 0) {
             list($name, $method) = explode('@', $name);
         }
-        if ( ! isset($this->filterNames[$name])) {
+        if (! isset($this->filterNames[$name])) {
             throw new LogicException(
                 sprintf(
                     'The filter %s is not registered in your logger service. Please first register it with following command. <pre>%s</pre> .', 
@@ -194,7 +194,7 @@ trait LoggerTrait
      */
     public function log($level, $message, $context = array(), $priority = null)
     {
-        if ( ! $this->enabled) {
+        if (! $this->enabled) {
             return $this;
         }
         if (is_object($message) && $message instanceof Exception) {
@@ -244,7 +244,7 @@ trait LoggerTrait
      */
     public function getQueue($handler = 'file')
     {
-        if ( ! isset($this->priorityQueue[$handler])) {
+        if (! isset($this->priorityQueue[$handler])) {
             throw new LogicException(
                 sprintf(
                     'The log handler %s is not defined.', 
@@ -265,7 +265,7 @@ trait LoggerTrait
      */
     protected function getFilteredRecords($handler, $recordUnformatted)
     {
-        if ( ! $this->hasFilter($handler)) {
+        if (! $this->hasFilter($handler)) {
             return $recordUnformatted;
         }
         foreach ($this->filters[$handler] as $value) {
@@ -332,7 +332,7 @@ trait LoggerTrait
         }
         foreach ($this->writers as $name => $val) {
             if ($val['type'] == 'handler') {
-                if ( ! isset($this->writers[$name])) {
+                if (! isset($this->writers[$name])) {
                     throw new LogicException(
                         sprintf(
                             'The push handler %s not available in log writers please first load it using below the command. <pre>%s</pre>', 
@@ -353,7 +353,7 @@ trait LoggerTrait
      * 
      * @return array records
      */
-    protected function extract($name)
+    public function extract($name)
     {
         $pQ = $this->getQueue($name);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
@@ -382,7 +382,7 @@ trait LoggerTrait
         $this->payload['logger'] = end($exp);
         $this->payload['primary'] = $this->writers[$this->getPrimaryWriter()]['priority'];
         foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            if ( ! isset($this->push[$name]) && isset($this->loadedHandlers[$name])) {     // If handler available in push data.
+            if (! isset($this->push[$name]) && isset($this->loadedHandlers[$name])) {     // If handler available in push data.
                 return;
             }
             $priority = $val['priority'];
@@ -397,6 +397,16 @@ trait LoggerTrait
             $this->payload[$priority]['record'] =  $records; // set record array
         }
         asort($this->payload);
+    }
+
+    /**
+     * Returns to rendered log records
+     * 
+     * @return array
+     */
+    public function getPayload()
+    {
+        return $this->payload;
     }
 
 }

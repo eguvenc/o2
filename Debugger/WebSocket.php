@@ -3,6 +3,7 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
+use Obullo\Log\Handler\Raw;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -41,11 +42,25 @@ class WebSocket
     protected $port;
 
     /**
+     * App log data ( lines )
+     *  
+     * @var string
+     */
+    protected $lines;
+
+    /**
      * Web socket
      * 
      * @var object
      */
     protected $socket;
+
+    /**
+     * App output
+     * 
+     * @var string
+     */
+    protected $output;
 
     /**
      * Websocket connect
@@ -97,65 +112,71 @@ class WebSocket
     }
 
     /**
-     * Check socket is connected
-     * 
-     * @return boolean
-     */
-    public function isConnected()
-    {
-        return $this->connect;
-    }
-
-    /**
      * Emit http request data for debugger
+     *
+     * @param string $output output
+     * @param string $data   log data
      * 
      * @return void
      */
-    public function emit()
+    public function emit($output = null, $data = array())
     {
+        $this->output = $output;
+        $handler = new Raw($this->c);  // Log raw handler
+        $this->lines = $handler->write($data);
+        $this->lines = $this->logFormat($this->lines);
+
         if ($this->c['request']->isAjax()) {
-            $this->ajaxHandshake();
+            if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
+                setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
+            } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
+                setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
+            }
+            $this->handshake('Ajax');
+        } elseif ($this->c['request']->isCli()) { 
+            $this->handshake('Cli');
         } else {
-            $this->httpHandshake();
+            $this->handshake('Http');
         }
     }
 
-    /**
-     * We listen debugger requests if we have detect an ajax request 
-     * we send handshake to websocket.
-     * 
-     * @return void
-     */
-    public function ajaxHandshake()
+    // foo.replace(/<br>/g,"\n")
+
+    public function logFormat($str)
     {
-        if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
-            setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
-        } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
-            setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
-        }
-        $this->handshake('Ajax');
+        $levelPatterns = array(
+            '#\[([0-9\-:\s]+)\]#',  // date
+            '#([\w]+\.[\w]+):#',    // channnel.level
+            '#-->(.*)#',            // --> message & context data
+            '#<p>(.*(Uri Class Initialized\b).*)<\/p>#',
+            '#<p>(.*(system.error\b).*)<\/p>#',
+            '#<p>(.*(system.warning\b).*)<\/p>#',
+            '#<p>(.*(system.notice\b).*)<\/p>#',
+            '#<p>(.*(system.emergency\b).*)<\/p>#',
+            '#<p>(.*(system.critical\b).*)<\/p>#',
+        );
+        $levelReplace = array(
+            '<p><span class="date">$1</span>',
+            '<span class="info">$1</span>',
+            ' --> $1</p>',
+            '<p class="title">$1</p>',
+            '<p class="error">$1</p>',
+            '<p class="error">$1</p>',
+            '<p class="error">$1</p>',
+            '<p class="error">$1</p>',
+        );
+        return preg_replace($levelPatterns, $levelReplace, $str);
     }
 
     /**
-     * We listen debugger requests if we have detect an cli request 
-     * we send handshake to websocket.
+     * Retuns to application html output
      * 
-     * @return void
+     * @return string
      */
-    public function cliHandshake()
+    public function getOutput()
     {
-        $this->handshake('Cli');
+        return $this->output;
     }
-
-    /**
-     * Http handshake build environment variables
-     * 
-     * @return void
-     */
-    public function httpHandshake()
-    {
-        $this->handshake('Http');
-    } 
 
     /**
      * Send interface request to websocket
@@ -164,15 +185,17 @@ class WebSocket
      * 
      * @return void
      */
-    protected function handshake($type = 'Ajax')
+    protected function handshake($type = 'Ajax') 
     {
-        $envtab = new EnvTab($this->c);
-        $base64Data = base64_encode($envtab->printHtml());
+        $envtab = new EnvTab($this->c, $this->getOutput());
+        $base64EnvData = base64_encode($envtab->printHtml());
+        $base64LogData = base64_encode($this->lines);
 
         $upgrade  = "Request: $type\r\n" .
         "Upgrade: websocket\r\n" .
         "Connection: Upgrade\r\n" .
-        "Environment-data: ".$base64Data."\r\n" .
+        "Environment-data: ".$base64EnvData."\r\n" .
+        "Log-data: ".$base64LogData."\r\n" .
         "WebSocket-Origin: $this->host\r\n" .
         "WebSocket-Location: ws://$this->host:$this->port\r\n";
 

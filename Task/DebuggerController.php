@@ -11,7 +11,7 @@ class DebuggerController extends \Controller
     protected $msg;
     protected $length;
     protected $connection;
-    protected $maxByte = 1048576;  // 1 Mb / 1024 Kb
+    protected $maxByte = 5242880;  // 5 Mb
     protected $clients = array();
 
     /**
@@ -34,6 +34,7 @@ class DebuggerController extends \Controller
     {
         echo Console::logo("Welcome to Debug Manager (c) 2015");
         echo Console::description("You are running \$php task debugger command. For help type php task debugger help");
+        echo Console::text('running ...');
     }
 
     /**
@@ -43,6 +44,8 @@ class DebuggerController extends \Controller
      */
     public function index()
     {
+        $this->logo();
+
         ob_implicit_flush();   /* Turn on implicit output flushing so we see what we're getting as it comes in. */
 
         if (false == preg_match('#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', $this->c['config']['http']['debugger']['socket'], $matches)) {
@@ -131,10 +134,18 @@ class DebuggerController extends \Controller
      */
     protected function sendRequest($headers, $newSocket)
     {
-        $data = ['type' => 'system', 'socket' => intval($newSocket)];
-
+        $data = [
+            'type' => 'system',
+            'socket' => intval($newSocket)
+        ];
         if (isset($headers['Environment-data'])) {
             $data['env'] = $headers['Environment-data'];
+        }
+        if (isset($headers['Response-data'])) {
+            $data['output'] = $headers['Response-data'];
+        }
+        if (isset($headers['Log-data'])) {
+            $data['log'] = $headers['Log-data'];
         }
         if ($headers['Request'] == 'Http') {
             $data['message'] = 'HTTP_REQUEST';
@@ -316,11 +327,9 @@ class DebuggerController extends \Controller
     public function socketWrite($socket)
     {
         $sent = socket_write($socket, $this->msg, $this->length);
-
         if ($sent === false) {
             return false;
         }
-
         // Check if the entire message has been sented
         if ($sent < $this->length) {
                 
