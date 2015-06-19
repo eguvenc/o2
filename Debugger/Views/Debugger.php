@@ -176,25 +176,25 @@ li.favicon img
     margin-left:3px;
     display: block;
 }
-  p
+.p
 {
     padding: 1px 0;
     background:white;
     cursor:pointer;
     position: relative;
+    color:#BEBEBE;
 }
-  p:hover
+.p:hover
 {
     background:rgb(234, 234, 234);
     color:#000;
 
 }
-p:hover  span.date
+.p:hover span.date
 {
     color:#000;
 }
-
-p span.date
+.p span.date
 {
     /*font-weight:bold;*/
     padding-right:3px;
@@ -207,10 +207,6 @@ p span.date
     height:12px;
     position: absolute;
     left:5px;
-}
- p span.info
-{
-    padding-left:3px;
 }
 .hiddenContainer
 {
@@ -300,6 +296,14 @@ pre span.string {color: #cc0000;}
 }
 .title { color: #5A5A5F; font-weight: bold; margin-top: 5px; margin-bottom: 3px; }
 .error { color: #E53528; }
+
+#obulloDebugger-http-log,
+#obulloDebugger-console-log,
+#obulloDebugger-ajax-log,
+#obulloDebugger-environment {
+    padding:15px 18px;
+    margin-top:25px;
+}
 </style>
 
 <?php 
@@ -352,7 +356,16 @@ function debuggerShowTab(elem,target) {
         };
     var targetContainer = document.getElementById(target);
         targetContainer.style.display = "block";
-        elem.className = 'obulloDebugger-activeTab';
+        elem.className = elem.className + ' obulloDebugger-activeTab ';
+
+        var targetAnchor = document.getElementsByClassName(target);
+
+            for (var i = 0; i < targetAnchor.length; i++) {
+                targetAnchor[i].className =  targetAnchor[i].className + " obulloDebugger-activeTab ";
+            };
+
+        var x = this.className = " obulloDebugger-activeTab ";
+        console.log(x)
 
     <?php echo 'var cookieName = "o_debugger_active_tab";' ?>;
     setCookie(cookieName, target); // set active tab to cookie
@@ -409,42 +422,29 @@ function getCookie(cname) {
     }
     return "";
 }
+
 function refreshDebugger(msg) {
     if (msg.socket !=0 && refreshDebugger.socket == msg.socket) {  // Just one time refresh the content for same socket id
         return;
     }
     refreshDebugger.socket = msg.socket;
 
+    var http = document.getElementById('obulloDebugger-http-log');
+    var ajax = document.getElementById('obulloDebugger-ajax-log');
+    var cli  = document.getElementById('obulloDebugger-console-log');
+
     if (typeof msg.log != "undefined" &&  msg.message == 'HTTP_REQUEST') {
-
-
-        document.getElementById("obulloDebugger-http-log").innerHTML = decode64(msg.log);
+        http.innerHTML = decode64(msg.log) + http.innerHTML;
     }
     if (typeof msg.log != "undefined" &&  msg.message == 'AJAX_REQUEST') {
-        document.getElementById("obulloDebugger-ajax-log").innerHTML = decode64(msg.log);
+        ajax.innerHTML = decode64(msg.log) + ajax.innerHTML;
     }
     if (typeof msg.log != "undefined" &&  msg.message == 'CONSOLE_REQUEST') {
-        document.getElementById("obulloDebugger-console-log").innerHTML = decode64(msg.log);
+        cli.innerHTML = decode64(msg.log) + cli.innerHTML;
     }
     if (typeof msg.env != "undefined") {
         document.getElementById("obulloDebugger-environment").innerHTML = decode64(msg.env);
     }
-    // ajax.get(<?php echo "'".$debuggerUrl."'" ?>, function(html){
-
-    //         document.body.innerHTML = html;
-
-    //         // document.getElementById("obulloDebugger-ajax-log").innerHTML = 
-    //         // document.getElementById("obulloDebugger-http-log").innerHTML =
-    //         // document.getElementById("obulloDebugger-console-log").innerHTML = 
-    //         // document.getElementById("obulloDebugger").innerHTML = 
-
-    //         // ajaxDiv.scrollTop    = ajaxDiv.scrollHeight;
-    //         // httpDiv.scrollTop    = httpDiv.scrollHeight;
-    //         // consoleDiv.scrollTop = consoleDiv.scrollHeight;
-    //         // wrapper.scrollTop    = wrapper.scrollHeight;
-
-    //     }
-    // );
 }
 
 var wsUri = <?php echo "'".$websocketUrl."'"?>;           // Create webSocket connection
@@ -484,6 +484,7 @@ function load(refresh){
                 } else if (msg.message == "AJAX_REQUEST") {
                     if (getCookie("o_debugger_active_tab") != 'obulloDebugger-environment') {
                         debuggerShowTab(document.getElementById("obulloDebugger-ajax-log"), 'obulloDebugger-ajax-log');
+
                     }
                     refreshDebugger(msg);
 
@@ -574,16 +575,18 @@ function decode64(input) {
             </li>
             <?php $activeTab = isset($_COOKIE['o_debugger_active_tab']) ? $_COOKIE['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 
-            <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-http-log');">
-                <a href="javascript:void(0);">HTTP</a>
+            <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab obulloDebugger-http-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-http-log')" class="obulloDebugger-http-log">
+                <a href="javascript:void(0);">HTTP</a> 
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-ajax-log')">
+            <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab obulloDebugger-ajax-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-ajax-log')" class="obulloDebugger-ajax-log">
                 <a href="javascript:void(0);">AJAX</a>
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-console-log')">
+            <!--
+            <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab obulloDebugger-console-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-console-log')" class="obulloDebugger-console-log">
                 <a href="javascript:void(0);">CONSOLE</a>
             </li>
-            <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab"' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-environment')">
+            -->
+            <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab obulloDebugger-environment "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-environment')" class="obulloDebugger-environment">
                 <a href="javascript:void(0);">ENVIRONMENTS</a>
             </li>
             <li>
@@ -592,17 +595,19 @@ function decode64(input) {
             <li>
                 <a href="javascript:void(0);"><img id="obulloDebuggerSocket" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAHCAYAAADnCQYGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6Qzc1NDQwMzdFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Qzc1NDQwMzhFOThGMTFFNEI3RUY5QTE3OEY3NDI5QjMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDNzU0NDAzNUU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDNzU0NDAzNkU5OEYxMUU0QjdFRjlBMTc4Rjc0MjlCMyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PvXgJSIAAACwSURBVHjaYvz//z8DPvDMTPM1kOIH4i4gLgPij1Knrovi08PCQBgIAjEzEKcCMSuUjxewAF0SC6TlofzvQCwBcg0SmwnNAUxAPd1A+gUQc0J9AWODwEOQwiwgtiDCxU+BWAiIGYG4BI+6EyBDFwPxMSSXgsLrCxI7FWqQNFQNKBJmA/FrqOt4kNggcJeRiIj6Aw3TV0AsBsR/gRGFNy6YiPD2eyD+DXXdbygfLwAIMADjmCy+s+pJrgAAAABJRU5ErkJggg=="></a>
             </li>
+            <!--
             <li class="closeBtn">
-                <a href="/debugger/off">x</a>
+                <a href="javascript:void(0);" onclick="closeWindow();">x</a>
             </li>
+            -->
         </ul>
     </nav>
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-environment') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-environment">
         <?php echo $envHtml ?>
     </div>
-    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-console-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-console-log">{{CONSOLE:LOGS}}</div>
-    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-ajax-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-ajax-log">{{AJAX:LOGS}}</div>
-    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-http-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-http-log">{{LOGS}}</div>
+    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-console-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-console-log"></div>
+    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-ajax-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-ajax-log"></div>
+    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-http-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-http-log"></div>
 </div>
 </body>
 </html>

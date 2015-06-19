@@ -21,16 +21,6 @@ use Obullo\Utils\Process\Process;
 class QueueController extends Controller
 {
     /**
-     * Constructor
-     *
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['queue'];
-    }
-
-    /**
      * Run command
      * 
      * @return void
@@ -135,7 +125,7 @@ echo Console::newline(2);
         $lines = '';
         while (true) {
             $job = $this->queue->pop($route);  // !!! Get the last message from queue but don't mark it as delivered
-            if ( ! is_null($job)) {
+            if (! is_null($job)) {
                 $raw = json_decode($job->getRawBody(), true);
                 $jobIdRepeat = 6 - strlen($job->getJobId());  // 999999
                 if (strlen($job->getJobId()) > 6) {

@@ -3,9 +3,10 @@
 namespace Obullo\Log\Handler;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Log\Formatter\DebuggerFormatter;
 
 /**
- * Raw Handler Class
+ * Debugger Handler Class
  * 
  * @category  Log
  * @package   Handler
@@ -14,7 +15,7 @@ use Obullo\Container\ContainerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-class Raw extends AbstractHandler implements HandlerInterface
+class Debugger extends AbstractHandler implements HandlerInterface
 {
     /**
      * Config Constructor
@@ -38,7 +39,7 @@ class Raw extends AbstractHandler implements HandlerInterface
         $lines = '';
         foreach ($data['record'] as $record) {
             $record = $this->arrayFormat($data, $record);
-            $lines .= $this->lineFormat($record);
+            $lines.= DebuggerFormatter::format($record, $this->config);
         }
         return $lines;
     }
@@ -54,7 +55,7 @@ class Raw extends AbstractHandler implements HandlerInterface
     }
 }
 
-// END Raw class
+// END Debugger class
 
-/* End of file Raw.php */
-/* Location: .Obullo/Log/Handler/Raw.php */
+/* End of file Debugger.php */
+/* Location: .Obullo/Log/Handler/Debugger.php */

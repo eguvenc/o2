@@ -95,7 +95,7 @@ abstract class AbstractHandler
      */
     public function lineFormat(array $record)
     {
-        return LineFormatter::format($record, $this->config['format']['line']);
+        return LineFormatter::format($record, $this->config);
     }
 
     /**

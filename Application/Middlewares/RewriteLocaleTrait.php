@@ -31,7 +31,7 @@ trait RewriteLocaleTrait
     {
         $this->excludedMethods = $methods;
 
-        $method = strtolower($this->c['request']->method());
+        $method = strtolower($this->request->method());
         if (in_array($method, $this->excludedMethods)) {  // Except methods
             $this->stop();
         }
@@ -61,16 +61,16 @@ trait RewriteLocaleTrait
      */
     public function rewrite()
     {
-        $config = $this->c['config']->load('translator');
-        $locale = $this->c['app']->uri->segment($config['uri']['segmentNumber']);  // Check the segment http://examples.com/en/welcome
+        $config = $this->config->load('translator');
+        $locale = $this->app->uri->segment($config['uri']['segmentNumber']);  // Check the segment http://examples.com/en/welcome
 
         if ($this->stop) {
             return;
         }
         $languages = $config['languages'];
-        $middlewareNames = $this->c['app']->getMiddlewares();
+        $middlewareNames = $this->app->getMiddlewares();
 
-        if ( ! isset($middlewareNames['Http\Middlewares\Translation'])) {
+        if (! isset($middlewareNames['Http\Middlewares\Translation'])) {
             throw new RuntimeException(
                 sprintf(
                     'RewriteLocale middleware requires Translation middleware. Run this task. <pre>%s</pre>Then add this code to app/middlewares.php <pre>%s</pre>',
@@ -79,8 +79,8 @@ trait RewriteLocaleTrait
                 )
             );
         }
-        if ( ! isset($languages[$locale])) {
-            $this->c['url']->redirect($this->c['translator']->getLocale() . $this->c['uri']->getRequestUri());
+        if (! isset($languages[$locale])) {
+            $this->url->redirect($this->translator->getLocale() . $this->uri->getRequestUri());
         }
     }
 }

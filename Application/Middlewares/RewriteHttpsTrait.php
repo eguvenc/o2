@@ -11,8 +11,8 @@ trait RewriteHttpsTrait
      */
     public function rewrite()
     {
-        if ($this->c['request']->isSecure() == false) {
-            $this->c['url']->redirect('https://'.$this->c['router']->getDomain() . $this->c['uri']->getRequestUri());
+        if ($this->request->isSecure() == false) {
+            $this->url->redirect('https://'.$this->router->getDomain() . $this->uri->getRequestUri());
         }
     }
 }

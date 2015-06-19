@@ -48,7 +48,7 @@ class File extends AbstractHandler implements HandlerInterface
         if ($data['request'] == 'cli') {
             $this->path = File::replacePath($this->config['file']['path']['cli']); // Replace with cli request path
         }
-        if ( ! $fop = fopen($this->path, 'ab')) {
+        if (! $fop = fopen($this->path, 'ab')) {
             return false;
         }
         flock($fop, LOCK_EX);

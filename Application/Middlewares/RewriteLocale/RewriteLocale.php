@@ -10,16 +10,6 @@ class RewriteLocale extends Middleware
     use RewriteLocaleTrait;
 
     /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->next->load();
-    }
-
-    /**
      *  Call action
      * 
      * @return void

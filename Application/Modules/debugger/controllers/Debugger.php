@@ -7,33 +7,40 @@ use Obullo\Debugger\Manager;
 class Debugger extends \Controller
 {
     /**
+     * Manager
+     * 
+     * @var object
+     */
+    protected $debugger;
+
+    /**
      * Loader
      * 
      * @return void
      */
-    public function load()
+    public function __construct()
     {
         $this->debugger = new Manager($this->c);
     }
 
     /**
-     * Write iframe
+     * Write index
      *  
-     * @return void
+     * @return string
      */
     public function index()
     {
-        echo $this->debugger->printHtml();
+        echo $this->debugger->printIndex();
     }
 
     /**
-     * Close debugger window
+     * Write body
      * 
-     * @return void
+     * @return string
      */
-    public function off()
+    public function body()
     {
-        echo $this->debugger->off();
+        echo $this->debugger->printBody();
     }
 
     /**
@@ -53,7 +60,6 @@ class Debugger extends \Controller
      */
     public function clear()
     {
-        $this->debugger->clear();
         $this->index();
     }
 

@@ -1,43 +1,53 @@
 <?php
 
 /**
- * Controller class.
+ * Layer ( Hmvc ) Based Controller class.
  * 
  * @category  Controller
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/controller
  */
 class Controller
 {
-    public static $instance;                    // Controller instance
-    public $c, $config, $uri, $router, $logger; // Core packages
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    private $__container;
+
+    /**
+     * Controller instance
+     * 
+     * @var object
+     */
+    public static $instance = null;
     
     /**
-     * Constructor
+     * Magic get methods
+     * 
+     * @param string $key key
+     * 
+     * @return object Controller
      */
-    public function __construct()
+    public function __get($key)
     {
-        global $c;
-        $this->c = &$c;
-        self::$instance = &$this;
-                                               // NOTICE:
-        $this->config = &$c['config'];         // If we don't use assign by reference this will cause some errors in "Layers".
-        $this->uri    = &$c['uri'];            // The bug is insteresting, when we work with multiple page not found requests
-        $this->router = &$c['router'];         // The objects of Controller keep the last instances of the last request.
-        $this->logger = &$c['logger'];         // that means the controller instance don't be the reset.
-                                               // Keep in your mind we need use pass by reference in some situations.
-                                               // @see http://www.php.net/manual/en/language.references.whatdo.php
-
-        foreach ($c->unRegisteredKeys() as $key) {  // On router level ( routes.php ) some classes does not assigned into controller instance
-            if ( ! isset($this->{$key})) {          // forexample view and session class, we need to assign them if they not registered.
-                $this->{$key} = &$c[$key];          // Register to controller instance
-            }
-        };
+        if ($this->__container == null) {
+            global $c;
+            $this->__container = &$c;
+        }
+        if ($key == 'c') {
+            return $this->__container;
+        }
+        if (self::$instance == null || in_array($key, ['uri', 'router', 'view'])) {  // Create new layers for core classes ( Otherwise Layer does not work )
+            self::$instance = &$this;
+        }
+        return $this->__container[$key];
     }
-    
+
     /**
      * We prevent to set none object variables
      *

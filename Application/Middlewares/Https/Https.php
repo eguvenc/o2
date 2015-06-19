@@ -10,14 +10,13 @@ class Https extends Middleware
     use RewriteHttpsTrait;
 
     /**
-     * Loader
+     * Constructor
      * 
      * @return void
      */
-    public function load()
+    public function __construct()
     {   
         $this->rewrite();
-        $this->next->load();
     }
 
     /**

@@ -127,9 +127,7 @@ class Http extends Application
         $this->dispatchMiddlewares();
         $this->dispatchAnnotations();  // Read annotations after the attaching middlewares otherwise @middleware->remove()
                                        // does not work
-
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
-        $middleware->load();
         
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
@@ -173,10 +171,8 @@ class Http extends Application
     {
         if (is_string($middleware)) {
             $Class = strpos($middleware, '\Middlewares\\') ?  $middleware : '\\Http\\Middlewares\\'.ucfirst($middleware);
-            $middleware = new $Class;
+            $middleware = new $Class($params);
         }
-        $middleware->params = $params;      // Inject Parameters
-        $middleware->setContainer($this->c);
         $middleware->setNextMiddleware(current($this->middleware));
         array_unshift($this->middleware, $middleware);
 

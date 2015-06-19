@@ -20,16 +20,6 @@ use Obullo\Cli\Console;
 class LogController extends Controller
 {
     /**
-     * Loader
-     *
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['logger'];
-    }
-
-    /**
      * Execute command
      * 
      * @return void
@@ -52,7 +42,6 @@ class LogController extends Controller
         if ($this->cli->argument('help')) {
             return $this->help();
         }
-
         $reader = ucfirst($this->logger->getPrimaryWriter());
 
         if ($reader == 'Null') {

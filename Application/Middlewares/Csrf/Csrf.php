@@ -7,36 +7,26 @@ use Obullo\Application\Middleware;
 class Csrf extends Middleware
 {
     /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->next->load();
-    }
-
-    /**
      *  Call action
      * 
      * @return void
      */ 
     public function call()
     {
-        $verify = $this->c['csrf']->verify();
+        $verify = $this->csrf->verify();
 
-        if ($this->c['request']->isAjax() AND ! $verify) {      // Build your ajax errors
+        if ($this->request->isAjax() && ! $verify) {      // Build your ajax errors
             
-            echo $this->c['response']->json(
+            echo $this->response->json(
                 [
                     'success' => 0,
                     'message' => 'The action you have requested is not allowed.'
                 ]
             );
 
-        } elseif ( ! $verify) {     // Build your http errors
+        } elseif (! $verify) {     // Build your http errors
 
-            $this->c['response']->status(401)->showError(
+            $this->response->status(401)->showError(
                 'The action you have requested is not allowed.', 
                 'Access Denied'
             );

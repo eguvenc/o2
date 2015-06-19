@@ -29,7 +29,7 @@ trait SetDefaultLocaleTrait
             return;
         }
         $this->config = $this->c['config']->load('translator'); 
-        $this->cookie = $this->c['translator']->getCookie();
+        $this->cookie = $this->translator->getCookie();
 
         if ($this->setByUri()) {  // Sets using http://example.com/en/welcome first segment of uri
             return;
@@ -52,10 +52,10 @@ trait SetDefaultLocaleTrait
     public function setByUri()
     {
         if ($this->config['uri']['segment']) {
-            $segment = $this->c['uri']->segment($this->config['uri']['segmentNumber']);  // Set via URI Segment
-            if ( ! empty($segment)) {
+            $segment = $this->uri->segment($this->config['uri']['segmentNumber']);  // Set via URI Segment
+            if (! empty($segment)) {
                 $bool = ($this->cookie == $segment) ? false : true; // Do not write if cookie == segment value same
-                if ($this->c['translator']->setLocale($segment, $bool)) {
+                if ($this->translator->setLocale($segment, $bool)) {
                     return true;
                 }
             }
@@ -70,8 +70,8 @@ trait SetDefaultLocaleTrait
      */
     public function setByOldCookie()
     {       
-        if ( ! empty($this->cookie)) {                               // If we have a cookie then set locale using cookie.
-            $this->c['translator']->setLocale($this->cookie, false); // Do not write to cookie just set variables.
+        if (! empty($this->cookie)) {                               // If we have a cookie then set locale using cookie.
+            $this->translator->setLocale($this->cookie, false); // Do not write to cookie just set variables.
             return true;
         }
         return false;
@@ -87,12 +87,12 @@ trait SetDefaultLocaleTrait
         $intl = extension_loaded('intl');     // Intl extension should be enabled.
 
         if ($intl == false) {
-            $this->c['logger']->notice('Install php intl extension to enable detecting browser language feature.');
+            $this->logger->notice('Install php intl extension to enable detecting browser language feature.');
             return false;
         }
-        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) AND $intl) {   // Set via browser default value
+        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && $intl) {   // Set via browser default value
             $default = strstr(\Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']), '_', true);
-            $this->c['translator']->setLocale($default);
+            $this->translator->setLocale($default);
             return true;
         }
         return false;
@@ -105,7 +105,7 @@ trait SetDefaultLocaleTrait
      */
     public function setDefault()
     {
-        $this->c['translator']->setLocale($this->c['translator']->getDefault());
+        $this->translator->setLocale($this->translator->getDefault());
     }
 
 }

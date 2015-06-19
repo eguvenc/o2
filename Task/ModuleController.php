@@ -21,16 +21,6 @@ use RecursiveDirectoryIterator;
 class ModuleController extends Controller
 {
     /**
-     * Loader
-     *
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['logger'];
-    }
-
-    /**
      * Print Logo
      * 
      * @return string colorful logo
@@ -62,11 +52,11 @@ class ModuleController extends Controller
             echo Console::fail("Module #$module already exist in .modules/ folder.");
             return;
         }
-        if ( ! is_dir($moduleFolder)) {
+        if (! is_dir($moduleFolder)) {
             echo Console::fail("Module #$module does not exist in Obullo/Task/Modules folder.");
             return;
         }
-        if ( ! is_writable(MODULES)) {
+        if (! is_writable(MODULES)) {
             echo Console::fail("We could not create directory in modules folder please check your write permissions.");
             return;
         }
@@ -103,15 +93,15 @@ class ModuleController extends Controller
         }
         $moduleFolder = OBULLO .'Application'. DS .'Modules'. DS .$module;
 
-        if ( ! is_dir(MODULES .$module)) {
+        if (! is_dir(MODULES .$module)) {
             echo Console::fail("Module #$module already removed from .modules/ folder.");
             return;
         }
-        if ( ! is_dir($moduleFolder)) {
+        if (! is_dir($moduleFolder)) {
             echo Console::fail("Module #$module does not exist in Obullo/Task/Modules folder.");
             return;
         }
-        if ( ! is_writable(MODULES)) {
+        if (! is_writable(MODULES)) {
             echo Console::fail("We could not remove directories in modules folder please check write permissions.");
             return;
         }
@@ -144,7 +134,7 @@ class ModuleController extends Controller
         @mkdir($dst); 
         while (false !== ( $file = readdir($dir)) ) { 
             if (( $file != '.' ) && ( $file != '..' )) { 
-                if ( is_dir($src . DS . $file) ) {
+                if (is_dir($src . DS . $file) ) {
                     $this->recursiveCopy($src . DS . $file, $dst . DS . $file);
                 } else {
                     copy($src . DS . $file, $dst . DS . $file);

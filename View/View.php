@@ -205,6 +205,7 @@ class View
         } else {
             $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )
         }
+
         /**
          * Fetch view ( also it can be nested )
          */
@@ -253,9 +254,7 @@ class View
      */
     public function __get($key)
     {
-        if (class_exists('Controller', false) && Controller::$instance != null) {
-            return is_object(Controller::$instance->{$key}) ? Controller::$instance->{$key} : null;
-        }
+        return $this->c[$key];
     }
 
     /**

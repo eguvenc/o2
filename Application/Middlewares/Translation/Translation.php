@@ -10,15 +10,13 @@ class Translation extends Middleware
     use SetDefaultLocaleTrait;
 
     /**
-     * Loader
+     * Constructor
      * 
      * @return void
      */
-    public function load()
-    {
+    public function __construct()
+    {   
         $this->setLocale();
-
-        $this->next->load();
     }
 
     /**

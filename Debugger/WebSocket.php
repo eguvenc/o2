@@ -3,7 +3,7 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
-use Obullo\Log\Handler\Raw;
+use Obullo\Log\Handler\Debugger;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -95,12 +95,12 @@ class WebSocket
      */
     public function connect()
     {
+        if (isset($_SERVER['argv'][0]) && substr($_SERVER['argv'][0], -4) == 'task') {  // Ignore for php task commands
+            return;                                                                     // we use substr() for Windows and linux support
+        }
         $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         $this->connect = @socket_connect($this->socket, $this->host, $this->port);
 
-        if (isset($_SERVER['argv'][0]) && $_SERVER['argv'][0] == 'task') {  // Ignored for php task debugger init command
-            return;
-        }
         if ($this->connect == false) {
             $message = "Debugger enabled in your config file but server is not running. 
             Disable debugger or run server from your console: <pre>php task debugger</pre>";
@@ -122,9 +122,8 @@ class WebSocket
     public function emit($output = null, $data = array())
     {
         $this->output = $output;
-        $handler = new Raw($this->c);  // Log raw handler
+        $handler = new Debugger($this->c);  // Log raw handler
         $this->lines = $handler->write($data);
-        $this->lines = $this->logFormat($this->lines);
 
         if ($this->c['request']->isAjax()) {
             if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
@@ -138,34 +137,6 @@ class WebSocket
         } else {
             $this->handshake('Http');
         }
-    }
-
-    // foo.replace(/<br>/g,"\n")
-
-    public function logFormat($str)
-    {
-        $levelPatterns = array(
-            '#\[([0-9\-:\s]+)\]#',  // date
-            '#([\w]+\.[\w]+):#',    // channnel.level
-            '#-->(.*)#',            // --> message & context data
-            '#<p>(.*(Uri Class Initialized\b).*)<\/p>#',
-            '#<p>(.*(system.error\b).*)<\/p>#',
-            '#<p>(.*(system.warning\b).*)<\/p>#',
-            '#<p>(.*(system.notice\b).*)<\/p>#',
-            '#<p>(.*(system.emergency\b).*)<\/p>#',
-            '#<p>(.*(system.critical\b).*)<\/p>#',
-        );
-        $levelReplace = array(
-            '<p><span class="date">$1</span>',
-            '<span class="info">$1</span>',
-            ' --> $1</p>',
-            '<p class="title">$1</p>',
-            '<p class="error">$1</p>',
-            '<p class="error">$1</p>',
-            '<p class="error">$1</p>',
-            '<p class="error">$1</p>',
-        );
-        return preg_replace($levelPatterns, $levelReplace, $str);
     }
 
     /**

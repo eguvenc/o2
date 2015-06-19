@@ -78,15 +78,6 @@ interface ContainerInterface extends ArrayAccess
      * @return boolean
      */
     public function isRegistered($name);
-
-    /**
-     * Track unregistered classes
-     * then we register them into Controller instance.
-     * Used in the Controller.
-     * 
-     * @return array
-     */
-    public function unRegisteredKeys();
 }
 
 // END Container class

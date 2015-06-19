@@ -19,7 +19,7 @@ class DebuggerController extends \Controller
      * 
      * @return void
      */
-    public function load()
+    public function __construct()
     {
         self::registerErrorHandler();     // We disable errors otherwise we get socket write errors in ajax response
         self::registerExceptionHandler();

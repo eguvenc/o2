@@ -805,29 +805,39 @@ return array(
 Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı içerisinde <kbd>$this->uniqueLoginCheck()</kbd> metodunun aşağıdaki gibi kullanılıyor olması gerekir.
 
 ```php
-namespace Http\Middlewares;
-
-use Obullo\Application\Middleware;
-use Obullo\Authentication\Middleware\UniqueLoginTrait;
-
 class Auth extends Middleware
 {
     use UniqueLoginTrait;
 
+    public function call()
+    {
+        if ($this->user->identity->check()) {
+            $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
+        }
+        $this->next->call();
+    }   
+}
+
+/* Location: .app/classes/Http/Middlewares/Auth.php */
+```
+
+Eğer tablo parameteresi gönderilmek isteniyorsa auth katmanı aşağıdaki gibi düzenlenmelidir.
+
+```php
+class Auth extends Middleware
+{
+    use UniqueLoginTrait;
     protected $user;
 
-    public function load()
+    public function __construct()
     {
-        $this->user = $this->c->get('user');
-        $this->next->load();
+        $this->user = $this->c->get('user', ['table' => 'users']);
     }
 
     public function call()
     {
         if ($this->user->identity->check()) {
-            
             $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
-
         }
         $this->next->call();
     }   

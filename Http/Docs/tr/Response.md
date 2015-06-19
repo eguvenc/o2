@@ -26,7 +26,10 @@ Http response sınıfının ana fonksiyonu finalize edilmiş web çıktısını 
 $this->c['response']->method();
 ```
 
-Container nesnesi yüklenmesi gerelir. Response sınıfı <kbd>app/components.php</kbd> komponent olarak tanımlıdır.
+Container nesnesi yüklenmesi gerekir. Response sınıfı <kbd>app/components.php</kbd> komponent olarak tanımlıdır.
+
+
+> **Not:** Kontrolör sınıfı içerisinden bu sınıfa $this->response yöntemi ile de ulaşılabilir.
 
 #### $this->response->setOutput(string $data);
 
@@ -157,6 +160,24 @@ Append output to response body.
 #### $this->response->sendHeaders();
 
 #### $this->response->flush();
+
+
+#### $this->response->callback();
+
+
+```php
+$this->response->callback(
+    function ($response) {
+
+        // $response->headers->set('content-type', 'text/plain');
+
+        list($status, $headers, $options, $output) = $response->finalize();
+        $response->sendHeaders($status, $headers, $options);
+
+        echo $output; // Send output
+    }
+);
+```
 
 #### $this->response->headers->set();
 #### $this->response->headers->get();

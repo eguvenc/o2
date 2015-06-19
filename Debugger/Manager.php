@@ -74,7 +74,7 @@ class Manager
         include_once 'Views/Debugger.php';
         $view = ob_get_clean();
         unset($envHtml);
-        
+
         return $view;
     }
 
@@ -100,6 +100,7 @@ class Manager
             return 0;
         }
     }
+
 }
 
 // END Manager class

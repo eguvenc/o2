@@ -10,14 +10,15 @@ class Maintenance extends Middleware
     use UnderMaintenanceTrait;
 
     /**
-     * Loader
+     * Constructor
+     *
+     * @param array $params domain parameters
      * 
      * @return void
      */
-    public function load()
-    {
-        $this->domainIsDown();
-        $this->next->load();
+    public function __construct(array $params)
+    {   
+        $this->domainIsDown($params);
     }
 
     /**

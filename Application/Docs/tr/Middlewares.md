@@ -38,7 +38,7 @@ Http katmanı Rack protokolünün php ye uyarlanmış bir versiyonudur. Bknz. <a
 
 Uygulamayı gezegenimizin çekirdeği gibi düşünürsek çekirdeğe doğru gittğimizde dünyanın her bir katmanını bir http katmanı olarak kabul etmeliyiz. Bu çerçevede uygulama index.php dosyasındaki run metodu ile çalıştığında en dışdaki katman ilk olarak çağrılır. Eğer bu katmandan bir <kbd>next</kbd> komutu cevabı elde edilirse bu katman opsiyonel olarak ona en yakın olan bir sonraki katmanı çağırır. Bu aşamalar dünyanın çekirdeğine inilip en içteki katman uygulamayı çalıştırana kadar bir döngü içerisinde kademeli olarak devam eder.
 
-Her katmanda bir <kbd>load()</kbd> ve <kbd>call()</kbd> metodu olmak zorundadır. Load metodu controller içerisindeki yükleme seviyesine ait katmanları oluştururken call metodu ise controller içerisindeki metodun çalıştırılmasına ait katmanları oluşurulur. Böylelikle load ve call çalıştırılma seviyelerinden önceki ve sonraki işlemler kontrol altına alınmış olur.
+Her katmanda bir <kbd>call()</kbd> metodu olmak zorundadır.<kbd>Call</kbd> metodu controller içerisindeki istek yapılan metodun çalıştırılmasından önceki ve sonraki katmanları oluşurulur. Böylelikle metodun çalıştırılma seviyesinden önceki ve sonraki işlemler kontrol altına alınmış olur. Opsiyonel olarak ayrıca her bir katmanda <kbd>construct</kbd> metodu kullanılabilir.
 
 Uygulamaya $c['app']->middleware() komutu ile yeni bir katman eklediğimizde eklenen katman en dıştaki yeni katman olur ve varsa bir önceki dış katmanı yada uygulamanın kendisini kuşatır.
 
@@ -68,13 +68,6 @@ use Obullo\Application\Middleware;
 
 class Hello extends Middleware
 {
-    public function load()
-    {
-        $this->c['response']->append('<pre>Hello <b>before</b> middleware of load()</pre>');
-        $this->next->load();
-        $this->c['response']->append('<pre>Hello <b>after</b> middleware of load()</pre>');
-    }
-
     public function call()
     {
         $this->c['response']->append('<pre>Hello <b>before</b> middleware of index</pre>');
@@ -86,7 +79,7 @@ class Hello extends Middleware
 /* Location: .Http/Middlewares/Hello.php */
 ```
 
-Şimdi uygulamanızın ilk açılış sayfasına gidip çıktıları kontrol edin. Normal şartlarda yukarıdakileri yaptı iseniz <kbd>4 adet</kbd> hello çıktısı almanız gerekir.
+Şimdi uygulamanızın ilk açılış sayfasına gidip çıktıları kontrol edin. Normal şartlarda yukarıdakileri yaptı iseniz <kbd>2 adet</kbd> hello çıktısı almanız gerekir.
 
 <a name="attach-to-routes"></a>
 
@@ -151,10 +144,9 @@ class Maintenance extends Middleware
 {
     use UnderMaintenanceTrait;
 
-    public function load()
+    public function __construct(array $params)
     {
-        $this->domainIsDown();
-        $this->next->load();
+        $this->domainIsDown($params);
     }
 
     public function call()

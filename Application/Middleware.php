@@ -2,6 +2,7 @@
 
 namespace Obullo\Application;
 
+use LogicException;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -19,13 +20,6 @@ use Obullo\Container\ContainerInterface;
 abstract class Middleware
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-    
-    /**
      * Reference to the next downstream middleware
      * 
      * @var mixed
@@ -33,15 +27,29 @@ abstract class Middleware
     protected $next;
 
     /**
-     * Set Container
+     * Container
      * 
-     * @param object $c container
-     *
-     * @return void
+     * @var object
      */
-    public function setContainer(ContainerInterface $c)
-    {
-        $this->c = $c;
+    private $__container;
+
+    /**
+     * Container
+     * 
+     * @param string $key key
+     * 
+     * @return object
+     */
+    public function __get($key)
+    {   
+        if ($this->__container == null) {
+            global $c;
+            $this->__container = &$c;
+        }
+        if ($key == 'c') {
+            return $this->__container;
+        }
+        return $this->__container[$key];
     }
 
     /**
@@ -72,15 +80,7 @@ abstract class Middleware
     {
         return $this->next;
     }
-
-    /**
-     * Perform loader specific to this middleware and optionally
-     * call the next loader of the controller.
-     * 
-     * @return void
-     */
-    abstract public function load();
-
+    
     /**
      * Perform actions specific to this middleware and optionally
      * call the next downstream middleware.

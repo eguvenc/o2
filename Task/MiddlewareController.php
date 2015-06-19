@@ -18,16 +18,6 @@ use Obullo\Cli\Console;
 class MiddlewareController extends Controller
 {
     /**
-     * Loader
-     *
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['logger'];
-    }
-
-    /**
      * Print Logo
      * 
      * @return string colorful logo

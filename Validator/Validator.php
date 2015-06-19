@@ -85,13 +85,13 @@ class Validator
         if (count($_REQUEST) == 0) {  // No reason to set rules if we have no POST or GET data
             return;
         }
-        if ( ! empty($filters)) {
+        if (! empty($filters)) {
             $this->filters[$field] = $filters;
         }
                                  // If an array was passed via the first parameter instead of indidual string
         if (is_array($field)) {  // values we cycle through it && recursively call this function.
             foreach ($field as $row) {
-                if ( ! isset($row['field']) || ! isset($row['rules'])) { //  if we have a problem...
+                if (! isset($row['field']) || ! isset($row['rules'])) { //  if we have a problem...
                     continue;
                 }
                 $label = ( ! isset($row['label'])) ? $this->createLabel($row['field']) : $row['label']; // If the field label wasn't passed we use the field's name
@@ -99,7 +99,7 @@ class Validator
             }
             return;
         }
-        if ( ! is_string($field) ||  ! is_string($rules) || $field == '') { // No fields? Nothing to do...
+        if (! is_string($field) ||  ! is_string($rules) || $field == '') { // No fields? Nothing to do...
             return;
         }
         $label = ($label == '') ? $this->createLabel($field) : $label;  // If the field label wasn't passed we use the field name
@@ -169,7 +169,7 @@ class Validator
             } 
         }
 
-        $this->validateInputFilters();  // Execute the filters.
+        // $this->validateInputFilters();  // Execute the filters.
 
         $totalErrors = sizeof($this->errorArray);         // Did we end up with any errors?
         if ($totalErrors > 0) {
@@ -190,7 +190,7 @@ class Validator
      * @param array   $keys  keys
      * @param integer $i     iterator
      * 
-     * @return   mixed
+     * @return mixed
      */        
     protected function reduceArray($array, $keys, $i = 0)
     {
@@ -216,7 +216,7 @@ class Validator
     protected function resetPostArray()
     {
         foreach ($this->fieldData as $row) {
-            if ( isset($row['postdata']) && ! is_null($row['postdata'])) {
+            if (isset($row['postdata']) && ! is_null($row['postdata'])) {
                 if (isset($row['isArray']) && $row['isArray'] == false) {
                     if (isset($_REQUEST[$row['field']])) {
                         $_REQUEST[$row['field']] = $this->prepForForm($row['postdata']);
@@ -290,7 +290,7 @@ class Validator
             return;
         }
         $callback = false;         // If the field is blank, but NOT required, no further tests are necessary
-        if ( ! in_array('required', $rules) && is_null($postdata)) {
+        if (! in_array('required', $rules) && is_null($postdata)) {
             if (preg_match("/(callback_\w+)/", implode(' ', $rules), $match)) {  // Before we bail out, does the rule contain a callback?
                 $callback = true;
                 $rules = (array('1' => $match[1]));
@@ -300,7 +300,7 @@ class Validator
         }
         if (is_null($postdata) && $callback == false) {    // Isset Test. Typically this rule will only apply to checkboxes.
             if (in_array('required', $rules)) {
-                if ( ! isset($this->errorMessages['required'])) {
+                if (! isset($this->errorMessages['required'])) {
                     $line = $this->translator['OBULLO:VALIDATOR:REQUIRED'];
                     if ($line == false) {
                         $line = 'The field was not set';
@@ -310,7 +310,7 @@ class Validator
                 }
                 $message = sprintf($line, $this->translateFieldname($row['label'])); // Build the error message
                 $this->fieldData[$row['field']]['error'] = $message;                 // Save the error message
-                if ( ! isset($this->errorArray[$row['field']])) {
+                if (! isset($this->errorArray[$row['field']])) {
                     $this->errorArray[$row['field']] = $message;
                 }
             }
@@ -320,7 +320,7 @@ class Validator
             $inArray = false;         // We set the $postdata variable with the current data in our master array so that
                                       // each cycle of the loop is dealing with the processed data from the last cycle
             if ($row['isArray'] == true && is_array($this->fieldData[$row['field']]['postdata'])) {
-                if ( ! isset($this->fieldData[$row['field']]['postdata'][$cycles])) {   // We shouldn't need this safety,
+                if (! isset($this->fieldData[$row['field']]['postdata'][$cycles])) {   // We shouldn't need this safety,
                                                                                         // but just in case there isn't an array index
                     continue;                                                           // associated with this cycle we'll bail out
                 }
@@ -339,7 +339,7 @@ class Validator
                 $param   = $matches[2][0];
             }
             if ($callback === true) {    // Call the function that corresponds to the rule
-                if ( ! array_key_exists($rule, $this->callbackFunctions)) {  // Check method exists in callback object.
+                if (! array_key_exists($rule, $this->callbackFunctions)) {  // Check method exists in callback object.
                     continue;
                 }
                 $closure = Closure::bind($this->callbackFunctions[$rule], $this, get_class());
@@ -350,14 +350,15 @@ class Validator
                 } else {
                     $this->fieldData[$row['field']]['postdata'] = (is_bool($result)) ? $postdata : $result;
                 }
-                if ( ! in_array('required', $rules, true) && $result !== false) {
+                if (! in_array('required', $rules, true) && $result !== false) {
                     continue;
                 }
             } else {
 
                 $ruleClass = ucfirst($rule);
                 $className = 'Obullo\\Validator\\'.ucfirst($rule);
-                if ( ! file_exists(OBULLO .'Validator'. DS .$ruleClass. '.php')) {  // If our own wrapper function doesn't exist we see if a native PHP function does. 
+
+                if (! file_exists(OBULLO .'Validator'. DS .$ruleClass. '.php')) {  // If our own wrapper function doesn't exist we see if a native PHP function does. 
                                                                                  // Users can use any native PHP function call that has one param.
                     if (function_exists($rule)) { // Native php func.
                         $result = $rule($postdata);
@@ -372,7 +373,7 @@ class Validator
                     } 
                     continue;
                 }
-                if ( ! class_exists($className)) {
+                if (! class_exists($className)) {
                     include OBULLO .'Validator'. DS .$ruleClass. '.php';
                 }
                 $result = call_user_func_array(array(new $className($this->c), 'isValid'), array($postdata, $param));
@@ -383,7 +384,8 @@ class Validator
                 }
             }
             if ($result === false) { // Did the rule test negatively?  If so, grab the error.
-                if ( ! isset($this->errorMessages[$rule])) {
+                
+                if (! isset($this->errorMessages[$rule])) {
                     $RULE = strtoupper($rule);
                     $line = $this->translator['OBULLO:VALIDATOR:'.$RULE];
                     if ($this->translator[$rule] == false) {
@@ -400,7 +402,8 @@ class Validator
                 }
                 $message = sprintf($line, $this->translateFieldname($row['label']), $param); // Build the error message
                 $this->fieldData[$row['field']]['error'] = $message;   // Save the error message
-                if ( ! isset($this->errorArray[$row['field']])) {
+                
+                if (! isset($this->errorArray[$row['field']])) {
                     $this->errorArray[$row['field']] = $message;
                 }
                 return;
@@ -430,7 +433,7 @@ class Validator
      * Set Error Message
      *
      * Lets users set their own error messages on the fly.  Note:  The key
-     * name has to match the  function name that it corresponds to.
+     * name has to match the function name that it corresponds to.
      *
      * @param string $key key
      * @param string $val val
@@ -439,7 +442,12 @@ class Validator
      */
     public function setMessage($key, $val = '')
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
+            if ($val == '' && count($this->callbackFunctions) > 0) {
+                $callbackKeys = array_keys($this->callbackFunctions);
+                $val = $key;
+                $key = end($callbackKeys);
+            }
             $key = array($key => $val);
         }
         $this->errorMessages = array_merge($this->errorMessages, $key);
@@ -501,11 +509,11 @@ class Validator
      * @param string $field   the field name
      * @param string $default value
      * 
-     * @return   void
+     * @return void
      */    
     public function getValue($field = '', $default = '')
     {
-        if ( ! isset($this->fieldData[$field])) {
+        if (! isset($this->fieldData[$field])) {
             return $default;
         }
         if (isset($this->fieldData[$field]['postdata'])) { 
@@ -590,7 +598,7 @@ class Validator
      */
     public function isError($field)
     {
-        if ( ! isset($this->fieldData[$field]['error']) || $this->fieldData[$field]['error'] == '') {
+        if (! isset($this->fieldData[$field]['error']) || $this->fieldData[$field]['error'] == '') {
             return false;
         }
         return true;
@@ -670,30 +678,6 @@ class Validator
         }
         return $label;
     }
-
-    /**
-     * Validate input filters
-     * 
-     * @return Just empty the filters returns a null
-     */
-    protected function validateInputFilters()
-    {
-        if (empty($this->filters)) {
-            return;
-        }
-        $inputArray = filter_input_array(INPUT_POST, $this->filters);   // http://php.net/manual/en/function.filter-input-array.php
-
-        foreach ($inputArray as $field => $val) {
-            if ($val === false) {
-                if (! isset($this->errorArray[$field])) {               // Bu al&&a ilgili bir validator hatası yoksa filter hatasını tanımlıyoruz.
-                    $this->setError($field, $this->translator['OBULLO:VALIDATOR:INPUT_FILTER']);
-                }
-            } elseif (isset($this->fieldData[$field]['postdata'])) {    // Filtrelenmiş veriyi post verisiyle değiştiriyoruz.
-                $this->fieldData[$field]['postdata'] = $val;
-            }
-        }
-    }
-
 }
 
 // END Validator Class

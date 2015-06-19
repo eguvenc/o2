@@ -7,12 +7,23 @@ use RuntimeException;
 trait UnderMaintenanceTrait
 {
     /**
+     * Route domain parameters
+     * 
+     * @var array
+     */
+    public $params = array();
+
+    /**
      * Domain is down
+     *
+     * @param array $params route domain parameters
      * 
      * @return void
      */
-    public function domainIsDown()
+    public function domainIsDown(array $params)
     {
+        $this->params = $params;
+
         $this->rootDomainIsDown();
         $this->subDomainIsDown();
     }
@@ -24,7 +35,7 @@ trait UnderMaintenanceTrait
      */
     public function rootDomainIsDown()
     {
-        if ($this->c['config']['domain']['root']['maintenance'] == 'down') {  // First do filter for root domain
+        if ($this->config['domain']['root']['maintenance'] == 'down') {  // First do filter for root domain
             $this->showMaintenance();
         }
     }
@@ -38,10 +49,10 @@ trait UnderMaintenanceTrait
     {
         // We inject parameters into $this->params variable in app->middleware() method.
 
-        if ($this->params['domain'] == $this->c['config']['url']['webhost']) {
+        if ($this->params['domain'] == $this->config['url']['webhost']) {
             $this->params['domain'] = array('regex' => $this->c['config']['url']['webhost']);
         }
-        if ( ! is_array($this->params['domain']) || ! isset($this->params['domain']['regex'])) {
+        if (! is_array($this->params['domain']) || ! isset($this->params['domain']['regex'])) {
             throw new RuntimeException(
                 sprintf(
                     'Correct your routes.php domain value it must be like this <pre>%s</pre>', 
@@ -50,7 +61,7 @@ trait UnderMaintenanceTrait
             );
         }
         if (isset($this->params['domain']['maintenance']) 
-            AND $this->params['domain']['maintenance'] == 'down'
+            && $this->params['domain']['maintenance'] == 'down'
         ) {
             $this->showMaintenance();
         }
@@ -63,8 +74,8 @@ trait UnderMaintenanceTrait
      */
     public function showMaintenance()
     {
-        $this->c['response']->status(503)->append($this->c['view']->template('errors/maintenance'));
-        $this->c['response']->flush();
+        $this->response->status(503)->append($this->view->template('errors/maintenance'));
+        $this->response->flush();
         die;
     }
 

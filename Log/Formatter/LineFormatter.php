@@ -3,7 +3,7 @@
 namespace Obullo\Log\Formatter;
 
 /**
- * Line Formater Helper
+ * Line Formatter Helper
  * 
  * @category  Log
  * @package   Handler
@@ -20,13 +20,13 @@ class LineFormatter
      * [%datetime%] %channel%.%level%: --> %message% %context% %extra%\n
      * 
      * @param array  $record record data
-     * @param string $format scheme
+     * @param object $config object
      * 
      * @return array
      */
-    public static function format(array $record, $format)
+    public static function format(array $record, $config)
     {
-        if ( ! is_array($record)) {
+        if (! is_array($record)) {
             return;
         }
         return str_replace(
@@ -47,7 +47,7 @@ class LineFormatter
             (empty($record['extra'])) ? '' : $record['extra'],
             $record['extra'],
             ),
-            str_replace('\n', "\n", $format)
+            str_replace('\n', "\n", $config['format']['line'])
         );
     }
 

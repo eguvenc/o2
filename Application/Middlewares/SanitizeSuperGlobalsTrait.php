@@ -11,7 +11,7 @@ trait SanitizeSuperGlobalsTrait
      */
     public function sanitize()
     {
-        if ($this->c['config']['uri']['queryStrings'] == false) {  // Is $_GET data allowed ? 
+        if ($this->config['uri']['queryStrings'] == false) {  // Is $_GET data allowed ? 
             $_GET = array();
         }
         $_SERVER['PHP_SELF'] = strip_tags($_SERVER['PHP_SELF']); // Sanitize PHP_SELF

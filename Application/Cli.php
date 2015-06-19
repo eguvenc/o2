@@ -38,13 +38,6 @@ $c['app'] = function () {
 class Cli extends Application
 {
     /**
-     * Final html output
-     * 
-     * @var null
-     */
-    protected $finalOutput = null;
-
-    /**
      * Constructor
      *
      * @return void
@@ -107,14 +100,10 @@ class Cli extends Application
         $this->class = new $this->className;  // Call the controller
         $this->method = $method;
 
-        if (method_exists($this->class, 'load')) {
-            $this->class->load();
-        }
         if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
             $this->class->extend();                       // could not load view variables.
         }
         $this->call();          
-
         $this->c['response']->flush();  // Send headers and echo output if output enabled
     }
 
@@ -126,7 +115,7 @@ class Cli extends Application
     public function call()
     {
         $argumentSlice = 3;
-        if (! method_exists($this->class, $this->method) || $this->method == 'load' || $this->method == 'extend') { // load method reserved
+        if (! method_exists($this->class, $this->method) || $this->method == 'extend') { // load method reserved
             $argumentSlice = 2;
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';
@@ -134,9 +123,7 @@ class Cli extends Application
         $this->dispatchMethod();  // Display 404 error if method doest not exist also run extend() method.
         $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
         
-        ob_start();
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
-        echo $this->finalOutput = ob_get_clean();
 
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
@@ -153,22 +140,7 @@ class Cli extends Application
      */
     public function close()
     {
-        $this->checkDebugger();
         $this->registerFatalError();
-    }
-
-    /**
-     * Check http debugger is active ?
-     * 
-     * @return void
-     */
-    public function checkDebugger()
-    {
-        if ($this->c['config']['http']['debugger']['enabled']) {
-            $payload = $this->c['logger']->getPayload();
-            $primary = $payload['primary'];
-            $this->websocket->emit($this->finalOutput, $payload[$primary]);
-        }
     }
 
 }

@@ -28,8 +28,8 @@ use Obullo\Container\ContainerInterface;
 class Layer
 {
     const CACHE_KEY = 'Layer:';
-    const LOG_HEADER = '<br /><div style="float:left;">';
-    const LOG_FOOTER = '</div><div style="clear:both;"></div>';
+    const LOG_HEADER = "<br /><div style=\"float:left;\">";
+    const LOG_FOOTER = "</div><div style=\"clear:both;\"></div>";
 
     /**
      * Container
@@ -213,16 +213,16 @@ class Layer
         $controller = MODULES .$this->c['router']->fetchModule(DS) .$directory. DS .$className. '.php';
         $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
 
-                                                    // Check class is exists in the storage
-        if ( ! class_exists($className, false)) {   // Don't allow multiple include.
-            include $controller;                    // Load the controller file.
+                                                   // Check class is exists in the storage
+        if (! class_exists($className, false)) {   // Don't allow multiple include.
+            include $controller;                   // Load the controller file.
         }
         $class = new $className;  // Call the controller
 
         if (method_exists($class, 'load')) {
             $class->load();
         }
-        if ( ! method_exists($class, $method)) {  // Check method exist or not
+        if (! method_exists($class, $method)) {  // Check method exist or not
             $this->reset();
             $this->c['response']->setError('@LayerNotFound@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
             return $this->c['response']->getError();
@@ -247,7 +247,7 @@ class Layer
      */
     protected function reset()
     {
-        if ( ! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
+        if (! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
             return;
         }
         $this->clear();  // Reset all Layer variables.

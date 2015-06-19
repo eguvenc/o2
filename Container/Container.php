@@ -4,7 +4,6 @@ namespace Obullo\Container;
 
 use Closure;
 use stdClass;
-use Controller;
 use RuntimeException;
 use InvalidArgumentException;
 
@@ -27,7 +26,6 @@ class Container implements ContainerInterface
     protected $raw = array();
     protected $keys = array();
     protected $unset = array();            // Stores classes we want to remove
-    protected $unRegistered = array();     // Whether to stored in controller instance
     protected $get = array();              // Stores get() (return) requests
     protected $services = array();         // Defined services
     protected $registeredServices = array();  // Lazy loading for service wrapper class
@@ -96,42 +94,26 @@ class Container implements ContainerInterface
     /**
      * Gets a parameter or an object.
      *
-     * @param string $cid     The unique identifier for the parameter or object
-     * @param string $matches Registry Command requests
-     * @param array  $params  Parameters
+     * @param string $cid    The unique identifier for the parameter or object
+     * @param array  $params Parameters
      * 
      * @return mixed The value of the parameter or an object
      *
      * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function offsetGet($cid, $matches = array(), $params = array())
+    public function offsetGet($cid, $params = array())
     {
-        list($key, $noReturn, $controllerExists, $isCoreFile) = $this->resolveLoaderParts($cid, $matches);
-
         if (! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
             return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
         }
-        $isAllowedToStore = static::isSuitable($key, $noReturn, $controllerExists, $isCoreFile);
-
         if (isset($this->raw[$cid])             // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
             || ! method_exists($this->values[$cid], '__invoke')
         ) {
-            return ($isAllowedToStore) ? Controller::$instance->{$key} = $this->values[$cid] : $this->values[$cid];
+            return $this->values[$cid];
         }
         $this->frozen[$cid] = true;
         $this->raw[$cid] = $this->values[$cid];
-
-        // Below the side If container value does not exist in the controller instance
-        // then we assign container object into controller instance.
-    
-        // Also this side assign libraries to all Layers. 
-        // In Layers sometimes we call $c['view'] service in the current sub layer but when we call $this->view then 
-        // it says "$this->view" undefined object that's why we need to assign libraries also for sub layers.
-        
-        if ($isAllowedToStore) {
-            return Controller::$instance->{$key} = $this->values[$cid] = $this->closure($this->values[$cid], $params);
-        }
         return $this->values[$cid] = $this->closure($this->values[$cid], $params);
     }
 
@@ -166,74 +148,6 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Check class is suitable to store Controller
-     * 
-     * @param string  $key              class key
-     * @param boolean $noReturn         whether to return used
-     * @param boolean $controllerExists whether to controller file is included
-     * @param boolean $isCoreFile       prevent core files
-     * 
-     * @return boolean
-     */
-    protected static function isSuitable($key, $noReturn, $controllerExists, $isCoreFile)
-    {
-        if ($noReturn
-            && $controllerExists
-            && Controller::$instance != null
-            && $isCoreFile == false
-            && ! isset(Controller::$instance->{$key})    // Warning: If user use $this->c['uri'] in load method 
-        ) {                                              // it overrides instance of the current controller uri and effect to layers
-            return true;                                 // we need to check the key using isset
-        }
-        return false;
-    }
-
-    /**
-     * Resolve loader items
-     * 
-     * @param string $cid     class id
-     * @param array  $matches loader matches
-     * 
-     * @return array list
-     */
-    protected function resolveLoaderParts($cid, $matches)
-    {
-        $key = isset($matches['key']) ? $matches['key'] : $cid;
-        $noReturn = empty($matches['return']);
-        $controllerExists = class_exists('Controller', false);
-        $isCoreFile = $this->isCore($key);
-
-        $this->markUnregisteredObjects($cid, $noReturn, $controllerExists, $isCoreFile);
-
-        return [$key, $noReturn, $controllerExists, $isCoreFile];
-    }
-
-    /**
-     * Mark unregistered libraries
-     * 
-     * @param string  $cid              class id
-     * @param boolean $noReturn         whether to return used
-     * @param boolean $controllerExists whether to controller file is included
-     * @param boolean $isCoreFile       prevent core files
-     * 
-     * @return boolean
-     */
-    protected function markUnregisteredObjects($cid, $noReturn, $controllerExists, $isCoreFile)
-    {
-        // If controller not available mark classes as unregistered, especially in "router" (routes.php) level some libraries not loaded.
-        // Forexample when we call the "view" class at router level ( routes.php ) and if controller instance is not available 
-        // We mark them as unregistered classes ( view, session, url .. ) then we assign back into controller when they availabl
-
-        if ($noReturn
-            && $controllerExists
-            && Controller::$instance == null
-            && $isCoreFile == false
-        ) {
-            $this->unRegistered[$cid] = $cid;   // Mark them as unregistered then we will assign back into controller.
-        }
-    }
-
-    /**
     * Run closure with params
     * 
     * @param object $closure callable
@@ -259,11 +173,10 @@ class Container implements ContainerInterface
      */
     public function load($classString, $params = array())
     {
-        $matches = $this->resolveCommand($classString);
-
+        $class = trim($classString);
         $isService = false;
-        $cid = strtolower($matches['class']);
-        $serviceName = ucfirst($matches['class']);
+        $cid = strtolower($class);
+        $serviceName = ucfirst($class);
         $isDirectory = (isset($this->services[$serviceName])) ? true : false;
 
         if ($isDirectory || isset($this->services[$serviceName.'.php'])) {  // Resolve services
@@ -286,17 +199,10 @@ class Container implements ContainerInterface
                 $this->registeredServices[$serviceName] = true;
             }
         }
-        $data = [
-            'key' => $matches['class'],
-            'cid' => $cid,
-            'class' => 'Obullo\\' .ucfirst($matches['class']).'\\'. ucfirst($matches['class'])
-        ];
-        $matches['key'] = $data['key'];
-        
         if (! $this->has($cid) && ! $isService) {   // Don't register service again.
-            $this->registerClass($cid, $data['key'], $matches, $data['class']);
+            $this->registerClass($cid, 'Obullo\\' .ucfirst($class).'\\'. ucfirst($class));
         }
-        return $this->offsetGet($cid, $matches, $params);
+        return $this->offsetGet($cid, $params);
     }
     
     /**
@@ -330,24 +236,15 @@ class Container implements ContainerInterface
      * Register unregistered class to container
      * 
      * @param string $cid       identifier
-     * @param string $key       alias
-     * @param string $matches   commands
      * @param string $ClassName classname
      * 
      * @return mixed object or null
      */
-    protected function registerClass($cid, $key, $matches, $ClassName)
+    protected function registerClass($cid, $ClassName)
     {
-        if (! isset($this->keys[$cid]) && class_exists('Controller', false) && ! isset($this->unset[$cid])) {
-
-            $this[$cid] = function () use ($key, $matches, $ClassName) {
-
-                $Object = is_string($ClassName) ? new $ClassName($this) : $ClassName;
-
-                if (Controller::$instance != null && empty($matches['return'])) {  // Let's sure controller instance available and not null
-                    return Controller::$instance->{$key} = $Object;
-                }
-                return $Object;
+        if (! isset($this->keys[$cid]) && ! isset($this->unset[$cid])) {
+            $this[$cid] = function () use ($ClassName) {
+                return is_string($ClassName) ? new $ClassName($this) : $ClassName;
             };
         }
         return null;
@@ -365,11 +262,10 @@ class Container implements ContainerInterface
      */
     public function get($cid, $params = null, $singleton = true)
     {
-        if ($params == false || $singleton == false) {
+        if ($singleton == false) {
             return $this->getClosure($cid, array());   // Create new object wihout params
         }
-        if (is_array($params)) {
-
+        if (is_array($params) && count($params) > 0) {
             $pid = self::getParamsId($cid, $params);  // Get parameter id of object
 
             if (isset($this->getParams[$pid])) {
@@ -418,27 +314,6 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Resolve loader commands
-     * 
-     * @param string $class name
-     * 
-     * @return array $matches
-     */
-    protected function resolveCommand($class)
-    {
-        $class = trim($class);
-        $matches = array(
-            'return' => '',   // fill return if get() function used.
-            'new' => '',
-            'class' => $class,
-        );
-        if (isset($this->get[$class])) {   // Don't store into controller instance if we have get() method.
-            $matches['return'] = 'return';
-        }
-        return $matches;
-    }
-
-    /**
      * Gets a parameter or the closure defining an object.
      *
      * @param string $cid The unique identifier for the parameter or object
@@ -467,18 +342,6 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Track unregistered classes
-     * then we register them into Controller instance.
-     * Used in the Controller.
-     * 
-     * @return array
-     */
-    public function unRegisteredKeys()
-    {
-        return array_keys($this->unRegistered);
-    }
-
-    /**
      * Resolve environment based services or service providers
      * 
      * @param string $serviceClass namespace
@@ -492,18 +355,6 @@ class Container implements ContainerInterface
             return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->env());
         }
         return '\Service\\'.$serviceClass;
-    }
-
-    /**
-     * Check class is core
-     * 
-     * @param string $cid class id
-     * 
-     * @return boolean
-     */
-    public function isCore($cid)
-    {
-        return in_array($cid, ['app','router','uri','config','logger','exception','error','env']);
     }
 
     /**
@@ -534,7 +385,7 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Var dump wrapper ( for PHP 5.6.0  and newer versions )
+     * Magic method var dump wrapper ( for PHP 5.6.0 and newer versions )
      * 
      * @return array
      */
