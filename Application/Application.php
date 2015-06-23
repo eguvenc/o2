@@ -25,11 +25,7 @@ class Application
 
     protected $env = null;         // Current environment
     protected $envArray = array(); // Environments config
-    protected $class;              // Current controller
     protected $config;             // Config object
-    protected $method;             // Current method
-    protected $className;          // Current controller name
-    protected $websocket;          // Debugger websocket
     protected $exceptions = array();
     protected $fatalError;
 
@@ -284,7 +280,7 @@ class Application
      */
     public function envPath()
     {
-        return APP .'config'. DS . $this->env() . DS;
+        return CONFIG . $this->env() . DS;
     }
 
     /**

@@ -45,26 +45,14 @@ $c['app'] = function () {
  */
 class Http extends Application
 {
-    /**
-     * Final html output
-     * 
-     * @var null
-     */
-    protected $finalOutput = null;
-
-    /**
-     * Middleware objects
-     * 
-     * @var array
-     */
-    protected $middleware = array();
-
-    /**
-     * Middleware names
-     * 
-     * @var array
-     */
-    protected $middlewareNames = array();
+    protected $c;                         // Container
+    protected $class;                     // Current controller
+    protected $method;                    // Current method
+    protected $websocket;                 // Debugger websocket
+    protected $className;                 // Current controller name
+    protected $finalOutput = null;        // Final html output
+    protected $middleware = array();      // Middleware objects
+    protected $middlewareNames = array(); // Middleware names
 
     /**
      * Constructor
@@ -142,7 +130,8 @@ class Http extends Application
      */
     protected function dispatchMiddlewares()
     {
-        global $c;
+        global $c; // Make available container in middleware.php
+
         $currentRoute = $this->getUriString();
 
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
@@ -218,7 +207,7 @@ class Http extends Application
      */
     public function call()
     {
-        if ($this->c['config']['output']['compress'] && extension_loaded('zlib')  // Do we need to output compression ?
+        if ($this->c['config']['response']['compress']['enabled'] && extension_loaded('zlib')  // Do we need to output compression ?
             && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
             && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
         ) {
@@ -226,7 +215,7 @@ class Http extends Application
         } else {
             ob_start();
         }
-        call_user_func_array(array($this->class, $this->method), array_slice($this->class->uri->rsegments, 3));
+        call_user_func_array(array($this->class, $this->method), array_slice($this->class->uri->routedSegments(), 3));
 
         $this->c['response']->flush();
         echo $this->finalOutput = ob_get_clean();

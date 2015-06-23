@@ -42,7 +42,7 @@ $this->c['cookie']->method();
 $this->cookie->expire(0)->set('name', 'value'); 
 ```
 
-Bu yöntemi kullanarak konfigürasyon dosyasından gelen varsayılan değerleri devre dışı bırakarak girilen değerleri çereze kaydedebilirsiniz. Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env.$env/config.php</kbd> konfigürasyon dosyasından okunarak varsayılan değerler olarak kabul edilirler.
+Bu yöntemi kullanarak konfigürasyon dosyasından gelen varsayılan değerleri devre dışı bırakarak girilen değerleri çereze kaydedebilirsiniz. Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>config/env.$env/config.php</kbd> konfigürasyon dosyasından okunarak varsayılan değerler olarak kabul edilirler.
 
 Zincirleme method yöntemine tam bir örnek:
 
@@ -55,7 +55,7 @@ $this->cookie->name('hello')->value('world')->expire(86400)->domain('')->path('/
 
 Bu yöntemde kayıt set metodu içerisine array türünden parametre gönderilerek yapılır.
 
-Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>app/config/env.$env/config.php</kbd> konfigürasyon dosyasından okunur. Eğer konfigürasyon dosyasını ezerek bir çerez kaydetmek istiyorak aşağıdaki gibi tüm parametreleri göndermelisiniz.
+Yukarıdaki örnekte çereze ait domain, path gibi bilgilerin girilmediği görülüyor bu ve bunun gibi sağlanmayan diğer bilgiler <kbd>config/env.$env/config.php</kbd> konfigürasyon dosyasından okunur. Eğer konfigürasyon dosyasını ezerek bir çerez kaydetmek istiyorak aşağıdaki gibi tüm parametreleri göndermelisiniz.
 
 ```php
 $cookie = array(

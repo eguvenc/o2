@@ -32,4 +32,4 @@ return array(
 );
 
 /* End of file recaptcha.php */
-/* Location: .app/config/recaptcha/recaptcha.php */
+/* Location: .config/recaptcha/recaptcha.php */

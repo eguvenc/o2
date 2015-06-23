@@ -46,7 +46,7 @@ ReCAPTCHA google şirketi tarafından geliştirilen popüler bir captcha servisi
 
 ### Kurulum
 
-ReCaptcha modülü kurulduğunda modüle ait konfigürasyon dosyaları <kbd>app/config/recaptcha</kbd> klasörü altına kopyalanır.
+ReCaptcha modülü kurulduğunda modüle ait konfigürasyon dosyaları <kbd>config/recaptcha</kbd> klasörü altına kopyalanır.
 
 <a name="adding-module"></a>
 
@@ -67,7 +67,7 @@ php task module remove recaptcha
 
 #### Konfigürasyon
 
-Modül yüklendiğinde konfigürasyon dosyaları da <kbd>app/config/recaptcha</kbd> klasörü altına kopyalanmış olur. Bu dosyadan <b>api.key.site</b> ve <b>api.key.secret</b> anahtarlarını reCaptcha api servisinden almış olduğunuz bilgiler ile doldurmanız  gerekir.
+Modül yüklendiğinde konfigürasyon dosyaları da <kbd>config/recaptcha</kbd> klasörü altına kopyalanmış olur. Bu dosyadan <b>api.key.site</b> ve <b>api.key.secret</b> anahtarlarını reCaptcha api servisinden almış olduğunuz bilgiler ile doldurmanız  gerekir.
 
 ```php
 return array(
@@ -102,7 +102,7 @@ return array(
 );
 
 /* End of file recaptcha.php */
-/* Location: .app/config/captcha/recaptcha.php */
+/* Location: .config/captcha/recaptcha.php */
 ```
 
 <a name="service-configuration"></a>

@@ -28,7 +28,7 @@ $c['app']->middleware(new Http\Middlewares\Request);
 /* Location: .app/middlewares.php */
 ```
 
-Ayrıca translation paketinin konfigürasyon dosyası <kbd>app/config/translator.php</kbd> dosyasını konfigüre etmeyi unutmayın.
+Ayrıca translation paketinin konfigürasyon dosyası <kbd>config/translator.php</kbd> dosyasını konfigüre etmeyi unutmayın.
 
 ```php
 return array(
@@ -68,7 +68,7 @@ return array(
 
 
 /* End of file translator.php */
-/* Location: ./app/config/translator.php */
+/* Location: ./config/translator.php */
 ```
 
 ### Kurulum

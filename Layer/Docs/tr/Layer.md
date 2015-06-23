@@ -1,109 +1,51 @@
 
+## Çok Katmanlı Programlama ( Layers yada HMVC )
 
-## What is Layers ?
+Çok katmanlı programlama tekniği hiyerarşik kontrolör programlama kalıbından türetilmiş ( bknz. <a href="http://www.javaworld.com/article/2076128/design-patterns/hmvc--the-layered-pattern-for-developing-strong-client-tiers.html" target="_blank">Java Hmvc.</a> ) uygulamanızı ölçeklenebilir hale getirmek için kullanılan bir tasarım kalıbıdır. Çok katmanlı mimari MVC katmanlarını bir üst-alt hiyerarşisi içerisinde çözümler. Uygulama içerisinde tekrarlayan bu model yapılandırılmış bir client-tier mimarisi sağlar.
 
-------
+![Layers](/Layer/Docs/images/layers.png?raw=true "Layered Programming")
 
-Layers is a programming technique extensively used in Obullo and derived from ( HMVC ) Hierarchical Controllers ( Java ) which allows to you "Multitier Architecture" to make your application more scalable.
+Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından tekralanabilir olarak çağrılabilen katmanlar uygulamayı parçalayarak farklı işlevsel özellikleri bileşen yada web servisleri haline getirirler.
 
-### What is Hmvc  ?
+### Katmanlı Mimariyi Kullanmak
 
-------
+Katmanlı mimari sunum ( presentation ) katmanınının yazılım geliştirme sürecini etkileyici bir şekilde yönetir. Bu mimariyi kullanmanın faydalarını aşağıdaki gibi sıralayabiliriz.
 
-#### Hierarchical-Model-View-Controller ( HMVC )
+* Arayüz Tutarlılığı: Katmanlı programlama görünen varlıkları ( views ) kesin parçalara ayırır ve her bölüm kendisinden sorumlu olduğu fonksiyonu çalıştırır ( view controller ) böylece her katman bir layout yada widget hissi verir.
+* Bakımı Kolay Uygulamalar: Parçalara bölünen kullanıcı arayüzü bileşenleri MVC tasarım desenine bağlı kaldıkları için bakım kolaylığı sağlarlar.
+* Mantıksal Uygulamalar: Katmanlar birbirleri ile etkişim içerisinde olabilecekleri gibi uygulama üzerinde hakimiyet ve önbelleklenebilme özellikleri ile genişleyebilir mantıksal uygulamalar yaratmayı sağlarlar. Bölümsel olarak birbirinden ayrılan katmanlar bir web servis gibi de çalışabilirler.
 
-"Hmvc pattern" decomposes the client tier into a hierarchy of parent-child <b>MVC</b> layers. The repetitive application of this pattern allows for a structured client-tier architecture.
-<a href="http://www.javaworld.com/article/2076128/design-patterns/hmvc--the-layered-pattern-for-developing-strong-client-tiers.html" target="_blank">Click to See a Reference About Hmvc.</a>
+### Görünen Varlıkları ( views ) Katmanlar İle Oluşturmak
 
-## Layers
+Aşağıdaki figürde görüldüğü gibi katmanlı mimaride görünen varlıklar parçalara ayrılarak bileşen haline getirilir. 
 
-### Diagrams
+![Layers](/Layer/Docs/images/ui-components.png?raw=true "HMVC")
 
-Layers has two interface raw and json layers.
 
-#### Raw Layers
+Bileşenler birbirlerinden bağımsız parçalardır ve birbirleri etkileşim içinde olabilirler. Her bir bileşen kendisi için tayin edilen bir kontrolör sınıfı tarafından yönetilir ve layer paketi aracılığı ile çağrılırlar. Ayrıca birbirinden ayrılıp bağımsız hale gelen bileşenlere dışarıda ajax yada http istekleri de gönderilebilir. Yani bir modül yada web servisi haline getirilen bu parçalara dışarıdan bir http isteği ( Curl vb. ) olmadan ulaşılabileceği gibi bir http yada ajax isteği gönderilerek de ulaşılabilir.
 
-"Layered Vc" decomposes the client tier into a hierarchy of parent-child <b>Vc</b> layers. The repetitive application of this pattern allows for a structured client-tier architecture.
+Örneğin bir yönetim paneline ait bir menü (navigation bar) bir katman aracılığı ile yönetilebilir. Bir kez yapılması gereken veritabanı sorguları katman aracılığı ile her bir kullanıcı için önbelleklenebilir.
 
-<b>All layers</b> accesible from your visitors. Response format is <b>raw</b> for <b>View</b> layers.
-
-```php
-View Layers
-
-      Controller
-        ------  
-        | c  | -------
-        ------        \
-             \         \
-              -------   \
-              |  v  |    \
-              -------     \  View Controller ( Raw )
-                          ------
-                          | c  |
-                          ------ 
-                                 \
-                                -------   
-                                |  v  |
-                                ------- 
-
-```
-
-#### Json Layers
-
-Json layers same as view layers main difference is response format is <b>json</b> and they can be used for seperating form validations or caching some heavy operations.
-
-```php
-Json Layers
-
-      Controller
-        ------  
-        | c  | -------
-        ------        \
-             \         \
-              -------   \
-              |  v  |    \
-              -------     \  Controller ( Database )
-                          ------
-                          | c  |
-                          ------ 
-                                 \
-                                -------   
-                                |  v  |
-                                ------- 
-
-```
-
-Below the example simply demonstrate <b>Layers</b> technique.
-
-```php
-------------------------------------------------------------------------------------
-|                                                                                   |
-|               echo $this->layer->get('views/header');                             |
-|                                                                                   |
-|-----------------------------------------------------------------------------------|
-|                                                                                   |
-|             $r = $this->layer->post('jsons/membership/create_user');              |
-|                                                                                   |
-|             if ($r['success']) {                                                  |
-|                  // user created successfully.                                    |
-|             } else {                                                              |
-|                  print_r($r['errors']);                                           |
-|             }                                                                     |
-|                                                                                   |
--------------------------------------------------------------------------------------
-|                                                                                   |
-|                echo $this->layer->get('views/footer');                            |
-|                                                                                   |
--------------------------------------------------------------------------------------
-```
-
-After that success operation we can redirect user to another page or echo error message into same page.
-
-If validation fail we print the error messages to screen.
-
-## Layer Class
+### Katman Sınıfı
 
 Layer class creates your layers then manage layer traffic and cache mechanism using with an unique id. Layer has cache service dependecy that is located in <b>app/classes/service/cache.php</b>
+
+#### Sınıfı Yüklemek
+
+```php
+$this->c['layer']->method();
+```
+Konteyner nesnesi ile yüklenmesi gerekir. Layer sınıfı <kbd>app/components.php</kbd> dosyası içerisinde komponent olarak tanımlıdır.
+
+> **Not:** Kontrolör sınıfı içerisinden bu sınıfa $this->layer yöntemi ile de ulaşılabilir.
+
+#### Bir Katmanı Çağırmak
+
+```php
+$this->layer->get('controller/method/args', $data = array(), $expiration = 0);
+```
+
+
 
 #### A Layer request creates the random connection string ( Layer ID ) as the following steps.
 
@@ -112,23 +54,11 @@ Layer class creates your layers then manage layer traffic and cache mechanism us
 *  Finally Layer ID added to end of your uri.
 *  "Cache Service" use Layer ID as a <b>cache key</b> in <b>caching</b> mechanism.
 
-### Initializing the Class
-
-------
-
-Layer class defined as core service in your application root <b>components.php</b>. Don't forget services always use same instance.
-
-```php
-$this->c['layer']->method();
-```
-Once loaded, the Layer object will be available using: <dfn>$this->layer->method()</dfn>
-
 
 ### Cache Usage
 
 ```php
-<?php
-$this->layer->get('views/header', array('user_id' => 5), $expiration = 7200);
+$this->layer->get('views/header', array('user_id' => 5), 7200);
 ```
 Above the example will do cache for user_id = 5 parameter. ( If you use cache option you need to configure your cache driver. ( Redis, Memcache, Apc .. ) ).
 
@@ -158,8 +88,6 @@ View Layers returns to <b>raw</b> output. Framework keeps view type layers in vi
 An Example View Controller ( Header Controller )
 
 ```php
-<?php
-
 /**
  * $app header
  *
@@ -207,7 +135,6 @@ Above the example header controller manage your navigation bar
 You can call "layers in layers" with theirs views we call this way as nested.
 
 ```php
-<?php
 /**
  * $app hello_world
  * 
@@ -233,7 +160,6 @@ $app->func(
 Above the example we call the welcome layer from hello world controller.
 
 ```php
-<?php
 /**
  * $app welcome_dummy
  * 
@@ -261,129 +187,7 @@ $app->func(
 /* Location: .public/tutorials/controller/welcome_dummy.php */
 ```
 
-Above the example we call nested layers and theirs views.
-
-<b>The most important thing</b> when we work with nested views we need to <b>pass reference of controller ($this)</b> to nested function. Otherwise we couldn't load unlimited nested views.
-
- 
-## Json Layers
-
-Json Layers returns to <b>json encoded</b> output. Response is differ it use <b>json_decode()</b> and validate response format of output. This way facilitate to heavy operations like do heavy form validations, creating the new user and so on.
-
-#### Folder Structure
-
-```php
-+ app
-+ o2
-- public
-      + welcome
-      + views
-      - jsons
-          - membership
-              - controller
-                  create_user.php
-```
-
-Scaling Application with Json Layers ( Signup Controller )
-
-```php
-<?php
-
-/**
- * $app json
- *
- * @var Signup Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('request');
-        $c->load('validator');
-
-        if ( ! $this->request->isLayer()) { // Bad guys can't see this page using http request.
-            $this->response->show404();
-        }
-    }
-);
-
-$app->func(
-    'index',
-    function () use ($c) {
-
-        // Start Heavy Operations
-
-        $this->validator->setRules('username', 'Username', 'required|trim');
-        $this->validator->setRules('email', 'Email', 'required|email');
-        $this->validator->setRules('');
-        $this->validator->setRules('');  // ...
-
-        $errors = array();
-        if ($this->validator->isValid()) {
-
-            $c->load('service/provider/database as db');  // load database
-            
-            try {
-                $this->db->beginTransaction();
-                $this->db->insert(
-                  'users', 
-                  array(
-                    'username' => $this->validator->getValue('username'),
-                    'email'    => $this->validator->getValue('email'),
-                  )
-                );
-                $this->db->commit();
-                $r = array(
-                  'success' => 1     // status "1" or "0"
-                  'message' => '',  // optional success message
-                );
-
-            } catch (Exception $e) {
-                $this->db->rollBack();
-                $r = array(
-                  'success' => 0,         // status "1" or "0"
-                  'message' => 'FORM_MESSAGE:TRANSACTION_ERROR',  // optional transactional message
-                  'errors'  => $this->validator->getErrors(),    // optional operation errors
-                  'results' => array(),    // optional query results
-                  'e' => $e->getMessage(), // optional exception message
-                );
-            }
-            echo json_encode($r); // json encoded string
-            return;
-        }
-
-        $r = array(
-          'success' => 0     // status "1" or "0"
-          'message' => 'FORM_MESSAGE:VALIDATION_ERROR',  // optional validation error message
-          'errors'  => $this->validator->getErrors(),    // optional validation field errors
-          'results' => array(),    // optional query results
-          'e' => $e->getMessage(), // optional exception message
-        );
-        echo json_encode($r); // json encoded string
-    }
-);
-
-
-/* End of file header.php */
-/* Location: .public/jsons/membership/controller/create_user.php */
-```
-
-### Json Layer Response Format
-
-A Json response format must be an <b>array</b> and contain at least one of the following keys.
-
-```php
-<?php
-$r = array(
-    'success' => integer     // optional status
-    'message' => string,     // optional error message
-    'errors'  => array(),    // optional operation errors
-    'results' => array(),    // optional query results
-    'e' => $e->getMessage(), // optional exception message
-)
-echo json_encode($r); // required json encoded string
-```
-
-
-### Layer Class Function Reference
+### Function Reference
 
 ------
 

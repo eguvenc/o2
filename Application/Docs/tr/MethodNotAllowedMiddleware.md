@@ -5,7 +5,7 @@
 
 ### Konfigürasyon
 
-Framework çekirdeğinde çalışan bir katmandır herhangi bir kurulum ve konfigürasyon gerektirmez. Anotasyonlar ile birlikte kullanılabilmesi için <kbd>app/config/$env/config.php</kbd> dosyasından <b>annotations > enabled</b> anahtarının açık ( <b>true</b> ) olması gerekir.
+Framework çekirdeğinde çalışan bir katmandır herhangi bir kurulum ve konfigürasyon gerektirmez. Anotasyonlar ile birlikte kullanılabilmesi için <kbd>config/$env/config.php</kbd> dosyasından <b>annotations > enabled</b> anahtarının açık ( <b>true</b> ) olması gerekir.
 
 #### Çalıştırma
 

@@ -3,7 +3,7 @@
 
 ------
 
-Hata kontrolü ( hata raporlama ) uygulama ile tümleşik gelir ve <kbd>app/config/env.$env/config.php</kbd> dosyasından kontrol edilir.
+Hata kontrolü ( hata raporlama ) uygulama ile tümleşik gelir ve <kbd>config/env.$env/config.php</kbd> dosyasından kontrol edilir.
 
 
 <ul>

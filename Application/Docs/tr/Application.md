@@ -368,7 +368,7 @@ return array(
 );
 
 /* End of file config.php */
-/* Location: .app/config/env.production/config.php */
+/* Location: .config/env.production/config.php */
 ```
 
 <a name="env-class"></a>
@@ -416,7 +416,7 @@ return array(
 );
 
 /* End of file mongo.php */
-/* Location: .app/config/local/mongo.php */
+/* Location: .config/local/mongo.php */
 ```
 
 
@@ -588,7 +588,7 @@ Array (
 Geçerli ortam değişkeninin dosya yoluna geri döner.
 
 ```php
-echo $c['app']->envPath();  // Çıktı  /var/www/project.com/app/config/local/
+echo $c['app']->envPath();  // Çıktı  /var/www/project.com/config/local/
 ```
 <a name="get-methods-version"></a>
 

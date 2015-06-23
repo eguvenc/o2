@@ -15,7 +15,7 @@ namespace Obullo\Log\Formatter;
 class LineFormatter
 {
     /**
-     * Format the line defined in app/config/env.$env/config.php
+     * Format the line defined in config/env.$env/config.php
      *
      * [%datetime%] %channel%.%level%: --> %message% %context% %extra%\n
      * 

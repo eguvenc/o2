@@ -37,6 +37,11 @@ $c['app'] = function () {
  */
 class Cli extends Application
 {
+    protected $c;           // Container
+    protected $class;       // Current controller
+    protected $method;      // Current method
+    protected $className;   // Current controller name
+
     /**
      * Constructor
      *
@@ -121,7 +126,7 @@ class Cli extends Application
             $this->method = 'index';
         }
         $this->dispatchMethod();  // Display 404 error if method doest not exist also run extend() method.
-        $arguments = array_slice($this->class->uri->rsegments, $argumentSlice);
+        $arguments = array_slice($this->class->uri->routedSegments(), $argumentSlice);
         
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
 

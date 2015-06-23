@@ -17,7 +17,7 @@ $this->c['flash']->method();
 
 #### Konfigürasyon
 
-Flaş sınıfına ait konfigürasyon dosyası <kbd>app/config/flash.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası flaş mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a>
+Flaş sınıfına ait konfigürasyon dosyası <kbd>config/flash.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası flaş mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a>
 
 ```php
 return array(
@@ -43,7 +43,7 @@ return array(
 );
 
 /* End of file flash.php */
-/* Location: .app/config/flash.php */
+/* Location: .config/flash.php */
 ```
 
 #### Servis Kurulumu

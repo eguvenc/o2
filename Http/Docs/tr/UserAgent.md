@@ -1,207 +1,265 @@
 
-## User Agent Class
+## Kullanıcı Ajanı Sınıfı
 
-The User Agent Class provides functions that help identify information about the browser, mobile device, or robot visiting your site. In addition you can get referrer information as well as language and supported character-set information.
+Kullanıcı ajanı sınıfı kullanıcının tarayıcı bilgilerini tanımlamaya yardımcı olur. Bu bilgiler kullanıcının bir robot mu gerçek mi olduğu kullanıcının sitenizi ziyaret ederken hangi aygıtı kullandığını ( mobil, desktop, tablet ) içeren bilgilerdir. Ek olarak tarayıcının desteklediği dil ve karakter türü gibi referens bilgileri de bu sınıf yardımı ile elde edilir.
 
-### Initializing an User Agent Class
+<ul>
+    <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
+    <li>
+        <a href="#methods">Metotlar</a>
+        <ul>
+            <li><a href="#isBrowser">$this->agent->isBrowser()</a></li>
+            <li><a href="#isRobot">$this->agent->isRobot()</a></li>
+            <li><a href="#isMobile">$this->agent->isMobile()</a></li>
+            <li><a href="#isReferral">$this->agent->isReferral()</a></li>
+            <li><a href="#getAgent">$this->agent->getAgent()</a></li>
+            <li><a href="#getPlatform">$this->agent->getPlatform()</a></li>
+            <li><a href="#getBrowser">$this->agent->getBrowser()</a></li>
+            <li><a href="#getBrowserVersion">$this->agent->getBrowserVersion()</a></li>
+            <li><a href="#getRobotName">$this->agent->getRobotName()</a></li>
+            <li><a href="#getMobileDevice">$this->agent->getMobileDevice()</a></li>
+            <li><a href="#getReferrer">$this->agent->getReferrer()</a></li>
+            <li><a href="#getLanguages">$this->agent->getLanguages()</a></li>
+            <li><a href="#getCharsets">$this->agent->getCharsets()</a></li>
+            <li><a href="#getAcceptLang">$this->agent->getAcceptLang()</a></li>
+            <li><a href="#getAcceptCharset">$this->agent->getAcceptCharset()</a></li>
+            <li><a href="#getConfigName">$this->agent->getConfigName()</a></li>
+        </ul>
+    </li>
+</ul>
 
-------
+<a name="loading-class"></a>
+
+### Sınıfı Yüklemek
 
 ```php
-<?php
-$this->c['user/agent as agent'];
-$this->agent->method();
+$this->c['agent']->method();
 ```
-<blockquote>When the User Agent class is initialized it will attempt to determine whether the user agent browsing your site is a web browser, a mobile device, or a robot. It will also gather the platform information if it is available.</blockquote>
 
-The following functions are available:
+> **Not:** Kontrolör sınıfı içerisinden bu sınıfa $this->agent yöntemi ile de ulaşılabilir. User agent sınıfı <kbd>app/components.php</kbd> komponent olarak tanımlıdır.
 
-#### $this->agent->isBrowser();
+Kullanıcı ajanı sınıfı ilk yüklendiği anda sitenizi ziyaret eden kullanıcının aygıtını tanımlamaya çalışır. Bu aygıt bir web tarayıcısı, bir mobil araç yada bir robot olabilir. Ayrıca aygıtın çalıştığı platform bilgisini de elde eder.
 
-Returns true or false (boolean) if the user agent is a known web browser.
+<a name="methods"></a>
+
+### Metotlar
+
+<a name="isBrowser"></a>
+
+##### $this->agent->isBrowser();
+
+Eğer kullanıcı ajanı bilinen bir tarayıcı ise <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
 
 ```php
-<?php
 if ($this->agent->isBrowser()) {
-    $browser = $this->agent->getBrowser();
-    $browserVersion = $this->agent->getBrowserVersion();
+    echo $this->agent->getBrowser().'/'.$this->agent->getBrowserVersion();  // Safari/537.36
 }
 ```
+> **Not:** Bu örnekteki Safari tarayıcısı tarayıcı tanımlamalarında mevctuttut. Eğer tanımlı olmayan tarayıcılar uygulamanızı ziyaret ediyorsa bu tarayıcıları .config/agents.php dosyasına eklemeniz önerilir.
 
-<blockquote>The string "Safari" in this example is an array key in the list of browser definitions. You can find this list in .app/config/agents.php if you want to add new browsers or change the stings.</blockquote>
+<a name="isRobot"></a>
 
-#### $this->agent->isRobot();
+##### $this->agent->isRobot();
 
-Returns true or false (boolean) if the user agent is a known robot.
+Eğer kullanıcı ajanı bilinen bir robot ise <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
 
 ```php
-<?php
 if ($this->agent->isRobot()) {
     echo 'This is a '. $this->agent->getRobotName() .' robot.';
 }
 ```
 
-<blockquote>The user agent library only contains the most common robot definitions. It is not a complete list of bots. There are hundreds of them so searching for each one would not be very efficient. If you find that some bots that commonly visit your site are missing from the list you can add them to your .app/config/agents.php file.</blockquote>
+> **Not:** Kullanıcı ajanı sınıfı konfigürasyon dosyasında en çok bilinen robot tanımlamalarını içerir. Eğer uygulamanızı sürekli ziyaret eden konfigürasyon dosyasında tanımlı olmayan bir robot ismi varsa  .config/agents.php dosyasında ekleyebilirsiniz.
 
-#### $this->agent->isMobile();
+<a name="isMobile"></a>
 
-Returns true or false (boolean) if the user agent is a known mobile device.
+##### $this->agent->isMobile();
+
+Eğer kullanıcı ajanı bilinen bir mobil aygıt ise <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
 
 ```php
-<?php
 if ($this->agent->isMobile()) {
-    $this->c['view']->load(
-        'mobile/home',
-        function () {
-            $this->assign('name', 'Obullo');
-            $this->assign('footer', $this->template('footer'));
-        }
-    );
+    echo 'This is a '. $this->agent->getMobileDevice() .' mobil device.';
 }
 ```
+<a name="isReferral"></a>
 
-#### $this->agent->isReferral();
+##### $this->agent->isReferral();
 
-Returns true or false (boolean) if the user agent was referred from another site.
+Eğer kullanıcı ajanı başka bir siteden referanslı ise <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
 
 ```php
-<?php
 if ($this->agent->isReferral()) {
     $referrer = $this->agent->getReferrer();
 }
 ```
 
-#### $this->agent->getAcceptLang($lang = 'en');
+<a name="getAgent"></a>
 
-Lets you determine if the user agent accepts a particular language. Example:
+##### $this->agent->getAgent();
+
+Kullanıcı ajanı bilgilerini içeren tam çıktıya geri döner. Bu çıktı genellikle aşağıdaki gibi gözükür.
 
 ```php
-<?php
-if ($this->agent->getAcceptLang('en')) {
-    echo 'Yes! Accept english!';
-}
+* The PC:
+    * Mozilla/5.0 
+        (X11; Ubuntu; Linux x86_64; rv:34.0) 
+        Gecko/20100101 Firefox/34.0
+    * Mozilla/5.0 
+        (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 
+        (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14
+    * Mozilla/5.0 
+        (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)
+* The Mobile Phone:
+    * Mozilla/5.0 
+        (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 
+        (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36
 ```
-<blockquote>This function is not typically very reliable since some browsers do not provide language info, and even among those that do, it is not always accurate.</blockquote>
 
+<a name="getPlatform"></a>
 
-#### $this->agent->getAgent();
+##### $this->agent->getPlatform();
 
-Returns a string containing the full user agent string. Typically it will be something like this:
+Uygulamanızı ziyaret eden kullanıcının işletim sistemi adına geri döner (Linux, Windows, OS X, etc.).
 
-* The PC:
-    * Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0
-    * Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/537.75.14
-    * Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)
-* The Mobile Phone:
-    * Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36
-
-#### $this->agent->getBrowser();
-
-Returns a string containing the name of the web browser viewing your site.
-
-* The PC:
-    * Firefox
-    * Safari
-    * Internet Explorer
-* The Mobile Phone:
-    * Chrome
-
-#### $this->agent->getBrowserVersion();
-
-Returns a string containing the version number of the web browser viewing your site.
-
-* The PC:
-    * 34.0
-    * 537.75.14
-    * 10.0
-* The Mobile Phone:
-    * 34.0
-
-#### $this->agent->getMobileDevice();
-
-Returns a string containing the name of the mobile device viewing your site.
-
-* Android
-
-#### $this->agent->getRobotName();
-
-Returns a string containing the name of the robot viewing your site.
-
-#### $this->agent->getPlatform();
-
-Returns a string containing the platform viewing your site (Linux, Windows, OS X, etc.).
-
+```php
 * The PC:
     * Linux
     * Mac OS X
     * Windows 7
 * The Mobile Phone:
     * Android
+```
 
-### Function Reference
+<a name="getBrowser"></a>
 
-------
+##### $this->agent->getBrowser();
 
-#### $this->agent->isBrowser();
+Uygulamanızı ziyaret eden web tarayıcısının ismine geri döner.
 
-Returns true or false (boolean) if the user agent is a known web browser.
+```php
+* The PC:
+    * Firefox
+    * Safari
+    * Internet Explorer
+* The Mobile Phone:
+    * Chrome
+```
 
-#### $this->agent->isRobot();
+<a name="getBrowserVersion"></a>
 
-Returns true or false (boolean) if the user agent is a known robot.
+##### $this->agent->getBrowserVersion();
 
-#### $this->agent->isMobile();
+Uygulamanızı ziyaret eden web tarayıcısının versiyon numarasına geri döner.
 
-Returns true or false (boolean) if the user agent is a known mobile device.
+```php
+* The PC:
+    * 34.0
+    * 537.75.14
+    * 10.0
+* The Mobile Phone:
+    * 34.0
+```
 
-#### $this->agent->isReferral();
+<a name="getRobotName"></a>
 
-Returns true or false (boolean) if the user agent was referred from another site.
+##### $this->agent->getRobotName();
 
-#### $this->agent->getAgent();
+Web sitenizi ziyaret eden robotun (bot) ismine geri döner.
 
-Get user agent
+```php
+if ($this->agent->isRobot()) {
+    echo $this->agent->getRobotName();  // Googlebot   
+}
+```
 
-#### $this->agent->getPlatform();
+<a name="getMobileDevice"></a>
 
-Get platform
+##### $this->agent->getMobileDevice();
 
-#### $this->agent->getBrowser();
+Web sitenizi ziyaret eden mobil aygıtın ismine geri döner.
 
-Get browser name
+```php
+if ($this->agent->isMobile()) {
+    echo  $this->agent->getMobileDevice();  // Android
+}
+```
 
-#### $this->agent->getBrowserVersion();
+<a name="getReferrer"></a>
 
-Get the browser version
+##### $this->agent->getReferrer();
 
-#### $this->agent->getRobotName();
+Http referer yani web sitenizi ziyaret etmeden önceden ziyaret edilen diğer url adresine geri döner.
 
-Get The robot name
+<a name="getLanguages"></a>
 
-#### $this->agent->getMobileDevice();
+##### $this->agent->getLanguages();
 
-Get the mobile device
+Tarayıcı tarafından kabul edilen dillere bir dizi içerisinde geri döner.
 
-#### $this->agent->getReferrer();
+```php
+print_r($this->agent->getLanguages());
+```
 
-Get the referrer
+```php
+Array ( [0] => en-us [1] => en )
+```
 
-#### $this->agent->getLanguages();
+<a name="getCharsets"></a>
 
-Get the accepted languages
+##### $this->agent->getCharsets();
 
-#### $this->agent->getCharsets();
+Tarayıcıda tanımlı olan karakter setlerine bir dizi içerisinde geri döner.
 
-Get the accepted character sets
+```php
+print_r($this->agent->getCharsets());
+```
 
-#### $this->agent->getAcceptLang($lang = 'en');
+```php
+Array ( [0] => utf-8 )
+```
 
-Test for a particular language
+```php
+print_r($this->agent->getCharsets());
+```
 
-#### $this->agent->getAcceptCharset($charset = 'utf-8');
+```php
+Array ( [0] => Undefined )
+```
 
-Test for a particular character set
+<a name="getAcceptLang"></a>
 
-#### $this->agent->getKey($keyName = null);
+##### $this->agent->getAcceptLang($lang = 'en');
 
-Get key
+Eğer kullanıcı tarayıcısı belirli bir dili destekliyorsa <b>true</b> değerine aksi durumda <b>false</b> değerine geri döner.
+
+```php
+if ($this->agent->getAcceptLang('en')) {
+    echo 'Yes ! Accept english !';
+}
+```
+
+> **Not:** Bu fonksiyon her zaman güvenilir sonuçlar vermez ve bazı tarayıcılar bu özelliği desteklemez.
+
+<a name="getAcceptCharset"></a>
+
+##### $this->agent->getAcceptCharset($charset = 'en');
+
+```php
+if ($this->agent->getAcceptCharset('utf-8')) {
+    echo 'Yes ! Accept utf-8 !';
+}
+```
+
+<a name="getConfigName"></a>
+
+##### $this->agent->getConfigName(string $method);
+
+Sınıf içerisindeki bir metodun değerine ait konfigürasyon dosyasında tanımlı olan anahtar ismine geri döner.
+
+```php
+echo $this->agent->getConfigName('platform');  // linux
+echo $this->agent->getConfigName('browser');   // Firefox
+echo $this->agent->getConfigName('mobile');    // android
+echo $this->agent->getConfigName('robot');    //  msnbot
+```

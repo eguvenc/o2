@@ -31,18 +31,19 @@ class Middleware
     protected $event;
 
     /**
+     * When counter
+     * 
+     * @var array
+     */
+    protected $when = [];
+
+    /**
      * Container
      * 
      * @var object
      */
     protected $count = 0;
 
-    /**
-     * When counter
-     * 
-     * @var array
-     */
-    protected $when = array();
 
     /**
      * Http method name
@@ -71,7 +72,7 @@ class Middleware
      */
     public function add($middleware)
     {
-        if ( ! is_array($middleware)) {      // Do we have any possible parameters ?
+        if (! is_array($middleware)) {      // Do we have any possible parameters ?
             $middleware = array($middleware);
         }
         $allowedMethods = end($this->when);  // Get the last used when method values
@@ -96,7 +97,7 @@ class Middleware
      */
     public function remove($middleware)
     {
-        if ( ! is_array($middleware)) {      // Do we have any possible parameters ?
+        if (! is_array($middleware)) {      // Do we have any possible parameters ?
             $middleware = array($middleware);
         }
         foreach ($middleware as $name) {

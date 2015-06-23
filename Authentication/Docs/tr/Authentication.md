@@ -117,7 +117,7 @@ Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edil
 
 ------
 
-Yetki doğrulama paketine ait konfigürasyon <kbd>app/config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
+Yetki doğrulama paketine ait konfigürasyon <kbd>config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
 
 <a name="config-table"></a>
 
@@ -259,7 +259,7 @@ Redis dışında bir çözüm kullanıyorsanız yazmış olduğunuz kendi hafız
 
 ### Çalıştırma
 
-Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>app/config/auth.php</kbd> dosyasının konfigure edilmesi gerekir.
+Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>config/auth.php</kbd> dosyasının konfigure edilmesi gerekir.
 
 <a name="service"></a>
 
@@ -369,7 +369,7 @@ Auth servisi varsayılan olarak auth.php konfigürasyon dosyasında tanımlı us
     ],
 
 /* End of file auth.php */
-/* Location: .app/config/auth.php */
+/* Location: .config/auth.php */
 ```
 
 ```php
@@ -416,7 +416,7 @@ $this->user->storage->method();
 
 ##### AuthConfig::get();
 
-<kbd>app/config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
+<kbd>config/auth.php</kbd> konfigürasyon dosyası veya user servisi içinde tanımlı konfigürasyon değerlerine döner.
 
 Servis parametreleri için bir örnek
 
@@ -762,8 +762,6 @@ namespace Membership;
 
 Class Login extends \Controller
 {
-    public function load()
-
     /**
      * @event->when("post")->subscribe('Event\Login\Attempt');
      */
@@ -783,7 +781,7 @@ Oturum açma özelliği opsiyonel olarak kullanılır. Http Auth katmanı içeri
 
 ##### Tekil Oturum Açma Özelliğini Kapatıp / Açmak
 
-UniqueLogin özelliği <kbd>app/config/auth.php</kbd> konfigürasyon dosyasından kapatılıp açılabilir. UniqueLoginTrait özelliği Auth http katmanı içerisinden çağrılarak kullanılır.
+UniqueLogin özelliği <kbd>config/auth.php</kbd> konfigürasyon dosyasından kapatılıp açılabilir. UniqueLoginTrait özelliği Auth http katmanı içerisinden çağrılarak kullanılır.
 
 ```php
 
@@ -795,7 +793,7 @@ return array(
 );
 
 /* End of file auth.php */
-/* Location: .app/config/auth.php */
+/* Location: .config/auth.php */
 ```
 
 <a name="editing-login-middleware"></a>

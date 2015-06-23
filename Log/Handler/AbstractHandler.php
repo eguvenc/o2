@@ -87,7 +87,7 @@ abstract class AbstractHandler
     }
 
     /**
-     * Format the line defined in app/config/env.$env/config.php
+     * Format the line defined in config/env.$env/config.php
      * 
      * @param array $record one log data
      * 

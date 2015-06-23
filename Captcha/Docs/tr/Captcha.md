@@ -56,7 +56,7 @@ CAPTCHA "Carnegie Mellon School of Computer Science" tarafından geliştirilen b
 
 ### Kurulum
 
-Captcha paketi uygulama içerisinde modül olarak kullanılır ve kurulduğunda modüle ait konfigürasyon dosyaları <kbd>app/config/captcha</kbd> klasörü altına kopyalanır.
+Captcha paketi uygulama içerisinde modül olarak kullanılır ve kurulduğunda modüle ait konfigürasyon dosyaları <kbd>config/captcha</kbd> klasörü altına kopyalanır.
 
 <a name="adding-module"></a>
 
@@ -204,7 +204,7 @@ $this->captcha->excludeFont(['AlphaSmoke','Anglican'});
 
 #### Renk Seçenekleri
 
-Varsayılan renkleri <b>app/config/captcha.php</b> dosyasından ayarlayabilirsiniz.
+Varsayılan renkleri <b>config/captcha.php</b> dosyasından ayarlayabilirsiniz.
 
 Mevcut renkler aşağıdaki gibidir.
 
@@ -217,7 +217,7 @@ $this->captcha->setColor(['red','black']);
 
 #### Arkaplan Desen Renkleri
 
-Varsayılan renkleri <b>app/config/captcha.php</b> dosyasından ayarlayabilirsiniz. Birden fazla renk seçildiğinde captcha rastgele bir renk seçilerek yaratılır.
+Varsayılan renkleri <b>config/captcha.php</b> dosyasından ayarlayabilirsiniz. Birden fazla renk seçildiğinde captcha rastgele bir renk seçilerek yaratılır.
 
 Mevcut renkler aşağıdaki gibidir.
 

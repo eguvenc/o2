@@ -39,7 +39,7 @@ Memcached sürücüsü sunucunuza php extension olarak kurulmayı gerektirir. Ub
 
 ### Konfigürasyon
 
-Memcached sürücüsü bağlantı ayarlarınızı <kbd>app/config/env.$env/cache/memcached.php</kbd> dosyasında tanımlamanız gerekir.
+Memcached sürücüsü bağlantı ayarlarınızı <kbd>config/env.$env/cache/memcached.php</kbd> dosyasında tanımlamanız gerekir.
 
 <a name="memcached-nodes"></a>
 
@@ -97,7 +97,7 @@ $this->cache->method();
 
 #### Servis Sağlayıcısı Bağlantıları
 
-Servis sağlayıcısı <b>connection</b> anahtarındaki bağlantı değerini önceden <kbd>app/config/$env/cache</kbd> klasöründe tanımlı olan <b>$sürücü.php</b> dosyası connections dizisi içerisinden alır. Aşağıda memcached sürücüsü <b>default</b> bağlantısına ait bir örnek görülüyor.
+Servis sağlayıcısı <b>connection</b> anahtarındaki bağlantı değerini önceden <kbd>config/$env/cache</kbd> klasöründe tanımlı olan <b>$sürücü.php</b> dosyası connections dizisi içerisinden alır. Aşağıda memcached sürücüsü <b>default</b> bağlantısına ait bir örnek görülüyor.
 
 ```php
 

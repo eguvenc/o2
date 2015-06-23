@@ -51,20 +51,14 @@ class UserAgent
      *
      * @var array
      */
-    public $languages = array(
-        'key' => '',
-        'val' => ''
-    );
+    public $languages = array();
 
     /**
      * Character sets accepted by the current user agent
      *
      * @var array
      */
-    public $charsets = array(
-        'key' => '',
-        'val' => ''
-    );
+    public $charsets = array();
 
     /**
      * List of platforms to compare against current user agent
@@ -154,13 +148,6 @@ class UserAgent
     public $version = '';
 
     /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
      * Sets the User Agent and runs the compilation routine
@@ -174,7 +161,7 @@ class UserAgent
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $this->agent = trim($_SERVER['HTTP_USER_AGENT']);
         }
-        if ( ! is_null($this->agent)) {
+        if (! is_null($this->agent)) {
             if ($this->loadAgentFile($c['config'])) {
                 $this->compileData();
             }
@@ -250,7 +237,6 @@ class UserAgent
                 if (preg_match("|" . preg_quote($key) . "|i", $this->agent)) {
                     $this->platform['key'] = $key;
                     $this->platform['val'] = $val;
-
                     return true;
                 }
             }
@@ -270,10 +256,8 @@ class UserAgent
                 if (preg_match("|" . preg_quote($key) . ".*?([0-9\.]+)|i", $this->agent, $match)) {
                     $this->isBrowser = true;
                     $this->version   = $match[1];
-
                     $this->browser['key'] = $key;
                     $this->browser['val'] = $val;
-
                     $this->setMobile();
                     return true;
                 }
@@ -295,7 +279,6 @@ class UserAgent
                     $this->isRobot = true;
                     $this->robot['key'] = $key;
                     $this->robot['val'] = $val;
-
                     return true;
                 }
             }
@@ -330,10 +313,13 @@ class UserAgent
      */
     protected function setLanguages()
     {
-        if ((count($this->languages) == 0) && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && $_SERVER['HTTP_ACCEPT_LANGUAGE'] != '' && is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        if (empty($this->languages)
+            && ! empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) 
+            && is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'])
+        ) {
             $this->languages = explode(',', preg_replace('/(;\s?q=[0-9\.]+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_LANGUAGE']))));
         }
-        if (count($this->languages) == 0) {
+        if (empty($this->languages)) {
             $this->languages = array('Undefined');
         }
     }
@@ -345,10 +331,11 @@ class UserAgent
      */
     protected function setCharsets()
     {
-        if ((count($this->charsets) == 0) && isset($_SERVER['HTTP_ACCEPT_CHARSET']) && ! empty($_SERVER['HTTP_ACCEPT_CHARSET'])) {
+        if (empty($this->charsets) && ! empty($_SERVER['HTTP_ACCEPT_CHARSET'])
+        ) {
             $this->charsets = explode(',', preg_replace('/(;\s?q=.+)|\s/i', '', strtolower(trim($_SERVER['HTTP_ACCEPT_CHARSET']))));
         }
-        if (count($this->charsets) == 0) {
+        if (empty($this->charsets)) {
             $this->charsets = array('Undefined');
         }
     }
@@ -460,7 +447,7 @@ class UserAgent
      */
     public function getReferrer()
     {
-        return ( ! isset($_SERVER['HTTP_REFERER']) || empty($_SERVER['HTTP_REFERER'])) ? '' : trim($_SERVER['HTTP_REFERER']);
+        return empty($_SERVER['HTTP_REFERER']) ? '' : trim($_SERVER['HTTP_REFERER']);
     }
 
     /**
@@ -470,10 +457,9 @@ class UserAgent
      */
     public function getLanguages()
     {
-        if (count($this->languages) == 0) {
+        if (empty($this->languages)) {
             $this->setLanguages();
         }
-
         return $this->languages;
     }
 
@@ -484,10 +470,9 @@ class UserAgent
      */
     public function getCharsets()
     {
-        if (count($this->charsets) == 0) {
+        if (empty($this->charsets)) {
             $this->setCharsets();
         }
-
         return $this->charsets;
     }
 
@@ -516,29 +501,25 @@ class UserAgent
     }
 
     /**
-     * Get The Key
+     * Get the configuration key of the provided method
      * 
-     * @param string $keyName key name
+     * @param string $name key name
      *
      * @return string
      */
-    public function getKey($keyName = null)
+    public function getConfigName($name = null)
     {
-        $keyName = trim(strtolower($keyName));
-
-        switch ($keyName) {
+        $name = trim(strtolower($name));
+        switch ($name) {
         case 'browser':
             return $this->browser['key'];
             break;
-
         case 'platform':
             return $this->platform['key'];
             break;
-
         case 'robot':
             return $this->robot['key'];
             break;
-
         case 'mobile':
             return $this->mobile['key'];
             break;

@@ -81,7 +81,7 @@ class View
         $output = ob_get_clean();
         $output = str_replace(array_keys($this->_staticVars), array_values($this->_staticVars), $output);
         
-        if ($obulloViewData === false OR $obulloViewInclude === false) {
+        if ($obulloViewData === false || $obulloViewInclude === false) {
             return $output;
         }
         $this->c['response']->append($output);
@@ -205,7 +205,6 @@ class View
         } else {
             $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )
         }
-
         /**
          * Fetch view ( also it can be nested )
          */

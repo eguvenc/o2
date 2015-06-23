@@ -7,7 +7,7 @@
 
 ### Konfigürasyon
 
-Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+Eğer tanımlı değilse <kbd>config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
 
 ### Çalıştırma
 
@@ -38,7 +38,7 @@ Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfal
 
 #### Konfigürasyon
 
-Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+Eğer tanımlı değilse <kbd>config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
 <kbd>app/classes/Service/User.php</kbd> dosyası auth servis sağlayıcısından <b>url.login</b> anahtarının login dizinine göre konfigüre edin.
 
 ```php

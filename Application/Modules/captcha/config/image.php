@@ -94,4 +94,4 @@ return array(
 );
 
 /* End of file image.php */
-/* Location: .app/config/captcha/image.php */
+/* Location: .config/captcha/image.php */

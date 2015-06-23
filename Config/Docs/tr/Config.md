@@ -3,7 +3,7 @@
 
 Konfigürasyon sınıfı <kbd>app/config</kbd> klasöründeki uygulamanıza ait konfigürasyon dosyalarını yönetir. Bu sınıf uygulama içerisinde konfigürasyon dosyalarını çevre ortamına ( environments ) göre geçerli klasörden yükler ve çağrıldığında tüm yüklenen konfigürasyon dosyalarına ait konfigürasyonlardan oluşan bir diziye geri döner. 
 
-> *Not:* Varsayılan konfigürasyon dosyası <kbd>app/config/env.local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
+> *Not:* Varsayılan konfigürasyon dosyası <kbd>config/env.local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
 
 
 <ul>
@@ -55,7 +55,7 @@ Bir konfigürasyon dosyası config sınıfı içerisindeki <kbd>load()</kbd> met
 $this->c['config']->load('database');
 ```
 
-Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>app/config/env.local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
+Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>config/env.local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
 
 ```php
 echo $this->c['config']['database']['connections']['db']['host'];  // Çıktı localhost
@@ -80,7 +80,7 @@ $this->c['config']['item']['subitem'];
 
 #### Konfigürasyon Dosyalarına Yazmak
 
-Config sınıfı içerisindeki write metodu <kbd>app/config/env.$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>app/config/env.local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
+Config sınıfı içerisindeki write metodu <kbd>config/env.$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>config/env.local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
 
 ```php
 $newArray = $this->c['config']['domain'];
@@ -109,10 +109,10 @@ return array(
 );
 
 /* End of file */
-/* Location: ./var/www/framework/app/config/env.local/domain.php */
+/* Location: ./var/www/framework/config/env.local/domain.php */
 ```
 
-Yukarıdaki örnek <kbd>app/config/env.$env/</kbd> klasörü altındaki dosyalara yazma işlemi yapar. Eğer env klasörü dışında olan yani paylaşımlı bir konfigürasyon dosyasına yazma işlemi gerçekleştimek istiyorsak <b>"../"</b> dizinden çıkma karakteri kullanarak kaydetme işlemini gerçekleştirmemiz gerekir.
+Yukarıdaki örnek <kbd>config/env.$env/</kbd> klasörü altındaki dosyalara yazma işlemi yapar. Eğer env klasörü dışında olan yani paylaşımlı bir konfigürasyon dosyasına yazma işlemi gerçekleştimek istiyorsak <b>"../"</b> dizinden çıkma karakteri kullanarak kaydetme işlemini gerçekleştirmemiz gerekir.
 
 ```php
 $newArray = $this->c['config']->load('agents');
@@ -121,7 +121,7 @@ $newArray['platforms']['pc']['test'] = 'Merhaba yeni platform';  // Yeni değerl
 $this->c['config']->write('../agents.php', $newArray);
 ```
 
-Şimdi <kbd>.app/config/agents.php</kbd> dosyasına bir gözatın.
+Şimdi <kbd>.config/agents.php</kbd> dosyasına bir gözatın.
 
 ```php
 return array(
@@ -135,14 +135,14 @@ return array(
 
 
 /* End of file agents.php */
-/* Location: .app/config/agents.php */
+/* Location: .config/agents.php */
 ```
 
 <a name="shared-config-files"></a>
 
 #### Paylaşımlı Konfigürasyon Dosyaları
 
-Herhangi bir ortam değişkeni klasörü içerisinde yer almayıp <kbd>app/config/</kbd> klasörü kök dizininde yer alan diğer bir deyişle dışarıda kalan konfigürasyon dosyaları paylaşımlı konfigürasyon dosyaları olarak adlandırılırlar. Bir konfigürasyon dosyasının paylaşımlı mı yoksa ortam klasörüne mi ait olup olmadığı uygulama tarafından kendiliğinden belirlenir.
+Herhangi bir ortam değişkeni klasörü içerisinde yer almayıp <kbd>config/</kbd> klasörü kök dizininde yer alan diğer bir deyişle dışarıda kalan konfigürasyon dosyaları paylaşımlı konfigürasyon dosyaları olarak adlandırılırlar. Bir konfigürasyon dosyasının paylaşımlı mı yoksa ortam klasörüne mi ait olup olmadığı uygulama tarafından kendiliğinden belirlenir.
 
 ```php
 $this->config->load('security');
@@ -313,7 +313,7 @@ return array(
 );
 
 /* End of file mongo.php */
-/* Location: .app/config/local/mongo.php */
+/* Location: .config/local/mongo.php */
 ```
 
 <a name="create-your-environment"></a>
@@ -394,7 +394,7 @@ return array(
 );
 
 /* End of file config.php */
-/* Location: .app/config/env.production/config.php */
+/* Location: .config/env.production/config.php */
 ```
 
 #### Config Sınıfı Referansı
@@ -403,7 +403,7 @@ return array(
 
 ##### $this->config->load(string $filename);
 
-Konfigürasyon dosyalarınızı <kbd>app/config/env.$env/</kbd> yada <kbd>app/config/</kbd> dizininden yükler. Dosya bu iki dizinden birinde mevcut değilse php hataları ile karşılaşılır.
+Konfigürasyon dosyalarınızı <kbd>config/env.$env/</kbd> yada <kbd>config/</kbd> dizininden yükler. Dosya bu iki dizinden birinde mevcut değilse php hataları ile karşılaşılır.
 
 ##### $this->config['name']['item'];
 
@@ -415,7 +415,7 @@ Yüklü olan bir konfigürasyona dinamik olarak yeni değerler atar.
 
 ##### $this->config->write(string $filename, array $data);
 
-<kbd>app/config/</kbd> klasöründeki konfigürasyon dosyalarına veri yazmayı sağlar.
+<kbd>config/</kbd> klasöründeki konfigürasyon dosyalarına veri yazmayı sağlar.
 
 
 #### Env Sınıfı Referansı

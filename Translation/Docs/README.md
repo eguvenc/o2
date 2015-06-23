@@ -114,7 +114,7 @@ $this->translator['SITE:TITLE:WELCOME_TO_OUR_SITE'];
 
 ### Loading the Framework Files
 
-Some of the packages use framework language file which is located in your <kbd>app/translations</kbd> folder. You can change the default language. ( look at <kbd>app/config/debug/config.php</kbd> ) 
+Some of the packages use framework language file which is located in your <kbd>app/translations</kbd> folder. You can change the default language. ( look at <kbd>config/debug/config.php</kbd> ) 
 
 Core packages will load framework language files which are located in <kbd>app/translations/$language</kbd> folder.
 

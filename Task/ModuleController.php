@@ -64,7 +64,7 @@ class ModuleController extends Controller
             $this->recursiveCopy($moduleFolder. DS .'controllers', MODULES .$module);
         }
         if (is_dir($moduleFolder. DS .'config')) {
-            $this->recursiveCopy($moduleFolder. DS .'config', APP .'config'. DS .$module);
+            $this->recursiveCopy($moduleFolder. DS .'config', CONFIG .$module);
         }
         if (is_dir($moduleFolder. DS .'tasks')) {
             $this->recursiveCopy($moduleFolder. DS .'tasks', MODULES .'tasks'. DS .$module);
@@ -108,8 +108,8 @@ class ModuleController extends Controller
         if (is_dir($moduleFolder. DS .'controllers') && is_dir(MODULES .$module)) {
             $this->recursiveRemove(MODULES .$module);
         }
-        if (is_dir($moduleFolder. DS .'config') && is_dir(APP .'config'. DS .$module)) {
-            $this->recursiveRemove(APP .'config'. DS .$module);
+        if (is_dir($moduleFolder. DS .'config') && is_dir(CONFIG .$module)) {
+            $this->recursiveRemove(CONFIG .$module);
         }
         if (is_dir($moduleFolder. DS .'tasks') && is_dir(MODULES .'tasks'. DS .$module)) {
             $this->recursiveRemove(MODULES .'tasks'. DS .$module);

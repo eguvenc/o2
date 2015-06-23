@@ -21,20 +21,8 @@ class Model
      * 
      * @var object
      */
-    protected $c;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        global $c;
-        $this->c = $c;
-        if (method_exists($this, 'load')) {
-            $this->load();
-        }
-    }
-
+    private $__container;
+    
     /**
      * Controller loader
      * 
@@ -44,9 +32,14 @@ class Model
      */
     public function __get($key)
     {
-        if (isset(Controller::$instance->{$key})) {
-            return Controller::$instance->{$key};
+        if ($this->__container == null) {
+            global $c;
+            $this->__container = &$c;
         }
+        if ($key == 'c') {
+            return $this->__container;
+        }
+        return $this->__container[$key];
     }
 }
 

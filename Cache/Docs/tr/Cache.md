@@ -1,7 +1,7 @@
 
 ## Cache Sınıfı
 
-Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir arayüz sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası <kbd>app/config/$env/cache/</kbd> dosyasından yönetilir.
+Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir arayüz sağlar. Cache paket konfigürasyonu ortam tabanlı konfigürasyon dosyası <kbd>config/$env/cache/</kbd> dosyasından yönetilir.
 
 <ul>
 
@@ -47,7 +47,7 @@ Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir aray
 
 ### Konfigürasyon
 
-Cache sınıfı konfigürasyonu <kbd>app/config/$env/cache/$driver.php</kbd> dosyasından konfigüre edilir. Örneğin local ortam ve memcached sürücüsü için <kbd>app/config/local/cache/memcached.php</kbd> dosyasını konfigüre etmeniz gerekir.
+Cache sınıfı konfigürasyonu <kbd>config/$env/cache/$driver.php</kbd> dosyasından konfigüre edilir. Örneğin local ortam ve memcached sürücüsü için <kbd>config/local/cache/memcached.php</kbd> dosyasını konfigüre etmeniz gerekir.
 
 <a name="service-configuration"></a>
 
@@ -122,7 +122,7 @@ Bu sürüm için varolan cache sürücüleri aşağıdaki gibidir:
 * Memcached
 * Redis
 
-Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>app/config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
+Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : redis. Her bir önbellek türünün konfigürasyonuna <kbd>config/cache/$sürücü.php</kbd> adıyla ulaşılabilir.
 
 <a name="interface"></a>
 

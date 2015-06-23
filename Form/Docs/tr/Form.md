@@ -75,7 +75,7 @@ Form sınıfı özel form mesajlarını, validator sınıfı çıktılarını, i
 
 ### Konfigürasyon
 
-Form sınıfına ait konfigürasyon dosyası <kbd>app/config/form.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası form mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. Bu adresten <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a> bootstrap css projesine gözatabilirsiniz.
+Form sınıfına ait konfigürasyon dosyası <kbd>config/form.php</kbd> dosyasından yönetilir. Konfigürasyon dosyası form mesajlarına ait html şablonu ve niteliklerini belirler. Varsayılan CSS şablonu bootstrap css çerçevesi için konfigüre edilmiştir. Bu adresten <a href="http://getbootstrap.com" target="_blank">http://getbootstrap.com</a> bootstrap css projesine gözatabilirsiniz.
 
 
 ```php
@@ -102,7 +102,7 @@ return array(
 );
 
 /* End of file form.php */
-/* Location: .app/config/form.php */
+/* Location: .config/form.php */
 ```
 
 Yukarıdaki form şablonuna ait bir mesaj form sınıfı ile aşağıdaki gibi üretilebilir.
@@ -652,7 +652,7 @@ Bir form doğrulama çıktısı mevcut <kbd>success</kbd> anahtarının sayısal
 
 ##### $this->form->getMessage($msg = '');
 
-Bir form doğrulaması çıktısından dönen mesajı bir başka deyişle <kbd>message</kbd> anahtarı değerini <kbd>app/config/form.php</kbd> dosyasındaki konfigürasyonda tanımlı html şablonu içerisine dahil ederek bu mesaja geri döner. Eğer birinci parametreden bir mesaj gönderilirse formdan dönen mesaj yerine bu mesaj mesaj değişkeni olarak kabul edilir.
+Bir form doğrulaması çıktısından dönen mesajı bir başka deyişle <kbd>message</kbd> anahtarı değerini <kbd>config/form.php</kbd> dosyasındaki konfigürasyonda tanımlı html şablonu içerisine dahil ederek bu mesaja geri döner. Eğer birinci parametreden bir mesaj gönderilirse formdan dönen mesaj yerine bu mesaj mesaj değişkeni olarak kabul edilir.
 
 ##### $this->form->getError(string $field, $prefix = '', $suffix = '');
 

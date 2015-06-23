@@ -119,7 +119,7 @@ Match data functionality has configurable items in your config.php
 
 ------
 
-Edit your <kbd>app/config/local/config.php</kbd> file.
+Edit your <kbd>config/local/config.php</kbd> file.
 
 ```php
 <?php

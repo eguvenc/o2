@@ -136,7 +136,7 @@ You can use uri extensions when you use ajax, xml, rss, json.. requests, you can
 example.com/directory/class/post.json 
 ```
 
-You can define allowed extensions from your <kbd>app/config/config.php</kbd> file, default allowed URI extensions listed below.
+You can define allowed extensions from your <kbd>config/config.php</kbd> file, default allowed URI extensions listed below.
 
 * json
 * xml

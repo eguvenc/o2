@@ -49,9 +49,9 @@ class Config implements ArrayAccess
     public function __construct(ContainerInterface $c)
     {
         $this->env = $c['app']->env();
-
-        $this->path  = APP .'config'. DS .'env.'.$this->env. DS;
-        $this->local = APP .'config'. DS .'env.local'. DS;
+        
+        $this->path  = CONFIG .'env.'.$this->env. DS;
+        $this->local = CONFIG .'env.local'. DS;
         
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
@@ -99,8 +99,8 @@ class Config implements ArrayAccess
         $envFile = $this->path . $fileUrl.'.php';
         $file = $this->local . $fileUrl.'.php';  // Default config path
 
-        if (file_exists(APP .'config'. DS .$fileUrl.'.php')) {  // If shared file exists 
-            $file = APP .'config'. DS .$fileUrl.'.php';
+        if (file_exists(CONFIG .$fileUrl.'.php')) {  // If shared file exists 
+            $file = CONFIG .$fileUrl.'.php';
         }
         $isEnvFile = false;
         if (file_exists($envFile)) {   // Do we able to locate environment file ?
@@ -128,14 +128,14 @@ class Config implements ArrayAccess
      */
     public function write($filename, $data)
     {
-        $fullpath = APP .'config'. DS .'env.'.$this->env. DS;
+        $fullpath = CONFIG .'env.'.$this->env. DS;
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
-            $fullpath = APP .'config'. DS;
+            $fullpath = CONFIG;
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file */\n/* Location: .app/config/env.$this->env/$filename */");
+        $writer->addDoc("\n/* End of file */\n/* Location: .config/env.$this->env/$filename */");
         $writer->toFile($fullpath . str_replace('/', DS, $filename), $data);
     }
 

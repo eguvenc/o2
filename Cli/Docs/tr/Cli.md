@@ -134,7 +134,7 @@ php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --tim
 
 #### Log Komutu
 
-Eğer <kbd>app/config/local/config.php</kbd> dosyasındaki log > enabled anahtarı true olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
+Eğer <kbd>config/local/config.php</kbd> dosyasındaki log > enabled anahtarı true olarak ayarlandı ise uygulamayı gezdiğinizde konsol dan uygulama loglarını eş zamanlı takip edebilirsiniz.
 
 Bunun için terminalinizi açın ve aşağıdaki komutu yazın.
 
@@ -241,7 +241,7 @@ php task module remove debugger
 
 #### Domain Komutu
 
-Domain komutu maintenance katmanını uygulamaya ekler. Eğer <kbd>app/config/domain.php</kbd> dosyanızda tanımlı olan domain adresleriniz varsa uygulamanızı konsoldan bakıma alma işlevlerini yürütebilirsiniz. 
+Domain komutu maintenance katmanını uygulamaya ekler. Eğer <kbd>config/domain.php</kbd> dosyanızda tanımlı olan domain adresleriniz varsa uygulamanızı konsoldan bakıma alma işlevlerini yürütebilirsiniz. 
 
 Maintenance katmanı için örnek bir kurulum
 

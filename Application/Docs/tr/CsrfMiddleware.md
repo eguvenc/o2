@@ -7,7 +7,7 @@ Cross Request Forgery güvenlik tehdidi hakkında daha detaylı bilgi için <a h
 
 ### Konfigürasyon
 
-<kbd>app/config/security.php</kbd> dosyasından csrf protection değerini true olarak değiştirin.
+<kbd>config/security.php</kbd> dosyasından csrf protection değerini true olarak değiştirin.
 
 ```php
 return array(
@@ -19,7 +19,7 @@ return array(
 );
 
 /* End of file config.php */
-/* Location: .app/config/security.php */
+/* Location: .config/security.php */
 
 ```
 

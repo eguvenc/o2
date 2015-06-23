@@ -7,7 +7,7 @@
 
 ### Konfigürasyon
 
-Eğer tanımlı değilse <kbd>app/config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
+Eğer tanımlı değilse <kbd>config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
 
 ```php
 
@@ -28,7 +28,7 @@ return array(
 );
 
 /* End of file */
-/* Location: .app/config/env.local/domain.php */
+/* Location: .config/env.local/domain.php */
 ```
 
 Dosya içerisindeki <b>"maintenance"</b> anahtarları domain adresinin bakıma alınıp alınmadığını kontrol eder, <b>"regex"</b> anahtarı ise geçerli route adresleriyle eşleşme yapılabilmesine olanak sağlar. Domain adresinize uygun düzenli ifadeyi regex kısmına girin.

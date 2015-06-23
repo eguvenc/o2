@@ -155,7 +155,7 @@ Layout method help to design your application layout using php anonymous functio
 );
 
 /* End of file view.php */
-/* Location: ./app/config/view.php */
+/* Location: ./config/view.php */
 ```
 Then in your controller file you can call your layout using $this->layout() function.
 
@@ -549,4 +549,4 @@ Assign a view variable ( Variable types can be String, Array or Object ), this m
 
 #### $this->view->assign('@VARIABLE', 'value');
 
-Uses the layout configuration that is defined in your <kbd>app/config/env/view.php</kbd>.
+Uses the layout configuration that is defined in your <kbd>config/env/view.php</kbd>.

@@ -19,7 +19,7 @@ $this->mailer->message('Hello_World !');
 $this->mailer->send();
 ```
 
-> Dikkat etmeniz gereken nokta sürücülerin hepsinin app/config/$env/mailer.php dosyasında önceden tanımlı olmasıdır.
+> Dikkat etmeniz gereken nokta sürücülerin hepsinin config/$env/mailer.php dosyasında önceden tanımlı olmasıdır.
 
 
 ```php
@@ -36,7 +36,7 @@ return array(
     ),
    
 /* End of file mailer.php */
-/* Location: .app/config/env.local/mailer.php */ 
+/* Location: .config/env.local/mailer.php */ 
 ```
 
 #### Queue opsiyonu

@@ -51,19 +51,19 @@ class Response
     public $status = 200;
 
     /**
-     * Enable / Disable flush ( send output to browser )
-     * 
-     * @var boolean
-     */
-    protected $enabled = true;
-
-    /**
      * Run callback function
      * 
      * @var object
      */
     protected $callback;
 
+    /**
+     * Enable / Disable flush ( send output to browser )
+     * 
+     * @var boolean
+     */
+    protected $enabled = true;
+    
     /**
      * Constructor
      *

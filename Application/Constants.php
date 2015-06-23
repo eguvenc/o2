@@ -5,6 +5,7 @@
 |---------------------------------------------------------------
 | ROOT              - The root path of your server
 | APP               - The full server path to the "app" folder
+| CONFIG            - The full server path to the "config" folder
 | ASSETS            - The full server path to the "assets" folder
 | DATA              - The full server path to the "data" folder
 | CLASSES           - The full server path to the user "classes" folder
@@ -16,6 +17,7 @@
 | INDEX_PHP         - The path of your index.php file.
 */
 define('APP',  ROOT .'app'. DS);
+define('CONFIG',  ROOT . 'config'. DS);
 define('RESOURCES',  ROOT .'resources'. DS);
 define('ASSETS',  RESOURCES .'assets'. DS);
 define('DATA',  RESOURCES .'data'. DS);
