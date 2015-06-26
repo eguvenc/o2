@@ -11,7 +11,7 @@ class DebuggerController extends \Controller
     protected $msg;
     protected $length;
     protected $connection;
-    protected $maxByte = 5242880;  // 5 Mb
+    protected $maxByte = 10242880;  // 10 Mb
     protected $clients = array();
 
     /**
@@ -54,7 +54,7 @@ class DebuggerController extends \Controller
         $this->connection = $matches;
         $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);   // Create TCP/IP sream socket
         socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 1);  // Reuseable port
-        socket_bind($this->socket, 0, $this->connection['port']);              // Bind socket to specified host
+        socket_bind($this->socket, 0, $this->connection['port']);       // Bind socket to specified host
         socket_listen($this->socket);  // Listen to port
 
         $this->clients = array($this->socket);
@@ -138,6 +138,9 @@ class DebuggerController extends \Controller
             'type' => 'system',
             'socket' => intval($newSocket)
         ];
+        if (isset($headers['Msg-id'])) {
+            $data['id'] = $headers['Msg-id'];
+        }
         if (isset($headers['Environment-data'])) {
             $data['env'] = $headers['Environment-data'];
         }
@@ -146,6 +149,9 @@ class DebuggerController extends \Controller
         }
         if (isset($headers['Log-data'])) {
             $data['log'] = $headers['Log-data'];
+        }
+        if (isset($headers['Page-css'])) {
+            $data['css'] = $headers['Page-css'];
         }
         if ($headers['Request'] == 'Http') {
             $data['message'] = 'HTTP_REQUEST';

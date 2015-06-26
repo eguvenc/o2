@@ -73,7 +73,7 @@ class Url
 
         $queryString = strstr($uri, '?');
 
-        if ( ! empty($queryString)) {
+        if (! empty($queryString)) {
             $uri = rtrim(strstr($uri, '?', true), '/').$queryString;
         }
         $siteUri = $this->uri->getSiteUrl($uri, $suffix);
@@ -102,7 +102,7 @@ class Url
         if ($protocol == true) {  // Auto detect
             $protocol = ($this->c['request']->isSecure()) ? 'https://' : 'http://';
         }
-        if ( ! empty($protocol) || is_bool($protocol)) {
+        if (! empty($protocol) || is_bool($protocol)) {
             $uri = preg_replace('#^https?:\/\/#i', '', $uri);
         }
         return $protocol.$uri;
@@ -124,7 +124,7 @@ class Url
      */
     public function redirect($uri = '', $method = 'location', $httpResponseCode = 302, $suffix = true)
     {
-        if ($this->c['config']->load('logger')['app']['benchmark'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
+        if ($this->c['config']->load('logger')['app']['benchmark']['log'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
 
             $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
             $usage = 'memory_get_usage() function not found on your php configuration.';
@@ -135,8 +135,7 @@ class Url
             $extra['memory'] = $usage;
             $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
         }
-
-        if ( ! preg_match('#^https?:\/\/#i', $uri)) {
+        if (! preg_match('#^https?:\/\/#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
         if (strpos($method, '[')) {
@@ -197,7 +196,7 @@ class Url
         if ($str == 'http://' || $str == '') {
             return '';
         }
-        if ( ! parse_url($str, PHP_URL_SCHEME)) {
+        if (! parse_url($str, PHP_URL_SCHEME)) {
             $str = 'http://' . $str;
         }
         return $str;

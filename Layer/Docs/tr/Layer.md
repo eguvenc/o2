@@ -1,11 +1,11 @@
 
-## Çok Katmanlı Programlama ( Layers yada HMVC )
+## Katmanlar
 
 Çok katmanlı programlama tekniği hiyerarşik kontrolör programlama kalıbından türetilmiş ( bknz. <a href="http://www.javaworld.com/article/2076128/design-patterns/hmvc--the-layered-pattern-for-developing-strong-client-tiers.html" target="_blank">Java Hmvc.</a> ) uygulamanızı ölçeklenebilir hale getirmek için kullanılan bir tasarım kalıbıdır. Çok katmanlı mimari MVC katmanlarını bir üst-alt hiyerarşisi içerisinde çözümler. Uygulama içerisinde tekrarlayan bu model yapılandırılmış bir client-tier mimarisi sağlar.
 
-![Layers](/Layer/Docs/images/layers.png?raw=true "Layered Programming")
+![Katmanlar](/Layer/Docs/images/layers.png?raw=true "Katmanlı Programlama")
 
-Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından tekralanabilir olarak çağrılabilen katmanlar uygulamayı parçalayarak farklı işlevsel özellikleri bileşen yada web servisleri haline getirirler.
+Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından tekralanabilir olarak çağrılabilen katmanlar uygulamayı parçalayarak farklı işlevsel özellikleri bileşen yada web servisleri haline getirir.
 
 ### Katmanlı Mimariyi Kullanmak
 
@@ -19,16 +19,15 @@ Katmanlı mimari sunum ( presentation ) katmanınının yazılım geliştirme s�
 
 Aşağıdaki figürde görüldüğü gibi katmanlı mimaride görünen varlıklar parçalara ayrılarak bileşen haline getirilir. 
 
-![Layers](/Layer/Docs/images/ui-components.png?raw=true "HMVC")
+![Katmanlar](/Layer/Docs/images/ui-components.png?raw=true "HMVC")
 
+Katmanlı mimaride oluşturulan bileşenler birbirlerinden bağımsız parçalardır ve birbirleri ile etkileşim içinde olabilirler. Her bir bileşen kendisi için tayin edilen bir kontrolör sınıfı tarafından yönetilir ve layer paketi aracılığı ile çağrılırlar. Ayrıca birbirinden ayrılıp bağımsız hale gelen bileşenlere dışarıda ajax yada http istekleri de gönderilebilir. Yani bir modül yada web servisi haline getirilen bu parçalara dışarıdan bir http isteği ( Curl vb. ) olmadan ulaşılabileceği gibi bir http yada ajax isteği gönderilerek de ulaşılabilir.
 
-Bileşenler birbirlerinden bağımsız parçalardır ve birbirleri etkileşim içinde olabilirler. Her bir bileşen kendisi için tayin edilen bir kontrolör sınıfı tarafından yönetilir ve layer paketi aracılığı ile çağrılırlar. Ayrıca birbirinden ayrılıp bağımsız hale gelen bileşenlere dışarıda ajax yada http istekleri de gönderilebilir. Yani bir modül yada web servisi haline getirilen bu parçalara dışarıdan bir http isteği ( Curl vb. ) olmadan ulaşılabileceği gibi bir http yada ajax isteği gönderilerek de ulaşılabilir.
+Örneğin bir yönetim paneline ait bir gezinme çubuğu (navigation bar) bir katman aracılığı ile yönetilebilir. Gezinme çubuğu bir katman kullanılarak oluşturulduğunda view yapısından bağımsız olarak kontrol edilebilir hale gelir ve oluşturduğunuz gezinme çubuğu eğer bir ajax isteği ile tazelenmek isteniyorsa bu ajax isteği için ikinci bir kontrolör yazma gereksinimi ortadan kaldırılır bunun yerine gezinme çubuğu katmanına bir ajax istek gönderilirek gezinme çubuğu yeniden yaratılır ve uygulamada genel mvc mantığı dışına çıkılmamış olur.
 
-Örneğin bir yönetim paneline ait bir menü (navigation bar) bir katman aracılığı ile yönetilebilir. Bir kez yapılması gereken veritabanı sorguları katman aracılığı ile her bir kullanıcı için önbelleklenebilir.
+Burada üzerinde durulan önemli nokta katmanlı mimaride oluşturduğunuz katmanı aynı zaman da bir web servis gibi çalıştırabiliyor olmanızdır.
 
-### Katman Sınıfı
-
-Layer class creates your layers then manage layer traffic and cache mechanism using with an unique id. Layer has cache service dependecy that is located in <b>app/classes/service/cache.php</b>
+Bu özelliğin yanında katman içerisinde bir kez yapılması gereken veritabanı sorguları önbelleklenebilir. Eğer örneğimizdeki gezinme çubuğunu bir web servis gibi düşünürsek, bu web servise gönderilen istekler girilen parametrelere göre önbelleklenerek uygulama performansı arttrılabilir.
 
 #### Sınıfı Yüklemek
 
@@ -41,195 +40,143 @@ Konteyner nesnesi ile yüklenmesi gerekir. Layer sınıfı <kbd>app/components.p
 
 #### Bir Katmanı Çağırmak
 
+Katmanlar layer sınıfı üzerinden web servis metotlarına benzer şekilde çağırılırlar. Bir katman get yada post metodları yaratılabilir.
+
 ```php
-$this->layer->get('controller/method/args', $data = array(), $expiration = 0);
+echo $this->layer->get('controller/method/args', $data = array());
+echo $this->layer->post('controller/method/args', $data = array());
 ```
 
+Katman istekleri <kbd>module/controller/method/args</kbd> standart url çağırma yöntemi ile Obullo router sınıfı üzerinden oluşturulurlar.
 
+#### Merhaba Katmanlar
 
-#### A Layer request creates the random connection string ( Layer ID ) as the following steps.
-
-*  The request method gets the uri and serialized string of your data parameters.
-*  Then it builds a Layer ID with <b>unsigned Crc32 hash</b>.
-*  Finally Layer ID added to end of your uri.
-*  "Cache Service" use Layer ID as a <b>cache key</b> in <b>caching</b> mechanism.
-
-
-### Cache Usage
+Katmanları daha iyi anlamak için <kbd>modules/views</kbd> klasörü altında aşağıdaki gibi Header.php adında bir view kontrolör yaratın.
 
 ```php
-$this->layer->get('views/header', array('user_id' => 5), 7200);
-```
-Above the example will do cache for user_id = 5 parameter. ( If you use cache option you need to configure your cache driver. ( Redis, Memcache, Apc .. ) ).
+namespace Views;
 
-## View Layers
-
-View Layers returns to <b>raw</b> output. Framework keeps view type layers in views folder.
-
-#### Folder Structure
-
-```php
-+ app
-+ o2
-- public
-      - welcome
-          - controller
-              welcome.php
-          + view
-      - views
-          - controller
-              header.php
-          - view
-              header.php
-```
-
-<b>Public</b> folder are <b>visible</b> from your visitors. It contains controller folder and each layers is accessible via <b>http</b> requests.
-
-An Example View Controller ( Header Controller )
-
-```php
-/**
- * $app header
- *
- * @var Header Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('url');
-        $c->load('view');
-    }
-);
-
-$app->func(
-    'index',
-    function () {
-        $navbar = array(
-            'home'    => 'Home',
-            'about'   => 'About', 
-            'contact' => 'Contact',
-            'membership/login'   => 'Login',
-            'membership/signup'  => 'Signup',
-        );
-        foreach ($navbar as $key => $value) {
-            $li.= '<li>'.$this->url->anchor($key, $value, " $active ").'</li>';
-        }
-        echo $this->view->load(
+class Header extends \Controller
+{
+    public function index()
+    {
+        echo $this->view->get(
             'header',
-            function () use ($li) {
-                $this->assign('li', $li);
-            },
-            false
+            [
+                'header' => '<pre>HELLO HEADER LAYER</pre>'
+            ]
         );
     }
-);
+}
+
 
 /* End of file header.php */
-/* Location: .public/views/controller/header.php */
+/* Location: .modules/views/header.php */
 ```
 
-Above the example header controller manage your navigation bar 
+Daha sonra oluşturduğunuz header katmanı için <kbd>modules/views/view</kbd> klasörü altında aşağıdaki gibi bir view dosyası yaratın.
 
-
-## Nested Layers
-
-You can call "layers in layers" with theirs views we call this way as nested.
+header.php
 
 ```php
-/**
- * $app hello_world
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('layer');
-    }
-);
-
-$app->func(
-    'index', 
-    function () use ($c) {
-        echo $this->layer->get('welcome/welcome_dummy/1/2/3');
-    }
-);
-
-/* End of file hello_world.php */
-/* Location: .public/tutorials/controller/hello_world.php */
+<div><?php echo $header ?></div>
 ```
 
-Above the example we call the welcome layer from hello world controller.
+###### Dosya Görünümü
 
 ```php
-/**
- * $app welcome_dummy
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('view');
-        $c->load('layer');
-    }
-);
+- modules
+      - welcome
+          + view
+            Welcome.php
+      - views
+          - view
+              header.php
+            Header.php
+```
 
-$app->func(
-    'index', 
-    function ($arg1 = '', $arg2 = '', $arg3 = '') {
-        
+Görüldüğü gibi header katmanına ait bir view dosyası var ve bu view dosyasını yöneten bir kontrolör dosyası mevcut.Şimdi oluşturduğunuz katmanı welcome modülü welcome kontrolör dosyası içerisinde çalıştırın.
+
+```php
+namespace Welcome;
+
+class Welcome extends \Controller
+{
+    public function index()
+    {
         echo $this->layer->get('views/header');
-        echo $this->layer->get('views/footer');
-
-        echo $this->view->nested($this)->load('dummy', false);
     }
-);
+}
 
-/* End of file welcome_dummy.php */
-/* Location: .public/tutorials/controller/welcome_dummy.php */
+/* End of file welcome.php */
+/* Location: .modules/welcome/welcome.php */
 ```
 
-### Function Reference
+Son olarak <kbd>http://myproject/welcome</kbd> sayfasını ziyaret edin. Eğer yukarıdaki işlemleri doğru yaptı iseniz welcome sayfası içerisinde bir <kbd>HELLO HEADER LAYER</kbd> çıktısı almanız gerekir.
+
+#### Bir Katmanı Önbelleklemek
+
+Katman sınıfı get fonksiyonunu ikinci veya üçüncü parametresine bir tamsayı gönderilirse katman çıktısı gönderilen süre kadar cache sınıfı aracılığı ile önbellekte tutulur.
+
+```php
+$this->layer->get('views/header', $expiration = 7200);
+```
+
+##### Parametreler ile Önbellekleme
+
+Katman sınıfı get fonksiyonunu ikinci parametresinden array türünde bir parametre gönderilirse gönderilen her farklı parametre serileştirilerek json raw formatına dönüştürülür ve elde edilen çıktıdan tekil bir katman kimliği ( ID ) üretilir. Eğer önbellekleme süresi üçüncü parametreye bir tamsayı olarak girilirse elde edilen katman kimliği ile ( ID ) her seferinde parametrelere duyarlı veriler önbelleğe kaydedilmiş olur.
+
+```php
+$this->layer->get('views/header', array('user_id' => 5), $expiration = 7200);
+```
+Yukarıdaki örnekte kullanıcı id değerinin sağlanması ile her bir kullanıcı için oluşturulmuş katman çıktısı verilen sürede önbelleğe kaydedilir.
+
+##### Önbelleklenmiş Katmanı Silmek
+
+Bir katmanı önbellekten temizlemek için katman yolu (url) ve varsa katman parametrelerini flush metoduna göndermek yeterlidir.
+
+```php
+$this->layer->flush('views/header', array('user_id' => 5));
+```
+
+##### Katmanlarla Bir Gezinme Çubuğu Yaratalım
+
+
+
+
+
+
+Aşağıdaki resimde görüldüğü üzere yarattığınız gezinme çubuğuna ait katmanı <kbd>http://yourproject/debugger</kbd> adresini ziyaret ederek katmanların bileşenler halinde nasıl çıktılandığını takip edebilirsiniz.
+
+
+![Hata Ayıklama](/Layer/Docs/images/debugger.gif?raw=true "Hata Ayıklama")
+
+
+#### Function Reference
 
 ------
 
-#### $this->layer->post(string $uri, $data = array | int, expiration = 0);  
+##### $this->layer->post(string $uri, $data = array | int, expiration = 0);  
 
 Creates $_POST request request to "public" folder.
 
-#### $this->layer->get(string $uri, $data = array | int, expiration = 0);
+##### $this->layer->get(string $uri, $data = array | int, expiration = 0);
 
 Creates $_GET request to "public" folder.
 
-#### $this->layer->method(string 'jsons/$uri', $data = array | int, expiration = 0);
-
-Creates $_GET or $_POST request to <b>"public/jsons"</b> folder.
-
-#### $this->layer->id();
+##### $this->layer->id();
 
 Returns to current layer Id using your json encoded hash of your uri and method parameters.
 
 
-## Layer/Flush Class
-
-Layer flush class allows to remove cached layers from your cache storage.
-
-### Initializing the Flush Class
+#### Layer/Flush Class Function Reference
 
 ------
 
-```php
-$this->layer->flush->method();
-```
-Once loaded, the Layer object will be available using: <dfn>$this->layer->flush->method()</dfn>
-
-
-### Layer/Flush Class Function Reference
-
-------
-
-#### $this->layer->flush->uri(string $uri, $data = array);
+##### $this->layer->flush->uri(string $uri, $data = array);
 
 Deletes cache from memory using uri and parameters.
 
-#### $this->layer->flush->id(integer $layerId);
+##### $this->layer->flush->id(integer $layerId);
 
 Deletes cache from memory by layer id.

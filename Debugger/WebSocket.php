@@ -2,6 +2,7 @@
 
 namespace Obullo\Debugger;
 
+use DOMDocument;
 use RuntimeException;
 use Obullo\Log\Handler\Debugger;
 use Obullo\Container\ContainerInterface;
@@ -140,13 +141,13 @@ class WebSocket
     }
 
     /**
-     * Retuns to application html output
+     * Retuns to encoded html output of current page
      * 
      * @return string
      */
     public function getOutput()
     {
-        return $this->output;
+        return htmlentities($this->output);
     }
 
     /**
@@ -159,14 +160,21 @@ class WebSocket
     protected function handshake($type = 'Ajax') 
     {
         $envtab = new EnvTab($this->c, $this->getOutput());
+
         $base64EnvData = base64_encode($envtab->printHtml());
         $base64LogData = base64_encode($this->lines);
 
-        $upgrade  = "Request: $type\r\n" .
+        $upgrade = "Request: $type\r\n" .
         "Upgrade: websocket\r\n" .
         "Connection: Upgrade\r\n" .
-        "Environment-data: ".$base64EnvData."\r\n" .
-        "Log-data: ".$base64LogData."\r\n" .
+        "Environment-data: ".$base64EnvData."\r\n".
+        "Msg-id: ".uniqid()."\r\n";
+
+        $css = self::parseCss($this->output);
+        if (! empty($css)) {
+            $upgrade.= "Page-css: ".base64_encode($css)."\r\n";
+        }
+        $upgrade.= "Log-data: ".$base64LogData."\r\n" .
         "WebSocket-Origin: $this->host\r\n" .
         "WebSocket-Location: ws://$this->host:$this->port\r\n";
 
@@ -176,6 +184,54 @@ class WebSocket
         socket_write($this->socket, $upgrade, strlen($upgrade));
         socket_close($this->socket);
     }
+
+    /**
+     * Parse css files & get encoded contents of css
+     * 
+     * @param string $html pure html
+     * 
+     * @return string css content
+     */
+    protected static function parseCss($html)
+    {
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTML('<?xml encoding="UTF-8">' . $html);
+        libxml_use_internal_errors(false);
+        $doc->preserveWhiteSpace = false; 
+        foreach ($doc->childNodes as $item) {
+            if ($item->nodeType == XML_PI_NODE) {
+                $doc->removeChild($item);
+            }
+        }
+        $doc->encoding = 'UTF-8';
+        $head = $doc->getElementsByTagName('head'); 
+        $link = $head->item(0)->getElementsByTagName('link'); 
+
+        $css = '';
+        if ($link->length > 0) {
+            foreach ($link as $linkRow) { 
+                if ($linkRow->getAttribute('type') == 'text/css') {
+                    $href = $linkRow->getAttribute('href');
+                    if (strpos($href, 'http') === false) {
+                        $css.= file_get_contents(ROOT. str_replace('/', DS, ltrim($href, '/')));
+                    } else {
+                        $css.= file_get_contents($href);
+                    }
+                } 
+            }
+        }
+        $style = $head->item(0)->getElementsByTagName('style');
+        if ($style->length > 0) {
+            foreach ($style as $styleRow) {
+                $css.= $styleRow->nodeValue."\n";
+            }
+        }
+        $buffer = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
+        $buffer = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $buffer);
+        return $buffer;
+    }
+
 }
 
 // END WebSocket.php File

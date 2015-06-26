@@ -36,7 +36,7 @@ trait BenchmarkTrait
          */
         $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
 
-        if ($this->config->load('logger')['app']['benchmark']) {     // Do we need to generate benchmark data ?
+        if ($this->config->load('logger')['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
             $usage = 'memory_get_usage() function not found on your php configuration.';
             if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
                 $usage = round($usage/1024/1024, 2). ' MB';

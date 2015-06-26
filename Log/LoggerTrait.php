@@ -24,7 +24,7 @@ trait LoggerTrait
     {
         $this->channel = $this->config['default']['channel'];
         $this->queries = $this->config['app']['query']['log'];
-        $this->benchmark = $this->config['app']['benchmark'];
+        $this->benchmark = $this->config['app']['benchmark']['log'];
 
         $this->detectRequest();  
     }

@@ -71,7 +71,7 @@ class EnvTab
 
         $ENVIRONMENTS['HTTP_REQUEST']  = $this->request->headers->all();
         $ENVIRONMENTS['HTTP_HEADERS']  = headers_list();
-        $ENVIRONMENTS['HTTP_RESPONSE'] = [htmlentities($this->output)];
+        $ENVIRONMENTS['HTTP_RESPONSE'] = [$this->output];
 
         $method = $this->request->method();
 

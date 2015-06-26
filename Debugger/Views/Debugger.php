@@ -32,6 +32,7 @@ footer, header, hgroup, menu, nav, section
     display: block;
 }
 body {
+    background: white;
     line-height: 1;
 }
 ol, ul
@@ -317,6 +318,9 @@ $getDebuggerURl = function ($method = 'index') {
  * 
  * @category  Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
+ * @author    Rabih Abou Zaid
+ * @author    Erkan Yeter
+ * @author    Ersin Güvenç
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/debugger
@@ -359,13 +363,10 @@ function debuggerShowTab(elem,target) {
         elem.className = elem.className + ' obulloDebugger-activeTab ';
 
         var targetAnchor = document.getElementsByClassName(target);
-
             for (var i = 0; i < targetAnchor.length; i++) {
                 targetAnchor[i].className =  targetAnchor[i].className + " obulloDebugger-activeTab ";
             };
-
         var x = this.className = " obulloDebugger-activeTab ";
-        console.log(x)
 
     <?php echo 'var cookieName = "o_debugger_active_tab";' ?>;
     setCookie(cookieName, target); // set active tab to cookie
@@ -374,13 +375,6 @@ function hideDebugger() {
     var obulloDebugger = document.getElementById('obulloDebugger');
     obulloDebugger.style.display = "none";
 }
-document.onkeydown = function(key){
-    var press = key.keyCode;
-    if (press == 120){
-        var obulloDebugger = document.getElementById('obulloDebugger');
-            obulloDebugger.style.display = (obulloDebugger.style.display == 'none') ? 'block' : 'none';
-    };
-};
 function fireMiniTab(elem){
     var target  = elem.getAttribute('data_target');
     var element = document.getElementById(target);
@@ -422,7 +416,6 @@ function getCookie(cname) {
     }
     return "";
 }
-
 function refreshDebugger(msg) {
     if (msg.socket !=0 && refreshDebugger.socket == msg.socket) {  // Just one time refresh the content for same socket id
         return;
@@ -444,6 +437,55 @@ function refreshDebugger(msg) {
     }
     if (typeof msg.env != "undefined") {
         document.getElementById("obulloDebugger-environment").innerHTML = decode64(msg.env);
+    }
+    if (typeof msg.css != "undefined") {
+
+        // Send env data to debugger controller to create iframes for each layers
+        // http://stackoverflow.com/questions/10418644/creating-an-iframe-with-given-html-dynamically
+    
+        var css = decode64(msg.css);
+        var head = "<html><head><style type='text/css'>";
+        head += css;
+        head += 'html, body{ float:left; background: white; }</style>';
+
+        createIframe(head, msg.id);
+    }
+}
+
+var layers = {};
+function createIframe(head, msgID) {
+    var layer = document.getElementsByClassName('obullo-layer');
+    for (var i in layer) {
+        if (typeof layer[i] != "object") {
+            continue;
+        }
+        if (!layer[i].getElementsByTagName('iframe').length) {
+            layers[layer[i].dataset.unique] = layer[i].innerHTML;
+        }
+    }
+    for (var i in layer) {
+        if (typeof layer[i] != "object") {
+            continue;
+        }
+        var tempHtml = head;
+        var iframe = document.createElement('iframe');
+        iframe.frameBorder=0;
+        tempHtml += '</head>';
+        tempHtml += '<body>' + layers[layer[i].dataset.unique] + '</body></html>';
+        iframe.id= layer[i].dataset.unique;
+        iframe.width = "100%";
+        iframe.height= "1px";
+
+        document.querySelector("[data-unique='"+layer[i].dataset.unique+"']").innerHTML = '';
+        layer[i].appendChild(iframe);
+        iframe.contentWindow.document.write(tempHtml);
+
+        if (navigator.appName == "Netscape") {  // Firefox iframe unlimited loading bug fix
+            setTimeout(function () {
+                iframe.contentWindow.stop();
+            }, 3000);
+        }
+        iframe.height = iframe.contentWindow.document.body.scrollHeight + "px";
     }
 }
 
@@ -487,7 +529,6 @@ function load(refresh){
 
                     }
                     refreshDebugger(msg);
-
                 } else if (msg.message == "CLI_REQUEST") {
                     refreshDebugger(msg);
                 }
@@ -521,13 +562,46 @@ function reconnect() {
 }
 setInterval(reconnect, 2000);
 
-
 var keyStr = "ABCDEFGHIJKLMNOP" +
                "QRSTUVWXYZabcdef" +
                "ghijklmnopqrstuv" +
                "wxyz0123456789+/" +
                "=";
 
+function encode64(input) {
+     input = escape(input);
+     var output = "";
+     var chr1, chr2, chr3 = "";
+     var enc1, enc2, enc3, enc4 = "";
+     var i = 0;
+
+     do {
+        chr1 = input.charCodeAt(i++);
+        chr2 = input.charCodeAt(i++);
+        chr3 = input.charCodeAt(i++);
+
+        enc1 = chr1 >> 2;
+        enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+        enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+        enc4 = chr3 & 63;
+
+        if (isNaN(chr2)) {
+           enc3 = enc4 = 64;
+        } else if (isNaN(chr3)) {
+           enc4 = 64;
+        }
+
+        output = output +
+           keyStr.charAt(enc1) +
+           keyStr.charAt(enc2) +
+           keyStr.charAt(enc3) +
+           keyStr.charAt(enc4);
+        chr1 = chr2 = chr3 = "";
+        enc1 = enc2 = enc3 = enc4 = "";
+     } while (i < input.length);
+
+     return output;
+}
 function decode64(input) {
      var output = "";
      var chr1, chr2, chr3 = "";
@@ -561,7 +635,6 @@ function decode64(input) {
         enc1 = enc2 = enc3 = enc4 = "";
 
      } while (i < input.length);
-
      return unescape(output);
 }
 </script>
@@ -581,11 +654,7 @@ function decode64(input) {
             <li <?php echo ($activeTab == 'obulloDebugger-ajax-log') ? 'class="obulloDebugger-activeTab obulloDebugger-ajax-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-ajax-log')" class="obulloDebugger-ajax-log">
                 <a href="javascript:void(0);">AJAX</a>
             </li>
-            <!--
-            <li <?php echo ($activeTab == 'obulloDebugger-console-log') ? 'class="obulloDebugger-activeTab obulloDebugger-console-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-console-log')" class="obulloDebugger-console-log">
-                <a href="javascript:void(0);">CONSOLE</a>
-            </li>
-            -->
+            
             <li <?php echo ($activeTab == 'obulloDebugger-environment') ? 'class="obulloDebugger-activeTab obulloDebugger-environment "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-environment')" class="obulloDebugger-environment">
                 <a href="javascript:void(0);">ENVIRONMENTS</a>
             </li>
@@ -605,7 +674,6 @@ function decode64(input) {
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-environment') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-environment">
         <?php echo $envHtml ?>
     </div>
-    <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-console-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-console-log"></div>
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-ajax-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-ajax-log"></div>
     <div class="obulloDebugger-container <?php echo ($activeTab != 'obulloDebugger-http-log') ? 'hiddenContainer'  : '' ?>" id="obulloDebugger-http-log"></div>
 </div>

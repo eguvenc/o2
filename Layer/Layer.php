@@ -28,9 +28,7 @@ use Obullo\Container\ContainerInterface;
 class Layer
 {
     const CACHE_KEY = 'Layer:';
-    const LOG_HEADER = "<br /><div style=\"float:left;\">";
-    const LOG_FOOTER = "</div><div style=\"clear:both;\"></div>";
-
+    
     /**
      * Container
      * 
@@ -190,11 +188,11 @@ class Layer
      */
     public function execute($expiration = '')
     {
-        $KEY = $this->getId();      // Get layer id
+        $layerID = $this->getId();  // Get layer id
         $start = microtime(true);   // Start query timer 
 
-        if ($this->params['cache'] && $response = $this->c['cache']->get($KEY)) {   
-            $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $KEY, $response);
+        if ($this->params['cache'] && $response = $this->c['cache']->get($layerID)) {   
+            $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $layerID, $response);
             $this->reset();
             return base64_decode($response);
         }
@@ -203,7 +201,7 @@ class Layer
             $this->reset();
             return $error;
         }
-        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$KEY); //  Create Layer ID
+        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$layerID); //  Create Layer ID
         
         $directory = $this->c['router']->fetchDirectory();
         $className = $this->c['router']->fetchClass();
@@ -219,23 +217,19 @@ class Layer
         }
         $class = new $className;  // Call the controller
 
-        if (method_exists($class, 'load')) {
-            $class->load();
-        }
         if (! method_exists($class, $method)) {  // Check method exist or not
             $this->reset();
             $this->c['response']->setError('@LayerNotFound@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
             return $this->c['response']->getError();
         }
-
         ob_start();
-        call_user_func_array(array($class, $method), array_slice($this->c['uri']->rsegments, 3));
+        call_user_func_array(array($class, $method), array_slice($this->c['uri']->routedSegments(), 3));
         $response = ob_get_clean();
 
         if (is_numeric($expiration)) {
-            $this->c['cache']->set($KEY, base64_encode($response), (int)$expiration); // Write to Cache
+            $this->c['cache']->set($layerID, base64_encode($response), (int)$expiration); // Write to Cache
         }
-        $this->log('$_LAYER:', $this->getUri(), $start, $KEY, $response);
+        $this->log('$_LAYER:', $this->getUri(), $start, $layerID, $response);
         return $response;
     }
 
@@ -289,8 +283,7 @@ class Layer
     }
 
     /**
-     * Create layer connection string next
-     * we will convert it to connection id.
+     * Create layer connection string next we will convert it to connection id.
      *
      * @param mixed $resource string
      *
@@ -334,19 +327,19 @@ class Layer
      * @param string $label    log label
      * @param string $uri      uri string
      * @param string $start    start time
-     * @param string $KEY      cache key
+     * @param string $id       layer id
      * @param string $response data
      * 
      * @return void
      */
-    public function log($label, $uri, $start, $KEY, $response)
+    public function log($label, $uri, $start, $id, $response)
     {
         $this->c['logger']->debug(
-            $label.' '.$uri, 
+            $label.' '.strtolower($uri), 
             array(
-                'time' => number_format(microtime(true) - $start, 4), 
-                'key' => $KEY, 
-                'output' => static::LOG_HEADER .$response. static::LOG_FOOTER
+                'time' => number_format(microtime(true) - $start, 4),
+                'id' => $id, 
+                'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'">' .$response. '</div>',
             )
         );
     }
