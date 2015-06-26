@@ -139,7 +139,7 @@ Bir katmanı önbellekten temizlemek için katman yolu (url) ve varsa katman par
 $this->layer->flush('views/header', array('user_id' => 5));
 ```
 
-##### Katmanlarla Bir Gezinme Çubuğu Yaratalım
+### Katmanlarla Bir Gezinme Çubuğu Yaratalım
 
 
 
