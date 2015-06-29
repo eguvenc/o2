@@ -53,7 +53,7 @@ gibi özellikleri barındırır.
 
 Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin gelişmiş özellikleri ile kullanıldığında nasıl çalıştığı hakkında size bir ön bilgi verecektir:
 
-* [Şemayı görmek için buraya tıklayınız](/Log/Docs/images/flowchart.png?raw=true)
+![Akış Şeması](/Log/Docs/images/flowchart.png?raw=true)
 
 Akış şemasına göre GenericUser login butonuna bastığı anda ilk önce hafıza bloğuna bir sorgu yapılır ve daha önceden kullanıcının önbellekte yetkilendirilmiş kalıcı kimliği olup olmadığında bakılır eğer hafıza bloğunda kalıcı yetki doğrulama kaydı var ise kullanıcı kimliği buradan yok ise database adaptörüne sorgu yapılarak elde edilir.
 
