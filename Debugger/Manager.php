@@ -71,7 +71,7 @@ class Manager
         $envHtml = $envtab->printHtml();
 
         ob_start();
-        include_once 'Views/Debugger.php';
+        include_once 'View.php';
         $view = ob_get_clean();
         unset($envHtml);
 
