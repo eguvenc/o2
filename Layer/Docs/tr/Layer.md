@@ -1,11 +1,7 @@
 
 ## Katmanlar
 
-Çok katmanlı programlama tekniği hiyerarşik kontrolör programlama kalıbından türetilmiş ( bknz. <a href="http://www.javaworld.com/article/2076128/design-patterns/hmvc--the-layered-pattern-for-developing-strong-client-tiers.html" target="_blank">Java Hmvc.</a> ) uygulamanızı ölçeklenebilir hale getirmek için kullanılan bir tasarım kalıbıdır. Çok katmanlı mimari MVC katmanlarını bir üst-alt hiyerarşisi içerisinde çözümler. Uygulama içerisinde tekrarlayan bu model yapılandırılmış bir client-tier mimarisi sağlar.
-
-![Katmanlar](/Layer/Docs/images/layers.png?raw=true "Katmanlı Programlama")
-
-Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından tekralanabilir olarak çağrılabilen katmanlar uygulamayı parçalayarak farklı işlevsel özellikleri bileşen yada web servisleri haline getirir.
+Çok katmanlı programlama tekniği hiyerarşik kontrolör programlama kalıbından türetilmiş uygulamanızı ölçeklenebilir hale getirmek için kullanılan bir tasarım kalıbıdır. ( bknz. <a href="http://www.javaworld.com/article/2076128/design-patterns/hmvc--the-layered-pattern-for-developing-strong-client-tiers.html" target="_blank">Java Hmvc</a> ).
 
 <ul>
     <li>
@@ -49,6 +45,12 @@ Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından te
 
 ## Mimari Yapı
 
+Çok katmanlı mimari MVC katmanlarını bir üst-alt hiyerarşisi içerisinde çözümler. Uygulama içerisinde tekrarlayan bu model yapılandırılmış bir client-tier mimarisi sağlar.
+
+![Katmanlar](/Layer/Docs/images/layers.png?raw=true "Katmanlı Programlama")
+
+Her bir katman basit kontrolör sınıflarıdır. Layer sınıfı tarafından tekralanabilir olarak çağrılabilen katmanlar uygulamayı parçalayarak farklı işlevsel özellikleri bileşen yada web servisleri haline getirir.
+
 <a name="usage"></a>
 
 ### Katmanlı Mimariyi Kullanmak
@@ -57,7 +59,7 @@ Katmanlı mimari sunum ( presentation ) katmanınının yazılım geliştirme s�
 
 * Arayüz Tutarlılığı: Katmanlı programlama görünen varlıkları ( views ) kesin parçalara ayırır ve her bölüm kendisinden sorumlu olduğu fonksiyonu çalıştırır ( view controller ) böylece her katman bir layout yada widget hissi verir.
 * Bakımı Kolay Uygulamalar: Parçalara bölünen kullanıcı arayüzü bileşenleri MVC tasarım desenine bağlı kaldıkları için bakım kolaylığı sağlarlar.
-* Mantıksal Uygulamalar: Katmanlar birbirleri ile etkişim içerisinde olabilecekleri gibi uygulama üzerinde hakimiyet ve önbelleklenebilme özellikleri ile genişleyebilir mantıksal uygulamalar yaratmayı sağlarlar. Bölümsel olarak birbirinden ayrılan katmanlar bir web servis gibi de çalışabilirler.
+* Mantıksal Uygulamalar: Katmanlar birbirleri ile etkişim içerisinde olabilecekleri gibi uygulama üzerinde hakimiyet ve önbelleklenebilme özellikleri ile genişleyebilir mantıksal uygulamalar yaratmayı sağlarlar. Bölümsel olarak birbirinden ayrılan katmanlar bir <kbd>web servis</kbd> gibi de çalışabilirler.
 
 ### Görünen Varlıkları ( views ) Katmanlar İle Oluşturmak
 
