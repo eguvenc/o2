@@ -1,8 +1,7 @@
 <?php
 
-namespace Obullo\Log\Console\Reader;
+namespace Obullo\Log\Cli;
 
-use Obullo\Log\Console\Printer\Colorful;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -45,7 +44,7 @@ class Mongo
         $resultArray = $mongoCollection->find();
         
         $i = 0;
-        $printer = new Colorful;
+        $printer = new Printer;
         while (true) {
             if ($mongoCollection->count() > $i) {
                 foreach ($resultArray as $val) {
@@ -79,4 +78,4 @@ class Mongo
 // END Mongo class
 
 /* End of file Mongo.php */
-/* Location: .Obullo/Log/Console/Reader/Mongo.php */
+/* Location: .Obullo/Log/Cli/Mongo.php */

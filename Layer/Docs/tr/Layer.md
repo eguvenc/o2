@@ -311,7 +311,7 @@ Debugger <kbd>http://myproject/debugger</kbd> modülünü çalıştırdığını
 
 ![Hata Ayıklama](/Layer/Docs/images/debugger.gif?raw=true "Hata Ayıklama")
 
-Debugger modülü kurulu değilse kurmak için [Debugger.md](/Layer/Docs/Debugger/tr/Debugger.md) dökümentasyonunu inceleyebilirsiniz.
+Debugger modülü kurulu değilse kurmak için [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu inceleyebilirsiniz.
 
 
 #### Fonksiyon Referansı

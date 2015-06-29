@@ -1,9 +1,9 @@
 <?php
 
-namespace Obullo\Log\Console\Printer;
+namespace Obullo\Log\Cli;
 
 /**
- * Log Colorful Printer
+ * Log Cli Printer
  * 
  * @category  Log
  * @package   Console
@@ -13,7 +13,7 @@ namespace Obullo\Log\Console\Printer;
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
  * @link      http://obullo.com/package/cli
  */
-class Colorful
+class Printer
 {
     /**
      * Log message
@@ -198,7 +198,7 @@ $LIGHTGRAY="33[0;37m";
 $WHITE="33[1;37m";
 */
 
-// END Colorful class
+// END Printer class
 
-/* End of file Colorful.php */
-/* Location: .Obullo/Log/Console/Printer/Colorful.php */
+/* End of file Printer.php */
+/* Location: .Obullo/Log/Cli/Printer.php */

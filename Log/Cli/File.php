@@ -1,8 +1,7 @@
 <?php
 
-namespace Obullo\Log\Console\Reader;
+namespace Obullo\Log\Cli;
 
-use Obullo\Log\Console\Printer\Colorful;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -31,7 +30,7 @@ class File
         $c['config']->load('logger');
 
         $table = null; // unused variable
-        if ( ! isset($c['config']['logger']['file']['path'][$dir])) {
+        if (! isset($c['config']['logger']['file']['path'][$dir])) {
             echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['logger']['file']['path'][$dir] array.\033[0m\n");
             exit;
         }
@@ -45,7 +44,7 @@ class File
         $size = 0;
         while (true) {
             clearstatcache(); // Clear the cache
-            if ( ! file_exists($file)) { // Start process when file exists.
+            if (! file_exists($file)) { // Start process when file exists.
                 continue;
             }
             $currentSize = filesize($file); // Continue the process when file size change.
@@ -53,12 +52,12 @@ class File
                 usleep(50);
                 continue;
             }
-            if ( ! $fh = fopen($file, 'rb')) {
+            if (! $fh = fopen($file, 'rb')) {
                 echo("\n\n\033[1;31mPermission Error: You need to have root access or log folder has not got write permission.\033[0m\n");
                 die;
             }
             fseek($fh, $size);
-            $printer = new Colorful;
+            $printer = new Printer;
             $i = 0;
             while ($line = fgets($fh)) {
                 $printer->printLine($i, $line);
@@ -76,4 +75,4 @@ class File
 // END File class
 
 /* End of file File.php */
-/* Location: .Obullo/Log/Console/Reader/File.php */
+/* Location: .Obullo/Log/Cli/File.php */

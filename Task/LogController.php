@@ -49,7 +49,7 @@ class LogController extends Controller
             echo Console::newline(1);
             return;
         }
-        $Class = '\\Obullo\Log\Console\Reader\\'.$reader;
+        $Class = '\\Obullo\Log\Cli\\'.$reader;
         $class = new $Class;
         $class->follow($this->c, $dir, $db, $table);
     }
