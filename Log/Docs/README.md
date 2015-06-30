@@ -1,11 +1,7 @@
 
-## Logger Class
+## Loglama Sınıfı
 
-------
-
-The Logger class assists you to <kbd>write messages</kbd> to your log handlers. The logger class use php SplPriorityQueue class to manage your handler proirities.
-
-**Note:** This class defined as service in your app/clases/Service folder. The <b>logger</b> package uses <kbd>Disabled</kbd> handler as default.
+Logger sınıfı <kbd>handler</kbd> klasöründeki log sürücülerini kullanarak uygulamaya ait log verilerini <kbd>app/workers/logger</kbd> sınıfı yardımı ile direkt olarak ( senkron ) yada kuyruk servisi kullanarak asenkron olarak kaydeder. Logger sınıfı log verilerini arasındaki önemliliği destekler ve özelliği php SplPriorityQueue sınıfı yardımı ile 
 
 <ul>
     <li><a href="#features">Özellikler</a></li>
@@ -35,15 +31,19 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
 </ul>
 
 
-
 <a name="features"></a>
 
 ## Özellikler
 
 O2 Logger; 
 
-* Hafıza depoları, ( Storages ) 
-* Adaptörler,
+* Log Filtreleri, ( Log mesajlarını isteklerinize göre filtreleme )
+* Log Sürücüleri ( File, Email, Mongo, Syslog, Raw ),
+* Log Biçimleyicileri
+* Psr/Log standartı
+* Çoklu Log Sürücüleri İle Eş Zamanlı Yazma
+* Kuyruğa Atma
+* Log Verilerini Tek Bir Yerden İşleme ( app/classes/Workers/Logger.php )
 
 gibi özellikleri barındırır.
 
@@ -51,20 +51,30 @@ gibi özellikleri barındırır.
 
 ### Akış Şeması
 
-Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin gelişmiş özellikleri ile kullanıldığında nasıl çalıştığı hakkında size bir ön bilgi verecektir:
+Aşağıdaki akış şeması uygulamada bir log mesajının kaydedilirken hangi aşamalardan geçtiği ve loglamanın genel prensipleri hakkında size bir ön bilgi verecektir:
 
 ![Akış Şeması](/Log/Docs/images/flowchart.png?raw=true)
 
-Akış şemasına göre GenericUser login butonuna bastığı anda ilk önce hafıza bloğuna bir sorgu yapılır ve daha önceden kullanıcının önbellekte yetkilendirilmiş kalıcı kimliği olup olmadığında bakılır eğer hafıza bloğunda kalıcı yetki doğrulama kaydı var ise kullanıcı kimliği buradan yok ise database adaptörüne sorgu yapılarak elde edilir.
+Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log servisinde önceden tanımlı olan filtreler tarafından filtrelemeden geçtikten sonra iki dorum sözkonusu olur.
 
-Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edilen kimlik kartı performans için tekrar hafıza bloğuna yazılır.
+1. Kuyruk Servisinin Kapalı Olduğu Durum ( Varsayılan )
+
+Eğer kuyruğa atma opsiyonu log servisinden kapalı ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra önemlilik sırasına sıralanan veriler göre direkt olarak <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
+
+Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
+
+2. Kuyruk Servisinin Açık Olduğu Durum
+
+Eğer kuyruğa atma opsiyonu log servisinden açık ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra kuyruğa atılırlar. Kuyruğa gönderilme işlemi her sayfa için bir kere yapılır. Kuyruğa atılan log verilerini tüketmek için <kbd>app/classes/workers/Logger</kbd> sınıfı konsoldan çalıştırılarak <kbd>php task queue listen</kbd> komutu yardımı ile dinlenerek tüketilir. Konsoldan <kbd>php task queue listen</kbd> komutunun işlemci sayısına göre birden fazla çalıştırılması çoklu iş parçacıkları (multi threading) oluşturarak kuyruğun daha hızlı tüketilmesini sağlar. 
+
+Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
+
 
 <a name="configuration"></a>
 
 ## Konfigürasyon
 
 ------
-
 
 ### Konfigürasyon Değerleri
 
