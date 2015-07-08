@@ -22,13 +22,6 @@ use Obullo\Container\ContainerInterface;
 class WebSocket
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
      * Host
      * 
      * @var string
@@ -71,16 +64,25 @@ class WebSocket
     protected $connect;
 
     /**
-     * Constructor
+     * Request class
      * 
-     * @param object $c container
+     * @var object
      */
-    public function __construct(ContainerInterface $c)
+    protected $request;
+
+    /**
+     * Constructor
+     *
+     * @param object $request request
+     * @param object $config  config
+     */
+    public function __construct($request, $config)
     {
-        $this->c = $c;
+        $this->request = $request;
+
         if (false == preg_match(
             '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
-            $this->c['config']['http']['debugger']['socket'], 
+            $config['http']['debugger']['socket'], 
             $matches
         )) {
             throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
@@ -103,9 +105,9 @@ class WebSocket
         $this->connect = @socket_connect($this->socket, $this->host, $this->port);
 
         if ($this->connect == false) {
-            $message = "Debugger enabled in your config file but server is not running. 
-            Disable debugger or run server from your console: <pre>php task debugger</pre>";
-            if ($this->c['request']->isAjax()) {
+            $message = "Debugger enabled in your config file but debug server is not running. 
+            Disable debugger or run debug server using below the console command. <pre>php task debugger</pre>";
+            if ($this->request->isAjax()) {
                 $message = strip_tags($message);
             }
             throw new RuntimeException($message);
@@ -115,25 +117,34 @@ class WebSocket
     /**
      * Emit http request data for debugger
      *
-     * @param string $output output
-     * @param string $data   log data
+     * @param string $output  output
+     * @param string $payload log data
      * 
      * @return void
      */
-    public function emit($output = null, $data = array())
+    public function emit($output = null, $payload = array())
     {
         $this->output = $output;
-        $handler = new Debugger($this->c);  // Log raw handler
+        $primary = $payload['primary'];
+        $data    = $payload[$primary];
+        unset($payload['primary'], $payload['logger']);
+
+        foreach ($payload as $value) {
+            if ($value['type'] == 'handler') {
+                $data['record'] = array_merge($data['record'], $value['record']);  // Merge handlers and primary writer record
+            }
+        }
+        $handler = new Debugger;      // Log debug handler
         $this->lines = $handler->write($data);
 
-        if ($this->c['request']->isAjax()) {
+        if ($this->request->isAjax()) {
             if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
                 setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
             } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
                 setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
             }
             $this->handshake('Ajax');
-        } elseif ($this->c['request']->isCli()) { 
+        } elseif ($this->request->isCli()) { 
             $this->handshake('Cli');
         } else {
             $this->handshake('Http');
@@ -159,7 +170,7 @@ class WebSocket
      */
     protected function handshake($type = 'Ajax') 
     {
-        $envtab = new EnvTab($this->c, $this->getOutput());
+        $envtab = new EnvTab($this->request, $this->getOutput());
 
         $base64EnvData = base64_encode($envtab->printHtml());
         $base64LogData = base64_encode($this->lines);

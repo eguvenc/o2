@@ -80,7 +80,7 @@ class Http extends Application
         include APP .'routes.php';
 
         if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket = new WebSocket($this->c);
+            $this->websocket = new WebSocket($this->c['request'], $this->c['config']);
             $this->websocket->connect();
         }
         register_shutdown_function(array($this, 'close'));
@@ -131,7 +131,6 @@ class Http extends Application
     protected function dispatchMiddlewares()
     {
         global $c; // Make available container in middleware.php
-
         $currentRoute = $this->getUriString();
 
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
@@ -249,11 +248,7 @@ class Http extends Application
     public function checkDebugger()
     {
         if ($this->c['config']['http']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
-
-            $payload = $this->c['logger']->getPayload();
-            $primary = $payload['primary'];
-            
-            $this->websocket->emit($this->finalOutput, $payload[$primary]);
+            $this->websocket->emit($this->finalOutput, $this->c['logger']->getPayload());
         }
     }
 }

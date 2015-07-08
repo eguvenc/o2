@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Obullo\Queue\Failed;
 
@@ -41,8 +41,8 @@ abstract Class FailedJob
         $config   = $c['config']->load('queue/workers');
         $database = $c['config']->load('database');
         $provider = $config['failed']['provider'];
-
-        if ( ! isset($database['connections'][$provider['connection']])) {
+        
+        if (! isset($database['connections'][$provider['connection']])) {
             throw new RuntimeException(
                 sprintf(
                     'Failed job database connection "%s" is not defined in your config database.php',
@@ -50,10 +50,20 @@ abstract Class FailedJob
                 )
             );
         }
-        $this->db = $c['app']->provider('database')->get(['connection' => $provider['connection']]);
+        $this->db    = $c['app']->provider('database')->get(['connection' => $provider['connection']]);
         $this->table = $config['failed']['table'];
     }
 
+    /**
+     * Get database connection
+     * 
+     * @return object
+     */
+    public function getConnection()
+    {
+        return $this->db;
+    }
+    
 }
 
 // END FailedJob class

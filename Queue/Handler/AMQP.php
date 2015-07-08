@@ -67,7 +67,7 @@ class AMQP extends Queue implements HandlerInterface
         $this->logger = $this->c['logger'];
 
         $this->AMQPconnection = $this->c['app']->provider('amqp')->get(['connection' => 'default']);
-
+        
         $this->channel = new AMQPChannel($this->AMQPconnection);
         $this->defaultQueueName = 'default';
     }
@@ -97,55 +97,87 @@ class AMQP extends Queue implements HandlerInterface
     /**
      * Push a new job onto the queue.
      *
-     * @param string $job       name
-     * @param string $queueName queue name ( Routing Key )
-     * @param mixed  $data      payload
-     * @param mixed  $delay     dateTime or int push job onto the queue after a delay.
-     * @param array  $options   delivery options
+     * @param string $job     name
+     * @param string $route   queue name ( route key )
+     * @param mixed  $data    payload
+     * @param array  $options delivery options
      *
      * @link(Set Delivery Mode, http://stackoverflow.com/questions/6882995/setting-delivery-mode-for-amqp-rabbitmq)
      * 
      * @throws AMQPException
-     * @return bool
+     * @return boolean
      */
-    public function push($job, $queueName, $data, $delay = 0, $options = array())
+    public function push($job, $route, $data, $options = array())
     {
         if (empty($this->channel)) {
             throw new AMQPException('Before push you need to set a channel.');
         }
+        $queue = $this->declareQueue($route); // Get queue
+        return $this->publishJob($queue, $job, $data, $options);
+    }
+
+    /**
+     * Push a new job onto delayed queue.
+     *
+     * @param int    $delay   date
+     * @param string $job     name
+     * @param string $route   queue name ( Routing Key )
+     * @param mixed  $data    payload
+     * @param array  $options delivery options
+     *
+     * @link(Set Delivery Mode, http://stackoverflow.com/questions/6882995/setting-delivery-mode-for-amqp-rabbitmq)
+     * 
+     * @throws AMQPException
+     * @return boolean
+     */
+    public function later($delay, $job, $route, $data, $options = array())
+    {
+        if (empty($this->channel)) {
+            throw new AMQPException('Before push you need to set a channel.');
+        }
+        $queue = $this->declareDelayedQueue($route, $delay); // Get queue
+        return $this->publishJob($queue, $job, $data, $options);
+    }
+
+    /**
+     * Publish queue job
+     * 
+     * @param object $queue   AMQPQueue
+     * @param string $job     queue name
+     * @param array  $data    payload
+     * @param array  $options delivery options
+     * 
+     * @return bool
+     */
+    protected function publishJob($queue, $job, $data, $options = array())
+    {
         $options = empty($options) ? array(
             'delivery_mode' => 2,           // 2 = "Persistent", 1 = "Non-persistent"
             'content_type' => 'text/json'
         ) : $options;
-
-        if ($delay > 0) {
-            $queue = $this->declareDelayedQueue($queue, $delay); 
-        } else {
-            $queue = $this->declareQueue($queueName); // Get queue
-        }
         $payload = json_encode(array('job' => $job, 'data' => $data));
-        $job = $this->exchange->publish(
+        $result = $this->exchange->publish(
             $payload, 
             $queue->getName(),
             AMQP_MANDATORY, 
             $options
         );
-        if (! $job) {
+        if (! $result) {
             throw new AMQPException('Could not push job to a queue');
         }
-        return $job;
+        return $result;
     }
 
     /**
      * Pop the next job off of the queue.
      *
-     * @param string $queueName queue name ( Routing Key )
+     * @param string $route queue name ( routing key )
      *
      * @return mixed job handler object or null
      */
-    public function pop($queueName = null)
+    public function pop($route = null)
     {
-        $queue = $this->declareQueue($queueName); // Declare queue if not exists
+        $queue = $this->declareQueue($route); // Declare queue if not exists
         $envelope = $queue->get();  // Get envelope
     
         if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE

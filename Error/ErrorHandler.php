@@ -157,7 +157,7 @@ class ErrorHandler
             && $level
         ) {
             $e = new ErrorException($message, $level, 0, $file, $line);
-            $c['exception']->toString($e);
+            $c['exception']->show($e);
         }
         return false;
     }
@@ -174,7 +174,7 @@ class ErrorHandler
             return;
         }
         $type = $error['type'];
-        if (0 === $this->level OR ! in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE))) {
+        if (0 === $this->level || ! in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE))) {
             return;
         }
         $exp = explode(DS, $error['file']);
@@ -186,11 +186,11 @@ class ErrorHandler
                 $logger->error($error['message'], array('level' => $type, 'file' => $error['file'], 'line' => $error['line']));
             }
         }
-        if ( ! $this->displayErrors) {
+        if (! $this->displayErrors) {
             return;
         }
         $e = new ErrorException($error['message'], $type, 0, $error['file'], $error['line']);
-        $c['exception']->toString($e, true);
+        $c['exception']->show($e, true);
     }
 
 }

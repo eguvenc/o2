@@ -41,11 +41,10 @@ class Manager
 
     /**
      * Constructor
-     * 
-     * @param object $c container
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct()
     {
+        global $c;
         $this->c = $c;
         $this->logger = $c['logger'];
         $this->config = $c['config']->load('logger');

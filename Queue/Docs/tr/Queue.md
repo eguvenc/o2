@@ -257,6 +257,43 @@ php task queue listen --channel=Logs --route=localhost.logger --delay=0 --memory
 </tbody>
 </table>
 
+Deleting A Processed Job
+
+Once you have processed a job, it must be deleted from the queue, which can be done via the delete method on the Job instance:
+
+public function fire($job, $data)
+{
+    // Process the job...
+
+    $job->delete();
+}
+Releasing A Job Back Onto The Queue
+
+If you wish to release a job back onto the queue, you may do so via the release method:
+
+public function fire($job, $data)
+{
+    // Process the job...
+
+    $job->release();
+}
+You may also specify the number of seconds to wait before the job is released:
+
+$job->release(5);
+Checking The Number Of Run Attempts
+
+If an exception occurs while the job is being processed, it will automatically be released back onto the queue. You may check the number of attempts that have been made to run the job using the attempts method:
+
+if ($job->attempts() > 3)
+{
+    //
+}
+Accessing The Job ID
+
+You may also access the job identifier:
+
+$job->getJobId();
+
 
 ## Queue Service
 

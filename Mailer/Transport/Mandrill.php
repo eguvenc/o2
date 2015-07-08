@@ -58,7 +58,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         $this->config = $c['config']->load('mailer/mandrill');
         $this->logger = $c['logger'];
         
-        $this->logger->debug('Madrill Class Initialized');
+        $this->logger->debug('Mandrill Class Initialized');
 
         parent::__construct($c);
     }
@@ -127,7 +127,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         if (empty($bcc)) {
             return;
         }
-        if ($limit != null AND is_numeric($limit)) {
+        if ($limit != null && is_numeric($limit)) {
             $this->bccBatchMode = true;
             $this->bccBatchSize = $limit;
         }
@@ -160,7 +160,7 @@ class Mandrill extends HttpMailer implements MailerInterface
     /**
      * Write Headers as a string
      *
-     * @return    void
+     * @return void
      */
     protected function writeHeaders()
     {
@@ -184,7 +184,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         if ($this->mailtype == 'html') {
             $this->message['html'] = $this->body;
         }
-        if ($this->wordwrap === true AND $this->mailtype != 'html') {
+        if ($this->wordwrap === true && $this->mailtype != 'html') {
             $text = new Text($this->newline);
             $this->body = $text->wordWrap($this->body, $this->wrapchars);
             $this->message['text'] = $this->body;
@@ -208,7 +208,7 @@ class Mandrill extends HttpMailer implements MailerInterface
                 if ($value['disposition'] == 'attachment') {
                     $this->message['attachments'][$i]['type'] = $value['type'];
                     $this->message['attachments'][$i]['name'] = $value['name'];
-                    if ( ! $content = file_get_contents($value['fileurl'])) {
+                    if (! $content = file_get_contents($value['fileurl'])) {
                         $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
                     }
                     $this->message['attachments'][$i]['content'] = ($content == false) ? null : base64_encode($content);
@@ -216,7 +216,7 @@ class Mandrill extends HttpMailer implements MailerInterface
                 } else {
                     $this->message['images'][$j]['type'] = $value['type'];
                     $this->message['images'][$j]['name'] = $value['name'];
-                    if ( ! $content = file_get_contents($value['fileurl'])) {
+                    if (! $content = file_get_contents($value['fileurl'])) {
                         $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:ATTACHMENT_MISSING', $value['fileurl']);
                     }
                     $this->message['images'][$j]['content']  = ($content == false) ? null : base64_encode($content);
@@ -247,7 +247,7 @@ class Mandrill extends HttpMailer implements MailerInterface
         }
         // Async defaults to false for messages with no more than 10 recipients; 
         // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
-        $this->message['async'] = false;   
+        $this->message['async']   = false;   
         $this->message['ip_pool'] = $this->config['pool'];
         $this->message['send_at'] = $this->setDate();
 

@@ -44,7 +44,7 @@ class Uri
         $this->c['logger']->debug(
             'Uri Class Initialized', 
             array('uri' => $this->getRequestUri()), 
-            11
+            1001
         );
         // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }
@@ -133,7 +133,7 @@ class Uri
      */
     protected function parseRequestUri()
     {
-        if ( ! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME'])) {
+        if (! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME'])) {
             return '';
         }
         list($uri, $query) = $this->parseUrl();
@@ -198,7 +198,7 @@ class Uri
      *
      * Will parse QUERY_STRING and automatically detect the URI from it.
      *
-     * @return  string
+     * @return string
      */
     protected function parseQueryString()
     {

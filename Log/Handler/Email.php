@@ -39,16 +39,6 @@ class Email extends AbstractHandler implements HandlerInterface
     protected $newlineChar = '<br />';
 
     /**
-     * Config Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct(ContainerInterface $c)
-    {
-        parent::__construct($c);
-    }
-
-    /**
      * Sets your custom newline character
      * 
      * @param string $newline char

@@ -14,6 +14,12 @@ namespace Obullo\Log;
  */
 abstract Class AbstractLogger
 {
+    protected $enabled = false;               // On / Off Logging
+    protected $isWorker = false;              // Whether to know app is registered as worker if yes we enable log writing. Default = false.
+    protected $filterNames = array();         // Namespaces of defined filters
+    protected $track = array();               // Track data for handlers and writers
+    protected $registeredHandlers = array();  // Registered log handlers
+
     /**
      * Log priorities
      * 
@@ -49,7 +55,92 @@ abstract Class AbstractLogger
         E_DEPRECATED        => LOG_DEBUG,
         E_USER_DEPRECATED   => LOG_DEBUG,
     );
+
+    /**
+     * Enable logging
+     * 
+     * @return object Logger
+     */
+    public function enable()
+    {
+        $this->enabled = true;
+        return $this;
+    }
+
+    /**
+     * Disable logging
+     * 
+     * @return object Logger
+     */
+    public function disable()
+    {
+        $this->enabled = false;
+        return $this;
+    }
+
+    /**
+     * Returns to boolean whether to know logging 
+     * is enabled
+     * 
+     * @return boolean
+     */
+    public function isEnabled()
+    {
+        return $this->enabled;
+    }
+
+    /**
+     * Register filter alias
+     * 
+     * @param string $name      name of filter
+     * @param string $namespace filename and path of filter
+     *
+     * @return object
+     */
+    public function registerFilter($name, $namespace)
+    {
+        $this->filterNames[$name] = ltrim($namespace, '\\');
+        return $this;
+    }
+
+    /**
+     * Register handler
+     * 
+     * @param string $priority global priority
+     * @param string $name     handler name which is defined in constants
+     * 
+     * @return object
+     */
+    public function registerHandler($priority, $name)
+    {
+        $this->registeredHandlers[$name] = array('priority' => $priority);
+        $this->track[] = array('name' => $name);
+        return $this;
+    }
     
+    /**
+     * Default logging feature disabled for workers, 
+     * you need to turn on logs in order to define workers as an application.
+     * 
+     * @return object Logger
+     */
+    public function registerAsWorker()
+    {
+        $this->isWorker = true;
+        return $this;
+    }
+
+    /**
+     * Whether to know app is registered as
+     * worker if yes we enable log writing.
+     * 
+     * @return boolean
+     */
+    public function isRegisteredAsWorker()
+    {
+        return $this->isWorker;
+    }
+
     /**
      * Returns all or selected priorities
      * 
@@ -109,11 +200,10 @@ abstract Class AbstractLogger
      * Add writer
      * 
      * @param string $name handler key
-     * @param string $type writer/handler
      *
      * @return object
      */
-    abstract public function addWriter($name, $type = 'writer');
+    abstract public function addWriter($name);
 
     /**
      * Returns to primary writer name.
@@ -252,36 +342,6 @@ abstract Class AbstractLogger
     {
         $this->log(__FUNCTION__, $message, $context, $priority);
     }
-
-    /**
-     * Register filter alias
-     * 
-     * @param string $name      name of filter
-     * @param string $namespace filename and path of filter
-     *
-     * @return object
-     */
-    public function registerFilter($name, $namespace)
-    {
-        $this->filterNames[$name] = ltrim($namespace, '\\');
-        return $this;
-    }
-
-    /**
-     * Register handler
-     * 
-     * @param string $priority global priority
-     * @param string $name     handler name which is defined in constants
-     * 
-     * @return object
-     */
-    public function registerHandler($priority, $name)
-    {
-        $this->registeredHandlers[$name] = array('priority' => $priority);
-        $this->track[] = array('type' => 'handlers', 'name' => $name);
-        return $this;
-    }
-    
 }
 
 // END AbstractLogger class

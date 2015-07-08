@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\ServiceProviders\Connections;
+namespace Obullo\Service\Providers\Connections;
 
 use AmqpConnection;
 use RuntimeException;
@@ -37,7 +37,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
 
         $this->setKey('amqp.connection.');
 
-        if ( ! extension_loaded('AMQP')) {
+        if (! extension_loaded('AMQP')) {
             throw new RuntimeException(
                 'The AMQP extension has not been installed or enabled.'
             );
@@ -53,8 +53,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     public function register()
     {
         foreach ($this->config['connections'] as $key => $val) {
-
-            $this->c[$this->getKey($key)] = function () use ($val) {  // create shared connections
+            $this->c[$this->getKey($key)] = function () use ($val) {
                 return $this->createConnection($val);
             };
         }
@@ -69,15 +68,15 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
      */
     protected function createConnection($params)
     {
-        if (empty($params['host']) OR empty($params['port'])) {
+        if (empty($params['host']) || empty($params['port']) || empty($params['password'])) {
             throw new RuntimeException(
-                'Check your queue configuration, "host" or "port" key seems empty.'
+                'Check your queue configuration, "host" or "port" or "password" key seems empty.'
             );
         }
         $connection = new $this->AMQPClass;
         $connection->setHost($params['host']); 
         $connection->setPort($params['port']); 
-        $connection->setLogin($params['username']); 
+        $connection->setLogin($params['username']);
         $connection->setPassword($params['password']); 
         $connection->setVHost($params['vhost']); 
         $connection->connect();
@@ -93,10 +92,10 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
      */
     public function getConnection($params = array())
     {
-        if ( ! isset($params['connection'])) {
+        if (! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0]; //  Set default connection
         }
-        if ( ! isset($this->config['connections'][$params['connection']])) {
+        if (! isset($this->config['connections'][$params['connection']])) {
             throw new UnexpectedValueException(
                 sprintf(
                     'Connection key %s does not exist in your queue.php config file.',
@@ -110,7 +109,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     /**
      * Create a new AMQP connection
      * 
-     * if you don't want to add it config file and you want to create new one.
+     * If you don't want to add it config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -120,8 +119,9 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     {
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->exists($cid)) { //  create shared connection if not exists
-            $this->c[$cid] = function () use ($params) {  //  create shared connections
+        // Create shared connection if not exists
+        if (! $this->c->exists($cid)) {
+            $this->c[$cid] = function () use ($params) {
                 return $this->createConnection($params);
             };
         }

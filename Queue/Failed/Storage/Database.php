@@ -44,24 +44,20 @@ class Database extends FailedJob implements StorageInterface
         }
         // Json encode coult not encode the large data
         // Xml Encoding fix the issue, if you see any problem please open an issue from github.
-        if ( ! empty($data['error_trace'])) {
+        if (! empty($data['error_trace'])) {
             $xml = new SimpleXMLElement('<root/>');
             array_walk_recursive($data['error_trace'], array($xml, 'addChild'));
             $data['error_trace'] = $xml->asXML();
         }
-        if ( ! empty($data['error_xdebug'])) {
+        if (! empty($data['error_xdebug'])) {
             $xml = new SimpleXMLElement('<root/>');
             $xml->addChild('xdebug', $data['error_xdebug']);
             $data['error_xdebug'] = $xml->asXML();
         }
         $data['failure_first_date'] = time();
 
-        return $this->db->transactional(
-            function () use ($data) {
-                $sql = "INSERT INTO $this->table (".implode(',', array_keys($data)).") VALUES (".implode(',', array_values($this->db->escape($data))).")";
-                return $this->db->exec($sql);
-            }
-        );
+        $sql = "INSERT INTO $this->table (".implode(',', array_keys($data)).") VALUES (".implode(',', array_values($this->db->escape($data))).")";
+        return $this->db->exec($sql);
     }
 
     /**
@@ -74,12 +70,11 @@ class Database extends FailedJob implements StorageInterface
      */
     public function dailyExists($file, $line)
     {
-        $this->db->prepare("SELECT id, failure_first_date FROM $this->table WHERE error_file = ? AND error_line = ? LIMIT 1")
+        $row = $this->db->prepare("SELECT id, failure_first_date FROM $this->table WHERE error_file = ? AND error_line = ? LIMIT 1")
             ->bindParam(1, $file, PDO::PARAM_STR)
             ->bindParam(2, $line, PDO::PARAM_INT)
             ->execute()
             ->row();
-            
         if ($row == false) {
             return false;
         }
@@ -98,12 +93,8 @@ class Database extends FailedJob implements StorageInterface
      */
     public function updateRepeat($id)
     {
-        return $this->db->transactional(
-            function () use ($id) {
-                $sql = "UPDATE $this->table SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
-                return $this->db->exec(sprintf($sql, time(), $id));
-            }
-        );
+        $sql = "UPDATE $this->table SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
+        return $this->db->exec(sprintf($sql, time(), $id));
     }
 
 }

@@ -3,7 +3,7 @@
 namespace Obullo\Log;
 
 /**
- * Logge Interface
+ * Log Interface
  * 
  * @category  Log
  * @package   LoggerInterface
@@ -17,8 +17,9 @@ interface LoggerInterface
     /**
      * System is unusable.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -30,8 +31,9 @@ interface LoggerInterface
      * Example: Entire website down, database unavailable, etc. This should
      * trigger the SMS alerts and wake you up.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -42,8 +44,9 @@ interface LoggerInterface
      *
      * Example: Application component unavailable, unexpected exception.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -53,8 +56,9 @@ interface LoggerInterface
      * Runtime errors that do not require immediate action but should typically
      * be logged and monitored.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -66,8 +70,9 @@ interface LoggerInterface
      * Example: Use of deprecated APIs, poor use of an API, undesirable things
      * that are not necessarily wrong.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -76,8 +81,9 @@ interface LoggerInterface
     /**
      * Normal but significant events.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -88,8 +94,9 @@ interface LoggerInterface
      *
      * Example: User logs in, SQL logs.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -98,8 +105,9 @@ interface LoggerInterface
     /**
      * Detailed debug information.
      *
-     * @param string $message message
-     * @param array  $context data
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */
@@ -108,9 +116,10 @@ interface LoggerInterface
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed  $level   level
-     * @param string $message message
-     * @param array  $context data
+     * @param mixed   $level    level
+     * @param string  $message  message
+     * @param array   $context  data
+     * @param integer $priority priority of log
      * 
      * @return null
      */

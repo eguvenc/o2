@@ -3,7 +3,6 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Debugger Environment Tab Builder
@@ -34,12 +33,12 @@ class EnvTab
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param string $output output
+     * @param object $request class
+     * @param string $output  output
      */
-    public function __construct(ContainerInterface $c, $output = null)
+    public function __construct($request, $output = null)
     {
-        $this->request = $c['request'];
+        $this->request = $request;
         $this->output = $output;
     }
 

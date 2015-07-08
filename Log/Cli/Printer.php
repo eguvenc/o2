@@ -138,7 +138,7 @@ class Printer
     protected function writeLevels($line)
     {
         if ($this->has('info:')) {
-            $line = "\033[1;33m".$line."\033[0m";
+            $line = "\033[1;34m".$line."\033[0m";
             echo $line."\n";
         } elseif ($this->has('error:')) {
             $line = "\033[1;31m".$line."\033[0m";

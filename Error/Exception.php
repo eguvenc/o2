@@ -22,7 +22,7 @@ class Exception
      * 
      * @return string view
      */
-    public function toString($e, $fatalError = false)
+    public function show($e, $fatalError = false)
     {
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
             return;
@@ -38,7 +38,7 @@ class Exception
             return;
         }
         $isAjax = false;
-        if ( ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             $isAjax = true;
         }
         if ($isAjax) {    // Ajax

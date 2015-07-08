@@ -3,7 +3,7 @@
 
 Konfigürasyon sınıfı <kbd>app/config</kbd> klasöründeki uygulamanıza ait konfigürasyon dosyalarını yönetir. Bu sınıf uygulama içerisinde konfigürasyon dosyalarını çevre ortamına ( environments ) göre geçerli klasörden yükler ve çağrıldığında tüm yüklenen konfigürasyon dosyalarına ait konfigürasyonlardan oluşan bir diziye geri döner. 
 
-> *Not:* Varsayılan konfigürasyon dosyası <kbd>config/env.local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
+> *Not:* Varsayılan konfigürasyon dosyası <kbd>config/env/local/config.php</kbd> dosyasıdır ve bu dosya uygulama çalıştırıldığında uygulamaya kendiliğinden dahil edilir. Bu dosyayı ayrıca yüklememelisiniz.
 
 
 <ul>
@@ -55,7 +55,7 @@ Bir konfigürasyon dosyası config sınıfı içerisindeki <kbd>load()</kbd> met
 $this->c['config']->load('database');
 ```
 
-Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>config/env.local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
+Yukarıda verilen örnekte çevre ortamını "local" ayarlandığını varsayarsak <kbd>database.php</kbd> dosyası <kbd>config/env/local/</kbd> klasöründen çağrılır. Bir konfigürasyon dosyası bir kez yüklendiğinde ona config sınıfı ile her yerden ulaşabilmek mümkündür.
 
 ```php
 echo $this->c['config']['database']['connections']['db']['host'];  // Çıktı localhost
@@ -80,7 +80,7 @@ $this->c['config']['item']['subitem'];
 
 #### Konfigürasyon Dosyalarına Yazmak
 
-Config sınıfı içerisindeki write metodu <kbd>config/env.$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>config/env.local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
+Config sınıfı içerisindeki write metodu <kbd>config/env.$env/</kbd> klasörü içerisindeki config dosyalarınıza yeni konfigürasyon verileri kaydetmenizi sağlar. Takip eden örnekte <kbd>config/env/local/domain.php</kbd> domain konfigürasyon dosyasındaki <b>maintenance</b> değerini güncelliyoruz.
 
 ```php
 $newArray = $this->c['config']['domain'];
@@ -109,7 +109,7 @@ return array(
 );
 
 /* End of file */
-/* Location: ./var/www/framework/config/env.local/domain.php */
+/* Location: ./var/www/framework/config/env/local/domain.php */
 ```
 
 Yukarıdaki örnek <kbd>config/env.$env/</kbd> klasörü altındaki dosyalara yazma işlemi yapar. Eğer env klasörü dışında olan yani paylaşımlı bir konfigürasyon dosyasına yazma işlemi gerçekleştimek istiyorsak <b>"../"</b> dizinden çıkma karakteri kullanarak kaydetme işlemini gerçekleştirmemiz gerekir.
@@ -219,7 +219,7 @@ echo $c['app']->env();  // Çıktı  local
     <tbody>
         <tr>
             <td><b>local</b></td>
-            <td>Yerel sunucu ortamıdır, geliştiriciler tarafından uygulama bu ortam altında geliştirilir, her bir geliştiricinin bir defalığına <b>environments.php</b> dosyası içerisine kendi bilgisayarına ait ismi (hostname) tanımlaması gereklidir.Local sunucuda kök dizine <b>.env.local.php</b> dosyası oluşturup her bir geliştiricinin kendi çalışma ortamı servislerine ait <b>password, hostname, username</b> gibi bilgileri bu dosya içerisine koyması gereklidir.</td>
+            <td>Yerel sunucu ortamıdır, geliştiriciler tarafından uygulama bu ortam altında geliştirilir, her bir geliştiricinin bir defalığına <b>environments.php</b> dosyası içerisine kendi bilgisayarına ait ismi (hostname) tanımlaması gereklidir.Local sunucuda kök dizine <b>.env/local.php</b> dosyası oluşturup her bir geliştiricinin kendi çalışma ortamı servislerine ait <b>password, hostname, username</b> gibi bilgileri bu dosya içerisine koyması gereklidir.</td>
         </tr>
         <tr>
             <td><b>test</b></td>
@@ -253,17 +253,17 @@ return array(
     'REDIS_AUTH' => '',
 );
 
-/* End of file .env.local.php */
-/* Location: .env.local.php */
+/* End of file .env/local.php */
+/* Location: .env/local.php */
 ```
 
-> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env.local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
+> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env/local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
 
 
 Ortam değişikliği sözkonusu olduğunda .env* dosyalarını her bir ortam için bir defalığına kurmuş olamanız gerekir. Env dosyaları için dosya varmı kontrolü yapılmaz bu nedenle eğer uygulamanızda bu dosya mevcut değilse aşağıdaki gibi <b>php warning</b> hataları alırsınız.
 
 ```php
-Warning: include(/var/www/example/.env.local.php): failed to open stream: 
+Warning: include(/var/www/example/.env/local.php): failed to open stream: 
 No such file or directory in /o2/Config/Config.php on line 79
 ```
 
@@ -350,7 +350,7 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
 ```php
 - app
     - config
-        + env.local
+        + env/local
         - env.production
             config.php
             database.php
@@ -360,7 +360,7 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
             database.php
 ```
 
-Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan env.local ortam anahtarları ile değiştirilirler.
+Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan env/local ortam anahtarları ile değiştirilirler.
 
 Takip eden örnekte <kbd>production</kbd> ortamı için örnek bir <b>config.php</b> dosyası görülüyor.
 

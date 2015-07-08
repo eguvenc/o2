@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Obullo\Queue;
 
@@ -41,19 +41,31 @@ abstract class Queue
      * @param string $job       name
      * @param string $queueName queue name ( Routing Key )
      * @param mixed  $data      payload
-     * @param mixed  $delay     dateTime or int push job onto the queue after a delay.
      * @param array  $options   delivery options
      *
      * @link(Set Delivery Mode, http://stackoverflow.com/questions/6882995/setting-delivery-mode-for-amqp-rabbitmq)
-     * @throws AMQPException
+     * 
      * @return bool
      */
-    abstract public function push($job, $queueName, $data, $delay = 0, $options = array());
+    abstract public function push($job, $queueName, $data, $options = array());
+
+    /**
+     * Push a new job onto delayed queue.
+     *
+     * @param int    $delay   date
+     * @param string $job     name
+     * @param string $route   queue name ( routing key )
+     * @param mixed  $data    payload
+     * @param array  $options delivery options
+     * 
+     * @return boolean
+     */
+    abstract public function later($delay, $job, $route, $data, $options = array());
 
     /**
      * Pop the next job off of the queue.
      *
-     * @param string $queueName queue name ( Routing Key )
+     * @param string $queueName queue name ( routing key )
      *
      * @return mixed job handler object or null
      */

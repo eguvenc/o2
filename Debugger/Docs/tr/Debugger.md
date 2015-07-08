@@ -5,7 +5,7 @@ Debugger paketi uygulamanın geliştirilmesi esnasında uygulama isteklerinden s
 
 ### Konfigürasyon
 
-<kbd>config/env.local/config.php</kbd> dosyasından debugger modülü websocket bağlantısını aktif edin.
+<kbd>config/env/local/config.php</kbd> dosyasından debugger modülü websocket bağlantısını aktif edin.
 
 ```php
 return array(

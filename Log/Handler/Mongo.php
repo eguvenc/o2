@@ -26,14 +26,14 @@ class Mongo extends AbstractHandler implements HandlerInterface
     public $options;
 
     /**
-     * mongoClient object
+     * MongoClient object
      * 
      * @var object
      */
     public $mongoClient;
 
     /**
-     * mongoCollection object
+     * MongoCollection object
      * 
      * @var object
      */
@@ -47,19 +47,18 @@ class Mongo extends AbstractHandler implements HandlerInterface
     public $saveOptions;
 
     /**
-     * Config Constructor
-     *
-     * @param object $c      container
+     * Constructor
+     * 
      * @param object $mongo  $mongo service provider
      * @param array  $params parameters
      */
-    public function __construct(ContainerInterface $c, $mongo, array $params = array())
+    public function __construct($mongo, array $params = array())
     {
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
 
-        parent::__construct($c);
+        parent::__construct();
         
         $this->options = $params;
         $this->mongoClient = $mongo;
@@ -112,20 +111,19 @@ class Mongo extends AbstractHandler implements HandlerInterface
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
-            'request'  => $data['request'],
             'context'  => null,
             'extra'    => null,
         );
         if (isset($unformattedRecord['context']['extra']) && count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
-            if ($this->options['format']['extra'] == 'json') { // if extra data format json ?
+            if ($this->options['save_format']['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = $unformattedRecord['context'];
-            if ($this->options['format']['context'] == 'json') {
+            if ($this->options['save_format']['context'] == 'json') {
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
         }

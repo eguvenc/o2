@@ -52,11 +52,13 @@ class DebuggerFormatter
 
         $levelPatterns = array(
             '#<div class="p">(.*(Uri Class Initialized\b).*)<\/div>#',
-            '#<div class="p">(.*(system.error\b).*)<\/div>#',
-            '#<div class="p">(.*(system.warning\b).*)<\/div>#',
-            '#<div class="p">(.*(system.notice\b).*)<\/div>#',
-            '#<div class="p">(.*(system.emergency\b).*)<\/div>#',
-            '#<div class="p">(.*(system.critical\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.error\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.warning\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.notice\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.emergency\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.critical\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.alert\b).*)<\/div>#',
+            '#<div class="p">(.*(.*\.info\b).*)<\/div>#',
         );
         $levelReplace = array(
             '<div class="p title">$1</div>',
@@ -64,6 +66,9 @@ class DebuggerFormatter
             '<div class="p error">$1</div>',
             '<div class="p error">$1</div>',
             '<div class="p error">$1</div>',
+            '<div class="p error">$1</div>',
+            '<div class="p alert">$1</div>',
+            '<div class="p info">$1</div>',
         );
         return preg_replace($levelPatterns, $levelReplace, $line);
     }

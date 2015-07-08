@@ -193,7 +193,7 @@ Veritabanı ile bağlantı kurulması veritabanı işlevleri ( query, execute, e
 
 #### Standart Bağlantı
 
-Veritabanına bağlantı konfigürasyonu yerel ortam için <kbd>config/env.local/database.php</kbd> dosyasından gerçekleştirilir. Aşağıdaki örnek bağlantı şeması <b>dsn</b> anahtarına girilir.
+Veritabanına bağlantı konfigürasyonu yerel ortam için <kbd>config/env/local/database.php</kbd> dosyasından gerçekleştirilir. Aşağıdaki örnek bağlantı şeması <b>dsn</b> anahtarına girilir.
 
 ```php
 pdo_mysql:host=localhost;port=;dbname=test;
@@ -218,7 +218,7 @@ pdo_mysql:unix_socket=/var/run/mysqld/mysqld.sock;dbname=test
 
 #### Konfigürasyon
 
-Veritabanına bağlantı konfigürasyonu yerel ortam için <kbd>config/env.local/database.php</kbd> dosyasından yapılır. Sürücü bağlantısı ve diğer bağlantı ayarları <b>connections</b> anahtarından okunur.
+Veritabanına bağlantı konfigürasyonu yerel ortam için <kbd>config/env/local/database.php</kbd> dosyasından yapılır. Sürücü bağlantısı ve diğer bağlantı ayarları <b>connections</b> anahtarından okunur.
 
 ```php
 return array(
@@ -239,7 +239,7 @@ return array(
 );
 
 /* End of file database.php */
-/* Location: .config/env.local/database.php */
+/* Location: .config/env/local/database.php */
 ```
 
 Konfigürasyon dosyasında varsayılan bağlantı ismi <b>default</b> anahtarıdır ve bağlantı adını değiştirmemeniz önerilir.
@@ -248,7 +248,7 @@ Konfigürasyon dosyasında varsayılan bağlantı ismi <b>default</b> anahtarıd
 
 #### Bağlantı Yönetimi
 
-Her yeni açılacak bağlantı için <kbd>config/env.local/database.php</kbd> dosyasında <b>connections</b> anahtarı altında bir isim verilerek bu isme bağlı dizi içerisine konfigürasyon değerleri girilmelidir. 
+Her yeni açılacak bağlantı için <kbd>config/env/local/database.php</kbd> dosyasında <b>connections</b> anahtarı altında bir isim verilerek bu isme bağlı dizi içerisine konfigürasyon değerleri girilmelidir. 
 
 Veritabanı servis sağlayıcısı <b>connections</b> anahtarı altına girilen konfigürasyonlar çağrıldığında çağırılan bağlantı eğer bağlantı havuzu içerisinde mevcut ise ( daha önceden bu bağlantı için bir açık bağlantı varsa ) bağlantı nesnesi tekrar yaratılmadan havuzdan alınır, eğer mevcut değilse konfigürasyon dosyanızda yarattığınız bağlantı ismi ile havuza bir bağlantı ekler.
 

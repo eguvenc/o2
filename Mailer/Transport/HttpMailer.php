@@ -146,7 +146,7 @@ abstract class HttpMailer
         }
         if ($name != '') {  // Prepare the display name
                             // Only use Q encoding if there are characters that would require it
-            if ( ! preg_match('/[\200-\377]/', $name)) {
+            if (! preg_match('/[\200-\377]/', $name)) {
                 // add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
                 $name = '"' . addcslashes($name, "\0..\37\177'\"\\") . '"';
             } else {
@@ -278,7 +278,7 @@ abstract class HttpMailer
      */
     public function httpPostRequest($url, array $params)
     {
-        if ( ! extension_loaded('curl')) {
+        if (! extension_loaded('curl')) {
             throw new RuntimeException('Curl extension not installed');
         }
         $ch = curl_init($url);
@@ -320,15 +320,15 @@ abstract class HttpMailer
         if ($this->replytoFlag == false) {
             $this->replyTo($this->fromEmail, $this->fromName);
         }
-        if (( ! isset($this->recipients) AND ! isset($this->headers['To']) ) 
-            AND ( ! isset($this->bccArray) AND ! isset($this->headers['Bcc'])) 
+        if (( ! isset($this->recipients) && ! isset($this->headers['To']) ) 
+            AND ( ! isset($this->bccArray) && ! isset($this->headers['Bcc'])) 
             AND ( ! isset($this->headers['Cc']))
         ) {
             $this->debugMsg[] = $this->c['translator']['OBULLO:MAILER:NO_RECIPIENTS'];
             return false;
         }
         $this->buildMessage();
-        if ( ! $this->spoolEmail()) {
+        if (! $this->spoolEmail()) {
             return false;
         } else {
             return true;
@@ -345,7 +345,7 @@ abstract class HttpMailer
         $msg = '';
         if (count($this->debugMsg) > 0) {
             foreach ($this->debugMsg as $val) {
-                if ( ! is_array($val)) {
+                if (! is_array($val)) {
                     $val = array($val);
                 }
                 $msg .= '<pre>'.var_export($val, true).'</pre>';

@@ -1,21 +1,19 @@
 
-## Logger Class
+## Loglama Sınıfı
 
-------
-
-The Logger class assists you to <kbd>write messages</kbd> to your log handlers. The logger class use php SplPriorityQueue class to manage your handler proirities.
-
-**Note:** This class defined as service in your app/clases/Service folder. The <b>logger</b> package uses <kbd>Disabled</kbd> handler as default.
+Logger sınıfı <kbd>handler</kbd> klasöründeki log sürücülerini kullanarak uygulamaya ait log verilerini <kbd>app/workers/logger</kbd> sınıfı yardımı ile direkt olarak (senkron) yada kuyruk servisi kullanarak (asenkron) olarak kaydeder. Logger sınıfı log verilerini arasındaki önemliliği destekler ve php SplPriorityQueue sınıfı yardımı ile log verilerini önem seviyelerine göre gruplar.
 
 <ul>
-    <li><a href="#features">Özellikler</a></li>
-    <li><a href="#flow-chart">Akış Şeması</a></li>
+    <li>
+        <a href="#intro">Önbilgi</a>
+        <ul>
+            <li><a href="#features">Özellikler</a></li>
+            <li><a href="#flow-chart">Akış Şeması</a></li>
+        </ul>
+    </li>
+
     <li>
         <a href="#configuration">Konfigürasyon</a>
-        <ul>
-            <li><a href="#config-table">Konfigürasyon Değerleri</a></li>
-            <li><a href="#log-severities">Log Seviyeleri</a></li>
-        </ul>
     </li>
 
     <li>
@@ -25,25 +23,79 @@ The Logger class assists you to <kbd>write messages</kbd> to your log handlers. 
                 <a href="#service">Servis Konfigürasyonu</a>
                 <ul>
                     <li><a href="#loading-service">Servisi Yüklemek</a></li>
-                    <li><a href="#loading-service">Servisi Sağlayıcısı</a></li>
-                    <li><a href="#loading-service">Log Yazıcıları</a></li>
                 </ul>
             </li>
         </ul>
     </li>
+
     <li>
+        <a href="#writers">Yazıcılar</a>
+        <ul>
+            <li><a href="#define-handlers">Sürücü Tanımlamak</a></li>
+            <li><a href="#add-writer">Yazıcı Eklemek</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#filters">Filtreler</a>
+        <ul>
+            <li><a href="#define-filter">Filtre Tanımlamak</a></li>
+            <li><a href="#global-filters">Evrensel Filtreler</a></li>
+            <li><a href="#page-filters">Sayfa Filtreleri</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#messages">Mesajlar</a>
+        <ul>
+            <li><a href="#severities">Log Seviyeleri</a></li>
+            <li><a href="#log-messages">Log Mesajları</a></li>
+            <li><a href="#loading-handlers">Farklı Log Yazıcılarına Loglama</a></li>
+            <li><a href="#log-workers">Log Mesajlarını İşlemek</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#queuing">Kuyruklama</a>
+        <ul>
+            <li><a href="#displaying-queue">Kuyruktaki İşleri Görüntülemek</a></li>
+            <li><a href="#workers">İşciler İle Kuyruğu Tüketmek</a></li>
+            <li><a href="#worker-parameters">İşci Parametreleri</a></li>
+            <li><a href="#debug-mode">Hata Ayıklama Modu</a></li>
+            <li><a href="#processing-jobs">Kuyruk Verilerini İşlemek</a></li>
+            <li><a href="#removing-completed-jobs">Tamamlanan İşleri Kuyruktan Silmek</a></li>
+            <li><a href="#register-application-as-worker">Uygulamayı Bir İşci Uygulaması Olarak Kurmak</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a href="#displaying-logs">Logları Görüntülemek</a>
+        <ul>
+            <li><a href="#from-console">Konsoldan Görüntülemek</a></li>
+            <li><a href="#from-debugger">Debugger Modülü İle Görüntülemek</a></li>
+        </ul>
+    </li>
 </ul>
 
+<a name="intro"></a>
 
+## Önbilgi
+
+Uygulama çalıştığına konteyner içerisinden logger nesnesi çağırıldığında logger bir servis olarak tanımlı olduğu için logger servisi yüklenir. Servis ilk çalıştığında LogManager sınıfı yardımı ile konfigüre edilip Logger sınıfı nesnesine geri döner. Logger sınıfı konteyner içinden artık tekrar tekrar çağırıldığında önceden bir kez çalıştırılmış olan logger sınıfına ulaşılır.
 
 <a name="features"></a>
 
-## Özellikler
+### Özellikler
 
 O2 Logger; 
 
-* Hafıza depoları, ( Storages ) 
-* Adaptörler,
+* Log Filtreleri, ( Log mesajlarını isteklerinize göre filtreleme )
+* Log Sürücüleri ( File, Email, Mongo, Syslog, Raw ),
+* Log Biçimleyicileri
+* Psr/Log standartı
+* Çoklu Log Sürücüleri İle Eş Zamanlı Yazma
+* Kuyruğa Atma
+* Log Verilerini Tek Bir Yerden İşleme ( app/classes/Workers/Logger.php )
 
 gibi özellikleri barındırır.
 
@@ -51,32 +103,268 @@ gibi özellikleri barındırır.
 
 ### Akış Şeması
 
-Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin gelişmiş özellikleri ile kullanıldığında nasıl çalıştığı hakkında size bir ön bilgi verecektir:
+Aşağıdaki akış şeması uygulamada bir log mesajının kaydedilirken hangi aşamalardan geçtiği ve loglamanın genel prensipleri hakkında size bir ön bilgi verecektir:
 
-* [Şemayı görmek için buraya tıklayınız](/Log/Docs/images/flowchart.png?raw=true)
+![Akış Şeması](/Log/Docs/images/flowchart.png?raw=true)
 
-Akış şemasına göre GenericUser login butonuna bastığı anda ilk önce hafıza bloğuna bir sorgu yapılır ve daha önceden kullanıcının önbellekte yetkilendirilmiş kalıcı kimliği olup olmadığında bakılır eğer hafıza bloğunda kalıcı yetki doğrulama kaydı var ise kullanıcı kimliği buradan yok ise database adaptörüne sorgu yapılarak elde edilir.
+Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log servisinde önceden tanımlı olan filtreler tarafından filtrelemeden geçtikten sonra iki dorum sözkonusu olur.
 
-Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edilen kimlik kartı performans için tekrar hafıza bloğuna yazılır.
+* Kuyruk Servisinin Kapalı Olduğu Durum ( Varsayılan )
+
+Eğer kuyruğa atma opsiyonu log servisinden kapalı ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra önemlilik sırasına sıralanan veriler göre direkt olarak <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
+
+Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
+
+* Kuyruk Servisinin Açık Olduğu Durum
+
+Eğer kuyruğa atma opsiyonu log servisinden açık ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra kuyruğa atılırlar. Kuyruğa gönderilme işlemi her sayfa için bir kere yapılır. Kuyruğa atılan log verilerini tüketmek için <kbd>app/classes/workers/Logger</kbd> sınıfı konsoldan çalıştırılarak <kbd>php task queue listen</kbd> komutu yardımı ile dinlenerek tüketilir. Konsoldan <kbd>php task queue listen</kbd> komutunun işlemci sayısına göre birden fazla çalıştırılması çoklu iş parçacıkları (multi threading) oluşturarak kuyruğun daha hızlı tüketilmesini sağlar. 
+
+Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
 
 <a name="configuration"></a>
 
 ## Konfigürasyon
 
-------
+Uygulama loglarının aktif olması için <kbd>app/config/env/$env/config.php</kbd> dosyasından enabled anahtarının true olması gerekir.
+
+```php
+/**
+ * Log
+ *
+ * Enabled: On / off logging
+ */
+'log' => [
+    'enabled' => true,
+],
+```
+
+Logger sınıfına ait detaylı konfigürasyon dosyası ise <kbd>app/config/env/$env/logger.php</kbd> dosyasında tutulur.
 
 
-### Konfigürasyon Değerleri
+<a name="running"></a>
+
+## Çalıştırma
+
+Çalıştırma aşamasına geçmeden önce servis konfigürasyonunun çalıştığınız ortam değişkenine göre aşağıdaki gibi konfigüre edilmesi gerekir.
+
+<a name="service"></a>
+
+### Servis Konfigürasyonu
+
+Örnekte gösterilen servis konfigürasyonu <kbd>app/classes/Service/Logger/Env/Local.php</kbd> dosyasıdır.
+
+```php
+namespace Service\Logger\Env;
+
+use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
+
+class Local implements ServiceInterface
+{
+    public function register(ContainerInterface $c)
+    {
+        $c['logger'] = function () use ($c) {
+            
+            $parameters = [
+                'queue' => [
+                    'enabled' => false,
+                    'channel' => 'log',
+                    'route' => 'logger.1',
+                    'delay' => 0,
+                ]
+            ];
+            $manager = new LogManager($c);
+            $manager->setConfiguration($parameters);
+            $logger = $manager->getLogger();
+            /*
+            |--------------------------------------------------------------------------
+            | Register Filters
+            |--------------------------------------------------------------------------
+            */
+            $logger->registerFilter('priority', 'Obullo\Log\Filters\PriorityFilter');
+            /*
+            |--------------------------------------------------------------------------
+            | Register Handlers
+            |--------------------------------------------------------------------------
+            */
+            $logger->registerHandler(5, 'file');
+            $logger->registerHandler(4, 'mongo')->filter('priority@notIn', array(LOG_DEBUG));
+            $logger->registerHandler(3, 'email')->filter('priority@notIn', array(LOG_DEBUG));
+            /*
+            |--------------------------------------------------------------------------
+            | Add Writers - Primary file writer should be available on local server
+            |--------------------------------------------------------------------------
+            */
+            $logger->addWriter('file')->filter('priority@notIn', array());
+            return $logger;
+        };
+    }
+}
+```
+
+Logger servisi her çalışma ortamı için ( local, test, production ) Env klasörü altında farklı konfigüre edilebilir. Örneğin local ortamda <kbd>file</kbd> yazıcısı servise konfigure edilmişken test ortamındaki yazıcınız <kbd>mongo</kbd> olabilir.
+
+Böyle bir durum sözkonusu ise örneğin test ortamı için bir logger servisi kurmak istiyorsak bunun için bir <kbd>Service\Logger\Env\Test.php</kbd> dosyası yaratarak içerisine yukarıdaki içeriği kopyalamamız gerekir. Ardından bu sınıf içerisinde gereken değişiklikleri yapabilirsiniz. Eğer gerekli ise diğer çalışma ortamları içinde aynı işlemin tekrarlanması gerekir.
+
+<a name="loading-service"></a>
+
+### Servisi Yüklemek
+
+```php
+$this->c['logger']->method();
+```
+<a name="writers"></a>
+
+## Yazıcılar
+
+Yazıcılar log verilerini işleme yada gönderme işlemlerini gerçekleştiriler. Servis içerisinde birden fazla tanımlanabilirler.
+
+<a name="define-handlers"></a>
+
+#### Sürücü Tanımlamak
+
+Sürücüler log verilerini kaydetmek yada transfer etmek gibi işlemleri yürütürler. Önceden aşağıdaki gibi servis dosyası içerisinde tanımlı olması gereken sürücüler genel log yazıcısı olarak kullanılabilecekleri gibi belirli bir sayfaya yada gerçekleşmesi çok sık olmayan olaylar için gönderim işleyicisi (push handler) olarak da kullanılabilirler.
+
+```php
+$logger->registerHandler(5, 'file');
+$logger->registerHandler(4, 'mongo');
+$logger->registerHandler(3, 'email');
+```
+
+Bir sürücünün yazma yada gönderim önceliği ilk parametreden belirlernir. Değeri yüksek olan sürücünün önemliliği de yüksek olur ve önemlilik değeri yüksek olan sürücülere ait veriler diğer sürücülerden önce yazma işlemlerini gerçekleştirirler. İkinci parametreye ise sürücü adı girilir.
+
+<a name="add-writer"></a>
+
+#### Yazıcı Eklemek
+
+Yazıcılar <kbd>addWriter()</kbd> metodu ile eklenir bir tane eklenebilecekleri gibi birden fazla eklenerek eş zamanlı yazıcılar oluşturulabilir. Yazıcılar her sayfa görüntülenmesinden sonra toplanan log verilerinin yazma işlemlerini gerçekleştirirler. Bir sürücünün bir yazıcı olarak eklenebilmesi için sürücünün yazma işlemine uygun olması gerekir örneğin email sürücüsü genel bir yazıcı olarak eklenmemelidir.
+
+```php
+$logger->addWriter('file');
+$logger->addWriter('mongo');
+```
+
+<a name="filters"></a>
+
+## Filtreler
+
+Log filtreleri array türünde gelen log verisini süzmek için tasarlanmış sınıflardır.
+
+<a name="define-filter"></a>
+
+### Filtre Tanımlamak
+
+Bir log filtresi tanımlamak için ilk önce <kbd>app/classes/Log/Filters/</kbd> klasörü altında aşağıdaki prototipe benzer bir sınıf oluşturulmalıdır.
+
+```php
+namespace Log\Filters;
+
+use Obullo\Container\ContainerInterface;
+
+class HelloFilter
+{
+    public $c;
+    public $params;
+
+    public function __construct(ContainerInterface $c, $params = null)
+    {
+        $this->c = $c;
+        $this->params = $params;
+    }
+
+    public function filter(array $record)
+    {
+        /* Record Content
+        Array ( 
+            [channel] => system 
+            [level] => debug 
+            [message] => Uri Class Initialized 
+            [context] => Array ( [uri] => /welcome/index ) ) 
+        */
+       return $record;  // Change record and return to new array.
+    }
+}
+```
+
+Oluşturduğunuz filtreyi registerFilter metodu birinci parametresinden filtre ismi ve metod ismi girerek, ikinci parametreyede aşağıdaki gibi sınıf yolu girerek tanımlamanız gerekir.
+
+```php
+$logger->registerFilter('filtername@method', 'Log\Filters\Class');
+```
+
+Eğer method ismi aşağıdaki gibi belirtilmez ise varsayılan olarak <b>filter</b> isimli method çağrılır.
+
+```php
+$logger->registerFilter('filtername', 'Log\Filters\Class');
+```
+
+Eğer örnekteki Hello filtresini çalıştırmak istiyorsak aşağıdaki kodu log servisi içerisine tanımlamamız gerekir.
+
+```php
+$logger->registerFilter('hello', 'Log\Filters\HelloFilter');
+```
+
+<a name="global-filters"></a>
+
+### Evrensel Filtreler
+
+Eğer bir filtre servis içerisinde tanımlandı ise bu türden filtreler uygulamanın her yerinde çalışacağından evrensel filtreler olarak adlandırılırlar. Evrensel filtreler Filtre Tanımlama başlığı altında anlatıldığı gibi tanımlanırlar ve tanımlı olan filtreler addWriter() metodundan sonra çalıştırılırlar.
+
+
+```php
+$logger->addWriter('email')
+    ->filter('priority@in', array(LOG_NOTICE, LOG_ALERT))
+    ->filter('anotherFilter@method')
+    ->filter('anotherFilter@method');
+```
+
+"@" işareti ile method ismi tanımlar eğer "@" işareti girilmezse varsayılan olarak filter() metodu çalıştırılır.
+
+```php
+$logger->addWriter('email')->filter('priority@notIn', array(LOG_DEBUG));
+```
+
+> **Not:** Prodüksiyon ortamında olan bir uygulama için LOG_DEBUG seviyesi kapalı diğer log seviyelerinin (LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE) açık olması tavsiye edilir. Aksi durumda log veritabanları çok hızlı dolacaktır.
+
+<a name="page-filters"></a>
+
+### Sayfa Filtreleri
+
+Belirli bir adres yada kontrolör içerisinden de geçerli sayfa için filtreleme yapılabilir. Filter metodu load metodundan sonra çalıştırılır.
+
+```php
+$this->logger->load('mongo')->filter('priority@notIn', array(LOG_DEBUG));
+
+$this->logger->info('Hello World !');
+$this->logger->notice('Hello Notice !');
+$this->logger->alert('Hello alert !');
+
+$this->logger->push();
+```
+
+Yukarıdaki örnek <kbd>/welcome/index</kbd> sayfasında mongo yazıcısı için bir filtre yaratıyor. Yaratılan filtre mongo yazıcısı için geçerli sayfada <kbd>debug</kbd> sevisyesindeki log verilerini log kayıtlarından çıkarıyor ve geriye kalan veriyi mongo yazıcısına gönderiyor.
+
+<a name="messages"></a>
+
+## Mesajlar
+
+Bir log mesajı aşağıdaki prototipte tanımlandığı gibi oluşturulur.
+
+```php
+$this->logger->{seviye}(string $message, $context = array(), $priority = 0);
+```
+
+<a name="severities"></a>
 
 ### Log Seviyeleri
 
 <table class="span9">
 <thead>
 <tr>
-<th>Severity</th>
-<th>Level</th>
-<th>Constant</th>
-<th>Desciription</th>
+<th>Seviye</th>
+<th>Değer</th>
+<th>Sabit</th>
+<th>Açıklama</th>
 </tr>
 </thead>
 <tbody>
@@ -84,152 +372,72 @@ Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edil
 <td>emergency</td>
 <td>0</td>
 <td>LOG_EMERG</td>
-<td>Emergency: System is unusable.</td>
+<td>Emergency: Sistem kullanılamaz.</td>
 </tr>
 
 <tr>
 <td>alert</td>
 <td>1</td>
 <td>LOG_ALERT</td>
-<td>Action must be taken immediately. Example: Entire website down, database unavailable, etc. This should trigger the SMS alerts and wake you up.</td>
+<td>Derhal müdahale edilmesi gereken eylemler. Örnek: Tüm web sitesinin düştüğü, veritabanına erişilemediği vb. durumlar. Bu log seviyesinde karşı tarafın SMS ile uyarılması tavsiye edilir.</td>
 </tr>
 
 <tr>
 <td>critical</td>
 <td>2</td>
 <td>LOG_CRIT</td>
-<td>Critical conditions. Example: Application component unavailable, unexpected exception.</td>
+<td>Kritik durumlar. Örnek: Uygulama bileşeni ulaşılamaz durumda yada beklenmedik bir istisnai hata.</td>
 </tr>
 
 <tr>
 <td>error</td>
 <td>3</td>
 <td>LOG_ERR</td>
-<td>Runtime errors that do not require immediate action but should typically be logged and monitored.</td>
+<td>Çalıştırma hataları ani müdhaleler gerektirmez fakat genel olarak loglanıp monitörlenmelidir.</td>
 </tr>
 
 <tr>
 <td>warning</td>
 <td>4</td>
 <td>LOG_WARNING</td>
-<td>Exceptional occurrences that are not errors. Examples: Use of deprecated APIs, poor use of an API, undesirable things that are not necessarily wrong.</td>
+<td>Hata olmayan istisnai olaylar. Örnek: Modası geçmiş bir web servisi ( API ),  kötü web servisi kullanımı, yanlış olmayan fakat istenmeyen durumlar.</td>
 </tr>
 
 <tr>
 <td>notice</td>
 <td>4</td>
 <td>LOG_NOTICE</td>
-<td>Normal but significant events.</td>
+<td>Normal fakat önemli olaylar.</td>
 </tr>
 
 <tr>
 <td>info</td>
 <td>6</td>
 <td>LOG_INFO</td>
-<td>Interesting events. Examples: User logs in, SQL logs, Application Benchmarks.</td>
+<td>Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, SQL logları, Uygulama performans/durum bilgileri (benchmark).</td>
 </tr>
 
 <tr>
 <td>debug</td>
 <td>7</td>
 <td>LOG_DEBUG</td>
-<td>Detailed debug information.</td>
+<td>Detaylı hata ayıklama bilgileri.</td>
 </tr>
 </tbody>
 </table>
 
+<a name="log-messages"></a>
 
-<a name="running"></a>
+### Log Mesajları
 
-## Çalıştırma
-
-Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>config/auth.php</kbd> dosyasının konfigure edilmesi gerekir.
-
-<a name="service"></a>
-
-### Servis Konfigürasyonu
-
-------
-
-#### Servisi Yüklemek
-
-------
-
-```php
-$this->c['logger']->method();
-```
-
-#### Servis Sağlayıcısı
-
-------
-
-#### Log Yazıcıları
-
-As default framework comes with logging disabled <kbd>false</kbd>. You can enable logger setting <kbd>enabled to true.</kbd>
-
-```php
-'log' =>   array(
-    'enabled' => true,      // On / Off logging.
-    'output' => false,      // On / Off debug html output. All handlers disabled in this mode.
-    'service' => array(
-        'filters' => 'Log\Filters',  // Class paths
-    ),
-    'default' => array(
-        'channel' => 'system',       // Default channel name should be general.
-    ),
-    'file' => array(
-        'path' => array(
-            'http'  => 'data/logs/http.log',  // Http requests log path  ( Only for File Handler )
-            'cli'   => 'data/logs/cli.log',   // Cli log path  
-            'ajax'  => 'data/logs/ajax.log',  // Ajax log path
-        )
-    ),
-    'format' => array(
-        'line' => '[%datetime%] %channel%.%level%: --> %message% %context% %extra%\n',  // This format just for line based log drivers.
-        'date' =>  'Y-m-d H:i:s',
-    ),
-    'extra'     => array(
-        'queries'   => true,       // If true "all" SQL Queries gets logged.
-        'benchmark' => true,       // If true "all" Application Benchmarks gets logged.
-    ),
-    'queue' => array(
-        'workers' => array(
-            'logging' => false     // On / Off Queue workers logging functionality.
-        ), 
-    )
-),
-```
-
-### Log Mesajları Oluşturmak
-
-
-#### $this->logger->channel(string $channel);
-
-Sets channel of your log messages.
-
-#### $this->logger->{seviye}(string $message, $context = array(), $priority = 0);
-
-First choose your channel and set log severity then you can send your additinonal context data using second optional parameter. Also third parameter is optinal, it is priority of the message.
+Aşağıdaki gibi oluşturulan bir log mesajı tanımlı log yazıcılarına gönderilir. Log mesajından önce bir kanal açmanız tavsiye edilir sonra bir log seviyesi seçip birinci parametreden log mesajını, opsiyonel olarak ikinci parametreden ise mesaja bağlı özel verilerinizi gönderebilirsiniz.
 
 ```php
 $this->logger->channel('security');
 $this->logger->alert('Possible hacking attempt !', array('username' => $username));
 ```
 
-#### Explanation of Settings:
-
-* <b>enabled</b> - On / Off logging
-* <b>debug</b> - On / Off html output, logger gives html output bottom of the current page.
-* <b>channel</b> - Default channel name should be general.
-* <b>line</b> - Logging line format for line based handlers.
-* <b>path</b> - File handler paths
-* <b>format</b> - Date format for each records.
-* <b>extra/queries</b> - If true all Database SQL Queries gets logged.
-* <b>extra/benchmark</b> - If true all framework benchmarks gets logged.
-* <b>queue/workers/logging</b> - If true all queue worker jobs gets logged. Enable it if you want to install framework as a worker application, otherwise your log data fill up very fast.
-
-
-### Önem Seviyeleri
+Diğer bir opsiyonel parametre olan üçüncü parametreden ise log mesajının önem seviyesi ( kaydedilme önceliği ) belirlenebilir. Önem seviyesi büyük olan log mesajı önce kaydedilecektir.
 
 ```php
 $this->logger->alert('Alert', array('username' => $username), 3);
@@ -237,490 +445,290 @@ $this->logger->notice('Notice', array('username' => $username), 2);
 $this->logger->notice('Another Notice', array('username' => $username), 1);
 ```
 
-### Push
+<a name="loading-handlers"></a>
 
-Below the example load shows only pushing LOG_ALERT levels.
+### Farklı Log Yazıcılarına Loglama
+
+Eğer sürekli olmayan bir log yazıcısına log verileri gönderilmek yada işlenmek isteniyorsa load ve push metotları kullanılır.
 
 ```php
-$this->logger->load('mongo')->filter('priority', array(LOG_ALERT));
+$this->logger->load('mongo');
 $this->logger->channel('security');               
 $this->logger->alert('Possible hacking attempt !', array('username' => $username));
 $this->logger->push();
 ```
-or you can use multiple push handlers.
+
+Birden fazla log yazıcısı da aynı anda yüklenebilir.
 
 ```php
-$this->logger->load('email')->filter('priority.notIn', array(LOG_DEBUG, LOG_INFO, LOG_NOTICE));
+$this->logger->load('email');
 $this->logger->load('mongo');  
 
 $this->logger->channel('security');
 $this->logger->alert('Something went wrong !', array('username' => $username));
 
 $this->logger->channel('test');
-$this->logger->info('User login attempt', array('username' => $username));  // Continue push to another handler
+$this->logger->info('User login attempt', array('username' => $username));
 
-$this->logger->push();  // Push log data to all handlers
+$this->logger->push();
 ```
 
-<b>IMPORTANT:</b> For a live site you will need priority filter for LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE levels to be logged otherwise your log files will fill up very fast.
+<a name="log-workers"></a>
 
-## Service Configuration
+### Log Mesajlarını İşlemek
 
-### Example for Mongo Writer
+Tüm log mesajları <kbd>app/classes/Workers/Logger</kbd> sınıfı aracılığı ile işlenir. Bu sınıfa gelen log verilerini <b>fire</b> metodu çözümler ve ilgili log yazıcılarını kullanarak yazma işlemlerinin gerçekleşmesini sağlar.
 
-Open your <b>app/classes/Log/Env/$EnvLogger.php</b> then switch mongo database as a primary handler this will replace your "file" handler as "mongo".
+Eğer servis konfigürasyonunda kuyruğa atma seçeneği açık ise <kbd>Workers/Logger</kbd> sınıfı konsoldan <kbd>php task queue listen</kbd> komutu aracılığı ile birden fazla çalıştırılarak çoklu iş parçacıkları ile log verileri kuyruktan tüketilir ( Multi Threading ). Daha fazla bilgi için kuyruklama bölümünü inceleyiniz.
+
+<a name="queuing"></a>
+
+## Kuyruklama
+
+Kuyruklamanın doğru çalışabilmesi için queue servisinin doğru kurulduğundan ve çalışıyor olduğundan emin olun. Kurulum doğru ise log servisi konfigürasyonundaki <kbd>queue => enabled</kbd> anahtarına ait değeri <b>true</b> ile değiştirdiğinizde log verileri artık queue servisinizde tanımlı olan kuyruk sürücünüze gönderilir. Kuyruklama queue servisi üzerinden yürütülür. Queue servisi log servisi içerisinde aşağıdaki tanımlı parametreleri kullanarak <kbd>Workers\Logger</kbd> adlı iş sınıfı üzerinden <b>channel</b> anahtarına ait değerde bir kanal açar ve bu kanal üzerinde <b>route</b> anahtarı değerinde bir kuyruk yaratır.
 
 ```php
-namespace Log\Env;
-
-use Service\ServiceInterface,
-    Obullo\Log\LogService,
-    Obullo\Log\Handler\NullHandler;
-
-/**
- * Log Service
- *
- * @category  Service
- * @package   Logger
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/services
- */
-Class Local implements ServiceInterface
-{
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register($c)
-    {
-        // ..
-    }
-}
-
-// END Local class
-
-/* End of file Local.php */
-/* Location: .classes/Log/Env/QueueLogger/Local.php */
+$parameters = [
+    'queue' => [
+        'enabled' => true,
+        'channel' => 'log',
+        'route' => 'logger.1',
+        'delay' => 0,
+    ]
+];
 ```
 
-* TIP: If you have a high traffic web site change your handler path as QueueLogger for best performance.
+Log mesajları <kbd>Obullo/Log/Logger</kbd> sınıfı içerisindeki <b>close</b> metodunda yukarıdaki parametreler kullanılarak queue servisi üzerinden aşağıdaki gibi kuyruğa gönderilirler.
 
 ```php
-$service->logger->registerHandlerPath('Log\QueueLogger');
+$this->c->get('queue')
+    ->channel($this->params['queue']['channel'])
+    ->push(
+        'Workers\Logger',
+        $this->params['queue']['route'],
+        $payload,
+        $this->params['queue']['delay']
+    );
 ```
 
-### Adding Multiple Writers
+<a name="displaying-queue"></a>
+
+### Kuyruktaki İşleri Görüntülemek
+
+Konsoldan php task show komutunu yazarak kuyruktaki işleri görüntüleyebilirsiniz.
 
 ```php
-$service->logger->addWriter('mongo')->priority(5)->filter('priority.notIn', array(LOG_INFO, LOG_DEBUG));
-$service->logger->addWriter('file')->priority(4)->filter('priority.notIn', array(LOG_DEBUG));
-```
-
-Higher numbers means your handler important than others.
-
-### Handler Priorities
-
-Priority method sets your handler priority.
-
-```php
-$service->logger->registerHandler('file', 'FileHandler', $priority = 5);
-$service->logger->registerHandler('email', 'EmailHandler', $priority = 4);
-```
-
-### Writer Priorities
-
-
-```php
-$logger->addWriter('file')->priority(2);
-```
-
-### Global Filters
-
-If you we want to use a filter first you need to register it to a class with registerFilter(); method.
-
-An example prototype:
-
-```php
-$logger->registerFilter('class.method', 'Namespace\Class');
+php task queue show --channel=Log --route=myhostname.Logger
 ```
 
 ```php
-$logger->registerFilter('priority', 'Log\Filters\Priority');
+Channel : Log
+Route   : myhostname.Logger
+
+------------------------------------------------------------------------------------------
+Job ID  | Job Name            | Data 
+------------------------------------------------------------------------------------------
+1       | Workers\Logger      | {"time":1436249455,"record":[{"channel": .. }
 ```
-or you can define our own 
+
+<a name="workers"></a>
+
+### İşçiler İle Kuyruğu Tüketmek
+
+Kuyruğu tüketmek için konsoldan aşağıdaki komut ile bir php işçisi çalıştırmak gerekir.
 
 ```php
-$logger->registerFilter('filtername', 'Log\Filters\MyFilterClass');
+php task queue listen --channel=Log --route=myhostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=3
 ```
 
-Then you can use your filters like below.
+Yukarıdaki komut aynı anda birden fazla konsolda çalıştırıldığında <kbd>Obullo/Task/QueueController</kbd> sınıfı üzerinden her seferinde  <kbd>Obullo/Task/WorkerController.php</kbd> dosyasını çalıştırarak yeni bir iş parçaçığı oluşturur. Yerel ortamda birden fazla komut penceresi açarak kuyruğun eş zamanlı nasıl tüketildiğini test edebilirsiniz.
 
 ```php
-$logger->addWriter('email')->priority(2)->filter('priority', array(LOG_NOTICE, LOG_ALERT))->filter('input.filter');
+php task queue listen --channel=Log --route=myhostname.Logger --delay=0 --memory=128 --timeout=0 --debug=1
 ```
+Yerel ortamda yada test işlemleri için debug parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
 
-or you can run custom methods using "."
+Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüketimini otomasyona geçirmek için Supervisor adlı programdan yararlanabilirsiniz. <a href="http://supervisord.org/" target="_blank">http://supervisord.org/</a>. Böylece işlem sayısını ve işçileri kontrol altına alabilirsiniz.
 
-```php
-$logger->addWriter('email')->priority(2)->filter('priority.notIn', array(LOG_DEBUG));
-```
-Above the example executes <b>Priority</b> class <b>notIn</b> method. If you not provide a method name it will run the <b>__construct</b> method.
+> **Not:** Bir işlemci için açılması gereken optimum işçi sayısı 1 olmalıdır. Örneğin 16 çekirdekli bir sunucuya sahipseniz işçi sayısı 16 olmalıdır. İlgili makaleye bu bağlantıdan gözatabilirsiniz. <a href="http://stackoverflow.com/questions/1718465/optimal-number-of-threads-per-core">Optimal Number of Threads Per Core</a>.
 
+<a name="worker-parameters"></a>
 
-### Example Input Filter
-
-```php
-namespace Log\Filters;
-
-use Obullo\Log\LogService,
-    Obullo\Log\Filter\FilterInterface;
-
-/**
- * Input Filter Class
- * 
- * @category  Log
- * @package   Filter
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
- */
-Class InputFilter implements FilterInterface
-{
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
-    /**
-     * Filter Params
-     * 
-     * @var array
-     */
-    public $params;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c      container
-     * @param array  $params array
-     */
-    public function __construct($c, array $params = array())
-    {
-        $this->c = $c;
-        $this->params = $params;
-    }
-
-    /**
-     * Filter in array
-     * 
-     * @param array $record unformatted record data
-     * 
-     * @return array
-     */
-    public function filter(array $record)
-    {
-        $notPermitted = array(  // Put your not permitted context data in here
-            'session',
-        );
-        foreach ($notPermitted as $v) {
-            if (isset($record['context'][$v])) {
-                unset($record['context'][$v]);
-            }
-        }
-        return $record;
-    }
-
-}
-
-// END InputFilter class
-
-/* End of file InputFilter.php */
-/* Location: .Obullo/Log/Filter/InputFilter.php */
-```
-
-
-### Page Filters
-
-Below the example we create a log filter for <b>hello_world</b> page then we push log data to mongo. And the 'mongo' page filter <b>remove the debug level</b> logs.
-
-```php
-/**
- * $app hello_world
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('view');
-
-        $this->logger->load('mongo')->filter('priority.notIn', array(LOG_DEBUG)); // Do not write debugs.
-
-        $this->logger->info('Hello World !');
-        $this->logger->notice('Hello Notice !');
-        $this->logger->alert('Hello alert !');
-
-        $this->logger->push();
-    }
-);
-```
-
-**Note:** You can create your own filters in your <kbd>app/classes/</kbd> folder then you need set it with <b>$logger->registerFilter('myPriority', 'Filters\MyfilterClass');</b> method in your logger service.
-
-#### Displaying Logs
-
-Open your console and enter the project path
-
-```php
-cd /var/www/myproject
-```
-
-then run task file
-
-```php
-php task log
-```
-You can follow the all log messages using log command.
-
-```php
-php task log ajax
-```
-This command display only ajax log messages.
-
-```php
-php task log cli
-```
-This command display only cli log messages.
-
-
-#### Clear All Log Data
-
-```php
-php task clear
-```
-
-Completely remove log files from <b>data/logs</b> folder or queue if QueueLogger is enabled.
-
-
-
-## Queue Logger Configuration
-
-Some times application need to send some logging data to background for heavy <b>async</b> operations. Forexample to sending an email with smtp is very long process. So when we use <b>Email Handler</b> in application first we need to setup a <b>Queue Writer</b> for it.
-
-### Terms
-
-------
+### İşçi Parametreleri
 
 <table>
 <thead>
 <tr>
-<th>Term</th>
-<th>Description</th>
+<th>Parametre</th>
+<th>Açıklama</th>
+<th>Varsayılan</th>
 </thead>
 <tbody>
 <tr>
-<td>Handler</td>
-<td>Allows clone of application log data and send them to another handler in the current page.</td>
+<td>--channel</td>
+<td>Kuyruğun açılacağı kanalı belirler ( Exchange ).</td>
+<td>null</td>
 </tr>
 <tr>
-<td>Queue Job handler</td>
-<td>Listen queued logging jobs and consume them using <b>QueueLogger</b> class which is located in <b>app/Classes</b> folder.</td>
+<td>--route</td>
+<td>Kuyruk ismini belirler.</td>
+<td>null</td>
+</tr>
+<tr>
+<td>--delay</td>
+<td>Tamamlanmamış işler için gecikme zamanını belirler.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--memory</td>
+<td>Geçerli iş için kullanılabilecek maksimum belleği belirler. Değer MB cinsinden sayı olarak girilir.</td>
+<td>128</td>
+</tr>
+<tr>
+<td>--timeout</td>
+<td>Geçerli iş için maksimum çalışma süresini belirler.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--sleep</td>
+<td>Eğer kuyrukta iş yoksa girilen saniye kadar çalışma duraklatılır. En az 3 olarak girilmesi önerilir aksi durumda işlemci tüketimi artabilir.</td>
+<td>3</td>
+</tr>
+<tr>
+<td>--tries</td>
+<td>Kuyruktaki işin en fazla kaç kere yapılma denemesine ait sayıyı belirler.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--debug</td>
+<td>Debug değeri 1 olması durumunda bulunan hatalar ekrana dökülür.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--project</td>
+<td>Birden fazla projeniz varsa ve her proje için farklı konfigürasyonlar gerekiyorsa proje ismi bu parametre ile gönderilebilir.</td>
+<td>default</td>
+</tr>
+<tr>
+<td>--var</td>
+<td>Bu parametre göndermek istediğiniz özel parametreler için ayrılmıştır.</td>
+<td>null</td>
 </tr>
 </tbody>
 </table>
 
-### Setup
+<a name="debug-mode"></a>
 
-------
+### Hata Ayıklama Modu
 
-Open your <kbd>app/Classes/Log/Env/QueueLogger/Local.php</kbd> then update which handler you want to send log data onto the queue.
-Please look at following example.
+Debug değeri 1 olması durumunda bulunan hatalar ekrana dökülür.
 
 ```php
-namespace Log\Env;
+php task queue listen --channel=log --route=logger.1 --debug=1
+```
 
-use Service\ServiceInterface,
-    Obullo\Log\LogService,
-    Obullo\Log\Handler\NullHandler;
+<a name="processing-jobs"></a>
 
-/**
- * Log Service
- *
- * @category  Service
- * @package   Logger
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/services
- */
-Class Local implements ServiceInterface
-{
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register($c)
+### Kuyruk Verilerini İşlemek
+
+<kbd>app/classes/Workers/Logger</kbd> sınfı fire metoduna gönderilen log verileri, istek tipi, yazıcı tipi, gönderilme süresi, log kayıtları gibi verileri aşağıdaki gibi bir array içerisinde gruplar. Php task listen komutu çalıştığında işçi veya işciler bu gruplanmış veriyi Workers/Logger sınıfı içerisinde arka planda çözümleyerek log yazıcılarına gönderirler.
+
+```php
+    public function fire(Job $job, $data)
     {
-        // .. 
+        echo '<pre>';
+        print_r($data);
+        echo '</pre>'
+
+        $this->job = $job;
+        $this->writers = LogRaidManager::handle($data);
+        $this->process();
     }
-}
-
-// END Local class
-
-/* End of file Local.php */
-/* Location: .classes/Log/Env/Local.php */
 ```
 
-### Handler Setup
+Eğer yukarıda görülen <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ikinci parametresi olan $data verisini ekrana dökmeniz halinde aşağıdaki gibi bir çıktı alırsınız.
 
-------
-
-Below the example setup file handler and priority.
-
-```php
-$log->registerHandler(4, 'file');
-```
-
-### Log Worker ( Job Handler ) Setup
-
-------
-
-QueueLogger class listen your <b>logger queue</b> data then consume them using by <b>Job Handlers</b>.
-
-### Available Job Process Handlers
-
-* File
-* Mongo
-* Email
-
-Logger tarafından kullanılan Queue sınıfı önemlilik bilgisi, request tipi, log kayıtları gibi verileri aşağıdaki gibi bir array içerisinde gruplar. Workerlar bu gruplanmış 
-data yı arka planda çözümleyerek ( parse işlemi ) job handler a gönderirler.
 
 ```php
 /*
 Array
 (
-    [0] =&gt; Array
-        (
-            [request] =&gt; http
-            [handler] =&gt; file
-            [priority] =&gt; 5
-            [time] =&gt; 1416229343
-            [record] =&gt; Array
-                (
-                    [0] =&gt; Array
-                        (
-                            [channel] =&gt; system
-                            [level] =&gt; debug
-                            [message] =&gt; $_REQUEST_URI: /tutorials/hello_world
-                            [context] =&gt; Array
-                                (
-                                )
+    [logger] => Logger
+    [primary] => 5
+    [writers] => Array( 
+        [5] => Array
+            (
+                [request] => http
+                [handler] => file
+                [type] => writer
+                [time] => 1436357633
+                [record] => Array
+                    (
+                        [0] => Array
+                            (
+                                [channel] => system
+                                [level] => debug
+                                [message] => Uri Class Initialized
+                                [context] => Array
+                                    (
+                                        [uri] => /welcome/index
+                                    )
 
-                        )
-
-                    [1] =&gt; Array
-                        (
-                            [channel] =&gt; system
-                            [level] =&gt; debug
-                            [message] =&gt; Global POST and COOKIE data sanitized
-                            [context] =&gt; Array
-                                (
-                                )
-
-                        )
-                )   
+                            )
+        [4] => Array(
+            // secondary writer / handler
         )
-
-    [1] =&gt; Array
-        (
-            [request] =&gt; http
-            [handler] =&gt; mongo
-            [priority] =&gt; 4
-            [time] =&gt; 1416229343
-            [record] =&gt; Array
-                (
-                    [0] =&gt; Array
-                        (
-                            [channel] =&gt; system
-                            [level] =&gt; alert
-                            [message] =&gt; Possible hack attempt !
-                            [context] =&gt; Array
-                                (
-                                    [username] =&gt; test2
-                                )
-
-                        )
+    );
 */
 ```
 
-Aşağıdaki kodlar log kuyruğunu çözümlemek için güncel bir worker örnegidir.
+Aşağıda log kuyruğunu çözümlemek için sadeleştirilmiş bir worker örnegi görülüyor.
+
 
 ```php
 namespace Workers;
 
-use Obullo\Queue\Job,
-    Obullo\Queue\JobInterface;
+use Obullo\Queue\Job;
+use Obullo\Log\LogRaidManager;
+use Obullo\Queue\JobInterface;
+use Obullo\Container\ContainerInterface;
 
-/**
- * Worker Logger
- *
- * @category  Worker
- * @package   Logger
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/queue
- */
 Class Logger implements JobInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
     public $c;
+    public $job;
+    public $writers;
 
-    /**
-     * Environment
-     * 
-     * @var string
-     */
-    public $env;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c   container
-     * @param string $env environments
-     */
-    public function __construct($c, $env)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->env = $env;
     }
 
-    /**
-     * Fire the job
-     * 
-     * @param Job   $job  object
-     * @param array $data data array
-     * 
-     * @return void
-     */
     public function fire(Job $job, $data)
     {
-        // ...
+        $this->job = $job;
+        $this->writers = LogRaidManager::handle($data);
+        $this->process();
+    }
+
+    public function process()
+    {
+        $handler = null;
+        foreach ($this->writers as $data) {
+            $handler = $data['handler'];
+            if ($handler == 'file') {
+                $handler = new FileHandler;
+            }
+            if (is_object($handler) && $handler->isAllowed($data)) {
+
+                $handler->write($data);
+                $handler->close();
+                
+                if ($this->job instanceof Job) {
+                    $this->job->delete();
+                }
+            }
+        }
     }
 
 }
@@ -729,206 +737,163 @@ Class Logger implements JobInterface
 /* Location: .app/classes/Workers/Logger.php */
 ```
 
-### Listing Queues
+Çözümlenenen log verileri process metodu içerisinde log yazıcılarına gönderilir ve yazma işlemleri tamamlanır.
+
+<a name="removing-completed-jobs"></a>
+
+### Tamamlanan İşleri Kuyruktan Silmek
+
+Log verileri kuyruğa gönderilirken ilk parametre <b>iş</b> sınıfının yolu yani <kbd>Workers\Logger</kbd> girildiğinden kuyruk tüketilmeye başlandığında <kbd>Obullo\Queue\Job</kbd> sınıfına genişleyen <kbd>Obullo\Queue\Job\JobHandler\AMQPJob</kbd> sınıfı <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ilk parametresine gönderilir.
+
+<kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ilk parametresine gönderilen iş sınıfı ile kuyruktan alınan işler tamamlandığında delete metodu ile kuyruktan silinirler.
 
 ```php
-php task queue list --channel=Logs --route=myHostname.Logger --debug=1
+if (is_object($handler) && $handler->isAllowed($data)) {
+
+    $handler->write($data);  // Do job
+    $handler->close();
+    
+    if ($this->job instanceof Job) {
+        $this->job->delete();  // Delete job from queue
+    }
+}
 ```
 
-**Note:** Debug parameter must be "--debug=0" in production environment.
+<a name="register-application-as-worker"></a>
+
+### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
+
+Dağıtık bir log yapısı kurmak, log işleme ve diğer işleri http sunucusu yormamak için başka bir suncuda Obullo çatısı ile yapmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
 
 ```php
-            ______  _            _  _
-           |  __  || |__  _   _ | || | ____
-           | |  | ||  _ || | | || || ||  _ |
-           | |__| || |_||| |_| || || || |_||
-           |______||____||_____||_||_||____|
-
-            Welcome to Task Manager (c) 2014
-    You are running $php task queue command which is located in app / tasks folder.
-
-Following queue data ...
-
-Channel : Logs
-Route   : myHostname.Logger
-------------------------------------------------------------------------------------------
- Job ID | Job Name             | Data 
-------------------------------------------------------------------------------------------
- 1      | Workers\QueueLogger          |  {"type":"http","record":"[2014-08-15 19:11:50] system.notice: --> test email notice !   \n[2014-08-15 19:11:50] system.alert: --> test email alert  array (  'test' => 'example data 123',) \n"}
-
+$logger->registerAsWorker();
 ```
 
+Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot log servisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
 
-### Listening Queues from Command Line
+Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task listen</kbd> komutu ile işçilerinizin kurulumunu yaparak loglarınızı işlemeye başlayabilirsiniz.
 
-Open your console and write below the command
+<a name="displaying-logs"></a>
+
+### Logları Görüntülemek
+
+Uygulama logları konsoldan ve web arayüzünden görütülenebilir. Web arayüzünden görüntüleme daha detaylı log görüntüleme ve hata ayıklamalar için önerilir web arayüzü web socket teknolojisi kullanır.
+
+<a name="from-console"></a>
+
+### Logları Konsoldan Takip Etmek
+
+Loglamaya ait verileri konsolonuzdan takip edebilirsiniz. Bunu için proje ana dizinine girin.
 
 ```php
-php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+cd /var/www/myproject
 ```
 
-Above the command listen <b>Logs</b> channel and <b>Email</b> queue.
-
-### Changing Route
-
-You can listen a <b>different route</b> by changing the route name like below.
+Ardından <kbd>log</kbd> komutun çalıştırın.
 
 ```php
-php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=0 --maxTries=0
+php task log
 ```
 
-### Enabling Debbuger
+Log komutu varsayılan olarak file yazıcısına tanımlıdır. Eğer yerel veya test ortamında loglama için file yazıcısı kullanıyorsanız log verilerini aşağıdaki gibi konsolunuzdan takip edebilirsiniz.
 
-Put <b>--debug</b> end of your command with debug variable you can enable console debug to see errors and queues.
+![Logları Konsoldan Takip Etmek](/Log/Docs/images/logs.jpg?raw=true "Logları Konsoldan Görüntüleme")
+
+Log dosyasını temizlemek için <kbd>clear</kbd> komutunu kullanın.
 
 ```php
-php task queue listen --channel=Logs --route=myHostname.Logger --delay=0 --memory=128 --debug=1
+php task log clear
 ```
 
-### Console Parameters
+<a name="from-debugger"></a>
 
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</thead>
-<tbody>
-<tr>
-<td>--channel</td>
-<td>Sets queue exchange ( Channel ).</td>
-</tr>
-<tr>
-<td>--route</td>
-<td>Sets queue name.</td>
-</tr>
-<tr>
-<td>--delay</td>
-<td>Sets delay time for uncompleted jobs.</td>
-</tr>
-<tr>
-<td>--memory</td>
-<td>Sets maximum allowed memory for current job.</td>
-</tr>
-<tr>
-<td>--timeout</td>
-<td>Sets time limit execution of the current job.</td>
-</tr>
-<tr>
-<td>--sleep</td>
-<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
-</tr>
-<tr>
-<td>--maxTries</td>
-<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
-</tr>
-<tr>
-<td>--debug</td>
-<td>Debug queue output and any possible exceptions. ( Designed for local environment  )</td>
-</tr>
-<tr>
-<td>--project</td>
-<td>You can set your project name using this variable if you  need to change your configurations for each projects.</td>
-</tr>
-<tr>
-<td>--var</td>
-<td>Custom variable for extra arguments.</td>
-</tr>
-</tbody>
-</table>
+### Logları Debugger Modülü İle Takip Etmek
+
+Debugger paketi Debugger.md dökümentasyonunu inceleyiniz.
 
 
-### Installing Framework as a Completely Worker Application
-
-If you want to create a distributed logging structure setting up a worker application is good idea. Otherwise if you have too many requests your http servers can get tired.
-
-To setup a completely worker application open your config file and set "log => queue => workers => logging => true" otherwise "AbstractHandler" class will 
-not allow your data send to writers.
-
-```php
-'queue' => array(
-    'workers' => array(
-        'logging' => true  // On / Off Queue workers logging functionality.
-    ), 
-)
-```
-
-This enables logging process of your workers ( background logging ) and disables http logging. It is normally disabled for normal applications which they work with http requests.
+<a name="method-reference"></a>
 
 
-### Handlers Reference
+#### Fonksiyon Referansı
 
 ------
 
-#### $this->logger->load(string $handler = 'email');
+##### $this->logger->enable();
+
+##### $this->logger->disable();
+
+##### $this->logger->isEnabled();
+
+##### $this->logger->load(string $handler = 'email');
 
 Load a log handler for push method. Handler constants are defined in your root constants file.
 
-#### $this->logger->addWriter(string $name);
+##### $this->logger->addWriter(string $name);
 
 Add a log writer.
 
-#### $this->logger->removeWriter(string $name);
+##### $this->logger->removeWriter(string $name);
 
 Remove a log writer.
 
-#### $this->logger->registerFilter(string $name, string $namespace);
+##### $this->logger->registerFilter(string $name, string $namespace);
 
 Register your filters using namespace.
 
-#### $this->logger->registerHandler(string $name, string $namespace, integer $priority);
+##### $this->logger->registerHandler(string $name, string $namespace, integer $priority);
 
 Register your handlers using namespace and sets priority of handler.
 
-#### $this->logger->filter(string $name, array $params = array());
+##### $this->logger->filter(string $name, array $params = array());
 
 Execute your filter before releated method.
 
-#### $this->logger->push($handlername = null);
+##### $this->logger->push($handlername = null);
 
 Push current page log data to your loaded log handler. Handlername variable is optional.
 
-#### $this->logger->printDebugger(string $handler = 'file');
+##### $this->logger->registerAsWorker();
 
-On / Off debug html output. When it is enabled all push handlers will be disabled.
+Default logging feature disabled for workers, you need to turn on logs in order to define workers as an application.
 
 
-### Logger Reference
+#### Mesaj Referansı
 
 ------
 
-#### $this->logger->channel(string $channel);
+##### $this->logger->channel(string $channel);
 
 Sets log channel.
 
-#### $this->logger->emergency(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->emergency(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_EMERG</b> level log message.
 
-#### $this->logger->alert(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->alert(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_ALERT</b> level log message.
 
-#### $this->logger->critical(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->critical(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_CRIT</b> level log message.
 
-#### $this->logger->error(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->error(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_ERROR</b> level log message.
 
-#### $this->logger->warning(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->warning(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_WARNING</b> level log message.
 
-#### $this->logger->notice(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->notice(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_NOTICE</b> level log message.
 
-#### $this->logger->info(string $message = '', $context = array(), integer $priority = 0);
+##### $this->logger->info(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_INFO</b> level log message.
-    
-#### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
+
+##### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
 Create <b>LOG_DEBUG</b> level log message.

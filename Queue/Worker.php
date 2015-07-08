@@ -32,6 +32,20 @@ class Worker
     protected $c;
 
     /**
+     * Job instance
+     * 
+     * @var object
+     */
+    protected $job;
+
+    /**
+     * Environment
+     * 
+     * @var string
+     */
+    protected $env = 'production';
+
+    /**
      * Cli instance
      * 
      * @var object
@@ -107,20 +121,6 @@ class Worker
      * @var int
      */
     protected $debug;
-
-    /**
-     * Job instance
-     * 
-     * @var object
-     */
-    protected $job;
-
-    /**
-     * Environment
-     * 
-     * @var string
-     */
-    protected $env = 'production';
 
     /**
      * Your project name
@@ -208,9 +208,6 @@ class Worker
         $this->queue = $this->c['queue'];
         $this->logger = $this->c['logger'];
 
-        Logger::unregisterErrorHandler();     // We use worker error handlers thats why we disable it
-        Logger::unregisterExceptionHandler(); // logger error handlers.
-
         $this->logger->channel('queue');
         $this->logger->debug('Queue Worker Class Initialized');
     }
@@ -256,7 +253,7 @@ class Worker
     public function pop()
     {
         $this->job = $this->getNextJob();
-        if ( ! is_null($this->job)) {
+        if (! is_null($this->job)) {
             $this->doJob();
             $this->debugOutput($this->job->getRawBody());
         } else {                  // If we have not job on the queue sleep the script for a given number of seconds.
@@ -275,7 +272,7 @@ class Worker
             return $this->queue->pop();
         }
         foreach (explode(',', $this->route) as $this->route) {     // If comma seperated queue
-            if ( ! is_null($job = $this->queue->pop($this->route))) { 
+            if (! is_null($job = $this->queue->pop($this->route))) { 
                 return $job;
             }
         }
@@ -288,7 +285,7 @@ class Worker
      */
     public function doJob()
     {
-        if ($this->tries > 0 AND $this->job->getAttempts() > $this->tries) {
+        if ($this->tries > 0 && $this->job->getAttempts() > $this->tries) {
             $this->job->delete();
             $this->logger->channel('queue');
             $this->logger->warning('The job failed and deleted from queue.', array('job' => $this->job->getName(), 'body' => $this->job->getRawBody()));
@@ -359,14 +356,14 @@ class Worker
         if (static::$registeredExceptionHandler) {  // Only register once per instance
             return false;
         }
-        $errorPriorities = static::$errorPriorities;
+        $errorPriorities = static::$errorPriorities;  // @see http://www.php.net/manual/tr/errorexception.getseverity.php
         set_exception_handler(
-            function ($exception) use ($errorPriorities) { // @see http://www.php.net/manual/tr/errorexception.getseverity.php
+            function ($exception) use ($errorPriorities) {
                 $messages = array();
                 do {
                     $priority = static::$priorities['error'];
                     $level = LOG_ERR;
-                    if ($exception instanceof ErrorException AND isset($errorPriorities[$exception->getSeverity()])) {
+                    if ($exception instanceof ErrorException && isset($errorPriorities[$exception->getSeverity()])) {
                         $level = $exception->getSeverity();
                         $priority = $errorPriorities[$level];
                     }
@@ -394,7 +391,7 @@ class Worker
                     );
                     $this->saveFailedJob($data);
                 }
-                if ( ! is_null($this->job) AND ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
+                if (! is_null($this->job) && ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
                     $this->job->release($this->delay);  // the queue so it is not lost. This will let is be retried at a later time by another worker.
                 }
             }
@@ -443,14 +440,29 @@ class Worker
     protected function saveFailedJob($data)
     {
         global $c;
-        $data = $this->prependJobDetails($data);
-        if ($this->debug) {
-            $this->debugOutput($data);
-        }
-        if ($c['config']['queue/workers']['failed']['enabled']) {
-            $storageClassName = '\\'.ltrim($c['config']['queue/workers']['failed']['storage'], '\\');
-            $storage = new $storageClassName($c);
-            $storage->save($data);
+
+        // Worker does not well catch failed job exceptions because of we
+        // use this function in exception handler.Thats the point why we need to try catch block.
+        try {
+            $data = $this->prependJobDetails($data);
+            if ($this->debug) {
+                $this->debugOutput($data);
+            }
+            if ($c['config']['queue/workers']['failed']['enabled']) {
+
+                $storageClassName = '\\'.ltrim($c['config']['queue/workers']['failed']['storage'], '\\');
+                $storage = new $storageClassName($c);
+                
+                $db = $storage->getConnection();
+
+                $db->beginTransaction();
+                $storage->save($data);
+                $db->commit();
+            }
+
+        } catch (Exception $e) {
+            $db->rollBack();
+            $this->c['exception']->show($e);
         }
     }
 
@@ -463,7 +475,7 @@ class Worker
      */
     protected function prependJobDetails($data)
     {
-        if ( ! is_object($this->job)) {
+        if (! is_object($this->job)) {
             return $data;
         }
         return array_merge(

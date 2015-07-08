@@ -297,6 +297,8 @@ pre span.string {color: #cc0000;}
 }
 .title { color: #5A5A5F; font-weight: bold; margin-top: 5px; margin-bottom: 3px; }
 .error { color: #E53528; }
+.alert { color: #E53528; }
+.info { color: blue; }
 
 #obulloDebugger-http-log,
 #obulloDebugger-console-log,
@@ -567,7 +569,7 @@ var keyStr = "ABCDEFGHIJKLMNOP" +
                "ghijklmnopqrstuv" +
                "wxyz0123456789+/" +
                "=";
-
+               
 function encode64(input) {
      input = escape(input);
      var output = "";

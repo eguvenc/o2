@@ -6,7 +6,6 @@ use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
 use BadMethodCallException;
-use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
 
 /**
@@ -70,10 +69,6 @@ class Cli extends Application
         include APP .'events.php';
         include APP .'routes.php';
         
-        if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket = new WebSocket($this->c);
-            $this->websocket->connect();
-        }
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
         
         register_shutdown_function(array($this, 'close'));

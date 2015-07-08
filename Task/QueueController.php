@@ -57,7 +57,7 @@ echo Console::help("
 Available Commands
 
     show        : Display all queued jobs.
-    listen      : Wait and send jobs to job handler.
+    listen      : Define a worker & consume queued jobs.
     help        : Display help.
 
 Arguments
@@ -91,7 +91,7 @@ echo Console::newline(2);
     /**
      * List ( debug ) queue data
      *
-     * Example : php task queue show --route=Server1.Logger clear=1
+     * Example : php task queue show --channel=Log --route=myhostname.Logger
      * 
      * @return string
      */
@@ -157,17 +157,17 @@ echo Console::newline(2);
      */
     public function listen()
     {
-        $debug = $this->cli->argument('debug', 0);        // Enable / Disabled console debug.
-        $channel = $this->cli->argument('channel', null); // Sets queue exchange
-        $route = $this->cli->argument('route', null);     // Sets queue route key ( queue name )
-        $memory = $this->cli->argument('memory', 128);    // Sets maximum allowed memory for current job.
-        $delay = $this->cli->argument('delay', 0);        // Sets job delay interval
-        $timeout = $this->cli->argument('timeout', 0);    // Sets time limit execution of the current job.
-        $sleep = $this->cli->argument('sleep', 3);        // If we have not job on the queue sleep the script for a given number of seconds.
-        $tries = $this->cli->argument('tries', 0);        // If job attempt failed we push back on to queue and increase attempt number.
-        $env = $this->cli->argument('env', 'local');      // Sets environment for current worker.
+        $debug   = $this->cli->argument('debug', 0);          // Enable / Disabled console debug.
+        $channel = $this->cli->argument('channel', null);     // Sets queue exchange
+        $route   = $this->cli->argument('route', null);       // Sets queue route key ( queue name )
+        $memory  = $this->cli->argument('memory', 128);       // Sets maximum allowed memory for current job.
+        $delay   = $this->cli->argument('delay', 0);          // Sets job delay interval
+        $timeout = $this->cli->argument('timeout', 0);        // Sets time limit execution of the current job.
+        $sleep   = $this->cli->argument('sleep', 3);          // If we have not job on the queue sleep the script for a given number of seconds.
+        $tries   = $this->cli->argument('tries', 0);          // If job attempt failed we push back on to queue and increase attempt number.
+        $env     = $this->cli->argument('env', 'local');      // Sets environment for current worker.
         $project = $this->cli->argument('project', 'default');  // Sets project name for current worker ( This is useful working with multiple projects ). 
-        $var = $this->cli->argument('var', null);         // Sets your custom variable
+        $var     = $this->cli->argument('var', null);         // Sets your custom variable
         
         if (empty($channel)) {
             echo Console::fail("Queue \"--channel\" can't be empty.");

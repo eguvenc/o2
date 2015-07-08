@@ -28,7 +28,7 @@ return array(
 );
 
 /* End of file */
-/* Location: .config/env.local/domain.php */
+/* Location: .config/env/local/domain.php */
 ```
 
 Dosya içerisindeki <b>"maintenance"</b> anahtarları domain adresinin bakıma alınıp alınmadığını kontrol eder, <b>"regex"</b> anahtarı ise geçerli route adresleriyle eşleşme yapılabilmesine olanak sağlar. Domain adresinize uygun düzenli ifadeyi regex kısmına girin.

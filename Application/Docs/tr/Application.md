@@ -196,7 +196,7 @@ Uygulama sınıfını sabit tanımlamalar ( constants ), sınıf yükleyici ve k
 
 ### Konfigürasyon ve Çalıştırma
 
-Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişkenleri dosyası yaratmanız gerekir. Eğer uygulamayı yerel bir ortamda çalıştırıyorsanız proje ana dizinine <b>.env.local.php</b> yaratın. Ayrıca diğer mevcut olan her bir ortam için test veya production gibi aşamalara geldiğinizde iligili sunucularda bir <b>.env.ortam.php</b> dosyası yaratmanız gerekir.
+Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişkenleri dosyası yaratmanız gerekir. Eğer uygulamayı yerel bir ortamda çalıştırıyorsanız proje ana dizinine <b>.env/local.php</b> yaratın. Ayrıca diğer mevcut olan her bir ortam için test veya production gibi aşamalara geldiğinizde iligili sunucularda bir <b>.env.ortam.php</b> dosyası yaratmanız gerekir.
 
 
 <a name="create-env-file"></a>
@@ -220,17 +220,17 @@ return array(
     'REDIS_AUTH' => '',
 );
 
-/* End of file .env.local.php */
-/* Location: .env.local.php */
+/* End of file .env/local.php */
+/* Location: .env/local.php */
 ```
 
-> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env.local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
+> **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env/local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
 
 
 Ortam değişikliği sözkonusu olduğunda .env* dosyalarını her bir ortam için bir defalığına kurmuş olamanız gerekir. Env dosyaları için dosya varmı kontrolü yapılmaz bu nedenle eğer uygulamanızda bu dosya mevcut değilse aşağıdaki gibi <b>php warning</b> hataları alırsınız.
 
 ```php
-Warning: include(/var/www/example/.env.local.php): failed to open stream: 
+Warning: include(/var/www/example/.env/local.php): failed to open stream: 
 No such file or directory in /o2/Config/Config.php on line 79
 ```
 
@@ -303,7 +303,7 @@ echo $c['app']->env();  // Çıktı  local
     <tbody>
         <tr>
             <td><b>local</b></td>
-            <td>Yerel sunucu ortamıdır, geliştiriciler tarafından uygulama bu ortam altında geliştirilir, her bir geliştiricinin bir defalığına <b>environments.php</b> dosyası içerisine kendi bilgisayarına ait ismi (hostname) tanımlaması gereklidir.Local sunucuda kök dizine <b>.env.local.php</b> dosyası oluşturup her bir geliştiricinin kendi çalışma ortamı servislerine ait <b>password, hostname, username</b> gibi bilgileri bu dosya içerisine koyması gereklidir.</td>
+            <td>Yerel sunucu ortamıdır, geliştiriciler tarafından uygulama bu ortam altında geliştirilir, her bir geliştiricinin bir defalığına <b>environments.php</b> dosyası içerisine kendi bilgisayarına ait ismi (hostname) tanımlaması gereklidir.Local sunucuda kök dizine <b>.env/local.php</b> dosyası oluşturup her bir geliştiricinin kendi çalışma ortamı servislerine ait <b>password, hostname, username</b> gibi bilgileri bu dosya içerisine koyması gereklidir.</td>
         </tr>
         <tr>
             <td><b>test</b></td>

@@ -18,16 +18,6 @@ use Obullo\Log\Formatter\DebuggerFormatter;
 class Debugger extends AbstractHandler implements HandlerInterface
 {
     /**
-     * Config Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct(ContainerInterface $c)
-    {
-        parent::__construct($c);
-    }
-
-    /**
      * Write output
      *
      * @param string $data single record data

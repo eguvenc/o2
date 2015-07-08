@@ -27,19 +27,19 @@ class LogRaidManager
     {
         $primaryWriter = $data['primary'];  // Primary log writer
 
-        foreach ($data as $key => $array) {
+        foreach ($data['writers'] as $key => $value) {
 
-            if (is_array($array) && $array['type'] == 'writer') { // Secondary log writers
+            if (is_array($value) && $value['type'] == 'writer') { // Secondary log writers
 
                 // Mirrors
-                // If $array['type'] == "writer" use primary handler's record to write other handlers 
+                // If $value['type'] == "writer" use primary handler's record to write other handlers 
                 // otherwise use own record of the handler.
         
-                $data[$key]['record'] = $data[$primaryWriter]['record'];  // Sync records to write other writers
+                $data['writers'][$key]['record'] = $data['writers'][$primaryWriter]['record'];  // Sync records to write other writers
             }
         }
         unset($data['logger'], $data['primary']);
-        return $data;  // writers
+        return $data['writers'];  // writers
     }
 
 }

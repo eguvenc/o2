@@ -107,8 +107,8 @@ class PhpArray extends AbstractWriter
             // for Windows, paths are escaped.
             $dirname = str_replace('\\', '\\\\', dirname($filename));
 
-            $string  = $this->toString($config);
-            $string  = str_replace("'" . $dirname, "__DIR__ . '", $string);
+            $string = $this->toString($config);
+            $string = str_replace("'" . $dirname, "__DIR__ . '", $string);
 
             file_put_contents($filename, $string, $flags);
         } catch (\Exception $e) {

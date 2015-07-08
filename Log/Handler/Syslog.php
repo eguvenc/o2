@@ -31,14 +31,13 @@ class Syslog extends AbstractHandler implements HandlerInterface
     public $name = 'LogHandler.Syslog';
 
     /**
-     * Config Constructor
-     *
-     * @param object $c      container
-     * @param array  $params parameters
+     * Constructor
+     * 
+     * @param array $params parameters
      */
-    public function __construct(ContainerInterface $c, array $params = array())
+    public function __construct(array $params = array())
     {
-        parent::__construct($c);
+        parent::__construct();
 
         if (isset($params['facility'])) {
             $this->facility = $params['facility'];  // Application facility

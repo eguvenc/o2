@@ -18,6 +18,13 @@ use Obullo\Container\ContainerInterface;
 abstract class AbstractHandler
 {
     /**
+     * Logger
+     * 
+     * @var logger
+     */
+    protected $logger;
+    
+    /**
      * Config
      * 
      * @var array
@@ -26,31 +33,31 @@ abstract class AbstractHandler
 
     /**
      * Constructor
-     *
-     * @param object $c container
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct()
     {
+        global $c;
         $this->config = $c['config']->load('logger');
+        $this->logger = $c['logger'];
     }
 
     /**
      * Check log writing is allowed, deny not allowed
      * requests.
      *
-     * @param string $record log record
+     * @param string $data log records
      * 
      * @return boolean
      */
-    public function isAllowed(array $record)
+    public function isAllowed(array $data)
     {
         if (isset($_GET['o_debugger'])) {  //  Disable http debugger logs
             return false;
         }
-        if ($record['request'] == 'worker') {
-            return $this->config['queue']['workers']['logging'];  //  If worker logs allowed from config file.
+        if ($data['request'] == 'worker') {
+            return $this->logger->isRegisteredAsWorker();
         }
-        if (in_array($record['request'], array(null, 'http','ajax','cli'))) {
+        if (in_array($data['request'], array(null, 'http','ajax','cli'))) {
             return true;
         }
         return false;
@@ -71,7 +78,6 @@ abstract class AbstractHandler
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
-            'request'  => $data['request'],
             'context'  => null,
             'extra'    => null,
         );

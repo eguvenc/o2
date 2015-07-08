@@ -29,7 +29,7 @@ class File
     {
         $c['config']->load('logger');
 
-        $table = null; // unused variable
+        $table = null; // Unused variable
         if (! isset($c['config']['logger']['file']['path'][$dir])) {
             echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['logger']['file']['path'][$dir] array.\033[0m\n");
             exit;
@@ -43,7 +43,7 @@ class File
 
         $size = 0;
         while (true) {
-            clearstatcache(); // Clear the cache
+            clearstatcache();           // Clear the cache
             if (! file_exists($file)) { // Start process when file exists.
                 continue;
             }

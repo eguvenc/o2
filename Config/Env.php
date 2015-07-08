@@ -121,17 +121,17 @@ class Env implements ArrayAccess
         $heading = $message = '';
         
         if ($required && $empty) {
-            $heading = 'Env Variable Not Defined';
-            $message = 'Env variable <b>'.$key.'</b> key not defined or empty in your <b>.env.'.$this->env.'.php</b> file.';
+            $heading = 'Undefined Env Variable';
+            $message = 'Env configuration key <b>'.$key.'</b> is not defined or empty in your <b>.env.'.$this->env.'.php</b> file.';
             include APP. 'templates'. DS . 'errors'. DS .'general.php';
             die;
         }
         if ($empty && $default != '') {     // default value
             return $default;
         }
-        if ( ! isset($_ENV[$key])) {
-            $heading = 'Env Variable Not Exists';
-            $message = 'Env variable <b>'.$key.'</b> key defined in your <b>.env.'.$this->env.'.php</b> file.';
+        if (! isset($_ENV[$key])) {
+            $heading = 'Undefined Env Variable';
+            $message = 'Env configuration key <b>'.$key.'</b> is not defined in your <b>.env.'.$this->env.'.php</b> file.';
             include APP. 'templates'. DS . 'errors'. DS .'general.php';
             die;
         }

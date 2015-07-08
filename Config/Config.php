@@ -50,14 +50,14 @@ class Config implements ArrayAccess
     {
         $this->env = $c['app']->env();
         
-        $this->path  = CONFIG .'env.'.$this->env. DS;
-        $this->local = CONFIG .'env.local'. DS;
+        $this->path  = CONFIG .'env'. DS .$this->env. DS;
+        $this->local = CONFIG .'env'. DS .'local'. DS;
         
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
         
         if ($this->env != 'local') {
-            $envConfig = include $this->path .'config.php';
+            $envConfig   = include $this->path .'config.php';
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
         $this->array['domain'] = include $this->path .'domain.php';
@@ -128,14 +128,14 @@ class Config implements ArrayAccess
      */
     public function write($filename, $data)
     {
-        $fullpath = CONFIG .'env.'.$this->env. DS;
+        $fullpath = CONFIG .'env'. DS .$this->env. DS;
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
             $fullpath = CONFIG;
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file */\n/* Location: .config/env.$this->env/$filename */");
+        $writer->addDoc("\n/* End of file */\n/* Location: .config/env/$this->env/$filename */");
         $writer->toFile($fullpath . str_replace('/', DS, $filename), $data);
     }
 

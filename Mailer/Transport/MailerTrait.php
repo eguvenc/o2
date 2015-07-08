@@ -13,7 +13,7 @@ trait MailerTrait
      */
     public function setDate($newDate = null)
     {
-        if ( ! is_null($newDate)) {
+        if (! is_null($newDate)) {
             $this->setHeader('Date', $newDate);
             return $newDate;
         }
@@ -35,7 +35,7 @@ trait MailerTrait
      */
     public function strToArray($email)
     {
-        if ( ! is_array($email)) {
+        if (! is_array($email)) {
             if (strpos($email, ',') !== false) {
                 $email = preg_split('/[\s,]/', $email, -1, PREG_SPLIT_NO_EMPTY);
             } else {
@@ -55,7 +55,7 @@ trait MailerTrait
      */
     public function formatEmail($email)
     {
-        if ( ! is_array($email)) {
+        if (! is_array($email)) {
             if (strpos($email, '>') > 0 AND preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $email, $match)) {
                 return array('email' => $match['email'], 'name' => $match['name']);
             } else {
@@ -82,7 +82,7 @@ trait MailerTrait
      */
     public function cleanEmail($email)
     {
-        if ( ! is_array($email)) {
+        if (! is_array($email)) {
             if (preg_match('/\<(.*)\>/', $email, $match)) {
                 return $match['1'];
             } else {
@@ -116,7 +116,7 @@ trait MailerTrait
         // Set the character limit
         // Don't allow over 76, as that will make servers and MUAs barf
         // all over quoted-printable data
-        if ($charlim == '' OR $charlim > '76') {
+        if ($charlim == '' || $charlim > '76') {
             $charlim = '76';
         }
         $str = preg_replace("| +|", " ", $str); // Reduce multiple spaces
@@ -142,7 +142,7 @@ trait MailerTrait
                 $ascii = ord($char);
                 // Convert spaces and tabs but only if it's the end of the line
                 if ($i == ($length - 1)) {
-                    $char = ($ascii == '32' OR $ascii == '9') ? $escape . sprintf('%02s', dechex($ascii)) : $char;
+                    $char = ($ascii == '32' || $ascii == '9') ? $escape . sprintf('%02s', dechex($ascii)) : $char;
                 }
                 if ($ascii == '61') {  // encode = signs
                     $char = $escape . strtoupper(sprintf('%02s', dechex($ascii)));  // =3D

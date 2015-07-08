@@ -66,7 +66,7 @@ class ExceptionHandler
             $logger->channel($c['config']['logger']['default']['channel']);
             $logger->error($message, array('file' => DebugOutput::getSecurePath($file), 'line' => $line));
         }
-        $c['exception']->toString($e);
+        $c['exception']->show($e);
     }
 }
 
