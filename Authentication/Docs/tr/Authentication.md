@@ -103,7 +103,7 @@ gibi özellikleri barındırır.
 
 Aşağıdaki akış şeması bir kullanıcının yetki doğrulama aşamalarından nasıl geçtiği ve yetki doğrulama servisinin gelişmiş özellikleri ile kullanıldığında nasıl çalıştığı hakkında size bir ön bilgi verecektir:
 
-* [Şemayı görmek için buraya tıklayınız](/Authentication/Docs/images/flowchart.png?raw=true)
+![Authentication](/Authentication/Docs/images/flowchart.png?raw=true "Authentication")
 
 Şemada görüldüğü üzere <b>GenericUser</b> ve <b>AuthorizedUser</b> olarak iki farklı durumu olan bir kullanıcı sözkonusudur. GenericUser <b>yetkilendirilmemiş</b> AuhtorizedUser ise servis tarafından <b>yetkilendirilmiş</b> kullanıcıdır.
 
@@ -114,8 +114,6 @@ Eğer kullanıcı kimliği database sorgusu yapılarak elde edilmişse elde edil
 <a name="configuration"></a>
 
 ### Konfigürasyon
-
-------
 
 Yetki doğrulama paketine ait konfigürasyon <kbd>config/auth.php</kbd> dosyasında tutulmaktadır. Bu konfigürasyona ait bölümlerin ne anlama geldiği aşağıda geniş bir çerçevede anlatılmıştır.
 
@@ -495,14 +493,9 @@ namespace Membership;
 
 Class Login extends \Controller
 {
-    public function load()
+    public function __construct()
     {
-        $this->c['url'];
-        $this->c['form'];
-        $this->c['view'];
-        $this->c['request'];
-        $this->c['user'];
-        $this->c['flash'];
+        $this->user = $this->c->get('user');
     }
 
     /**
@@ -512,7 +505,6 @@ Class Login extends \Controller
     {
         if ($this->request->isPost()) {
 
-            $this->c['validator'];
             $this->validator->setRules('email', 'Email', 'required|email|trim');
             $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
 
@@ -534,9 +526,7 @@ Class Login extends \Controller
                 }
             }
         }
-            
         $this->view->load('login');
-
     }
 }
 ```
@@ -682,9 +672,9 @@ if ($authResult->isValid()) {
 
 #### Oturum Açma Olaylarını Dinlemek
 
-Yetki doğrulama paketine ait olaylar <kbd>app/classes/Event/Login/</kbd> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <kbd>Attempt</kbd> olayıdır. Bu olay Login sınıfı içerisindeki attempt metodu içerisinde <kbd>login.attempt.before</kbd> ve <kbd>login.attempt.after</kbd> isimleriyle ile ilan edilmiştir. 
+Yetki doğrulama paketine ait olaylar <kbd>app/classes/Event/Login/</kbd> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <kbd>Attempt</kbd> olayıdır. Bu olay Login sınıfı içerisindeki attempt metodu içerisinde <kbd>login.before</kbd> ve <kbd>login.after</kbd> isimleriyle ile ilan edilmiştir. 
 
-Aşağıdaki örnekte gösterilen Attempt sınıfı subscribe metodu <kbd>login.attempt.after</kbd> olayını dinleyerek oturum denemeleri öncesini ve bu oturumdan sonra oluşan sonuçları dinleyebilmenizi sağlar. 
+Aşağıdaki örnekte gösterilen Attempt sınıfı subscribe metodu <kbd>login.after</kbd> olayını dinleyerek oturum denemeleri öncesini ve bu oturumdan sonra oluşan sonuçları dinleyebilmenizi sağlar. 
 
 Şimdi dinleyici sınıfına bir göz atalım.
 
@@ -738,8 +728,8 @@ class Attempt implements EventListenerInterface
      */
     public function subscribe($event)
     {
-        $event->listen('login.attempt.before', 'Event\Login\Attempt@before');
-        $event->listen('login.attempt.after', 'Event\Login\Attempt@after');
+        $event->listen('login.before', 'Event\Login\Attempt@before');
+        $event->listen('login.after', 'Event\Login\Attempt@after');
     }
 }
 

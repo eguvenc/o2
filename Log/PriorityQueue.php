@@ -17,6 +17,13 @@ use SplPriorityQueue;
 class PriorityQueue extends SplPriorityQueue 
 {
     /**
+     * Queue order
+     * 
+     * @var integer
+     */
+    protected $queueOrder = -999;
+
+    /**
      * Priority fix
      * 
      * @param integer $priority1 priority level
@@ -26,10 +33,29 @@ class PriorityQueue extends SplPriorityQueue
      */
     public function compare($priority1, $priority2) 
     { 
+        if ($priority1 == null) {
+            return null;
+        }
         if ($priority1 === $priority2) {
             return 0;
         }
         return $priority1 < $priority2 ? -1 : 1; 
+    }
+
+    /**
+     * Add to queue
+     * 
+     * @param string $data     data
+     * @param mixed  $priority priority
+     * 
+     * @return void
+     */
+    public function insert($data, $priority)
+    {
+        if (is_null($priority)) {                  // SplPriorityQueue Fix
+            $priority = $this->queueOrder--;       // https://mwop.net/blog/253-Taming-SplPriorityQueue.html
+        }
+        parent::insert($data, $priority);
     }
 
 }

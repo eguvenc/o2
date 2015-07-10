@@ -107,11 +107,11 @@ Aşağıdaki akış şeması uygulamada bir log mesajının kaydedilirken hangi 
 
 ![Akış Şeması](/Log/Docs/images/flowchart.png?raw=true)
 
-Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log servisinde önceden tanımlı olan filtreler tarafından filtrelemeden geçtikten sonra iki dorum sözkonusu olur.
+Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log servisinde önceden tanımlı olan filtreler tarafından filtrelemeden geçtikten sonra iki durum sözkonusu olur.
 
 * Kuyruk Servisinin Kapalı Olduğu Durum ( Varsayılan )
 
-Eğer kuyruğa atma opsiyonu log servisinden kapalı ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra önemlilik sırasına sıralanan veriler göre direkt olarak <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
+Eğer kuyruğa atma opsiyonu log servisinden kapalı ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri önemlilik sırasına göre <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
 
 Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
 
@@ -342,7 +342,7 @@ $this->logger->alert('Hello alert !');
 $this->logger->push();
 ```
 
-Yukarıdaki örnek <kbd>/welcome/index</kbd> sayfasında mongo yazıcısı için bir filtre yaratıyor. Yaratılan filtre mongo yazıcısı için geçerli sayfada <kbd>debug</kbd> sevisyesindeki log verilerini log kayıtlarından çıkarıyor ve geriye kalan veriyi mongo yazıcısına gönderiyor.
+Yukarıdaki örneği <kbd>/welcome/index</kbd> gibi herhangi bir sayfada kullanabilirsiniz. Örnekte mongo yazıcısı için bir filtre yaratılıyor ve yaratılan filtre geçerli sayfada <kbd>debug</kbd> sevisyesindeki log verilerini mongo yazıcısı log kayıtlarından çıkarıyor ve geriye kalan veriyi mongo yazıcısına gönderiyor.
 
 <a name="messages"></a>
 
@@ -393,7 +393,7 @@ $this->logger->{seviye}(string $message, $context = array(), $priority = 0);
 <td>error</td>
 <td>3</td>
 <td>LOG_ERR</td>
-<td>Çalıştırma hataları ani müdhaleler gerektirmez fakat genel olarak loglanıp monitörlenmelidir.</td>
+<td>Çalıştırma hataları ani müdahaleler gerektirmez fakat genel olarak loglanıp monitörlenmelidir.</td>
 </tr>
 
 <tr>
@@ -414,7 +414,7 @@ $this->logger->{seviye}(string $message, $context = array(), $priority = 0);
 <td>info</td>
 <td>6</td>
 <td>LOG_INFO</td>
-<td>Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, SQL logları, Uygulama performans/durum bilgileri (benchmark).</td>
+<td>Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, SQL logları, Uygulama performans/durum bilgileri.</td>
 </tr>
 
 <tr>
@@ -472,6 +472,8 @@ $this->logger->info('User login attempt', array('username' => $username));
 
 $this->logger->push();
 ```
+
+> **Not:** Log yazıcıları yüklendiğinde load ve push metotları arasında kullanılan log metotlarına ait tüm veriler push metodu aracılığı ile yüklenen yazıcılara gönderilir. Load metodundan önceki ve push metodundan sonraki loglamalar varsayılan log yazıcılarına gönderilir.
 
 <a name="log-workers"></a>
 
@@ -636,9 +638,7 @@ php task queue listen --channel=log --route=logger.1 --debug=1
 ```php
     public function fire(Job $job, $data)
     {
-        echo '<pre>';
         print_r($data);
-        echo '</pre>'
 
         $this->job = $job;
         $this->writers = LogRaidManager::handle($data);
@@ -763,7 +763,7 @@ if (is_object($handler) && $handler->isAllowed($data)) {
 
 ### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
 
-Dağıtık bir log yapısı kurmak, log işleme ve diğer işleri http sunucusu yormamak için başka bir suncuda Obullo çatısı ile yapmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
+Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
 
 ```php
 $logger->registerAsWorker();
@@ -777,7 +777,7 @@ Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task l
 
 ### Logları Görüntülemek
 
-Uygulama logları konsoldan ve web arayüzünden görütülenebilir. Web arayüzünden görüntüleme daha detaylı log görüntüleme ve hata ayıklamalar için önerilir web arayüzü web socket teknolojisi kullanır.
+Uygulama logları konsoldan ve web arayüzünden görütülenebilir. Web arayüzünden görüntüleme daha detaylı log görüntüleme ve hata ayıklamalar için önerilir. Web arayüzü (debugger modülü) web socket teknolojisi kullanır.
 
 <a name="from-console"></a>
 
@@ -809,7 +809,7 @@ php task log clear
 
 ### Logları Debugger Modülü İle Takip Etmek
 
-Debugger paketi Debugger.md dökümentasyonunu inceleyiniz.
+Debugger paketi [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu inceleyiniz.
 
 
 <a name="method-reference"></a>
@@ -820,6 +820,8 @@ Debugger paketi Debugger.md dökümentasyonunu inceleyiniz.
 ------
 
 ##### $this->logger->enable();
+
+
 
 ##### $this->logger->disable();
 
@@ -845,13 +847,13 @@ Register your filters using namespace.
 
 Register your handlers using namespace and sets priority of handler.
 
-##### $this->logger->filter(string $name, array $params = array());
+##### $this->logger->filter(string $name, $params = array());
 
 Execute your filter before releated method.
 
-##### $this->logger->push($handlername = null);
+##### $this->logger->push();
 
-Push current page log data to your loaded log handler. Handlername variable is optional.
+Push log data to loaded log handlers.
 
 ##### $this->logger->registerAsWorker();
 
@@ -864,36 +866,36 @@ Default logging feature disabled for workers, you need to turn on logs in order 
 
 ##### $this->logger->channel(string $channel);
 
-Sets log channel.
+Bir log kanalı belirler.
 
 ##### $this->logger->emergency(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_EMERG</b> level log message.
+Sistem kullanılamaz durumda ise bu log metodu kullanılmalıdır.
 
 ##### $this->logger->alert(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_ALERT</b> level log message.
+Derhal müdahale edilmesi gereken eylemler. Örnek: Tüm web sitesinin düştüğü, veritabanına erişilemediği vb. durumlar. Bu log seviyesinde karşı tarafın SMS ile uyarılması tavsiye edilir.
 
 ##### $this->logger->critical(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_CRIT</b> level log message.
+Kritik durumlar. Örnek: Uygulama bileşeni ulaşılamaz durumda yada beklenmedik bir istisnai hata oluştu ise bu log metodu kullanılmalıdır
 
 ##### $this->logger->error(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_ERROR</b> level log message.
+Çalıştırma hataları ani müdahaleler gerektirmez fakat genel olarak loglanıp monitörlenmelidir.
 
 ##### $this->logger->warning(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_WARNING</b> level log message.
+Hata olmayan istisnai olaylar. Örnek: Modası geçmiş bir web servisi ( API ),  kötü web servisi kullanımı, yanlış olmayan fakat istenmeyen durumlar.
 
 ##### $this->logger->notice(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_NOTICE</b> level log message.
+Normal fakat önemli olaylar.
 
 ##### $this->logger->info(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_INFO</b> level log message.
+Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, SQL logları, Uygulama performans/durum bilgileri.
 
 ##### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
-Create <b>LOG_DEBUG</b> level log message.
+Detaylı hata ayıklama bilgileri.

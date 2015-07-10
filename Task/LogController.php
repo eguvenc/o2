@@ -29,7 +29,7 @@ class LogController extends Controller
         $this->logo();
         $dir = $this->cli->argument('dir', 'http');
 
-        $writer = $this->logger->getPrimaryWriter();
+        $writer = $this->logger->getWriter();
         $table = $db = null;
         if ($writer == 'mongo') {
             $table = $this->cli->argument('table');
@@ -42,7 +42,7 @@ class LogController extends Controller
         if ($this->cli->argument('help')) {
             return $this->help();
         }
-        $reader = ucfirst($this->logger->getPrimaryWriter());
+        $reader = ucfirst($this->logger->getWriter());
 
         if ($reader == 'Null') {
             echo Console::fail("Logging feature disabled from your config.");

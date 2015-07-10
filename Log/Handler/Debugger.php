@@ -2,8 +2,7 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\ContainerInterface;
-use Obullo\Log\Formatter\DebuggerFormatter;
+use Obullo\Log\Formatter\DebugFormatter;
 
 /**
  * Debugger Handler Class
@@ -11,7 +10,7 @@ use Obullo\Log\Formatter\DebuggerFormatter;
  * @category  Log
  * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
@@ -29,7 +28,7 @@ class Debugger extends AbstractHandler implements HandlerInterface
         $lines = '';
         foreach ($data['record'] as $record) {
             $record = $this->arrayFormat($data, $record);
-            $lines.= DebuggerFormatter::format($record, $this->config);
+            $lines.= DebugFormatter::format($record, $this->config);
         }
         return $lines;
     }

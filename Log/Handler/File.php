@@ -19,23 +19,23 @@ class File extends AbstractHandler implements HandlerInterface
     /**
      * Write output
      *
-     * @param string $data single record data
+     * @param string $event single log event
      * 
      * @return mixed
      */
-    public function write(array $data)
+    public function write(array $event)
     {
         $lines = '';
-        foreach ($data['record'] as $record) {
-            $record = $this->arrayFormat($data, $record);
+        foreach ($event['record'] as $record) {
+            $record = $this->arrayFormat($event, $record);
             $lines .= $this->lineFormat($record);
         }
         $this->path = File::replacePath($this->config['file']['path']['http']); // Default http requests
 
-        if ($data['request'] == 'ajax') {
+        if ($event['request'] == 'ajax') {
             $this->path = File::replacePath($this->config['file']['path']['ajax']); // Replace with ajax request path
         }
-        if ($data['request'] == 'cli') {
+        if ($event['request'] == 'cli') {
             $this->path = File::replacePath($this->config['file']['path']['cli']); // Replace with cli request path
         }
         if (! $fop = fopen($this->path, 'ab')) {

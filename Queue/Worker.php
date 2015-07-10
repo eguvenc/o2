@@ -328,7 +328,7 @@ class Worker
                     if (isset($errorPriorities[$level])) {
                         $priority = $errorPriorities[$level];
                     } 
-                    $data = array(
+                    $event = array(
                         'error_level' => $level,
                         'error_message' => $message,
                         'error_file' => $file,
@@ -337,7 +337,7 @@ class Worker
                         'error_xdebug' => '',
                         'error_priority' => $priority,
                     );
-                    $this->saveFailedJob($data);
+                    $this->saveFailedJob($event);
                 }
                 return ! $continueNativeHandler;
             }
@@ -413,7 +413,7 @@ class Worker
         register_shutdown_function(
             function () {
                 if (null != $error = error_get_last()) {
-                    $data = array(
+                    $event = array(
                         'error_level' => $error['type'],
                         'error_message' => $error['message'], 
                         'error_file' => $error['file'],
@@ -422,7 +422,7 @@ class Worker
                         'error_xdebug' => '',
                         'error_priority' => 99,
                     );
-                    $this->saveFailedJob($data);
+                    $this->saveFailedJob($event);
                 }
             }
         );
@@ -433,20 +433,20 @@ class Worker
     /**
      * Save failed job to database
      * 
-     * @param array $data failed data
+     * @param array $event failed data
      * 
      * @return void
      */
-    protected function saveFailedJob($data)
+    protected function saveFailedJob($event)
     {
         global $c;
 
         // Worker does not well catch failed job exceptions because of we
         // use this function in exception handler.Thats the point why we need to try catch block.
         try {
-            $data = $this->prependJobDetails($data);
+            $event = $this->prependJobDetails($event);
             if ($this->debug) {
-                $this->debugOutput($data);
+                $this->debugOutput($event);
             }
             if ($c['config']['queue/workers']['failed']['enabled']) {
 
@@ -456,7 +456,7 @@ class Worker
                 $db = $storage->getConnection();
 
                 $db->beginTransaction();
-                $storage->save($data);
+                $storage->save($event);
                 $db->commit();
             }
 
@@ -467,19 +467,19 @@ class Worker
     }
 
     /**
-     * Append job data to valid array
+     * Append job event to valid array
      * 
-     * @param array $data array
+     * @param array $event array
      * 
-     * @return array merge data
+     * @return array merge event
      */
-    protected function prependJobDetails($data)
+    protected function prependJobDetails($event)
     {
         if (! is_object($this->job)) {
-            return $data;
+            return $event;
         }
         return array_merge(
-            $data,
+            $event,
             array(
                 'job_id' => $this->job->getJobId(),
                 'job_name' => $this->job->getName(),
@@ -514,19 +514,19 @@ class Worker
     /**
      * Print errors and output
      * 
-     * @param array|string $data output
+     * @param array|string $event output
      * 
      * @return void
      */
-    public function debugOutput($data)
+    public function debugOutput($event)
     {
-        if (is_string($data)) {
-            echo Console::text("Output : \n".$data."\n", 'yellow');
-        } elseif (is_array($data)) {
-            unset($data['error_trace']);
-            unset($data['error_xdebug']);
-            unset($data['error_priority']);
-            echo Console::fail("Error : \n".print_r($data, true));
+        if (is_string($event)) {
+            echo Console::text("Output : \n".$event."\n", 'yellow');
+        } elseif (is_array($event)) {
+            unset($event['error_trace']);
+            unset($event['error_xdebug']);
+            unset($event['error_priority']);
+            echo Console::fail("Error : \n".print_r($event, true));
         }
     }
 

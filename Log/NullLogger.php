@@ -102,7 +102,7 @@ class NullLogger extends AbstractLogger implements LoggerInterface
      *
      * @return object
      */
-    public function addWriter($name, $type = 'writer')
+    public function setWriter($name, $type = 'writer')
     {
         $name = $type = null;
         return $this;
@@ -113,19 +113,9 @@ class NullLogger extends AbstractLogger implements LoggerInterface
      * 
      * @return string returns to "handler" e.g. "file"
      */
-    public function getPrimaryWriter()
+    public function getWriter()
     {
         return 'null';
-    }
-
-    /**
-     * Returns to all writers
-     * 
-     * @return array
-     */
-    public function getWriters()
-    {
-        return array('null');
     }
 
     /**

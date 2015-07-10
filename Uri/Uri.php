@@ -44,7 +44,7 @@ class Uri
         $this->c['logger']->debug(
             'Uri Class Initialized', 
             array('uri' => $this->getRequestUri()), 
-            1001
+            9999
         );
         // Warning : Don't load any library in __construct level you may get a Fatal Error.
     }

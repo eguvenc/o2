@@ -30,8 +30,9 @@ class Logger extends AbstractLogger implements LoggerInterface
     public $benchmark = false;                // Whether to log benchmark, Memory usage ..
     public $channel = 'system';               // Default log channel
 
+    protected $shutdown = false;              // Shutdown switch
     protected $p = 100;                       // Default priority
-    protected $writers = array();             // Available  writers: file, mongo, syslog & so on ..
+    protected $writer;                        // Default writer
     protected $handlers = array();            // Handlers
     protected $hcount = 0;                    // Handler count
     protected $hrcount = 0;                   // Handler record count
@@ -65,7 +66,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->config  = $c['config']->load('logger');  // Load logger package configuration
 
         $this->initialize();
-        register_shutdown_function(array($this, 'close'));
+        register_shutdown_function(array($this, 'shutdown'));
     }
 
     /**
@@ -78,8 +79,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->channel = $this->config['default']['channel'];
         $this->queries = $this->config['app']['query']['log'];
         $this->benchmark = $this->config['app']['benchmark']['log'];
-
-        $this->detectRequest();  
+        $this->detectRequest();
     }
 
     /**
@@ -174,10 +174,10 @@ class Logger extends AbstractLogger implements LoggerInterface
      *
      * @return object
      */
-    public function addWriter($name)
+    public function setWriter($name)
     {
         $this->priorityQueue[$name] = new PriorityQueue;
-        $this->writers[$name] = array('priority' => $this->registeredHandlers[$name]['priority']);
+        $this->writer = $name;
         $this->track[] = array('name' => $name);
         return $this;
     }
@@ -187,20 +187,9 @@ class Logger extends AbstractLogger implements LoggerInterface
      * 
      * @return string returns to "xWriter"
      */
-    public function getPrimaryWriter()
+    public function getWriter()
     {
-        $writers = $this->getWriters();
-        return array_keys($writers)[0];
-    }
-
-    /**
-     * Returns to all writers
-     * 
-     * @return array
-     */
-    public function getWriters()
-    {
-        return $this->writers;
+        return $this->writer;
     }
 
     /**
@@ -246,21 +235,6 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * Check handler has filters
-     * 
-     * @param string $handler name
-     * 
-     * @return boolean
-     */
-    public function hasFilter($handler)
-    {
-        if (isset($this->filters[$handler])) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Store log data into array
      * 
      * @param string  $level    log level
@@ -279,6 +253,8 @@ class Logger extends AbstractLogger implements LoggerInterface
             $this->logExceptionError($message);
             return $this;
         }
+        $priority = $this->getPriority($level, $priority);
+
         if (count($this->loadedHandlers) > 0) {   // Start log capture and reset capture when we use push() method.
             $this->handlerRecords[$this->hrcount]['channel'] = $this->channel;
             $this->handlerRecords[$this->hrcount]['level']   = $level;
@@ -289,15 +265,32 @@ class Logger extends AbstractLogger implements LoggerInterface
             return $this;
         }
         $recordUnformatted = array();
-        if (isset(static::$priorities[$level])) {  // Is Allowed level ?
-            $recordUnformatted['channel'] = $this->channel;
-            $recordUnformatted['level']   = $level;
-            $recordUnformatted['message'] = $message;
-            $recordUnformatted['context'] = $context;
-            $this->sendToWriterQueue($recordUnformatted, $priority);    // Send to Job queue
-            $this->channel($this->config['default']['channel']);  // reset channel to default
-        }
+        $recordUnformatted['channel'] = $this->channel;
+        $recordUnformatted['level']   = $level;
+        $recordUnformatted['message'] = $message;
+        $recordUnformatted['context'] = $context;
+        $this->sendToWriterQueue($recordUnformatted, $priority);    // Send to Job queue
+        $this->channel($this->config['default']['channel']);        // reset channel to default
         return $this;
+    }
+
+    /**
+     * Get priority of log if priority not 
+     * 
+     * @param  [type] $level    [description]
+     * @param  [type] $priority [description]
+     * @return [type]           [description]
+     */
+    public function getPriority($level, $priority = null)
+    {
+        if (empty($priority)) {
+            $priorities = $this->getPriorities();
+            if (isset($priorities[$level])) {
+                return $priorities[$level];
+            }
+        }
+        echo $priority."<br>";
+        return $priority;
     }
 
     /**
@@ -307,22 +300,15 @@ class Logger extends AbstractLogger implements LoggerInterface
      * $processor->insert($record, $priority = 0); 
      * 
      * @param array   $recordUnformatted unformated log data
-     * @param integer $messagePriority   messagePriority
+     * @param integer $priority          priority
      * 
      * @return void
      */
-    protected function sendToWriterQueue($recordUnformatted, $messagePriority = 0)
+    protected function sendToWriterQueue($recordUnformatted, $priority = null)
     {
-        if ($messagePriority == 0) {
-            $this->p = $this->p - 1;  // Default priority
-        }
-        foreach (array_keys($this->writers) as $name) {
-            $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
-
-            if (is_array($filteredRecords) && count($filteredRecords) > 0) {  // If we have records.
-                $this->connect(true);  // Lazy connections ...
-                $this->priorityQueue[$name]->insert($filteredRecords, (empty($messagePriority)) ? $this->p : $messagePriority);
-            }
+        if (! empty($recordUnformatted)) {
+            $this->connect(true);
+            $this->priorityQueue[$this->writer]->insert($recordUnformatted, $priority);
         }
     }
 
@@ -331,17 +317,15 @@ class Logger extends AbstractLogger implements LoggerInterface
      * 
      * @param string  $name              handler
      * @param array   $recordUnformatted records 
-     * @param integer $messagePriority   
+     * @param integer $priority  
      * 
      * @return void
      */
-    protected function sendToHandlerQueue($name, $recordUnformatted, $messagePriority = null)
+    protected function sendToHandlerQueue($name, $recordUnformatted, $priority = null)
     {
-        $filteredRecords = $this->getFilteredRecords($name, $recordUnformatted);
-
-        if (is_array($filteredRecords) && count($filteredRecords) > 0) {  // If we have records.
-            $this->connect(true);  // Lazy connections ...
-            $this->priorityQueue['handler.'.$name]->insert($filteredRecords, $messagePriority);
+        if (! empty($recordUnformatted)) {
+            $this->connect(true);
+            $this->priorityQueue['handler.'.$name]->insert($recordUnformatted, $priority);
         }
     }
 
@@ -367,28 +351,15 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * Get filtered records
+     * Returns to filters of handler
      * 
-     * @param string $handler           handler name
-     * @param array  $recordUnformatted record array
+     * @param string $handler name
      * 
-     * @return array data
+     * @return array filters
      */
-    protected function getFilteredRecords($handler, $recordUnformatted)
+    public function getFilters($handler)
     {
-        if (! $this->hasFilter($handler)) {
-            return $recordUnformatted;
-        }
-        foreach ($this->filters[$handler] as $value) {
-            $Class = '\\'.$value['class'];
-            $method = $value['method'];
-
-            $filter = new $Class($this->c, $value['params']); // Inject filter parameters into filter class.
-            if (count($recordUnformatted) > 0) {
-                $recordUnformatted = $filter->$method($recordUnformatted);
-            }
-        }
-        return $recordUnformatted;
+        return $this->filters[$handler];
     }
 
     /**
@@ -447,21 +418,23 @@ class Logger extends AbstractLogger implements LoggerInterface
         }
         $this->channel($this->config['default']['channel']);    // Reset channel to default
         $this->loadedHandlers = array();  // Reset loaded handler.
-         array_pop($this->track);         // Remove last track to reset handler filters
+        array_pop($this->track);         // Remove last track to reset handler filters
     }
 
     /**
      * Extract log data
      * 
-     * @param object $name PriorityQueue name
+     * @param object $name   PriorityQueue name
+     * @param string $prefix prefix
      * 
      * @return array records
      */
-    public function extract($name)
+    public function extract($name, $prefix = '')
     {
-        $pQ = $this->getQueue($name);
+        $pQ = $this->getQueue($name, $prefix);
         $pQ->setExtractFlags(PriorityQueue::EXTR_DATA); // Queue mode of extraction
         $records = array();
+
         if ($pQ->count() > 0) {
             $pQ->top();  // Go to Top
             $i = 0;
@@ -474,39 +447,24 @@ class Logger extends AbstractLogger implements LoggerInterface
         return $records;
     }
 
-    /**
-     * Assing Logger class name to records
-     * 
-     * @return void
-     */
-    protected function assignLogger()
-    {
-        $exp = explode('\\', __CLASS__);
-        $this->payload['logger'] = end($exp);
-    }
-
      /**
      * Extract queued log handlers data store them into one array
      * 
      * @return void
      */
-    protected function execWriters()
+    protected function execWriter()
     {
-        $this->assignLogger();
-        $this->payload['primary'] = $this->writers[$this->getPrimaryWriter()]['priority'];
-
-        foreach ($this->writers as $name => $val) {  // Write log data to foreach handlers
-            $records = $this->extract($name);
-            if (empty($records)) {
-                continue;
-            }
-            $priority = $val['priority'];
-            $this->payload['writers'][$priority]['request'] = $this->request;
-            $this->payload['writers'][$priority]['handler'] = $name;
-            $this->payload['writers'][$priority]['type'] = 'writer';
-            $this->payload['writers'][$priority]['time'] = time();
-            $this->payload['writers'][$priority]['record'] =  $records; // set record array
+        $this->payload['primary'] = 10;
+        $name = $this->getWriter();
+        $records = $this->extract($name);
+        if (empty($records)) {
+            return;
         }
+        $this->payload['writers'][10]['handler'] = $name;
+        $this->payload['writers'][10]['request'] = $this->request;
+        $this->payload['writers'][10]['time']    = time();
+        $this->payload['writers'][10]['filters'] = $this->getFilters($name);
+        $this->payload['writers'][10]['record']  = $records; // set record array
     }
 
     /**
@@ -520,16 +478,16 @@ class Logger extends AbstractLogger implements LoggerInterface
             return;
         }
         foreach ($this->handlers as $name => $val) {  // Write log data to foreach handlers
-            $records = $this->extract('handler.'.$name);
+            $records = $this->extract($name, 'handler.');
             if (empty($records)) {
                 continue;
             }
             $priority = $val['priority'];
-            $this->payload['writers'][$priority]['request'] = $this->request;
             $this->payload['writers'][$priority]['handler'] = $name;
-            $this->payload['writers'][$priority]['type'] = 'handler';
-            $this->payload['writers'][$priority]['time'] = time();
-            $this->payload['writers'][$priority]['record'] =  $records; // set record array
+            $this->payload['writers'][$priority]['request'] = $this->request;
+            $this->payload['writers'][$priority]['time']    = time();
+            $this->payload['writers'][$priority]['filters'] = $this->getFilters($name);
+            $this->payload['writers'][$priority]['record']  = $records; // set record array
         }
     }
 
@@ -548,19 +506,24 @@ class Logger extends AbstractLogger implements LoggerInterface
      *
      * @return void
      */
-    public function close()
+    public function shutdown()
     {
+        if ($this->shutdown) {  // If we already shutdown logger don't do again.
+            return;             // Using register shutdown we couldn't catch the fatal errors
+        }                       // This way is the best to catch all errors.
+        $this->shutdown = true;
+
         if ($this->isEnabled() && $this->isConnected()) {   // Lazy loading for Logger service
                                                             // if connect method executed one time then we open connections and load classes
                                                             // When connect booelan is true we execute standart worker or queue.
+                
+            try {   // We couldn't catch exceptions when app use register shutdown function
 
-            try {   // We couldn't catch exceptions in register shutdown level
-
-                $this->execWriters();
+                $this->execWriter();
                 $this->execHandlers();
                 $payload = $this->getPayload();
-
-                if (isset($this->params['queue']['enabled']) && $this->params['queue']['enabled']) { // Queue Logger
+                
+                if ($this->params['queue']['enabled']) { // Queue Logger
 
                     $this->c->get('queue')
                         ->channel($this->params['queue']['channel'])
@@ -571,7 +534,7 @@ class Logger extends AbstractLogger implements LoggerInterface
                             $this->params['queue']['delay']
                         );
 
-                } else {  // Standart Logger
+                } else {
 
                     $worker = new \Workers\Logger($this->c);
                     $worker->fire(null, $payload);

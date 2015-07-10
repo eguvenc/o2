@@ -107,7 +107,7 @@ Yukarıdaki örnekte uygulama modüller altında önce <kbd>blog</kbd> isimli kl
 
 #### Konteyner Yükleyici
 
-Obullo da bir kontrolör sınıfı <kbd>load</kbd> metodu içerebilir. Load metodu php __construct() metodu gibi çalışır. Load metodu mevcut ise içerisinde ilan edilen tüm container nesneleri controller içerisine kaydedilir.
+Obullo da bir kontrolör sınıfı <kbd>__construct</kbd> metodu içerebilir. Construct metodu opsiyoneldir ilan edilirse içerisinde bir sınıf bir değişkene atabilir.
 
 
 ```php
@@ -115,37 +115,40 @@ namespace Welcome;
 
 class Welcome extends \Controller
 {
-    public function load()
+    public function __construct()
     {
-        $this->c['url'];
-        $this->c['view'];
+        $this->example = new \Example;
     }
 }
 ```
 
-
-> **Not:** Kontrolör sınıfları içerisinde <kbd>construct</kbd> yerine load yönteminin kullanılmasının birinci nedeni <kbd>parent::__construct()</kbd> yazımından bağımsız bir loader elde edebilmektir, ikinci nedeni ise uygulama içerisinde load için tanımlanmış http katmanının ( middleware ) kullanımını kolaylaştırmaktır.
-
-Konteyner içerisinden yüklenen sınıflara diğer metotlar içerisinden aşağıdaki gibi <kbd>$this</kbd> nesnesi yardımı ile ulaşabilir.
+Konteyner içerisinden yüklenen sınıflara diğer metotlar içerisinden aşağıdaki gibi <kbd>$this</kbd> nesnesi yardımı ile ulaşılır.
 
 ```php
 namespace Welcome;
 
 class Welcome extends \Controller
 {
-    public function load()
-    {
-        $this->c['url'];
-        $this->c['view'];
-    }
-
     public function index()
     {
+        echo $this->url->anchor("http://example.com/", "Hello World");
+
         $this->view->load('welcome');
     }
 
 }
 ```
+
+<kbd>$this</kbd> ile çağırılan bir sınıf konteyner nesnesi içerisinden çağrılır, nesne konteyner içerisinde kayıtlı değilse konteyner içerisine dahil edilerek çağrılır. Kontrolör sınıfı içerisinde  <kbd>$this</kbd> yöntemi ile çağırılan konteyner nesneleri aşağıdaki gibi <kbd>Obullo\Controller\Controller</kbd> ana kontrolör sınıfı içerisinde mevcut bulunan bir magic <b>__get</b> metodu ile yine konteyner sınıfı üzerinden çağrılmış olurlar.
+
+```php
+public function __get($key)
+{
+    return $this->__container[$key];
+}
+```
+Çağrılan kütüphane bir <b>servis</b>, bir <b>komponent</b> yada konteyner içerisinde olmayan ve konteyner a kaydedilmek için çağırılan Obullo klasörü altındaki bir <b>sınıf</b> olabilir.
+
 
 <a name="example-page"></a>
 
@@ -169,12 +172,6 @@ namespace Welcome;
 
 class Welcome extends \Controller
 {
-    public function load()
-    {
-        $this->c['url'];
-        $this->c['view'];
-    }
-
     public function index()
     {
         $this->view->load(
@@ -208,7 +205,7 @@ example.com/index.php/welcome/hello/index
 
 #### Sınıf Yükleyicinin Kullanılmadığı Durumlar
 
-Bazı sınıflar uygulamanın yüklenmesinin başında yani <kbd>load()</kbd> metodu içerisinde yüklenmek istenmeyebilir bu gibi durumlarda sınıflara array access <kbd>$this->c['class']</kbd> yöntemi ile konteyner içerisinden direkt erişilir.
+Bazı sınıflar $this yöntemi ile yüklenmek istenmeyebilir bu gibi durumlarda sınıflara, servislere yada komponentlere array access <kbd>$this->c['class']</kbd> yöntemi ile konteyner içerisinden direkt erişilebilir.
 
 Örneğin <kbd>view</kbd> sınıfına sadece <kbd>index()</kbd> metodu içerisinde ihtiyaç duysaydık <kbd>$this->view</kbd> yöntemini kullanmak yerine array access <kbd>$this->c['view']</kbd> yöntemini kullanarak ona aşağıdaki gibi erişebilirdik.
 
@@ -342,7 +339,7 @@ Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> ana
 
 ### Rezerve Edilmiş Metotlar
 
-Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı metotlar çekirdek kütüphaneler tarafından sık sık kullanılır. Bu metotlara uygulamanın dışından erişmeye çalıştığınızda 404 hataları ile karşılaşırsınız.
+Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı metotlar çekirdek sınıflar tarafından sık sık kullanılır. Bu metotlara uygulamanın dışından erişmeye çalıştığınızda 404 hataları ile karşılaşırsınız.
 
 <table>
     <thead>
@@ -353,18 +350,10 @@ Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı 
     </thead>
     <tbody>
         <tr>
-            <td><b>load()</b></td>
-            <td>Konteyner değişkenlerini kontrolör sınıfı değişkenlerine enjekte etmek için kullanılır.</td>
-        </tr>
-        <tr>
-            <td><b>extend()</b></td>
+            <td><b>__extend()</b></td>
             <td>View servisi tarafından kontrolör sınıfı içerisinde bir şablona genişlemek için kullanılır. </td>
         </tr>
     </tbody>
 </table>
 
-```php
-http://example.com/welcome/load  // Çıktı 404 sayfa bulunamadı
-```
-
-<kbd>extend()</kbd> metodu hakkında daha detaylı bilgi için [View.md](/View/Docs/tr/View.md) dökümentasyonunu inceleyiniz.
+<kbd>__extend()</kbd> metodu hakkında daha detaylı bilgi için [View.md](/View/Docs/tr/View.md) dökümentasyonunu inceleyiniz.

@@ -5,7 +5,6 @@ namespace Obullo\Application;
 use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
-use BadMethodCallException;
 use Obullo\Container\Container;
 
 /**
@@ -100,8 +99,8 @@ class Cli extends Application
         $this->class = new $this->className;  // Call the controller
         $this->method = $method;
 
-        if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
-            $this->class->extend();                       // could not load view variables.
+        if (method_exists($this->class, '__extend')) {      // View traits must be run at the top level otherwise layout view file
+            $this->class->__extend();                       // could not load view variables.
         }
         $this->call();          
         $this->c['response']->flush();  // Send headers and echo output if output enabled
@@ -128,6 +127,7 @@ class Cli extends Application
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
         }
+        $this->c['logger']->shutdown();  // Manually shutdown logger
     }
 
     /**

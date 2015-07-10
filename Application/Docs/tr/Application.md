@@ -327,14 +327,15 @@ Mesala prodüksiyon ortamı içerisine aşağıdaki gibi bir <b>config.php</b> d
 ```php
 - app
     - config
-        + local
-        - production
-            config.php
-            database.php
-        + test
-        - myenv
-            config.php
-            database.php
+        - env
+            + local
+            - production
+                config.php
+                database.php
+            + test
+            - myenv
+                config.php
+                database.php
 ```
 
 Aşağıdaki örnekte sadece dosya içerisindeki değişime uğrayan anahtarlar gözüküyor. Uygulama çalıştığında bu anahtarlar varolan local ortam anahtarları ile değiştirilirler.
@@ -355,11 +356,6 @@ return array(
     'url' => [
         'webhost' => 'example.com',
         'baseurl' => '/',
-        'assets' => 'http://cdn.example.com/assets/',
-    ],
-
-    'http' => [
-        'debugger' => false,
     ],
 
     'cookie' => [
@@ -368,7 +364,7 @@ return array(
 );
 
 /* End of file config.php */
-/* Location: .config/env.production/config.php */
+/* Location: .config/env/production/config.php */
 ```
 
 <a name="env-class"></a>

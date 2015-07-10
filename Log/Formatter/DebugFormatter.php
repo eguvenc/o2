@@ -12,7 +12,7 @@ namespace Obullo\Log\Formatter;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
-class DebuggerFormatter
+class DebugFormatter
 {
     /**
      * Format the line defined in config/env.$env/config.php
@@ -75,7 +75,7 @@ class DebuggerFormatter
 
 }
 
-// END DebuggerFormatter class
+// END DebugFormatter class
 
-/* End of file DebuggerFormatter.php */
-/* Location: .Obullo/Log/Formatter/DebuggerFormatter.php */
+/* End of file DebugFormatter.php */
+/* Location: .Obullo/Log/Formatter/DebugFormatter.php */

@@ -70,7 +70,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     {
         if (empty($params['host']) || empty($params['port']) || empty($params['password'])) {
             throw new RuntimeException(
-                'Check your queue configuration, "host" or "port" or "password" key seems empty.'
+                'Check your queue configuration "host", "port" or "password" key seems empty.'
             );
         }
         $connection = new $this->AMQPClass;

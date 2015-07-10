@@ -50,49 +50,49 @@ class AuthManager
     {
         AuthConfig::setConfiguration($this->c['config'], $params);
 
-        $serviceParams = AuthConfig::get();
-        $this->register($serviceParams);
+        $parameters = AuthConfig::get();
+        $this->register($parameters);
     }
 
     /**
      * Register authentication services
      * 
-     * @param array $serviceParams service parameters
+     * @param array $parameters service parameters
      *
      * @return void
      */
-    protected function register(array $serviceParams)
+    protected function register(array $parameters)
     {
-        $this->c['auth.storage'] = function () use ($serviceParams) {
-            return new $serviceParams['cache']['storage']($this->c['session'], $this->c['app']->provider('cache'), $serviceParams);
+        $this->c['auth.storage'] = function () use ($parameters) {
+            return new $parameters['cache']['storage']($this->c['session'], $this->c['app']->provider('cache'), $parameters);
         };
-        $this->c['auth.identity'] = function () use ($serviceParams) {
-            return new Identity($this->c, $this->c['session'], $this->c['auth.storage'], $serviceParams);
-        };
-
-        $this->c['auth.login'] = function () use ($serviceParams) {
-            return new Login($this->c, $this->c['event'], $this->c['auth.storage'], $this->c['auth.identity'], $serviceParams);
+        $this->c['auth.identity'] = function () use ($parameters) {
+            return new Identity($this->c, $this->c['session'], $this->c['auth.storage'], $parameters);
         };
 
-        $this->c['auth.activity'] = function () use ($serviceParams) {
+        $this->c['auth.login'] = function () use ($parameters) {
+            return new Login($this->c, $this->c['event'], $this->c['auth.storage'], $this->c['auth.identity'], $parameters);
+        };
+
+        $this->c['auth.activity'] = function () use ($parameters) {
             return new Activity($this->c);
         };
 
-        $this->c['auth.token'] = function () use ($serviceParams) {
-            return new Token($this->c['cookie'], $serviceParams);
+        $this->c['auth.token'] = function () use ($parameters) {
+            return new Token($this->c['cookie'], $parameters);
         };
 
-        $this->c['auth.model'] = function () use ($serviceParams) {
-            return new $serviceParams['db.model']($this->c['app']->provider($serviceParams['db.provider']), $serviceParams);
+        $this->c['auth.model'] = function () use ($parameters) {
+            return new $parameters['db.model']($this->c['app']->provider($parameters['db.provider']), $parameters);
         };
 
-        $this->c['auth.adapter'] = function () use ($serviceParams) {
-            return new $serviceParams['db.adapter'](
+        $this->c['auth.adapter'] = function () use ($parameters) {
+            return new $parameters['db.adapter'](
                 $this->c,
                 $this->c['session'],
                 $this->c['auth.storage'],
                 $this->c['auth.identity'],
-                $serviceParams
+                $parameters
             );
         };
     }

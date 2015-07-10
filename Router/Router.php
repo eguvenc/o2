@@ -66,7 +66,7 @@ class Router
         if ($this->HOST != 'Cli' && strpos($this->HOST, $c['config']['url']['webhost']) === false) {
             $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
-        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 1000);
+        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
     }
 
     /**

@@ -44,7 +44,7 @@ trait BenchmarkTrait
             $extra['time'] = number_format($end, 4);
             $extra['memory'] = $usage;
         }
-        $this->logger->debug($message, $extra, -99);
+        $this->logger->debug($message, $extra, -99999);
     }
 }
 

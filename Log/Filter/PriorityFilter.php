@@ -1,8 +1,8 @@
 <?php
 
-namespace Obullo\Log\Filters;
+namespace Obullo\Log\Filter;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\Logger;
 
 /**
  * PriorityFilter Class
@@ -17,29 +17,29 @@ use Obullo\Container\ContainerInterface;
 class PriorityFilter
 {
     /**
-     * Container
+     * Logger class
      * 
      * @var object
      */
-    public $c;
+    protected $logger;
 
     /**
      * Parameters
      * 
      * @var array
      */
-    public $params;
+    protected $params;
 
     /**
      * Constructor
      * 
-     * @param object $c      container
      * @param array  $params parameters
+     * @param object $logger Logger
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(array $params, Logger $logger)
     {
-        $this->c = $c;
         $this->params = $params;
+        $this->logger = $logger;
     }
 
     /**
@@ -51,9 +51,11 @@ class PriorityFilter
      */
     public function in(array $record)
     {
-        $priorities = $this->c['logger']->getPriorities();
-        
-        $priority = $priorities[$record['level']];
+        if (empty($record)) {
+            return array();
+        }
+        $priority = $this->getPriority($record['level']);
+
         if (in_array($priority, $this->params)) {
             return $record;
         }
@@ -69,13 +71,28 @@ class PriorityFilter
      */
     public function notIn(array $record)
     {
-        $priorities = $this->c['logger']->getPriorities();
+        if (empty($record)) {
+            return array();
+        }
+        $priority = $this->getPriority($record['level']);
 
-        $priority = $priorities[$record['level']];
         if (! in_array($priority, $this->params)) {
             return $record;
         }
         return array();  // To remove record return to empty array.
+    }
+
+    /**
+     * Get priority
+     *
+     * @param string $level current level
+     * 
+     * @return void
+     */
+    protected function getPriority($level)
+    {
+        $priorities = $this->logger->getPriorities();
+        return $priorities[$level];
     }
     
 }

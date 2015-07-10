@@ -232,8 +232,8 @@ class Attempt implements EventListenerInterface
      */
     public function subscribe($event)
     {
-        $event->listen('login.attempt.before', 'Event\Login\Attempt@before');
-        $event->listen('login.attempt.after', 'Event\Login\Attempt@after');
+        $event->listen('login.before', 'Event\Login\Attempt@before');
+        $event->listen('login.after', 'Event\Login\Attempt@after');
     }
 
 }
@@ -248,13 +248,13 @@ class Attempt implements EventListenerInterface
 Yukarıdaki örnekte <b>before</b> metodu tarafından dinlenilen olay <kbd>Authentication/User/Login</kbd> kütüphanesi <b>attempt</b> metodu içerisindeki aşağıdaki gibi ateşlenmiştir.
 
 ```php
-$this->c['event']->fire('login.attempt.before', array($credentials)); 
+$this->c['event']->fire('login.before', array($credentials)); 
 ```
 
 Yine aynı kütüphanede <b>after</b> metodu tarafından dinlenilen olay ise aşağıdaki gibi ateşlenmiştir.
 
 ```php
-return $this->c['event']->fire('login.attempt.after', array($authResult));
+return $this->c['event']->fire('login.after', array($authResult));
 ```
 
 <a name="defining-global-subscriber"></a>
@@ -288,12 +288,9 @@ namespace Membership;
 
 class Login extends \Controller
 {
-    public function load()
+    public function __construct()
     {
-        $this->c['user'];
-        $this->c['request'];
-        $this->c['form'];
-        $this->c['flash'];
+        $this->user = $this->c->get('user');
     }
 
     /**

@@ -59,7 +59,7 @@ class Login
     {
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
-        $this->event->fire('login.attempt.before', array($credentials)); 
+        $this->event->fire('login.before', array($credentials)); 
 
         $identifier = $this->params['db.identifier'];
         $password   = $this->params['db.password'];
@@ -100,7 +100,7 @@ class Login
         $authResult = $this->c['auth.adapter']->login($genericUser);
 
         $this->identity->initialize();
-        $eventResult = $this->event->fire('login.attempt.after', array($authResult));  // Returns to overriden auth result object
+        $eventResult = $this->event->fire('login.after', array($authResult));  // Returns to overriden auth result object
 
         return isset($eventResult[0]) ? current($eventResult) : $authResult;           // Event fire returns multiple array response but we use one.
     }

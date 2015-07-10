@@ -173,7 +173,7 @@ class Application
         $closure = $this->fatalError;
         if (null != $error = error_get_last()) {  // If we have a fatal error
             $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
-            $this->c['logger']->close();          // Close the logger if have fatal error otherwise log writers not write to drivers
+            $this->c['logger']->shutdown();          // Close the logger if have fatal error otherwise log writers not write to drivers
         }
     }
 
@@ -210,8 +210,7 @@ class Application
     protected function dispatchMethod()
     {
         if (! method_exists($this->class, $this->method)
-            || $this->method == 'load' 
-            || $this->method == 'extend'
+            || $this->method == '__extend'
         ) {
             $this->c['response']->show404($this->getUriString());
         }

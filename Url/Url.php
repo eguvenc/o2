@@ -124,17 +124,8 @@ class Url
      */
     public function redirect($uri = '', $method = 'location', $httpResponseCode = 302, $suffix = true)
     {
-        if ($this->c['config']->load('logger')['app']['benchmark']['log'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
+        $this->endBenchmark();
 
-            $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
-            $usage = 'memory_get_usage() function not found on your php configuration.';
-            if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
-                $usage = round($usage/1024/1024, 2). ' MB';
-            }
-            $extra['time'] = number_format($end, 4);
-            $extra['memory'] = $usage;
-            $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
-        }
         if (! preg_match('#^https?:\/\/#i', $uri)) {
             $uri = $this->uri->getSiteUrl($uri, $suffix);
         }
@@ -142,6 +133,7 @@ class Url
             $index = explode('[', $method);
             $param = str_replace(']', '', $index[1]);
             header("Refresh:$param;url=" . $uri);
+            $this->c['logger']->shutdown(); // Manually shutdown logger
             exit;
         }
         switch ($method) {
@@ -150,6 +142,7 @@ class Url
         default : header("Location: " . $uri, true, $httpResponseCode);
             break;
         }
+        $this->c['logger']->shutdown();    // Manually shutdown logger
         exit;
     }
 
@@ -200,6 +193,27 @@ class Url
             $str = 'http://' . $str;
         }
         return $str;
+    }
+
+    /**
+     * Finalize benchmark operation
+     * 
+     * @return void
+     */
+    protected function endBenchmark()
+    {
+        if ($this->c['config']->load('logger')['app']['benchmark']['log'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
+
+            $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
+            $usage = 'memory_get_usage() function not found on your php configuration.';
+            if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
+                $usage = round($usage/1024/1024, 2). ' MB';
+            }
+            $extra['time']   = number_format($end, 4);
+            $extra['memory'] = $usage;
+            $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
+        }
+
     }
 
 }

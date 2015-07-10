@@ -14,47 +14,47 @@ namespace Obullo\Log;
  */
 abstract Class AbstractLogger
 {
-    protected $enabled = false;               // On / Off Logging
-    protected $isWorker = false;              // Whether to know app is registered as worker if yes we enable log writing. Default = false.
-    protected $filterNames = array();         // Namespaces of defined filters
-    protected $track = array();               // Track data for handlers and writers
-    protected $registeredHandlers = array();  // Registered log handlers
-
     /**
-     * Log priorities
+     * Track data for handlers and writers
      * 
      * @var array
      */
-    public static $priorities = array(
-        'emergency' => LOG_EMERG,
-        'alert'     => LOG_ALERT,
-        'critical'  => LOG_CRIT,
-        'error'     => LOG_ERR,
-        'warning'   => LOG_WARNING,
-        'notice'    => LOG_NOTICE,
-        'info'      => LOG_INFO,
-        'debug'     => LOG_DEBUG,
-    );
+    protected $track = array();
+
+    /**
+     * On / Off logging
+     * 
+     * @var boolean
+     */
+    protected $enabled = false;
+
+    /**
+     * Whether to know app is registered as worker if yes we enable log writing. Default = false.
+     * 
+     * @var boolean
+     */
+    protected $isWorker = false;
+
+    /**
+     * Namespaces of defined filters
+     * 
+     * @var array
+     */
+    protected $filterNames = array();
 
     /**
      * Map native PHP errors to priority
      *
      * @var array
      */
-    public static $errorPriorities = array(
-        E_NOTICE            => LOG_NOTICE,
-        E_USER_NOTICE       => LOG_NOTICE,
-        E_WARNING           => LOG_WARNING,
-        E_CORE_WARNING      => LOG_WARNING,
-        E_USER_WARNING      => LOG_WARNING,
-        E_ERROR             => LOG_ERR,
-        E_USER_ERROR        => LOG_ERR,
-        E_CORE_ERROR        => LOG_ERR,
-        E_RECOVERABLE_ERROR => LOG_ERR,
-        E_STRICT            => LOG_DEBUG,
-        E_DEPRECATED        => LOG_DEBUG,
-        E_USER_DEPRECATED   => LOG_DEBUG,
-    );
+    protected $errorPriorities = null;
+
+    /**
+     * Register log handlers
+     * 
+     * @var array
+     */
+    protected $registeredHandlers = array();
 
     /**
      * Enable logging
@@ -148,7 +148,7 @@ abstract Class AbstractLogger
      */
     public function getPriorities()
     {
-        return static::$priorities;
+        return $this->config['priorities'];
     }
 
     /**
@@ -158,7 +158,24 @@ abstract Class AbstractLogger
      */
     public function getErrorPriorities()
     {
-        return static::$errorPriorities;
+        if (static::$errorPriorities != null) {
+            return static::$errorPriorities;
+        }
+        $map = $this->getPriorities();
+        return static::$errorPriorities = array(
+                E_NOTICE            => $map['notice'],
+                E_USER_NOTICE       => $map['notice'],
+                E_WARNING           => $map['warning'],
+                E_CORE_WARNING      => $map['warning'],
+                E_USER_WARNING      => $map['warning'],
+                E_ERROR             => $map['error'],
+                E_USER_ERROR        => $map['error'],
+                E_CORE_ERROR        => $map['error'],
+                E_RECOVERABLE_ERROR => $map['error'],
+                E_STRICT            => $map['debug'],
+                E_DEPRECATED        => $map['debug'],
+                E_USER_DEPRECATED   => $map['debug'],
+            );
     }
 
     /**
@@ -203,22 +220,15 @@ abstract Class AbstractLogger
      *
      * @return object
      */
-    abstract public function addWriter($name);
+    abstract public function setWriter($name);
 
     /**
      * Returns to primary writer name.
      * 
      * @return string returns to "handler" e.g. "file"
      */
-    abstract public function getPrimaryWriter();
+    abstract public function getWriter();
 
-    /**
-     * Returns to all writers
-     * 
-     * @return array
-     */
-    abstract public function getWriters();
-    
     /**
      * Store log data into array
      * 

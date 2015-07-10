@@ -5,7 +5,6 @@ namespace Obullo\Application;
 use Controller;
 use Obullo\Config\Env;
 use Obullo\Config\Config;
-use BadMethodCallException;
 use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
 
@@ -117,8 +116,8 @@ class Http extends Application
                                        // does not work
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         
-        if (method_exists($this->class, 'extend')) {      // View traits must be run at the top level otherwise layout view file
-            $this->class->extend();                       // could not load view variables.
+        if (method_exists($this->class, '__extend')) {      // View traits must be run at the top level otherwise layout view file
+            $this->class->__extend();                     // could not load view variables.
         }
         $middleware->call();
     }
@@ -236,7 +235,7 @@ class Http extends Application
                 $this->c['cookie']->write($cookie);
             }
         }
-        $this->checkDebugger();
+        $this->registerDebugger();
         $this->registerFatalError();
     }
 
@@ -245,7 +244,7 @@ class Http extends Application
      * 
      * @return void
      */
-    public function checkDebugger()
+    public function registerDebugger()
     {
         if ($this->c['config']['http']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
             $this->websocket->emit($this->finalOutput, $this->c['logger']->getPayload());
