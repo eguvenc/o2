@@ -23,16 +23,13 @@ use Obullo\Container\ContainerInterface;
  */
 class Logger extends AbstractLogger implements LoggerInterface
 {
-    public $c;                                // Container
-    public $config;                           // Config object
-    public $params = array();                 // Service parameters
-    public $queries = false;                  // Whether to log sql queries
-    public $benchmark = false;                // Whether to log benchmark, Memory usage ..
-    public $channel = 'system';               // Default log channel
-
-    protected $shutdown = false;              // Shutdown switch
+    protected $c;                             // Container
     protected $p = 100;                       // Default priority
+    protected $config;                        // Config object
+    protected $params = array();              // Service parameters
+    protected $channel = 'system';            // Default log channel
     protected $writer;                        // Default writer
+    protected $shutdown = false;              // Shutdown switch
     protected $handlers = array();            // Handlers
     protected $hcount = 0;                    // Handler count
     protected $hrcount = 0;                   // Handler record count
@@ -77,8 +74,6 @@ class Logger extends AbstractLogger implements LoggerInterface
     public function initialize()
     {
         $this->channel = $this->config['default']['channel'];
-        $this->queries = $this->config['app']['query']['log'];
-        $this->benchmark = $this->config['app']['benchmark']['log'];
         $this->detectRequest();
     }
 
@@ -277,9 +272,10 @@ class Logger extends AbstractLogger implements LoggerInterface
     /**
      * Get priority of log if priority not 
      * 
-     * @param  [type] $level    [description]
-     * @param  [type] $priority [description]
-     * @return [type]           [description]
+     * @param string  $level    severity
+     * @param integer $priority priority
+     * 
+     * @return integer
      */
     public function getPriority($level, $priority = null)
     {
@@ -289,7 +285,6 @@ class Logger extends AbstractLogger implements LoggerInterface
                 return $priorities[$level];
             }
         }
-        echo $priority."<br>";
         return $priority;
     }
 
@@ -376,7 +371,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $errorPriorities = $this->getErrorPriorities();
 
         do {
-            $priority = $this->getPriorities()['error'];
+            $priority = $this->getPriority('error');
             if ($e instanceof ErrorException && isset($errorPriorities[$e->getSeverity()])) {
                 $priority = $errorPriorities[$e->getSeverity()];
             }
@@ -509,10 +504,8 @@ class Logger extends AbstractLogger implements LoggerInterface
     public function shutdown()
     {
         if ($this->shutdown) {  // If we already shutdown logger don't do again.
-            return;             // Using register shutdown we couldn't catch the fatal errors
+            return;             // Using just register shutdown we couldn't catch the fatal errors.
         }                       // This way is the best to catch all errors.
-        $this->shutdown = true;
-
         if ($this->isEnabled() && $this->isConnected()) {   // Lazy loading for Logger service
                                                             // if connect method executed one time then we open connections and load classes
                                                             // When connect booelan is true we execute standart worker or queue.
@@ -535,7 +528,6 @@ class Logger extends AbstractLogger implements LoggerInterface
                         );
 
                 } else {
-
                     $worker = new \Workers\Logger($this->c);
                     $worker->fire(null, $payload);
                 }
@@ -543,7 +535,9 @@ class Logger extends AbstractLogger implements LoggerInterface
             } catch (Exception $e) {
                 $this->c['exception']->show($e);  // Display exception errors
             }
+
         }
+        $this->shutdown = true;
     }
 
 }

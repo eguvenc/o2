@@ -30,7 +30,7 @@ $c['router']->group(
 );
 ```
 
-Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfalarda <b>Auth</b> ve <b>Guest</b> katmanları çalışır.
+Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfalarda <b>Auth</b> ve <b>Guest</b> katmanları çalışır. Attach metodu içerisinde düzenli ifadeler kullanabilirsiniz.
 
 ### Guest Katmanı
 
@@ -46,23 +46,24 @@ class User implements ServiceInterface
 {
     public function register(Container $c)
     {
-        $c['user'] = function () use ($c) {
+        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
 
-            $user = new AuthServiceProvider(
-                $c,
-                [
-                    'cache.key'        => 'Auth',
-                    'url.login'        => '/membership/login',
-                    .
-                    .
-                    .
-                ]
-            );
-            return $user;
+            $parameters = [
+                'cache.key'     => 'Auth',
+                'url.login'     => '/membership/login',
+                'db.adapter'    => '\Obullo\Authentication\Adapter\Database',
+                'db.model'      => '\Obullo\Authentication\Model\User', 
+                'db.provider'   => 'database',
+                'db.connection' => 'default',
+                'db.tablename'  => $params['table'],
+            ];
+            $manager = new AuthManager($c);
+            $manager->setConfiguration($parameters);
+
+            return $manager;
         };
     }
 }
-```
 
 #### Çalıştırma
 

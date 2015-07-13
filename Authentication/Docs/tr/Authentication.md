@@ -40,6 +40,7 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
             </li>
         </ul>
     </li>
+
     <li>
         <a href="#login">Oturum Açma</a>
         <ul>
@@ -47,16 +48,9 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
             <li><a href="#login-example">Oturum Açma Örneği</a></li>
             <li><a href="#login-results">Oturum Açma Sonuçları</a></li>
             <li><a href="#login-error-results">Oturum Açma Sonuçları Hata Tablosu</a></li>
-            <li><a href="#login-events">Oturum Açma Olaylarını Dinlemek</a></li>
-            <li>
-                <a href="#login-middleware">Tekil Oturum Açma Özelliği</a>
-                <ul>
-                    <li><a href="#enabling-uniqueLogin-trait">Tekil Oturum Açma Özelliğini Kapatıp / Açmak</a></li>
-                    <li><a href="#editing-login-middleware">Auth Katmanı Düzenlemek</a></li>
-                </ul>
-            </li>
         </ul>
     </li>
+
     <li>
         <a href="#identities">Kimlikler</a>
         <ul>
@@ -72,10 +66,13 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
             </li>
         </ul>
     </li>
+
     <li><a href="#login-reference">Login Sınıfı Referansı</a></li>
     <li><a href="#authResult-reference">AuthResult Sınıfı Referansı</a></li>
     <li><a href="#database-model">Database Sorgularını Özelleştirmek</a></li>
     <li><a href="#additional-features">Ek Özellikler</a></li>
+    <li><a href="#events">Olaylar</a></li>
+    <li><a href="#middleware">Auth Katmanları</a></li>
 </ul>
 
 <a name="features"></a>
@@ -262,8 +259,6 @@ Auth paketi ile çalışmaya başlamadan önce servis dosyasının ve <kbd>confi
 <a name="service"></a>
 
 #### Servis Konfigürasyonu
-
-------
 
 Yetki doğrulama servisini kullanmadan önce servis dosyasını konfigüre etmeniz gerekir. Bu dosya database tablo ayarları yetki adaptörleri ve model gibi konfigürasyonları içerir. Bunu yapmadan önce eğer mysql benzeri ilişkili bir database kullanıyorsanız aşağıdaki sql kodunu çalıştırarak demo için bir tablo yaratın.
 
@@ -613,7 +608,7 @@ if ($authResult->isValid()) {
 ```
 <a name="login-error-results"></a>
 
-#### Oturum Açma Sonuçları Hata Tablosu
+#### Hata Tablosu
 
 <table>
     <thead>
@@ -667,172 +662,6 @@ if ($authResult->isValid()) {
 
     </tbody>
 </table>
-
-<a name="login-events"></a>
-
-#### Oturum Açma Olaylarını Dinlemek
-
-Yetki doğrulama paketine ait olaylar <kbd>app/classes/Event/Login/</kbd> klasörü altında dinlenir. Bu sınıf içerisindeki en önemli olaylardan biri <kbd>Attempt</kbd> olayıdır. Bu olay Login sınıfı içerisindeki attempt metodu içerisinde <kbd>login.before</kbd> ve <kbd>login.after</kbd> isimleriyle ile ilan edilmiştir. 
-
-Aşağıdaki örnekte gösterilen Attempt sınıfı subscribe metodu <kbd>login.after</kbd> olayını dinleyerek oturum denemeleri öncesini ve bu oturumdan sonra oluşan sonuçları dinleyebilmenizi sağlar. 
-
-Şimdi dinleyici sınıfına bir göz atalım.
-
-<a name="login-listener"></a>
-
-##### Dinleyici
-
-
-```php
-namespace Event\Login;
-
-use Obullo\Authentication\AuthResult;
-use Obullo\Event\EventListenerInterface;
-use Obullo\Container\ContainerInterface;
-
-class Attempt implements EventListenerInterface
-{
-    protected $c;
-
-    public function __construct(ContainerInterface $c)
-    {
-        $this->c = $c;
-    }
-
-    /**
-     * Before login attempt
-     */
-    public function before($credentials = array())
-    {
-        // ..
-    }
-
-    /**
-     * After login attempts
-     */
-    public function after(AuthResult $authResult)
-    {
-        if ( ! $authResult->isValid()) {
-
-            // Store attemtps
-            // ...
-        
-            // $row = $authResult->getResultRow();  // Get query results
-
-        }
-        return $authResult;
-    }
-
-    /**
-     * Register the listeners for the subscriber.
-     */
-    public function subscribe($event)
-    {
-        $event->listen('login.before', 'Event\Login\Attempt@before');
-        $event->listen('login.after', 'Event\Login\Attempt@after');
-    }
-}
-
-// END Attempt class
-
-/* End of file Attempt.php */
-/* Location: .Event/Login/Attempt.php */
-```
-
-Yukarıdaki örnekte <b>after()</b> metodunu kullanarak oturum açma denemesinin başarılı olup olmaması durumuna göre oturum açma işlevine eklemeler yapabilir yetki doğrulama sonuçlarınına göre uygulamanızın davranışlarını özelleştirebilirsiniz.
-
-<a name="sucscribe-to-login-event"></a>
-
-##### Dinleyiciye Abone Olmak
-
-Oturum açma olaylarını dinlemek için login metodunuz üzerinde anotasyonlar yardımı ile <b>subscribe()</b> metodu içerisinden <kbd>app/classes/Event/Login/Attempt</kbd> sınıfına abone olunur.
-
-```php
-namespace Membership;
-
-Class Login extends \Controller
-{
-    /**
-     * @event->when("post")->subscribe('Event\Login\Attempt');
-     */
-    public function index()
-}
-```
-
-Dikkat etmeniz gereken nokta sadece http post isteklerinde <b>when</b> anotasyon komutu ile dinleyiciye abone olunmasıdır. View sayfalarının görüntülenmesi aşamasında önceden ilan edilmiş bir olay mevcut olmadığından bu fonksiyon üzerinde http post isteği dışındaki istekler için dinleyiciye abone olmamak gerekir.
-
-<a name="login-middleware"></a>
-
-#### Tekil Oturum Açma Özelliği
-
-Oturum açma özelliği opsiyonel olarak kullanılır. Http Auth katmanı içerisinde bu özellik çağrıldığında birden fazla aygıtta yada birbirinden farklı tarayıcılarda oturum açıldığında açılan tüm önceki oturumlar sonlanır ve en son açılan oturum aktif kalır.
-
-<a name="enabling-uniqueLogin-trait"></a>
-
-##### Tekil Oturum Açma Özelliğini Kapatıp / Açmak
-
-UniqueLogin özelliği <kbd>config/auth.php</kbd> konfigürasyon dosyasından kapatılıp açılabilir. UniqueLoginTrait özelliği Auth http katmanı içerisinden çağrılarak kullanılır.
-
-```php
-
-return array(
-
-    'middleware' => [
-        'uniqueLogin' => true
-    ]
-);
-
-/* End of file auth.php */
-/* Location: .config/auth.php */
-```
-
-<a name="editing-login-middleware"></a>
-
-##### Auth Katmanını Düzenlemek
-
-Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı içerisinde <kbd>$this->uniqueLoginCheck()</kbd> metodunun aşağıdaki gibi kullanılıyor olması gerekir.
-
-```php
-class Auth extends Middleware
-{
-    use UniqueLoginTrait;
-
-    public function call()
-    {
-        if ($this->user->identity->check()) {
-            $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
-        }
-        $this->next->call();
-    }   
-}
-
-/* Location: .app/classes/Http/Middlewares/Auth.php */
-```
-
-Eğer tablo parameteresi gönderilmek isteniyorsa auth katmanı aşağıdaki gibi düzenlenmelidir.
-
-```php
-class Auth extends Middleware
-{
-    use UniqueLoginTrait;
-    protected $user;
-
-    public function __construct()
-    {
-        $this->user = $this->c->get('user', ['table' => 'users']);
-    }
-
-    public function call()
-    {
-        if ($this->user->identity->check()) {
-            $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
-        }
-        $this->next->call();
-    }   
-}
-
-/* Location: .app/classes/Http/Middlewares/Auth.php */
-```
 
 <a name="identities"></a>
 
@@ -1156,3 +985,34 @@ Eğer mevcut database sorgularında değişiklik yapmak yada bir NoSQL çözüm�
 #### Ek Özellikler
 
 Auth paketi yetki doğrulama onayı ve aktivite verilerini kaydetme gibi bazı ek özellikler ile gelir. Bu türden özelliklere ihtiyacınız varsa [AdditionalFeatures.md](/Authentication/Docs/tr/AdditionalFeatures.md) dökümentasyonuna gözatın.
+
+<a name="events"></a>
+
+#### Olaylar
+
+Oturum açma aşamasında login öncesi ve login sonrası <kbd>$event->fire('login.before', array($credentials))</kbd> ve <kbd>$event->fire('login.after', array($authResult))</kbd> adlı iki olay event sınıfı ile <kbd>Obullo/Authentication/User/Login</kbd> sınıfı attempt metodu içerisinde ilan edilmiştir. Olaylardan <kbd>login.before</kbd> metoduna kullanıcı giriş bilgileri parametre olarak gönderilirken <kbd>login.after</kbd> metoduna ise <kbd>Obullo/Authentication/AuthResult</kbd> sınıfı çıktıları parametre olarak gönderilir.
+
+Oturum açma olayları hakkında daha fazla bilgi için [Events.md](/Authentication/Docs/tr/Events.md) dökümentasyonunu inceleyebilirsiniz.
+
+<a name="middleware"></a>
+
+#### Auth Katmanları
+
+Auth katmanları uygulamanız içerisinde <kbd>app/classes/Http/Middlewares/</kbd> klasörü altında bulunan <b>Auth.php</b> ve <b>Guest.php</b> dosyalarıdır. Auth dosyası uygulamaya giriş yapmış olan kullanıcıları kontrol ederken Guest katmanı ise uygulamaya giriş yetkisi olmayan kullanıcıları kontrol eder. Auth ve Guest katmanlarının çalışabilmesi için route yapınızda middleware anahtarına ilgili modül için birkez tutturulmaları gerekir.
+
+```php
+$c['router']->group(
+    [
+        'name' => 'AuthorizedUsers',
+        'domain' => $c['config']['domain']['mydomain.com'], 
+        'middleware' => array('Auth','Guest')
+    ],
+    function () {
+
+        $this->defaultPage('welcome');
+        $this->attach('accounts/.*');
+    }
+);
+```
+
+Auth katmanları hakkında daha fazla bilgi için [Middleware.md](/Authentication/Docs/tr/Middleware.md) dökümentasyonunu inceleyebilirsiniz.

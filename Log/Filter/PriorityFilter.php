@@ -47,19 +47,19 @@ class PriorityFilter
      * 
      * @param array $record unformatted record data
      * 
-     * @return array
+     * @return array|null
      */
     public function in(array $record)
     {
         if (empty($record)) {
             return array();
         }
-        $priority = $this->getPriority($record['level']);
+        $priority = $this->logger->getPriority($record['level']);
 
         if (in_array($priority, $this->params)) {
             return $record;
         }
-        return array();  // To remove record return to empty array.
+        return;
     }
 
     /**
@@ -67,32 +67,18 @@ class PriorityFilter
      * 
      * @param array $record unformatted record data
      * 
-     * @return array
+     * @return array|null
      */
     public function notIn(array $record)
     {
         if (empty($record)) {
             return array();
         }
-        $priority = $this->getPriority($record['level']);
+        $priority = $this->logger->getPriority($record['level']);
 
         if (! in_array($priority, $this->params)) {
             return $record;
         }
-        return array();  // To remove record return to empty array.
+        return;
     }
-
-    /**
-     * Get priority
-     *
-     * @param string $level current level
-     * 
-     * @return void
-     */
-    protected function getPriority($level)
-    {
-        $priorities = $this->logger->getPriorities();
-        return $priorities[$level];
-    }
-    
 }
