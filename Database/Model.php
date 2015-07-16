@@ -42,8 +42,3 @@ class Model
         return $this->__container[$key];
     }
 }
-
-// END Model class
-/* End of file Model.php */
-
-/* Location: .Obullo/Database/Model.php */

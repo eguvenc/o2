@@ -172,10 +172,5 @@ class Middleware
             $this->c['app']->middleware(ucfirst($name));
         }
     }
-
+    
 }
-
-// END Middleware.php File
-/* End of file Middleware.php
-
-/* Location: .Obullo/Application/Middleware.php */

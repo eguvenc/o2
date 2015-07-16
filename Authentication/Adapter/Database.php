@@ -261,7 +261,7 @@ class Database extends AbstractAdapter
      */
     protected function validateResultSet()
     {
-        if ( ! $this->storage->isEmpty('__temporary')) {
+        if (! $this->storage->isEmpty('__temporary')) {
             $this->results['code'] = AuthResult::TEMPORARY_AUTH_HAS_BEEN_CREATED;
             $this->results['messages'][] = 'Temporary auth has been created.';
             return $this->createResult();
@@ -283,7 +283,7 @@ class Database extends AbstractAdapter
             $this->results['messages'][] = 'You have already logged in.';
             return $this->createResult();
         }
-        if ( ! is_array($this->resultRowArray) || $this->failure) {   // We set failure variable when user password is fail.
+        if (! is_array($this->resultRowArray) || $this->failure) {   // We set failure variable when user password is fail.
             $this->results['code'] = AuthResult::FAILURE;
             $this->results['messages'][] = 'Supplied credential is invalid.';
             return $this->createResult();
@@ -319,11 +319,5 @@ class Database extends AbstractAdapter
         $result->setResultRow($this->resultRowArray);
         return $result;
     }
-
-
+    
 }
-
-// END Database.php File
-/* End of file Database.php
-
-/* Location: .Obullo/Authentication/Adapter/Database.php */

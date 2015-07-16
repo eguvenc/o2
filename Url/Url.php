@@ -142,7 +142,7 @@ class Url
         default : header("Location: " . $uri, true, $httpResponseCode);
             break;
         }
-        $this->c['logger']->shutdown();    // Manually shutdown logger
+        $this->c['logger']->shutdown();    // Manually shutdown logger otherwise we use register shutdown
         exit;
     }
 

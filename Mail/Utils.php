@@ -1,31 +1,19 @@
 <?php
 
-namespace Obullo\Mailer\Transport;
+namespace Obullo\Mail;
 
-trait MailerTrait
+/**
+ * Mailer Helper
+ *
+ * @category  Mailer
+ * @package   Transport
+ * @author    Obullo Framework <obulloframework@gmail.com>
+ * @copyright 2009-2014 Obullo
+ * @license   http://opensource.org/licenses/MIT MIT license
+ * @link      http://obullo.com/package/mailer
+ */
+class Utils
 {
-    /**
-     * Set RFC 822 Date
-     *
-     * @param string $newDate set custom date
-     * 
-     * @return string
-     */
-    public function setDate($newDate = null)
-    {
-        if (! is_null($newDate)) {
-            $this->setHeader('Date', $newDate);
-            return $newDate;
-        }
-        $timezone = date("Z");
-        $operator = (strncmp($timezone, '-', 1) == 0) ? '-' : '+';
-        $abs = abs($timezone);
-        $floorTimezone = floor($abs / 3600) * 100 + ($abs % 3600 ) / 60;
-        $date = sprintf("%s %s%04d", date("D, j M Y H:i:s"), $operator, $floorTimezone);
-        $this->setHeader('Date', $date);
-        return $date;
-    }
-
     /**
      * Convert a String to an Array
      *
@@ -33,7 +21,7 @@ trait MailerTrait
      * 
      * @return array
      */
-    public function strToArray($email)
+    public static function strToArray($email)
     {
         if (! is_array($email)) {
             if (strpos($email, ',') !== false) {
@@ -53,10 +41,10 @@ trait MailerTrait
      * 
      * @return string
      */
-    public function formatEmail($email)
+    public static function formatEmail($email)
     {
         if (! is_array($email)) {
-            if (strpos($email, '>') > 0 AND preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $email, $match)) {
+            if (strpos($email, '>') > 0 && preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $email, $match)) {
                 return array('email' => $match['email'], 'name' => $match['name']);
             } else {
                 return array('email' => $email, 'name' => null);
@@ -64,7 +52,7 @@ trait MailerTrait
         }
         $formatted = array();
         foreach ($email as $address) {
-            if (strpos($address, '>') > 0 AND preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $address, $match)) {
+            if (strpos($address, '>') > 0 && preg_match('/(?<name>.*?)\<(?<email>.*)\>/', $address, $match)) {
                 $formatted[] = array('email' => $match['email'], 'name' => $match['name']);
             } else {
                 $formatted[] = array('email' => $address, 'name' => null);
@@ -80,7 +68,7 @@ trait MailerTrait
      * 
      * @return string
      */
-    public function cleanEmail($email)
+    public static function cleanEmail($email)
     {
         if (! is_array($email)) {
             if (preg_match('/\<(.*)\>/', $email, $match)) {
@@ -111,7 +99,7 @@ trait MailerTrait
      * 
      * @return string
      */
-    public function prepQuotedPrintable($str, $charlim = '')
+    public static function prepQuotedPrintable($str, $charlim = '')
     {
         // Set the character limit
         // Don't allow over 76, as that will make servers and MUAs barf
@@ -175,7 +163,7 @@ trait MailerTrait
      * 
      * @return string
      */
-    public function prepQencoding($str, $from = false)
+    public static function prepQencoding($str, $from = false)
     {
         $str = str_replace(array("\r", "\n"), array('', ''), $str);
         // Line length must not exceed 76 characters, so we adjust for
@@ -192,7 +180,7 @@ trait MailerTrait
         for ($i = 0, $length = strlen($str); $i < $length; $i++) {
             $char = substr($str, $i, 1); // Grab the next character
             $ascii = ord($char);
-            if ($ascii < 32 OR $ascii > 126 OR in_array($char, $convert)) { // convert ALL non-printable ASCII characters and our specials
+            if ($ascii < 32 || $ascii > 126 || in_array($char, $convert)) { // convert ALL non-printable ASCII characters and our specials
                 $char = '=' . dechex($ascii);
             }
             if ($ascii == 32) { // handle regular spaces a bit more compactly than =20
@@ -214,8 +202,3 @@ trait MailerTrait
     }
 
 }
-
-// END MailerTrait
-/* End of file MailerTrait.php
-
-/* Location: .Obullo/Mailer/Transport/MailerTrait.php */

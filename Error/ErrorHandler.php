@@ -194,8 +194,3 @@ class ErrorHandler
     }
 
 }
-
-// END ErrorHandler class
-
-/* End of file ErrorHandler.php */
-/* Location: .Obullo/Error/ErrorHandler.php */

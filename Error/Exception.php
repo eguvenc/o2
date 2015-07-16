@@ -34,28 +34,17 @@ class Exception
             unset($fatalError);  // Fatal error variable used in view file
         }
         if (defined('STDIN')) {  // Cli
-            echo $this->loadView('ExceptionConsole', $e);
+            echo $this->getErrorView('ExceptionConsole', $e);
             return;
         }
         $isAjax = false;
         if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             $isAjax = true;
         }
-        if ($isAjax) {    // Ajax
-            echo $this->loadView('ExceptionAjax', $e);
+        if ($isAjax) {
+            echo $this->getErrorView('ExceptionAjax', $e);
             return;
         }
-        // $lastQuery = '';             
-        // if (class_exists('Controller', false)
-        //     AND Controller::$instance != null 
-        //     AND isset(Controller::$instance->db) 
-        //     AND is_object(Controller::$instance->db) 
-        //     AND method_exists(Controller::$instance->db, 'lastQuery')
-        // ) {  
-        //     $lastQuery = Controller::$instance->db->lastQuery();        // Show the last sql query
-        // }
-        
-        // Html
         echo '<!DOCTYPE html> 
         <html>
             <head>
@@ -65,7 +54,7 @@ class Exception
 
                 </style>
             </head>
-            <body><div>'.$this->loadView('ExceptionHtml', $e).'</div></body></html>';
+            <body><div>'.$this->getErrorView('ExceptionHtml', $e).'</div></body></html>';
     }
 
     /**
@@ -76,16 +65,11 @@ class Exception
      * 
      * @return string
      */
-    public function loadView($file, $e)
-    {
+    protected function getErrorView($file, $e)
+    {   
         ob_start();
         include OBULLO . 'Error' . DS . 'View'. DS .$file . '.php';
         return ob_get_clean();
     }
 
 }
-
-// END Exception class
-
-/* End of file Exception.php */
-/* Location: .Obullo/Error/Exception.php */

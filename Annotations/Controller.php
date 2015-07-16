@@ -48,7 +48,7 @@ class Controller
         $this->c['annotation.middleware'] = function () use ($c) {
             return new Middleware($c);
         };
-        if ( ! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
+        if (! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
             $this->c['response']->show404();
         }
         $this->blocks = '';
@@ -102,8 +102,3 @@ class Controller
     }
 
 }
-
-// END Controller Class
-
-/* End of file Controller.php */
-/* Location: .Obullo/Annotations/Controller.php */

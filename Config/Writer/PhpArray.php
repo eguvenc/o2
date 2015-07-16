@@ -47,7 +47,7 @@ class PhpArray extends AbstractWriter
         );
 
         return "<?php\n\n" .
-               "return array(\n\n" . $this->processIndented($config, $arraySyntax).");\n".$this->docs;
+               "return array(\n\n" . $this->processIndented($config, $arraySyntax).");\n";
     }
 
     /**
@@ -119,18 +119,6 @@ class PhpArray extends AbstractWriter
     }
 
     /**
-     * Add docs end of the file
-     * 
-     * @param string $doc docs
-     *
-     * @return void
-     */
-    public function addDoc($doc)
-    {
-        $this->docs = $doc;
-    }
-
-    /**
      * Recursively processes a PHP config array structure into a readable format.
      *
      * @param array $config      config
@@ -168,8 +156,3 @@ class PhpArray extends AbstractWriter
         return $arrayString;
     }
 }
-
-// END PhpArray.php File
-/* End of file PhpArray.php
-
-/* Location: .Obullo/Config/Writer/PhpArray.php */

@@ -54,8 +54,3 @@ interface UserInterface
     public function updateRememberToken($token, GenericUser $user);
 
 }
-
-// END UserInterface File
-/* End of file UserInterface.php
-
-/* Location: .Obullo/Authentication/Model/UserInterface.php */

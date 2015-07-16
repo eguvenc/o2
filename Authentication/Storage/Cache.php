@@ -252,8 +252,3 @@ class Cache extends AbstractStorage implements StorageInterface
     }
 
 }
-
-// END Cache.php File
-/* End of file Cache.php
-
-/* Location: .Obullo/Authentication/Storage/Cache.php */

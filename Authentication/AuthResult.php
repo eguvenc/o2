@@ -194,8 +194,3 @@ class AuthResult
     }
 
 }
-
-// END AuthResult.php File
-/* End of file AuthResult.php
-
-/* Location: .Obullo/Authentication/AuthResult.php */

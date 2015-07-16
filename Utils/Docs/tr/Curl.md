@@ -3,7 +3,7 @@
 
 Daniel Stenberg tarafından yazılan libcurl kütüphanesi farklı türdeki sunuculara bağlanmaya ve farklı protokollerle iletişim kurmaya yarar. libcurl http, https, ftp, gopher, telnet, dict, file ve ldap protokollerini destekler. Ayrıca, HTTPS sertifikalarını, HTTP isteklerini, HTTP form karşıya yüklemesini, vekilleri, çerezleri, kullanıcı ve parolalı kimlik doğrulamasını desteklemektedir.
 
-Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılmıştır multiCurl ve upload özelliklerini desteklemez. Daha kapsamlı bir paket için <a href="http://guzzle3.readthedocs.org/" target="_blank">Guzzle</a> paketini <kbd>app/classes/Service</kbd> klasörü altında <b>guzzle servisi</b> olarak konfigüre edin.
+Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılmıştır multiCurl ve upload özelliklerini desteklemez. Daha kapsamlı bir paket için composer ile <a href="http://guzzle3.readthedocs.org/" target="_blank">Guzzle</a> paketini indirip <kbd>app/classes/Service</kbd> klasörü altında <b>servis</b> olarak konfigüre edebilirsiniz.
 
 <ul>
     <a href="#running">Çalıştırma</a>
@@ -59,9 +59,10 @@ Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılm�
         </li>
 
         <li>
-            <a href="#helper-methods">Yardımcı Fonksiyonlar</a>
+            <a href="#additional-info">Yardımcı Bilgiler</a>
             <ul>
                 <li><a href="#helper-methods">$client->jsonDecode()</a></li>
+                <li><a href="#guzzle">Guzzle Servis Konfigürasyonu</a></li>
             </ul>
         </li>
 
@@ -428,12 +429,51 @@ Karşı sunucuya gönderilen metot türünü verir. ( POST, GET, PUT, DELETE .. 
 
 Request nesnesini oluşturup daha önce setBody() ile oluşturulmuş gövdeye geri döner.
 
-<a name="helper-methods"></a>
+<a name="additional-info"></a>
 
-#### Yardımcı Metotlar
+### Yardımcı Bilgiler
 
 -------
 
-##### $client->jsonDecode($json, $assoc = false, $depth = 512, $options = 0)
+#### $client->jsonDecode($json, $assoc = false, $depth = 512, $options = 0)
 
 <kbd>json_decode()</kbd> fonksiyonu için kurtarıcı metotdur bir http isteğinden dönen yanıt json formatında ise çözümlemek için bu fonksiyonun ilk parametresine gönderilmelidir.
+
+<a name="guzzle"></a>
+
+#### Guzzle Servis Kurulumu
+
+Obullo Curl sınıfı basit curl işlevlerini yerine getirmek amacıyla yazılmıştır multiCurl ve upload özelliklerini desteklemez. Daha kapsamlı bir paket için composer ile <a href="http://guzzle3.readthedocs.org/" target="_blank">Guzzle</a> paketini indirip <kbd>app/classes/Service</kbd> klasörü altında <b>servis</b> olarak konfigüre edebilirsiniz.
+
+Composer kurulumu için Obullo composer kurulum dökümentasyonu [Composer.md](/Application/Docs/tr/Composer.md) dosyasına bir gözatın.
+
+Kurulumu gerçekleştirdikten sonra <kbd>app/classes/Service/</kbd> klasörü altına Guzzle.php adı ile bir dosya oluşturup aşağıdaki gibi servisi konfigure edin.
+
+```php
+namespace Service;
+
+use GuzzleHttp\Client;
+use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
+
+class Guzzle implements ServiceInterface
+{
+    public function register(ContainerInterface $c)
+    {
+        $c['guzzle'] = function () {
+            return new Client;
+        };
+    }
+}
+```
+
+Artık client metotlarını guzzle sınıfı üzerinden aşağıdaki gibi çağırabilirsiniz.
+
+```php
+$request = $this->c['guzzle']->get('https://google.com');
+$response = $request->send();
+
+echo $response->getBody();
+```
+
+Güncel sürüme ait guzzle dökümentasyonu için bu linkten <a href="https://media.readthedocs.org/pdf/guzzle/latest/guzzle.pdf" target="_blank">https://media.readthedocs.org/pdf/guzzle/latest/guzzle.pdf</a> faydalanabilirsiniz.

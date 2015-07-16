@@ -109,8 +109,3 @@ class AuthManager
         return $this->c['auth.'.strtolower($class)]; // Services: $this->user->login, $this->user->identity, $this->user->activity ..
     }
 }
-
-// END AuthManager class
-/* End of file AuthManager.php */
-
-/* Location: .Obullo/Authentication/AuthManager.php */

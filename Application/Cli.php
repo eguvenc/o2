@@ -114,7 +114,7 @@ class Cli extends Application
     public function call()
     {
         $argumentSlice = 3;
-        if (! method_exists($this->class, $this->method) || $this->method == 'extend') { // load method reserved
+        if (! method_exists($this->class, $this->method) || $this->method == '__extend') { // reserved methods
             $argumentSlice = 2;
             $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';
@@ -144,8 +144,3 @@ class Cli extends Application
     }
 
 }
-
-// END Cli.php File
-/* End of file Cli.php
-
-/* Location: .Obullo/Application/Cli.php */

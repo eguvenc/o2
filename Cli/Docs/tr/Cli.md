@@ -18,6 +18,7 @@ Cli paketi yani Command Line Interface komut satırından yürütülen işlemler
         <li><a href="#debugger-command">Debugger Komutu</a></li>
         <li><a href="#queue-command">Queue Komutu</a></li>
         <li><a href="#run-your-commands">Kendi Komutlarınızı Çalıştırmak</a></li>
+        <li><a href="#external-commands">Konsol Komutlarını Dışarıdan Çalıştırmak</a></li>
     </ul>
 </li>
 
@@ -127,7 +128,7 @@ php task middleware add --name=Csrf
 Bir kuyruğu dinlemek için kullanılan konsol komutuna bir başka örnek.
 
 ```php
-php task queue listen --channel=Logs --route=localhost.Logger --memory=128 --timeout=0 --sleep=3 --debug=1
+php task queue listen --channel=log --route=logger.1 --memory=128 --timeout=0 --sleep=3 --debug=1
 ```
 
 <a name="log-command"></a>
@@ -347,6 +348,16 @@ class Hello extends Controller {
 
 ```php
 php task hello
+```
+
+<a name="external-commands"></a>
+
+#### Konsol Komutlarını Dışarıdan Çalıştırmak
+
+Eğer bir konsol komutu crontab gibi bir uygulama üzerinden dışarıdan çalıştırılmak isteniyorsa aşağıdaki task dosyasının tam dosya yolu girilmelir.
+
+```php
+php /var/www/framework/task help
 ```
 
 #### Help Komutları

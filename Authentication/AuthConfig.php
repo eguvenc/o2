@@ -60,8 +60,3 @@ class AuthConfig
     }
 
 }
-
-// END AuthConfig.php File
-/* End of file AuthConfig.php
-
-/* Location: .Obullo/Authentication/AuthConfig.php */

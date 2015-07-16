@@ -101,8 +101,3 @@ class Result
     }
 
 }
-
-// END Result Class
-/* End of file Result.php
-
-/* Location: .Obullo/Database/Pdo/Result.php */

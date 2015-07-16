@@ -31,8 +31,8 @@ Logger sınıfı <kbd>handler</kbd> klasöründeki log sürücülerini kullanara
     <li>
         <a href="#writers">Yazıcılar</a>
         <ul>
-            <li><a href="#define-handlers">Sürücü Tanımlamak</a></li>
-            <li><a href="#add-writer">Yazıcı Eklemek</a></li>
+            <li><a href="#add-handlers">Sürücü Eklemek</a></li>
+            <li><a href="#set-writer">Ana Yazıcıyı Tanımlak</a></li>
         </ul>
     </li>
 
@@ -93,8 +93,8 @@ O2 Logger;
 * Log Sürücüleri ( File, Email, Mongo, Syslog, Raw ),
 * Log Biçimleyicileri
 * Psr/Log standartı
-* Çoklu Log Sürücüleri İle Eş Zamanlı Yazma
 * Kuyruğa Atma
+* Konsoldan ve Web Konsolundan (Debugger) Log Görüntüleme
 * Log Verilerini Tek Bir Yerden İşleme ( app/classes/Workers/Logger.php )
 
 gibi özellikleri barındırır.
@@ -192,10 +192,10 @@ class Local implements ServiceInterface
             $logger->registerHandler(3, 'email')->filter('priority@notIn', array(LOG_DEBUG));
             /*
             |--------------------------------------------------------------------------
-            | Add Writers - Primary file writer should be available on local server
+            | Set Primary Writer
             |--------------------------------------------------------------------------
             */
-            $logger->addWriter('file')->filter('priority@notIn', array());
+            $logger->setWriter('file')->filter('priority@notIn', array());
             return $logger;
         };
     }
@@ -219,9 +219,9 @@ $this->c['logger']->method();
 
 Yazıcılar log verilerini işleme yada gönderme işlemlerini gerçekleştiriler. Servis içerisinde birden fazla tanımlanabilirler.
 
-<a name="define-handlers"></a>
+<a name="add-handlers"></a>
 
-#### Sürücü Tanımlamak
+#### Sürücü Eklemek
 
 Sürücüler log verilerini kaydetmek yada transfer etmek gibi işlemleri yürütürler. Önceden aşağıdaki gibi servis dosyası içerisinde tanımlı olması gereken sürücüler genel log yazıcısı olarak kullanılabilecekleri gibi belirli bir sayfaya yada gerçekleşmesi çok sık olmayan olaylar için gönderim işleyicisi (push handler) olarak da kullanılabilirler.
 
@@ -233,16 +233,17 @@ $logger->registerHandler(3, 'email');
 
 Bir sürücünün yazma yada gönderim önceliği ilk parametreden belirlernir. Değeri yüksek olan sürücünün önemliliği de yüksek olur ve önemlilik değeri yüksek olan sürücülere ait veriler diğer sürücülerden önce yazma işlemlerini gerçekleştirirler. İkinci parametreye ise sürücü adı girilir.
 
-<a name="add-writer"></a>
+<a name="set-writer"></a>
 
-#### Yazıcı Eklemek
+#### Ana Yazıcıyı Tanımlamak
 
-Yazıcılar <kbd>addWriter()</kbd> metodu ile eklenir bir tane eklenebilecekleri gibi birden fazla eklenerek eş zamanlı yazıcılar oluşturulabilir. Yazıcılar her sayfa görüntülenmesinden sonra toplanan log verilerinin yazma işlemlerini gerçekleştirirler. Bir sürücünün bir yazıcı olarak eklenebilmesi için sürücünün yazma işlemine uygun olması gerekir örneğin email sürücüsü genel bir yazıcı olarak eklenmemelidir.
+Log ana yazıcısı <kbd>setWriter()</kbd> metodu ile eklenir. Yazıcı her sayfa görüntülenmesinden sonra toplanan log verilerinin yazma işlemlerini gerçekleştirir. Bir sürücünün bir yazıcı olarak eklenebilmesi için sürücünün yazma işlemine uygun olması gerekir örneğin email sürücüsü genel bir yazıcı olarak eklenmemelidir.
 
 ```php
-$logger->addWriter('file');
-$logger->addWriter('mongo');
+$logger->setWriter('file');
 ```
+
+Eğer birden fazla yazıcıya eş zamanlı yazmak isteniyorsa <kbd>Workers/Logger</kbd> sınıfı içerisinde ana yazıcıya ait gelen log kayıtlarının klonlanarak ikinci yazıcıya kaydedilmesi gerekir.
 
 <a name="filters"></a>
 
@@ -481,7 +482,20 @@ $this->logger->push();
 
 Tüm log mesajları <kbd>app/classes/Workers/Logger</kbd> sınıfı aracılığı ile işlenir. Bu sınıfa gelen log verilerini <b>fire</b> metodu çözümler ve ilgili log yazıcılarını kullanarak yazma işlemlerinin gerçekleşmesini sağlar.
 
-Eğer servis konfigürasyonunda kuyruğa atma seçeneği açık ise <kbd>Workers/Logger</kbd> sınıfı konsoldan <kbd>php task queue listen</kbd> komutu aracılığı ile birden fazla çalıştırılarak çoklu iş parçacıkları ile log verileri kuyruktan tüketilir ( Multi Threading ). Daha fazla bilgi için kuyruklama bölümünü inceleyiniz.
+```php
+public function fire($job, array $event)
+{
+    print_r($event);
+
+    $this->job = $job;
+    $this->writers = $event['writers'];
+    $this->process();
+}
+```
+
+Yukarıda görüldüğü gibi <kbd>$event</kbd> parametresi ile tüm log kayıtları ve log bilgilerine ait olay verisi <kbd>app/classes/Workers/Logger</kbd> sınıfı <b>fire</b> metodu içerisinden çözümlenir. Servis konfigürasyonunda kuyruğa atma seçeneğinin kapalı veya açık olması durumunda herhangi bir değişiklik yapmanıza gerek kalmaz.
+
+Eğer servis konfigürasyonunda kuyruğa atma seçeneği açık ise <kbd>Workers/Logger</kbd> sınıfı konsoldan <kbd>php task queue listen</kbd> komutu aracılığı ile birden fazla çalıştırılarak çoklu iş parçacıkları ile log verileri kuyruktan tüketilir ( Multi Threading ). Eğer kuyruklama ile uygulamanızı genişletmek istiyorsanız daha fazla bilgi için kuyruklama bölümünü inceleyiniz.
 
 <a name="queuing"></a>
 
@@ -636,14 +650,14 @@ php task queue listen --channel=log --route=logger.1 --debug=1
 <kbd>app/classes/Workers/Logger</kbd> sınfı fire metoduna gönderilen log verileri, istek tipi, yazıcı tipi, gönderilme süresi, log kayıtları gibi verileri aşağıdaki gibi bir array içerisinde gruplar. Php task listen komutu çalıştığında işçi veya işciler bu gruplanmış veriyi Workers/Logger sınıfı içerisinde arka planda çözümleyerek log yazıcılarına gönderirler.
 
 ```php
-    public function fire(Job $job, $data)
-    {
-        print_r($data);
+public function fire($job, array $event)
+{
+    print_r($event);
 
-        $this->job = $job;
-        $this->writers = LogRaidManager::handle($data);
-        $this->process();
-    }
+    $this->job = $job;
+    $this->writers = $event['writers'];
+    $this->process();
+}
 ```
 
 Eğer yukarıda görülen <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ikinci parametresi olan $data verisini ekrana dökmeniz halinde aşağıdaki gibi bir çıktı alırsınız.
@@ -653,32 +667,41 @@ Eğer yukarıda görülen <kbd>app/classes/Workers/Logger</kbd> sınıfı fire m
 /*
 Array
 (
-    [logger] => Logger
-    [primary] => 5
-    [writers] => Array( 
-        [5] => Array
-            (
-                [request] => http
-                [handler] => file
-                [type] => writer
-                [time] => 1436357633
-                [record] => Array
-                    (
-                        [0] => Array
-                            (
-                                [channel] => system
-                                [level] => debug
-                                [message] => Uri Class Initialized
-                                [context] => Array
-                                    (
-                                        [uri] => /welcome/index
-                                    )
+    [writers] => Array
+        (
+            [10] => Array
+                (
+                    [handler] => file
+                    [request] => http
+                    [type] => writer
+                    [time] => 1436797060
+                    [filters] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [class] => Obullo\Log\Filter\PriorityFilter
+                                    [method] => notIn
+                                    [params] => Array
+                                        (
+                                        )
 
-                            )
-        [4] => Array(
-            // secondary writer / handler
-        )
-    );
+                                )
+
+                        )
+
+                    [record] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [channel] => system
+                                    [level] => debug
+                                    [message] => Uri Class Initialized
+                                    [context] => Array
+                                        (
+                                            [uri] => /welcome/index
+                                        )
+
+                                )
 */
 ```
 
@@ -704,18 +727,18 @@ Class Logger implements JobInterface
         $this->c = $c;
     }
 
-    public function fire(Job $job, $data)
+    public function fire($job, array $event)
     {
         $this->job = $job;
-        $this->writers = LogRaidManager::handle($data);
+        $this->writers = $event['writers'];
         $this->process();
     }
 
     public function process()
     {
         $handler = null;
-        foreach ($this->writers as $data) {
-            $handler = $data['handler'];
+        foreach ($this->writers as $event) {
+            $handler = $event['handler'];
             if ($handler == 'file') {
                 $handler = new FileHandler;
             }
@@ -759,20 +782,6 @@ if (is_object($handler) && $handler->isAllowed($data)) {
 }
 ```
 
-<a name="register-application-as-worker"></a>
-
-### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
-
-Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
-
-```php
-$logger->registerAsWorker();
-```
-
-Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot log servisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
-
-Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task listen</kbd> komutu ile işçilerinizin kurulumunu yaparak loglarınızı işlemeye başlayabilirsiniz.
-
 <a name="displaying-logs"></a>
 
 ### Logları Görüntülemek
@@ -812,8 +821,22 @@ php task log clear
 Debugger paketi [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu inceleyiniz.
 
 
-<a name="method-reference"></a>
+<a name="register-application-as-worker"></a>
 
+### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
+
+Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
+
+```php
+$logger->registerAsWorker();
+```
+
+Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot log servisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
+
+Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task listen</kbd> komutu ile işçilerinizin kurulumunu yaparak loglarınızı işlemeye başlayabilirsiniz.
+
+
+<a name="method-reference"></a>
 
 #### Fonksiyon Referansı
 
@@ -821,44 +844,47 @@ Debugger paketi [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu 
 
 ##### $this->logger->enable();
 
-
+Loglamayı açık hale getirir.
 
 ##### $this->logger->disable();
 
+Loglamayı kapalı hale getirir.
+
 ##### $this->logger->isEnabled();
+
+Loglamayı açık ise true değerine aksi durumda false değerine geri döner.
 
 ##### $this->logger->load(string $handler = 'email');
 
-Load a log handler for push method. Handler constants are defined in your root constants file.
+Farklı bir log yazıcısına log göndermek için bir log yazıcısını yükler. Push metodu ile birlikte kullanılır.
 
-##### $this->logger->addWriter(string $name);
+##### $this->logger->setWriter(string $name);
 
-Add a log writer.
+Ana log yazıcısını tanımlar.
 
-##### $this->logger->removeWriter(string $name);
+##### $this->logger->getWriter();
 
-Remove a log writer.
+Ana log yazıcısı ismine geri döner.
 
 ##### $this->logger->registerFilter(string $name, string $namespace);
 
-Register your filters using namespace.
+Bir log filtresi tanımlar. Birinci parametreye filtre adı ikinci parametreye filtre sınıfına ait yol girilir.
 
-##### $this->logger->registerHandler(string $name, string $namespace, integer $priority);
+##### $this->logger->registerHandler(integer $priority, string $name);
 
-Register your handlers using namespace and sets priority of handler.
+Bir log sürücüsü tanımlar. Birinci parametreye sürücü önem derecesi girilir, ikinci parametreye ise sürücü adı girilir. Eğer özel bir sürücü tanımlanmak isteniyorsa herhangi bir isim girilir ve bu isim <kbd>Workers\Logger</kbd> sınıfına geldiğinde ilgili kullanmak istediğiniz özel sürücü sınıfı ilan edilir.
 
 ##### $this->logger->filter(string $name, $params = array());
 
-Execute your filter before releated method.
+RegisterFilter metodu ile tanımlı olan bir log filtresinin çalıştırılmasına ait isteği log olayına işler.
 
 ##### $this->logger->push();
 
-Push log data to loaded log handlers.
+Load metodu ile yüklenen bir log yazıcısına ait log verilerini yazılması için log olayına işler.
 
 ##### $this->logger->registerAsWorker();
 
-Default logging feature disabled for workers, you need to turn on logs in order to define workers as an application.
-
+Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot log servisi içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur.
 
 #### Mesaj Referansı
 

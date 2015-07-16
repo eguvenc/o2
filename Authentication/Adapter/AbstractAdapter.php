@@ -65,8 +65,3 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     abstract protected function validateResult();
 }
-
-// END AbstractAdapter.php File
-/* End of file AbstractAdapter.php
-
-/* Location: .Obullo/Authentication/Adapter/AbstractAdapter.php */

@@ -134,10 +134,10 @@ Preferences are set by passing an array of preference values to the email initia
 return array(
 
     'drivers' => [
-        'mail' => '\Obullo\Mailer\Transport\Mail',
-        'smtp' => '\Obullo\Mailer\Transport\Smtp',
-        'sendmail' => '\Obullo\Mailer\Transport\Sendmail',
-        'mandrill' => '\Obullo\Mailer\Transport\Mandrill',
+        'mail' => '\Obullo\Mail\Transport\Mail',
+        'smtp' => '\Obullo\Mail\Transport\Smtp',
+        'sendmail' => '\Obullo\Mail\Transport\Sendmail',
+        'mandrill' => '\Obullo\Mail\Transport\Mandrill',
     ],
 
     'useragent' => 'Obullo Mailer',  // Mailer "user agent".
@@ -458,7 +458,7 @@ Returns a string containing any server messages, the email headers, and the emai
 
 Returns to array response if your email provider support.
 
-#### $this->mailer->response()->getRaw();
+#### $this->mailer->response()->getBody();
 
 Returns to raw data output of http request.
 

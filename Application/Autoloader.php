@@ -55,8 +55,3 @@ class Autoloader
         spl_autoload_register(__NAMESPACE__ . "\\Autoloader::autoload");
     }
 }
-
-// END Autoloader.php File
-/* End of file Autoloader.php
-
-/* Location: .Obullo/Application/Autoloader.php */

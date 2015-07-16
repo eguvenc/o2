@@ -652,8 +652,3 @@ class Adapter
     }
 
 }
-
-// END Adapter Class
-
-/* End of file Adapter.php
-/* Location: .Obullo/Database/Pdo/Adapter.php */

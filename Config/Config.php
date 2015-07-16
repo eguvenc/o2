@@ -19,6 +19,13 @@ use Obullo\Container\ContainerInterface;
 class Config implements ArrayAccess
 {
     /**
+     * Array stack
+     * 
+     * @var array
+     */
+    public $array = array();
+
+    /**
      * Current environment
      * 
      * @var string
@@ -31,13 +38,6 @@ class Config implements ArrayAccess
      * @var string
      */
     protected $path;
-
-    /**
-     * Array stack
-     * 
-     * @var array
-     */
-    public $array = array();
 
     /**
      * Constructor
@@ -135,7 +135,6 @@ class Config implements ArrayAccess
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->addDoc("\n/* End of file */\n/* Location: .config/env/$this->env/$filename */");
         $writer->toFile($fullpath . str_replace('/', DS, $filename), $data);
     }
 
@@ -210,8 +209,3 @@ class Config implements ArrayAccess
     }
 
 }
-
-// END Config.php File
-/* End of file Config.php
-
-/* Location: .Obullo/Config/Config.php */

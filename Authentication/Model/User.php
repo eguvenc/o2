@@ -105,8 +105,3 @@ class User implements UserInterface
             ->execute();
     }
 }
-
-// END User.php File
-/* End of file User.php
-
-/* Location: .Obullo/Authentication/Model/User.php */

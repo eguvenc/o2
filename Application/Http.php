@@ -251,8 +251,3 @@ class Http extends Application
         }
     }
 }
-
-// END Http.php File
-/* End of file Http.php
-
-/* Location: .Obullo/Application/Http.php */

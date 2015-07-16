@@ -137,7 +137,7 @@ class Identity extends AuthorizedUser implements IdentityInterface
         $name = $this->params['login']['rememberMe']['cookie']['name'];
         $token = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
      
-        if ( ! $this->storage->hasIdentifier() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
+        if (! $this->storage->hasIdentifier() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
             return $token;
         }
         return false;
@@ -386,8 +386,3 @@ class Identity extends AuthorizedUser implements IdentityInterface
         }
     }
 }
-
-// END Identity.php File
-/* End of file Identity.php
-
-/* Location: .Obullo/Authentication/User/Identity.php */

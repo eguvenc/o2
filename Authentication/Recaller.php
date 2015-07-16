@@ -90,7 +90,7 @@ class Recaller
     {
         $resultRowArray = $this->model->execRecallerQuery($token);
 
-        if ( ! is_array($resultRowArray)) {           // If login query not success.
+        if (! is_array($resultRowArray)) {           // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
             $this->identity->forgetMe();
             return;
@@ -128,8 +128,3 @@ class Recaller
         }
     }
 }
-
-// END Recaller.php File
-/* End of file Recaller.php
-
-/* Location: .Obullo/Authentication/Recaller.php */

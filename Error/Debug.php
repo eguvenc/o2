@@ -54,8 +54,3 @@ class Debug
         }
     }
 }
-
-// END Error Debug class
-
-/* End of file Debug.php */
-/* Location: .Obullo/Error/Debug.php */

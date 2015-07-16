@@ -210,8 +210,3 @@ class Null extends AbstractNull implements StorageInterface
         return false;
     }
 }
-
-// END Null.php File
-/* End of file Null.php
-
-/* Location: .Obullo/Authentication/Storage/Null.php */

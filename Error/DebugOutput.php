@@ -260,8 +260,3 @@ class DebugOutput
     }
     
 }
-
-// END DebugOutput class
-
-/* End of file DebugOutput.php */
-/* Location: .Obullo/Error/DebugOutput.php */

@@ -145,8 +145,3 @@ abstract class AbstractIdentity
     }
 
 }
-
-// END AbstractIdentity.php File
-/* End of file AbstractIdentity.php
-
-/* Location: .Obullo/Authentication/AbstractIdentity.php */

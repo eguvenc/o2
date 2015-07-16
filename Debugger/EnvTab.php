@@ -106,7 +106,6 @@ class EnvTab
                     $output.= "</tr>\n";
                 }
             }
-
             $output.= "</tbody>\n";
             $output.= "</table>\n";
             $output.= "</div>\n";
@@ -134,8 +133,3 @@ class EnvTab
         return $style;
     }
 }
-
-// END EnvTab.php File
-/* End of file EnvTab.php
-
-/* Location: .Obullo/Debugger/EnvTab.php */

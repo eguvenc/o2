@@ -125,11 +125,10 @@ class WebSocket
     public function emit($output = null, $payload = array())
     {
         $this->output = $output;
-        $primary = $payload['primary'];
-        $data    = $payload[$primary];
-        unset($payload['primary'], $payload['logger']);
+        $primary = max(array_keys($payload['writers']));
+        $data = $payload['writers'][$primary];
 
-        foreach ($payload as $value) {
+        foreach ($payload['writers'] as $value) {
             if ($value['type'] == 'handler') {
                 $data['record'] = array_merge($data['record'], $value['record']);  // Merge handlers and primary writer record
             }
@@ -205,7 +204,7 @@ class WebSocket
      */
     protected static function parseCss($html)
     {
-        $doc = new DOMDocument();
+        $doc = new DOMDocument;
         libxml_use_internal_errors(true);
         $doc->loadHTML('<?xml encoding="UTF-8">' . $html);
         libxml_use_internal_errors(false);
@@ -244,8 +243,3 @@ class WebSocket
     }
 
 }
-
-// END WebSocket.php File
-/* End of file WebSocket.php
-
-/* Location: .Obullo/Debugger/WebSocket.php */

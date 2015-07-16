@@ -69,8 +69,3 @@ class ExceptionHandler
         $c['exception']->show($e);
     }
 }
-
-// END ExceptionHandler class
-
-/* End of file ExceptionHandler.php */
-/* Location: .Obullo/Error/ExceptionHandler.php */

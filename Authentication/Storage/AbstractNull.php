@@ -210,8 +210,3 @@ abstract class AbstractNull
     }
 
 }
-
-// END AbstractNull.php File
-/* End of file AbstractNull.php
-
-/* Location: .Obullo/Authentication/Storage/AbstractNull.php */

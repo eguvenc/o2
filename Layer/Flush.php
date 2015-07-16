@@ -77,8 +77,3 @@ class Flush
         return Layer::CACHE_KEY. (int)sprintf("%u", crc32((string)$id));
     }
 }
-
-// END Flush class
-
-/* End of file Flush.php */
-/* Location: .Obullo/Layer/Flush.php */

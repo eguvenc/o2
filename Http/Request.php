@@ -346,7 +346,7 @@ class Request
      * @return object | bool
      */
     public function __get($variable)
-    {   
+    {
         return $this->c['request.'.$variable];
     }
 

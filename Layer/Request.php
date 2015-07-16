@@ -116,8 +116,3 @@ class Request
     }
     
 }
-
-// END Request class
-
-/* End of file Request.php */
-/* Location: .Obullo/Layer/Request.php */

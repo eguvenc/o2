@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Mailer;
+namespace Obullo\Mail;
 
 /**
  * Text Class
@@ -111,8 +111,3 @@ class Text
     }
 
 }
-
-// END Text class
-
-/* End of file Text.php */
-/* Location: .Obullo/Mailer/Text.php */

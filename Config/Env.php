@@ -164,8 +164,3 @@ class Env implements ArrayAccess
         return $arguments;
     }
 }
-
-// END Env.php File
-/* End of file Env.php
-
-/* Location: .Obullo/Config/Env.php */

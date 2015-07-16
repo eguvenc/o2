@@ -46,8 +46,3 @@ class Error
     }
     
 }
-
-// END Error class
-
-/* End of file Error.php */
-/* Location: .Obullo/Layer/Error.php */

@@ -21,43 +21,23 @@ class PriorityQueue extends SplPriorityQueue
      * 
      * @var integer
      */
-    protected $queueOrder = -999;
-
-    /**
-     * Priority fix
-     * 
-     * @param integer $priority1 priority level
-     * @param integer $priority2 priority2 level
-     *
-     * @return integer
-     */
-    public function compare($priority1, $priority2) 
-    { 
-        if ($priority1 == null) {
-            return null;
-        }
-        if ($priority1 === $priority2) {
-            return 0;
-        }
-        return $priority1 < $priority2 ? -1 : 1; 
-    }
+    protected $serial = PHP_INT_MAX;
 
     /**
      * Add to queue
      * 
-     * @param string $data     data
+     * @param string $value    data
      * @param mixed  $priority priority
      * 
      * @return void
      */
-    public function insert($data, $priority)
+    public function insert($value, $priority)
     {
-        if (is_null($priority)) {                  // SplPriorityQueue Fix
-            $priority = $this->queueOrder--;       // https://mwop.net/blog/253-Taming-SplPriorityQueue.html
-        }
-        parent::insert($data, $priority);
+        if (is_null($priority)) {  // If we you use negative numbers null values will be smaller than negative numbers.
+            $priority = 0;         // By converting null values to "0" we fix the problem.
+        }                          
+        parent::insert($value, array($priority, $this->serial--));  // http://php.net/manual/tr/splpriorityqueue.compare.php
     }
-
 }
 
 // END PriorityQueue class

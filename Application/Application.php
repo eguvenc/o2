@@ -386,8 +386,3 @@ class Application
     }
 
 }
-
-// END Obullo.php File
-/* End of file Obullo.php
-
-/* Location: .Obullo/Application/Obullo.php */

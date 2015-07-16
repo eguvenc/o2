@@ -201,8 +201,3 @@ interface IdentityInterface
      */
     public function close();
 }
-
-// END IdentityInterface.php File
-/* End of file IdentityInterface.php
-
-/* Location: .Obullo/Authentication/User/IdentityInterface.php */

@@ -363,8 +363,3 @@ class Layer
     }
     
 }
-
-// END Layer class
-
-/* End of file Request.php */
-/* Location: .Obullo/Layer/Layer.php */

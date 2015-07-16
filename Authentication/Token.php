@@ -34,8 +34,3 @@ class Token
         return $token;
     }
 }
-
-// END Token.php File
-/* End of file Token.php
-
-/* Location: .Obullo/Authentication/Token.php */

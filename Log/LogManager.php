@@ -8,7 +8,7 @@ use Obullo\Service\ServiceProviderInterface;
 /**
  * LogManager Class
  * 
- * @category  Provider
+ * @category  Manager
  * @package   LogManager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
@@ -44,7 +44,7 @@ class LogManager
     }
 
     /**
-     * Returns to logger instance
+     * Set logger service parameteres
      *
      * @param array $params provider parameters
      * 

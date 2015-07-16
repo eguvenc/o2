@@ -1000,19 +1000,4 @@ Oturum açma olayları hakkında daha fazla bilgi için [Events.md](/Authenticat
 
 Auth katmanları uygulamanız içerisinde <kbd>app/classes/Http/Middlewares/</kbd> klasörü altında bulunan <b>Auth.php</b> ve <b>Guest.php</b> dosyalarıdır. Auth dosyası uygulamaya giriş yapmış olan kullanıcıları kontrol ederken Guest katmanı ise uygulamaya giriş yetkisi olmayan kullanıcıları kontrol eder. Auth ve Guest katmanlarının çalışabilmesi için route yapınızda middleware anahtarına ilgili modül için birkez tutturulmaları gerekir.
 
-```php
-$c['router']->group(
-    [
-        'name' => 'AuthorizedUsers',
-        'domain' => $c['config']['domain']['mydomain.com'], 
-        'middleware' => array('Auth','Guest')
-    ],
-    function () {
-
-        $this->defaultPage('welcome');
-        $this->attach('accounts/.*');
-    }
-);
-```
-
 Auth katmanları hakkında daha fazla bilgi için [Middleware.md](/Authentication/Docs/tr/Middleware.md) dökümentasyonunu inceleyebilirsiniz.

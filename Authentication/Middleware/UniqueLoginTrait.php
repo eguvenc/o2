@@ -36,8 +36,3 @@ trait UniqueLoginTrait
     }
 
 }
-
-// END UniqueLoginTrait.php File
-/* End of file UniqueLoginTrait.php
-
-/* Location: .Obullo/Authentication/Middleware/UniqueLoginTrait.php */

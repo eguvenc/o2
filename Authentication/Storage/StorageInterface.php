@@ -118,8 +118,3 @@ interface StorageInterface
      */
     public function killSession($loginId);
 }
-
-// END Storage.php File
-/* End of file Storage.php
-
-/* Location: .Obullo/Authentication/Storage/Storage.php */

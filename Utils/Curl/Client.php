@@ -10,8 +10,6 @@ use Obullo\Utils\Curl\Response;
 use Obullo\Application\Application;
 use Obullo\Utils\CaseInsensitiveArray;
 
-Class ClientException extends RuntimeException {}
-
 /**
  * Curl Helper
  * 
@@ -556,9 +554,7 @@ class Client
             $this->ch,
             $this->options
         );
-        if (false == $this->rawResponse = curl_exec($this->ch)) {
-            throw new ClientException(curl_error($this->ch));
-        }
+        $this->rawResponse = curl_exec($this->ch);
         $this->body = null;  // Reset body data
         return $this;
     }
@@ -672,8 +668,3 @@ class Client
         $this->ch = null;
     }
 }
-
-// END Curl.php File
-/* End of file Curl.php
-
-/* Location: .Obullo/Utils/Curl/Client.php */

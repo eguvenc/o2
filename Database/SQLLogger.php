@@ -119,7 +119,7 @@ class SQLLogger implements SQLLoggerInterface
     {
         $sql = preg_replace('/\n\r\t/', ' ', trim($sql, "\n"));
         $newValues = array();
-        if ( ! empty($this->params)) {
+        if (! empty($this->params)) {
             foreach ($this->params as $key => $value) {
                 if (is_string($value)) {
                     $newValues[$key] = "'".addslashes($value)."'";
@@ -135,8 +135,3 @@ class SQLLogger implements SQLLoggerInterface
     }
 
 }
-
-// END SQLLogger Class
-/* End of file SQLLogger.php
-
-/* Location: .Obullo/Database/SQLLogger.php */

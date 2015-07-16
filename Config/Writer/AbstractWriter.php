@@ -97,8 +97,3 @@ abstract class AbstractWriter
      */
     abstract protected function processConfig(array $config);
 }
-
-// END AbstractWriter.php File
-/* End of file AbstractWriter.php
-
-/* Location: .Obullo/Config/Writer/AbstractWriter.php */

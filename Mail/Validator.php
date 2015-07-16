@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Mailer;
+namespace Obullo\Mail;
 
 /**
  * Validator Class
@@ -37,12 +37,12 @@ class Validator
      */
     public function validateEmail($email)
     {
-        if ( ! is_array($email)) {
+        if (! is_array($email)) {
             $this->setError('OBULLO:MAILER:MUST_BE_ARRAY');
             return false;
         }
         foreach ($email as $val) {
-            if ( ! $this->validEmail($val)) {
+            if (! $this->validEmail($val)) {
                 $this->setError('OBULLO:MAILER:INVALID_ADDRESS', $val);
                 return false;
             }
@@ -110,8 +110,3 @@ class Validator
     }
 
 }
-
-// END Validator class
-
-/* End of file Validator.php */
-/* Location: .Obullo/Mailer/Validator.php */

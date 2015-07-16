@@ -152,8 +152,3 @@ interface AdapterInterface
     public function insertId();
 
 }
-
-// END AdapterInterface class
-
-/* End of file AdapterInterface.php */
-/* Location: .Obullo/Database/AdapterInterface.php */

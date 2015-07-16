@@ -66,7 +66,7 @@ class Manager
         $debuggerOff  = (int)$this->c['config']['http']['debugger']['enabled'];
         $debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/body?o_debugger=1');
 
-        $envtab = new EnvTab($this->c);
+        $envtab = new EnvTab($this->c['request']);
         $envHtml = $envtab->printHtml();
 
         ob_start();
@@ -101,8 +101,3 @@ class Manager
     }
 
 }
-
-// END Manager class
-/* End of file Manager.php */
-
-/* Location: .Obullo/Debugger/Manager.php */

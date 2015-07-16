@@ -122,8 +122,3 @@ class Activity
         return true;
     }
 }
-
-// END Activity.php File
-/* End of file Activity.php
-
-/* Location: .Obullo/Authentication/User/Activity.php */

@@ -64,7 +64,7 @@ class Login
         $identifier = $this->params['db.identifier'];
         $password   = $this->params['db.password'];
 
-        if ( ! isset($credentials[$identifier]) || ! isset($credentials[$password]) ) {
+        if (! isset($credentials[$identifier]) || ! isset($credentials[$password]) ) {
             $message = sprintf(
                 'Login attempt requires "%s" and "%s" credentials.', 
                 $this->columnIdentifier,
@@ -151,8 +151,3 @@ class Login
     }
 
 }
-
-// END Login.php File
-/* End of file Login.php
-
-/* Location: .Obullo/Authentication/User/Login.php */

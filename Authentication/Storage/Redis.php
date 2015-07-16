@@ -76,7 +76,7 @@ class Redis extends AbstractStorage implements StorageInterface
      */
     public function query()
     {
-        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
+        if (! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
 
             $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
 
@@ -104,7 +104,7 @@ class Redis extends AbstractStorage implements StorageInterface
             return false;
         }
         $data = $credentials;
-        if ( ! empty($pushData) && is_array($pushData)) {
+        if (! empty($pushData) && is_array($pushData)) {
             $data = array_merge($credentials, $pushData);
         }
         $lifetime = ($ttl == null) ? $this->getMemoryBlockLifetime($block) : (int)$ttl;
@@ -226,8 +226,3 @@ class Redis extends AbstractStorage implements StorageInterface
         $this->deleteCredentials($this->cacheKey.':__permanent:'.$this->getUserId().':'.$loginID);
     }
 }
-
-// END Redis.php File
-/* End of file Redis.php
-
-/* Location: .Obullo/Authentication/Storage/Redis.php */

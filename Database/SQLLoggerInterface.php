@@ -32,9 +32,3 @@ interface SQLLoggerInterface
      */
     public function stopQuery();
 }
-
-
-// END SQLLoggerInterface Class
-/* End of file SQLLoggerInterface.php
-
-/* Location: .Obullo/Database/SQLLoggerInterface.php */

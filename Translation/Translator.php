@@ -10,11 +10,11 @@ use Obullo\Container\ContainerInterface;
  * Translator Class
  *
  * @category  I18n
- * @package   Translator
+ * @package   Translation
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/i18n
+ * @link      http://obullo.com/package/translator
  */
 class Translator implements ArrayAccess
 {
@@ -22,6 +22,20 @@ class Translator implements ArrayAccess
      * System debug translate notice
      */
     const NOTICE = 'translate:';
+
+    /**
+     * Container
+     *
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $config;
 
     /**
      * Selected locale
@@ -42,7 +56,7 @@ class Translator implements ArrayAccess
      *
      * @var array
      */
-    public $loaded = array();  // Let we know if its loaded
+    public $loaded = array();
 
     /**
      * Current locale code ( en, de, es )
@@ -66,20 +80,6 @@ class Translator implements ArrayAccess
     public $fallbackArray = array();
 
     /**
-     * Container
-     *
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Config
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
      * @param object $c container
@@ -89,7 +89,7 @@ class Translator implements ArrayAccess
         $this->c = $c;
         $this->config = $c['config']->load('translator');   // Load package config file
 
-        $this->setDefault($this->config['locale']['default']);    // Sets default langugage from translator config file.
+        $this->setDefault($this->config['default']['locale']);    // Sets default langugage from translator config file.
         $this->setFallback($this->config['fallback']['locale']);  // Default lang code
 
         $this->c['logger']->debug('Translator Class Initialized');
@@ -133,10 +133,10 @@ class Translator implements ArrayAccess
             $this->c['logger']->warning('Translate key type error the key must be string.');
             return $key;
         }
-        if ( ! isset($this->translateArray[$key])) {
-            $notice = ($this->config['debug']) ? static::NOTICE : '';
+        if (! isset($this->translateArray[$key])) {
+            $notice = ($this->config['default']['debug']) ? static::NOTICE : '';
 
-            if ($this->config['fallback']['enabled'] AND isset($this->fallbackArray[$key])) {    // Fallback translation is exist ?
+            if ($this->config['fallback']['enabled'] && isset($this->fallbackArray[$key])) {    // Fallback translation is exist ?
                 return $this->fallbackArray[$key];      // Get it.
             }
             return $notice.$key;
@@ -271,7 +271,7 @@ class Translator implements ArrayAccess
             }
             return $this->translateArray[$item];
         }
-        $translateNotice = ($this->config['debug']) ? static::NOTICE : '';
+        $translateNotice = ($this->config['default']['debug']) ? static::NOTICE : '';
         return $translateNotice . $item;  // Let's notice the developers this line has no translate text
     }
 
@@ -298,12 +298,12 @@ class Translator implements ArrayAccess
     public function setLocale($locale = null, $writeCookie = true)
     {
         if (! isset($this->config['languages'][$locale])) {    // If its not in defined languages.
-            return false;  // Good bye ..
+            return false;
         }
         $this->locale = $locale;
 
         if ($writeCookie) {
-            $this->setCookie();  // write to cookie
+            $this->setCookie();  // Write to cookie
         }
         return true;
     }
@@ -381,8 +381,3 @@ class Translator implements ArrayAccess
         );
     }
 }
-
-// END Translator.php File
-/* End of file Translator.php
-
-/* Location: .Obullo/Translation/Translator.php */

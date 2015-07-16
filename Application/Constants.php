@@ -29,8 +29,3 @@ define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
 define('CLI_PHP', 'cli.php');
 define('INDEX_PHP', 'index.php');
-
-// END Constants.php File
-/* End of file Constants.php
-
-/* Location: .Obullo/Application/Constants.php */

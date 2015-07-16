@@ -51,8 +51,3 @@ interface AdapterInterface
      */
     public function generateUser(GenericUser $genericUser, $resultRowArray, $passwordNeedsRehash = array());
 }
-
-// END AdapterInterface.php File
-/* End of file AdapterInterface.php
-
-/* Location: .Obullo/Authentication/AdapterInterface.php */

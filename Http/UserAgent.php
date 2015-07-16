@@ -26,13 +26,6 @@ class UserAgent
     public $agent = null;
 
     /**
-     * Flag for if the user-agent belongs to a browser
-     *
-     * @var bool
-     */
-    public $isBrowser = false;
-
-    /**
      * Flag for if the user-agent is a robot
      *
      * @var bool
@@ -45,6 +38,13 @@ class UserAgent
      * @var bool
      */
     public $isMobile = false;
+
+    /**
+     * Flag for if the user-agent belongs to a browser
+     *
+     * @var bool
+     */
+    public $isBrowser = false;
 
     /**
      * Languages accepted by the current user agent

@@ -90,8 +90,3 @@ abstract class Middleware
     abstract public function call();
 
 }
-
-// END Middleware.php File
-/* End of file Middleware.php
-
-/* Location: .Obullo/Application/Middleware.php */

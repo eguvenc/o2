@@ -36,8 +36,3 @@ class Mysql extends Adapter
         $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // Aways show the pdo exceptions errors. // PDO::ERRMODE_SILENT 
     }
 }
-
-// END Mysql Class
-/* End of file Mysql.php
-
-/* Location: .Obullo/Database/Pdo/Drivers/Mysql.php */

@@ -103,28 +103,6 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * Detect logger type
-     * 
-     * @return void
-     */
-    protected function detectRequest()
-    {
-        $this->request = 'http'; // Http request
-        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $this->request ='ajax';  // Ajax request
-        }
-        if (defined('STDIN')) {  // Cli request
-            $this->request = 'cli';
-        }
-        if (isset($_SERVER['argv'][1]) && $_SERVER['argv'][1] == 'worker') {  // Job Server request
-            $this->request = 'worker';
-            if ($this->isRegisteredAsWorker() == false) {
-                $this->enabled = false;
-            }
-        }      
-    }
-
-    /**
      * Load defined log handler
      * 
      * @param string $name defined log handler name
@@ -442,6 +420,28 @@ class Logger extends AbstractLogger implements LoggerInterface
         return $records;
     }
 
+    /**
+     * Detect logger type
+     * 
+     * @return void
+     */
+    protected function detectRequest()
+    {
+        $this->request = 'http'; // Http request
+        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            $this->request ='ajax';  // Ajax request
+        }
+        if (defined('STDIN')) {  // Cli request
+            $this->request = 'cli';
+        }
+        if (isset($_SERVER['argv'][1]) && $_SERVER['argv'][1] == 'worker') {  // Job Server request
+            $this->request = 'worker';
+            if ($this->isRegisteredAsWorker() == false) {
+                $this->enabled = false;
+            }
+        }      
+    }
+
      /**
      * Extract queued log handlers data store them into one array
      * 
@@ -449,7 +449,6 @@ class Logger extends AbstractLogger implements LoggerInterface
      */
     protected function execWriter()
     {
-        $this->payload['primary'] = 10;
         $name = $this->getWriter();
         $records = $this->extract($name);
         if (empty($records)) {
@@ -457,6 +456,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         }
         $this->payload['writers'][10]['handler'] = $name;
         $this->payload['writers'][10]['request'] = $this->request;
+        $this->payload['writers'][10]['type']    = 'writer';
         $this->payload['writers'][10]['time']    = time();
         $this->payload['writers'][10]['filters'] = $this->getFilters($name);
         $this->payload['writers'][10]['record']  = $records; // set record array
@@ -480,6 +480,7 @@ class Logger extends AbstractLogger implements LoggerInterface
             $priority = $val['priority'];
             $this->payload['writers'][$priority]['handler'] = $name;
             $this->payload['writers'][$priority]['request'] = $this->request;
+            $this->payload['writers'][$priority]['type']    = 'handler';
             $this->payload['writers'][$priority]['time']    = time();
             $this->payload['writers'][$priority]['filters'] = $this->getFilters($name);
             $this->payload['writers'][$priority]['record']  = $records; // set record array

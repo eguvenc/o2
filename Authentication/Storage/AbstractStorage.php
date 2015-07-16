@@ -243,8 +243,3 @@ abstract class AbstractStorage
     }
 
 }
-
-// END AbstractStorage.php File
-/* End of file AbstractStorage.php
-
-/* Location: .Obullo/Authentication/AbstractStorage.php */
