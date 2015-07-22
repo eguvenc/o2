@@ -18,8 +18,3 @@ interface ProviderInterface
      */
     public function redirectOutput();
 }
-
-// END ProviderInterface.php File
-/* End of file ProviderInterface.php
-
-/* Location: .Obullo/Sociality/Provider/ProviderInterface.php */

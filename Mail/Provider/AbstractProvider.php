@@ -634,6 +634,16 @@ abstract class AbstractProvider
     }
 
     /**
+     * Returns From Name <from@email>
+     * 
+     * @return string
+     */
+    public function getFrom()
+    {
+        return $this->fromName." &lt;".$this->fromEmail."&gt;";
+    }
+
+    /**
      * Returns to from name
      * 
      * @return string

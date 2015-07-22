@@ -153,8 +153,3 @@ class Live extends AbstractProvider implements ProviderInterface
         return false;
     }
 }
-
-// END Live.php File
-/* End of file Live.php
-
-/* Location: .Obullo/Sociality/Provider/Live.php */

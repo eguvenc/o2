@@ -44,9 +44,3 @@ interface AdapterInterface
      */
     public function result($code);
 }
-
-
-// END AdapterInterface Class
-/* End of file AdapterInterface.php
-
-/* Location: .Obullo/Captcha/AdapterInterface.php */

@@ -90,8 +90,3 @@ abstract class Queue
     abstract public function deleteQueue($name);
 
 }
-
-// END Queue Class
-/* End of file Queue.php
-
-/* Location: .Obullo/Queue/Queue.php */

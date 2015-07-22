@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Utils\Curl;
+namespace Obullo\Curl;
 
 use Obullo\Utils\CaseInsensitiveArray;
 
@@ -127,8 +127,3 @@ class Request
     }
 
 }
-
-// END Request Class
-/* End of file Request.php
-
-/* Location: .Obullo/Utils/Curl/Request.php */

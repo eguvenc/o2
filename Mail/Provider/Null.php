@@ -148,16 +148,6 @@ class Null
     }
 
     /**
-     * Returns mailt type: html / text
-     * 
-     * @return string
-     */
-    public function getMailType()
-    {
-        return 'text';
-    }
-
-    /**
      * Set email validation
      * 
      * @param boolean $enabled true or false
@@ -168,6 +158,46 @@ class Null
     {
         $enabled = null;
         return $this;
+    }
+
+    /**
+     * Returns mailt type: html / text
+     * 
+     * @return string
+     */
+    public function getMailType()
+    {
+        return 'text';
+    }
+
+    /**
+     * Returns to from name & email
+     * 
+     * @return string
+     */
+    public function getFrom()
+    {
+        return 'null';
+    }
+
+    /**
+     * Returns from name
+     * 
+     * @return string
+     */
+    public function getFromName()
+    {
+        return 'null';
+    }
+
+    /**
+     * Returns from email
+     * 
+     * @return string
+     */
+    public function getFromEmail()
+    {
+        return 'null';
     }
 
     /**

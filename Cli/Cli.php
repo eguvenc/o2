@@ -150,8 +150,3 @@ class Cli
     }
 
 }
-
-// END Cli.php File
-/* End of file Cli.php
-
-/* Location: .Obullo/Cli/Cli.php */

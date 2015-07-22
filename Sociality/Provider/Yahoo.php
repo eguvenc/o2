@@ -24,13 +24,6 @@ class Yahoo extends AbstractProvider implements ProviderInterface
     const TOKEN_REQUEST = 'code';
 
     /**
-     * The separating character for the requested scopes.
-     *
-     * @var string
-     */
-    protected $scopeSeparator = ' ';
-
-    /**
      * Yahoo doesn't accept scope,
      * you need to set this link;
      * 
@@ -41,6 +34,13 @@ class Yahoo extends AbstractProvider implements ProviderInterface
      * @var array
      */
     protected $scopes = [];
+
+    /**
+     * The separating character for the requested scopes.
+     *
+     * @var string
+     */
+    protected $scopeSeparator = ' ';
 
     /**
      * Initialize
@@ -174,8 +174,3 @@ class Yahoo extends AbstractProvider implements ProviderInterface
         return false;
     }
 }
-
-// END Yahoo.php File
-/* End of file Yahoo.php
-
-/* Location: .Obullo/Sociality/Provider/Yahoo.php */

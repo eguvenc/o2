@@ -173,8 +173,3 @@ class Console
     }
 
 }
-
-// END Console class
-
-/* End of file Console.php */
-/* Location: .Obullo/Cli/Console.php */

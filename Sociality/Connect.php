@@ -82,8 +82,3 @@ class Connect
         );
     }
 }
-
-// END Connect.php File
-/* End of file Connect.php
-
-/* Location: .Obullo/Sociality/Connect.php */

@@ -67,8 +67,3 @@ class Controller
         }
     }
 }
-
-// END Controller class
-
-/* End of file Controller.php */
-/* Location: .Obullo/Controller/Controller.php */

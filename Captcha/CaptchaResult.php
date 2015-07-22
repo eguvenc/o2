@@ -132,8 +132,3 @@ class CaptchaResult
         );
     }
 }
-
-// END CaptchaResult.php File
-/* End of file CaptchaResult.php
-
-/* Location: .Obullo/Captcha/CaptchaResult.php */

@@ -1,26 +1,24 @@
 <?php
 
-namespace Obullo\Utils\Curl;
+namespace Obullo\Curl;
 
 use RuntimeException;
 use InvalidArgumentException;
 
-use Obullo\Utils\Curl\Request;
-use Obullo\Utils\Curl\Response;
 use Obullo\Application\Application;
 use Obullo\Utils\CaseInsensitiveArray;
 
 /**
- * Curl Helper
+ * Curl
  * 
  * @category  Curl
- * @package   Utils
+ * @package   Curl
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2014 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/curl
  */
-class Client
+class Curl
 {
     const TIMEOUT = 30;
 

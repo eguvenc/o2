@@ -397,8 +397,3 @@ class Container implements ContainerInterface
     }
 
 }
-
-// END Container class
-
-/* End of file Container.php */
-/* Location: .Obullo/Container/Container.php */

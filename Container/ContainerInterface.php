@@ -79,8 +79,3 @@ interface ContainerInterface extends ArrayAccess
      */
     public function isRegistered($name);
 }
-
-// END Container class
-
-/* End of file Container.php */
-/* Location: .Obullo/Container/Container.php */

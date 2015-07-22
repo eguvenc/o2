@@ -7,7 +7,7 @@ use Obullo\Mail\MailResult;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Mandrill Transactional Api Provider
+ * Mailgun Transactional Api Provider
  *
  * @category  Mailer
  * @package   Provider
@@ -17,10 +17,10 @@ use Obullo\Container\ContainerInterface;
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
  */
-class Mandrill extends AbstractProvider implements ProviderInterface
+class Mailgun extends AbstractProvider implements ProviderInterface
 {
     /**
-     * Create a new Mandrill transport instance.
+     * Create a new Mailgun transport instance.
      *
      * @param object $c      container
      * @param array  $params config & service parameters
@@ -29,7 +29,7 @@ class Mandrill extends AbstractProvider implements ProviderInterface
      */
     public function __construct(ContainerInterface $c, array $params)
     {
-        $c['logger']->debug('Mandrill Class Initialized');
+        $c['logger']->debug('Mailgun Class Initialized');
 
         parent::__construct($c, $params);
     }
@@ -43,9 +43,8 @@ class Mandrill extends AbstractProvider implements ProviderInterface
     {
         // Create new message event
 
-        $this->msgEvent['from_email'] = $this->getFromEmail();
-        $this->msgEvent['from_name']  = $this->getFromName();
-        $this->msgEvent['subject']    = $this->getSubject();
+        $this->msgEvent['from'] = $this->getFrom();
+        $this->msgEvent['subject'] = $this->getSubject();
 
         $this->setMailtype($this->params['message']['mailtype']);  // text / html
 
@@ -58,14 +57,6 @@ class Mandrill extends AbstractProvider implements ProviderInterface
                 $this->msgEvent['headers'][$key] = $value;
             }
         }
-        $this->msgEvent['send_at'] = $this->setDate();
-
-        // Async defaults to false for messages with no more than 10 recipients
-        // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
-
-        $this->msgEvent['async'] = false;    
-        $this->msgEvent['ip_pool'] = $this->params['provider']['mandrill']['pool']; 
-
         $this->buildMessage();
         $this->buildAttachments();
     }
@@ -81,26 +72,19 @@ class Mandrill extends AbstractProvider implements ProviderInterface
 
         $client = new Curl;
         $body = $client->setUserAgent($this->getUserAgent())
-            ->setOpt(CURLOPT_FOLLOWLOCATION, true)
-            ->setOpt(CURLOPT_HEADER, false)
             ->setOpt(CURLOPT_CONNECTTIMEOUT, 30)
             ->setOpt(CURLOPT_TIMEOUT, 600)
-            ->setBody(
-                json_encode(
-                    [
-                        'key' => $this->params['provider']['mandrill']['key'],
-                        'message' => $this->msgEvent
-                    ]
-                )
-            )
+            ->setOpt(CURLOPT_RETURNTRANSFER, 1)
+            ->setAuth('apikey', $this->params['provider']['mailgun']['key'], 'basic')
             ->setVerbose(false)
-            ->post($this->params['provider']['mandrill']['url'])
+            ->post($this->params['provider']['mailgun']['url'], $this->msgEvent)
             ->getBody();
-
-        // "[{"email":"example@email.com","status":"sent","_id":"3e5bdc391a8d4602813a5cd1d751773f","reject_reason":null}]" 
     
-        $mailResult = $this->parseBody($client, $body);
-        return $mailResult;
+        var_dump($body);
+        return;
+
+        // $mailResult = $this->parseBody($client, $body);
+        // return $mailResult;
     }
 
     /**
@@ -134,7 +118,7 @@ class Mandrill extends AbstractProvider implements ProviderInterface
 
         if ($resultArray == null) {
             $result->setCode($result::JSON_PARSE_ERROR);
-            $result->setMessage("Unable to decode the JSON response from the Mandrill API");
+            $result->setMessage("Unable to decode the JSON response from the Mailgun API");
             return $result;
         }
         if (isset($resultArray[0]) && is_array($resultArray[0]) && $resultArray[0]['status'] == 'sent') {
@@ -155,7 +139,7 @@ class Mandrill extends AbstractProvider implements ProviderInterface
      */
     public function getKey()
     {
-        return $this->params['provider']['mandrill']['key'];
+        return $this->params['provider']['mailgun']['key'];
     }
 
     /**
@@ -167,7 +151,7 @@ class Mandrill extends AbstractProvider implements ProviderInterface
      */
     public function setKey($key)
     {
-        return $this->params['provider']['mandrill']['key'] = $key;
+        return $this->params['provider']['mailgun']['key'] = $key;
     }
 
 }

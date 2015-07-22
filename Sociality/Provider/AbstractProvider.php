@@ -2,7 +2,7 @@
 
 namespace Obullo\Sociality\Provider;
 
-use Obullo\Utils\Curl\Client;
+use Obullo\Curl\Curl;
 use InvalidArgumentException;
 
 /**
@@ -19,20 +19,6 @@ use InvalidArgumentException;
 abstract class AbstractProvider
 {
     /**
-     * Redirect uri
-     *
-     * @var string
-     */
-    protected $redirectUri;
-
-    /**
-     * Utils\Curl instance.
-     * 
-     * @var null
-     */
-    protected $httpClient = null;
-
-    /**
      * The client ID.
      *
      * @var string
@@ -40,25 +26,18 @@ abstract class AbstractProvider
     protected $clientId = '';
 
     /**
-     * The client secret.
+     * Redirect uri
      *
      * @var string
      */
-    protected $clientSecret = '';
+    protected $redirectUri;
 
     /**
-     * The separating character for the requested scopes.
-     *
-     * @var string
+     * Obullo\Curl\Curl instance.
+     * 
+     * @var null
      */
-    protected $scopeSeparator = ',';
-
-    /**
-     * The type of the encoding in the query.
-     *
-     * @var int Can be either PHP_QUERY_RFC3986 or PHP_QUERY_RFC1738.
-     */
-    protected $encodingType = PHP_QUERY_RFC1738;
+    protected $httpClient = null;
 
     /**
      * Access Token
@@ -80,6 +59,27 @@ abstract class AbstractProvider
      * @var string
      */
     protected $requestMethod;
+
+    /**
+     * The client secret.
+     *
+     * @var string
+     */
+    protected $clientSecret = '';
+
+    /**
+     * The separating character for the requested scopes.
+     *
+     * @var string
+     */
+    protected $scopeSeparator = ',';
+
+    /**
+     * The type of the encoding in the query.
+     *
+     * @var int Can be either PHP_QUERY_RFC3986 or PHP_QUERY_RFC1738.
+     */
+    protected $encodingType = PHP_QUERY_RFC1738;
 
     /**
      * Create a new provider instance.
@@ -342,12 +342,12 @@ abstract class AbstractProvider
     /**
      * Get a instance of HTTP client.
      *
-     * @return Http\Client
+     * @return object Obullo\Curl\Curl
      */
     protected function client()
     {
         if ($this->httpClient == null) {
-            return $this->httpClient = new Client;
+            return $this->httpClient = new Curl;
         }
         return $this->httpClient;
     }

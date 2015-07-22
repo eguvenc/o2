@@ -113,8 +113,3 @@ abstract class AbstractAdapter
         );
     }
 }
-
-// END AbstractAdapter Class
-/* End of file AbstractAdapter.php
-
-/* Location: .Obullo/Captcha/AbstractAdapter.php */

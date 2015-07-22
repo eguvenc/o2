@@ -370,7 +370,7 @@ CURLOPT_PORT değerine girilen port değerini atar.
 
 Ayrıntılı bilgi çıktılanması için true olmalıdır. Çıktıyı standart hataya veya CURLOPT_STDERR kullanarak belirtilen dosyaya yazar.
 
-##### $client->setAuth($username, $password, 'basic/digest');
+##### $client->setAuth($username, $password, 'basic');
 
 Http basic yada http digest türündeki yetki doğrulama işlevlerini yerine getirir. İkinci parametre yetki doğrulama türünü belirler ( digest veya basic olmalıdır ).
 

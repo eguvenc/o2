@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Utils\Curl;
+namespace Obullo\Curl;
 
 use Obullo\Utils\CaseInsensitiveArray;
 
@@ -174,8 +174,3 @@ class Response
     }
 
 }
-
-// END Response Class
-/* End of file Response.php
-
-/* Location: .Obullo/Utils/Curl/Response.php */

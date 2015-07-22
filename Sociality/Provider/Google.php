@@ -223,8 +223,3 @@ class Google extends AbstractProvider implements ProviderInterface
         return $outputArray;
     }
 }
-
-// END Google.php File
-/* End of file Google.php
-
-/* Location: .Obullo/Sociality/Provider/Google.php */
