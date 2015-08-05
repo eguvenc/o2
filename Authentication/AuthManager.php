@@ -55,6 +55,16 @@ class AuthManager
     }
 
     /**
+     * Returns to all parameters
+     * 
+     * @return array
+     */
+    public function getParameters()
+    {
+        return AuthConfig::get();
+    }
+
+    /**
      * Register authentication services
      * 
      * @param array $parameters service parameters
