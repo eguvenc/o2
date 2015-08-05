@@ -2,7 +2,7 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Event\EventInterface;
+use Obullo\Event\Event;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\AuthResult;
@@ -38,7 +38,7 @@ class Login
      * @param object $identity \Obullo\Authentication\Identity\Identity
      * @param array  $params   Auth config parameters
      */
-    public function __construct(Container $c, EventInterface $event, StorageInterface $storage, IdentityInterface $identity, array $params)
+    public function __construct(Container $c, Event $event, StorageInterface $storage, IdentityInterface $identity, array $params)
     {
         $this->c = $c;
         $this->event = $event;
