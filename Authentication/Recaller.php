@@ -3,7 +3,7 @@
 namespace Obullo\Authentication;
 
 use Auth\Identities\GenericUser;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 use Obullo\Authentication\Model\UserInterface;
 use Obullo\Authentication\User\IdentityInterface;
 use Obullo\Authentication\Storage\StorageInterface;
@@ -67,7 +67,7 @@ class Recaller
      * @param array  $identity \Obullo\Authentication\Identity\Identity
      * @param array  $params   auth
      */
-    public function __construct(ContainerInterface $c, StorageInterface $storage, UserInterface $model, IdentityInterface $identity, array $params)
+    public function __construct(Container $c, StorageInterface $storage, UserInterface $model, IdentityInterface $identity, array $params)
     {
         $this->c = $c;
         $this->model = $model;

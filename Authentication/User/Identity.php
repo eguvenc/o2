@@ -7,7 +7,7 @@ use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\Recaller;
 use Obullo\Session\SessionInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 use Obullo\Authentication\Storage\StorageInterface;
 
 /**
@@ -66,7 +66,7 @@ class Identity extends AuthorizedUser implements IdentityInterface
      * @param object $storage auth storage
      * @param object $params  auth config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params)
+    public function __construct(Container $c, SessionInterface $session, StorageInterface $storage, array $params)
     {
         $this->c = $c;
         $this->params = $params;

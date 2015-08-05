@@ -5,7 +5,7 @@ namespace Obullo\Authentication;
 use Obullo\Authentication\User\Login;
 use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 
 /**
  * AuthManager Class
@@ -33,7 +33,7 @@ class AuthManager
      * 
      * @return object
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
@@ -48,10 +48,20 @@ class AuthManager
      */
     public function setParameters(array $params)
     {
-        AuthConfig::setParameters($this->c['config'], $params);
+        AuthConfig::setParameters($this->c['config'], $this->c['response'], $this->c['session'], $params);
 
         $parameters = AuthConfig::get();
         $this->register($parameters);
+    }
+
+    /**
+     * Returns to all parameters
+     * 
+     * @return array
+     */
+    public function getParameters()
+    {
+        return AuthConfig::get();
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 
 /**
  * O2 Authentication - Online Users Activity Class
@@ -49,7 +49,7 @@ class Activity
      *
      * @param object $c container
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c)
     {
         $this->storage = $c['auth.storage'];
         $this->identity = $c['auth.identity'];

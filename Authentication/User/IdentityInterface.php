@@ -4,7 +4,7 @@ namespace Obullo\Authentication\User;
 
 use Auth\Identities\GenericUser;
 use Obullo\Session\SessionInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 use Obullo\Authentication\Storage\StorageInterface;
 
 /**
@@ -27,7 +27,7 @@ interface IdentityInterface
      * @param object $storage auth storage
      * @param object $params  auth config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params);
+    public function __construct(Container $c, SessionInterface $session, StorageInterface $storage, array $params);
 
     /**
      * Initializer

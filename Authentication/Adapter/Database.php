@@ -5,7 +5,7 @@ namespace Obullo\Authentication\Adapter;
 use Auth\Identities\GenericUser;
 use Obullo\Session\SessionInterface;
 use Obullo\Authentication\AuthResult;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\Container;
 use Obullo\Authentication\User\IdentityInterface;
 use Obullo\Authentication\Storage\StorageInterface;
 
@@ -107,7 +107,7 @@ class Database extends AbstractAdapter
      * @param object $identity user identity
      * @param array  $params   config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, IdentityInterface $identity, array $params)
+    public function __construct(Container $c, SessionInterface $session, StorageInterface $storage, IdentityInterface $identity, array $params)
     {
         $this->c = $c;
         $this->params = $params;
