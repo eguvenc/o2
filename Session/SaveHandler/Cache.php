@@ -159,8 +159,3 @@ class Cache implements SaveHandlerInterface
         return $this->lifetime;
     }
 }
-
-// END Cache.php File
-/* End of file Cache.php
-
-/* Location: .Obullo/Session/SaveHandler/Cache.php */

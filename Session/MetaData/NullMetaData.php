@@ -74,8 +74,3 @@ class NullMetaData
         return array();
     }
 }
-
-// END NullMetaData.php File
-/* End of file NullMetaData.php
-
-/* Location: .Obullo/Session/MetaData/NullMetaData.php */

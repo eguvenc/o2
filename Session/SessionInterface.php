@@ -100,8 +100,3 @@ interface SessionInterface
     public function remove($new = array(), $prefix = '');
 
 }
-
-// END SessionInterface class
-
-/* End of file SessionInterface.php */
-/* Location: .Obullo/Session/SessionInterface.php */

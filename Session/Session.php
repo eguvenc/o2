@@ -149,7 +149,7 @@ class Session implements SessionInterface
      */
     public function start()
     {
-        if ( ! $this->exists()) { // If another session_start() used before ?
+        if (! $this->exists()) { // If another session_start() used before ?
             session_start();
         }
     }
@@ -165,7 +165,7 @@ class Session implements SessionInterface
         if ($cookie === false) {
             return false;
         }
-        if ( ! $this->meta->isValid()) { // If meta data is not valid say good bye to user !
+        if (! $this->meta->isValid()) { // If meta data is not valid say good bye to user !
             return false;
         }
         return true;
@@ -215,11 +215,11 @@ class Session implements SessionInterface
      */
     public function destroy()
     {
-        if ( ! $this->exists()) {
+        if (! $this->exists()) {
             return;
         }
         session_destroy();
-        if ( ! headers_sent()) {
+        if (! headers_sent()) {
             setcookie(
                 $this->getName(),                 // session name
                 '',                               // value
@@ -240,7 +240,7 @@ class Session implements SessionInterface
     public function isExpired()
     {
         $meta = $this->meta->read();
-        if ( ! isset($meta['la'])) {  // la = meta data last activity.
+        if (! isset($meta['la'])) {  // la = meta data last activity.
             return false;
         }
         $expire = $this->getTime() - $this->config['storage']['lifetime'];
@@ -333,7 +333,7 @@ class Session implements SessionInterface
      */
     public function close()
     {
-        if ( ! $this->readSession()) {
+        if (! $this->readSession()) {
             $this->meta->create();
         } else {
             $this->meta->update();
@@ -341,8 +341,3 @@ class Session implements SessionInterface
         session_write_close();
     }
 }
-
-// END Session.php File
-/* End of file Session.php
-
-/* Location: .Obullo/Session/Session.php */

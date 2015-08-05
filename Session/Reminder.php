@@ -93,8 +93,3 @@ class Reminder
         }
     }
 }
-
-// END Reminder.php File
-/* End of file Reminder.php
-
-/* Location: .Obullo/Session/Reminder.php */

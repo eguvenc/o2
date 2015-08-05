@@ -48,7 +48,7 @@ class AuthManager
      */
     public function setParameters(array $params)
     {
-        AuthConfig::setParameters($this->c['config'], $params);
+        AuthConfig::setParameters($this->c['config'], $this->c['response'], $this->c['session'], $params);
 
         $parameters = AuthConfig::get();
         $this->register($parameters);

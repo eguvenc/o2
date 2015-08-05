@@ -96,8 +96,3 @@ interface SaveHandlerInterface
      */
     public function getLifetime();
 }
-
-// END SaveHandlerInterface class
-
-/* End of file SaveHandlerInterface.php */
-/* Location: .Obullo/Session/SaveHandler/SaveHandlerInterface.php */

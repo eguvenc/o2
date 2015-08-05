@@ -54,7 +54,7 @@ class User implements ServiceInterface
 
             $parameters = [
                 'cache.key'     => 'Auth',
-                'url.login'     => '/membership/login',
+                'url.login'     => '/membership/login/index/'.$params['table'],
                 'db.adapter'    => '\Obullo\Authentication\Adapter\Database',
                 'db.model'      => '\Obullo\Authentication\Model\User', 
                 'db.provider'   => 'database',
@@ -69,6 +69,44 @@ class User implements ServiceInterface
     }
 }
 ```
+
+Guest katmanına bir örnek.
+
+
+```php
+namespace Http\Middlewares;
+
+use Obullo\Application\Middleware;
+use Obullo\Authentication\AuthConfig;
+
+class Guest extends Middleware
+{
+    protected $user;
+
+    public function __construct()
+    {
+        $this->user = $this->c->get(
+            'user',
+            [
+                'table' => AuthConfig::session('db.tablename')
+            ]
+        );
+    }
+
+    public function call()
+    {
+        if ($this->user->identity->guest()) {
+
+            $this->flash->info('Your session has been expired.');
+            $this->url->redirect(AuthConfig::get('url.login'));
+        }
+        $this->next->call();
+    }
+    
+}
+/* Location: .app/classes/Http/Middlewares/Guest.php */
+```
+
 
 #### Çalıştırma
 
@@ -115,17 +153,40 @@ return array(
  UniqueLoginTrait sınıfı Auth http katmanı içerisinden çağrılarak kullanılır. Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı içerisinde <kbd>$this->uniqueLoginCheck()</kbd> metodunun aşağıdaki gibi kullanılıyor olması gerekir.
 
 ```php
+namespace Http\Middlewares;
+
+use Obullo\Application\Middleware;
+use Obullo\Authentication\AuthConfig;
+use Obullo\Authentication\Middleware\UniqueLoginTrait;
+
 class Auth extends Middleware
 {
     use UniqueLoginTrait;
 
+    protected $user;
+
+    public function __construct()
+    {
+        $this->user = $this->c->get(
+            'user',
+            [
+                'table' => AuthConfig::session('db.tablename')
+            ]
+        );
+    }
+
     public function call()
     {
         if ($this->user->identity->check()) {
-            $this->uniqueLoginCheck();  // Çoklu açılan oturumları yok et
+    
+            $this->uniqueLoginCheck();  // Terminate multiple logins
+            
+            // $this->user->activity->set('last', time());
+
         }
         $this->next->call();
-    }   
+    }
+    
 }
 
 /* Location: .app/classes/Http/Middlewares/Auth.php */
@@ -137,6 +198,12 @@ User servisi katman içerisinde aşağıdaki çağırılarak auth sınfı check 
 > **Not:** UniqueLogin özelliği opsiyoneldir ve <kbd>config/auth.php</kbd> konfigürasyon dosyasından kapatılıp açılabilir.
 
 ```php
+namespace Http\Middlewares;
+
+use Obullo\Application\Middleware;
+use Obullo\Authentication\AuthConfig;
+use Obullo\Authentication\Middleware\UniqueLoginTrait;
+
 class Auth extends Middleware
 {
     use UniqueLoginTrait;
@@ -145,7 +212,12 @@ class Auth extends Middleware
 
     public function __construct()
     {
-        $this->user = $this->c->get('user');
+        $this->user = $this->c->get(
+            'user',
+            [
+                'table' => AuthConfig::session('db.tablename')
+            ]
+        );
     }
 
     public function call()
@@ -160,8 +232,8 @@ class Auth extends Middleware
 /* Location: .app/classes/Http/Middlewares/Auth.php */
 ```
 
-Eğer tablo parameteresi gönderilmek isteniyorsa auth katmanı aşağıdaki gibi düzenlenmelidir.
+Eğer auth işlemlerini bağlamak istediğiniz üyelik tablosunu değiştirmek istiyorsanız tablo parametresini değiştirmeniz gerekir.
 
 ```php
-$this->user = $this->c->get('user', ['table' => 'users']);
+$this->user = $this->c->get('user', ['table' => 'admins']);
 ```

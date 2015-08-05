@@ -26,7 +26,7 @@ class Decoder
      */
     public function decodeMeta($rawSession = '')
     {
-        if ($output = explode('_o2_meta|s:', $rawSession)) {
+        if ($output = explode('o_meta|s:', $rawSession)) {
             $json = substr(substr($output[1], 5), 0, -2);
             $data = json_decode($json, true);
             return $data;
@@ -55,7 +55,7 @@ class Decoder
      */
     public function saveMeta(array $data)
     {
-        return $_SESSION['_o2_meta'] = $this->encodeMeta($data);
+        return $_SESSION['o_meta'] = $this->encodeMeta($data);
     }
 
     /**
@@ -76,10 +76,10 @@ class Decoder
         $sessionArray = array();
         if (isset($matches['string'])) {
             foreach ($matches['string'] as $key => $val) {
-                if ( ! empty($matches['string_val'][$key])) {
+                if (! empty($matches['string_val'][$key])) {
                     $sessionArray[$val] = (string)$matches['string_val'][$key];
                 }
-                if (isset($matches['integer'][$key]) AND ! empty($matches['integer'][$key])) {
+                if (isset($matches['integer'][$key]) && ! empty($matches['integer'][$key])) {
                     $sessionArray[$matches['integer'][$key]] = (int)$matches['integer_val'][$key];
                 }
             }  
@@ -109,8 +109,3 @@ class Decoder
         return $sessionRaw;
     }
 }
-
-// END Decoder.php File
-/* End of file Decoder.php
-
-/* Location: .Obullo/Session/Decoder.php */

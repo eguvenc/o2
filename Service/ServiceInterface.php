@@ -25,8 +25,3 @@ interface ServiceInterface
      */
     public function register(ContainerInterface $c);
 }
-
-// END ServiceInterface class
-
-/* End of file ServiceInterface.php */
-/* Location: .Obullo/Service/ServiceInterface.php */

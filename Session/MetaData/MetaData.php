@@ -100,7 +100,7 @@ class MetaData
     {
         $this->meta = $this->read();
 
-        if ( ! isset($this->meta['sid'], $this->meta['ip'], $this->meta['ua'], $this->meta['la'])) {
+        if (! isset($this->meta['sid'], $this->meta['ip'], $this->meta['ua'], $this->meta['la'])) {
             $this->session->destroy();
             return false;
         }
@@ -134,7 +134,7 @@ class MetaData
      */
     protected function checkSessionIpAddress()
     {
-        if ($this->config['meta']['matchIp'] == true AND $this->meta['ip'] != $this->ipAddress) {
+        if ($this->config['meta']['matchIp'] == true && $this->meta['ip'] != $this->ipAddress) {
             $this->logger->notice('Session meta data is not valid', $this->meta);
             $this->return = false;
         }
@@ -147,7 +147,7 @@ class MetaData
      */
     protected function checkSessionUserAgent()
     {
-        if ($this->config['meta']['matchUserAgent'] == true AND trim($this->meta['ua']) != $this->userAgent) {
+        if ($this->config['meta']['matchUserAgent'] == true && trim($this->meta['ua']) != $this->userAgent) {
             $this->logger->notice('Session user agent is not valid', array('session_id' => session_id()));
             $this->return = false;
         }
@@ -214,8 +214,3 @@ class MetaData
         return array();
     }
 }
-
-// END MetaData.php File
-/* End of file MetaData.php
-
-/* Location: .Obullo/Session/MetaData/MetaData.php */
