@@ -294,7 +294,6 @@ Class User implements ServiceInterface
 
             $parameters = [
                 'cache.key'     => 'Auth',
-                'url.login'     => '/membership/login',
                 'db.adapter'    => '\Obullo\Authentication\Adapter\Database', // Adapter
                 'db.model'      => '\Obullo\Authentication\Model\User',       // User model
                 'db.provider'   => 'database',
@@ -352,12 +351,14 @@ Auth servisi varsayılan olarak auth.php konfigürasyon dosyasında tanımlı us
             'db.identifier' => 'username',
             'db.password' => 'password',
             'db.rememberToken' => 'remember_token',
+            'url.login' => '/membership/login/index',
         ],
         'admins' => [
             'db.id' => 'id',
             'db.identifier' => 'username',
             'db.password' => 'password',
             'db.rememberToken' => 'remember_token',
+            'url.login' => '/membership/login/admin',
         ]
     ],
 
@@ -422,7 +423,7 @@ echo AuthConfig::get('cache.key');       // Çıktı Auth
 Tüm değerleri almak için parametre girilmez.
 
 ```php
-$params = AuthConfig::get();
+$params = AuthConfig::getParameters();
 
 print_r($params);  // Konfigürasyon değerleri
 ```
@@ -473,7 +474,8 @@ Oturum açmayı bir örnekle daha iyi kavrayabiliriz, membership adlı altında 
 
 ```php
 + app
-+ assets
++ config
++ resources
 - modules
     - membership
         - view
@@ -486,36 +488,42 @@ Login kontrolör dosyamızın içeriğini inceleyelim.
 ```php
 namespace Membership;
 
+use Obullo\Authentication\AuthConfig;
+
 Class Login extends \Controller
 {
-    public function __construct()
-    {
-        $this->user = $this->c->get('user');
-    }
+    const USERS = 'users';
 
     /**
+     * Index
+     * 
      * @event->when("post")->subscribe('Event\Login\Attempt');
+     *
+     * @return void
      */
     public function index()
     {
+        $this->user = $this->c->get('user', ['table' => static::USERS]);
+
         if ($this->request->isPost()) {
 
             $this->validator->setRules('email', 'Email', 'required|email|trim');
             $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
 
-            if (  ! $this->validator->isValid()) {
+            if (! $this->validator->isValid()) {
                 $this->form->setErrors($this->validator);
             } else {
 
                 $authResult = $this->user->login->attempt(
                     [
-                        AuthConfig::get('db.identifier') => $this->request->post('email'), 
-                        AuthConfig::get('db.password') => $this->request->post('password')
+                        AuthConfig::get('db.identifier') => $this->validator->getValue('email'), 
+                        AuthConfig::get('db.password')   => $this->validator->getValue('password'),
                     ],
                     $this->request->post('rememberMe')
                 );
+
                 if ($authResult->isValid()) {
-                    $this->flash->success('Login success.')->url->redirect('membership/restricted');
+                    $this->flash->success('You have authenticated successfully.')->url->redirect('membership/restricted');
                 } else {
                     $this->form->setResults($authResult->getArray());
                 }
@@ -526,7 +534,7 @@ Class Login extends \Controller
 }
 ```
 
-Yukarıdaki örnekte attempt fonksiyonu <b>AuthResult</b> nesnesine geri dönüyor ve Auth result sınıfı isValid() metodu ile yetkilendirmenin başarılı olup olmadığı anlıyor. Yetkilendirme başarılı ise kullanıcı Guest kullanıcılarının erişemeyeceği bir sayfaya yönlendiriliyor. Eğer oturum açma başarısız ise sonuçlar form sınıfına gönderiliyor.
+Yukarıdaki örnekte attempt fonksiyonu <b>AuthResult</b> nesnesine geri dönüyor ve Auth result sınıfı ise isValid() metodu ile yetkilendirmenin başarılı olup olmadığını anlıyor. Yetkilendirme başarılı ise kullanıcı Guest kullanıcılarının erişemeyeceği bir sayfaya yönlendiriliyor. Eğer oturum açma başarısız ise sonuçlar form sınıfına gönderiliyor.
 
 View dosyası
 

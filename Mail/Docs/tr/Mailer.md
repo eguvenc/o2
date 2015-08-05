@@ -1,7 +1,7 @@
 
 ## Mail Sınıfı
 
-Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemleri için harici servis sağlayıcıları kullanarak ortak bir arayüz sağlar. Şu anki sürümde mail gönderme servisi Mailgun ve Mandrill mail gönderme api servislerini destekleyen sürücüleri içerir. Mail gönderme işlemine ait sonuçlar ve dönen hata mesajları MailResult adlı sınıf üzerinden kontrol edilir.
+Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemleri için harici servis sağlayıcıları kullanarak ortak bir arayüz sağlar. Şu anki sürümde mail gönderme servisi <kbd>Mailgun</kbd> ve <kbd>Mandrill</kbd> web servislerini destekleyen servis sağlayıcılarını içerir. Mail gönderme işlemine ait sonuçlar ve dönen hata mesajları <kbd>MailResult</kbd> adlı sınıf üzerinden kontrol edilir.
 
 <ul>
 
@@ -34,7 +34,7 @@ Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemle
         <li><a href="#result">MailResult Sınıfı</a></li>
         <li><a href="#error-table">Hata Tablosu</a></li>
         <li><a href="#custom-errors">Özel Hatalar Tanımlama</a></li>
-        <li><a href="#wrapping">Dizge Katlama (Wrapping)</a></li>
+        <li><a href="#wrapping">Dizge Katlama</a> (Wrapping)</li>
     </ul>
 </li>
 
@@ -42,7 +42,8 @@ Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemle
     <a href="#queue">Kuyruklama</a>
     <ul>
         <li><a href="#queue-configuration">Konfigürasyon</a></li>
-        <li><a href="#consume">Kuyruğu Tüketmek</a> (Workers)</li>
+        <li><a href="#send-to-queue">Kuyruğa Göndermek</a></li>
+        <li><a href="#consume">Kuyruğu Tüketmek</a> (İşçiler)</li>
         <li><a href="#example-queue-data">Örnek Kuyruk Verileri</a></li>
         <li><a href="#debugging">Hata Ayıklama</a></li>
     </ul>
@@ -50,6 +51,11 @@ Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemle
 
 <li>
     <a href="#method-reference">Fonksiyon Referansı</a>
+    <ul>
+        <li><a href="#mail-set-reference">Mail Sınıfı Set Metotları</a></li>
+        <li><a href="#mail-get-reference">Mail Sınıfı Get Metotları</a></li>
+        <li><a href="#mailresult-reference">MailResult Sınıfı</a></li>
+    </ul>
 </li>
 
 </ul>
@@ -400,7 +406,7 @@ $parameters = [
     'provider' => [
         'mailgun' => [
             'domain' => 'news.mydomain.com',
-            'key' => 'enter-your-api-key-without{key-}'
+            'key' => 'enter-your-api-key'
         ]
     ]
 ];
@@ -413,9 +419,25 @@ $parameters = [
 
 #### Kuyruğa Göndermek
 
-Mail gönderme işlerini queue servisi üzerinden kuyruğa atmak uygulamanızın performansını arttırır. Mailer servisinden gönderilen maillerin kuyruğa atılabilmesi için send komutu yerine aşağıdaki gibi queue komutu kullanılması gerekir.
+Mail gönderme işlerini queue servisi üzerinden kuyruğa atmak uygulamanızın performansını arttırır. Mailer servisinden gönderilen maillerin kuyruğa atılabilmesi için send komutu yerine aşağıdaki gibi <kbd>queue</kbd> komutu kullanılması gerekir.
 
+```php
+$mailResult = $this->mailer
+    ->setMailer('mailgun')
+    ->from('Obullo\'s <noreply@news.obullo.com>')
+    ->to('obullo@yandex.com')
+    ->replyTo('obullo <obullo@yandex.com>')
+    ->subject('test')
+    ->message("test message")
+    ->attach("/var/www/files/logs.jpg")
+    ->queue();
 
+if ($mailResult->hasError()) {
+    echo 'Failure !';
+} else {
+    echo 'Success !'
+}
+```
 
 <a name="consume"></a>
 
@@ -597,7 +619,11 @@ Output :
 
 <a name="method-reference"></a>
 
-#### Mail Sınıfı Set Metotları Referansı
+### Fonksiyon Referansı
+
+<a name="mail-set-reference"></a>
+
+#### Mailer Set Metotları
 
 -------
 
@@ -669,7 +695,9 @@ Web servise gönderilmek istenen ekstra özel değerleri <kbd>$this->msgEvent</k
 
 Tüm email değişkenlerini boş değerlerine geri döndürür. Bu fonksiyon bir döngü içerisinde birden fazla email gönderilmek istendiğinde döngü içerisinde kullanılarak değişken değerlerini her defasında yeni bir email gönderimine hazır olması için başa döndürür.
 
-#### Mail Sınıfı Get Metotları Referansı
+<a name="mail-get-reference"></a>
+
+#### Mailer Get Metotları
 
 -------
 
@@ -687,31 +715,55 @@ Mailer servisinde konfigüre edilmiş parametrelere geri döner.
 
 ##### $this->mailer->getFrom();
 
+Daha önceden tayin edilmiş gönderici adresine geri döner.
+
 ##### $this->mailer->getFromEmail();
+
+Daha önceden tayin edilmiş gönderici email adresine geri döner.
 
 ##### $this->mailer->getFromName();
 
+Daha önceden tayin edilmiş gönderici ismine geri döner.
+
 ##### $this->mailer->getSubject();
+
+Daha önceden tayin edilmiş mesaj konusuna geri döner.
 
 ##### $this->mailer->getMessage();
 
+Daha önceden tayin edilmiş email gövdesine geri döner.
+
 ##### $this->mailer->getRecipients();
+
+Tüm email alıcılarına bir dizi içerisinde geri döner.
 
 ##### $this->mailer->getMailType();
 
+Mail gönderim türüne geri döner. Bu türler <kbd>html</kbd> yada <kbd>text</kbd> olabilir.
+
 ##### $this->mailer->getContentType();
+
+Mail içerik biçimlerini verir. Bu biçimler <kbd>html</kbd>, <kbd>html-attach</kbd>, <kbd>plain</kbd> yada <kbd>plain-attach</kbd> olabilir.
 
 ##### $this->mailer->getUserAgent();
 
+Mail göndericisine ait gönderme servisi adını verir. Bu ad mailer konfigürasyon dosyasından düzenlenebilir.
+
 ##### $this->mailer->hasAttachment();
+
+Eğer gönderilen mail bir ekli dosya içeriyorsa <kbd>true</kbd> değerine aksi durumda <kbd>false</kbd> değerine geri döner.
 
 ##### $this->mailer->getAttachments();
 
+Mail ile birlikte gönderilmek için atanmış tüm ekli dosya ve özelliklerine bir dizi içerisinde geri döner.
+
 ##### $this->mailer->getMailResult();
 
+Mail gönderim işlemi sonuçlarını yönetmek için ortak bir arayüz sağlayan <kbd>MailResult</kbd> adlı sınıf nesnesine geri döner.
 
+<a name="mailresult-reference"></a>
 
-#### MailResult Sınıfı Referansı
+#### MailResult Sınıfı
 
 -------
 

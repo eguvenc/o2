@@ -34,7 +34,6 @@ class User implements ServiceInterface
 
             $parameters = [
                 'cache.key'     => 'Auth',
-                'url.login'     => '/membership/login',
                 'db.adapter'    => '\Obullo\Authentication\Adapter\Database', // Adapter
                 'db.model'      => '\Auth\Model\User',       // My User model
                 'db.provider'   => 'database',
@@ -49,9 +48,6 @@ class User implements ServiceInterface
     }
 }
 
-// END User class
-
-/* End of file User.php */
 /* Location: .app/classes/Service/User.php */
 ```
 Yukarıda gösterilen auth servis konfigürasyonundaki <b>db.model</b> anahtarını <kbd>\Auth\Model\User</kbd> olarak güncellediyseniz, aşağıda sizin için bir model örneği yaptık bu örneği değiştererek ihtiyaçlarınıza göre kullanabilirsiniz. Bunun için <kbd>Obullo\Authentication\Model\User</kbd> sınıfına bakın ve ezmek ( override ) istediğiniz method yada değişkenleri sınıfınız içerisine dahil edin.
@@ -84,9 +80,6 @@ class User extends AuthModel implements UserInterface
     }
 
 }
-
-// END User.php File
-/* End of file User.php
 
 /* Location: .app/classes/Auth/Model/User.php */
 ```

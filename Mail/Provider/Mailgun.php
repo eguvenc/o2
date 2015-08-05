@@ -93,7 +93,7 @@ class Mailgun extends AbstractProvider implements ProviderInterface
         if ($mailResult->hasError()) {
             return $mailResult;
         }
-        $client = new MailgunApi('key-'.$this->params['provider']['mailgun']['key']);
+        $client = new MailgunApi($this->params['provider']['mailgun']['key']);
         $result = $client->sendMessage(
             $this->params['provider']['mailgun']['domain'],
             $this->msgEvent, 

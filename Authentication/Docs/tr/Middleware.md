@@ -54,7 +54,6 @@ class User implements ServiceInterface
 
             $parameters = [
                 'cache.key'     => 'Auth',
-                'url.login'     => '/membership/login/index/'.$params['table'],
                 'db.adapter'    => '\Obullo\Authentication\Adapter\Database',
                 'db.model'      => '\Obullo\Authentication\Model\User', 
                 'db.provider'   => 'database',
@@ -146,7 +145,6 @@ return array(
     ]
 );
 
-/* End of file auth.php */
 /* Location: .config/auth.php */
 ```
 
@@ -232,8 +230,108 @@ class Auth extends Middleware
 /* Location: .app/classes/Http/Middlewares/Auth.php */
 ```
 
-Eğer auth işlemlerini bağlamak istediğiniz üyelik tablosunu değiştirmek istiyorsanız tablo parametresini değiştirmeniz gerekir.
+### User Servisi Neden Tablo İsmine Göre Yaratılıyor ?
+
+Auth sorgularının esnek olması için her defasında login controller içerisinde konfigüre edilen tablo parametresi AuthConfig sınıfı içerisinden session verisine kaydedilir. Yine AuthConfig sınıfından geçerli tablo ismi alınarak User servisi bu tablo ismine göre dinamik olarak yaratılır.
 
 ```php
-$this->user = $this->c->get('user', ['table' => 'admins']);
+$this->user = $this->c->get('user', ['table' => AuthConfig::session('db.tablename')]);
+```
+
+Böylelikle projenizde bir başka üyelik tablosu için yetkilendirme yapmak istediğinizde sadece bu tablo ismi için aşağıdaki gibi yeni bir fonksiyon ve yeni bir view dosyası yaratarak farklı bir tablo için yetkilendirme yapabilirsiniz.
+
+```php
+namespace Membership;
+
+use Obullo\Authentication\AuthConfig;
+
+class Login extends \Controller
+{
+    const USERS  = 'users';
+    const ADMINS = 'admins';
+
+    /**
+     * Users login 
+     * 
+     * @event->when("post")->subscribe('Event\Login\Attempt');
+     *
+     * @return void
+     */
+    public function index()
+    {
+        $this->user = $this->c->get('user', ['table' => static::USERS]);
+
+        if ($this->request->isPost()) {
+
+            $this->validator->setRules('email', 'Email', 'required|email|trim');
+            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
+
+            if (! $this->validator->isValid()) {
+                $this->form->setErrors($this->validator);
+            } else {
+
+                $authResult = $this->user->login->attempt(
+                    [
+                        AuthConfig::get('db.identifier') => $this->validator->getValue('email'), 
+                        AuthConfig::get('db.password')   => $this->validator->getValue('password'),
+                    ],
+                    $this->request->post('rememberMe')
+                );
+
+                if ($authResult->isValid()) {
+                    $this->flash->success('You have authenticated successfully.')
+                        ->url->redirect('membership/restricted');
+                } else {
+                    $this->form->setResults($authResult->getArray());
+                }
+            }
+        }
+        $this->view->load('login');
+    }
+
+    /**
+     * Admin login
+     * 
+     * @event->when("post")->subscribe('Event\Login\Attempt');
+     *
+     * @return void
+     */
+    public function admin()
+    {
+        $this->user = $this->c->get('user', ['table' => static::ADMINS]);
+
+        if ($this->request->isPost()) {
+
+            $this->validator->setRules('email', 'Email', 'required|email|trim');
+            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
+
+            if (! $this->validator->isValid()) {
+                
+                ...
+
+            } else {
+
+                //  login attemtp
+            }
+        }
+        $this->view->load('admin');
+    }
+}
+
+}
+```
+
+Yukarıdaki düzenlemeden sonra projenizde iki farklı üye girişi kapısı yaratılmış olur.
+
+
+Standart kullanıcılar aşağıdaki gibi bir adresten giriş yaparken
+
+```php
+http://example.com/membership/login/index
+```
+
+Yönetici seviyesindeki kullanıcılar aşağıdaki gibi farklı bir adresten giriş yapabilirler.
+
+```php
+http://example.com/membership/login/admin
 ```
