@@ -199,8 +199,3 @@ class Clean extends AbstractFilter
     }
 
 }
-
-// END Clean.php File
-/* End of file Clean.php
-
-/* Location: .Obullo/Filters/Clean.php */

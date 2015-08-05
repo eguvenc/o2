@@ -59,7 +59,10 @@ class Validator
      */
     public function validEmail($address)
     {
-        return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $address)) ? false : true;
+        if (preg_match('/(.*?)\<(.*)\>/', $address, $match)) {
+            $address = trim($match[2]);
+        }
+        return filter_var($address, FILTER_VALIDATE_EMAIL, false);
     }
 
     /**

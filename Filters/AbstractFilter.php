@@ -76,8 +76,3 @@ abstract class AbstractFilter
         return constant($class . strtoupper($flag));
     }
 }
-
-// END AbstractFilter.php File
-/* End of file AbstractFilter.php
-
-/* Location: .Obullo/Filters/AbstractFilter.php */

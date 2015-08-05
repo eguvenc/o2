@@ -50,8 +50,3 @@ class CacheServiceProvider implements ServiceProviderInterface
     }
 
 }
-
-// END CacheServiceProvider Class
-
-/* End of file CacheServiceProvider.php */
-/* Location: .Obullo/Service/Providers/CacheServiceProvider.php */

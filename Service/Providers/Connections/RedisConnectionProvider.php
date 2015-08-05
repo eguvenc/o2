@@ -200,8 +200,3 @@ class RedisConnectionProvider extends AbstractConnectionProvider
         }
     }
 }
-
-// END RedisConnectionProvider.php class
-/* End of file RedisConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/RedisConnectionProvider.php */

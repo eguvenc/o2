@@ -162,8 +162,3 @@ class MemcacheConnectionProvider extends AbstractConnectionProvider
         }
     }
 }
-
-// END MemcacheConnectionProvider.php class
-/* End of file MemcacheConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/MemcacheConnectionProvider.php */

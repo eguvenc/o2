@@ -174,7 +174,7 @@ class Local implements ServiceInterface
                 ]
             ];
             $manager = new LogManager($c);
-            $manager->setConfiguration($parameters);
+            $manager->setParameters($parameters);
             $logger = $manager->getLogger();
             /*
             |--------------------------------------------------------------------------
@@ -534,7 +534,7 @@ $this->c->get('queue')
 Konsoldan php task show komutunu yazarak kuyruktaki işleri görüntüleyebilirsiniz.
 
 ```php
-php task queue show --channel=Log --route=myhostname.Logger
+php task queue show --channel=log --route=logger.1
 ```
 
 ```php
@@ -554,13 +554,13 @@ Job ID  | Job Name            | Data
 Kuyruğu tüketmek için konsoldan aşağıdaki komut ile bir php işçisi çalıştırmak gerekir.
 
 ```php
-php task queue listen --channel=Log --route=myhostname.Logger --delay=0 --memory=128 --timeout=0 --sleep=3
+php task queue listen --channel=log --route=logger.1 --debug=0
 ```
 
 Yukarıdaki komut aynı anda birden fazla konsolda çalıştırıldığında <kbd>Obullo/Task/QueueController</kbd> sınıfı üzerinden her seferinde  <kbd>Obullo/Task/WorkerController.php</kbd> dosyasını çalıştırarak yeni bir iş parçaçığı oluşturur. Yerel ortamda birden fazla komut penceresi açarak kuyruğun eş zamanlı nasıl tüketildiğini test edebilirsiniz.
 
 ```php
-php task queue listen --channel=Log --route=myhostname.Logger --delay=0 --memory=128 --timeout=0 --debug=1
+php task queue listen --channel=log --route=logger.1 --delay=0 --memory=128 --timeout=0 --debug=1
 ```
 Yerel ortamda yada test işlemleri için debug parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
 

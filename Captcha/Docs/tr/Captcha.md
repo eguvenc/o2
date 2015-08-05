@@ -423,19 +423,11 @@ namespace Captcha\Examples;
 
 class Form extends \Controller
 {
-    public function load()
-    {
-        $this->c['url'];
-        $this->c['form'];
-        $this->c['view'];
-        $this->c['captcha'];
-    }
-
     public function index()
     {
         if ($this->request->isPost()) {
 
-            if ($this->c['validator']->isValid()) {
+            if ($this->validator->isValid()) {
                 $this->form->success('Form Validation Success.');
             }
         }

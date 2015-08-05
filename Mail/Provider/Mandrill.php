@@ -2,8 +2,6 @@
 
 namespace Obullo\Mail\Provider;
 
-use Obullo\Curl\Curl;
-use Obullo\Mail\MailResult;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -47,10 +45,14 @@ class Mandrill extends AbstractProvider implements ProviderInterface
         $this->msgEvent['from_name']  = $this->getFromName();
         $this->msgEvent['subject']    = $this->getSubject();
 
-        $this->setMailtype($this->params['message']['mailtype']);  // text / html
+        $this->setMailType($this->getMailType());  // text / html
 
-        foreach ($this->getRecipients() as $value) {
-            $this->msgEvent['to'][] = $value;
+        foreach ($this->getRecipients() as $v) {
+            $this->msgEvent['to'][] = array(
+                'email' => $v['email'],
+                'name'  => $v['name'],
+                'type'  => $v['type'],
+            );
         }
         $headers = $this->getHeaders();
         if (count($headers) > 0) {
@@ -63,11 +65,28 @@ class Mandrill extends AbstractProvider implements ProviderInterface
         // Async defaults to false for messages with no more than 10 recipients
         // messages with more than 10 recipients are always sent asynchronously, regardless of the value of async
 
-        $this->msgEvent['async'] = false;    
-        $this->msgEvent['ip_pool'] = $this->params['provider']['mandrill']['pool']; 
-
         $this->buildMessage();
         $this->buildAttachments();
+    }
+
+    /**
+     * Build attachments
+     * 
+     * @return void
+     */
+    protected function buildAttachments()
+    {
+        if (! $this->hasAttachment()) {
+            return;
+        }
+        foreach ($this->getAttachments() as $v) {
+            $key = ($v['disposition'] == 'attachment') ? "attachments" : "images";
+            $this->msgEvent[$key][] = array(
+                'name' => $v['name'],
+                'type' => $v['type'],
+                'content' => base64_encode(file_get_contents($v['fileurl'])),
+            );
+        }
     }
 
     /**
@@ -78,96 +97,68 @@ class Mandrill extends AbstractProvider implements ProviderInterface
     protected function sendEmail()
     {
         $this->buildEvent();
+        unset($this->msgEvent['files']);
 
-        $client = new Curl;
-        $body = $client->setUserAgent($this->getUserAgent())
-            ->setOpt(CURLOPT_FOLLOWLOCATION, true)
-            ->setOpt(CURLOPT_HEADER, false)
-            ->setOpt(CURLOPT_CONNECTTIMEOUT, 30)
-            ->setOpt(CURLOPT_TIMEOUT, 600)
-            ->setBody(
-                json_encode(
-                    [
-                        'key' => $this->params['provider']['mandrill']['key'],
-                        'message' => $this->msgEvent
-                    ]
-                )
-            )
-            ->setVerbose(false)
-            ->post($this->params['provider']['mandrill']['url'])
-            ->getBody();
+        $mailResult = $this->getMailResult();
+        if ($mailResult->hasError()) {
+            return $mailResult;
+        }
+        try {
+            $mandrill = new \Mandrill($this->params['provider']['mandrill']['key']);
 
-        // "[{"email":"example@email.com","status":"sent","_id":"3e5bdc391a8d4602813a5cd1d751773f","reject_reason":null}]" 
-    
-        $mailResult = $this->parseBody($client, $body);
+            $result = $mandrill->messages->send(
+                $this->msgEvent,
+                $this->params['provider']['mandrill']['async'],
+                $this->params['provider']['mandrill']['pool']
+            );
+            $mailResult = $this->parseResult($result);
+
+        } catch(\Mandrill_Error $e) {
+            $mailResult->setCode($mailResult::API_ERROR);
+            $mailResult->setMessage('A mandrill error occurred: ' . get_class($e) . ' - ' . $e->getMessage());
+        }
         return $mailResult;
     }
 
     /**
      * Send email with Queue
+     *
+     * @param array $options queue options
      * 
      * @return object MailResult
      */
-    protected function queueEmail()
+    protected function queueEmail($options = array())
     {
-        return parent::queueEmail();
+        $this->buildEvent();
+        unset($this->msgEvent['attachments'], $this->msgEvent['images']);  // We use $this->msgEvent['files']
+
+        $mailResult = $this->getMailResult();
+        if ($mailResult->hasError()) {
+            return $mailResult;
+        }
+        return $this->push($this->msgEvent, $options);
     }
 
     /**
      * Parse response body
      * 
-     * @param object $client curl client
-     * @param string $body   response
+     * @param array $result result data
      * 
      * @return object MailResult
      */
-    protected function parseBody($client, $body)
+    protected function parseResult($result)
     {
-        $result = $this->getMailResult();
+        $mailResult = $this->getMailResult();
 
-        if ($client->response->getError() || $client->response->getStatusCode() != 200) {  //  Failure
-            $result->setCode($result::FAILURE);
-            $result->setMessage($client->response->getError());
-            return $result;
+        if (isset($result[0]['status'])) {
+            $mailResult->setCode($mailResult::SUCCESS);
+            $mailResult->setMessage("Queued. Thank you.");
+        } else {
+            $mailResult->setCode($mailResult::API_ERROR);
+            $mailResult->setMessage("Unknown Api Error.");
+            return $mailResult;
         }
-        $resultArray = json_decode($body, true);
-
-        if ($resultArray == null) {
-            $result->setCode($result::JSON_PARSE_ERROR);
-            $result->setMessage("Unable to decode the JSON response from the Mandrill API");
-            return $result;
-        }
-        if (isset($resultArray[0]) && is_array($resultArray[0]) && $resultArray[0]['status'] == 'sent') {
-            $result->setCode($result::SUCCESS);
-        } elseif ($resultArray['status'] == 'error') {
-            $result->setCode($result::API_ERROR);
-            $result->setMessage($resultArray['message']);
-        }
-        $result->setBody($body);
-        $result->setInfo($client->response->getInfo());
-        return $result;
-    }
-
-    /**
-     * Get the API key being used by the transport.
-     *
-     * @return string
-     */
-    public function getKey()
-    {
-        return $this->params['provider']['mandrill']['key'];
-    }
-
-    /**
-     * Set the API key being used by the transport.
-     *
-     * @param string $key api key
-     * 
-     * @return void
-     */
-    public function setKey($key)
-    {
-        return $this->params['provider']['mandrill']['key'] = $key;
+        return $mailResult;
     }
 
 }

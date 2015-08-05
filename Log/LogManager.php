@@ -50,7 +50,7 @@ class LogManager
      * 
      * @return void
      */
-    public function setConfiguration($params = array())
+    public function setParameters($params = array())
     {
         if (! $this->c['config']['log']['enabled']) {
             $this->logger = new NullLogger;  // Use null handler if config disabled.
@@ -71,8 +71,3 @@ class LogManager
     }
 
 }
-
-// END LogManager class
-/* End of file LogManager.php */
-
-/* Location: .Obullo/Log/LogManager.php */

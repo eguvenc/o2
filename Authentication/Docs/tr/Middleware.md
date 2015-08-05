@@ -62,7 +62,7 @@ class User implements ServiceInterface
                 'db.tablename'  => $params['table'],
             ];
             $manager = new AuthManager($c);
-            $manager->setConfiguration($parameters);
+            $manager->setParameters($parameters);
 
             return $manager;
         };

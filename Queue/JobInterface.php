@@ -31,10 +31,5 @@ interface JobInterface
      * 
      * @return void
      */
-    public function fire($job, $data);
+    public function fire($job, array $data);
 }
-
-// END JobInterface class
-
-/* End of file JobInterface.php */
-/* Location: .Obullo/Queue/JobInterface.php */

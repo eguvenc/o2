@@ -62,8 +62,3 @@ class MongoServiceProvider implements ServiceProviderInterface
         return $this->connector->factory($params);  // Get existing connection
     }
 }
-
-// END MongoServiceProvider Class
-
-/* End of file MongoServiceProvider.php */
-/* Location: .Obullo/Service/Providers/MongoServiceProvider.php */

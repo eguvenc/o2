@@ -63,9 +63,3 @@ class RedisServiceProvider implements ServiceProviderInterface
     }
 
 }
-
-// END RedisServiceProvider Class
-
-/* End of file RedisServiceProvider.php */
-/* Location: .Obullo/Service/Providers/RedisServiceProvider.php */
-

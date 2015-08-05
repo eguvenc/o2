@@ -141,8 +141,3 @@ class MongoConnectionProvider extends AbstractConnectionProvider
         }
     }
 }
-
-// END MongoConnectionProvider.php class
-/* End of file MongoConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/MongoConnectionProvider.php */

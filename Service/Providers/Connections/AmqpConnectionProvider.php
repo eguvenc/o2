@@ -140,8 +140,3 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
         }
     }
 }
-
-// END AmqpConnectionProvider.php class
-/* End of file AmqpConnectionProvider.php */
-
-/* Location: .Obullo/ServiceProviders/Connections/AmqpConnectionProvider.php */

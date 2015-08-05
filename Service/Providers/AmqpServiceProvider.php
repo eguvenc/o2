@@ -63,8 +63,3 @@ class AmqpServiceProvider implements ServiceProviderInterface
     }
 
 }
-
-// END AmqpServiceProvider Class
-
-/* End of file AmqpServiceProvider.php */
-/* Location: .Obullo/Service/Providers/AmqpServiceProvider.php */

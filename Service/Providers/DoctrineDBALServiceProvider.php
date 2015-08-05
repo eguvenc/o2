@@ -62,8 +62,3 @@ class DoctrineDBALServiceProvider implements ServiceProviderInterface
         return $this->connector->factory($params);  // Get new connection
     }
 }
-
-// END DoctrineDBALServiceProvider Class
-
-/* End of file DoctrineDBALServiceProvider.php */
-/* Location: .Obullo/Service/Providers/DoctrineDBALServiceProvider.php */

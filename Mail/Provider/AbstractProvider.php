@@ -26,7 +26,9 @@ abstract class AbstractProvider
     protected $body = '';
     protected $validator;
     protected $subject = '';
+    protected $result = null;
     protected $crlf = "\n";            // The RFC 2045 compliant CRLF for quoted-printable is "\r\n".  Apparently some servers,
+    protected $files = array();        // Provider compatible attached files
     protected $newline = "\n";         // Default newline. "\r\n" or "\n" (Use "\r\n" to comply with RFC 822)
     protected $altMessage = '';        // Alternative message for HTML emails
     protected $useragent = '';
@@ -41,9 +43,8 @@ abstract class AbstractProvider
     protected $ccArray = array();
     protected $bccArray = array();
     protected $recipients = array();
-    protected $attachments = array();
-    protected $replytoFlag = false;
     protected $attachCount = 0;        // Number of attachments
+    protected $replytoFlag = false;
     protected $msgEvent = array();     // Request data
 
     /**
@@ -56,8 +57,25 @@ abstract class AbstractProvider
     {
         $this->c = $c;
         $this->params = $params;
+        $this->c['translator']->load('mailer');
         $this->init();
     }
+
+    /**
+     * Send email with http request
+     * 
+     * @return boolean
+     */
+    protected abstract function sendEmail();
+
+    /**
+     * Send email with Queue
+     *
+     * @param array $options queue options
+     * 
+     * @return object MailResult
+     */
+    protected abstract function queueEmail($options = array());
 
     /**
      * Constructor
@@ -85,12 +103,10 @@ abstract class AbstractProvider
 
     /**
      * Initialize the Email Data
-     *
-     * @param boolean $clearAttachments clear switch
      * 
      * @return object
      */
-    public function clear($clearAttachments = false)
+    public function clear()
     {
         $this->subject = "";
         $this->body = "";
@@ -99,14 +115,9 @@ abstract class AbstractProvider
         $this->recipients = array();
         $this->headers = array();
         $this->attachCount = 0;
+        $this->msgEvent = array();
         $this->setHeader('User-Agent', $this->getUserAgent());
         $this->setDate();
-        if ($clearAttachments !== false) {
-            $this->attachmentsName = array();
-            $this->attachmentsType = array();
-            $this->attachmentsDisp = array();
-            $this->attachmentsContent = array();
-        }
         return $this;
     }
 
@@ -134,19 +145,17 @@ abstract class AbstractProvider
      */
     public function from($from, $name = '')
     {
-        if (preg_match('/\<(.*)\>/', $from, $match)) {
-            $from = $match['1'];
+        if (empty($from)) {
+            $result = $this->getMailResult();
+            $result->setCode($result::INVALID_EMAIL);
+            $result->setMessage($this->c['translator']->get('OBULLO:MAILER:NO_SENDER'));
+            return $this;
+        }
+        if (preg_match('/(.*?)\<(.*)\>/', $from, $match)) {
+            $name = trim($match[1]);
+            $from = $match[2];
         }
         $this->validateEmail(Utils::strToArray($from));
-        if ($name != '') {  // Prepare the display name
-                            // Only use Q encoding if there are characters that would require it
-            if (! preg_match('/[\200-\377]/', $name)) {
-                // add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
-                $name = '"' . addcslashes($name, "\0..\37\177'\"\\") . '"';
-            } else {
-                $name = Utils::prepQencoding($name, true);
-            }
-        }
         $this->fromName = $name;
         $this->fromEmail = $from;
         return $this;
@@ -155,17 +164,20 @@ abstract class AbstractProvider
     /**
      * Set Recipients
      *
-     * @param string $to source emails
+     * @param mixed $to source emails
      * 
      * @return object
      */
-    public function to($to)
+    public function to($to = null)
     {
+        if ($this->isEmpty($to)) {
+            return $this;
+        }
         $to = Utils::strToArray($to);
         $this->setHeader('To', implode(", ", $to));
 
-        $to = Utils::formatEmail($to);
         $this->validateEmail($to);
+        $to = Utils::formatEmail($to);
 
         foreach ($to as $value) {
             $this->recipients[] = array('type' => 'to', 'email' => $value['email'], 'name' => $value['name']);
@@ -182,14 +194,14 @@ abstract class AbstractProvider
      */
     public function cc($cc = null)
     {
-        if (empty($cc)) {
+        if ($this->isEmpty($cc)) {
             return $this;
         }
         $cc = Utils::strToArray($cc);
         $this->setHeader('Cc', implode(", ", $cc));
 
-        $cc = Utils::formatEmail($cc);
         $this->validateEmail($cc);
+        $cc = Utils::formatEmail($cc);
 
         foreach ($cc as $value) {
             $this->recipients[] = array('type' => 'cc', 'email' => $value['email'], 'name' => $value['name']);
@@ -206,12 +218,12 @@ abstract class AbstractProvider
      */
     public function bcc($bcc = null)
     {
-        if (empty($bcc)) {
+        if ($this->isEmpty($bcc)) {
             return $this;
         }
         $bcc = Utils::strToArray($bcc);
-        $bcc = Utils::formatEmail($bcc);
         $this->validateEmail($bcc);
+        $bcc = Utils::formatEmail($bcc);
 
         foreach ($bcc as $value) {
             $this->recipients[] = array('type' => 'bcc', 'email' => $value['email'], 'name' => $value['name']);
@@ -229,6 +241,9 @@ abstract class AbstractProvider
      */
     public function replyTo($replyto, $name = '')
     {
+        if ($this->isEmpty($replyto)) {
+            return $this;
+        }
         if (preg_match('/\<(.*)\>/', $replyto, $match)) {
             $replyto = $match['1'];
         }
@@ -245,18 +260,30 @@ abstract class AbstractProvider
     }
 
     /**
+     * Check recipient is null
+     * 
+     * @param mixed $recipient recipients to, cc or bcc
+     * 
+     * @return boolean
+     */
+    protected function isEmpty($recipient)
+    {
+        if (empty($recipient)) {
+            $mailResult = $this->getMailResult();
+            $mailResult->setCode($mailResult::INVALID_EMAIL);
+            $mailResult->setMessage($this->c['translator']->get('OBULLO:MAILER:NO_RECIPIENTS'));
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Set RFC 822 Date
-     *
-     * @param string $newDate set custom date
      * 
      * @return string
      */
-    public function setDate($newDate = null)
+    public function setDate()
     {
-        if (! is_null($newDate)) {
-            $this->setHeader('Date', $newDate);
-            return $newDate;
-        }
         $timezone = date("Z");
         $operator = (strncmp($timezone, '-', 1) == 0) ? '-' : '+';
         $abs = abs($timezone);
@@ -273,7 +300,7 @@ abstract class AbstractProvider
      * 
      * @return object
      */
-    public function setMailtype($type = 'text')
+    public function setMailType($type = 'text')
     {
         $this->mailtype = ($type == 'html') ? 'html' : 'text';
         return $this;
@@ -334,10 +361,12 @@ abstract class AbstractProvider
         $mimes = next($mimes);
         $file  = new File;
 
-        $this->attachments[$this->attachCount]['disposition'] = $disposition;
-        $this->attachments[$this->attachCount]['type'] = $file->mimeTypes($mimes);
-        $this->attachments[$this->attachCount]['name'] = $name;
-        $this->attachments[$this->attachCount]['fileurl'] = $filename;
+        $this->msgEvent['files'][$this->attachCount] = array(
+            'name' => $name,
+            'type' => $file->mimeTypes($mimes),
+            'fileurl' => $filename,
+            'disposition' => $disposition,
+        );
         ++$this->attachCount;
         return $this;
     }
@@ -374,52 +403,7 @@ abstract class AbstractProvider
                 $this->headerStr .= $key . ": " . $val . $this->newline;
             }
         }
-    }
-
-    /**
-     * Build attachments
-     * 
-     * @return void
-     */
-    protected function buildAttachments()
-    {
-        if (count($this->attachments) > 0) {
-            $i = 0;
-            $j = 0;
-            foreach ($this->attachments as $value) {
-                if ($value['disposition'] == 'attachment') {
-                    $this->msgEvent['attachments'][$i]['type'] = $value['type'];
-                    $this->msgEvent['attachments'][$i]['name'] = $value['name'];
-                    if (! $content = file_get_contents($value['fileurl'])) {
-                        $this->setAttachmentError($value['fileurl']);
-                    }
-                    $this->msgEvent['attachments'][$i]['content'] = ($content == false) ? null : base64_encode($content);
-                    ++$i;
-                } else {
-                    $this->msgEvent['images'][$j]['type'] = $value['type'];
-                    $this->msgEvent['images'][$j]['name'] = $value['name'];
-                    if (! $content = file_get_contents($value['fileurl'])) {
-                        $this->setAttachmentError($value['fileurl']);
-                    }
-                    $this->msgEvent['images'][$j]['content']  = ($content == false) ? null : base64_encode($content);
-                    ++$j;
-                }
-            }
-        }
-    }
-
-    /**
-     * Attachment Errors
-     * 
-     * @param string $fileurl url
-     * 
-     * @return void
-     */
-    protected function setAttachmentError($fileurl)
-    {
-        $result = $this->getMailResult();
-        $result->setCode($result::ATTACHMENT_UNREADABLE);
-        $result->setMessage($this->c['translator']->get('OBULLO:MAILER:ATTACHMENT_UNREADABLE', $fileurl));
+        $this->msgEvent['headers'] = $this->headers;
     }
 
     /**
@@ -436,9 +420,9 @@ abstract class AbstractProvider
             && ( ! isset($this->bccArray) && ! isset($this->headers['Bcc'])) 
             && ( ! isset($this->headers['Cc']))
         ) {
-            $result = $this->getMailResult();
-            $result->setCode($result::NO_RECIPIENTS);
-            $result->setMessage($this->c['translator']['OBULLO:MAILER:NO_RECIPIENTS']);
+            $mailResult = $this->getMailResult();
+            $mailResult->setCode($mailResult::NO_RECIPIENTS);
+            $mailResult->setMessage($this->c['translator']['OBULLO:MAILER:NO_RECIPIENTS']);
             return false;
         }
         return true;
@@ -458,49 +442,44 @@ abstract class AbstractProvider
 
     /**
      * Queue Email
+     *
+     * @param array $options queue options
      * 
      * @return object MailResult
      */
-    public function queue()
+    public function queue($options = array())
     {
         $this->checkEmail();
         $this->writeHeaders();
-        return $this->queueEmail();
-    }
-
-    /**
-     * Queue mail event
-     * 
-     * @return object MailResult
-     */
-    protected function queueEmail()
-    {
-        $this->buildEvent();
-        return $this->push($this->msgEvent);
+        return $this->queueEmail($options);
     }
 
     /**
      * Send new AMQP message
      *
      * @param array $msgEvent queue data
+     * @param array $options  queue options
      * 
      * @return object MailResult
      */
-    protected function push(array $msgEvent)
+    protected function push(array $msgEvent, $options = array())
     {
         $route = $this->params['queue']['route'];
+        $msgEvent['mailer'] = $this->getMailer();
+
+        $mailResult = $this->getMailResult();
 
         $push = $this->c->get('queue')
             ->channel($this->params['queue']['channel'])
             ->push(
                 'Workers\Mailer',
                 $route,
-                $msgEvent
+                $msgEvent,
+                $options
             );
-        $result = $this->getMailResult();
         if (! $push) {
-            $result->setCode($result::QUEUE_ERROR);
-            $result->setMessage($this->c['translator']->get('OBULLO:MAILER:QUEUE_FAILED', $route));
+            $mailResult->setCode($mailResult::QUEUE_ERROR);
+            $mailResult->setMessage($this->c['translator']->get('OBULLO:MAILER:QUEUE_FAILED', $route));
             $this->logger->error(
                 'Mailer queue failed', 
                 array(
@@ -509,99 +488,36 @@ abstract class AbstractProvider
                 )
             );
         } else {
-            $result->setCode($result::SUCCESS);
+            $mailResult->setCode($mailResult::SUCCESS);
+            $mailResult->setMessage("Queued");
         }
-        return $result;
-
+        return $mailResult;
     }
-
-    /* PUSH DATA
-    {
-        "message": {
-            "mailer": "mandrill",  // smtp
-            "mailtype" "html"      // text
-            "html": "<p>Example HTML content</p>",
-            "text": "Example text content",
-            "subject": "example subject",
-            "from_email": "message.from_email@example.com",
-            "from_name": "Example Name",
-            "to": [
-                {
-                    "email": "recipient.email@example.com",
-                    "name": "Recipient Name",
-                    "type": "to"
-                }
-            ],
-            "headers": {
-                "Reply-To": "message.reply@example.com"
-            },
-            "important": false,
-            "auto_text": null,
-            "auto_html": null,
-            "inline_css": null,
-            "tags": [
-                "password-resets"
-            ],
-            "attachments": [
-                {
-                    "type": "text/plain",
-                    "name": "myfile.txt",
-                    "fileurl": "/var/www/myfile.text"
-                }
-            ],
-            "images": [
-                {
-                    "type": "image/png",
-                    "name": "file.png",
-                    "fileurl": "http://www.example.com/images/file.png",
-                }
-            ]
-        },
-        "send_at": "example send_at"
-    }
-    */
 
     /**
-     * Send new http post request
-     *
-     * @param string $url    post url
-     * @param array  $params post data
+     * Add custom message to msgEvent variable
      * 
-     * @return string $result
+     * @param string $key   key
+     * @param mixed  $value value
+     *
+     * @return $this
      */
-    // public function httpPostRequest($url, array $params)
-    // {
-    //     if (! extension_loaded('curl')) {
-    //         throw new RuntimeException('Curl extension not installed');
-    //     }
-    //     $ch = curl_init($url);
-    //     curl_setopt($ch, CURLOPT_USERAGENT, $this->useragent);
-    //     curl_setopt($ch, CURLOPT_POST, true);
-    //     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    //     curl_setopt($ch, CURLOPT_HEADER, false);
-    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    //     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-    //     curl_setopt($ch, CURLOPT_TIMEOUT, 600);
-    //     curl_setopt($ch, CURLOPT_URL, $url);
-    //     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-    //     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
-    //     curl_setopt($ch, CURLOPT_VERBOSE, false);
+    public function addMessage($key, $value)
+    {
+        $this->msgEvent[$key] = $value;
+        return $this;
+    }
 
-    //     $start = microtime(true);
-    //     $body  = curl_exec($ch);
-    //     $time  = microtime(true) - $start;
-    //     $this->logger->debug('Mailer api response', array('body' => $body, 'time' => number_format($time * 1000, 2) . 'ms'));
-    
-    //     if (curl_errno($ch)) {
-    //         $this->logger->error('Mailer api failed', array('url' => $url, 'error' => curl_error($ch)));
-    //         $this->debugMsg[] = $this->c['translator']->get('OBULLO:MAILER:API_ERROR', $url, curl_error($ch));
-    //     }
-    //     $result['body'] = $body;
-    //     $result['info'] = curl_getinfo($ch);
-    //     curl_close($ch);
-
-    //     return $result;
-    // }
+    /**
+     * Returns to mail provider name in lowercase letters
+     * 
+     * @return string
+     */
+    public function getMailer()
+    {
+        $exp = explode("\\", get_class($this));
+        return strtolower(end($exp));
+    }
 
     /**
      * Returns top header array
@@ -611,6 +527,29 @@ abstract class AbstractProvider
     public function getHeaders()
     {
         return $this->headers;
+    }
+
+    /**
+     * Creates new message ID
+     *
+     * @param string $returnPath null
+     * 
+     * @return string
+     */
+    public function getMessageId($returnPath = null)
+    {
+        if (! empty($returnPath)) {
+            $from = $returnPath;
+        }
+        if (! empty($this->headers['Return-Path'])) {
+            $from = $this->headers['Return-Path'];
+        }
+        if (empty($from)) {
+            $from = $this->fromEmail;
+        }
+        $from = str_replace(">", "", $from);
+        $from = str_replace("<", "", $from);
+        return "<" . uniqid('') . strstr($from, '@') . ">";
     }
 
     /**
@@ -624,6 +563,46 @@ abstract class AbstractProvider
     }
 
     /**
+     * Return to attachments
+     * 
+     * @return array
+     */
+    public function getAttachments()
+    {
+        return $this->msgEvent['files'];
+    }
+
+    /**
+     * Get content type ( text/html/attachment )
+     *
+     * @return string
+     */
+    public function getContentType()
+    {
+        $hasAttachment = $this->hasAttachment();
+
+        if ($this->mailtype == 'html' && $hasAttachment == false) {
+            return 'html';
+        } elseif ($this->mailtype == 'html' && $hasAttachment) {
+            return 'html-attach';
+        } elseif ($this->mailtype == 'text' && $hasAttachment) {
+            return 'plain-attach';
+        } else {
+            return 'plain';
+        }
+    }
+
+    /**
+     * Returns to true if we have attached file otherwise false
+     * 
+     * @return boolean
+     */
+    public function hasAttachment()
+    {
+        return ($this->attachCount > 0) ? true : false;
+    }
+
+    /**
      * Returns to message subject
      * 
      * @return string
@@ -634,13 +613,13 @@ abstract class AbstractProvider
     }
 
     /**
-     * Returns From Name <from@email>
+     * Returns from name <from@email>
      * 
      * @return string
      */
     public function getFrom()
     {
-        return $this->fromName." &lt;".$this->fromEmail."&gt;";
+        return $this->fromName." <".$this->fromEmail.">";
     }
 
     /**
@@ -684,13 +663,13 @@ abstract class AbstractProvider
     }
 
     /**
-     * Returns mailt type: html / text
+     * Returns mail type: html / text
      * 
      * @return string
      */
     public function getMailType()
     {
-        return $this->mailtype;
+        return empty($this->mailtype) ? $this->params['message']['mailtype'] : $this->mailtype;
     }
 
     /**
@@ -713,7 +692,6 @@ abstract class AbstractProvider
     public function validateEmail($email)
     {
         if ($this->validate) {
-
             $result = $this->getMailResult();
             $this->validator->validateEmail($email);
 

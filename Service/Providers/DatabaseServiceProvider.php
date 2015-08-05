@@ -62,8 +62,3 @@ class DatabaseServiceProvider implements ServiceProviderInterface
         return $this->connector->factory($params);  // Get new connection
     }
 }
-
-// END DatabaseServiceProvider Class
-
-/* End of file DatabaseServiceProvider.php */
-/* Location: .Obullo/Service/Providers/DatabaseServiceProvider.php */

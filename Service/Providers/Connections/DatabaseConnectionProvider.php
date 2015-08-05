@@ -128,8 +128,3 @@ class DatabaseConnectionProvider extends AbstractConnectionProvider
     }
 
 }
-
-// END DatabaseConnectionProvider.php class
-/* End of file DatabaseConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/DatabaseConnectionProvider.php */

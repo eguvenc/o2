@@ -63,8 +63,3 @@ class MemcacheServiceProvider implements ServiceProviderInterface
     }
 
 }
-
-// END MemcacheServiceProvider Class
-
-/* End of file MemcacheServiceProvider.php */
-/* Location: .Obullo/Service/Providers/MemcacheServiceProvider.php */

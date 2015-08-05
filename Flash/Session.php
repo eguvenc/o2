@@ -286,8 +286,3 @@ class Session
     }
 
 }
-
-// END Session.php File
-/* End of file Session.php
-
-/* Location: .Obullo/Flash/Session.php */

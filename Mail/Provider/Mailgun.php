@@ -2,8 +2,7 @@
 
 namespace Obullo\Mail\Provider;
 
-use Obullo\Curl\Curl;
-use Obullo\Mail\MailResult;
+use Mailgun\Mailgun as MailgunApi;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -46,112 +45,108 @@ class Mailgun extends AbstractProvider implements ProviderInterface
         $this->msgEvent['from'] = $this->getFrom();
         $this->msgEvent['subject'] = $this->getSubject();
 
-        $this->setMailtype($this->params['message']['mailtype']);  // text / html
+        $this->setMailType($this->getMailType());  // text / html
 
-        foreach ($this->getRecipients() as $value) {
-            $this->msgEvent['to'][] = $value;
+        foreach ($this->getRecipients() as $v) {
+            $this->msgEvent[$v['type']][] = $v['email'];
         }
         $headers = $this->getHeaders();
-        if (count($headers) > 0) {
-            foreach ($headers as $key => $value) {
-                $this->msgEvent['headers'][$key] = $value;
-            }
+
+        if (! empty($headers['Reply-To'])) {
+            $this->msgEvent['h:Reply-To'] = $headers['Reply-To'];
         }
+        if (! empty($headers['Message-ID'])) {
+            $this->msgEvent['h:Message-Id'] = $headers['Message-ID'];
+        }
+        $this->msgEvent['o:deliverytime'] = $this->setDate();
+
         $this->buildMessage();
         $this->buildAttachments();
     }
 
     /**
-     * Send email with curl
+     * Build attachments
      * 
-     * @return boelean
+     * @return void
+     */
+    protected function buildAttachments()
+    {
+        if (! $this->hasAttachment()) {
+            return;
+        }
+        foreach ($this->getAttachments() as $value) {
+            $this->files[$value['disposition']][] = $value['fileurl'];
+        }
+    }
+
+    /**
+     * Send email with http request
+     * 
+     * @return boolean
      */
     protected function sendEmail()
     {
         $this->buildEvent();
+        unset($this->msgEvent['files']);  // Remove files we already had it
 
-        $client = new Curl;
-        $body = $client->setUserAgent($this->getUserAgent())
-            ->setOpt(CURLOPT_CONNECTTIMEOUT, 30)
-            ->setOpt(CURLOPT_TIMEOUT, 600)
-            ->setOpt(CURLOPT_RETURNTRANSFER, 1)
-            ->setAuth('apikey', $this->params['provider']['mailgun']['key'], 'basic')
-            ->setVerbose(false)
-            ->post($this->params['provider']['mailgun']['url'], $this->msgEvent)
-            ->getBody();
-    
-        var_dump($body);
-        return;
-
-        // $mailResult = $this->parseBody($client, $body);
-        // return $mailResult;
+        $mailResult = $this->getMailResult();
+        if ($mailResult->hasError()) {
+            return $mailResult;
+        }
+        $client = new MailgunApi('key-'.$this->params['provider']['mailgun']['key']);
+        $result = $client->sendMessage(
+            $this->params['provider']['mailgun']['domain'],
+            $this->msgEvent, 
+            $this->files
+        );
+        $mailResult = $this->parseResult($result);
+        return $mailResult;
     }
 
     /**
-     * Send email with Queue
+     * Send email with queue
+     *
+     * @param array $options queue options
      * 
      * @return object MailResult
      */
-    protected function queueEmail()
+    protected function queueEmail($options = array())
     {
-        return parent::queueEmail();
+        $this->buildEvent();
+        $mailResult = $this->getMailResult();
+        if ($mailResult->hasError()) {
+            return $mailResult;
+        }
+        return $this->push($this->msgEvent, $options);
     }
 
     /**
-     * Parse response body
+     * Parse response
      * 
-     * @param object $client curl client
-     * @param string $body   response
+     * @param string $result response
      * 
      * @return object MailResult
      */
-    protected function parseBody($client, $body)
+    protected function parseResult($result)
     {
-        $result = $this->getMailResult();
+        $mailResult = $this->getMailResult();
 
-        if ($client->response->getError() || $client->response->getStatusCode() != 200) {  //  Failure
-            $result->setCode($result::FAILURE);
-            $result->setMessage($client->response->getError());
-            return $result;
+        // object(stdClass)#77 (2) { ["http_response_body"]=> object(stdClass)#73 (2) { ["id"]=> string(43) "<20150730091836.29406.7449@news.obullo.com>" ["message"]=> string(18) "Queued. Thank you." } ["http_response_code"]=> int(200) }
+
+        if ($result->http_response_code != 200) {  //  Failure
+            $mailResult->setCode($mailResult::FAILURE);
+            $mailResult->setMessage("Http request failed.");
+            return $mailResult;
         }
-        $resultArray = json_decode($body, true);
-
-        if ($resultArray == null) {
-            $result->setCode($result::JSON_PARSE_ERROR);
-            $result->setMessage("Unable to decode the JSON response from the Mailgun API");
-            return $result;
+        if (isset($result->http_response_body->id)) {
+            $mailResult->setCode($mailResult::SUCCESS);
+            $mailResult->setMessage("Queued. Thank you.");
+        } else {
+            $mailResult->setCode($mailResult::API_ERROR);
+            $mailResult->setMessage("Unknown Api Error.");
+            return $mailResult;
         }
-        if (isset($resultArray[0]) && is_array($resultArray[0]) && $resultArray[0]['status'] == 'sent') {
-            $result->setCode($result::SUCCESS);
-        } elseif ($resultArray['status'] == 'error') {
-            $result->setCode($result::API_ERROR);
-            $result->setMessage($resultArray['message']);
-        }
-        $result->setBody($body);
-        $result->setInfo($client->response->getInfo());
-        return $result;
-    }
-
-    /**
-     * Get the API key being used by the transport.
-     *
-     * @return string
-     */
-    public function getKey()
-    {
-        return $this->params['provider']['mailgun']['key'];
-    }
-
-    /**
-     * Set the API key being used by the transport.
-     *
-     * @param string $key api key
-     * 
-     * @return void
-     */
-    public function setKey($key)
-    {
-        return $this->params['provider']['mailgun']['key'] = $key;
+        return $mailResult;
     }
 
 }

@@ -78,8 +78,3 @@ class AbstractConnectionProvider
         return $this->connections[$this->keyPrefix];
     }
 }
-
-// END AbstractConnectionProvider class
-
-/* End of file AbstractConnectionProvider.php */
-/* Location: .Obullo/Service/Providers/Connections/AbstractConnectionProvider.php */

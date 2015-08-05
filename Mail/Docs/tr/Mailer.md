@@ -1,769 +1,740 @@
 
+## Mail Sınıfı
 
-## Mailer Class
+Mail sınıfı mailer servisi olarak konfigüre edilerek mail gönderme işlemleri için harici servis sağlayıcıları kullanarak ortak bir arayüz sağlar. Şu anki sürümde mail gönderme servisi Mailgun ve Mandrill mail gönderme api servislerini destekleyen sürücüleri içerir. Mail gönderme işlemine ait sonuçlar ve dönen hata mesajları MailResult adlı sınıf üzerinden kontrol edilir.
 
-------
+<ul>
 
-The Mailer package contains a mail sending functions that assist in working with Mail, Sendmail, SMTP protocols and Transports services like Mandrill, Queue and any others.
+<li>
+    <a href="#configuration">Konfigürasyon</a>
+    <ul>
+        <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
+    </ul>
+</li>
 
-### Initializing the Class
+<li>
+    <a href="#running">Çalıştırma</a>
+    <ul>
+        <li><a href="#loading-service">Servisi Yüklemek</a></li>
+        <li><a href="#dependencies">Bağımlılıklar</a></li>
+    </ul>
+</li>
 
-------
+<li>
+    <a href="#api-service-providers">Api Servis Sağlayıcıları</a>
+    <ul>
+        <li><a href="#mailgun">Mailgun</a></li>
+        <li><a href="#mandrill">Mandrill</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#send">Mail Göndermek</a>
+    <ul>
+        <li><a href="#result">MailResult Sınıfı</a></li>
+        <li><a href="#error-table">Hata Tablosu</a></li>
+        <li><a href="#custom-errors">Özel Hatalar Tanımlama</a></li>
+        <li><a href="#wrapping">Dizge Katlama (Wrapping)</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#queue">Kuyruklama</a>
+    <ul>
+        <li><a href="#queue-configuration">Konfigürasyon</a></li>
+        <li><a href="#consume">Kuyruğu Tüketmek</a> (Workers)</li>
+        <li><a href="#example-queue-data">Örnek Kuyruk Verileri</a></li>
+        <li><a href="#debugging">Hata Ayıklama</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#method-reference">Fonksiyon Referansı</a>
+</li>
+
+</ul>
+
+<a name="configuration"></a>
+
+### Konfigürasyon
+
+Mailer servisi ana konfigürasyonu <kbd>config/$env/mailer.php</kbd> dosyasından konfigüre edilir.
 
 ```php
-$this->c['mailer'];
-$this->mailer->method();
+return array(
+
+    /**
+     * Defaults
+     *
+     * Enabled : On / Off mailer service
+     * Useragent : Mailer agent.
+     * Validate : Whether to validate the email addresses.
+     */
+    'default' => [
+        'enabled' => true,
+        'useragent' => 'Obullo Mailer',
+        'validate' => false,
+    ],
+
+    /**
+     * Message body
+     * 
+     * Charset : Character set (utf-8, iso-8859-1, etc).
+     * Priority : 1, 2, 3, 4, 5   Email Priority. 1 = highest. 5 = lowest. 3 = normal.
+     * Wordwrap : Enable / disabled word-wrap.
+     * Wrapchars : Character count to wrap at.
+     * Mailtype : Text or html Type of mail.
+     * Crlf : "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
+     * Newline : "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
+     */
+    'message' => [
+        'charset' => 'utf-8',
+        'priority' =>  3,
+        'wordwrap' => true,
+        'wrapchars' => 76,
+        'mailtype' => 'html',
+        'crlf'  => "\n",
+        'newline' =>  "\n",
+    ]
+);
+
+/* End of file mailer.php */
+/* Location: .config/env/local/mailer/mailer.php */
 ```
 
-#### Mail Class supports the following features:
+<a name="service-configuration"></a>
 
-* Multiple Protocols: Mail, Sendmail, SMTP
-* Multiple recipients
-* Transactional Email Api Calls
-* CC and BCCs
-* HTML or Plaintext email
-* Attachments
-* Word wrapping
-* Priorities
-* BCC Batch Mode, enabling large email lists to be broken into small BCC batches.
-* Email debugging tools
-* Sending Email
-* Sending Emails to Queue Service
+#### Servis Konfigürasyonu
 
-Sending email is not only simple, but you can configure it on the fly or set your preferences in a config file.
-
-Here is a basic example demonstrating how you might send email. 
-
-**Note:** This example assumes you are sending the email from one of your controllers.
-
-#### Service Configuration
+Mailer paketini kullanabilmeniz için ilk önce servis ayarlarını yapılandırmanız gerekir. Servis parametreleri konfigürasyonu için aşağıdaki örneğe bir gözatın.
 
 ```php
-<?php
-
 namespace Service;
 
-/**
- * Mailer Service
- *
- * @category  Service
- * @package   Mail
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/services
- */
-Class Mailer implements ServiceInterface
+use Obullo\Mail\MailManager;
+use Obullo\Service\ServiceInterface;
+use Obullo\Container\ContainerInterface;
+
+class Mailer implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register($c)
+    public function register(ContainerInterface $c)
     {
         $c['mailer'] = function () use ($c) {
-            $mailer = $c['app']->provider('mailer')->get(['driver' => 'mandrill', 'options' => array('queue' => false)]);
+
+            $parameters = [
+                'queue' => [
+                    'channel' => 'mail',
+                    'route' => 'mailer.1',
+                    'delay' => 0,
+                ],
+                'provider' => [
+                    'mandrill' => [
+                        'pool' => 'Main Pool',
+                        'key' => 'enter-your-api-key',
+                        'async' => false,
+                    ],
+                    'mailgun' => [
+                        'domain' => 'enter-your-api-domain',  // example news.obullo.com
+                        'key' => 'enter-your-api-key'
+                    ]
+                ]
+            ];
+            $mailer = new MailManager($c);
+            $mailer->setParameters($parameters);
+            $mailer->setMailer('mailgun');
             $mailer->from('Admin <admin@example.com>');
             return $mailer;
         };
     }
 }
-
-// END Mailer class
-
-/* End of file Mailer.php */
-/* Location: .classes/Service/Mailer.php */
-
 ```
 
-Example code
+Queue servis parametresinde eğer kuyruğa atma seçeneği kullanılıyorsa kuyruğa ait kanal, kuyruk ismi, gecikme süresi gibi ayarlar belirlenir. Provider servis parametresi ise mail gönderimi için kullanmak istediğiniz api servisine ait api key ve varsa diğer ayarlarını konfigüre etmenizi sağlar.
+
+<a name="running"></a>
+
+### Çalıştırma
+
+<a name="loading-service"></a>
+
+#### Servisi Yüklemek
+
+Mailer servisi aracılığı ile mail metotlarına aşağıdaki gibi erişilebilir.
 
 ```php
-<?php
-$this->c['mailer'];
-
-// $this->mailer->from('your@example.com', 'Your Name');
-$this->mailer->to('someone@example.com'); 
-$this->mailer->cc('another@another-example.com'); 
-$this->mailer->bcc('them@their-example.com'); 
-$this->mailer->subject('Email Test');
-$this->mailer->message('Testing the email class.');	
-$this->mailer->send();
-
-echo $this->mailer->printDebugger();
+$this->c['mailer']->metod();
 ```
+<a name="dependencies"></a>
 
-#### Using Service Provider
+#### Bağımlılıklar
+
+Mail servisi çalışabilmek için <kbd>composer</kbd> bağımlılık yöneticisine ihtiyaç duyar ayrıca <kbd>guzzle</kbd> paketinin de composer.json dosyanızda tanımlı olması gerekir.
+
+Mail servisini çalışabilir hale getirebilmek için aşağıdaki adımları takip edebilirsiniz.
+
+1. Composer kurulumu için [Composer.md](/Application/Docs/tr/Composer.md) dosyasına gözatın.
+2. Composer.json dosyanıza guzzle paketini ekleyin.
+3. Composer.json dosyanıza kullanmak istediğiniz mail servis sağlayıcısına ait api paketini ekleyin.
+
+Aşağıdaki composer.json örneğini kullanabilirsiniz.
 
 
 ```php
-$this->mailer = $c['app']->provider('mailer')->get('driver' => 'smtp');
-$this->mailer->method();
-```
-
-#### Using Service Provider Queue Option
-
-```php
-$this->mailer = $c['app']->provider('mailer')->get(
-    [
-        'driver' => 'mandrill', 
-        'options' => array('queue' => true)
-    ]
-);
-$this->mailer->method();
-```
-
-### Setting Email Preferences
-
-You can either set preferences manually as described here, or automatically via preferences stored in your config file, described below:
-
-Preferences are set by passing an array of preference values to the email initialize function. Here is an example of how you might set some preferences:
-
-```php
-<?php
-/*
-|--------------------------------------------------------------------------
-| Mail Class Configuration
-|--------------------------------------------------------------------------
-| Configuration file
-|
-*/
-return array(
-
-    'drivers' => [
-        'mail' => '\Obullo\Mail\Transport\Mail',
-        'smtp' => '\Obullo\Mail\Transport\Smtp',
-        'sendmail' => '\Obullo\Mail\Transport\Sendmail',
-        'mandrill' => '\Obullo\Mail\Transport\Mandrill',
-    ],
-
-    'useragent' => 'Obullo Mailer',  // Mailer "user agent".
-    'wordwrap' => true,              // "true" or "false" (boolean) Enable word-wrap.
-    'wrapchars' => 76,               // Character count to wrap at.
-    'mailtype' => 'html',            // text or html Type of mail. If you send HTML email you must send it as a complete web page. 
-    'charset' => 'utf-8',            // Character set (utf-8, iso-8859-1, etc.).
-    'validate' => false,             // Whether to validate the email address.
-    'priority' =>  3,                // 1, 2, 3, 4, 5   Email Priority. 1 = highest. 5 = lowest. 3 = normal.
-    'crlf'  => "\n",                 //  "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
-    'newline' =>  "\n",              // "\r\n" or "\n" or "\r"  Newline character. (Use "\r\n" to comply with RFC 822).
-
-    'bccBatch' => array(
-        'mode' => false,             // true or false (boolean) Enable BCC Batch Mode.
-        'size' => 200,               // None  Number of emails in each BCC batch.
-    ),
-    
-    'queue' => array(
-        'channel' => 'Mail',                // Queue Mailer channel name
-        'route' => gethostname().'.Mailer', // Queue Mailer route name
-        'worker' => 'Workers\Mailer',       // Queue Worker Class
-    )
-);
-
-/* End of file transport.php */
-/* Location: .config/env/local/mailer/transport.php */
-```
-
-### Setting Preferences Manually
-
-```php
-<?php
-$config = array(
-    'send' => array(
-        'settings' => array(
-            'protocol' => 'sendmail',
-            'mailpath' => '/usr/sbin/sendmail',
-            'charset' => 'iso-8859-1',
-            'wordwrap' => true,
-        )
-    )
-);
-$this->mailer->init($config);
-```
-
-**Note:** Most of the preferences have default values that will be used if you do not set them.
-
-### Email Preferences
-
-The following is a list of all the preferences that can be set when sending email.
-
-<table>
-    <thead>
-            <tr>
-                <th>Preference</th>
-                <th>Default</th>
-                <th>Options</th>
-                <th>Description</th>
-            </tr>
-    </thead>
-    <tbody>
-            <tr>
-                <td>useragent</td>
-                <td>Obullo</td>
-                <td>None</td>
-                <td>The "user agent" of mail service.</td>
-            </tr>
-            <tr>
-                <td>mailpath</td>
-                <td>/usr/sbin/sendmail</td>
-                <td>None</td>
-                <td>The server path to Sendmail.</td>
-            </tr>
-            <tr>
-                <td>smtpHost</td>
-                <td>No</td>
-                <td>None</td>
-                <td>SMTP Server Address.</td>
-            </tr>
-            <tr>
-                <td>smtpUser</td>
-                <td>No</td>
-                <td>None</td>
-                <td>SMTP Username.</td>
-            </tr>
-            <tr>
-                <td>smtpPass</td>
-                <td>No</td>
-                <td>None</td>
-                <td>SMTP Password.</td>
-            </tr>
-            <tr>
-                <td>smtpPort</td>
-                <td>25</td>
-                <td>None</td>
-                <td>SMTP Port.</td>
-            </tr>
-            <tr>
-                <td>smtpTimeout</td>
-                <td>5</td>
-                <td>None</td>
-                <td>SMTP Timeout (in seconds).</td>
-            </tr>
-            <tr>
-                <td>wordwrap</td>
-                <td>true</td>
-                <td>true or false (boolean)</td>
-                <td>Enable word-wrap.</td>
-            </tr>
-            <tr>
-                <td>wordwrap</td>
-                <td>true</td>
-                <td>true or false (boolean)</td>
-                <td>Enable word-wrap.</td>
-            </tr>
-            <tr>
-                <td>wrapchars</td>
-                <td>76</td>
-                <td></td>
-                <td>Character count to wrap at</td>
-            </tr>
-            <tr>
-                <td>mailtype</td>
-                <td>text</td>
-                <td>text or html</td>
-                <td>Type of mail. If you send HTML email you must send it as a complete web page. Make sure you don't have any relative links or relative image paths otherwise they will not work.</td>
-            </tr>
-            <tr>
-                <td>charset</td>
-                <td>utf-8</td>
-                <td>utf-8, iso-8859-1, etc.</td>
-                <td>Character set.</td>
-            </tr>
-            <tr>
-                <td>validate</td>
-                <td>false</td>
-                <td>true or false (boolean)</td>
-                <td>Whether to validate the email address</td>
-            </tr>
-            <tr>
-                <td>priority</td>
-                <td>false</td>
-                <td>true or false (boolean)</td>
-                <td>Whether to validate the email address</td>
-            </tr>
-            <tr>
-                <td>crlf</td>
-                <td>\n</td>
-                <td>"\r\n" or "\n" or "\r"</td>
-                <td>Newline character. (Use "\r\n" to comply with RFC 822).</td>
-            </tr>
-            <tr>
-                <td>newline</td>
-                <td>\n</td>
-                <td>"\r\n" or "\n" or "\r"</td>
-                <td>Newline character. (Use "\r\n" to comply with RFC 822).</td>
-            </tr>
-            <tr>
-                <td>bccBatchMode</td>
-                <td>false</td>
-                <td>true or false (boolean)</td>
-                <td>Enable BCC Batch Mode.</td>
-            </tr>
-            <tr>
-                <td>bccBatchSize</td>
-                <td>200</td>
-                <td>None</td>
-                <td>Number of emails in each BCC batch.</td>
-            </tr>
-
-            
-    </tbody>
-</table>
-
-
-### Getting Transactional Email Api Call Results
-
-```php
-<?php
-$this->mailer->from('test@example.com', 'Your Name');
-$this->mailer->to('example@example.com'); 
-$this->mailer->cc('obulloframework@gmail.com');
-$this->mailer->subject('Email Test');
-$this->mailer->message('Testing the email class.'); 
-$this->mailer->send();
-
-$r = $this->mailer->response()->getArray();
-
-print_r($r); // see example results for Mandrill
-
-/*
-Array ( 
-        [0] => Array ( [email] => example@example.com [status] => sent [_id] => a775e412a29f4c4587a7d5242c951dd8 [reject_reason] => ) 
-        [1] => Array ( [email] => obulloframework@gmail.com [status] => sent [_id] => 015b1e527ae84c2090ae9feb9d573d8d [reject_reason] => )
-) 
-*/
-
-echo $this->mailer->printDebugger();  // gives debug output
-
-/*
-Framework Mailer
-Fri, 21 Nov 2014 13:31:30 +0000
-example@example.com
-obulloframework@gmail.com
-Email Test
-"Your Name" 
-=?utf-8?Q?Email_Test?=
-*/
-```
-
-### Function Reference
-
-------
-
-#### $this->mailer->from()
-
-Sets the email address and name of the person sending the email:
-
-```
-<?php
-$this->mailer->from('you@example.com', 'Your Name');
-```
-
-#### $this->mailer->replyTo(string $email, string $name)
-
-Sets the reply-to address. If the information is not provided the information in the "from" function is used. Example:
-
-```php
-<?php
-$this->mailer->replyTo('you@example.com', 'Your Name');
-$this->mailer->to()
-```
-
-Sets the email address(s) of the recipient(s). Can be a single email, a comma-delimited list or an array:
-
-```php
-<?php
-$this->mailer->to('someone@example.com');
-$this->mailer->to('one@example.com, two@example.com, three@example.com');
-$list = array('one@example.com', 'two@example.com', 'three@example.com');
-$this->mailer->to($list);
-```
-
-#### $this->mailer->cc()
-
-Sets the CC email address(s). Just like the "to", can be a single email, a comma-delimited list or an array.
-
-#### $this->mailer->bcc()
-
-Sets the BCC email address(s). Just like the "to", can be a single email, a comma-delimited list or an array.
-
-#### $this->mailer->subject()
-
-Sets the email subject:
-
-```php
-<?php
-$this->mailer->subject('This is my subject');
-$this->mailer->message();
-```
-
-#### $this->mailer->body()
-
-Sets the email message body:
-
-```php
-<?php
-$this->mailer->message('This is my message');
-$this->mailer->setAltMessage();
-```
-
-Sets the alternative email message body:
-
-$this->mailer->setAltMessage('This is the alternative message');
-
-This is an optional message string which can be used if you send HTML formatted email. It lets you specify an alternative message with no HTML formatting which is added to the header string for people who do not accept HTML email. If you do not set your own message CodeIgniter will extract the message from your HTML email and strip the tags.
-
-#### $this->mailer->clear()
-
-Initializes all the email variables to an empty state. This function is intended for use if you run the email sending function in a loop, permitting the data to be reset between cycles.
-
-
-If you set the parameter to true any attachments will be cleared as well:
-
-```php
-<?php
-$this->mailer->clear(true);
-$this->mailer->send()
-```
-
-The Email sending function. Returns boolean TRUE or FALSE based on success or failure, enabling it to be used conditionally:
-
-```php
-<?php
-if ( ! $this->mailer->send()) {
-    // Generate error
+{
+    "autoload": {
+        "psr-4": {
+            "Obullo\\": "o2/",
+            "": "app/classes"
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "~6.0",
+        "mailgun/mailgun-php": "~1.7.2",
+        "mandrill/mandrill": "1.0.*"
+    }
 }
 ```
 
-#### $this->mailer->attach()
+Yukarıdaki örnekte <kbd>mailgun</kbd> ve <kbd>mandrill</kbd> servislerine ait api lerin her ikisinin de kurulum örneği gösteriliyor. 
 
-Enables you to send an attachment. Put the file path/name in the first parameter. Note: Use a file path, not a URL. For multiple attachments use the function multiple times. For example:
 
 ```php
-<?php
-$this->mailer->attach('/path/to/photo1.jpg');
-$this->mailer->attach('/path/to/photo2.jpg');
-$this->mailer->attach('/path/to/photo3.jpg');
-$this->mailer->send();
-$this->mailer->printDebugger();
+composer update
 ```
 
-#### $this->mailer->printDebugger();
-
-Returns a string containing any server messages, the email headers, and the email messsage. Useful for debugging.
-
-#### $this->mailer->response()->getArray();
-
-Returns to array response if your email provider support.
-
-#### $this->mailer->response()->getBody();
-
-Returns to raw data output of http request.
-
-#### $this->mailer->response()->getXml();
-
-Returns to xml response if your email provider support.
+Konsolunuzdan yukarıdaki gibi update komutunu çalıştırarak composer paketlerini kurabilirsiniz.
 
 
-#### Overriding Word Wrapping
+<a name="api-service-providers"></a>
 
-If you have word wrapping enabled (recommended to comply with RFC 822) and you have a very long link in your email it can get wrapped too, causing it to become un-clickable by the person receiving it. CodeIgniter lets you manually override word wrapping within part of your message like this:
+### Api Servis Sağlayıcıları
 
+<a name="mailgun"></a>
+
+* <b>Mailgun</b> : Yaygın kullanılan bir mail gönderme servisidir. Obullo mailgun ile mail gönderimini destekler. Mailgun web sitesinden alacağınız  bir api key ile servisinizi konfigüre ettikten sonra mail gönderme işlemlerine hemen başlayabilirsiniz. Detaylı bilgi için <a href="http://www.mailgun.com/" target="_blank">http://www.mailgun.com/</a> web adresine bir gözatın.
+
+<a name="mandrill"></a>
+
+* <b>Mandrill</b> : Obullo mandrill ile mail gönderimini de  destekler. Mandrill web sitesinden alacağınız  bir api key ile servisinizi konfigüre ettikten sonra mail gönderme işlemlerine hemen başlayabilirsiniz. Detaylı bilgi için <a href="http://www.mandrill.com/" target="_blank">http://www.mandrill.com/</a> web adresine bir gözatın.
+
+Yukarıdaki web servisleri belirli bir limite kadar her ay ücretsiz mail gönderimi sağlarlar.
+
+<a name="send"></a>
+
+### Mail Göndermek
+
+Basit bir http isteği ile mail göndermek için <kbd>send()</kbd> metodu, mail gönderimlerini kuyruğa atmak içinse <kbd>queue</kbd> metodu kullanılır.
+
+```php
+$this->c['mailer'];
+
+$mailResult = $this->mailer->to('someone@example.com')
+    ->cc('another@another-example.com')
+    ->bcc('them@their-example.com')
+    ->subject('Email Test')
+    ->message('Testing the email class.')
+    ->send();
+
+if ($mailResult->hasError()) {
+    echo 'Failure !';
+} else {
+    echo 'Success !'
+}
+
+print_r($mailResult->getArray());  // Show error messsages
+```
+
+Mail sürücüleri ve diğer bazı değerler her ne kadar önceden servisten konfigüre edilmiş olsalar dahi mailer servisi üzeriden değiştirilebilirler. Mesela <kbd>from()</kbd> fonksiyonu mail gönderilirken kullanılmıyorsa servis içerisinde ilan edilen değer varsayılan olarak kabul edilir. Eğer aşağıdaki gibi from fonksiyonu kullanıysanız girilen değer geçerli olur.
+
+```php
+$mailResult = $this->mailer
+    ->from('your@example.com', 'Your Name');
+    ->to('obullo@yandex.com')
+    ->subject('test')
+    ->message("test message")
+    ->send();
+```
+
+Bir başka örnek verirsek eğer varsayılan sağlayıcınız mandrill ise servis sağlayıcınızı <kbd>setMailer()</kbd> metodu ile aşağıdaki gibi değiştirebilirsiniz.
+
+
+```php
+$mailResult = $this->mailer
+    ->setMailer('mailgun')
+    ->from('Obullo\'s <noreply@news.obullo.com>')
+    ->to('obullo@yandex.com')
+    ->replyTo('obullo <obullo@yandex.com>')
+    ->subject('test')
+    ->message("test message")
+    ->attach("/var/www/files/logs.jpg")
+    ->send();
+
+
+if ($mailResult->hasError()) {
+    echo 'Failure !';
+} else {
+    echo 'Success !'
+}
+```
+
+<a name="result"></a>
+
+#### Mail Result Sınıfı
+
+Mail gönderimi gerçekleştiren iki metot vardır bunlardan biri <kbd>send()</kbd> ve diğeri ise <kbd>queue()</kbd> metodudur. Mail gönderme metotları gönderim işleminden sonra MailResult nesnesine geri dönerler. Oluşan hatalar getCode() metodu ile mesajlar ise <kbd>getMessage()</kbd> metodu ile alınır. Tüm bilgilere ulaşmak isteniyorsa <kbd>getArray()</kbd> metodu kullanılır.
+
+```php
+if ($mailResult->hasError()) {
+    echo 'Error code:  '.$mailResult->getCode();
+    echo 'Error message:  '.$mailResult->getMessage();
+    echo 'All data: '.print_r($mailResult->getArray(), true);
+}
+```
+<a name="error-table"></a>
+
+#### Hata Tablosu
+
+<table>
+    <thead>
+        <tr>
+            <th>Kod</th>    
+            <th>Sabit</th>    
+            <th>Açıklama</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>0</td>
+            <td>MailResult::FAILURE</td>
+            <td>Başarısız işlem.</td>
+        </tr>
+        <tr>
+            <td>-1</td>
+            <td>MailResult::NO_RECIPIENTS</td>
+            <td>Mail alıcısı boş, en az bir mail alıcısı girilmeli.</td>
+        </tr>
+        <tr>
+            <td>-2</td>
+            <td>MailResult::INVALID_EMAIL</td>
+            <td>Geçersiz email adresi.</td>
+        </tr>
+        <tr>
+            <td>-3</td>
+            <td>MailResult::ATTACHMENT_UNREADABLE</td>
+            <td>Mail ile beraber gönderilen ekli dosya okunamıyor.</td>
+        </tr>
+        <tr>
+            <td>-4</td>
+            <td>MailResult::QUEUE_ERROR</td>
+            <td>Mail kuyruğa gönderilirken bilinmeyen bir hata oluştu. (Yalnızca queue servisinin açık olduğu durumlarda)</td>
+        </tr>
+        <tr>
+            <td>-5</td>
+            <td>MailResult::API_ERROR</td>
+            <td>Mail sağlayıcısına ait serviste bilinmeyen bir hata oluştu.</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>MailResult::SUCCESS</td>
+            <td>Başarılı İşlem.</td>
+        </tr>
+    </tbody>
+</table>
+
+<a name="custom-errors"></a>
+
+#### Özel Hatalar Tanımlama
+
+```php
+$mailResult = $this->mailer->getMailResult();
+
+if ($condition) {
+    $mailResult->setCode($mailResult::API_ERROR);
+    $mailResult->setMessage("Custom error request failed.");
+}
+
+print_r($mailResult->getArray());
+```
+
+Set metotları ile de özel durumlarda sınıfa hatalar tayin edilebilir.
+
+<a name="wrapping"></a>
+
+#### Dizge Katlama (Wrapping)
+
+Html olmayan text tabanlı bir mail gövdesinde çok uzun bir metin varsa okunmayı zorlaştırabilir yada uzun bir url adresine varsa kullanıcının bu adrese tıklaması zorlaşabilir. Mailer konfigürasyon dosyanızda <kbd>wordwrap</kbd> değeri true (açık) olduğu durumda (RFC 822 ile uyumluluk için önerilir) uzun olan metinler konfigürasyon dosyasında tanımlı olan <kbd>wrapchars</kbd> karakter sayısından (varsayılan 76) sonra aşağıdaki gibi katlanır.
+
+```php
 The text of your email that
 gets wrapped normally.
+```
+
+Eğer bir metnin yada url adresinin katlanmasını istemiyorsanız metni aşağıdaki gibi <kbd>{unwrap} {/unwrap}</kbd> karakterleri arasına yazın.
 
 ```php
 {unwrap}http://example.com/a_long_link_that_should_not_be_wrapped.html{/unwrap}
 ```
 
-More text that will be
-wrapped normally.
+> **Not:** Bu özelliğin çalışabilmesi için gönderilen mailin $this->mailer->setMailType('text') metodu ile text tabanlı tanımlanması gerekir.
 
-Place the item you do not want word-wrapped between: {unwrap} {/unwrap}
+<a name="queue"></a>
 
 
-### QueueMailer ( Recommended )
+### Kuyruklama
 
-------
+Mailer servisi <kbd>queue</kbd> servisini kullanarak mail gönderim isteklerini kuyruğa da atabilir. Queue servisini daha önce hiç kullanmadıysanız [Queue.md](/Queue/Docs/tr/Queue.md) dökümentasyonuna bir gözatın.
 
-QueueMailer class allows to you send your emails in the background using Queue service.
+<a name="queue-configuration"></a>
 
-If you prefer to use QueueMailer class you will get better performance, but you need to change service configuration and configure a worker to consume queue data.
+#### Konfigürasyon
 
-#### QueueMailer Service
-
-Update your service like below the example.
+Kuyruğa atma özelliğinin çalışabilmesi için kuyruklama işlemine ait kuyruk adı ve kanal isimini mailer servis parametrelerinden belirlemeniz gerekir. Eğer mailgun web servisini kullanıyorsanız aşağıdaki gibi web servisine ait bilgilerizi girin.
 
 ```php
-<?php
-
-namespace Service;
-
-use Obullo\Mail\QueueMailer;
-
-/**
- * Mailer Service
- *
- * @category  Service
- * @package   Mail
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/services
- */
-Class Mailer implements ServiceInterface
-{
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
-    public function register($c)
-    {
-        $c['mailer'] = function () use ($c) {
-            return new QueueMailer($c, $c->load('config')['mail']);
-        };
-    }
-}
-
-// END Mailer class
+$parameters = [
+    'queue' => [
+        'channel' => 'mail',
+        'route' => 'mailer.1',
+        'delay' => 0,
+    ],
+    'provider' => [
+        'mailgun' => [
+            'domain' => 'news.mydomain.com',
+            'key' => 'enter-your-api-key-without{key-}'
+        ]
+    ]
+];
 
 /* End of file Mailer.php */
-/* Location: .classes/Service/Mailer.php */
+/* Location: .app/classes/Service/Mailer.php */
 ```
 
-#### QueueMailer Worker
+<a name="send-to-queue"></a>
 
-You can configure your worker like below.
+#### Kuyruğa Göndermek
+
+Mail gönderme işlerini queue servisi üzerinden kuyruğa atmak uygulamanızın performansını arttırır. Mailer servisinden gönderilen maillerin kuyruğa atılabilmesi için send komutu yerine aşağıdaki gibi queue komutu kullanılması gerekir.
+
+
+
+<a name="consume"></a>
+
+#### Kuyruğu Tüketmek ( İşçiler )
+
+Mail kuyruğunu tüketmek için konsoldan <kbd>app/classes/Workers/Mailer.php</kbd> işçisini çalıştırmanız gerekir. İşciyi test modunda çalıştırıp kuyruğu tüketmek için <kbd>--debug</kbd> değerini 1 olarak girin.
 
 ```php
-<?php
+php task queue listen --channel=mail --route=mailer.1 --debug=1
+```
 
+Yukarıdaki komutu konsoldan çalıştırdığınızda <kbd>$data</kbd> değişkeni içerisinden Mailer işçisine kuyruktaki email verileri gönderilir. Aşağıda sizin için mailgun web servisi ile email gönderimi yapan bir örnek yaptık.
+
+
+```php
 namespace Workers;
 
 use Obullo\Queue\Job;
 use Obullo\Queue\JobInterface;
-use Obullo\Mail\Transport\Smtp;
-use Obullo\Mail\Transport\Mandrill;
+use Obullo\Mail\Provider\Mailgun;
+use Obullo\Container\ContainerInterface;
 
- /**
- * Mail Worker
- *
- * @category  Workers
- * @package   Mailer
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/queue
- */
-Class Mailer implements JobInterface
+class Mailer implements JobInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
     protected $c;
 
-    /**
-     * Config parameters
-     * 
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * Constructor
-     * 
-     * @param object $c container
-     */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->config = $c['config']->load('mailer');
     }
 
-    /**
-     * Fire the job
-     * 
-     * @param Job   $job  object
-     * @param array $data data array
-     * 
-     * @return void
-     */
-    public function fire(Job $job, $data)
+    public function fire($job, array $data)
     {
-        $data = $data['message'];
-
-        switch ($data['mailer']) {
-
-        case 'mandrill':
-            $mail = new Mandrill($this->c, $this->config);
-
-            $mail->setMailType($data['mailtype']);
-            $mail->from($data['from_email'], $data['from_name']);
-
-            foreach ($data['to'] as $to) {
-                $method = $to['type'];
-                $mail->$method($to['name'].' <'.$to['email'].'>');
-            }
-            $mail->subject($data['subject']);
-            $mail->message($data[$mail->getMailType()]);
-
-            if (isset($data['attachments'])) {
-                foreach ($data['attachments'] as $attachments) {
-                    $mail->attach($attachments['fileurl'], 'attachment');
-                }
-            }
-            if (isset($data['images'])) {
-                foreach ($data['images'] as $attachments) {
-                    $mail->attach($attachments['fileurl'], 'inline');
-                }
-            }
-            $mail->addMessage('send_at', $mail->setDate($data['send_at']));
-            $mail->send();
-
-            // print_r($mail->response()->getArray());
-            // echo $mail->printDebugger();
-            break;
-
-        case 'smtp':
-
+        switch ($data['mailer']) { 
+        case 'mailgun':
+            $this->sendWithMailgun($data);
             break;
         }
-        /**
-         * Delete job from queue after successfull operation.
-         */
-        $job->delete(); 
-            
+        if ($job instanceof Job) {
+            $job->delete(); 
+        }       
     }
+
+    protected function sendWithMailgun(array $msgEvent)
+    {
+        $mail = new Mailgun($this->c, $this->c['mailer']->getParameters());
+        $mailtype = (isset($msgEvent['html'])) ? 'html' : 'text';
+
+        $mail->from($msgEvent['from']);
+
+        if (! empty($msgEvent['to'])) {
+            foreach ($msgEvent['to'] as $email) {
+                $mail->to($email);
+            }
+        }
+        if (! empty($msgEvent['cc'])) {
+            foreach ($msgEvent['cc'] as $email) {
+                $mail->cc($email);
+            }
+        }
+        if (! empty($msgEvent['bcc'])) {
+            foreach ($msgEvent['bcc'] as $email) {
+                $mail->bcc($email);
+            }
+        }
+        if (! empty($headers['Reply-To'])) {
+            $this->msgEvent['h:Reply-To'] = $headers['Reply-To'];
+        }
+        if (! empty($headers['Message-ID'])) {
+            $this->msgEvent['h:Message-Id'] = $headers['Message-ID'];
+        }
+        $mail->subject($msgEvent['subject']);
+        $mail->message($msgEvent[$mailtype]);
+
+        if (isset($msgEvent['files'])) {
+            foreach ($msgEvent['files'] as $value) {
+                $mail->attach($value['fileurl'], $value['disposition']);
+            }
+        }
+        $mail->addMessage('o:deliverytime', $mail->setDate());
+        return $mail->send();
+    }
+
+    .
+    .
+    .
 }
 
 /* End of file Mailer.php */
 /* Location: .app/classes/Mailer.php */
 ```
 
-#### QueueMailer Push Data Format
+Gönderilen veriler mailer türüne göre filtrelenerek ilgili web servis api sine bağlanarak mail gönderme işlemi gerçekleştirilir. Mail gönderim işleminden sonra <kbd>$job->delete()</kbd> metodu ile tamamlanan iş kuyruktan silinir.
 
-QueueMailer class send mail data to queue service using following the format.
+Yukarıda görüldüğü gibi Mailgun kütüphanesi msgEvent değişkeni ile verileri web servis sağlayıcınıza gönderir. Servis sağlayıcınızın api dökümentasyonunu inceleyin eğer msgEvent değişkeni içerisine özel bir değer eklemek gerekiyorsa bu değerleri <kbd>addMessage()</kbd> metodunu kullanarak gönderebilirsiniz.
+
+
+<a name="example-queue-data"></a>
+
+#### Örnek Kuyruk Verileri
 
 ```php
-<?php
-    /* PUSH DATA
-    {
-        "message": {
-            "mailer": "mandrill",  // smtp
-            "mailtype" "html"      // text
-            "html": "<p>Example HTML content</p>",
-            "text": "Example text content",
-            "subject": "example subject",
-            "from_email": "message.from_email@example.com",
-            "from_name": "Example Name",
-            "to": [
-                {
-                    "email": "recipient.email@example.com",
-                    "name": "Recipient Name",
-                    "type": "to"
-                }
-            ],
-            "headers": {
-                "Reply-To": "message.reply@example.com"
-            },
-            "important": false,
-            "auto_text": null,
-            "auto_html": null,
-            "inline_css": null,
-            "tags": [
-                "password-resets"
-            ],
-            "attachments": [
-                {
-                    "type": "text/plain",
-                    "name": "myfile.txt",
-                    "fileurl": "/var/www/myfile.text"
-                }
-            ],
-            "images": [
-                {
-                    "type": "image/png",
-                    "name": "file.png",
-                    "fileurl": "http://www.example.com/images/file.png",
-                }
-            ]
-        },
-        "send_at": "example send_at"
-    }
-    */
+print_r($msgEvent);
+
+Array
+(
+    [files] => Array
+        (
+            [0] => Array
+                (
+                    [name] => logs.jpg
+                    [type] => image/jpeg
+                    [fileurl] => /var/www/files/logs.jpg
+                    [disposition] => attachment
+                )
+        )
+
+    [headers] => Array
+        (
+            [User-Agent] => 
+            [Date] => Tue, 4 Aug 2015 11:59:20 +0100
+            [To] => obullo@yandex.com
+            [Cc] => obullo@gmail.com
+            [Reply-To] => "obullo@yandex.com" <obullo@yandex.com>
+            [Subject] => test
+        )
+
+    [from] => Obullo's <noreply@news.obullo.com>
+    [subject] => test
+    [to] => Array
+        (
+            [0] => obullo@yandex.com
+        )
+
+    [cc] => Array
+        (
+            [0] => obullo@gmail.com
+        )
+
+    [h:Reply-To] => "obullo@yandex.com" <obullo@yandex.com>
+    [o:deliverytime] => Tue, 4 Aug 2015 11:59:20 +0100
+    [html] => test message
+    [mailer] => mailgun
+)
 ```
 
 <kbd>app/Workers/Mailer.php</kbd> parse this format and send your emails in the background.
 
+<a name="debugging"></a>
 
-#### Following Workers/Mailer Output
+#### Hata Ayıklama
 
-Uncomments below the lines from your <kbd>app/Workers/Mailer.php</kbd> file.
-
-```php
-<?php
-print_r($mail->response()->getArray());
-echo $mail->printDebugger();
-```
-
-Then type to your console and run:
+Dinleme komutu sonunda <kbd>--debug</kbd> parametresine "1" değerini verdiğinizde kuyruğa gönderilen maillere ait çıktılar ve hata çıktılarını konsoldan takip edebilirsiniz.
 
 ```php
-php task queue listen --channel=Mail --route=localhost.Mailer --debug=1
+php task queue listen --channel=mail --route=mailer.1 --debug=1
 ```
 
-If you set parameter <b>--debug=1</b> this means you can see all outputs of the worker. In production configuration you need to use parameter <b>--debug=0</b> or default is always "0".
-
-
-When you send an email in the application you will get below the output on your console:
+Prodüksiyon çevre ortamında <kbd>--debug</kbd> parametresi değeri her zaman "0" olmalıdır.
 
 ```php
-                _           _ _       
-           ___ | |__  _   _| | | ___  
-          / _ \| '_ \| | | | | |/ _ \ 
-         | (_) | |_) | |_| | | | (_) |
-          \___/|_.__/ \__,_|_|_|\___/  
-
-        Welcome to Queue Manager (c) 2015
-    You are running \$php task queue command. For help type php task queue --help."
-
-Array
-(
-    [] => Array
-        (
-            [email] => me@example.com
-            [status] => queued
-            [_id] => 3e537bd42820445da198d64a4f1b99ab
-        )
-
-    [1] => Array
-        (
-            [email] => test@example.com
-            [status] => queued
-            [_id] => 7c882ac765c74db193900a000f3b19e3
-        )
-
-)
-<pre>Headers: 
-Framework Mailer Transport
-Wed, 26 Nov 2014 09:54:43 +0000
-<me@example.com>
-<test@example.com>
-=?utf-8?Q?Email_Test?=
-"\"Your Name\"" <admin@example.com>
-
-Subject:  
-=?utf-8?Q?Email_Test?=
-
-Message: 
-Testing the email class.</pre>Output : 
-{"job":"Workers\\Mailer","data":{"message":{"html":"Testing the email class.","mailer":"mandrill","mailtype":"html","subject":"=?utf-8?Q?Email_Test?=","from_email":"test@example.com","from_name":"\"Your Name\"","to":[{"type":"to","email":"me@example.com","name":null},{"type":"cc","email":"test@example.com","name":null}],"headers":{"User-Agent":"Framework Mailer Transport","Date":"Wed, 26 Nov 2014 09:54:43 +0000","To":"eguvenc@gmail.com","Subject":"Email Test","Reply-To":"\"Your Name\" <test@example.com>"},"send_at":"Wed, 26 Nov 2014 09:54:43 +0000","attachments":[{"type":"image\/png","name":"buttons.png","fileurl":"\/var\/www\/framework\/assets\/images\/buttons.png"},{"type":"image\/png","name":"logo.png","fileurl":"\/var\/www\/framework\/assets\/images\/logo.png"}]}}}
-
+Output : 
+{
+"job":"Workers\\Mailer",
+"data":{
+"headers":{
+"User-Agent":"","Date":"Tue, 4 Aug 2015 11:58:31 +0100",
+"To":"obullo@yandex.com",
+"Cc":"eguvenc@gmail.com",
+"Reply-To":"\"obullo@yandex.com\" <obullo@yandex.com>",
+"Subject":"test"},
+"from_email":"noreply@news.obullo.com",
+"from_name":"Obullo's",
+"subject":"test",
+"to":[{"email":"obullo@yandex.com","name":null,"type":"to"},
+{"email":"eguvenc@gmail.com","name":null,"type":"cc"}],
+"send_at":"Tue, 4 Aug 2015 11:58:31 +0100","html":"test message","mailer":"mandrill"}}
 ```
+
+<a name="method-reference"></a>
+
+#### Mail Sınıfı Set Metotları Referansı
+
+-------
+
+##### $this->mailer->setMailer(string $mailer)
+
+Mail gönderici web servis sağlayıcısını belirler. Birinci parametreye sağlayıcı ismi girilmelidir. Örneğin: mailgun.
+
+##### $this->mailer->from($email, $name = null)
+
+Göndericiyi belirler. Birinci parametre göndericinin email adresini ikinci parametre ise ismini belirler.
+
+##### $this->mailer->replyTo(string $email, string $name = null)
+
+Bir reply-to email adresi atar. 
+
+##### $this->mailer->to(string|array $email)
+
+Gönderilen kişinin email adresini belirler. Adresler virgülle ayrılmış string yada array türünde girilebilir.
+
+##### $this->mailer->cc(string|array $email)
+
+Gönderilecek email adreslerini karbon kopya (cc) biçiminde gönderir. Adresler virgülle ayrılmış string yada array türünde girilebilir. Cc biçiminde gönderilen email adresleri gönderilen emaile ait kaynakta diğer gönderilen adresler olarak görüntülenirler.
+
+##### $this->mailer->bcc(string|array $email)
+
+Gönderilecek email adreslerini kör karbon kopya (bcc) biçiminde gönderir. Adresler virgülle ayrılmış string yada array türünde girilebilir. Bcc biçiminde gönderilen email adresleri gönderilen emaile ait kaynakta diğer gönderilen adresler olarak görüntülenemezler.
+
+##### $this->mailer->subject(string $subject)
+
+Email mesajına ait konuyu belirler. String türünde girilmelidir.
+
+##### $this->mailer->message(string $body)
+
+Email adresine ait gövde metnini belirler.
+
+##### $this->mailer->setHeader(string $header, string $value)
+
+Web servise gönderilmek istenen email başlıklarını <kbd>$this->msgEvent['headers']</kbd> dizisi içerisinde oluşturur.
+
+##### $this->mailer->setDate()
+
+RFC822 formatında <kbd>$this->msgEvent['headers']</kbd> dizisi içerisine yeni bir tarih ekleyerek oluşturulan tarihe geri döner. Örnek: Wed, 27 Sep 2006 21:36:45 +0200.
+
+##### $this->mailer->setMailType($type = 'text')
+
+Gönderilen mail gövdesinin gönderilme biçimini belirler. Gönderim biçimi <kbd>text</kbd> yada <kbd>html</kbd> olarak girilebilir.
+
+##### $this->mailer->setValidation($enabled = true)
+
+Email doğrulama özeliğini dinamik olara açıp kapatır. Doğrulama açıksa yanlış formatta bir email gönderilmek istendiğinde email gönderimi gerçekleştirilmez ve hata çıktılanır.
+
+##### $this->mailer->attach(string $fileurl, $disposition = 'attachment')
+
+Mail ile birlikte bir ekli dosya gönderimine olanak tanır. Birinci parametre ekli dosyanın tam adresi ikinci parametre ise <kbd>attachment</kbd> yada <kbd>inline</kbd> özelliklerini belirler. Birden fazla ekli dosya gönderilmek isteniyorsa fonksiyon birden fazla kullanılmalıdır.
+
+##### $this->mailer->addMessage($key, $value);
+
+Web servise gönderilmek istenen ekstra özel değerleri <kbd>$this->msgEvent</kbd> dizisi içerisine <kbd>$this->msgEvent[$key] = $value</kbd> biçiminde oluşturur.
+
+##### $this->mailer->send()
+
+<kbd>$this->msgEvent</kbd> içerisinde oluşturulan tüm değerleri mail sağlayıcısına ait web servisine gönderir. Email gönderim işlemi başarılı olursa işlem <kbd>MailResult</kbd> nesnesine geri döner.
+
+##### $this->mailer->queue($options = array())
+
+<kbd>$this->msgEvent</kbd> içerisinde oluşturulan tüm değerleri queue servisine gönderir. Email gönderim işlemi başarılı olursa işlem <kbd>MailResult</kbd> nesnesine geri döner. Birinci parametreden varsa queue opsiyonları gönderilir.
+
+##### $this->mailer->clear()
+
+Tüm email değişkenlerini boş değerlerine geri döndürür. Bu fonksiyon bir döngü içerisinde birden fazla email gönderilmek istendiğinde döngü içerisinde kullanılarak değişken değerlerini her defasında yeni bir email gönderimine hazır olması için başa döndürür.
+
+#### Mail Sınıfı Get Metotları Referansı
+
+-------
+
+##### $this->mailer->getMailer();
+
+Geçerli mail servis sağlayıcısı ismine geri döner. Örnek: mandrill.
+
+##### $this->mailer->getHeaders();
+
+Bir dizi içerisinde kayıtlı olan geçerli email başlıklarına geri döner.
+
+##### $this->mailer->getParameters();
+
+Mailer servisinde konfigüre edilmiş parametrelere geri döner.
+
+##### $this->mailer->getFrom();
+
+##### $this->mailer->getFromEmail();
+
+##### $this->mailer->getFromName();
+
+##### $this->mailer->getSubject();
+
+##### $this->mailer->getMessage();
+
+##### $this->mailer->getRecipients();
+
+##### $this->mailer->getMailType();
+
+##### $this->mailer->getContentType();
+
+##### $this->mailer->getUserAgent();
+
+##### $this->mailer->hasAttachment();
+
+##### $this->mailer->getAttachments();
+
+##### $this->mailer->getMailResult();
+
+
+
+#### MailResult Sınıfı Referansı
+
+-------
+
+##### $mailResult->hasError()
+
+Eğer mail gönderimi esnasında bir hata oluştu ise <kbd>false</kbd> aksi durumda <kbd>true</kbd> değerine geri döner.
+
+##### $mailResult->setMessage(string $message)
+
+Mail gönderiminden sonra oluşabilecek özel bir hatayı hatalar dizisi içerisine ekler. Birden fazla hata eklenebilir.
+
+##### $mailResult->setCode(int $code)
+
+Girilen hataya ait hata kodunu geçerli hata kodu değeri olarak atar.
+
+##### $mailResult->getCode()
+
+Mevcut hata koduna geri döner.
+
+##### $mailResult->getMessages()
+
+Tüm hata mesajlarını almak için başarısız işlem durumunda kullanılır. İşlemin başarısız olup olmadığı <kbd>hasError()</kbd> metodu ile kontrol edilir.
+
+##### $mailResult->getArray()
+
+Hata kodu ve hata mesajı ile birlikte tüm bilgilere geri döner.

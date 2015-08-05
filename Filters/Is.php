@@ -123,8 +123,3 @@ class Is extends AbstractFilter
         return filter_var($value, FILTER_VALIDATE_URL, $options);
     }
 }
-
-// END Is.php File
-/* End of file Is.php
-
-/* Location: .Obullo/Filters/Is.php */

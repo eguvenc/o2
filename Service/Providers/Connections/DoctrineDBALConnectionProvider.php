@@ -134,8 +134,3 @@ class DoctrineDBALConnectionProvider extends AbstractConnectionProvider
     }
 
 }
-
-// END DoctrineDBALConnectionProvider.php class
-/* End of file DoctrineDBALConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/DoctrineDBALConnectionProvider.php */

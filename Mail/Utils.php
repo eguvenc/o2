@@ -94,12 +94,12 @@ class Utils
      * Prepares string for Quoted-Printable Content-Transfer-Encoding
      * Refer to RFC 2045 http://www.ietf.org/rfc/rfc2045.txt
      *
-     * @param string  $str     str
+     * @param string  $name    str
      * @param integer $charlim limit
      * 
      * @return string
      */
-    public static function prepQuotedPrintable($str, $charlim = '')
+    public static function prepQuotedPrintable($name, $charlim = '')
     {
         // Set the character limit
         // Don't allow over 76, as that will make servers and MUAs barf
@@ -107,16 +107,16 @@ class Utils
         if ($charlim == '' || $charlim > '76') {
             $charlim = '76';
         }
-        $str = preg_replace("| +|", " ", $str); // Reduce multiple spaces
-        $str = preg_replace('/\x00+/', '', $str);         // kill nulls
+        $name = preg_replace("| +|", " ", $name); // Reduce multiple spaces
+        $name = preg_replace('/\x00+/', '', $name);         // kill nulls
 
-        if (strpos($str, "\r") !== false) {         // Standardize newlines
-            $str = str_replace(array("\r\n", "\r"), "\n", $str);
+        if (strpos($name, "\r") !== false) {         // Standardize newlines
+            $name = str_replace(array("\r\n", "\r"), "\n", $name);
         }
         // We are intentionally wrapping so mail servers will encode characters
         // properly and MUAs will behave, so {unwrap} must go!
-        $str = str_replace(array('{unwrap}', '{/unwrap}'), '', $str);
-        $lines = explode("\n", $str);         // Break into an array of lines
+        $name = str_replace(array('{unwrap}', '{/unwrap}'), '', $name);
+        $lines = explode("\n", $name);         // Break into an array of lines
         $escape = '=';
         $output = '';
         foreach ($lines as $line) {
@@ -158,14 +158,14 @@ class Utils
      * Performs "Q Encoding" on a string for use in email headers.  It's related
      * but not identical to quoted-printable, so it has its own method
      *
-     * @param str  $str  string
+     * @param str  $name string
      * @param bool $from set to true for processing From: headers
      * 
      * @return string
      */
-    public static function prepQencoding($str, $from = false)
+    public static function prepQencoding($name, $from = false)
     {
-        $str = str_replace(array("\r", "\n"), array('', ''), $str);
+        $name = str_replace(array("\r", "\n"), array('', ''), $name);
         // Line length must not exceed 76 characters, so we adjust for
         // a space, 7 extra characters =??Q??=, and the charset that we will add to each line
         $limit = 75 - 7 - strlen($this->charset);
@@ -177,8 +177,8 @@ class Utils
         }
         $output = '';
         $temp = '';
-        for ($i = 0, $length = strlen($str); $i < $length; $i++) {
-            $char = substr($str, $i, 1); // Grab the next character
+        for ($i = 0, $length = strlen($name); $i < $length; $i++) {
+            $char = substr($name, $i, 1); // Grab the next character
             $ascii = ord($char);
             if ($ascii < 32 || $ascii > 126 || in_array($char, $convert)) { // convert ALL non-printable ASCII characters and our specials
                 $char = '=' . dechex($ascii);
@@ -194,11 +194,11 @@ class Utils
             }
             $temp .= $char; // Add the character to our temporary line
         }
-        $str = $output . $temp;
+        $name = $output . $temp;
         // wrap each line with the shebang, charset, and transfer encoding
         // the preceding space on successive lines is required for header "folding"
-        $str = trim(preg_replace('/^(.*)$/m', ' =?' . $this->charset . '?Q?$1?=', $str));
-        return $str;
+        $name = trim(preg_replace('/^(.*)$/m', ' =?' . $this->charset . '?Q?$1?=', $name));
+        return $name;
     }
 
 }

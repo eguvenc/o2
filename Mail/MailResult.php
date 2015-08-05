@@ -23,7 +23,7 @@ class MailResult
     const FAILURE = 0;
 
     /**
-     * You must include recipients: To, Cc, or Bcc
+     * You must include recipients: To, Cc ..
      */
     const NO_RECIPIENTS = -1;
 
@@ -43,19 +43,9 @@ class MailResult
     const QUEUE_ERROR = -4;
 
     /**
-     * Json decode error
-     */
-    const JSON_PARSE_ERROR = -5;
-
-    /**
-     * Xml decode error
-     */
-    const XML_PARSE_ERROR = -6;
-
-    /**
      * Api error
      */
-    const API_ERROR = -7;
+    const API_ERROR = -5;
 
     /**
      * Send success.
@@ -63,18 +53,18 @@ class MailResult
     const SUCCESS = 1;
 
     /**
+     * Queued job id
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
      * Authentication result code
      *
      * @var int
      */
     protected $code;
-
-    /**
-     * Response body
-     *
-     * @var mixed
-     */
-    protected $body;
 
     /**
      * Mailer class
@@ -109,61 +99,19 @@ class MailResult
      *
      * @return bool
      */
-    public function isValid()
+    public function hasError()
     {
-        if ($this->code > 0) {
-            return true;
+        if ($this->code > 0 || $this->code == null) {
+            return false;
         } else {
             $this->logger->error(
-                'Email api request failed', 
+                'Api request failed', 
                 [
                     'api' => get_class($this->mailer)
                 ]
             );
-            return false;
+            return true;
         }
-    }
-
-    /**
-     * Get the result code for this authentication attempt
-     *
-     * @return int
-     */
-    public function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * Returns curl response
-     *
-     * @return mixed
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * Returns an array of string reasons why the authentication attempt was unsuccessful
-     *
-     * If authentication was successful, this method returns an empty array.
-     *
-     * @return array
-     */
-    public function getMessages()
-    {
-        return $this->messages;
-    }
-
-    /**
-     * Returns to curl_info() array
-     * 
-     * @return array
-     */
-    public function getInfo()
-    {
-        return $this->info;
     }
 
     /**
@@ -179,42 +127,38 @@ class MailResult
     }
 
     /**
-     * Set response body
-     *
-     * @param string $body curl response
-     *
-     * @return object
-     */
-    public function setBody($body)
-    {
-        $this->body = $body;
-        return $this;
-    }
-
-    /**
-     * Set curl_info() data
-     *
-     * @param array $info curl_info array
-     *
-     * @return object
-     */
-    public function setInfo(array $info)
-    {
-        $this->info = $info;
-        return $this;
-    }
-
-    /**
      * Set custom error messages
      * 
      * @param string $message message
      *
-     * @return object
+     * @return object MailResult
      */
     public function setMessage($message)
     {
         $this->messages[] = $message;
         return $this;
+    }
+
+    /**
+     * Get the result code for this authentication attempt
+     *
+     * @return int
+     */
+    public function getCode()
+    {
+        return $this->code;
+    }
+
+    /**
+     * Returns an array of string reasons why the authentication attempt was unsuccessful
+     *
+     * If authentication was successful, this method returns an empty array.
+     *
+     * @return array
+     */
+    public function getMessages()
+    {
+        return $this->messages;
     }
 
     /**
@@ -226,8 +170,7 @@ class MailResult
     {
         return array(
             'code' => $this->code,
-            'messages' => $this->messages,
-            'identifier' => $this->identifier
+            'messages' => $this->messages
         );
     }
 

@@ -97,8 +97,3 @@ class CacheConnectionProvider extends AbstractConnectionProvider
     }
 
 }
-
-// END CacheConnectionProvider.php class
-/* End of file CacheConnectionProvider.php */
-
-/* Location: .Obullo/Service/Providers/Connections/CacheConnectionProvider.php */

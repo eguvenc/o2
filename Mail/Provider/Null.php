@@ -141,7 +141,7 @@ class Null
      * 
      * @return object
      */
-    public function setMailtype($type = 'text')
+    public function setMailType($type = 'text')
     {
         $type = null;
         return $this;

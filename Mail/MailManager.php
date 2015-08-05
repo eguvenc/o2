@@ -64,9 +64,19 @@ class MailManager
      * 
      * @return void
      */
-    public function setConfiguration($params = array())
+    public function setParameters($params = array())
     {
         $this->params = array_merge($params, $this->c['config']->load('mailer'));
+    }
+
+    /**
+     * Returns to configuration parameters
+     * 
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->params;
     }
 
     /**
@@ -76,7 +86,7 @@ class MailManager
      * 
      * @return object
      */
-    public function getMailer($mailer)
+    public function setMailer($mailer)
     {
         /**
          * Create new instance if we haven't got the same

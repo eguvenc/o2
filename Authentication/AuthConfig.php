@@ -31,7 +31,7 @@ class AuthConfig
      *
      * @return array
      */
-    public static function setConfiguration(Config $config, array $params)
+    public static function setParameters(Config $config, array $params)
     {
         $auth  = $config->load('auth');
         $table = $auth['tables'][$params['db.tablename']];
@@ -42,6 +42,16 @@ class AuthConfig
         $auth['db.rememberToken'] = $table['db.rememberToken'];
 
         return self::$params = array_merge($params, $auth);
+    }
+
+    /**
+     * Returns to all configuration params
+     * 
+     * @return array
+     */
+    public static function getParameters()
+    {
+        return self::$params;
     }
 
     /**

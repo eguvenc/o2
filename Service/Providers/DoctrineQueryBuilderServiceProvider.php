@@ -61,8 +61,3 @@ class DoctrineQueryBuilderServiceProvider implements ServiceProviderInterface
         return new QueryBuilder($this->c['app']->provider('database')->factory($params));  // Create new undefined connection
     }
 }
-
-// END QbServiceProvider Class
-
-/* End of file QbServiceProvider.php */
-/* Location: .Obullo/Service/Providers/QbServiceProvider.php */
