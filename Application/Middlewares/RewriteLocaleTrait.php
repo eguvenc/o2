@@ -84,8 +84,3 @@ trait RewriteLocaleTrait
         }
     }
 }
-
-// END RewriteLocaleTrait File
-/* End of file RewriteLocaleTrait.php
-
-/* Location: .Obullo/Application/Middlewares/RewriteLocaleTrait.php */

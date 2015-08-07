@@ -334,12 +334,14 @@ class Layer
      */
     public function log($label, $uri, $start, $id, $response)
     {
+        $uriString = md5($this->c['app']->uri->getUriString());
+
         $this->c['logger']->debug(
             $label.' '.strtolower($uri), 
             array(
                 'time' => number_format(microtime(true) - $start, 4),
                 'id' => $id, 
-                'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'">' .$response. '</div>',
+                'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'" data-uristring="'.$uriString.'">' .$response. '</div>',
             )
         );
     }

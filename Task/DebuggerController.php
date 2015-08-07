@@ -153,6 +153,9 @@ class DebuggerController extends \Controller
         if (isset($headers['Page-css'])) {
             $data['css'] = $headers['Page-css'];
         }
+        if (isset($headers['Page-uri'])) {
+            $data['uri'] = $headers['Page-uri'];
+        }
         if ($headers['Request'] == 'Http') {
             $data['message'] = 'HTTP_REQUEST';
             return $this->send($data);

@@ -92,6 +92,3 @@ return array(
         'SurreAlfreak'           => 'SurreAlfreak.ttf',
     ],
 );
-
-/* End of file image.php */
-/* Location: .config/captcha/image.php */

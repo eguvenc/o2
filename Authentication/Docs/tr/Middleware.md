@@ -32,6 +32,7 @@ $c['router']->group(
         $this->attach('accounts/.*');
     }
 );
+/* Location: .app/routes.php */
 ```
 
 Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfalarda <b>Auth</b> ve <b>Guest</b> katmanları çalışır. Attach metodu içerisinde düzenli ifadeler kullanabilirsiniz.
@@ -67,6 +68,7 @@ class User implements ServiceInterface
         };
     }
 }
+/* Location: .app/classes/Service/User.php */
 ```
 
 Guest katmanına bir örnek.
@@ -80,18 +82,6 @@ use Obullo\Authentication\AuthConfig;
 
 class Guest extends Middleware
 {
-    protected $user;
-
-    public function __construct()
-    {
-        $this->user = $this->c->get(
-            'user',
-            [
-                'table' => AuthConfig::session('db.tablename')
-            ]
-        );
-    }
-
     public function call()
     {
         if ($this->user->identity->guest()) {
@@ -154,33 +144,16 @@ return array(
 namespace Http\Middlewares;
 
 use Obullo\Application\Middleware;
-use Obullo\Authentication\AuthConfig;
 use Obullo\Authentication\Middleware\UniqueLoginTrait;
 
 class Auth extends Middleware
 {
     use UniqueLoginTrait;
 
-    protected $user;
-
-    public function __construct()
-    {
-        $this->user = $this->c->get(
-            'user',
-            [
-                'table' => AuthConfig::session('db.tablename')
-            ]
-        );
-    }
-
     public function call()
     {
         if ($this->user->identity->check()) {
-    
-            $this->uniqueLoginCheck();  // Terminate multiple logins
-            
-            // $this->user->activity->set('last', time());
-
+            $this->uniqueLoginCheck();
         }
         $this->next->call();
     }
@@ -199,24 +172,11 @@ User servisi katman içerisinde aşağıdaki çağırılarak auth sınfı check 
 namespace Http\Middlewares;
 
 use Obullo\Application\Middleware;
-use Obullo\Authentication\AuthConfig;
 use Obullo\Authentication\Middleware\UniqueLoginTrait;
 
 class Auth extends Middleware
 {
     use UniqueLoginTrait;
-
-    protected $user;
-
-    public function __construct()
-    {
-        $this->user = $this->c->get(
-            'user',
-            [
-                'table' => AuthConfig::session('db.tablename')
-            ]
-        );
-    }
 
     public function call()
     {
@@ -230,15 +190,55 @@ class Auth extends Middleware
 /* Location: .app/classes/Http/Middlewares/Auth.php */
 ```
 
-### User Servisi Neden Tablo İsmine Göre Yaratılıyor ?
+### User Servisini Dinamik Kullanmak
 
-Auth sorgularının esnek olması için her defasında login controller içerisinde konfigüre edilen tablo parametresi AuthConfig sınıfı içerisinden session verisine kaydedilir. Yine AuthConfig sınıfından geçerli tablo ismi alınarak User servisi bu tablo ismine göre dinamik olarak yaratılır.
+User servisi üyelik tablosu farklı projelere göre değişkenlik gösterebilir. Böyle bir durumda servisi mevcut projenizde domain adresine göre <kbd>Request Middleware</kbd> içerisinde filtreleyerek servisin farklı domain adresleri için aşağıdaki gibi farklı üyelik tablolarını kullanmasını sağlayabilirsiniz.
 
 ```php
-$this->user = $this->c->get('user', ['table' => AuthConfig::session('db.tablename')]);
+namespace Http\Middlewares;
+
+use Obullo\Application\Middleware;
+use Obullo\Application\Middlewares\BenchmarkTrait;
+use Obullo\Application\Middlewares\SanitizerTrait;
+
+class Request extends Middleware
+{
+    use BenchmarkTrait;
+    use SanitizerTrait;
+
+    protected $user;
+
+    public function __construct()
+    {
+        if ($this->router->getHost() == 'admin.example.com') {
+            $tablename = 'admins';
+        } else {
+            $tablename = 'users';
+        }
+        $this->user = $this->c->get(
+            'user',
+            [
+                'table' => $tablename
+            ]
+        );
+    }
+
+    public function call()
+    {
+        $this->sanitize();
+        
+        $this->benchmarkStart();
+        $this->next->call();
+        $this->benchmarkEnd();
+
+        $this->c['logger']->shutdown();
+    }
+}
+
+/* Location: .app/classes/Http/Middlewares/Request.php */
 ```
 
-Böylelikle projenizde bir başka üyelik tablosu için yetkilendirme yapmak istediğinizde sadece bu tablo ismi için aşağıdaki gibi yeni bir fonksiyon ve yeni bir view dosyası yaratarak farklı bir tablo için yetkilendirme yapabilirsiniz.
+Request katmanını yukarıdaki gibi yapılandırdı iseniz modüller membership klasörü altına aşağıdaki gibi bir login controller dosyası oluşturup kullanıcı giriş ekranını oluşturun.
 
 ```php
 namespace Membership;
@@ -247,9 +247,6 @@ use Obullo\Authentication\AuthConfig;
 
 class Login extends \Controller
 {
-    const USERS  = 'users';
-    const ADMINS = 'admins';
-
     /**
      * Users login 
      * 
@@ -259,8 +256,6 @@ class Login extends \Controller
      */
     public function index()
     {
-        $this->user = $this->c->get('user', ['table' => static::USERS]);
-
         if ($this->request->isPost()) {
 
             $this->validator->setRules('email', 'Email', 'required|email|trim');
@@ -288,50 +283,19 @@ class Login extends \Controller
         }
         $this->view->load('login');
     }
-
-    /**
-     * Admin login
-     * 
-     * @event->when("post")->subscribe('Event\Login\Attempt');
-     *
-     * @return void
-     */
-    public function admin()
-    {
-        $this->user = $this->c->get('user', ['table' => static::ADMINS]);
-
-        if ($this->request->isPost()) {
-
-            $this->validator->setRules('email', 'Email', 'required|email|trim');
-            $this->validator->setRules('password', 'Password', 'required|min(6)|trim');
-
-            if (! $this->validator->isValid()) {
-                
-                ...
-
-            } else {
-
-                //  login attemtp
-            }
-        }
-        $this->view->load('admin');
-    }
-}
-
 }
 ```
 
-Yukarıdaki düzenlemeden sonra projenizde iki farklı üye girişi kapısı yaratılmış olur.
-
-
-Standart kullanıcılar aşağıdaki gibi bir adresten giriş yaparken
+Kullanıcı girişi yapmak için oluşturduğunuz sayfayı ziyaret edin.
 
 ```php
-http://example.com/membership/login/index
+http://example.com/membership/login
 ```
 
-Yönetici seviyesindeki kullanıcılar aşağıdaki gibi farklı bir adresten giriş yapabilirler.
+Yönetici girişi yapmak için oluşturduğunuz sayfayı ziyaret edin.
 
 ```php
-http://example.com/membership/login/admin
+http://admin.example.com/membership/login
 ```
+
+Artık yetkilendirme servisiniz alt domain isimleriyle uyumlu çalışıyor olmalı.

@@ -34,8 +34,3 @@ interface ServiceProviderInterface
      */
     public function get($params = array());
 }
-
-// END ServiceProvider class
-
-/* End of file ServiceProviderInterface.php */
-/* Location: .Obullo/Service/ServiceProviderInterface.php */

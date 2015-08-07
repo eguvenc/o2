@@ -64,7 +64,7 @@ class Manager
          */
         $websocketUrl = $this->c['config']['http']['debugger']['socket'];
         $debuggerOff  = (int)$this->c['config']['http']['debugger']['enabled'];
-        $debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/body?o_debugger=1');
+        $debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/body');
 
         $envtab = new EnvTab($this->c['request']);
         $envHtml = $envtab->printHtml();

@@ -5,16 +5,6 @@ namespace Captcha;
 class Create extends \Controller
 {
     /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['captcha'];
-    }
-
-    /**
      * Index
      * 
      * @return void

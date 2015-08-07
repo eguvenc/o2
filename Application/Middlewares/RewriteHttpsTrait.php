@@ -16,8 +16,3 @@ trait RewriteHttpsTrait
         }
     }
 }
-
-// END RewriteHttpsTrait File
-/* End of file RewriteHttpsTrait.php
-
-/* Location: .Obullo/Application/Middlewares/RewriteHttpsTrait.php */

@@ -839,9 +839,13 @@ En son yazılan http izine girilen katmanları tutturur.
 
 ------
 
+#### $this->router->getHost();
+
+Gets current domain name.
+
 #### $this->router->getDomain();
 
-Gets the currently working domain.
+Returns domain name configured in routes.php
 
 #### $this->router->fetchModule();
 

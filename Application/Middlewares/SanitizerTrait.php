@@ -2,7 +2,7 @@
 
 namespace Obullo\Application\Middlewares;
 
-trait SanitizeSuperGlobalsTrait
+trait SanitizerTrait
 {
     /**
      * Sanitizer
@@ -29,8 +29,3 @@ trait SanitizeSuperGlobalsTrait
         );
     }
 }
-
-// END SanitizeSuperGlobalsTrait File
-/* End of file SanitizeSuperGlobalsTrait.php
-
-/* Location: .Obullo/Application/Middlewares/SanitizeSuperGlobalsTrait.php */

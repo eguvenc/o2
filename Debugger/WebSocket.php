@@ -71,14 +71,23 @@ class WebSocket
     protected $request;
 
     /**
+     * Current uriString
+     * 
+     * @var object
+     */
+    protected $uriString;
+
+    /**
      * Constructor
      *
-     * @param object $request request
-     * @param object $config  config
+     * @param object $request   request
+     * @param object $uriString uri request
+     * @param object $config    config
      */
-    public function __construct($request, $config)
+    public function __construct($request, $uriString, $config)
     {
         $this->request = $request;
+        $this->uriString = $uriString;
 
         if (false == preg_match(
             '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
@@ -178,9 +187,11 @@ class WebSocket
         "Upgrade: websocket\r\n" .
         "Connection: Upgrade\r\n" .
         "Environment-data: ".$base64EnvData."\r\n".
+        "Page-uri: ".md5($this->uriString)."\r\n".
         "Msg-id: ".uniqid()."\r\n";
 
         $css = self::parseCss($this->output);
+
         if (! empty($css)) {
             $upgrade.= "Page-css: ".base64_encode($css)."\r\n";
         }
@@ -200,7 +211,7 @@ class WebSocket
      * 
      * @param string $html pure html
      * 
-     * @return string css content
+     * @return mixed css content or null
      */
     protected static function parseCss($html)
     {
@@ -208,6 +219,7 @@ class WebSocket
         libxml_use_internal_errors(true);
         $doc->loadHTML('<?xml encoding="UTF-8">' . $html);
         libxml_use_internal_errors(false);
+
         $doc->preserveWhiteSpace = false; 
         foreach ($doc->childNodes as $item) {
             if ($item->nodeType == XML_PI_NODE) {
@@ -215,9 +227,12 @@ class WebSocket
             }
         }
         $doc->encoding = 'UTF-8';
-        $head = $doc->getElementsByTagName('head'); 
-        $link = $head->item(0)->getElementsByTagName('link'); 
+        $head = $doc->getElementsByTagName('head');
 
+        if ($head->length == 0) { // If page has not got head tags return to null
+            return;
+        }
+        $link = $head->item(0)->getElementsByTagName('link'); 
         $css = '';
         if ($link->length > 0) {
             foreach ($link as $linkRow) { 
@@ -231,7 +246,7 @@ class WebSocket
                 } 
             }
         }
-        $style = $head->item(0)->getElementsByTagName('style');
+        $style = $head->item(0)->getElementsByTagName('style'); // Include inlie styles
         if ($style->length > 0) {
             foreach ($style as $styleRow) {
                 $css.= $styleRow->nodeValue."\n";

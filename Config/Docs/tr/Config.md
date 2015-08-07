@@ -145,7 +145,7 @@ return array(
 Herhangi bir ortam değişkeni klasörü içerisinde yer almayıp <kbd>config/</kbd> klasörü kök dizininde yer alan diğer bir deyişle dışarıda kalan konfigürasyon dosyaları paylaşımlı konfigürasyon dosyaları olarak adlandırılırlar. Bir konfigürasyon dosyasının paylaşımlı mı yoksa ortam klasörüne mi ait olup olmadığı uygulama tarafından kendiliğinden belirlenir.
 
 ```php
-$this->config->load('security');
+$this->config->load('agents');
 ```
 
 <a name="environment-config"></a>

@@ -311,7 +311,7 @@ pre span.string {color: #cc0000;}
 
 <?php 
 $getDebuggerURl = function ($method = 'index') {
-    return $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/'.$method.'?o_debugger=1');
+    return $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/'.$method);
 };
 ?>
 <script type="text/javascript">
@@ -455,6 +455,7 @@ function refreshDebugger(msg) {
 }
 
 var layers = {};
+var heads  = {};
 function createIframe(head, msgID) {
     var layer = document.getElementsByClassName('obullo-layer');
     for (var i in layer) {
@@ -463,13 +464,15 @@ function createIframe(head, msgID) {
         }
         if (!layer[i].getElementsByTagName('iframe').length) {
             layers[layer[i].dataset.unique] = layer[i].innerHTML;
+            heads[layer[i].dataset.unique] = head;
         }
     }
     for (var i in layer) {
+        
         if (typeof layer[i] != "object") {
             continue;
         }
-        var tempHtml = head;
+        var tempHtml = heads[layer[i].dataset.unique];
         var iframe = document.createElement('iframe');
         iframe.frameBorder=0;
         tempHtml += '</head>';

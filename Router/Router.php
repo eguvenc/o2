@@ -879,7 +879,7 @@ class Router
     }
 
     /**
-     * Get currently worked domain configured in your routes.php
+     * Get domain which is configured in your routes.php
      * 
      * @return string
      */
@@ -888,9 +888,14 @@ class Router
         return $this->DOMAIN;
     }
 
+    /**
+     * Get currently worked domain name
+     * 
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->HOST;
+    }
+
 }
-
-// END Router.php File
-/* End of file Router.php
-
-/* Location: .Obullo/Router/Router.php */

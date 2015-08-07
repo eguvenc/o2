@@ -1,5 +1,5 @@
 
-## AMQP Service Provider
+## Amqp Service Provider
 
 ------
 
@@ -7,7 +7,7 @@
 Kullanım Örneği
 
 ```php
-$this->AMQPConnection = $this->c['app']->provider('AMQP')->get(['connection' => 'default']);
+$this->AMQPConnection = $this->c['app']->provider('amqp')->get(['connection' => 'default']);
 ```
 
 Birkez yüklendikten sonra amqp bağlantısı açılır.
@@ -19,7 +19,7 @@ $channel = new AMQPChannel($this->AMQPConnection);
 Factory Örneği ( Konfigürasyonda tanımlı olmayan yeni bağlantılar üretmek için )
 
 ```php
-$this->AMQPConnection = $this->c['app']->provider('AMQP')->factory( 
+$this->AMQPConnection = $this->c['app']->provider('amqp')->factory( 
     [
         'host'  => 'localhost',
         'port'  => 5672,
@@ -31,8 +31,6 @@ $this->AMQPConnection = $this->c['app']->provider('AMQP')->factory(
 ```
 
 ```php
-<?php
-
 class SomeClass
 {
     protected $_someMember;

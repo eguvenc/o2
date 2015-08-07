@@ -52,7 +52,7 @@ class Element
         $form .= $this->attributesToString($attributes, true);
         $form .= '>';
 
-        $security = $this->c['config']->load('security');
+        $security = $this->c['config']['security'];
         $form = str_replace(array('"method=\'get\'"', "method=\'GET\'"), 'method="get"', $form);
 
         // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
@@ -129,7 +129,7 @@ class Element
      */
     public function checkbox($data = '', $value = '', $checked = false, $extra = '')
     {
-        if (is_object($value)) { // $_POST & Db value schema sync
+        if (is_object($value)) { // $_POST & Db value
             $value = $this->getRowValue($checked, $data); 
         }
         $defaults = array('type' => 'checkbox', 'name' => (( ! is_array($data)) ? $data : ''), 'value' => $value);
@@ -173,7 +173,7 @@ class Element
             $selected_option = array_keys($options);
             $selected        = $selected_option[0];
         }
-        if ( ! is_array($selected)) {
+        if (! is_array($selected)) {
             $selected = array($selected);
         }
         if (sizeof($selected) === 0) { // If no selected state was submitted we will attempt to set it automatically
@@ -268,7 +268,7 @@ class Element
             }
             return $hiddenTag;
         }
-        if ( ! is_array($value)) {
+        if (! is_array($value)) {
             $hiddenTag .= '<input type="hidden" name="' . $name . '" value="'. $this->prep($value, $name) .'" '.  trim($attributes) . '/>' . "\n";
         } else {
             foreach ($value as $k => $v) {
@@ -343,7 +343,7 @@ class Element
         if (is_object($value)) { // $_POST & Db value schema sync
             $value = $this->getRowValue($value, $data); 
         }
-        if ( ! is_array($data)) {
+        if (! is_array($data)) {
             $data = array('name' => $data);
         }
         $data['type'] = 'password';
@@ -393,7 +393,7 @@ class Element
      */
     public function radio($data = array(), $value = '', $checked = false, $extra = '')
     {
-        if ( ! is_array($data)) {
+        if (! is_array($data)) {
             $data = array('name' => $data); 
         }
         $data['type'] = 'radio';
@@ -445,7 +445,7 @@ class Element
             $value = $this->getRowValue($value, $data);
         }
         $defaults = array('name' => (( ! is_array($data)) ? $data : ''), 'cols' => '90', 'rows' => '12');
-        if ( ! is_array($data) || ! isset($data['value'])) {
+        if (! is_array($data) || ! isset($data['value'])) {
             $val = $value;
             if (strpos($extra, 'rows') !== false || strpos($extra, 'cols') !== false) {
                 $defaults = array('name' => ( ! is_array($data)) ? $data : '');
@@ -471,7 +471,7 @@ class Element
      */
     public function upload($data = '', $value = '', $extra = '')
     {
-        if ( ! is_array($data)) {
+        if (! is_array($data)) {
             $data = array('name' => $data);
         }
         $data['type'] = 'file';
@@ -535,10 +535,10 @@ class Element
         }
         if (is_array($attributes) && count($attributes) > 0) {
             $atts = '';
-            if ( ! isset($attributes['method'])) {
+            if (! isset($attributes['method'])) {
                 $atts.= ' method="post"';
             }
-            if ( ! isset($attributes['accept-charset'])) {
+            if (! isset($attributes['accept-charset'])) {
                 $atts.= ' accept-charset="'.strtolower($this->c['config']['locale']['charset']).'"';
             }
             foreach ($attributes as $key => $val) {
@@ -562,7 +562,7 @@ class Element
             $field = $field['name'];
         }
         $value = (isset($_REQUEST[$field])) ? $this->c['form']->getValue($field) : '';
-        if ( ! isset($_REQUEST[$field])) { // If POST data not available use Database $row
+        if (! isset($_REQUEST[$field])) { // If POST data not available use Database $row
             if (is_object($row) && isset($row->{$field})) { // If field available in database $row Object
                 $value = $row->{$field};
             } elseif (is_array($row) && isset($row[$field])) { // If field available in database $row Array
@@ -572,9 +572,3 @@ class Element
         return $value;
     }
 }
-
-
-// END Element class
-/* End of file Element.php */
-
-/* Location: .Obullo/Form/Element.php */

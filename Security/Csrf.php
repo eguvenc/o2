@@ -54,7 +54,7 @@ class Csrf
      *
      * @param object $c container 
      * 
-     * @return  void
+     * @return void
      */
     public function __construct(ContainerInterface $c)
     {
@@ -62,7 +62,7 @@ class Csrf
         $this->logger = $c['logger'];
         $this->session = $c['session'];
         
-        $this->config = $c['config']->load('security');
+        $this->config = $c['config']['security'];
         $this->refresh = $this->config['csrf']['token']['refresh'];
         $this->tokenName = $this->config['csrf']['token']['name'];
         $this->tokenData = $this->session->get($this->tokenName);
@@ -82,9 +82,9 @@ class Csrf
         if ($this->setCsrfToken()) {
             return true;
         }
-        if ( ! isset($_POST[$this->tokenName]) 
-            OR ! isset($this->tokenData['value'])
-            OR ($_POST[$this->tokenName] != $this->tokenData['value'])
+        if (! isset($_POST[$this->tokenName]) 
+            || ! isset($this->tokenData['value'])
+            || ($_POST[$this->tokenName] != $this->tokenData['value'])
         ) {
             return false;
         }
@@ -179,10 +179,3 @@ class Csrf
     }
 
 }
-
-// END Csrf Class
-
-// END Csrf.php File
-/* End of file Csrf.php
-
-/* Location: .Obullo/Security/Csrf.php */

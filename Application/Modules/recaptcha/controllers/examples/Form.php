@@ -5,20 +5,6 @@ namespace Recaptcha\Examples;
 class Form extends \Controller
 {
     /**
-     * Loader
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        $this->c['url'];
-        $this->c['form'];
-        $this->c['view'];
-        $this->c['request'];
-        $this->c['recaptcha'];
-    }
-
-    /**
      * Index
      * 
      * @return void
@@ -27,9 +13,9 @@ class Form extends \Controller
     {
         if ($this->request->isPost()) {
 
-            $this->c['validator']->setRules('username', 'Username', 'required|trim|max(100)');
+            $this->validator->setRules('username', 'Username', 'required|trim|max(100)');
 
-            if ($this->c['validator']->isValid()) {
+            if ($this->validator->isValid()) {
                 $this->form->success('Form Validation Success.');
             }
         }

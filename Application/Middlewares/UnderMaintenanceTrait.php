@@ -80,8 +80,3 @@ trait UnderMaintenanceTrait
     }
 
 }
-
-// END UnderMaintenanceTrait File
-/* End of file UnderMaintenanceTrait.php
-
-/* Location: .Obullo/Application/Middlewares/UnderMaintenanceTrait.php */

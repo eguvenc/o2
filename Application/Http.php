@@ -78,10 +78,6 @@ class Http extends Application
         include APP .'events.php';
         include APP .'routes.php';
 
-        if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket = new WebSocket($this->c['request'], $this->c['config']);
-            $this->websocket->connect();
-        }
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -98,6 +94,10 @@ class Http extends Application
         $this->init();
         $this->c['router']->init();                 // Initialize Routes
 
+        if ($this->c['config']['http']['debugger']['enabled']) {
+            $this->websocket = new WebSocket($this->c['request'], $this->c['uri']->getUriString(), $this->c['config']);
+            $this->websocket->connect();
+        }
         $class = $this->c['router']->fetchClass();
         $method = $this->c['router']->fetchMethod();
         $namespace = $this->c['router']->fetchNamespace();
@@ -235,7 +235,7 @@ class Http extends Application
                 $this->c['cookie']->write($cookie);
             }
         }
-        $this->registerDebugger();
+        $this->closeDebugger();
         $this->registerFatalError();
     }
 
@@ -244,9 +244,9 @@ class Http extends Application
      * 
      * @return void
      */
-    public function registerDebugger()
+    public function closeDebugger()
     {
-        if ($this->c['config']['http']['debugger']['enabled'] && ! isset($_REQUEST['o_debugger'])) {
+        if ($this->c['config']['http']['debugger']['enabled'] && $this->c['uri']->segment(0) != 'debugger') {
             $this->websocket->emit($this->finalOutput, $this->c['logger']->getPayload());
         }
     }

@@ -48,10 +48,8 @@ class AuthManager
      */
     public function setParameters(array $params)
     {
-        AuthConfig::setParameters($this->c['config'], $this->c['response'], $this->c['session'], $params);
-
-        $parameters = AuthConfig::get();
-        $this->register($parameters);
+        AuthConfig::setParameters($this->c['config'], $this->c['response'], $params);
+        $this->register();
     }
 
     /**
@@ -61,18 +59,18 @@ class AuthManager
      */
     public function getParameters()
     {
-        return AuthConfig::get();
+        return AuthConfig::getParameters();
     }
 
     /**
      * Register authentication services
-     * 
-     * @param array $parameters service parameters
      *
      * @return void
      */
-    protected function register(array $parameters)
+    protected function register()
     {
+        $parameters = $this->getParameters();
+
         $this->c['auth.storage'] = function () use ($parameters) {
             return new $parameters['cache']['storage']($this->c['session'], $this->c['app']->provider('cache'), $parameters);
         };

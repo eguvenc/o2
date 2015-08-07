@@ -47,8 +47,3 @@ trait BenchmarkTrait
         $this->logger->debug($message, $extra, -99999);
     }
 }
-
-// END BenchmarkTrait File
-/* End of file BenchmarkTrait.php
-
-/* Location: .Obullo/Application/Middlewares/BenchmarkTrait.php */

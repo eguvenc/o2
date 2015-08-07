@@ -30,8 +30,3 @@ trait MethodNotAllowedTrait
         }
     }
 }
-
-// END MethodNotAllowedTrait File
-/* End of file MethodNotAllowedTrait.php
-
-/* Location: .Obullo/Application/Middlewares/MethodNotAllowedTrait.php */

@@ -30,6 +30,3 @@ return array(
         ]
     ]
 );
-
-/* End of file recaptcha.php */
-/* Location: .config/recaptcha/recaptcha.php */

@@ -34,8 +34,3 @@ class Captcha implements ServiceInterface
         };
     }
 }
-
-// END Captcha service
-
-/* End of file Captcha.php */
-/* Location: .app/classes/Service/Captcha.php */
