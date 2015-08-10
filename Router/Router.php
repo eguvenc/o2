@@ -883,7 +883,16 @@ class Router
     {
         return $this->DOMAIN;
     }
-
+    
+    /**
+     * Get currently worked domain name
+     * 
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->HOST;
+    }
 }
 
 // END Router.php File
