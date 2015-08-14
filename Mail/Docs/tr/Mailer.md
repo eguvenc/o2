@@ -443,10 +443,10 @@ if ($mailResult->hasError()) {
 
 #### Kuyruğu Tüketmek ( İşçiler )
 
-Mail kuyruğunu tüketmek için konsoldan <kbd>app/classes/Workers/Mailer.php</kbd> işçisini çalıştırmanız gerekir. İşciyi test modunda çalıştırıp kuyruğu tüketmek için <kbd>--debug</kbd> değerini 1 olarak girin.
+Mail kuyruğunu tüketmek için konsoldan <kbd>app/classes/Workers/Mailer.php</kbd> işçisini çalıştırmanız gerekir. İşciyi test modunda çalıştırıp kuyruğu tüketmek için <kbd>--output</kbd> değerini 1 olarak girin.
 
 ```php
-php task queue listen --channel=mail --route=mailer.1 --debug=1
+php task queue listen --worker=Workers\Mailer --job=mailer.1 --output=1
 ```
 
 Yukarıdaki komutu konsoldan çalıştırdığınızda <kbd>$data</kbd> değişkeni içerisinden Mailer işçisine kuyruktaki email verileri gönderilir. Aşağıda sizin için mailgun web servisi ile email gönderimi yapan bir örnek yaptık.
@@ -590,13 +590,13 @@ Array
 
 #### Hata Ayıklama
 
-Dinleme komutu sonunda <kbd>--debug</kbd> parametresine "1" değerini verdiğinizde kuyruğa gönderilen maillere ait çıktılar ve hata çıktılarını konsoldan takip edebilirsiniz.
+Dinleme komutu sonunda <kbd>--output</kbd> parametresine "1" değerini verdiğinizde kuyruğa gönderilen maillere ait çıktılar ve hata çıktılarını konsoldan takip edebilirsiniz.
 
 ```php
-php task queue listen --channel=mail --route=mailer.1 --debug=1
+php task queue listen --worker=Workers\Mailer --job=mailer.1 --output=1
 ```
 
-Prodüksiyon çevre ortamında <kbd>--debug</kbd> parametresi değeri her zaman "0" olmalıdır.
+Prodüksiyon çevre ortamında <kbd>--output</kbd> parametresi değeri her zaman "0" olmalıdır.
 
 ```php
 Output : 

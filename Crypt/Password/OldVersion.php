@@ -10,7 +10,7 @@ use RuntimeException;
  * @category  Password
  * @package   Bcrypt
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/bcrypt
  * @see       http://www.php.net/manual/en/ref.password.php
@@ -43,8 +43,10 @@ class OldVersion
      */
     public function __construct()
     {
-        if ( ! function_exists('crypt')) {
-            throw new RuntimeException("Crypt must be loaded for password_verify to function");
+        if (! function_exists('crypt')) {
+            throw new RuntimeException(
+                "Crypt library required for password_verify function"
+            );
         }
     }
 
@@ -84,7 +86,7 @@ class OldVersion
      */
     protected function generateSalt()
     {
-        if ($this->cost < 4 || $this->cost > 31) { // do not increase the work factor                                        // this may cause performance problems.
+        if ($this->cost < 4 || $this->cost > 31) { // do not increase the work factor this may cause performance problems.
             $this->cost = $this->_workFactor;
         }
         $input = $this->getRandomBytes();
@@ -102,7 +104,7 @@ class OldVersion
      */
     protected function getRandomBytes()
     {
-        if ( ! function_exists('openssl_random_pseudo_bytes')) {
+        if (! function_exists('openssl_random_pseudo_bytes')) {
             throw new RunTimeException("Unsupported hash format.");
         }
         return openssl_random_pseudo_bytes(16);
@@ -133,7 +135,7 @@ class OldVersion
      */
     protected function validateIdentifier($hash)
     {
-        if ( ! in_array(substr($hash, 1, 2), $this->validIdentifiers)) {
+        if (! in_array(substr($hash, 1, 2), $this->validIdentifiers)) {
             throw new RuntimeException("Unsupported hash format.");
         }
     }
@@ -167,9 +169,3 @@ class OldVersion
         return $hash = null;
     }
 }
-
-
-// END OldPassword class
-
-/* End of file OldPassword.php */
-/* Location: .Obullo/Crytpt/Password/OldPassword.php */

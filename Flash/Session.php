@@ -2,6 +2,9 @@
 
 namespace Obullo\Flash;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Session\SessionInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -10,7 +13,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Session
  * @package   Flash
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/flash
  */
@@ -29,18 +32,11 @@ class Session
     const NOTICE_INFO = 'info';
 
     /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
      * Flash config
      * 
      * @var array
      */
-    protected $flash;
+    protected $config;
 
     /**
      * Session
@@ -66,18 +62,21 @@ class Session
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c       \Obullo\Container\ContainerInterface
+     * @param object $config  \Obullo\Config\ConfigInterface
+     * @param object $logger  \Obullo\Log\LoggerInterface
+     * @param object $session \Obullo\Session\SessionInterface
      */
-    public function __construct(ContainerInterface $c) 
+    public function __construct(ContainerInterface $c, ConfigInterface $config, LoggerInterface $logger, SessionInterface $session) 
     {
         $this->c = $c;
-        $this->session = $c['session'];
-        $this->flash = $c['config']->load('flash');
+        $this->session = $session;
+        $this->config = $config->load('flash');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
         
-        $c['logger']->debug('Session Flash Class Initialized');
+        $logger->debug('Session Flash Class Initialized');
     }
 
     /**
@@ -92,8 +91,8 @@ class Session
     {
         return str_replace(
             array('{class}','{icon}','{message}'), 
-            array($this->flash[$key]['class'], $this->flash[$key]['icon'], $message),
-            $this->flash[static::MESSAGE]
+            array($this->config[$key]['class'], $this->config[$key]['icon'], $message),
+            $this->config[static::MESSAGE]
         );
     }
 
@@ -107,7 +106,7 @@ class Session
         $messages = array();
         foreach (array('success', 'error', 'info', 'warning') as $key) {
             $message = $this->get('notice:'.$key);
-            if ( ! empty($message)) {
+            if (! empty($message)) {
                 $messages[] = $this->template($message, $key);
             }
         }

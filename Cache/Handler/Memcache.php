@@ -3,6 +3,7 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
+use Obullo\Cache\CacheInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -11,11 +12,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Cache
  * @package   Memcache
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-class Memcache implements CacheHandlerInterface
+class Memcache implements CacheInterface
 {
     /**
      * Container
@@ -41,14 +42,12 @@ class Memcache implements CacheHandlerInterface
     /**
      * Constructor
      * 
-     * @param array  $c        container
-     * @param object $memcache Memcache
+     * @param object $config \Obullo\Config\ConfigInterface
      */
-    public function __construct(ContainerInterface $c, \Memcache $memcache)
+    public function __construct(ConfigInterface $config, \Memcache $memcache)
     {
-        $this->c = $c;
         $this->memcache = $memcache;
-        $this->config = $this->c['config']['cache/memcache'];
+        $this->config = $config->load('cache/memcache');
 
         $this->defaultConnection = $this->config['connections'][key($this->config['connections'])];
         $this->connect();
@@ -72,7 +71,7 @@ class Memcache implements CacheHandlerInterface
      */
     protected function openNodeConnections()
     {
-        if ( ! empty($this->config['nodes'][0]['host']) && ! empty($this->config['nodes'][0]['port'])) {
+        if (! empty($this->config['nodes'][0]['host']) && ! empty($this->config['nodes'][0]['port'])) {
             array_unshift($this->config['nodes'], $this->defaultConnection);  // Add default connection to nodes
         } else {
             return;  // If there is no node.
@@ -80,7 +79,7 @@ class Memcache implements CacheHandlerInterface
         $default = $this->defaultConnection['options'];
 
         foreach ($this->config['nodes'] as $servers) {
-            if ( empty($servers['host']) OR empty($servers['port'])) {
+            if (empty($servers['host']) || empty($servers['port'])) {
                 throw new RunTimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
@@ -201,7 +200,7 @@ class Memcache implements CacheHandlerInterface
      */
     public function set($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             return $this->memcache->set($key, array($data, time(), $ttl), 0, $ttl);
         }
         return $this->setArray($key, $data);
@@ -230,7 +229,7 @@ class Memcache implements CacheHandlerInterface
      */
     public function replace($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             $this->memcache->replace($key, array($data, time(), $ttl), 0, $ttl);
         }
         return $this->setArray($key, $data);
@@ -289,8 +288,3 @@ class Memcache implements CacheHandlerInterface
     }
 
 }
-
-// END Memcache Class
-
-/* End of file Memcache.php */
-/* Location: .Obullo/Cache/Handler/Memcache.php */

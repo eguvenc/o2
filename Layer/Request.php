@@ -2,7 +2,8 @@
 
 namespace Obullo\Layer;
 
-use Controller;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -11,7 +12,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Layers
  * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layers
  */
@@ -25,18 +26,31 @@ class Request
     protected $c;
 
     /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
+     * Config parameters
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c      ContainerInterface
+     * @param object $logger LoggerInterface
+     * @param object $config ConfigInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, LoggerInterface $logger, ConfigInterface $config)
     {   
         $this->c = $c;
-        $this->params = $c['config']['layer'];
-
-        $this->c['layer.flush'] = function () use ($c) {
-            return new Flush($c);
-        };
+        $this->logger = $logger;
+        $this->params = $config['layer'];
     }
 
     /**
@@ -87,7 +101,7 @@ class Request
      */
     public function request($method, $uriString, $data = array(), $expiration = '')
     {
-        $layer = new Layer($this->c, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
+        $layer = new Layer($this->c, $this->logger, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
         $layer->setHeaders();  // Headers must be at the top
         $layer->setUrl($uriString);
@@ -96,8 +110,7 @@ class Request
         $layer->restore();  // Restore controller objects
 
         if (strpos(trim($response), '@LayerNotFound@') === 0) {  // Error template support
-            $error = new Error($this->c);
-            return $error->getError(str_replace('@LayerNotFound@', '', $response));
+            return Error::getError($response);
         }
         return (string)$response;
     }
@@ -112,7 +125,8 @@ class Request
      */
     public function flush($uri, $data = array())
     {
-        return $this->c['layer.flush']->uri($uri, $data);
+        $flush = new Flush($this->logger, $this->c['cache']);
+        return $flush->uri($uri, $data);
     }
     
 }

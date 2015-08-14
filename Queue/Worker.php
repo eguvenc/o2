@@ -4,11 +4,13 @@ namespace Obullo\Queue;
 
 use Exception;
 use ErrorException;
-use Obullo\Cli\Cli;
 use Obullo\Queue\Job;
-use Obullo\Log\Logger;
 use Obullo\Cli\Console;
-use Obullo\Container\ContainerInterface;
+use Obullo\Cli\CliInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Queue\QueueInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 
 /**
  * Queue Worker Class
@@ -18,19 +20,12 @@ use Obullo\Container\ContainerInterface;
  * @category  Queue
  * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
 class Worker
 {
-    /**
-     * Container
-     * 
-     * @var c
-     */
-    protected $c;
-
     /**
      * Job instance
      * 
@@ -43,7 +38,7 @@ class Worker
      * 
      * @var string
      */
-    protected $env = 'production';
+    protected $env;
 
     /**
      * Cli instance
@@ -51,6 +46,20 @@ class Worker
      * @var object
      */
     protected $cli;
+
+    /**
+     * Application
+     * 
+     * @var object
+     */
+    protected $app;
+
+    /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
 
     /**
      * Queue instance
@@ -102,6 +111,13 @@ class Worker
     protected $timeout;
 
     /**
+     * Debug Output
+     * 
+     * @var int
+     */
+    protected $output;
+
+    /**
      * Sleep time
      * 
      * @var int
@@ -113,21 +129,7 @@ class Worker
      * 
      * @var int
      */
-    protected $tries;
-
-    /**
-     * Enable debugger
-     * 
-     * @var int
-     */
-    protected $debug;
-
-    /**
-     * Your project name
-     * 
-     * @var string
-     */
-    protected $project = null;
+    protected $attempt;
 
     /**
      * Your custom variable
@@ -196,17 +198,19 @@ class Worker
     /**
      * Create a new queue worker.
      *
-     * @param object $c   container
-     * @param array  $cli Obullo\Cli\Cli
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $queue  \Obullo\Queue\QueueInterface
+     * @param object $cli    \Obullo\Cli\CliInterface
+     * @param object $logger \Obullo\Log\LogInterface
      */
-    public function __construct(ContainerInterface $c, Cli $cli)
+    public function __construct(Application $app, ConfigInterface $config, QueueInterface $queue, CliInterface $cli, LoggerInterface $logger)
     {
-        $this->c = $c;
-        $this->c['config']->load('queue/workers');  // Load queue configuration
-
+        $this->app = $app;
         $this->cli = $cli;
-        $this->queue = $this->c['queue'];
-        $this->logger = $this->c['logger'];
+        $this->config = $config;
+        $this->queue = $queue;
+        $this->logger = $logger;
 
         $this->logger->channel('queue');
         $this->logger->debug('Queue Worker Class Initialized');
@@ -228,16 +232,17 @@ class Worker
                                                // Don't change here we already catch all errors except the notices.
         error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
 
-        $this->queue->channel($this->cli->argument('channel', null));
-        $this->route = $this->cli->argument('route', null);
+        $worker = $this->cli->argument('worker', null);
+        $this->queue->exchange($worker);
+        
+        $this->route = $this->cli->argument('job', null);
         $this->memory = $this->cli->argument('memory', 128);
         $this->delay  = $this->cli->argument('delay', 0);
         $this->timeout = $this->cli->argument('timeout', 0);
         $this->sleep = $this->cli->argument('sleep', 3);
-        $this->tries = $this->cli->argument('tries', 0);
-        $this->debug = $this->cli->argument('debug', 0);
+        $this->attempt = $this->cli->argument('attempt', 0);
+        $this->output = $this->cli->argument('output', 0);
         $this->env = $this->cli->argument('env', 'local');
-        $this->project = $this->cli->argument('project', 'default');
         $this->var = $this->cli->argument('var', null);
 
         if ($this->memoryExceeded($this->memory)) {
@@ -285,10 +290,16 @@ class Worker
      */
     public function doJob()
     {
-        if ($this->tries > 0 && $this->job->getAttempts() > $this->tries) {
+        if ($this->attempt > 0 && $this->job->getAttempts() > $this->attempt) {
             $this->job->delete();
             $this->logger->channel('queue');
-            $this->logger->warning('The job failed and deleted from queue.', array('job' => $this->job->getName(), 'body' => $this->job->getRawBody()));
+            $this->logger->warning(
+                'The job failed and deleted from queue.', 
+                array(
+                    'job' => $this->job->getName(), 
+                    'body' => $this->job->getRawBody()
+                )
+            );
             return;
         }
         $this->job->setEnv($this->env);
@@ -437,33 +448,26 @@ class Worker
      * 
      * @return void
      */
-    protected function saveFailedJob($event)
+    protected function saveFailedJob(array $event)
     {
-        global $c;
-
         // Worker does not well catch failed job exceptions because of we
         // use this function in exception handler.Thats the point why we need to try catch block.
-        try {
-            $event = $this->prependJobDetails($event);
-            if ($this->debug) {
-                $this->debugOutput($event);
-            }
-            if ($c['config']['queue/workers']['failed']['enabled']) {
 
-                $storageClassName = '\\'.ltrim($c['config']['queue/workers']['failed']['storage'], '\\');
-                $storage = new $storageClassName($c);
-                
-                $db = $storage->getConnection();
-
-                $db->beginTransaction();
-                $storage->save($event);
-                $db->commit();
-            }
-
-        } catch (Exception $e) {
-            $db->rollBack();
-            $this->c['exception']->show($e);
+        $params = $this->config['queue'];
+        if (! $params['failedJob']['enabled']) {
+            return;
         }
+        $event = $this->prependJobDetails($event);
+        if ($this->output) {
+            $this->debugOutput($event);
+        }
+        $storageClassName = '\\'.ltrim($params['failedJob']['storage'], '\\');
+        $storage = new $storageClassName(
+            $this->config,
+            $this->app->provider($params['failedJob']['provider']['name']),
+            $params
+        );
+        $storage->save($event);
     }
 
     /**
@@ -473,7 +477,7 @@ class Worker
      * 
      * @return array merge event
      */
-    protected function prependJobDetails($event)
+    protected function prependJobDetails(array $event)
     {
         if (! is_object($this->job)) {
             return $event;
@@ -531,8 +535,3 @@ class Worker
     }
 
 }
-
-// END Worker class
-
-/* End of file Worker.php */
-/* Location: .Obullo/Queue/Worker.php */

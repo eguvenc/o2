@@ -4,6 +4,7 @@ namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
 use RunTimeException;
+use Obullo\Cache\CacheInterface;
 use Obullo\Container\ContainerInterface;
     
 /**
@@ -12,11 +13,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Cache
  * @package   Memcached
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-class Memcached implements CacheHandlerInterface
+class Memcached implements CacheInterface
 {
     /**
      * Memcached client
@@ -231,7 +232,7 @@ class Memcached implements CacheHandlerInterface
      */
     public function set($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             return $this->memcached->set($key, $data, time() + $ttl);
         }
         return $this->setArray($key, $data);
@@ -263,7 +264,7 @@ class Memcached implements CacheHandlerInterface
      */
     public function replace($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             $this->memcached->replace($key, $data, time() + $ttl);
         }
         return $this->setArray($key, $data);
@@ -324,8 +325,3 @@ class Memcached implements CacheHandlerInterface
     }
 
 }
-
-// END Memcached Class
-
-/* End of file Memcached.php */
-/* Location: .Obullo/Cache/Handler/Memcached.php */

@@ -43,8 +43,3 @@ class Debugger extends AbstractHandler implements HandlerInterface
         return;
     }
 }
-
-// END Debugger class
-
-/* End of file Debugger.php */
-/* Location: .Obullo/Log/Handler/Debugger.php */

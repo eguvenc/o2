@@ -3,7 +3,6 @@
 namespace Obullo\Mail\Provider;
 
 use Mailgun\Mailgun as MailgunApi;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Mailgun Transactional Api Provider
@@ -11,7 +10,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Mailer
  * @package   Provider
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
@@ -20,17 +19,14 @@ class Mailgun extends AbstractProvider implements ProviderInterface
 {
     /**
      * Create a new Mailgun transport instance.
-     *
-     * @param object $c      container
-     * @param array  $params config & service parameters
+     * 
+     * @param array $params config & service parameters
      * 
      * @return void
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(array $params)
     {
-        $c['logger']->debug('Mailgun Class Initialized');
-
-        parent::__construct($c, $params);
+        parent::__construct($params);
     }
 
     /**

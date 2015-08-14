@@ -4,8 +4,6 @@
 Şifre sınıfı uygulamanıza kaydettiğiniz kullanıcılar için Bcrypt algoritması ile güvenli şifreler üretir.
 
 <ul>
-
-
     <li>
         <a href="#information">Önbilgi</a>
         <ul>

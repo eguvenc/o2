@@ -4,6 +4,7 @@ namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
 use RunTimeException;
+use Obullo\Cache\CacheInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -12,11 +13,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Cache
  * @package   Redis
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-class Redis implements CacheHandlerInterface
+class Redis implements CacheInterface
 {
     /**
      * Php redis client
@@ -47,7 +48,7 @@ class Redis implements CacheHandlerInterface
         $this->redis = $redis;
         $this->config = $c['config']['cache/redis'];
 
-        if ( ! $this->connect()) {
+        if (! $this->connect()) {
             throw new RunTimeException(
                 sprintf(
                     'Cache handler %s connection failed.',
@@ -79,11 +80,11 @@ class Redis implements CacheHandlerInterface
      */
     protected function openNodeConnections()
     {
-        if (empty($this->config['nodes'][0]['host']) OR empty($this->config['nodes'][0]['port'])) {  // If we have no slave servers
+        if (empty($this->config['nodes'][0]['host']) || empty($this->config['nodes'][0]['port'])) {  // If we have no slave servers
             return;
         }
         foreach ($this->config['nodes'] as $servers) {
-            if ( empty($servers['host']) OR empty($servers['port'])) {
+            if (empty($servers['host']) || empty($servers['port'])) {
                 throw new RunTimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
@@ -373,7 +374,7 @@ class Redis implements CacheHandlerInterface
      */
     public function set($key, $data = 60, $ttl = 60) // If empty $ttl default timeout unlimited
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             return $this->redis->set($key, $data, $ttl);
         }
         return $this->setArray($key, $data);
@@ -402,7 +403,7 @@ class Redis implements CacheHandlerInterface
      */
     public function replace($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             return $this->redis->set($key, $data, $ttl);
         }
         return $this->setArray($key, $data);
@@ -419,8 +420,3 @@ class Redis implements CacheHandlerInterface
     }
 
 }
-
-// END Redis Class
-
-/* End of file Redis.php */
-/* Location: .Obullo/Cache/Handler/Redis.php */

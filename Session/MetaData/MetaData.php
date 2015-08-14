@@ -2,8 +2,9 @@
 
 namespace Obullo\Session\MetaData;
 
-use Obullo\Session\Session;
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Session\SessionInterface;
+use Obullo\Http\Request\RequestInterface;
 
 /**
  * MetaData Storage
@@ -11,11 +12,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Session
  * @package   MetaData
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-class MetaData
+class MetaData implements MetaDataInterface
 {
     /**
      * Unix time
@@ -32,18 +33,11 @@ class MetaData
     protected $meta;
 
     /**
-     * Cache provider
-     * 
-     * @var object
-     */
-    protected $cache;
-
-    /**
-     * Configurations
+     * Service parameters
      * 
      * @var array
      */
-    protected $config;
+    protected $params;
 
     /**
      * Logger
@@ -76,18 +70,20 @@ class MetaData
     /**
      * Constructor
      * 
-     * @param object $c       container
-     * @param object $session \Obullo\Session\Session
+     * @param object $session \Obullo\Session\SessionInterface
+     * @param object $logger  \Obullo\Log\LogInterface
+     * @param object $request \Obullo\Http\Request\RequestInterface
+     * @param array  $params  service parameters
      */
-    public function __construct(ContainerInterface $c, Session $session)
+    public function __construct(SessionInterface $session, LoggerInterface $logger, RequestInterface $request, array $params)
     {
+        $this->logger  = $logger;
         $this->session = $session;
-        $this->logger = $c['logger'];
-        $this->config = $c['config']->load('session');
+        $this->params  = $params;
 
         $this->now = $this->session->getTime();
-        $this->ipAddress = $c['request']->getIpAddress();
-        $this->userAgent = substr($c['request']->server('HTTP_USER_AGENT'), 0, 50);
+        $this->ipAddress = $request->getIpAddress();
+        $this->userAgent = substr($request->server('HTTP_USER_AGENT'), 0, 50);
     }
 
     /**
@@ -121,7 +117,7 @@ class MetaData
      */
     protected function checkSessionIsExpired()
     {
-        if (($this->meta['la'] + $this->config['storage']['lifetime']) < $this->now) {
+        if (($this->meta['la'] + $this->params['storage']['lifetime']) < $this->now) {
             $this->logger->notice('Session expired', array('session_id' => session_id()));
             $this->return = false;
         }
@@ -134,7 +130,7 @@ class MetaData
      */
     protected function checkSessionIpAddress()
     {
-        if ($this->config['meta']['matchIp'] == true && $this->meta['ip'] != $this->ipAddress) {
+        if ($this->params['meta']['matchIp'] == true && $this->meta['ip'] != $this->ipAddress) {
             $this->logger->notice('Session meta data is not valid', $this->meta);
             $this->return = false;
         }
@@ -147,7 +143,7 @@ class MetaData
      */
     protected function checkSessionUserAgent()
     {
-        if ($this->config['meta']['matchUserAgent'] == true && trim($this->meta['ua']) != $this->userAgent) {
+        if ($this->params['meta']['matchUserAgent'] == true && trim($this->meta['ua']) != $this->userAgent) {
             $this->logger->notice('Session user agent is not valid', array('session_id' => session_id()));
             $this->return = false;
         }
@@ -184,7 +180,7 @@ class MetaData
      */
     public function update()
     {
-        if (($this->meta['la'] + $this->config['meta']['refresh']) >= $this->now) {  // We only update the session every 5 seconds by default
+        if (($this->meta['la'] + $this->params['meta']['refresh']) >= $this->now) {  // We only update the session every 5 seconds by default
             return;
         }
         $this->meta['la'] = $this->now; // Update the session ID and la

@@ -14,7 +14,7 @@ use Obullo\Utils\Process\Process;
  * @category  Cli
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
@@ -57,22 +57,22 @@ echo Console::help("
 Available Commands
 
     show        : Display all queued jobs.
-    listen      : Define a worker & consume queued jobs.
+    listen      : Run worker & consume queued jobs.
     help        : Display help.
 
 Arguments
 
-    --channel   : Sets queue channel.( Exchange )
-    --route     : Sets queue name.   ( Route )
+    --worker : Sets queue worker class name & exchange.( Exchange )
+    --job    : Sets queue name.   ( Route )
 
 Optional
 
-    --debug     : Enables queue output and any possible worker exceptions. ( Designed for local environment  )
+    --output    : Enables queue output and any possible worker exceptions. ( Designed for local environment  )
     --delay     : Sets delay time for uncompleted jobs.
     --memory    : Sets maximum allowed memory for current job.
     --timeout   : Sets time limit execution of the current job.
     --sleep     : If we have not job on the queue sleep the script for a given number of seconds.
-    --tries     : Sets the maximum number of times a job should be attempted.
+    --attempt   : Sets the maximum number of times a job should be attempted.
     --env       : Sets your environment variable to job class.
     --project   : Sets your project name to works with multiple projects.
     --var       : Sets your custom variable if you need."
@@ -80,18 +80,22 @@ Optional
 echo Console::newline(2);
 echo Console::help("Usage for local:", true);
 echo Console::newline(2);
-echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --debug=1");
+echo Console::help("php task queue listen --worker=Workers\Logger --job=logger.1 --output=1");
 echo Console::newline(2);
 echo Console::help("Usage for production:", true);
 echo Console::newline(2);
-echo Console::help("php task queue listen --channel=Log --route=my-computer-hostname.Logger --memory=128 --delay=0 --sleep=3 --timeout=3 --debug=0");
+echo Console::help("php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --delay=0 --sleep=3 --timeout=3 --attempt=4 --output=0");
+echo Console::newline(2);
+echo Console::help("Shortcuts:", true);
+echo Console::newline(2);
+echo Console::help("php task queue listen --w=Workers\Logger --j=logger.1 --m=128 --d=0 --s=3 --t=3 --a=4 --o=0");
 echo Console::newline(2);
     }
 
     /**
-     * List ( debug ) queue data
+     * List ( output ) queue data
      *
-     * Example : php task queue show --channel=Log --route=myhostname.Logger
+     * Example : php task queue show --w=Workers\Logger --j=logger.1
      * 
      * @return string
      */
@@ -100,23 +104,23 @@ echo Console::newline(2);
         $this->logo();
         $break = "------------------------------------------------------------------------------------------";
 
-        $channel = $this->cli->argument('channel');
-        $route = $this->cli->argument('route', null);  // Sets queue route key ( queue name )
+        $exchange = $this->cli->argument('worker');
+        $route = $this->cli->argument('job', null);  // Sets queue route key ( queue name )
         $clear = $this->cli->argument('clear');
 
-        if (empty($channel)) {
-            echo Console::fail("Queue \"--channel\" can't be empty.");
+        if (empty($exchange)) {
+            echo Console::fail("Queue \"--worker\" (exchange) (--w) can't be empty.");
             exit;
         }
         if (empty($route)) {
-            echo Console::fail("Queue \"--route\" can't be empty.");
+            echo Console::fail("Queue \"--job\" (route) (--j) can't be empty.");
             exit;
         }
         echo Console::body("Following queue data ...\n\n");
-        echo Console::body("Channel : ". $channel."\n");
-        echo Console::body("Route   : ". $route."\n\n");
+        echo Console::body("Worker (Exchange) : ". $exchange."\n");
+        echo Console::body("Job (Route)   : ". $route."\n\n");
 
-        $this->queue->channel($channel);  // Sets queue exchange
+        $this->queue->exchange($exchange);  // Sets queue exchange
         
         echo Console::body($break. "\n");
         echo Console::body("Job ID  | Job Name            | Data \n");
@@ -151,38 +155,37 @@ echo Console::newline(2);
      * Listen Queue
      *
      * Example : 
-     * php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --debug=0 --env=production
+     * php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --output=0 --env=production
      * 
      * @return void
      */
     public function listen()
     {
-        $debug   = $this->cli->argument('debug', 0);          // Enable / Disabled console debug.
-        $channel = $this->cli->argument('channel', null);     // Sets queue exchange
-        $route   = $this->cli->argument('route', null);       // Sets queue route key ( queue name )
-        $memory  = $this->cli->argument('memory', 128);       // Sets maximum allowed memory for current job.
-        $delay   = $this->cli->argument('delay', 0);          // Sets job delay interval
-        $timeout = $this->cli->argument('timeout', 0);        // Sets time limit execution of the current job.
-        $sleep   = $this->cli->argument('sleep', 3);          // If we have not job on the queue sleep the script for a given number of seconds.
-        $tries   = $this->cli->argument('tries', 0);          // If job attempt failed we push back on to queue and increase attempt number.
-        $env     = $this->cli->argument('env', 'local');      // Sets environment for current worker.
-        $project = $this->cli->argument('project', 'default');  // Sets project name for current worker ( This is useful working with multiple projects ). 
-        $var     = $this->cli->argument('var', null);         // Sets your custom variable
+        $output   = $this->cli->argument('output', 0);         // Enable / Disabled console output.
+        $exchange = $this->cli->argument('worker', null);      // Sets queue worker / exchange
+        $route    = $this->cli->argument('job', null);         // Sets queue job name / route key ( queue name )
+        $memory   = $this->cli->argument('memory', 128);       // Sets maximum allowed memory for current job.
+        $delay    = $this->cli->argument('delay', 0);          // Sets job delay interval
+        $timeout  = $this->cli->argument('timeout', 0);        // Sets time limit execution of the current job.
+        $sleep    = $this->cli->argument('sleep', 3);          // If we have not job on the queue sleep the script for a given number of seconds.
+        $attempt  = $this->cli->argument('attempt', 0);        // If job attempt failed we push back on to queue and increase attempt number.
+        $env      = $this->cli->argument('env', 'local');      // Sets environment for current worker.
+        $var      = $this->cli->argument('var', null);         // Sets your custom variable
         
-        if (empty($channel)) {
-            echo Console::fail("Queue \"--channel\" can't be empty.");
+        if (empty($exchange)) {
+            echo Console::fail("Queue \"--worker\" (exchange) (--w) can't be empty.");
             exit;
         }
         if (empty($route)) {
-            echo Console::fail("Queue \"--route\" can't be empty.");
+            echo Console::fail("Queue \"--job\" (route) (--j) can't be empty.");
             exit;
         }
-        $cmd = "php task worker --channel=$channel --route=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --tries=$tries --debug=$debug --env=$env --project=$project --var=$var";
+        $cmd = "php task worker --worker=$exchange --job=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --attempt=$attempt --output=$output --env=$env --var=$var";
 
         $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
             $process->run();
-            if ($debug == 1) {
+            if ($output == 1) {
                 echo $process->getOutput();
             }
         }
@@ -190,8 +193,3 @@ echo Console::newline(2);
     }
 
 }
-
-// END QueueController class
-
-/* End of file QueueController.php */
-/* Location: .Obullo/Task/QueueController.php */

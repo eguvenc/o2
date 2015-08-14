@@ -168,7 +168,6 @@ class Local implements ServiceInterface
             $parameters = [
                 'queue' => [
                     'enabled' => false,
-                    'channel' => 'log',
                     'route' => 'logger.1',
                     'delay' => 0,
                 ]
@@ -507,7 +506,6 @@ Kuyruklamanın doğru çalışabilmesi için queue servisinin doğru kurulduğun
 $parameters = [
     'queue' => [
         'enabled' => true,
-        'channel' => 'log',
         'route' => 'logger.1',
         'delay' => 0,
     ]
@@ -518,7 +516,6 @@ Log mesajları <kbd>Obullo/Log/Logger</kbd> sınıfı içerisindeki <b>close</b>
 
 ```php
 $this->c->get('queue')
-    ->channel($this->params['queue']['channel'])
     ->push(
         'Workers\Logger',
         $this->params['queue']['route'],
@@ -534,12 +531,12 @@ $this->c->get('queue')
 Konsoldan php task show komutunu yazarak kuyruktaki işleri görüntüleyebilirsiniz.
 
 ```php
-php task queue show --channel=log --route=logger.1
+php task queue show --worker=Workers\Logger --job=logger.1
 ```
 
 ```php
-Channel : Log
-Route   : myhostname.Logger
+Worker : Workers\Logger
+Job    : logger.1
 
 ------------------------------------------------------------------------------------------
 Job ID  | Job Name            | Data 
@@ -554,17 +551,17 @@ Job ID  | Job Name            | Data
 Kuyruğu tüketmek için konsoldan aşağıdaki komut ile bir php işçisi çalıştırmak gerekir.
 
 ```php
-php task queue listen --channel=log --route=logger.1 --debug=0
+php task queue listen --worker=Workers\Logger --job=logger.1 --output=0
 ```
 
 Yukarıdaki komut aynı anda birden fazla konsolda çalıştırıldığında <kbd>Obullo/Task/QueueController</kbd> sınıfı üzerinden her seferinde  <kbd>Obullo/Task/WorkerController.php</kbd> dosyasını çalıştırarak yeni bir iş parçaçığı oluşturur. Yerel ortamda birden fazla komut penceresi açarak kuyruğun eş zamanlı nasıl tüketildiğini test edebilirsiniz.
 
 ```php
-php task queue listen --channel=log --route=logger.1 --delay=0 --memory=128 --timeout=0 --debug=1
+php task queue listen --worker=Workers\Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --output=1
 ```
-Yerel ortamda yada test işlemleri için debug parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
+Yerel ortamda yada test işlemleri için output parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
 
-Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüketimini otomasyona geçirmek için Supervisor adlı programdan yararlanabilirsiniz. <a href="http://supervisord.org/" target="_blank">http://supervisord.org/</a>. Böylece işlem sayısını ve işçileri kontrol altına alabilirsiniz.
+Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüketimini otomasyona geçirmek ve çoklu iş parçaları (multithreading) ile çalışmak için Supervisor adlı programdan yararlanabilirsiniz. <a href="http://supervisord.org/" target="_blank">http://supervisord.org/</a>.
 
 > **Not:** Bir işlemci için açılması gereken optimum işçi sayısı 1 olmalıdır. Örneğin 16 çekirdekli bir sunucuya sahipseniz işçi sayısı 16 olmalıdır. İlgili makaleye bu bağlantıdan gözatabilirsiniz. <a href="http://stackoverflow.com/questions/1718465/optimal-number-of-threads-per-core">Optimal Number of Threads Per Core</a>.
 
@@ -576,57 +573,74 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 <thead>
 <tr>
 <th>Parametre</th>
+<th>Kısayol</th>
 <th>Açıklama</th>
 <th>Varsayılan</th>
 </thead>
 <tbody>
 <tr>
-<td>--channel</td>
-<td>Kuyruğun açılacağı kanalı belirler ( Exchange ).</td>
+<td>--worker</td>
+<td>--w</td>
+<td>Kuyruğun açılacağı kanalı (exchange) ve işi belirler .</td>
 <td>null</td>
 </tr>
 <tr>
-<td>--route</td>
-<td>Kuyruk ismini belirler.</td>
+<td>--job</td>
+<td>--j</td>
+<td>Kuyruğa ait ismi (route) belirler.</td>
 <td>null</td>
 </tr>
 <tr>
 <td>--delay</td>
+<td>--d</td>
 <td>Tamamlanmamış işler için gecikme zamanını belirler.</td>
 <td>0</td>
 </tr>
 <tr>
 <td>--memory</td>
+<td>--m</td>
 <td>Geçerli iş için kullanılabilecek maksimum belleği belirler. Değer MB cinsinden sayı olarak girilir.</td>
 <td>128</td>
 </tr>
 <tr>
 <td>--timeout</td>
+<td>--t</td>
 <td>Geçerli iş için maksimum çalışma süresini belirler.</td>
 <td>0</td>
 </tr>
 <tr>
 <td>--sleep</td>
+<td>--s</td>
 <td>Eğer kuyrukta iş yoksa girilen saniye kadar çalışma duraklatılır. En az 3 olarak girilmesi önerilir aksi durumda işlemci tüketimi artabilir.</td>
 <td>3</td>
 </tr>
 <tr>
-<td>--tries</td>
+<td>--attempt</td>
+<td>--a</td>
 <td>Kuyruktaki işin en fazla kaç kere yapılma denemesine ait sayıyı belirler.</td>
 <td>0</td>
 </tr>
 <tr>
-<td>--debug</td>
-<td>Debug değeri 1 olması durumunda bulunan hatalar ekrana dökülür.</td>
+<td>--output</td>
+<td>--o</td>
+<td>Output değeri 1 olması durumunda bulunan hatalar ekrana dökülür.</td>
 <td>0</td>
 </tr>
 <tr>
 <td>--project</td>
+<td>--p</td>
 <td>Birden fazla projeniz varsa ve her proje için farklı konfigürasyonlar gerekiyorsa proje ismi bu parametre ile gönderilebilir.</td>
 <td>default</td>
 </tr>
 <tr>
+<td>--env</td>
+<td>--e</td>
+<td>Ortam değişkenini worker uygulamasına gönderir.</td>
+<td>null</td>
+</tr>
+<tr>
 <td>--var</td>
+<td>--v</td>
 <td>Bu parametre göndermek istediğiniz özel parametreler için ayrılmıştır.</td>
 <td>null</td>
 </tr>
@@ -637,10 +651,10 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 
 ### Hata Ayıklama Modu
 
-Debug değeri 1 olması durumunda bulunan hatalar ekrana dökülür.
+Output değeri 1 olması durumunda bulunan hatalar ekrana dökülür.
 
 ```php
-php task queue listen --channel=log --route=logger.1 --debug=1
+php task queue listen --w=Workers\Logger --j=logger.1 --o=1
 ```
 
 <a name="processing-jobs"></a>

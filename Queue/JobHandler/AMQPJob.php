@@ -5,7 +5,6 @@ namespace Obullo\Queue\JobHandler;
 use AMQPQueue;
 use AMQPEnvelope;
 use Obullo\Queue\Job;
-use Obullo\Container\ContainerInterface;
 
 /**
  * AMQPJob Handler
@@ -13,7 +12,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Queue
  * @package   AMQPJob
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
@@ -22,17 +21,15 @@ class AMQPJob extends Job
     /**
      * Constructor
      * 
-     * @param object $c        ContainerInterface
      * @param object $queue    AMQPQueue object
      * @param object $envelope AMQPEnvelope object
      */
-    public function __construct(ContainerInterface $c, AMQPQueue $queue, AMQPEnvelope $envelope)
+    public function __construct(AMQPQueue $queue, AMQPEnvelope $envelope)
     {  
-        $this->c = $c; 
+        global $c;
+        $this->c = $c;
         $this->queue = $queue;
         $this->envelope = $envelope;
-        $this->logger = $this->c['logger'];
-        $this->logger->debug('Queue AMQPJob Class Initialized');
     }
 
     /**
@@ -114,8 +111,3 @@ class AMQPJob extends Job
         return $this->envelope->getDeliveryTag();
     }
 }
-
-// END AMQPJob Class
-/* End of file AMQPJob.php
-
-/* Location: .Obullo/Queue/AMQPJob.php */

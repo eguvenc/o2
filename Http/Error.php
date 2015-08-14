@@ -2,7 +2,10 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
+use Obullo\Http\Response\ResponseInterface;
 
 /**
  * Show http errors
@@ -10,18 +13,25 @@ use Obullo\Container\ContainerInterface;
  * @category  Http
  * @package   Error
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
 class Error
 {
     /**
-     * Container
+     * Application
      * 
      * @var object
      */
-    protected $c;
+    protected $app;
+
+    /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
 
     /**
      * Logger
@@ -40,15 +50,18 @@ class Error
     /**
      * Constructor
      * 
-     * @param object $c        Container
-     * @param object $response Http\Response
+     * @param object $app      \Obullo\Application\Application
+     * @param object $config   \Obullo\Config\ConfigInterface
+     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $response \Obullo\Http\Response\ResponseInterface
      * 
      * @return void
      */
-    public function __construct(ContainerInterface $c, Response $response)
+    public function __construct(Application $app, ConfigInterface $config, LoggerInterface $logger, ResponseInterface $response)
     {
-        $this->c = $c;
-        $this->logger = $c['logger'];
+        $this->app = $app;
+        $this->logger = $logger;
+        $this->config = $config;
         $this->response = $response;
     }
 
@@ -61,8 +74,8 @@ class Error
     */
     public function show404($page = '')
     {
-        if ($this->c->has('app.uri') && empty($page)) {
-            $page = $this->c['app.uri']->getUriString();
+        if (empty($page)) {
+            $page = $this->app->uri->getUriString();
         }
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;
@@ -86,7 +99,7 @@ class Error
         $message = $this->sanitizeMessage($message);
         $this->logger->error($heading.' --> '.$message);
 
-        header('Content-type: text/html; charset='.$this->c['config']['locale']['charset']); // Some times we use utf8 chars in errors.
+        header('Content-type: text/html; charset='.$this->config['locale']['charset']); // Some times we use utf8 chars in errors.
         echo $this->showHttpError($heading, $message, 'general', $status);
         exit();
     }
@@ -111,7 +124,7 @@ class Error
     * @param string $template the template name
     * @param int    $status   header status code
     * 
-    * @return   string
+    * @return string
     */
     protected function showHttpError($heading, $message, $template = 'general', $status = 500)
     {
@@ -130,8 +143,3 @@ class Error
     }
 
 }
-
-// END Error.php File
-/* End of file Error.php
-
-/* Location: .Obullo/Http/Error.php */

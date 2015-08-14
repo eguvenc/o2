@@ -2,7 +2,7 @@
 
 namespace Obullo\Session\SaveHandler;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * Save Handler Interface
@@ -10,7 +10,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Session
  * @package   SaveHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  * @see       http://php.net/session_set_save_handler
@@ -20,11 +20,10 @@ interface SaveHandlerInterface
     /**
      * Constructor
      *
-     * @param array $c container
-     *
-     * @return void
+     * @param object $provider \Obullo\Service\ServiceProviderInterface
+     * @param array  $params   service parameters
      */
-    public function __construct(ContainerInterface $c);
+    public function __construct(ServiceProviderInterface $provider, array $params);
 
     /**
     * Php5 session handler interface open function

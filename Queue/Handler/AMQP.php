@@ -9,9 +9,10 @@ use AMQPExchange;
 use AMQPException;
 use AMQPConnection;
 use RuntimeException;
-use Obullo\Queue\Queue;
+use Obullo\Queue\QueueInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Queue\JobHandler\AMQPJob;
-use Obullo\Container\ContainerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * AMQP Handler
@@ -19,21 +20,14 @@ use Obullo\Container\ContainerInterface;
  * @category  Queue
  * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  * @see       http://www.php.net/manual/pl/book.amqp.php
  * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
-class AMQP extends Queue implements HandlerInterface
+class AMQP implements QueueInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
     /**
      * AMQP channel name
      * 
@@ -58,15 +52,14 @@ class AMQP extends Queue implements HandlerInterface
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $config   \Obullo\Config\ConfigInterface
+     * @param object $provider \Obullo\Service\Provider\ServiceProviderInterface 
+     * @param array  $params   provider parameters
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, ServiceProviderInterface $provider, array $params)
     {
-        $this->c = $c;
-        $this->config = $this->c['config']->load('queue/amqp');
-        $this->logger = $this->c['logger'];
-
-        $this->AMQPconnection = $this->c['app']->provider('amqp')->get(['connection' => 'default']);
+        $this->config = $config->load('queue')['amqp'];
+        $this->AMQPconnection = $provider->get($params);
         
         $this->channel = new AMQPChannel($this->AMQPconnection);
         $this->defaultQueueName = 'default';
@@ -75,13 +68,13 @@ class AMQP extends Queue implements HandlerInterface
     /**
      * Create AMQPExchange if not exists otherswise get instance of it
      * 
-     * @param object $name exhange name
+     * @param object $name exchange name
      * @param object $type available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
      * @param object $flag available flags AMQP_DURABLE, AMQP_PASSIVE
      *
      * @return object
      */
-    public function channel($name, $type = null, $flag = null)
+    public function exchange($name, $type = null, $flag = null)
     {
         $type = (empty($type)) ? constant($this->config['exchange']['type']) : $type;
         $flag = (empty($flag)) ? constant($this->config['exchange']['flag']) : $flag;
@@ -109,8 +102,8 @@ class AMQP extends Queue implements HandlerInterface
      */
     public function push($job, $route, $data, $options = array())
     {
-        if (empty($this->channel)) {
-            throw new AMQPException('Before push you need to set a channel.');
+        if (empty($this->exchange)) {
+            $this->exchange($job);
         }
         $queue = $this->declareQueue($route); // Get queue
         return $this->publishJob($queue, $job, $data, $options);
@@ -162,6 +155,7 @@ class AMQP extends Queue implements HandlerInterface
             AMQP_MANDATORY, 
             $options
         );
+        $this->exchange = null;  //  Reset channel
         if (! $result) {
             throw new AMQPException('Could not push job to a queue');
         }
@@ -177,11 +171,11 @@ class AMQP extends Queue implements HandlerInterface
      */
     public function pop($route = null)
     {
-        $queue = $this->declareQueue($route); // Declare queue if not exists
+        $queue    = $this->declareQueue($route); // Declare queue if not exists
         $envelope = $queue->get();  // Get envelope
     
         if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
-            return new AMQPJob($this->c, $queue, $envelope);  // Send incoming message to job class.
+            return new AMQPJob($queue, $envelope);  // Send incoming message to job class.
         }
         return null;
     }
@@ -269,8 +263,3 @@ class AMQP extends Queue implements HandlerInterface
     }
 
 }
-
-// END AMQP class
-
-/* End of file AMQP.php */
-/* Location: .Obullo/Queue/Handler/AMQP.php */

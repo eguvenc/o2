@@ -238,7 +238,6 @@ return array(
     ]
 );
 
-/* End of file database.php */
 /* Location: .config/env/local/database.php */
 ```
 
@@ -338,8 +337,10 @@ $this->db = $this->c['app']->provider('database')->factory(
 Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosyası tarafından kontrol edilir. Db servis dosyası ise bağlantı kurabilmek için <b>database</b> servis sağlayıcısını kullanır. Servis konfigürasyonu için <kbd>app/classes/Service/Db.php</kbd> dosyasını açın ve varsayılan bağlantı konfigürasyonunuzu <b>get()</b> metodu içerisine girin.
 
 ```php
+```php
 namespace Service;
 
+use Obullo\Database\DatabaseManager;
 use Obullo\Service\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
@@ -348,16 +349,25 @@ class Db implements ServiceInterface
     public function register(ContainerInterface $c)
     {
         $c['db'] = function () use ($c) {
-            return $c['app']->provider('database')->get(['connection' => 'default']);
+            
+            $parameters = [
+                'provider' => [
+                    'name' => 'database',
+                    'params' => [
+                        'connection' => 'default'
+                    ]
+                ]
+            ];
+            $manager = new DatabaseManager($c);
+            $manager->setParameters($parameters);
+            return $manager->getProvider();
         };
     }
 }
 
-// END Db service
-
-/* End of file Db.php */
 /* Location: .app/classes/Service/Db.php */
 ```
+
 <a name='loading-service'></a>
 
 #### Servisi Yüklemek
@@ -386,11 +396,6 @@ namespace Welcome;
 
 class Welcome extends \Controller
 {
-    public function load()
-    {
-        $this->c['db'];
-    }
-
     public function index()
     {
         $results = $this->db->prepare("SELECT * FROM users WHERE id = ?")
@@ -401,7 +406,6 @@ class Welcome extends \Controller
     }
 }
 
-/* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```
 

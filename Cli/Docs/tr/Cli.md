@@ -19,6 +19,7 @@ Cli paketi yani Command Line Interface komut satırından yürütülen işlemler
         <li><a href="#queue-command">Queue Komutu</a></li>
         <li><a href="#run-your-commands">Kendi Komutlarınızı Çalıştırmak</a></li>
         <li><a href="#external-commands">Konsol Komutlarını Dışarıdan Çalıştırmak</a></li>
+        <li><a href="#shortcuts">Argümanlar İçin Kısayollar</a></li>
     </ul>
 </li>
 
@@ -37,10 +38,9 @@ Sınıfı daha iyi anlamak için aşağıdaki gibi <kbd>.modules/tasks</kbd> diz
 ```php
 namespace Tasks;
 
-use Controller;
 use Obullo\Cli\Console;
 
-class Hello extends Controller {
+class Hello extends \Controller {
   
     /**
      * Index
@@ -59,7 +59,6 @@ class Hello extends Controller {
     }
 }
 
-/* End of file hello.php */
 /* Location: .modules/tasks/Hello.php */
 ```
 
@@ -74,7 +73,7 @@ php task hello --planet=World
 Standart parametrelerde desteklenmektedir.
 
 ```php
-class Hello extends Controller {
+class Hello extends \Controller {
 
     public function index($planet = '')
     {
@@ -119,7 +118,7 @@ Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modu
 
 #### Argümanlar
 
-Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <b>name</b> adlı argüman ve ona ait Csrf değeri gönderiliyor.
+Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <kbd>name</kbd> adlı argüman ve ona ait Csrf değeri gönderiliyor.
 
 ```php
 php task middleware add --name=Csrf
@@ -128,7 +127,13 @@ php task middleware add --name=Csrf
 Bir kuyruğu dinlemek için kullanılan konsol komutuna bir başka örnek.
 
 ```php
-php task queue listen --channel=log --route=logger.1 --memory=128 --timeout=0 --sleep=3 --debug=1
+php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --sleep=3 --output=1
+```
+
+Kısayolları da kullanabilirsiniz
+
+```php
+php task queue listen --w=Workers\Logger --j=logger.1 --m=128 --s=3 --o=1
 ```
 
 <a name="log-command"></a>
@@ -310,7 +315,7 @@ Kuyruğa atılan işleri <kbd>Obullo\Task\QueueController</kbd> sınıfına iste
 Örnek bir kuyruk dinleme komutu
 
 ```php
-php task queue listen --channel=Logger --route=Server1.Logger --memory=128 --sleep=3--tries=0 --debug=1
+php task queue listen --worker=Logger --job=Server1.Logger --memory=128 --sleep=3--tries=0 --output=1
 ```
 
 > Queue komutu hakkında daha geniş bilgi için [Queue.md](/Queue/Docs/tr/Queue.md) dosyasına gözatın.
@@ -324,9 +329,7 @@ Modules task klasörū içerisinde kendinize ait task dosyaları yaratabilirsini
 ```php
 namespace Tasks;
 
-use Controller;
-
-class Hello extends Controller {
+class Hello extends \Controller {
   
     /**
      * Index
@@ -340,7 +343,6 @@ class Hello extends Controller {
     }
 }
 
-/* End of file hello.php */
 /* Location: .modules/tasks/Hello.php */
 ```
 
@@ -360,7 +362,59 @@ Eğer bir konsol komutu crontab gibi bir uygulama üzerinden dışarıdan çalı
 php /var/www/framework/task help
 ```
 
-#### Help Komutları
+<a name="shortcuts"></a>
+
+#### Argümanlar İçin Kısayollar
+
+<table>
+<thead>
+<tr>
+<th>Kısayol</th>
+<th>Argüman</th>
+</thead>
+<tbody>
+<tr>
+<td>--o</td>
+<td>--output</td>
+</tr>
+<tr>
+<td>--w</td>
+<td>--worker</td>
+</tr>
+<tr>
+<td>--j</td>
+<td>--job</td>
+</tr>
+<tr>
+<td>--d</td>
+<td>--delay</td>
+</tr>
+<tr>
+<td>--m</td>
+<td>--memory</td>
+</tr>
+<tr>
+<td>--t</td>
+<td>--timeout</td>
+</tr>
+<tr>
+<td>--s</td>
+<td>--sleep</td>
+</tr>
+<tr>
+<td>--a</td>
+<td>--attempt</td>
+</tr>
+<tr>
+<td>--v</td>
+<td>--var</td>
+</tr>
+<tr>
+<td>--e</td>
+<td>--env</td>
+</tr>
+</tbody>
+</table>
 
 
 <a name="method-reference"></a>
@@ -385,6 +439,22 @@ Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman de
 
 Çözümlenen argümanların listesine sadece "value" olarak bir dizi içerisinde geri döner.
 
+##### $this->cli->getClass();
+
+Çözümlenen sınıf ismine geri döner.
+
+##### $this->cli->getMethod();
+
+Çözümlenen metot ismine geri döner.
+
+##### $this->cli->getCmdString();
+
+Çözümlenen tüm konsol komutuna argümanları ile birlikte string formatında geri döner.
+
+##### $this->cli->getShortcuts();
+
+Argümanlar için tanımlı olan tüm kısayollara bir dizi içerisinde geri döner.
+
 ##### $this->cli->clear();
 
-Cli sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.
+Sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.

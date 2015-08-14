@@ -2,6 +2,8 @@
 
 namespace Obullo\Annotations;
 
+use Obullo\Event\EventInterface;
+use Obullo\Application\Application;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -10,7 +12,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Annotations
  * @package   Middleware
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/annotations
  */
@@ -22,6 +24,13 @@ class Middleware
      * @var object
      */
     protected $c;
+
+    /**
+     * Application
+     * 
+     * @var object
+     */
+    protected $app;
 
     /**
      * Event
@@ -44,7 +53,6 @@ class Middleware
      */
     protected $count = 0;
 
-
     /**
      * Http method name
      * 
@@ -55,11 +63,15 @@ class Middleware
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $c     ContainerInterface
+     * @param object $app   Obullo\Application\Application
+     * @param object $event Obullo\Event\EventInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, Application $app, EventInterface $event)
     {
         $this->c = $c;
+        $this->app = $app;
+        $this->event = $event;
         $this->httpMethod = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
     }
 
@@ -101,7 +113,7 @@ class Middleware
             $middleware = array($middleware);
         }
         foreach ($middleware as $name) {
-            $this->c['app']->remove(ucfirst($name));
+            $this->app->remove(ucfirst($name));
         }
     }
 
@@ -133,7 +145,7 @@ class Middleware
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['app']->middleware('MethodNotAllowed', $params);
+        $this->app->middleware('MethodNotAllowed', $params);
         return;
     }
 
@@ -151,11 +163,11 @@ class Middleware
         $when = count($this->when);
 
         if ($when > 0 && in_array($this->httpMethod, $allowedMethods)) {
-            $this->c['event']->subscribe(new $Class($this->c));
+            $this->event->subscribe(new $Class($this->c));
             $this->when = array();  // Reset when
             return $this;
         } elseif ($when == 0) {
-            $this->c['event']->subscribe(new $Class($this->c));
+            $this->event->subscribe(new $Class($this->c));
         }
     }
 
@@ -169,7 +181,7 @@ class Middleware
     protected function addMiddleware(array $middlewares)
     {
         foreach ($middlewares as $name) {
-            $this->c['app']->middleware(ucfirst($name));
+            $this->app->middleware(ucfirst($name));
         }
     }
     

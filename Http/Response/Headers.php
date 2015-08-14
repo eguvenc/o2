@@ -8,7 +8,7 @@ namespace Obullo\Http\Response;
  * @category  Http
  * @package   Error
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
@@ -92,8 +92,3 @@ class Headers
     }
 
 }
-
-// END Headers.php File
-/* End of file Headers.php
-
-/* Location: .Obullo/Http/Response/Headers.php */

@@ -8,7 +8,7 @@ use Obullo\Mail\File;
 use Obullo\Mail\Utils;
 use Obullo\Mail\Validator;
 use Obullo\Mail\MailResult;
-use Obullo\Container\ContainerInterface;
+use Obullo\Translation\Translator;
 
 /**
  * AbstractMailer
@@ -16,7 +16,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Mail
  * @package   Provider
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
@@ -25,6 +25,7 @@ abstract class AbstractProvider
     protected $date;
     protected $body = '';
     protected $validator;
+    protected $translator;
     protected $subject = '';
     protected $result = null;
     protected $crlf = "\n";            // The RFC 2045 compliant CRLF for quoted-printable is "\r\n".  Apparently some servers,
@@ -50,14 +51,15 @@ abstract class AbstractProvider
     /**
      * Constructor
      * 
-     * @param object $c      container
-     * @param array  $params config & service parameters
+     * @param array $params config & service parameters
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(array $params)
     {
+        global $c;
         $this->c = $c;
         $this->params = $params;
-        $this->c['translator']->load('mailer');
+        $this->translator = $c['translator'];
+        $this->translator->load('mailer');
         $this->init();
     }
 
@@ -422,7 +424,7 @@ abstract class AbstractProvider
         ) {
             $mailResult = $this->getMailResult();
             $mailResult->setCode($mailResult::NO_RECIPIENTS);
-            $mailResult->setMessage($this->c['translator']['OBULLO:MAILER:NO_RECIPIENTS']);
+            $mailResult->setMessage($this->translator['OBULLO:MAILER:NO_RECIPIENTS']);
             return false;
         }
         return true;
@@ -468,9 +470,7 @@ abstract class AbstractProvider
         $msgEvent['mailer'] = $this->getMailer();
 
         $mailResult = $this->getMailResult();
-
         $push = $this->c->get('queue')
-            ->channel($this->params['queue']['channel'])
             ->push(
                 'Workers\Mailer',
                 $route,
@@ -479,7 +479,7 @@ abstract class AbstractProvider
             );
         if (! $push) {
             $mailResult->setCode($mailResult::QUEUE_ERROR);
-            $mailResult->setMessage($this->c['translator']->get('OBULLO:MAILER:QUEUE_FAILED', $route));
+            $mailResult->setMessage($this->translator->get('OBULLO:MAILER:QUEUE_FAILED', $route));
             $this->logger->error(
                 'Mailer queue failed', 
                 array(
@@ -697,7 +697,7 @@ abstract class AbstractProvider
 
             if ($this->validator->isError()) {
                 $result->setCode($result::INVALID_EMAIL);
-                $result->setMessage($this->c['translator']->get($this->validator->getError(), $this->validator->getValue()));
+                $result->setMessage($this->translator->get($this->validator->getError(), $this->validator->getValue()));
             }
         }
         return $this;

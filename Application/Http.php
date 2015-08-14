@@ -38,7 +38,7 @@ $c['app'] = function () {
  * @category  Container
  * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
@@ -129,8 +129,8 @@ class Http extends Application
      */
     protected function dispatchMiddlewares()
     {
-        global $c; // Make available container in middleware.php
-        $currentRoute = $this->getUriString();
+        $c = $this->c; // Make available container in middleware.php
+        $currentRoute = $this->uri->getUriString();
 
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter

@@ -2,9 +2,11 @@
 
 namespace Obullo\Session;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Session\SessionManager;
 use Obullo\Session\MetaData\MetaData;
-use Obullo\Container\ContainerInterface;
 use Obullo\Session\MetaData\NullMetaData;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * Session Class
@@ -12,19 +14,12 @@ use Obullo\Session\MetaData\NullMetaData;
  * @category  Session
  * @package   Session
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
 class Session implements SessionInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Session name
      * 
@@ -40,11 +35,18 @@ class Session implements SessionInterface
     protected $meta;
 
     /**
-     * Configurations
+     * Service parameters
      * 
      * @var array
      */
-    protected $config;
+    protected $params;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
 
     /**
      * Session handler
@@ -55,20 +57,23 @@ class Session implements SessionInterface
 
     /**
      * Constructor
-     *
-     * @param array $c container
+     * 
+     * @param object $provider \Obullo\Service\ServiceProviderInterface
+     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param array  $params   service parameters
      */
-    public function __construct(ContainerInterface $c) 
+    public function __construct(ServiceProviderInterface $provider, LoggerInterface $logger, array $params) 
     {
-        $this->c = $c;
-        $this->config = $c['config']->load('session');
+        ini_set('session.cookie_domain', $this->params['cookie']['domain']);
 
-        ini_set('session.cookie_domain', $this->config['cookie']['domain']);
-        $this->meta = ($this->config['meta']['enabled']) ? new MetaData($c, $this) : new NullMetaData;
+        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($this) : new NullMetaData;
+        $this->params = $params;
+        $this->provider = $provider;
+
+        $this->logger = $logger;
+        $this->logger->debug('Session Class Initialized');
 
         register_shutdown_function(array($this, 'close'));
-
-        $this->c['logger']->debug('Session Class Initialized');
     }
 
     /**
@@ -80,11 +85,9 @@ class Session implements SessionInterface
      * 
      * @return void
      */
-    public function registerSaveHandler($handler = null)
+    public function registerSaveHandler($handler)
     {
-        $Class = '\\'.ltrim($this->config['saveHandler'], '\\');
-        $this->saveHandler = ($handler == null) ? new $Class($this->c) : new $handler($this->c);
-
+        $this->saveHandler = new $handler($this->provider, $this->params);
         session_set_save_handler(
             array($this->saveHandler, 'open'),
             array($this->saveHandler, 'close'),
@@ -104,11 +107,11 @@ class Session implements SessionInterface
     protected function setCookieParams()
     {
         session_set_cookie_params(
-            $this->config['cookie']['expire'],
-            $this->config['cookie']['path'],
-            $this->config['cookie']['domain'],
-            $this->config['cookie']['secure'], 
-            $this->config['cookie']['httpOnly']
+            $this->params['cookie']['expire'],
+            $this->params['cookie']['path'],
+            $this->params['cookie']['domain'],
+            $this->params['cookie']['secure'], 
+            $this->params['cookie']['httpOnly']
         );
     }
 
@@ -122,7 +125,7 @@ class Session implements SessionInterface
     public function setName($name = null)
     {
         if ($name == null) {
-            $name = $this->config['cookie']['prefix'].$this->config['cookie']['name'];
+            $name = $this->params['cookie']['prefix'].$this->params['cookie']['name'];
         }
         $this->name = $name;
         session_name($name);
@@ -185,7 +188,7 @@ class Session implements SessionInterface
     public function regenerateId($deleteOldSession = true, $lifetime = null)
     {
         session_regenerate_id((bool) $deleteOldSession);
-        $storageLifetime = ($lifetime == null) ? $this->config['storage']['lifetime'] : $lifetime;
+        $storageLifetime = ($lifetime == null) ? $this->params['storage']['lifetime'] : $lifetime;
         $this->saveHandler->setLifetime($storageLifetime);
         $this->meta->create();
         
@@ -224,10 +227,10 @@ class Session implements SessionInterface
                 $this->getName(),                 // session name
                 '',                               // value
                 $_SERVER['REQUEST_TIME'] - 42000, // TTL for cookie
-                $this->config['cookie']['path'],
-                $this->config['cookie']['domain'],
-                $this->config['cookie']['secure'], 
-                $this->config['cookie']['httpOnly']
+                $this->params['cookie']['path'],
+                $this->params['cookie']['domain'],
+                $this->params['cookie']['secure'], 
+                $this->params['cookie']['httpOnly']
             );
         }
     }
@@ -243,7 +246,7 @@ class Session implements SessionInterface
         if (! isset($meta['la'])) {  // la = meta data last activity.
             return false;
         }
-        $expire = $this->getTime() - $this->config['storage']['lifetime'];
+        $expire = $this->getTime() - $this->params['storage']['lifetime'];
         if ($meta['la'] <= $expire) {
             return true;
         }
@@ -319,7 +322,7 @@ class Session implements SessionInterface
     public function getTime()
     {
         $time = time();
-        if (strtolower($this->c['config']['locale']['timezone']) == 'gmt') {
+        if (strtolower($this->params['locale']['timezone']) == 'gmt') {
             $now = time();
             $time = mktime(gmdate("H", $now), gmdate("i", $now), gmdate("s", $now), gmdate("m", $now), gmdate("d", $now), gmdate("Y", $now));
         }

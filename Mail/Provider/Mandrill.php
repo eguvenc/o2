@@ -2,15 +2,13 @@
 
 namespace Obullo\Mail\Provider;
 
-use Obullo\Container\ContainerInterface;
-
 /**
  * Mandrill Transactional Api Provider
  *
  * @category  Mailer
  * @package   Provider
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  * @link      https://mandrillapp.com/api/docs/messages.JSON.html
@@ -20,16 +18,13 @@ class Mandrill extends AbstractProvider implements ProviderInterface
     /**
      * Create a new Mandrill transport instance.
      *
-     * @param object $c      container
-     * @param array  $params config & service parameters
+     * @param array $params config & service parameters
      * 
      * @return void
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(array $params)
     {
-        $c['logger']->debug('Mandrill Class Initialized');
-
-        parent::__construct($c, $params);
+        parent::__construct($params);
     }
 
     /**

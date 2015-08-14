@@ -2,20 +2,41 @@
 
 namespace Obullo\Session\SaveHandler;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
- * Save Handler Class 
+ * Cache Save Handler
  * 
  * @category  Session
  * @package   SaveHandler
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
 class Cache implements SaveHandlerInterface
 {
+    /**
+     * Service parameters
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
+     * Storage
+     * 
+     * @var object
+     */
+    protected $storage;
+
+    /**
+     * Service provider
+     * 
+     * @var object
+     */
+    protected $provider;
+
     /**
      * Redis key name
      * 
@@ -31,23 +52,17 @@ class Cache implements SaveHandlerInterface
     public $lifetime = 7200; // two hours
  
     /**
-     * Service provider
-     * 
-     * @var object
-     */
-    protected $provider;
-
-    /**
      * Constructor
      *
-     * @param array $c container
+     * @param object $provider \Obullo\Service\ServiceProviderInterface
+     * @param array  $params   service parameters
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ServiceProviderInterface $provider, array $params)
     {
-        $this->config = $c['config']->load('session');
-        $this->provider = $c['app']->provider('cache');
-        $this->key = $this->config['storage']['key'];
-        $this->lifetime = $this->config['storage']['lifetime'];
+        $this->params = $params;
+        $this->provider = $provider;
+        $this->key = $this->params['storage']['key'];
+        $this->lifetime = $this->params['storage']['lifetime'];
     }
 
     /**
@@ -62,13 +77,13 @@ class Cache implements SaveHandlerInterface
     {
         $savePath = null;
         $sessionName = null;
-        $this->cache = $this->provider->get(
+        $this->storage = $this->provider->get(
             [
-                'driver' => $this->config['cache']['provider']['driver'],
-                'connection' => $this->config['cache']['provider']['connection']
+                'driver' => $this->params['provider']['params']['driver'],
+                'connection' => $this->params['provider']['params']['connection']
             ]
         );
-        return is_object($this->cache) ? true : false;
+        return is_object($this->storage) ? true : false;
     }
  
     /**
@@ -90,7 +105,7 @@ class Cache implements SaveHandlerInterface
      */
     public function read($id)
     {
-        $result = $this->cache->get($this->key.$id);
+        $result = $this->storage->get($this->key.$id);
         return $result ?: null;
     }
  
@@ -107,7 +122,7 @@ class Cache implements SaveHandlerInterface
         if (empty($data)) { // If we have no session data don't write it.
             return false;
         }
-        $result = $this->cache->set($this->key.$id, $data, $this->getLifetime());
+        $result = $this->storage->set($this->key.$id, $data, $this->getLifetime());
         return $result ? true : false;
     }
  
@@ -120,7 +135,7 @@ class Cache implements SaveHandlerInterface
      */
     public function destroy($id)
     {
-        $result = $this->cache->delete($this->key.$id);
+        $result = $this->storage->delete($this->key.$id);
         return $result ? true : false;
     }
 

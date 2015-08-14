@@ -20,8 +20,8 @@ class Captcha implements ServiceInterface
         $c['captcha'] = function () use ($c) {
 
             $captcha = new Image($c);            
-            $captcha->setMod('secure');     // set to "cool" for no background
-            $captcha->setPool('alpha');     // "random", "numbers"
+            $captcha->setMod('secure');
+            $captcha->setPool('alpha');
             $captcha->setChar(5);
             $captcha->setFont(array('NightSkK','AlphaSmoke','Popsf'));
             $captcha->setFontSize(20);

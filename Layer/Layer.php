@@ -4,6 +4,7 @@ namespace Obullo\Layer;
 
 use stdClass;
 use Controller;
+use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -21,7 +22,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Layer
  * @package   Layer
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layer
  */
@@ -74,14 +75,15 @@ class Layer
     /**
      * Constructor
      * 
-     * @param array $c      container
-     * @param array $params config 
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
+     * @param array  $params config parameters
      */
-    public function __construct(ContainerInterface $c, $params)
+    public function __construct(ContainerInterface $c, LoggerInterface $logger, array $params)
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $c['logger'];
+        $this->logger = $logger;
 
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
@@ -126,8 +128,8 @@ class Layer
      */
     protected function cloneObjects()
     {
-        $this->controller = Controller::$instance;     // We need get backup object of main controller
-        $this->uri = Controller::$instance->uri;     // Create copy of original Uri class.
+        $this->controller = Controller::$instance;      // We need get backup object of main controller
+        $this->uri = Controller::$instance->uri;        // Create copy of original Uri class.
         $this->router = Controller::$instance->router;  // Create copy of original Router class.
 
         $this->uri = clone $this->uri;

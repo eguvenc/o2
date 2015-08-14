@@ -164,7 +164,6 @@ class Entry extends \Obullo\Database\Model
 
 }
 
-/* End of file entry.php */
 /* Location: .model/Entry.php */
 ```
 
@@ -258,6 +257,5 @@ class Welcome extends \Controller
     }
 }
 
-/* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```

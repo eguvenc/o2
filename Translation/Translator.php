@@ -4,7 +4,8 @@ namespace Obullo\Translation;
 
 use ArrayAccess;
 use RuntimeException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * Translator Class
@@ -12,11 +13,11 @@ use Obullo\Container\ContainerInterface;
  * @category  I18n
  * @package   Translation
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/translator
  */
-class Translator implements ArrayAccess
+class Translator implements TranslatorInterface
 {
     /**
      * System debug translate notice
@@ -24,18 +25,18 @@ class Translator implements ArrayAccess
     const NOTICE = 'translate:';
 
     /**
-     * Container
-     *
-     * @var object
-     */
-    protected $c;
-
-    /**
      * Config
      * 
      * @var array
      */
     protected $config;
+
+    /**
+     * Logger
+     *
+     * @var object
+     */
+    protected $logger;
 
     /**
      * Selected locale
@@ -82,17 +83,18 @@ class Translator implements ArrayAccess
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $config ConfigInterface
+     * @param object $logger LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, LoggerInterface $logger)
     {
-        $this->c = $c;
-        $this->config = $c['config']->load('translator');   // Load package config file
+        $this->logger = $logger;
+        $this->config = $config->load('translator');   // Load package config file
 
         $this->setDefault($this->config['default']['locale']);    // Sets default langugage from translator config file.
         $this->setFallback($this->config['fallback']['locale']);  // Default lang code
 
-        $this->c['logger']->debug('Translator Class Initialized');
+        $this->logger->debug('Translator Class Initialized');
     }
 
     /**
@@ -130,7 +132,7 @@ class Translator implements ArrayAccess
     public function offsetGet($key)
     {
         if (! is_string($key)) {
-            $this->c['logger']->warning('Translate key type error the key must be string.');
+            $this->logger->warning('Translate key type error the key must be string.');
             return $key;
         }
         if (! isset($this->translateArray[$key])) {
@@ -198,11 +200,11 @@ class Translator implements ArrayAccess
         $translateArray = include $fileUrl;
 
         if (! isset($translateArray)) {
-            $this->c['logger']->error('Translation file does not contain valid format: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
+            $this->logger->error('Translation file does not contain valid format: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
             return;
         }
         $this->loaded[] = $fileKey;
-        $this->c['logger']->debug('Translation file loaded: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
+        $this->logger->debug('Translation file loaded: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
 
         $this->translateArray = array_merge($this->translateArray, $translateArray);
         $this->loadFallback($fileKey);  // Load fallback translation if fallback enabled
@@ -238,7 +240,7 @@ class Translator implements ArrayAccess
      *
      * @return boolean
      */
-    public static function isDir($locale)
+    protected static function isDir($locale)
     {
         if (! is_dir(TRANSLATIONS . $locale)) {
             throw new RuntimeException(

@@ -5,7 +5,10 @@ namespace Obullo\Router;
 use Closure;
 use Controller;
 use LogicException;
+use Obullo\Uri\Uri;
 use BadMethodCallException;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -51,19 +54,22 @@ class Router
      * Constructor
      * Runs the route mapping function.
      * 
-     * @param array $c container
+     * @param array  $c      \Obullo\Container\ContainerInterface
+     * @param array  $config \Obullo\Config\ConfigInterface
+     * @param object $uri    \Obullo\Uri\Uri
+     * @param array  $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, ConfigInterface $config, Uri $uri, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->uri    = $this->c['uri'];
-        $this->logger = $this->c['logger'];
+        $this->uri    = $uri;
+        $this->logger = $logger;
         $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
         }
-        if ($this->HOST != 'Cli' && strpos($this->HOST, $c['config']['url']['webhost']) === false) {
+        if ($this->HOST != 'Cli' && strpos($this->HOST, $config['url']['webhost']) === false) {
             $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
@@ -493,7 +499,7 @@ class Router
     protected function dispatchRouteMatches($uri, $val, $parameters)
     {
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
-            $this->c['app']->middleware('MethodNotAllowed', $val['when']);
+            $this->app->middleware('MethodNotAllowed', $val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
@@ -594,7 +600,6 @@ class Router
     public function fetchClass()
     {
         $class = self::ucwordsUnderscore($this->class);
-
         return $class;
     }
 

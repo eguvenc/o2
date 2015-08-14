@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Queue\Handler;
+namespace Obullo\Queue;
 
 /**
- * Queue Handler Interface
+ * Queue Interface
  * 
  * @category  Queue
- * @package   Handler
+ * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-interface HandlerInterface
+interface QueueInterface
 {
     /**
      * Create exchange object if not exists otherwise returns to instance of it
@@ -23,7 +23,7 @@ interface HandlerInterface
      * 
      * @return object exchange
      */
-    public function channel($name, $type = null, $flag = null);
+    public function exchange($name, $type = null, $flag = null);
 
     /**
      * Push a new job onto the queue.
@@ -60,8 +60,3 @@ interface HandlerInterface
     public function pop($route = null);
     
 }
-
-// END HandlerInterface class
-
-/* End of file HandlerInterface.php */
-/* Location: .Obullo/Queue/Handler/HandlerInterface.php */

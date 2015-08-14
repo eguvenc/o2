@@ -2,7 +2,6 @@
 
 namespace Obullo\Task;
 
-use Controller;
 use Obullo\Queue\Worker;
 
 /**
@@ -13,11 +12,11 @@ use Obullo\Queue\Worker;
  * @category  Cli
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class WorkerController extends Controller
+class WorkerController extends \Controller
 {
     /**
      * Execute command
@@ -26,13 +25,14 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        $worker = new Worker($this->c, $this->cli);
+        $worker = new Worker(
+            $this->c['app'],
+            $this->c['config'],
+            $this->c['queue'],
+            $this->c['cli'],
+            $this->c['logger']
+        );
         $worker->init();
         $worker->pop();
     }
 }
-
-// END WorkerController class
-
-/* End of file WorkerController.php */
-/* Location: .Obullo/Task/WorkerController.php */

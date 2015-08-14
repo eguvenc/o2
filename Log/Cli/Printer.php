@@ -8,7 +8,7 @@ namespace Obullo\Log\Cli;
  * @category  Log
  * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      https://wiki.archlinux.org/index.php/Color_Bash_Prompt
  * @link      http://obullo.com/package/cli
@@ -197,8 +197,3 @@ $YELLOW="33[1;33m";
 $LIGHTGRAY="33[0;37m";
 $WHITE="33[1;37m";
 */
-
-// END Printer class
-
-/* End of file Printer.php */
-/* Location: .Obullo/Log/Cli/Printer.php */

@@ -11,7 +11,7 @@ use Doctrine\DBAL\Query\QueryBuilder as DoctrineQueryBuilder;
  * @category  Database
  * @package   QueryBuilder
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
@@ -86,8 +86,3 @@ class QueryBuilder extends DoctrineQueryBuilder
         return call_user_func_array(array($connection, $method), $arguments);
     }
 }
-
-// END QueryBuilder Class
-/* End of file QueryBuilder.php
-
-/* Location: .Obullo/Database/Doctrine/QueryBuilder.php */

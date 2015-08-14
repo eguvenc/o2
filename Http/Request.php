@@ -3,8 +3,10 @@
 namespace Obullo\Http;
 
 use Obullo\Http\InputFilter;
+use Obullo\Log\LoggerInterface;
 use Obullo\Http\Request\Headers;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Request\RequestInterface;
 
 /**
  * Request Class
@@ -12,11 +14,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Http
  * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http/request
  */
-class Request
+class Request implements RequestInterface
 {
     /**
      * Container
@@ -28,18 +30,19 @@ class Request
     /**
      * Constructor
      *
-     * @param array $c container
+     * @param array $c      \Obullo\Container\ContainerInterface
+     * @param array $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->c['logger']->debug('Request Class Initialized');
         $this->c['request.headers'] = function () {
             return new Headers;
         };
         $this->c['request.filter'] = function () use ($c) {
             return new InputFilter($c);
         };
+        $logger->debug('Request Class Initialized');
     }
 
     /**
@@ -351,8 +354,3 @@ class Request
     }
 
 }
-
-// END Request class
-
-/* End of file Request.php */
-/* Location: .Obullo/Http/Request.php */

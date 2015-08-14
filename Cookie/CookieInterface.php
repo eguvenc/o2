@@ -8,7 +8,7 @@ namespace Obullo\Cookie;
  * @category  Cookie
  * @package   CookieInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cookie
  */
@@ -155,7 +155,7 @@ interface CookieInterface
     * @param string $name   cookie
     * @param string $prefix custom prefix
     * 
-    * @return   void
+    * @return void
     */
     public function delete($name = null, $prefix = null);
 
@@ -167,8 +167,3 @@ interface CookieInterface
     public function getQueuedCookies();
 
 }
-
-// END CookieInterface.php File
-/* End of file CookieInterface.php
-
-/* Location: .Obullo/Cookie/CookieInterface.php */

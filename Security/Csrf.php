@@ -2,7 +2,10 @@
 
 namespace Obullo\Security;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Session\SessionInterface;
+use Obullo\Http\Request\RequestInterface;
 
 /**
  * Csrf Class
@@ -15,12 +18,33 @@ use Obullo\Container\ContainerInterface;
  * @category  Security
  * @package   Csrf
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/security
  */
 class Csrf 
 {
+     /**
+      * Config
+      * 
+      * @var array
+      */
+     protected $config;
+
+     /**
+      * Logger
+      * 
+      * @var object
+      */
+     protected $logger;
+
+     /**
+      * Request
+      * 
+      * @var object
+      */
+     protected $request;
+
      /**
       * Session class
       * 
@@ -36,33 +60,36 @@ class Csrf
      protected $refresh;
 
      /**
-     * Token name for Cross Site Request Forgery Protection
-     *
-     * @var string
-     */
-     protected $tokenName = 'csrf_token';
-
-     /**
       * Token session data
       * 
       * @var array | false
       */
      protected $tokenData;
 
+     /**
+     * Token name for Cross Site Request Forgery Protection
+     *
+     * @var string
+     */
+     protected $tokenName = 'csrf_token';
+
     /**
      * Constructor
      *
-     * @param object $c container 
+     * @param object $config  ConfigInterface
+     * @param object $logger  LoggerInterface
+     * @param object $request RequestInterface
+     * @param object $session SessionInterface
      * 
      * @return void
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, LoggerInterface $logger, RequestInterface $request, SessionInterface $session)
     {
-        $this->c = $c;
-        $this->logger = $c['logger'];
-        $this->session = $c['session'];
-        
-        $this->config = $c['config']['security'];
+        $this->logger = $logger;
+        $this->request = $request;
+        $this->session = $session;
+
+        $this->config = $config['security'];
         $this->refresh = $this->config['csrf']['token']['refresh'];
         $this->tokenName = $this->config['csrf']['token']['name'];
         $this->tokenData = $this->session->get($this->tokenName);
@@ -102,7 +129,7 @@ class Csrf
      */
     protected function setCsrfToken()
     {
-        if ($this->c['request']->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
+        if ($this->request->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
             $this->setSession();     // Set token to session if we have empty data
             return true;
         }
@@ -117,7 +144,10 @@ class Csrf
     protected function setSession()
     {
         if (empty($this->tokenData['value'])) {
-            $this->tokenData = ['value' => $this->generateHash(), 'time' => time()];
+            $this->tokenData = [
+                'value' => $this->generateHash(),
+                'time' => time()
+            ];
             $this->session->set($this->tokenName, $this->tokenData);
 
             $this->logger->channel('security');
@@ -137,7 +167,7 @@ class Csrf
     {
         $tokenRefresh = strtotime('- '.$this->refresh.' seconds'); // Create a old time belonging to refresh seconds.
 
-        if (isset($this->tokenData['time']) AND $tokenRefresh > $this->tokenData['time']) {  // Refresh token
+        if (isset($this->tokenData['time']) && $tokenRefresh > $this->tokenData['time']) {  // Refresh token
             $this->tokenData = array();  // Reset data for update the token
             $this->setSession();
         }

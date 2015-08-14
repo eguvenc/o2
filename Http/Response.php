@@ -4,7 +4,9 @@ namespace Obullo\Http;
 
 use Closure;
 use Obullo\Http\Response\Headers;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Response\ResponseInterface;
 
 /**
  * Http response Class.
@@ -16,11 +18,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Http
  * @package   Response
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/http
  */
-class Response
+class Response implements ResponseInterface
 {
     /**
      * Container
@@ -51,6 +53,13 @@ class Response
     public $status = 200;
 
     /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
+    
+    /**
      * Run callback function
      * 
      * @var object
@@ -63,17 +72,17 @@ class Response
      * @var boolean
      */
     protected $enabled = true;
-    
+
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $config \Obullo\Config\ConfigInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, ConfigInterface $config)
     {
         $this->c = $c;
-        $this->c['config']->load('response');
-
+        $this->config = $config->load('response');
         $this->output = '';
         $this->c['response.headers'] = function () {
             return new Headers;
@@ -153,7 +162,6 @@ class Response
         $headers = $options = array();
         
         if ($this->c->used('response.headers')) {  // If response headers object loaded
-
             $headers = $this->c['response.headers']->all();
             $options = $this->c['response.headers']->options();
         }
@@ -260,8 +268,7 @@ class Response
     */
     public function show404($page = '')
     {
-        $error = new Error($this->c, $this);
-        return $error->show404($page);
+        return $this->c['error']->show404($page);
     }
 
     /**
@@ -274,9 +281,7 @@ class Response
     */
     public function showError($message, $heading = 'An Error Was Encountered')
     {
-        $status = ($this->getStatus() == 200) ? 500 : $this->getStatus();
-        $error = new Error($this->c, $this);
-        return $error->showError($message, $status, $heading);
+        return $this->c['error']->showError($message, ($this->getStatus() == 200) ? 500 : $this->getStatus(), $heading);
     }
 
     /**
@@ -292,8 +297,8 @@ class Response
         $this->disableOutput(); // Disable output, we need to send json headers.
 
         if ($header != false) {
-            if (isset($this->c['config']['response']['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
-                foreach ($this->c['config']['response']['headers']['json'][$header] as $value) {
+            if (isset($this->config['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
+                foreach ($this->config['headers']['json'][$header] as $value) {
                     $this->headers->set($value);
                 }
             }
@@ -381,8 +386,3 @@ class Response
         return $this->c['response.'.$variable];
     }    
 }
-
-// END Response.php File
-/* End of file Response.php
-
-/* Location: .Obullo/Http/Response.php */

@@ -14,7 +14,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Adapter
  * @package   Image
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
@@ -41,6 +41,7 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected $image;           // Gd image content
     protected $code;            // Generated image code
     protected $c;               // Container
+    protected $translator;
 
     /**
      * Constructor
@@ -53,7 +54,8 @@ class Image extends AbstractAdapter implements AdapterInterface
         $this->config = $c['config']->load('captcha/image');
         $this->mods = array('cool', 'secure');
         
-        $this->c['translator']->load('captcha');
+        $this->translator = $c['translator'];
+        $this->translator->load('captcha');
 
         parent::__construct($c);
     }
@@ -85,7 +87,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function setMod($mod)
     {
-        if ( ! $this->isAllowedMod($mod)) {
+        if (! $this->isAllowedMod($mod)) {
             throw new RuntimeException(
                 sprintf(
                     'Unsupported mod. You can choose from the following list "%s".',
@@ -252,7 +254,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function setFont($font)
     {
-        if ( ! is_array($font)) {
+        if (! is_array($font)) {
             $str  = str_replace('.ttf', '', $font); // Remove the .ttf extension.
             $font = array($str => $str);
         }
@@ -269,7 +271,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function excludeFont($font)
     {
-        if ( ! is_array($font)) {
+        if (! is_array($font)) {
             $font = array($font);
         }
         $this->setFont(array_diff($this->getFonts(), $font));
@@ -350,7 +352,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function isAllowedMod($mod)
     {
-        if ( ! in_array(strtolower($mod), $this->mods)) {
+        if (! in_array(strtolower($mod), $this->mods)) {
             return false;
         }
         return true;
@@ -365,11 +367,11 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function isValidColors($colors)
     {
-        if ( ! is_array($colors)) {
+        if (! is_array($colors)) {
             $colors = array($colors);
         }
         foreach ($colors as $val) {
-            if ( ! isset($this->config['colors'][$val])) {
+            if (! isset($this->config['colors'][$val])) {
                 $invalidColors[] = $val;
             }
         }
@@ -503,7 +505,6 @@ class Image extends AbstractAdapter implements AdapterInterface
         if (sizeof($fonts) == 0) {
             throw new RuntimeException('Image CAPTCHA requires fonts.');
         }
-
         $randFont = array_rand($fonts);
         $fontPath = $this->defaultFontPath . $this->config['fonts'][$fonts[$randFont]];
 
@@ -586,7 +587,7 @@ class Image extends AbstractAdapter implements AdapterInterface
             return $this->validateCode($data, $code);
         }
         $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
-        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:NOT_FOUND'];
+        $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:NOT_FOUND'];
         return $this->createResult();
     }
 
@@ -605,7 +606,7 @@ class Image extends AbstractAdapter implements AdapterInterface
             $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove captcha data from session.
 
             $this->result['code'] = CaptchaResult::FAILURE_EXPIRED;
-            $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:EXPIRED'];
+            $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:EXPIRED'];
             return $this->createResult();
         }
 
@@ -613,11 +614,11 @@ class Image extends AbstractAdapter implements AdapterInterface
             $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove
 
             $this->result['code'] = CaptchaResult::SUCCESS;
-            $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:SUCCESS'];
+            $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:SUCCESS'];
             return $this->createResult();
         }
         $this->result['code'] = CaptchaResult::FAILURE_INVALID_CODE;
-        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:INVALID'];
+        $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:INVALID'];
         return $this->createResult();
     }
 
@@ -674,7 +675,7 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function printRefreshButton()
     {
-        return sprintf($this->config['form']['refresh']['button'], $this->c['translator']['OBULLO:CAPTCHA:REFRESH_BUTTON_LABEL']);
+        return sprintf($this->config['form']['refresh']['button'], $this->translator['OBULLO:CAPTCHA:REFRESH_BUTTON_LABEL']);
     }
 
     /**
@@ -702,11 +703,11 @@ class Image extends AbstractAdapter implements AdapterInterface
         if (! $this->config['form']['validation']['enabled']) {
             return;
         }
-        $label = $this->c['translator']['OBULLO:CAPTCHA:LABEL'];
+        $label = $this->translator['OBULLO:CAPTCHA:LABEL'];
         $rules = 'required|exact('.$this->config['characters']['length'].')|trim';
         $post  = $this->c['request']->isPost();
 
-        if ($this->config['form']['validation']['callback'] AND $post) {  // Add callback if we have http post
+        if ($this->config['form']['validation']['callback'] && $post) {  // Add callback if we have http post
 
             $rules.= '|callback_captcha';  // Add callback validation rule
 
@@ -715,7 +716,7 @@ class Image extends AbstractAdapter implements AdapterInterface
                 'callback_captcha',
                 function () use ($self, $label) {
                     if ($self->result()->isValid() == false) {
-                        $this->setMessage('callback_captcha', $this->c['translator']->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        $this->setMessage('callback_captcha', $this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
                         return false;
                     }
                     return true;
@@ -731,8 +732,3 @@ class Image extends AbstractAdapter implements AdapterInterface
         }
     }
 }
-
-// END Image Class
-/* End of file Image.php
-
-/* Location: .Obullo/Captcha/Adapter/Image.php */

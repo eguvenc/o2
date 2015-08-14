@@ -4,7 +4,6 @@ namespace Obullo\Cli;
 
 use InvalidArgumentException;
 use Obullo\Log\LoggerInterface;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Console Argument Parser Class
@@ -12,11 +11,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Cli
  * @package   Parser
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class Cli
+class Cli implements CliInterface
 {
     /**
      * Argument seperator
@@ -29,45 +28,82 @@ class Cli
     const SIGN = '--';
 
     /**
-     * All Cli arguments not values
+     * All cli arguments not values
      * 
      * @var array
      */
-    public $segments;
+    protected $segments;
 
     /**
-     * All Cli arguments with key and values ( associative array )
+     * All cli arguments with key and values ( associative array )
      * 
      * @var array
      */
-    public $arguments;
+    protected $arguments;
+
+    /**
+     * Logger exist variable
+     * 
+     * @var boolean
+     */
+    protected $exist;
+
+    /**
+     * Short commands
+     * 
+     * @var array
+     */
+    protected static $shortcuts = [
+        '--w=' => '--worker=',
+        '--j=' => '--job=',
+        '--d=' => '--delay=',
+        '--m=' => '--memory=',
+        '--s=' => '--sleep=',
+        '--t=' => '--timeout=',
+        '--a=' => '--attempt=',
+        '--h=' => '--host=',
+        '--o=' => '--output=',
+        '--v=' => '--var=',
+        '--e=' => '--env='
+    ]; 
 
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $logger LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->logger = $c['logger'];
-        if ($this->logger instanceof LoggerInterface) {  // We need to sure logger object is available
+        $this->logger = $logger;
+        $this->loggerExists();
+        if ($this->exist) {
             $this->logger->debug('Cli Class Initialized');
         }
     }
 
     /**
-     * Resolve command line parameters
+     * Reset variables
      * 
-     * @param array $parameters parameter array
+     * @return void
+     */
+    public function clear()
+    {
+        $this->segments = array();
+        $this->arguments = array();
+    }
+
+    /**
+     * Resolve command line parameters
      * 
      * @return array resolved parameters
      */
-    public function parse($parameters = array())
+    public function parse()
     {
-        if ( ! is_array($parameters) || ! isset($parameters[0])) {
+        $argv = $this->getCmdString();
+        $parameters = explode("\n", strstr($argv, '--'));
+        if (! is_array($parameters) || ! isset($parameters[0])) {
             return array();
         }
-        $this->arguments['command'] = $parameters[0];
         $params = array();
         foreach ($parameters as $value) {
             if (strpos($value, static::SIGN) === 0) {
@@ -79,7 +115,7 @@ class Cli
                 $params[] = trim($value, static::SIGN);
             }
         }
-        if ($this->logger instanceof LoggerInterface) {
+        if ($this->exist) {
             $this->logger->debug('Cli parameters resolved', array('parameters' => $params));
         }
         $this->segments = $params;
@@ -139,14 +175,68 @@ class Cli
     }
 
     /**
-     * Reset variables
+     * Get task controller
      * 
-     * @return void
+     * @return string
      */
-    public function clear()
+    public function getClass()
     {
-        $this->segments = array();
-        $this->arguments = array();
+        return (empty($_SERVER['argv'][1])) ? null : $_SERVER['argv'][1];
+    }
+
+    /**
+     * Get task method
+     * 
+     * @return string
+     */
+    public function getMethod()
+    {
+        return (empty($_SERVER['argv'][2])) ? null : $_SERVER['argv'][2];
+    }
+    
+    /**
+     * Get executed original command with parameters
+     *
+     * @param boolean $nl whether to use newline
+     * 
+     * @return string
+     */
+    public function getCmdString($nl = true)
+    {
+        $shortcuts = $this->getShortcuts();
+        $cmdString = implode("\n", array_slice($_SERVER['argv'], 1));
+        $cmdString = str_replace(
+            array_keys($shortcuts),
+            array_values($shortcuts),
+            $cmdString
+        );
+        if (! $nl) {
+            $cmdString = str_replace("\n", "/", $cmdString);
+        }
+        return $cmdString;
+    }
+
+    /**
+     * Returns to all argument shortcuts
+     * 
+     * @return array
+     */
+    public function getShortcuts()
+    {
+        return static::$shortcuts;
+    }
+
+    /**
+     * If logger exists returns to true otherwise false
+     * 
+     * @return boolean
+     */
+    protected function loggerExists()
+    {
+        if (is_object($this->logger) && method_exists($this->logger, 'debug')) {
+            return $this->exist = true;
+        }
+        return $this->exist = false;
     }
 
 }

@@ -383,8 +383,3 @@ echo Console::newline(2);
     }
 
 }
-
-// END DebuggerController class
-/* End of file DebuggerController.php */
-
-/* Location: .Obullo/Task/DebuggerController.php */

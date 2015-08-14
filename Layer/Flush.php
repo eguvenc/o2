@@ -2,7 +2,8 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Cache\CacheInterface;
 
 /**
  * Flush Class
@@ -10,7 +11,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Layer
  * @package   Flush
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/layer
  */
@@ -33,13 +34,13 @@ class Flush
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $logger \Obullo\Log\LoggerInterface
+     * @param object $cache  \Obullo\Cache\CacheInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(LoggerInterface $logger, CacheInterface $cache)
     {
-        $this->cache = $c['cache'];
-        
-        $c['logger']->debug('Layer Flush Class Initialized');
+        $this->cache = $cache;
+        $logger->debug('Layer Flush Class Initialized');
     }
 
     /**
@@ -53,8 +54,8 @@ class Flush
     public function uri($uri = '', $data = array())
     {
         $hashString = trim($uri, '/');
-        if ( sizeof($data) > 0 ) {      // We can't use count() in sub layers sizeof gives better results.
-            $hashString .= str_replace('"', '', json_encode($data)); // remove quotes to fix equality problem
+        if (sizeof($data) > 0 ) {      // We can't use count() in sub layers sizeof gives better results.
+            $hashString .= str_replace('"', '', json_encode($data)); // Remove quotes to fix equality problem
         }
         $KEY = $this->generateId($hashString);
         if ($this->cache->exists($KEY)) {

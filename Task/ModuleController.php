@@ -14,7 +14,7 @@ use RecursiveDirectoryIterator;
  * @category  Console
  * @package   Tasks
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
@@ -175,11 +175,7 @@ echo Console::help(
 "Available Commands
 
     add      : Add new module to .modules/ directory.
-    remove   : Remove module from .modules/ directory.
-
-Available Arguments
-
-    --name   : Module name.");
+    remove   : Remove module from .modules/ directory.");
 echo Console::newline(2);
 echo Console::help("Usage:", true);
 echo Console::newline(2);
@@ -196,8 +192,3 @@ echo Console::newline(2);
     }
 
 }
-
-// END ModuleController class
-
-/* End of file ModuleController.php */
-/* Location: .Obullo/Task/ModuleController.php */

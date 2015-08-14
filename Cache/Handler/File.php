@@ -3,7 +3,8 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Cache\CacheInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * File Caching Class
@@ -11,11 +12,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Cache
  * @package   File
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-class File implements CacheHandlerInterface
+class File implements CacheInterface
 {
     const SERIALIZER_NONE = 'none';
 
@@ -29,17 +30,17 @@ class File implements CacheHandlerInterface
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param object $config \Obullo\Config\ConfigInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config)
     {
-        $this->filePath = $c['config']->load('cache/file')['path'];
+        $this->filePath = $config->load('cache/file')['path'];
         $filePath = ltrim($this->filePath, '/');
 
         if (strpos($filePath, 'resources') === 0) {
             $this->filePath = ROOT. str_replace('/', DS, $filePath) . DS;
         }
-        if ( ! is_writable($this->filePath)) {
+        if (! is_writable($this->filePath)) {
             throw new RunTimeException(
                 sprintf(
                     'Filepath %s is not writable.',
@@ -68,7 +69,7 @@ class File implements CacheHandlerInterface
      */
     public function get($key)
     {
-        if ( ! file_exists($this->filePath . $key)) {
+        if (! file_exists($this->filePath . $key)) {
             return false;
         }
         $data = file_get_contents($this->filePath . $key);
@@ -107,7 +108,7 @@ class File implements CacheHandlerInterface
      */
     public function replace($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             $this->delete($key);
             $contents = array(
                 'time' => time(),
@@ -143,7 +144,7 @@ class File implements CacheHandlerInterface
                 $fileName = $this->filePath . $k;
                 $write    = $this->writeData($fileName, $contents);
             }
-            if ( ! $write) {
+            if (! $write) {
                 return false;
             }
             return true;
@@ -161,7 +162,7 @@ class File implements CacheHandlerInterface
      */
     public function writeData($fileName, $contents)
     {
-        if ( ! $fp = fopen($fileName, 'wb')) {
+        if (! $fp = fopen($fileName, 'wb')) {
             return false;
         }
         $serializeData = serialize($contents);
@@ -183,7 +184,7 @@ class File implements CacheHandlerInterface
      */
     public function set($key, $data = 60, $ttl = 60)
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             $contents = array(
                 'time' => time(),
                 'ttl'  => $ttl,
@@ -285,7 +286,7 @@ class File implements CacheHandlerInterface
      */
     public function getMetaData($key)
     {
-        if ( ! file_exists($this->filePath . $key)) {
+        if (! file_exists($this->filePath . $key)) {
             return false;
         }
         $data = file_get_contents($this->filePath . $key);
@@ -293,7 +294,7 @@ class File implements CacheHandlerInterface
 
         if (is_array($data)) {
             $mtime = filemtime($this->filePath . $key);
-            if ( ! isset($data['ttl'])) {
+            if (! isset($data['ttl'])) {
                 return false;
             }
             return array(
@@ -324,8 +325,3 @@ class File implements CacheHandlerInterface
         return;
     }
 }
-
-// END File Class
-
-/* End of file File.php */
-/* Location: .Obullo/Cache/Handler/File.php */

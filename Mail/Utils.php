@@ -8,7 +8,7 @@ namespace Obullo\Mail;
  * @category  Mailer
  * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mailer
  */
@@ -86,119 +86,6 @@ class Utils
             }
         }
         return $cleanEmail;
-    }
-
-    /**
-     * Prep Quoted Printable
-     *
-     * Prepares string for Quoted-Printable Content-Transfer-Encoding
-     * Refer to RFC 2045 http://www.ietf.org/rfc/rfc2045.txt
-     *
-     * @param string  $name    str
-     * @param integer $charlim limit
-     * 
-     * @return string
-     */
-    public static function prepQuotedPrintable($name, $charlim = '')
-    {
-        // Set the character limit
-        // Don't allow over 76, as that will make servers and MUAs barf
-        // all over quoted-printable data
-        if ($charlim == '' || $charlim > '76') {
-            $charlim = '76';
-        }
-        $name = preg_replace("| +|", " ", $name); // Reduce multiple spaces
-        $name = preg_replace('/\x00+/', '', $name);         // kill nulls
-
-        if (strpos($name, "\r") !== false) {         // Standardize newlines
-            $name = str_replace(array("\r\n", "\r"), "\n", $name);
-        }
-        // We are intentionally wrapping so mail servers will encode characters
-        // properly and MUAs will behave, so {unwrap} must go!
-        $name = str_replace(array('{unwrap}', '{/unwrap}'), '', $name);
-        $lines = explode("\n", $name);         // Break into an array of lines
-        $escape = '=';
-        $output = '';
-        foreach ($lines as $line) {
-            $length = strlen($line);
-            $temp = '';
-            // Loop through each character in the line to add soft-wrap
-            // characters at the end of a line " =\r\n" and add the newly
-            // processed line(s) to the output (see comment on $crlf class property)
-            for ($i = 0; $i < $length; $i++) {   // Grab the next character
-                $char = substr($line, $i, 1);
-                $ascii = ord($char);
-                // Convert spaces and tabs but only if it's the end of the line
-                if ($i == ($length - 1)) {
-                    $char = ($ascii == '32' || $ascii == '9') ? $escape . sprintf('%02s', dechex($ascii)) : $char;
-                }
-                if ($ascii == '61') {  // encode = signs
-                    $char = $escape . strtoupper(sprintf('%02s', dechex($ascii)));  // =3D
-                }
-                // If we're at the character limit, add the line to the output,
-                // reset our temp variable, and keep on chuggin'
-                if ((strlen($temp) + strlen($char)) >= $charlim) {
-                    $output .= $temp . $escape . $this->crlf;
-                    $temp = '';
-                }
-                // Add the character to our temporary line
-                $temp .= $char;
-            }
-            // Add our completed line to the output
-            $output .= $temp . $this->crlf;
-        }
-        // get rid of extra CRLF tacked onto the end
-        $output = substr($output, 0, strlen($this->crlf) * -1);
-        return $output;
-    }
-
-    /**
-     * Prep Q Encoding
-     *
-     * Performs "Q Encoding" on a string for use in email headers.  It's related
-     * but not identical to quoted-printable, so it has its own method
-     *
-     * @param str  $name string
-     * @param bool $from set to true for processing From: headers
-     * 
-     * @return string
-     */
-    public static function prepQencoding($name, $from = false)
-    {
-        $name = str_replace(array("\r", "\n"), array('', ''), $name);
-        // Line length must not exceed 76 characters, so we adjust for
-        // a space, 7 extra characters =??Q??=, and the charset that we will add to each line
-        $limit = 75 - 7 - strlen($this->charset);
-        // these special characters must be converted too
-        $convert = array('_', '=', '?');
-        if ($from === true) {
-            $convert[] = ',';
-            $convert[] = ';';
-        }
-        $output = '';
-        $temp = '';
-        for ($i = 0, $length = strlen($name); $i < $length; $i++) {
-            $char = substr($name, $i, 1); // Grab the next character
-            $ascii = ord($char);
-            if ($ascii < 32 || $ascii > 126 || in_array($char, $convert)) { // convert ALL non-printable ASCII characters and our specials
-                $char = '=' . dechex($ascii);
-            }
-            if ($ascii == 32) { // handle regular spaces a bit more compactly than =20
-                $char = '_';
-            }
-            // If we're at the character limit, add the line to the output,
-            // reset our temp variable, and keep on chuggin'
-            if ((strlen($temp) + strlen($char)) >= $limit) {
-                $output .= $temp . $this->crlf;
-                $temp = '';
-            }
-            $temp .= $char; // Add the character to our temporary line
-        }
-        $name = $output . $temp;
-        // wrap each line with the shebang, charset, and transfer encoding
-        // the preceding space on successive lines is required for header "folding"
-        $name = trim(preg_replace('/^(.*)$/m', ' =?' . $this->charset . '?Q?$1?=', $name));
-        return $name;
     }
 
 }

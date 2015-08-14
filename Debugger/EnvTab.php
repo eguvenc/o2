@@ -3,6 +3,7 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
+use Obullo\Http\Request\RequestInterface;
 
 /**
  * Debugger Environment Tab Builder
@@ -10,21 +11,21 @@ use RuntimeException;
  * @category  Debug
  * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/debugger
  */
 class EnvTab
 {
     /**
-     * Application output
+     * Html output
      * 
      * @var string
      */
     protected $output;
 
     /**
-     * Request
+     * Http Request Class
      * 
      * @var object
      */
@@ -33,13 +34,13 @@ class EnvTab
     /**
      * Constructor
      * 
-     * @param object $request class
-     * @param string $output  output
+     * @param object $request \Obullo\Http\Request\RequestInterface
+     * @param string $output  html output
      */
-    public function __construct($request, $output = null)
+    public function __construct(RequestInterface $request, $output = null)
     {
-        $this->request = $request;
         $this->output = $output;
+        $this->request = $request;
     }
 
     /**

@@ -11,7 +11,7 @@ use Obullo\Cli\Console;
  * @category  Cli
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
@@ -46,8 +46,3 @@ echo Console::newline(2);
     }
 
 }
-
-// END HelpController class
-
-/* End of file HelpController.php */
-/* Location: .Obullo/Task/HelpController.php */

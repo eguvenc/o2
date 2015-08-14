@@ -5,6 +5,7 @@ namespace Obullo\Captcha;
 use RuntimeException;
 use Obullo\Captcha\Result;
 use Obullo\Captcha\CaptchaService;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Captcha abstract class.
@@ -12,7 +13,7 @@ use Obullo\Captcha\CaptchaService;
  * @category  Captcha
  * @package   AbstractAdapter
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
@@ -52,10 +53,11 @@ abstract class AbstractAdapter
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c \Obullo\Container\ContainerInterface
      */
-    public function __construct($c)
+    public function __construct(ContainerInterface $c)
     {
+        $this->c = $c;
         $this->session = $c['session'];
         $this->logger  = $c['logger'];
         

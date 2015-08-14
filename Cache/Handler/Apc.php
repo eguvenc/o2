@@ -3,7 +3,8 @@
 namespace Obullo\Cache\Handler;
 
 use RunTimeException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Cache\CacheInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * Apc Caching Class
@@ -11,23 +12,23 @@ use Obullo\Container\ContainerInterface;
  * @category  Cache
  * @package   Apc
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cache
  */
-class Apc implements CacheHandlerInterface
+class Apc implements CacheInterface
 {
     const SERIALIZER_NONE = 'none';
 
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param object $config \Obullo\Config\ConfigInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config)
     {
-        $c = null;
-        if ( ! extension_loaded('apc') OR ini_get('apc.enabled') != '1') {
+        $config = null;
+        if (! extension_loaded('apc') || ini_get('apc.enabled') != '1') {
             throw new RunTimeException(
                 sprintf(
                     ' %s driver is not installed.', get_class()
@@ -56,7 +57,7 @@ class Apc implements CacheHandlerInterface
     public function get($key)
     {
         $value = apc_fetch($key);
-        if (is_array($value) AND isset($value[0])) {
+        if (is_array($value) && isset($value[0])) {
             return $value = $value[0];
         }
         return $value;
@@ -104,7 +105,7 @@ class Apc implements CacheHandlerInterface
      */
     public function set($key, $data = 60, $ttl = 60) 
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             return apc_store($key, array($data, time(), $ttl), $ttl);
         }
         return $this->setArray($key, $data);
@@ -133,7 +134,7 @@ class Apc implements CacheHandlerInterface
      */
     public function replace($key, $data = 60, $ttl = 60) 
     {
-        if ( ! is_array($key)) {
+        if (! is_array($key)) {
             $this->delete($key);
             return apc_store($key, array($data, time(), $ttl), $ttl);
         }
@@ -209,8 +210,3 @@ class Apc implements CacheHandlerInterface
         return;
     }
 }
-
-// END Apc Class
-
-/* End of file Apc.php */
-/* Location: .Obullo/Cache/Handler/Apc.php */

@@ -2,7 +2,8 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * Identifies the platform, browser, robot, or mobile devise of the browsing agent
@@ -12,7 +13,7 @@ use Obullo\Container\ContainerInterface;
  * @category  UserAgent
  * @package   Agent
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/agent
  */
@@ -20,153 +21,88 @@ class UserAgent
 {
     /**
      * Current user-agent
-     *
+     * 
      * @var string
      */
-    public $agent = null;
-
-    /**
-     * Flag for if the user-agent is a robot
-     *
-     * @var bool
-     */
-    public $isRobot = false;
-
-    /**
-     * Flag for if the user-agent is a mobile browser
-     *
-     * @var bool
-     */
-    public $isMobile = false;
-
-    /**
-     * Flag for if the user-agent belongs to a browser
-     *
-     * @var bool
-     */
-    public $isBrowser = false;
-
-    /**
-     * Languages accepted by the current user agent
-     *
-     * @var array
-     */
-    public $languages = array();
-
-    /**
-     * Character sets accepted by the current user agent
-     *
-     * @var array
-     */
-    public $charsets = array();
-
-    /**
-     * List of platforms to compare against current user agent
-     *
-     * @var array
-     */
-    public $platforms = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * List of browsers to compare against current user agent
-     *
-     * @var array
-     */
-    public $browsers = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * List of mobile browsers to compare against current user agent
-     *
-     * @var array
-     */
-    public $mobiles = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * List of robots to compare against current user agent
-     *
-     * @var array
-     */
-    public $robots = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * Current user-agent platform
-     *
-     * @var string
-     */
-    public $platform = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * Current user-agent browser
-     *
-     * @var string
-     */
-    public $browser = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * Current user-agent mobile data
-     *
-     * @var string
-     */
-    public $mobile = array(
-        'key' => '',
-        'val' => ''
-    );
-
-    /**
-     * Current user-agent robot data
-     *
-     * @var string
-     */
-    public $robot = array(
-        'key' => '',
-        'val' => ''
-    );
+    protected $agent;
 
     /**
      * Current user-agent version
-     *
+     * 
      * @var string
      */
-    public $version = '';
+    protected $version;
+
+    /**
+     * Flag for if the user-agent is a robot
+     * 
+     * @var boolean
+     */
+    protected $isRobot = false;
+
+    /**
+     * Flag for if the user-agent is a mobile browser
+     * 
+     * @var boolean
+     */
+    protected $isMobile = false;
+
+    /**
+     * Flag for if the user-agent belongs to a browser
+     * 
+     * @var boolean
+     */
+    protected $isBrowser = false;
+
+    /**
+     * Character sets accepted by the current user agent
+     * 
+     * @var array
+     */
+    protected $charsets = array();
+
+    /**
+     * Languages accepted by the current user agent
+     * 
+     * @var array
+     */
+    protected $languages = array();
+
+    /**
+     * User agent data variables
+     * 
+     * @var array
+     */
+    protected $robot     = ['key' => '','val' => ''];   // Current user-agent robot data
+    protected $mobile    = ['key' => '','val' => ''];   // Current user-agent mobile data
+    protected $robots    = ['key' => '','val' => ''];   // List of robots to compare against current user agent
+    protected $mobiles   = ['key' => '','val' => ''];   // List of mobile browsers to compare against current user agent
+    protected $browser   = ['key' => '','val' => ''];   // Current user-agent browser
+    protected $browsers  = ['key' => '','val' => ''];   // List of browsers to compare against current user agent
+    protected $platform  = ['key' => '','val' => ''];   // Current user-agent platform
+    protected $platforms = ['key' => '','val' => ''];   // List of platforms to compare against current user agent
 
     /**
      * Constructor
      *
      * Sets the User Agent and runs the compilation routine
-     * 
-     * @param object $c container
+     *
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      *
      * @return void
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, LoggerInterface $logger)
     {
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             $this->agent = trim($_SERVER['HTTP_USER_AGENT']);
         }
         if (! is_null($this->agent)) {
-            if ($this->loadAgentFile($c['config'])) {
+            if ($this->loadAgentFile($config)) {
                 $this->compileData();
             }
         }
-        $c['logger']->debug('Agent Class Initialized');
+        $logger->debug('Agent Class Initialized');
     }
 
     /**
@@ -179,32 +115,27 @@ class UserAgent
     protected function loadAgentFile($config)
     {
         $return = false;
-        $userAgents = $config->load('agents');
-
-        if (isset($userAgents['platforms'])) {
-            $this->platforms = &$userAgents['platforms'];
-            unset($userAgents['platforms']);
+        $config = $config->load('agents');
+        if (isset($config['platforms'])) {
+            $this->platforms = &$config['platforms'];
+            unset($config['platforms']);
             $return = true;
         }
-
-        if (isset($userAgents['browsers'])) {
-            $this->browsers = &$userAgents['browsers'];
-            unset($userAgents['browsers']);
+        if (isset($config['browsers'])) {
+            $this->browsers = &$config['browsers'];
+            unset($config['browsers']);
             $return = true;
         }
-
-        if (isset($userAgents['mobiles'])) {
-            $this->mobiles = &$userAgents['mobiles'];
-            unset($userAgents['mobiles']);
+        if (isset($config['mobiles'])) {
+            $this->mobiles = &$config['mobiles'];
+            unset($config['mobiles']);
             $return = true;
         }
-
-        if (isset($userAgents['robots'])) {
-            $this->robots = &$userAgents['robots'];
-            unset($userAgents['robots']);
+        if (isset($config['robots'])) {
+            $this->robots = &$config['robots'];
+            unset($config['robots']);
             $return = true;
         }
-
         return $return;
     }
 
@@ -510,25 +441,7 @@ class UserAgent
     public function getConfigName($name = null)
     {
         $name = trim(strtolower($name));
-        switch ($name) {
-        case 'browser':
-            return $this->browser['key'];
-            break;
-        case 'platform':
-            return $this->platform['key'];
-            break;
-        case 'robot':
-            return $this->robot['key'];
-            break;
-        case 'mobile':
-            return $this->mobile['key'];
-            break;
-        }
+        return $this->{$name}['key'];
     }
 
 }
-
-// END UserAgent.php File
-/* End of file UserAgent.php
-
-/* Location: .Obullo/Http/UserAgent.php */

@@ -11,7 +11,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Cookie
  * @package   Cookie
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cookie
  */
@@ -205,10 +205,10 @@ class Cookie implements CookieInterface
     {
         if (is_string($name) && $name != null) {    // Build method chain parameters
 
-            if ( ! isset($this->cookies[$this->id]['name'])) {
+            if (! isset($this->cookies[$this->id]['name'])) {
                 $this->name($name);   // Set cookie name
             }
-            if ( ! isset($this->cookies[$this->id]['value'])) {
+            if (! isset($this->cookies[$this->id]['value'])) {
                 $this->value($value); // Set cookie value
             }
             $name = $this->cookies[$this->id];
@@ -296,10 +296,10 @@ class Cookie implements CookieInterface
      */
     public function get($key, $prefix = '')
     {
-        if ( ! isset($_COOKIE[$key]) && $prefix == '' && $this->config['cookie']['prefix'] != '') {
+        if (! isset($_COOKIE[$key]) && $prefix == '' && $this->config['cookie']['prefix'] != '') {
             $prefix = $this->config['cookie']['prefix'];
         }
-        if ( ! isset($_COOKIE[$prefix.$key])) {
+        if (! isset($_COOKIE[$prefix.$key])) {
             return false;
         }
         return $_COOKIE[$prefix.$key];
@@ -321,7 +321,7 @@ class Cookie implements CookieInterface
     * @param string $name   cookie
     * @param string $prefix custom prefix
     * 
-    * @return   void
+    * @return void
     */
     public function delete($name = null, $prefix = null)
     {
@@ -343,7 +343,7 @@ class Cookie implements CookieInterface
      */
     protected function buildParameters($params)
     {
-        if ( ! is_array($params) || ! isset($params['name'])) {
+        if (! is_array($params) || ! isset($params['name'])) {
             throw new RuntimeException("Cookie name can't be empty.");
         }
         $cookie = array();
@@ -367,7 +367,7 @@ class Cookie implements CookieInterface
      */
     protected function getExpiration($expire)
     {
-        if ( ! is_numeric($expire)) {
+        if (! is_numeric($expire)) {
             $expire = time() - 86500;
         } else {
             if ($expire > 0) {
@@ -388,8 +388,3 @@ class Cookie implements CookieInterface
     }
 
 }
-
-// END Cookie.php File
-/* End of file Cookie.php
-
-/* Location: .Obullo/Cookie/Cookie.php */

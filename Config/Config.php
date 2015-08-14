@@ -2,7 +2,6 @@
 
 namespace Obullo\Config;
 
-use ArrayAccess;
 use Obullo\Config\Writer\PhpArray;
 use Obullo\Container\ContainerInterface;
 
@@ -12,11 +11,11 @@ use Obullo\Container\ContainerInterface;
  * @category  Config
  * @package   Config
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-class Config implements ArrayAccess
+class Config implements ConfigInterface
 {
     /**
      * Array stack
@@ -24,6 +23,13 @@ class Config implements ArrayAccess
      * @var array
      */
     public $array = array();
+
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
 
     /**
      * Current environment
@@ -48,6 +54,7 @@ class Config implements ArrayAccess
      */
     public function __construct(ContainerInterface $c)
     {
+        $this->c = $c;
         $this->env = $c['app']->env();
         
         $this->path  = CONFIG .$this->env. DS;
@@ -85,9 +92,9 @@ class Config implements ArrayAccess
      * 
      * @return array if the file was loaded correctly
      */
-    public function load($filename = '')
+    public function load($filename)
     {
-        global $c; //  Make available $c variable in config files.
+        $c = $this->c; //  Make available $c variable in config files.
 
         if (isset($this->array[$filename])) {   // Is file loaded before ?
             return $this->array[$filename];
@@ -126,7 +133,7 @@ class Config implements ArrayAccess
      * 
      * @return void
      */
-    public function write($filename, $data)
+    public function write($filename, array $data)
     {
         $fullpath = CONFIG .$this->env. DS;
 

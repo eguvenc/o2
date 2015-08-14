@@ -5,6 +5,7 @@ namespace Obullo\Debugger;
 use DOMDocument;
 use RuntimeException;
 use Obullo\Log\Handler\Debugger;
+use Obullo\Http\Request\RequestInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -15,7 +16,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Debug
  * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/debugger
  */
@@ -80,11 +81,11 @@ class WebSocket
     /**
      * Constructor
      *
-     * @param object $request   request
-     * @param object $uriString uri request
-     * @param object $config    config
+     * @param object $request   \Obullo\Http\Request\RequestInterface
+     * @param object $config    \Obullo\Config\ConfigInterface
+     * @param object $uriString current uri string
      */
-    public function __construct($request, $uriString, $config)
+    public function __construct(RequestInterface $request, ConfigInterface $config, $uriString)
     {
         $this->request = $request;
         $this->uriString = $uriString;
@@ -94,7 +95,9 @@ class WebSocket
             $config['http']['debugger']['socket'], 
             $matches
         )) {
-            throw new RuntimeException("Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000");
+            throw new RuntimeException(
+                "Debugger socket connection error, example web socket configuration: ws://127.0.0.1:9000"
+            );
         }
         $this->host = $matches['host'];
         $this->port = $matches['port'];

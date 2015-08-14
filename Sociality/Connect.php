@@ -3,7 +3,8 @@
 namespace Obullo\Sociality;
 
 use LogicException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Session\SessionInterface;
 
 /**
  * Socality Connector
@@ -13,9 +14,9 @@ use Obullo\Container\ContainerInterface;
  * @category  Socality
  * @package   Connect
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/session
+ * @link      http://obullo.com/package/sociality
  */
 class Connect
 {
@@ -36,12 +37,13 @@ class Connect
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $config  \Obullo\Config\ConfigInterface
+     * @param object $session \Obullo\Session\SessionInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, SessionInterface $session)
     {
-        $this->config  = $c['config'];
-        $this->storage = $c['session'];
+        $this->config  = $config;
+        $this->storage = $session;
     }
 
     /**

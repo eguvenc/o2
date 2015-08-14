@@ -103,8 +103,8 @@ class Container implements ContainerInterface
      */
     public function offsetGet($cid, $params = array())
     {
-        if (! isset($this->values[$cid])) {    // If does not exist in container we load it directly.
-            return $this->load($cid);           //  Load services and none component libraries like cookie, url ..
+        if (! isset($this->values[$cid])) {     // If does not exist in container we load it directly.
+            return $this->load($cid);           // Load services and none component libraries like cookie, url ..
         }
         if (isset($this->raw[$cid])             // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
@@ -200,7 +200,12 @@ class Container implements ContainerInterface
             }
         }
         if (! $this->has($cid) && ! $isService) {   // Don't register service again.
-            $this->registerClass($cid, 'Obullo\\' .ucfirst($class).'\\'. ucfirst($class));
+            throw new RuntimeException(
+                sprintf(
+                    'The class "%s" is not available. Please register it in components.php or create a service.',
+                    $cid
+                )
+            );
         }
         return $this->offsetGet($cid, $params);
     }
@@ -230,24 +235,6 @@ class Container implements ContainerInterface
             $this->registeredConnections[$name] = $provider;
         }
         return $this->registeredConnections[$name];
-    }
-
-    /**
-     * Register unregistered class to container
-     * 
-     * @param string $cid       identifier
-     * @param string $ClassName classname
-     * 
-     * @return mixed object or null
-     */
-    protected function registerClass($cid, $ClassName)
-    {
-        if (! isset($this->keys[$cid]) && ! isset($this->unset[$cid])) {
-            $this[$cid] = function () use ($ClassName) {
-                return is_string($ClassName) ? new $ClassName($this) : $ClassName;
-            };
-        }
-        return null;
     }
 
     /**
@@ -385,7 +372,7 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Magic method var dump wrapper ( for PHP 5.6.0 and newer versions )
+     * Magic method var_dump($c) wrapper ( for PHP 5.6.0 and newer versions )
      * 
      * @return array
      */

@@ -8,7 +8,7 @@ namespace Obullo\Log;
  * @category  Log
  * @package   LoggerInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
@@ -125,8 +125,3 @@ interface LoggerInterface
      */
     public function log($level, $message, $context = array(), $priority = null);
 }
-
-// END LoggerInterface class
-
-/* End of file LoggerInterface.php */
-/* Location: .Obullo/Log/LoggerInterface.php */

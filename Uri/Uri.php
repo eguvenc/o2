@@ -2,6 +2,9 @@
 
 namespace Obullo\Uri;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -12,14 +15,16 @@ use Obullo\Container\ContainerInterface;
  * @category  Http
  * @package   Uri
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/uri
  */
 class Uri
 {
     public $c;
+    public $app;
     public $config;
+    public $logger;
     public $keyval = array();
     public $uriString;
     public $segments = array();
@@ -30,18 +35,23 @@ class Uri
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $app    \Obullo\Application\Application
+     * @param object $logger \Obullo\Log\LogInterface
+     * @param object $config \Obullo\Config\ConfigInterface
      * 
      * Simply globalizes the $RTR object.  The front
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, Application $app, LoggerInterface $logger, ConfigInterface $config)
     {
         $this->c = $c;
-        $this->config = $c['config'];
+        $this->app = $app;
+        $this->config = $config;
+        $this->logger = $logger;
 
-        $this->c['logger']->debug(
+        $this->logger->debug(
             'Uri Class Initialized', 
             array('uri' => $this->getRequestUri()), 
             9999
@@ -62,7 +72,7 @@ class Uri
         $protocol = $this->config['uri']['protocol'];
         empty($protocol) && $protocol = 'REQUEST_URI';  // Default protocol REQUEST_URI
 
-        if ($this->c['app']->isCli()) {     // Parse console arguments
+        if ($this->app->isCli()) {     // Parse console arguments
             $this->parseCli();
             return;
         }
@@ -94,14 +104,11 @@ class Uri
      */
     protected function parseCli()
     {
-        $uri = $this->parseArgv();
-        $args = strstr($uri, '--');
-
-        $this->c['cli']->parse(explode('/', $args));  // Bind arguments to cli object
-
+        $this->c['cli']->parse();  // Bind arguments to cli object
+        $uri = $this->c['cli']->getCmdString(false);
         $this->setCliHeaders($uri);
         $this->setUriString($uri);
-        $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv'])); // Log all cli commands
+        $this->logger->debug('php '.implode(' ', $_SERVER['argv'])); // Log all cli commands
     }
 
     /**
@@ -145,7 +152,7 @@ class Uri
         }
         $uri = static::detectQueryString($uri, $query);
 
-        if ($uri === '/' OR $uri === '') {
+        if ($uri === '/' || $uri === '') {
             return '/';
         }
         if ($this->config['uri']['sanitizer']) {
@@ -222,7 +229,7 @@ class Uri
      *
      * @param string $uri uri string
      * 
-     * @return  string
+     * @return string
      */
     protected static function removeRelativeDirectory($uri)
     {
@@ -235,17 +242,6 @@ class Uri
             $tok = strtok('/');
         }
         return implode('/', $uris);
-    }
-
-    /**
-     * Parse cli arguments & remove first segment ( task filename )
-     * 
-     * @return string
-     */
-    public function parseArgv() 
-    {
-        $args = array_slice($_SERVER['argv'], 1);
-        return $args ? implode('/', $args) : '';
     }
 
     /**
@@ -351,7 +347,6 @@ class Uri
     public function getAssetsUrl($uri = '', $folder = true)
     {
         $assetsFolder = ($folder) ? trim($this->config['url']['assets']['folder'], '/').'/' : '';
-        
         return $this->config['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
     }
 
@@ -410,7 +405,7 @@ class Uri
         if ($uri_str == '') {
             return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
         } else {
-            $suffix = ($this->config['url']['rewrite']['suffix'] == false OR $suffix == false) ? '' : $this->config['url']['rewrite']['suffix'];
+            $suffix = ($this->config['url']['rewrite']['suffix'] == false || $suffix == false) ? '' : $this->config['url']['rewrite']['suffix'];
             return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uri_str, '/') . $suffix;
         }
     }
@@ -490,8 +485,3 @@ class Uri
         $this->uriExtension = '';
     }
 }
-
-// END Uri Class
-/* End of file Uri.php
-
-/* Location: .Obullo/Uri/Uri.php */

@@ -18,7 +18,7 @@ use Obullo\Container\ContainerInterface;
  * @package   NoCaptcha
  * @author    Ali Ihsan CAGLAYAN <ihsancaglayan@gmail.com>
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/docs/captcha
  * @see       https://www.google.com/recaptcha/intro/index.html
@@ -70,6 +70,13 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected $html = '';
 
     /**
+     * Translator
+     * 
+     * @var object
+     */
+    protected $translator;
+
+    /**
      * Constructor
      *
      * @param object $c container
@@ -78,14 +85,14 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     {
         $this->c = $c;
         $this->config = $c['config']->load('recaptcha/recaptcha');
-
-        $this->c['translator']->load('captcha');
+        $this->translator = $c['translator'];
+        $this->translator->load('captcha');
 
         $this->errorCodes = array(
-            self::FAILURE_MISSING_INPUT_SECRET   => $this->c['translator']['OBULLO:RECAPTCHA:MISSING_INPUT_SECRET'],
-            self::FAILURE_INVALID_INPUT_SECRET   => $this->c['translator']['OBULLO:RECAPTCHA:INVALID_INPUT_SECRET'],
-            self::FAILURE_MISSING_INPUT_RESPONSE => $this->c['translator']['OBULLO:RECAPTCHA:MISSING_INPUT_RESPONSE'],
-            self::FAILURE_INVALID_INPUT_RESPONSE => $this->c['translator']['OBULLO:RECAPTCHA:INVALID_INPUT_RESPONSE']
+            self::FAILURE_MISSING_INPUT_SECRET   => $this->translator['OBULLO:RECAPTCHA:MISSING_INPUT_SECRET'],
+            self::FAILURE_INVALID_INPUT_SECRET   => $this->translator['OBULLO:RECAPTCHA:INVALID_INPUT_SECRET'],
+            self::FAILURE_MISSING_INPUT_RESPONSE => $this->translator['OBULLO:RECAPTCHA:MISSING_INPUT_RESPONSE'],
+            self::FAILURE_INVALID_INPUT_RESPONSE => $this->translator['OBULLO:RECAPTCHA:INVALID_INPUT_RESPONSE']
         );
         parent::__construct($c);
     }
@@ -216,7 +223,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
         $lang = $this->getLang();
         $link = static::CLIENT_API;
 
-        if ( ! empty($lang)) {
+        if (! empty($lang)) {
             $link = static::CLIENT_API .'?hl='. $lang;
         }
         return '<script src="'.$link.'" async defer></script>';
@@ -264,9 +271,9 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected function validateCode($response)
     {
         if (isset($response['success'])) {
-            if ( ! $response['success']
-                AND isset($response['error-codes'])
-                AND sizeof($response['error-codes']) > 0
+            if (! $response['success']
+                && isset($response['error-codes'])
+                && sizeof($response['error-codes']) > 0
             ) {
                 foreach ($response['error-codes'] as $err) {
                     if (isset($this->errorCodes[$err])) {
@@ -278,12 +285,12 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
             }
             if ($response['success'] === true) {
                 $this->result['code'] = CaptchaResult::SUCCESS;
-                $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:SUCCESS'];
+                $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:SUCCESS'];
                 return $this->createResult();
             }
         }
         $this->result['code'] = CaptchaResult::FAILURE_CAPTCHA_NOT_FOUND;
-        $this->result['messages'][] = $this->c['translator']['OBULLO:CAPTCHA:NOT_FOUND'];
+        $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:NOT_FOUND'];
         return $this->createResult();
     }
 
@@ -349,10 +356,10 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     protected function validationSet()
     {
-        if ( ! $this->config['form']['validation']['enabled']) {
+        if (! $this->config['form']['validation']['enabled']) {
             return;
         }
-        $label = $this->c['translator']['OBULLO:CAPTCHA:LABEL'];
+        $label = $this->translator['OBULLO:CAPTCHA:LABEL'];
         $rules = 'required';
         $post  = $this->c['request']->isPost();
 
@@ -365,7 +372,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
                 'callback_captcha',
                 function () use ($self, $label) {
                     if ($self->result()->isValid() == false) {
-                        $this->setMessage('callback_captcha', $this->c['translator']->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        $this->setMessage('callback_captcha', $this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
                         return false;
                     }
                     return true;
@@ -381,8 +388,3 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
         }
     }
 }
-
-// END ReCaptcha.php File
-/* End of file ReCaptcha.php
-
-/* Location: .Obullo/Captcha/Adapter/ReCaptcha.php */

@@ -29,7 +29,7 @@ $c['app'] = function () {
  * @category  Container
  * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
@@ -48,7 +48,7 @@ class Cli extends Application
     public function init()
     {
         if (isset($_SERVER['REMOTE_ADDR'])) die('Access denied');
-
+        
         global $c;
         $this->c = $c;
 
@@ -83,7 +83,6 @@ class Cli extends Application
      */
     public function run()
     {    
-        global $c;
         $this->init();
         $this->c['router']->init();       // Initialize Routes
 

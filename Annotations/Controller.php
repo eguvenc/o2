@@ -4,6 +4,7 @@ namespace Obullo\Annotations;
 
 use ReflectionClass;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Response\ResponseInterface;
 
 /**
  * Annotations Reader for Controller
@@ -13,7 +14,7 @@ use Obullo\Container\ContainerInterface;
  * @category  DocBlocks
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/blocks
  */
@@ -36,20 +37,21 @@ class Controller
     /**
      * Constructor
      *
-     * @param object $c      container
-     * @param object $class  controller object
-     * @param string $method controller method
+     * @param object $c        \Obullo\Container\ContainerInterface
+     * @param object $response \Obullo\Http\Response\ResponseInterface
+     * @param object $class    controller object
+     * @param string $method   controller method
      */
-    public function __construct(ContainerInterface $c, $class, $method = 'index')
+    public function __construct(ContainerInterface $c, ResponseInterface $response, $class, $method = 'index')
     {
         $this->c = $c;
         $reflection = new ReflectionClass($class);
 
         $this->c['annotation.middleware'] = function () use ($c) {
-            return new Middleware($c);
+            return new Middleware($c, $c['app'], $c['event']);
         };
         if (! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
-            $this->c['response']->show404();
+            $response->show404();
         }
         $this->blocks = '';
         if ($reflection->hasMethod('load')) {

@@ -12,7 +12,7 @@ use DateTime;
  * @category  Queue
  * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
@@ -141,7 +141,7 @@ abstract class Job
     protected function resolveAndFire(array $payload)
     {
         $class = ucfirst($payload['job']);
-        $this->instance = new $class($this->c, $this->getEnv());
+        $this->instance = new $class($this->c, array('env' => $this->getEnv()));
         $this->instance->fire($this, $payload['data']);
     }
 
@@ -194,8 +194,3 @@ abstract class Job
     }
 
 }
-
-// END Job class
-
-/* End of file Job.php */
-/* Location: .Obullo/Queue/Job.php */

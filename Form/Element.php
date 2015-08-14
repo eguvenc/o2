@@ -2,6 +2,8 @@
 
 namespace Obullo\Form;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -12,24 +14,38 @@ use Obullo\Container\ContainerInterface;
  * @category  Form
  * @package   Element
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/form
  */
 class Element
 {
     /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Config
+     * 
+     * @var config
+     */
+    protected $config;
+
+    /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->logger = $c['logger'];
-        $this->translator = $c['translator'];
-
-        $this->logger->debug('Form Element Class Initialized');
+        $this->config = $config;
+        $logger->debug('Form Element Class Initialized');
     }
 
     /**
@@ -52,7 +68,7 @@ class Element
         $form .= $this->attributesToString($attributes, true);
         $form .= '>';
 
-        $security = $this->c['config']['security'];
+        $security = $this->config['security'];
         $form = str_replace(array('"method=\'get\'"', "method=\'GET\'"), 'method="get"', $form);
 
         // Add CSRF field if enabled, but leave it out for GET requests and requests to external websites
@@ -114,7 +130,7 @@ class Element
             $content = $data['content'];
             unset($data['content']); // content is not an attribute
         }
-        return "<button ".$this->parseFormAttributes($data, $defaults).$extra.">".$this->translator[$content]."</button>";
+        return "<button ".$this->parseFormAttributes($data, $defaults).$extra.">".$this->c['translator'][$content]."</button>";
     }
     
     /**
@@ -313,7 +329,7 @@ class Element
     public function label($label_text = '', $id = '', $attributes = "")
     {
         $label = '<label';
-        $label_text = $this->translator[$label_text];
+        $label_text = $this->c['translator'][$label_text];
         if (empty($id)) {
             $id = mb_strtolower($label_text);
         }
@@ -374,7 +390,7 @@ class Element
         if (isset($preppedFields[$field])) {  // We've already prepped a field with this name
             return $str;
         }
-        $str = htmlspecialchars($str, ENT_QUOTES, $this->c['config']['locale']['charset'], false);
+        $str = htmlspecialchars($str, ENT_QUOTES, $this->config['locale']['charset'], false);
         if ($field != '') {
             $preppedFields[$field] = $field;
         }
@@ -526,7 +542,7 @@ class Element
                 $attributes.= ' method="post"';
             }
             if (strpos($attributes, 'accept-charset=') === false) {
-                $attributes.= ' accept-charset="'.strtolower($this->c['config']['locale']['charset']).'"';
+                $attributes.= ' accept-charset="'.strtolower($this->config['locale']['charset']).'"';
             }
             return ' '.ltrim($attributes);
         }
@@ -539,7 +555,7 @@ class Element
                 $atts.= ' method="post"';
             }
             if (! isset($attributes['accept-charset'])) {
-                $atts.= ' accept-charset="'.strtolower($this->c['config']['locale']['charset']).'"';
+                $atts.= ' accept-charset="'.strtolower($this->config['locale']['charset']).'"';
             }
             foreach ($attributes as $key => $val) {
                 $atts.= ' '.$key.'="'.$val.'"';

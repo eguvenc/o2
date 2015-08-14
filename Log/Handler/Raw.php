@@ -10,7 +10,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Log
  * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
@@ -43,8 +43,3 @@ class Raw extends AbstractHandler implements HandlerInterface
         return;
     }
 }
-
-// END Raw class
-
-/* End of file Raw.php */
-/* Location: .Obullo/Log/Handler/Raw.php */

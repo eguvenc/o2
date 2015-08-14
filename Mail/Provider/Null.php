@@ -2,15 +2,13 @@
 
 namespace Obullo\Mail\Provider;
 
-use Obullo\Container\ContainerInterface;
-
 /**
  * Null handler
  *
  * @category  Mailer
  * @package   Transport
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mail
  */
@@ -21,13 +19,11 @@ class Null
     /**
      * Constructor
      * 
-     * @param object $c      container
      * @param object $params parameters
      */
-    public function __construct(ContainerInterface $c, $params = array())
+    public function __construct($params = array())
     {
         $params = null;
-        $c['logger']->debug('Null Mailer Class Initialized');
     }
 
     /**

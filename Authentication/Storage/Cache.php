@@ -11,7 +11,7 @@ use Obullo\Service\ServiceProviderInterface;
  * @category  Authentication
  * @package   Storage
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/authentication
  */
@@ -49,8 +49,8 @@ class Cache extends AbstractStorage implements StorageInterface
     {
         $this->cache = $provider->get(
             [
-                'driver' => $this->params['cache']['provider']['driver'],
-                'connection' => $this->params['cache']['provider']['connection']
+                'driver' => $this->params['cache']['provider']['params']['driver'],
+                'connection' => $this->params['cache']['provider']['params']['connection']
             ]
         );
         return true;
@@ -76,7 +76,7 @@ class Cache extends AbstractStorage implements StorageInterface
      */
     public function query()
     {
-        if ( ! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
+        if (! $this->isEmpty('__permanent')) {  // If user has cached auth return to data otherwise false
 
             $data = $this->getCredentials($this->getMemoryBlockKey('__permanent'));
 
@@ -104,7 +104,7 @@ class Cache extends AbstractStorage implements StorageInterface
             return false;
         }
         $this->data[$block] = array($this->getLoginId() => $credentials);
-        if ( ! empty($pushData) && is_array($pushData)) {
+        if (! empty($pushData) && is_array($pushData)) {
             $this->data[$block] = array($this->getLoginId() => array_merge($credentials, $pushData));
         }
         $allData = $this->cache->get($this->getMemoryBlockKey($block));  // Get all data
@@ -147,7 +147,7 @@ class Cache extends AbstractStorage implements StorageInterface
         $loginID = $this->getLoginId();
         $credentials = $this->cache->get($this->getBlock($block));  // Don't do container cache
 
-        if ( ! isset($credentials[$loginID])) {  // already removed
+        if (! isset($credentials[$loginID])) {  // already removed
             return;
         }
         unset($credentials[$loginID]);

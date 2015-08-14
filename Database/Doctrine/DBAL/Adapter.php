@@ -20,7 +20,7 @@ use Doctrine\DBAL\Cache\QueryCacheProfile;
  * @category  Database
  * @package   DBALAdapter
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/database
  */
@@ -335,8 +335,3 @@ class Adapter extends Connection
         }
     }
 }
-
-// END Adapter Class
-
-/* End of file Adapter.php
-/* Location: .Obullo/Database/Adapter/Doctrine/DBAL/Adapter.php */

@@ -3,9 +3,12 @@
 namespace Obullo\Queue\Failed\Storage;
 
 use PDO;
+use Exception;
+use RuntimeException;
 use SimpleXMLElement;
 use Obullo\Queue\Failed\FailedJob;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Service\ServiceProviderInterface;
 
 /**
  * FailedJob Database Handler
@@ -13,51 +16,88 @@ use Obullo\Container\ContainerInterface;
  * @category  Queue
  * @package   Failed
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
 class Database extends FailedJob implements StorageInterface
 {
     /**
+     * Db instance
+     * 
+     * @var object
+     */
+    protected $db;
+
+    /**
+     * Db tablename
+     * 
+     * @var array
+     */
+    protected $tablename;
+    
+    /**
      * Constuctor
      *
-     * @param object $c container
+     * @param object $config   \Obullo\Config\ConfigInterface
+     * @param object $provider \Obullo\Service\ServiceProviderInterface
+     * @param object $params   service parameters
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, ServiceProviderInterface $provider, array $params)
     {
-        parent::__construct($c);
+        $database = $config->load('database');
+        $connection = $params['failedJob']['provider']['params']['connection'];
+
+        if (! isset($database['connections'][$connection])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Failed job database connection "%s" is not defined in your database.php config file.',
+                    $connection
+                )
+            );
+        }
+        $this->db = $provider->get($params['failedJob']['provider']['params']);
+        $this->tablename = $params['failedJob']['table'];
     }
 
     /**
-     * Insert job data to storage
+     * Insert failed event data to storage
      * 
-     * @param array $data key value data
+     * @param array $event key value data
      * 
      * @return void
      */
-    public function save($data)
+    public function save(array $event)
     {
-        if ($id = $this->dailyExists($data['error_file'], $data['error_line'])) {
+        if ($id = $this->dailyExists($event['error_file'], $event['error_line'])) {
             $this->updateRepeat($id);
-            return true;
+            return;
         }
-        // Json encode coult not encode the large data
-        // Xml Encoding fix the issue, if you see any problem please open an issue from github.
-        if (! empty($data['error_trace'])) {
-            $xml = new SimpleXMLElement('<root/>');
-            array_walk_recursive($data['error_trace'], array($xml, 'addChild'));
-            $data['error_trace'] = $xml->asXML();
-        }
-        if (! empty($data['error_xdebug'])) {
-            $xml = new SimpleXMLElement('<root/>');
-            $xml->addChild('xdebug', $data['error_xdebug']);
-            $data['error_xdebug'] = $xml->asXML();
-        }
-        $data['failure_first_date'] = time();
+        try {
+            $this->db->beginTransaction();
 
-        $sql = "INSERT INTO $this->table (".implode(',', array_keys($data)).") VALUES (".implode(',', array_values($this->db->escape($data))).")";
-        return $this->db->exec($sql);
+            // Json encode coult not encode the large data
+            // Xml Encoding fix the issue, if you see any problem please open an issue from github.
+            if (! empty($event['error_trace'])) {
+                $xml = new SimpleXMLElement('<root/>');
+                array_walk_recursive($event['error_trace'], array($xml, 'addChild'));
+                $event['error_trace'] = $xml->asXML();
+            }
+            if (! empty($event['error_xdebug'])) {
+                $xml = new SimpleXMLElement('<root/>');
+                $xml->addChild('xdebug', $event['error_xdebug']);
+                $event['error_xdebug'] = $xml->asXML();
+            }
+            $event['failure_first_date'] = time();
+
+            $sql = "INSERT INTO $this->tablename (".implode(',', array_keys($event)).") VALUES (".implode(',', array_values($this->db->escape($event))).")";
+            $this->db->exec($sql);
+            $this->db->commit();
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            $this->exception->show($e);  // Display console errors
+        }
     }
 
     /**
@@ -70,7 +110,7 @@ class Database extends FailedJob implements StorageInterface
      */
     public function dailyExists($file, $line)
     {
-        $row = $this->db->prepare("SELECT id, failure_first_date FROM $this->table WHERE error_file = ? AND error_line = ? LIMIT 1")
+        $row = $this->db->prepare("SELECT id, failure_first_date FROM $this->tablename WHERE error_file = ? AND error_line = ? LIMIT 1")
             ->bindParam(1, $file, PDO::PARAM_STR)
             ->bindParam(2, $line, PDO::PARAM_INT)
             ->execute()
@@ -93,13 +133,8 @@ class Database extends FailedJob implements StorageInterface
      */
     public function updateRepeat($id)
     {
-        $sql = "UPDATE $this->table SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
+        $sql = "UPDATE $this->tablename SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
         return $this->db->exec(sprintf($sql, time(), $id));
     }
 
 }
-
-// END Database class
-
-/* End of file Database.php */
-/* Location: .Obullo/Queue/Failed/Storage/Database.php */

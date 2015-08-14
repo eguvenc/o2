@@ -13,7 +13,7 @@ use Obullo\Container\ContainerInterface;
  * @category  ConnectionProvider
  * @package   ServiceProviders
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
@@ -33,7 +33,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->config = $this->c['config']->load('queue/amqp');  // Load database configuration file
+        $this->config = $this->c['config']->load('queue')['amqp'];  // Load database configuration file
 
         $this->setKey('amqp.connection.');
 
@@ -119,8 +119,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     {
         $cid = $this->getKey($this->getConnectionId($params));
 
-        // Create shared connection if not exists
-        if (! $this->c->exists($cid)) {
+        if (! $this->c->exists($cid)) {  // Create shared connection if not exists
             $this->c[$cid] = function () use ($params) {
                 return $this->createConnection($params);
             };

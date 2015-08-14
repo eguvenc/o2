@@ -3,7 +3,6 @@
 namespace Obullo\Task;
 
 use Obullo\Log\LoggerInterface;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Task Class
@@ -11,7 +10,7 @@ use Obullo\Container\ContainerInterface;
  * @category  Cli
  * @package   Task
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/task
  */
@@ -25,14 +24,22 @@ class Task
     protected $logger;
 
     /**
+     * Logger exist variable
+     * 
+     * @var null|boolean
+     */
+    protected $exist;
+
+    /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->logger = $c['logger'];
-        if ($this->logger instanceof LoggerInterface) {  // We need to sure logger object is available
+        $this->logger = $logger;
+        $this->loggerExists();
+        if ($this->exist) {
             $this->logger->debug('Task Class Initialized');
         }
     }
@@ -40,7 +47,7 @@ class Task
     /**
      * Run cli task
      *
-     * e.g: $this->c['task']->run('');
+     * E.g: $this->c['task']->run('');
      * 
      * @param string  $uri   task uri
      * @param boolean $debug On / Off print debugger
@@ -59,14 +66,14 @@ class Task
 
         if ($debug) {  // Enable debug output to log folder.
             $output = preg_replace(array('/\033\[36m/', '/\033\[31m/', '/\033\[0m/'), array('', '', ''), shell_exec($shell)); // Clean cli color codes
-            if ($this->logger instanceof LoggerInterface) {
+            if ($this->exist) {
                 $this->logger->debug('$_TASK request', array('command' => $shell, 'output' => $output));
             }
             return $output;
         }
         shell_exec($shell . ' > /dev/null &');  // Async task
 
-        if ($this->logger instanceof LoggerInterface) {
+        if ($this->exist) {
             $this->logger->debug('$_TASK executed', array('shell' => $shell));
         }
     }
@@ -82,7 +89,7 @@ class Task
     {
         $segments = array();
         foreach ($uri as $k => $v) {
-            if ( ! $v) {
+            if (! $v) {
                 $segments[$k] = 'false';
             } else {
                 $segments[$k] = static::ucwordsUnderscore($v);
@@ -115,9 +122,17 @@ class Task
         return $string;
     }
 
+    /**
+     * If logger exists returns to true otherwise false
+     * 
+     * @return boolean
+     */
+    protected function loggerExists()
+    {
+        if (is_object($this->logger) && method_exists($this->logger, 'debug')) {
+            return $this->exist = true;
+        }
+        return $this->exist = false;
+    }
+
 }
-
-// END Task.php File
-/* End of file Task.php
-
-/* Location: .Obullo/Task/Task.php */

@@ -8,7 +8,7 @@ namespace Obullo\Log;
  * @category  Log
  * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
@@ -139,8 +139,3 @@ class NullLogger extends AbstractLogger implements LoggerInterface
     }
 
 }
-
-// END NullLogger
-
-/* End of file NullLogger.php */
-/* Location: .Obullo/Log/NullLogger.php */

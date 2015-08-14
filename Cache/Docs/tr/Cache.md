@@ -44,6 +44,7 @@ Cache paketi çeşitli önbellekleme ( cache ) türleri için birleşik bir aray
 
 </ul>
 
+<a name="configuration"></a>
 
 ### Konfigürasyon
 
@@ -53,23 +54,36 @@ Cache sınıfı konfigürasyonu <kbd>config/$env/cache/$driver.php</kbd> dosyas�
 
 #### Servis Konfigürasyonu
 
-Servisler uygulama içerisinde parametreleri değişmez olan ve tüm kütüphaneler tarafından ortak ( paylaşımlı ) kullanılan sınıflardır. Genellikle servisler kolay yönetilebilmek için bağımsız olan bir servis sağlayıcısına ihtiyaç duyarlar.
+Servisler uygulama içerisinde parametreleri değişmez olan ve tüm kütüphaneler tarafından ortak ( paylaşımlı ) kullanılan sınıflardır. Kimi durumlarda servisler kolay yönetilebilmek için bağımsız olan bir servis sağlayıcısına ihtiyaç duyarlar.
 
-Cache paketini kullanabilmeniz için ilk önce servis ve servis sağlayıcısı ayarlarını kurmamız gerekir. Cache servisi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de parametre değişikliği gerektirdiği ( paylaşımsız yada bağımsız ) kullanıldığı için kimi zaman farklı ihtiyaçlara cevap veremez.
+Cache servisi uygulama içerisinde bazı yerlerde paylaşımlı olarak bazı yerlerde de parametre değişikliği gerektirdiği ( paylaşımsız yada bağımsız ) kullanıldığı için kimi zaman farklı ihtiyaçlara cevap veremez.
 
 Bir örnek vermek gerekirse uygulamada servis olarak kurduğunuz cache kütüphanesi her zaman <b>serializer</b> parametresi ile kullanılmaya konfigüre edilmiştir ve değiştirilemez. Fakat bazı yerlerde <b>"none"</b> parametresini kullanmanız gerekir bu durumda servis sağlayıcı imdadımıza yetişir ve <b>"none"</b> parametresini kullanmanıza imkan sağlar. Böylece cache kütüphanesi yeni bir nesne oluşturarak servis sağlayıcısının diğer cache servisi ile karışmasını önler.
 
-Bu nedenlerden ötürü cache kütüphanesi aşağıdaki gibi hem servis hem de servis sağlayıcı olarak kullanılır.
+Default bağlantısına ait aşağıdaki birinci örnekte servis sağlayıcı konfigürasyon dosyasında serializer tipi <kbd>none</kbd> olarak ayarlanmış olan <kbd>default</kbd> bağlantısına bağlanır.
+
+```php
+$this->c['app']->provider('cache')->get(['driver' => 'redis', 'connection' => 'default']);
+```
+
+Second bağlantısına ait aşağıdaki ikinci örnekte servis sağlayıcı konfigürasyon dosyasında serializer tipi <kbd>php</kbd> olarak ayarlanmış olan <kbd>second</kbd> bağlantısına bağlanır.
+
+```php
+$this->c['app']->provider('cache')->get(['driver' => 'redis', 'connection' => 'second']);
+```
+
+Uygulamada cache servisi yüklendiğinde servis içerisinde <kbd>CacheManager</kbd> sınıfı getProvider metodu ile tanımlı olan servis sağlayıcısına bağlanır.
 
 <a name="service-setup"></a>
 
 #### Servis Kurulumu
 
-Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağlayıcısının adını service provider get metodu içerisindeki driver anahtarı değerine sürücü adını girmek ve konfigürasyon dosyanızdaki bağlantı adını seçmektir aşağıdaki <b>default</b> bağlantısı seçilmiştir.
+Servis kurulumu için tek yapmanız gereken kullanmak istediğiniz servis sağlayıcısının parametrelerini servis konfigürasyonuna girmek, aşağıdaki örnekte <kbd>default</kbd> bağlantısı seçilmiştir.
 
 ```php
 namespace Service;
 
+use Obullo\Cache\CacheManager;
 use Obullo\Service\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
@@ -78,20 +92,22 @@ class Cache implements ServiceInterface
     public function register(ContainerInterface $c)
     {
         $c['cache'] = function () use ($c) {
-        
-            return $this->c['app']->provider('cache')->get(
-                [
-                  'driver' => 'redis',
-                  'connection' => 'default'
+            
+            $parameters = [
+                'provider' => [
+                    'name' => 'cache',
+                    'params' => [
+                        'driver' => 'redis',
+                        'connection' => 'default'
+                    ]
                 ]
-            );
+            ];
+            $manager = new CacheManager($c);
+            $manager->setParameters($parameters);
+            return $manager->getProvider();
         };
     }
 }
-
-// END Cache class
-
-/* End of file Cache.php */
 /* Location: .classes/Service/Cache.php */
 ```
 
@@ -131,7 +147,7 @@ Sürücü seçimi yapılırken küçük harfler kullanılmalıdır. Örnek : red
 Cache sürücüleri handler interface arayüzünü kullanırlar. Handler interface size cache servisinde hangi metotların ortak kullanıldığı gösterir ve eğer yeni bir sürücü yazacaksınız sizi bu metotları sınıfınıza dahil etmeye zorlar. Cache sürücüsü ortak metotları aşağıdaki gibidir.
 
 ```php
-interface CacheHandlerInterface
+interface CacheInterface
 {
     public function connect();
     public function exists($key);

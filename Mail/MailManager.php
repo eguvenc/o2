@@ -2,8 +2,8 @@
 
 namespace Obullo\Mail;
 
+use RuntimeException;
 use Obullo\Container\ContainerInterface;
-use Obullo\Service\ServiceProviderInterface;
 
 /**
  * MailManager Class
@@ -11,7 +11,7 @@ use Obullo\Service\ServiceProviderInterface;
  * @category  Mailer
  * @package   MailManager
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/mailer
  */
@@ -80,6 +80,19 @@ class MailManager
     }
 
     /**
+     * Register mail providers
+     * 
+     * @param array $providers array providers
+     * 
+     * @return object
+     */
+    public function registerMailer(array $providers)
+    {
+        $this->providers = $providers;
+        return $this;
+    }
+
+    /**
      * Returns to mail manager instance
      * 
      * @param string $mailer name
@@ -88,17 +101,23 @@ class MailManager
      */
     public function setMailer($mailer)
     {
+        $Class = '\Obullo\Mail\Provider\\Null';
         /**
          * Create new instance if we haven't got the same
          * otherwise return to old instance
          */
         if (! isset($this->mailers[$mailer])) {
+            
             if ($this->params['default']['enabled']) {
-                $Class = '\Obullo\Mail\Provider\\'.ucfirst($mailer);
-            } else {
-                $Class = '\Obullo\Mail\Provider\\Null';
+
+                if (empty($this->providers[$mailer])) {
+                    throw new RuntimeException(
+                        sprintf("Mail provider %s is not registered in mailer service.", $mailer)
+                    );
+                }
+                $Class = $this->providers[$mailer];
             }
-            return $this->mailer = $this->mailers[$mailer] = new $Class($this->c, $this->params);
+            return $this->mailer = $this->mailers[$mailer] = new $Class($this->getParameters());
         }
         $this->mailer = $this->mailers[$mailer];
         return $this;

@@ -11,7 +11,7 @@ use Obullo\Cli\Console;
  * @category  Cli
  * @package   Controller
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
@@ -91,7 +91,7 @@ class DomainController extends Controller
             echo Console::fail('Domain "--name" can\'t be empty.');
             exit;
         }
-        if ( ! isset($this->config['domain'][$name])) {
+        if (! isset($this->config['domain'][$name])) {
             echo Console::fail('Domain name "'.ucfirst($name).'" must be defined in your domain.php config file.');
             die;
         }
@@ -129,8 +129,3 @@ echo Console::help("Manages domain features which are defined in your domain.php
 echo Console::newline(2);
     }
 }
-
-// END DomainController class
-
-/* End of file DomainController.php */
-/* Location: .Obullo/Task/DomainController.php */

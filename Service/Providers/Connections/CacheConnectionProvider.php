@@ -12,7 +12,7 @@ use Obullo\Cache\Handler\HandlerInterface;
  * @category  Connections
  * @package   Service
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
@@ -45,9 +45,9 @@ class CacheConnectionProvider extends AbstractConnectionProvider
     }
 
     /**
-     * Create a new mongo connection
+     * Create a new cache connection
      * 
-     * if you don't want to add it to config file and you want to create new one.
+     * If you don't want to add it to config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
@@ -55,7 +55,7 @@ class CacheConnectionProvider extends AbstractConnectionProvider
      */
     public function factory($params = array())
     {
-        if (empty($params['driver']) OR empty($params['connection'])) {
+        if (empty($params['driver']) || empty($params['connection'])) {
             throw new RuntimeException(
                 sprintf(
                     "Cache provider requires driver and connection parameters. <pre>%s</pre>",
@@ -65,8 +65,10 @@ class CacheConnectionProvider extends AbstractConnectionProvider
         }
         $cid = $this->getKey($this->getConnectionId($params));
 
-        if ( ! $this->c->has($cid)) {    //  create shared connection if not exists
-            $this->c[$cid] = function () use ($params) {  //  create shared connections
+        // Create shared connections if not exists
+
+        if (! $this->c->has($cid)) {   
+            $this->c[$cid] = function () use ($params) { 
                 $driver = $params['driver'];
                 unset($params['driver']);
                 return $this->createClass($driver, $params);
@@ -88,10 +90,10 @@ class CacheConnectionProvider extends AbstractConnectionProvider
         $driver = strtolower($class);
         $Class = '\\Obullo\Cache\Handler\\'.ucfirst($driver);
 
-        if ($driver == 'file' OR $driver == 'apc') {
-            $connection = new $Class($this->c);
+        if ($driver == 'file' || $driver == 'apc') {
+            $connection = new $Class($this->c['config']);
         } else {
-            $connection = new $Class($this->c, $this->c['app']->provider($driver)->get($options));  //  Store objects to container
+            $connection = new $Class($this->c['config'], $this->c['app']->provider($driver)->get($options));  //  Store objects to container
         }
         return $connection;
     }

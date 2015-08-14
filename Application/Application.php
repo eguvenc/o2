@@ -6,6 +6,8 @@ use Closure;
 use Exception;
 use Controller;
 use ErrorException;
+use ReflectionClass;
+use RuntimeException;
 use ReflectionFunction;
 use Obullo\Error\Debug;
 
@@ -15,7 +17,7 @@ use Obullo\Error\Debug;
  * @category  Container
  * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/container
  */
@@ -28,6 +30,23 @@ class Application
     protected $config;             // Config object
     protected $exceptions = array();
     protected $fatalError;
+
+    /**
+     * Dependency map
+     * 
+     * @var array
+     */
+    protected static $dependencies = [
+            'app',
+            'uri',
+            'config',
+            'router',
+            'logger',
+            'session',
+            'request',
+            'response',
+            'translator',
+        ];
 
     /**
      * Detects application environment using "app/environments.php" file.
@@ -173,7 +192,7 @@ class Application
         $closure = $this->fatalError;
         if (null != $error = error_get_last()) {  // If we have a fatal error
             $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
-            $this->c['logger']->shutdown();          // Close the logger if have fatal error otherwise log writers not write to drivers
+            $this->c['logger']->shutdown();       // Close the logger if have fatal error otherwise log writers not write.
         }
     }
 
@@ -185,7 +204,7 @@ class Application
     protected function dispatchAnnotations()
     {
         if ($this->c['config']['controller']['annotations']) {
-            $docs = new \Obullo\Annotations\Controller($this->c, $this->class, $this->method);
+            $docs = new \Obullo\Annotations\Controller($this->c, $this->c['response'], $this->class, $this->method);
             $docs->parse();
         }
     }
@@ -198,7 +217,7 @@ class Application
     protected function dispatchClass()
     {
         if (! class_exists($this->className, false)) {
-            $this->c['response']->show404($this->getUriString());
+            $this->c['response']->show404($this->uri->getUriString());
         }
     }
 
@@ -212,22 +231,8 @@ class Application
         if (! method_exists($this->class, $this->method)
             || $this->method == '__extend'
         ) {
-            $this->c['response']->show404($this->getUriString());
+            $this->c['response']->show404($this->uri->getUriString());
         }
-    }
-
-    /**
-     * Returns to valid site route
-     * 
-     * @return string
-     */
-    protected function getUriString()
-    {
-        $route = $this->c['uri']->getUriString();       // Get current uri
-        if ($this->c->has('app.uri')) {                 // If layer ( hmvc ) used, use global request uri object instead of current.
-            $route = $this->c['app.uri']->getUriString();                             
-        }
-        return $route;
     }
 
     /**
@@ -283,20 +288,59 @@ class Application
     }
 
     /**
-     * Register core components
+     * Register components & resolve dependencies
      *
      * @param array $namespaces component class name & namespaces
      * 
      * @return void
      */
     public function component(array $namespaces)
-    {
+    {   
         foreach ($namespaces as $name => $Class) {
-            $this->c[$name] = function () use ($Class) {
+            $this->c[$name] = function () use ($Class, $name) {
                 $Class = '\\'.ltrim($Class, '\\');
-                return new $Class($this->c);
+                $reflector = new ReflectionClass($Class);
+                if (! $reflector->hasMethod('__construct')) {
+                    return $reflector->newInstance();
+                } else {
+                    return $reflector->newInstanceArgs($this->getDependencies($reflector, $name));
+                }
             };
         }
+    }
+
+    /**
+     * Parse dependency parameters
+     * 
+     * @param array  $reflector ReflectionClass
+     * @param string $component name
+     * 
+     * @return array
+     */
+    protected function getDependencies(ReflectionClass $reflector, $component)
+    {
+        $parameters = $reflector->getConstructor()->getParameters();
+        $params = array();
+        foreach ($parameters as $parameter) {
+            $d = $parameter->getName();
+            if ($d == 'c') {
+                $params[] = $this->c;
+            } else {
+                if (in_array($d, static::$dependencies)) {
+                    $params[] = $this->c[$d];
+                } else {
+                    throw new RuntimeException(
+                        sprintf(
+                            'Dependency is missing for "%s" package. <pre>%s $%s</pre>',
+                            $component,
+                            $parameter->getClass()->name,
+                            $d
+                        )
+                    );
+                }
+            }
+        }
+        return $params;
     }
     
     /**
@@ -376,13 +420,13 @@ class Application
     public function __get($key)
     {
         $cid = 'app.'.$key;
-        if (($key == 'uri' || $key == 'router') && $this->c->has($cid) ) {
+        if ($this->c->has($cid) ) {
             return $this->c[$cid];
         }
         if (class_exists('Controller', false) && Controller::$instance != null) {
             return Controller::$instance->{$key};
         }
-        return $this->c[$cid];
+        return $this->c[$key];
     }
 
 }

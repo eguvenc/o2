@@ -2,35 +2,26 @@
 
 namespace Obullo\Queue\Failed\Storage;
 
-use Obullo\Container\ContainerInterface;
-
 /**
  * Storage Handler Interface
  * 
  * @category  Queue
  * @package   StorageInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
  */
 interface StorageInterface
 {
     /**
-     * Constuctor
-     *
-     * @param object $c container
-     */
-    public function __construct(ContainerInterface $c);
-
-    /**
-     * Insert failde job data to table
+     * Insert failed event data to storage
      * 
-     * @param array $data failed data
+     * @param array $event key value data
      * 
-     * @return boolean
+     * @return void
      */
-    public function save($data);
+    public function save(array $event);
 
     /**
      * Check same error exists
@@ -51,8 +42,3 @@ interface StorageInterface
      */
     public function updateRepeat($jobId);
 }
-
-// END StorageInterface class
-
-/* End of file StorageInterface.php */
-/* Location: .Obullo/Queue/Failed/Storage/StorageInterface.php */

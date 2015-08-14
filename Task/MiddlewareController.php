@@ -11,7 +11,7 @@ use Obullo\Cli\Console;
  * @category  Console
  * @package   Tasks
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2014 Obullo
+ * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/task
  */
@@ -47,11 +47,11 @@ class MiddlewareController extends Controller
         $middleware = $name.'.php';
         $middlewareFile = OBULLO .'Application'. DS .'Middlewares'. DS .$name. DS .$middleware;
 
-        if ( ! file_exists($middlewareFile)) {
+        if (! file_exists($middlewareFile)) {
             echo Console::fail("Middleware #$middleware does not exists in Obullo/Middlewares folder.");
             return;
         }
-        if ( ! is_writable(static::getMiddlewarePath())) {
+        if (! is_writable(static::getMiddlewarePath())) {
             echo Console::fail("We could not create file in app/classes/Http/Middlewares folder please check your write permissions.");
             return;
         }
@@ -80,7 +80,7 @@ class MiddlewareController extends Controller
         $name = ucfirst($name);
         $middleware = $name.'.php';
 
-        if ( ! file_exists(static::getMiddlewarePath())) {
+        if (! file_exists(static::getMiddlewarePath())) {
             echo Console::fail("Middleware #$middleware does not exists in app/classes/Http/Middlewares folder.");
             return;
         }
@@ -136,8 +136,3 @@ echo Console::newline(2);
     }
 
 }
-
-// END MiddlewareController class
-
-/* End of file MiddlewareController.php */
-/* Location: .Obullo/Task/MiddlewareController.php */
