@@ -139,7 +139,7 @@ class Welcome extends \Controller
 }
 ```
 
-<kbd>$this</kbd> ile çağırılan bir sınıf konteyner nesnesi içerisinden çağrılır, nesne konteyner içerisinde kayıtlı değilse konteyner içerisine dahil edilerek çağrılır. Kontrolör sınıfı içerisinde  <kbd>$this</kbd> yöntemi ile çağırılan konteyner nesneleri aşağıdaki gibi <kbd>Obullo\Controller\Controller</kbd> ana kontrolör sınıfı içerisinde mevcut bulunan bir magic <b>__get</b> metodu ile yine konteyner sınıfı üzerinden çağrılmış olurlar.
+<kbd>$this</kbd> ile çağırılan bir sınıf konteyner nesnesi içerisinden çağrılır, nesne konteyner içerisinde kayıtlı değilse komponent dosyasi icersinde tanimli olan bileşenlerden cagrilir. Kontrolör sınıfı içerisinde  <kbd>$this</kbd> yöntemi ile çağırılan konteyner nesneleri aşağıdaki gibi <kbd>Obullo\Controller\Controller</kbd> ana kontrolör sınıfı içerisinde mevcut bulunan bir magic <b>__get</b> metodu ile yine konteyner sınıfı üzerinden çağrılmış olurlar.
 
 ```php
 public function __get($key)
