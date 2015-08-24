@@ -69,7 +69,7 @@ Yetki doğrulama paketi yetki adaptörleri ile birlikte çeşitli ortak senaryol
 
     <li><a href="#login-reference">Login Sınıfı Referansı</a></li>
     <li><a href="#authResult-reference">AuthResult Sınıfı Referansı</a></li>
-    <li><a href="#database-model">Database Sorgularını Özelleştirmek</a></li>
+    <li><a href="#database-model">Veritabanı Sorgularını Özelleştirmek</a></li>
     <li><a href="#additional-features">Ek Özellikler</a></li>
     <li><a href="#events">Olaylar</a></li>
     <li><a href="#middleware">Auth Katmanları</a></li>
@@ -165,7 +165,7 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>config/auth.php</kbd> dosyası
             <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
         </tr>
         <tr>
-            <td>middleware[uniqueLogin]</td>
+            <td>middleware[unique.login]</td>
             <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Auth katmanı içerisinde kullandığınız trait sınıfının davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique login özelliği <b>Authentication/Middleware</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
         </tr>
     </tbody>
@@ -290,39 +290,46 @@ Class User implements ServiceInterface
 {
     public function register(ContainerInterface $c)
     {
-        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
+        $c['user'] = function () use ($c) {
 
             $parameters = [
-                'cache.key'     => 'Auth',
-                'db.adapter'    => '\Obullo\Authentication\Adapter\Database', // Adapter
-                'db.model'      => '\Obullo\Authentication\Model\User',       // User model
-                'db.provider'   => 'database',
-                'db.connection' => 'default',
-                'db.tablename'  => $params['table'],
+                'cache.key' => 'Auth',
+                'db.adapter'=> '\Obullo\Authentication\Adapter\Database',
+                'db.model'  => '\Obullo\Authentication\Model\Pdo\User',       // User model, you can replace it with your own.
+                'db.provider' => [
+                    'name' => 'database',
+                    'params' => [
+                        'connection' => 'default'
+                    ]
+                ],
+                'db.tablename' => 'users',
+                'db.id' => 'id',
+                'db.identifier' => 'username',
+                'db.password' => 'password',
+                'db.rememberToken' => 'remember_token',
+                'db.select' => [
+                    'date',
+                ]
             ];
             $manager = new AuthManager($c);
             $manager->setParameters($parameters);
-
             return $manager;
         };
     }
 }
 
-// END User class
-
-/* End of file User.php */
 /* Location: .app/classes/Service/User.php */
 ```
 
-**Adaptörler:** Yetki doğrulama adaptörleri yetki doğrulama servisinde <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
+**Adapter:** Yetki doğrulama adaptörleri yetki doğrulama servisinde <b>Database</b> (RDBMS or NoSQL) veya <b>dosya-tabanlı</b> gibi farklı türde kimlik doğrulama biçimleri olarak kullanılırlar.
 
-**Model:** Model sınıfı yetki doğrulama sınıfına ait database işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için aşağıda database sorgularını özelleştirmek başlığına bakınız.
+**Model:** Model sınıfı yetki doğrulama sınıfına ait veritabanı işlemlerini içerir. Bu sınıfa genişleyerek bu sınıfı özelleştirebilirsiniz bunun için aşağıda veritabanı sorgularını özelleştirmek başlığına bakınız.
 
-**Provider:** Database servis sağlayıcınızın ismidir. Database işlemlerinin hangi servis sağlayıcısının kullanması gerektiğini tanımlar.
+**Provider Name:** Veritabanı servis sağlayıcınızın ismidir. Veritabanı işlemlerinin hangi servis sağlayıcısının kullanması gerektiğini tanımlar.
 
-**Connection:** Database servis sağlayıcısının hangi bağlantıyı seçmesi gerektiğini tanımlar.
+**Connection:** Veritabanı servis sağlayıcısının hangi bağlantıyı seçmesi gerektiğini tanımlar.
 
-**Tablo ayarları:** db.connection anahtarından sonraki diğer konfigurasyonlar database işlemleri için tablo ismi ve sütun isimlerini belirlemenize olanak sağlar. Bu konfigürasyonlar database işlemlerinde kullanılır.
+**Tablename:** Veritabanı işlemleri için tablo ismini belirlemenize olanak sağlar. Bu konfigürasyon veritabanı işlemlerinde kullanılır.
 
 <a name="loading-service"></a>
 
@@ -333,44 +340,6 @@ Yetki doğrulama paketi sınıflarına erişim <kbd>User</kbd> servisi üzerinde
 ```php
 $this->user = $this->c->get('user');
 ```
-
-<a name="making-service"></a>
-
-#### Servisi Yeniden Yaratmak
-
-```php
-$this->user = $this->c->get('user', ['table' => 'users']);
-```
-Auth servisi varsayılan olarak auth.php konfigürasyon dosyasında tanımlı users tablosuna ait sütün isimleriyle çalışmaya başlar. Varsayılan konfigurasyona tablo ekleyip projenizde aşağıdaki gibi birden fazla auth servisi kullanabilirsiniz.
-
-```php
-
-    'tables' => [
-        'users' => [
-            'db.id' => 'id',
-            'db.identifier' => 'username',
-            'db.password' => 'password',
-            'db.rememberToken' => 'remember_token',
-            'url.login' => '/membership/login/index',
-        ],
-        'admins' => [
-            'db.id' => 'id',
-            'db.identifier' => 'username',
-            'db.password' => 'password',
-            'db.rememberToken' => 'remember_token',
-            'url.login' => '/membership/login/admin',
-        ]
-    ],
-
-/* End of file auth.php */
-/* Location: .config/auth.php */
-```
-
-```php
-$this->user = $this->c->get('user', ['table' => 'admins']);
-```
-
-> **Not:** Kendinize özgü servis parametrelerini yukarıdaki gibi servisin ikinci parametresi üzerinden gönderebilirsiniz.
 
 <a name="calling-classes"></a>
 
@@ -442,9 +411,10 @@ Bir kullanıcıya oturum açma girişimi login sınıfı attempt metodu üzerind
 
 ```php
 $auhtResult = $this->user->login->attempt(
+    'users',
     [
-        AuthConfig::get('db.identifier') => $this->request->post('email'), 
-        AuhtConfig::get('db.password') => $this->request->post('password')
+        'db.identifier' => $this->request->post('email'), 
+        'db.password' => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -488,8 +458,6 @@ Login kontrolör dosyamızın içeriğini inceleyelim.
 ```php
 namespace Membership;
 
-use Obullo\Authentication\AuthConfig;
-
 Class Login extends \Controller
 {
     /**
@@ -511,9 +479,10 @@ Class Login extends \Controller
             } else {
 
                 $authResult = $this->user->login->attempt(
+                    'users',
                     [
-                        AuthConfig::get('db.identifier') => $this->validator->getValue('email'), 
-                        AuthConfig::get('db.password')   => $this->validator->getValue('password'),
+                        'db.identifier' => $this->validator->getValue('email'), 
+                        'db.password'   => $this->validator->getValue('password'),
                     ],
                     $this->request->post('rememberMe')
                 );
@@ -583,9 +552,10 @@ Oturum açma denemesi yapıldığında <b>AuthResult</b> sınıfı ile sonuçlar
 
 ```php
 $authResult = $this->user->login->attempt(
+    'users',
     [
-        AuthConfig::get('db.identifier') => $this->request->post('email'), 
-        AuthConfig::get('db.password') => $this->request->post('password')
+        'db.identifier' => $this->request->post('email'), 
+        'db.password' => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );
@@ -980,7 +950,7 @@ Login denemesinden sonra geçerli veritabanı sorgu sonucu yada önbellek verile
 
 <a name="database-model"></a>
 
-#### Database Sorgularını Özelleştirmek
+#### Veritabanı Sorgularını Özelleştirmek
 
 Eğer mevcut database sorgularında değişiklik yapmak yada bir NoSQL çözümü kullanmak istiyorsanız [DatabaseModel.md](/Authentication/Docs/tr/DatabaseModel.md) dökümentasyonuna gözatın.
 

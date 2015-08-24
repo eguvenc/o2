@@ -70,8 +70,8 @@ Geçici oturumun kalıcı oturumdan farkı <kbd>$this->user->identity->makeTempo
 ```php
 $authResult = $this->user->login->attempt(
     [
-        AuthConfig::get('db.identifier') => $this->request->post('email'), 
-        AuthConfig::get('db.password') => $this->request->post('password')
+        'db.identifier' => $this->request->post('email'), 
+        'db.password' => $this->request->post('password')
     ],
     $this->request->post('rememberMe')
 );

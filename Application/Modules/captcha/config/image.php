@@ -2,38 +2,69 @@
 
 return array(
 
-    'mod' => 'cool',  // Set default mod ( "secure" or "cool" ].
+    /**
+     * Set default captcha style  ( "secure" or "cool" ].
+     */
+    'mod' => 'cool',
 
+    /**
+     * Locale charset
+     */
     'locale' => [
         'charset' => 'UTF-8'
     ],
 
+    /**
+     * Image characters
+     * 
+     * Default Pool : numbers - alpha - random
+     * Pools : numbers - alpha - random
+     * Length : Character length of captcha code
+     */
     'characters' => [
         'default' => [
-            'pool' => 'random'                  // Pools: numbers - alpha - random
+            'pool' => 'random'
         ],
         'pools' => [
             'numbers' => '23456789',
             'alpha'   => 'ABCDEFGHJKLMNPRSTUVWXYZ',
             'random'  => '23456789ABCDEFGHJKLMNPRSTUVWXYZ'
         ],
-        'length' => 5                           // Character length of captcha code
+        'length' => 5
     ],
 
+    /**
+     * Image font
+     *
+     * Size : Font size
+     * Path : Font path
+     */
     'font' => [
-        'size' => 30,                           // Font size
-        'path' => '/assets/fonts',              // Set captcha font path
+        'size' => 30,
+        'path' => '/assets/fonts',
     ],
 
+    /**
+     * Captcha image
+     *
+     * TrueColor: Php imagecreatetruecolor() recommended, but it isn't always available
+     * Type : Set image extension
+     * Wave : Image wave for more strong captchas.
+     * Height : Height of captcha image, we calculate the "width" auto no need to set it.
+     * Expiration : Expiration time of captcha
+     */
     'image' => [
-        'trueColor'  => true,                   // Php imagecreatetruecolor(), but it isn't always available
-        'type'       => 'png',                  // Set image extension
-        'wave'       => true,                   // Image wave for more strong captchas.
-        'height'     => 80,                     // Height of captcha image, we calculate the "width" auto no need to set it.
-        'expiration' => 1440,                   // Expiration time of captcha
+        'trueColor'  => true,
+        'type'       => 'png',
+        'wave'       => true,
+        'height'     => 80,
+        'expiration' => 1440,
     ],
 
-    'colors' => [                          // Color Schema
+    /**
+     * Rgb color schema
+     */
+    'colors' => [
         'red'    => '255,0,0',
         'blue'   => '0,0,255',
         'green'  => '0,102,0',
@@ -42,16 +73,24 @@ return array(
         'cyan'   => '0,146,134',
     ],
 
+    /**
+     * Form & input attributes
+     *
+     * Input : Captcha answer input properties.
+     * Img : Captcha image src tag properties.
+     * Refresh : Captcha refresh button properties.
+     * Validation : Whether to use Obullo validation library.
+     */
     'form' => [
         'input' => [
-            'attributes' => [              // Set input attributes
+            'attributes' => [
                 'type'  => 'text',
                 'name'  => 'captcha_answer',
                 'class' => 'captcha',
                 'id'    => 'captcha_answer'         
             ]
         ],
-        'img' => [                         // This array <img> data
+        'img' => [
             'attributes' => [             
                 'src'   =>  '/index.php/captcha/create',
                 'style' => 'display:block;',
@@ -69,19 +108,27 @@ return array(
             </script>',
         ],
         'validation' => [
-            'enabled' => true,
             'callback' => true,
         ]
     ],
 
+    /**
+     * Captcha text
+     *
+     * Colors text : Text colors. You can enter one or more items.
+     * Colors noise : Noise colors. You can enter one or more items.
+     */
     'text' => [
         'colors' =>  [
-            'text' => ['red'],            // If its more than one produce random colors
-            'noise' => ['red']            // If its more than one produce random noise colors
+            'text' => ['red'],
+            'noise' => ['red']
         ]
     ],
 
-    'fonts' => [                           // Defined Fonts
+    /**
+     * Default captcha fonts
+     */
+    'fonts' => [
         'AlphaSmoke'             => 'AlphaSmoke.ttf',
         'Anglican'               => 'Anglican.ttf',
         'Bknuckss'               => 'Bknuckss.ttf',

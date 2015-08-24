@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Authentication;
+namespace Obullo\Authentication\Storage;
 
 /**
  * Abstract Adapter
@@ -168,7 +168,7 @@ abstract class AbstractStorage
     }
 
     /**
-     * Set random auth session id to sessions
+     * Set random login id to sessions
      * 
      * @return string
      */

@@ -80,26 +80,13 @@ class MailManager
     }
 
     /**
-     * Register mail providers
-     * 
-     * @param array $providers array providers
-     * 
-     * @return object
-     */
-    public function registerMailer(array $providers)
-    {
-        $this->providers = $providers;
-        return $this;
-    }
-
-    /**
      * Returns to mail manager instance
      * 
      * @param string $mailer name
      * 
      * @return object
      */
-    public function setMailer($mailer)
+    public function setProvider($mailer)
     {
         $Class = '\Obullo\Mail\Provider\\Null';
         /**
@@ -110,14 +97,19 @@ class MailManager
             
             if ($this->params['default']['enabled']) {
 
-                if (empty($this->providers[$mailer])) {
+                if (empty($this->params['provider'][$mailer])) {
                     throw new RuntimeException(
-                        sprintf("Mail provider %s is not registered in mailer service.", $mailer)
+                        sprintf("Mail provider %s is not configured in mailer service.", $mailer)
                     );
                 }
-                $Class = $this->providers[$mailer];
+                $Class = $this->params['provider'][$mailer]['class'];
             }
-            return $this->mailer = $this->mailers[$mailer] = new $Class($this->getParameters());
+            return $this->mailer = $this->mailers[$mailer] = new $Class(
+                $this->c,
+                $this->c['translator'],
+                $this->c['logger'],
+                $this->getParameters()
+            );
         }
         $this->mailer = $this->mailers[$mailer];
         return $this;

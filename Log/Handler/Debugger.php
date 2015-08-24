@@ -2,6 +2,8 @@
 
 namespace Obullo\Log\Handler;
 
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 use Obullo\Log\Formatter\DebugFormatter;
 
 /**
@@ -16,6 +18,17 @@ use Obullo\Log\Formatter\DebugFormatter;
  */
 class Debugger extends AbstractHandler implements HandlerInterface
 {
+    /**
+     * Constructor
+     * 
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     */
+    public function __construct(Application $app, ConfigInterface $config)
+    {
+        parent::__construct($app, $config);
+    }
+
     /**
      * Write output
      *

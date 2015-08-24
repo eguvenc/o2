@@ -127,13 +127,13 @@ php task middleware add --name=Csrf
 Bir kuyruğu dinlemek için kullanılan konsol komutuna bir başka örnek.
 
 ```php
-php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --sleep=3 --output=1
+php task queue listen --worker=Workers@Logger --job=logger.1 --memory=128 --sleep=3 --output=1
 ```
 
 Kısayolları da kullanabilirsiniz
 
 ```php
-php task queue listen --w=Workers\Logger --j=logger.1 --m=128 --s=3 --o=1
+php task queue listen --w=Workers@Logger --j=logger.1 --m=128 --s=3 --o=1
 ```
 
 <a name="log-command"></a>

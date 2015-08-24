@@ -100,7 +100,7 @@ class Cli implements CliInterface
     public function parse()
     {
         $argv = $this->getCmdString();
-        $parameters = explode("\n", strstr($argv, '--'));
+        $parameters = explode("\n", strstr($argv, static::SIGN));
         if (! is_array($parameters) || ! isset($parameters[0])) {
             return array();
         }
@@ -114,9 +114,6 @@ class Cli implements CliInterface
             } else {
                 $params[] = trim($value, static::SIGN);
             }
-        }
-        if ($this->exist) {
-            $this->logger->debug('Cli parameters resolved', array('parameters' => $params));
         }
         $this->segments = $params;
         return $params;

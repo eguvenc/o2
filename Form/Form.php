@@ -3,6 +3,8 @@
 namespace Obullo\Form;
 
 use Controller;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -35,33 +37,34 @@ class Form
      *
      * @var object
      */
-    public $c;
+    protected $c;
 
     /**
      * Config Parameters
      * 
      * @var array
      */
-    public $form = array();
+    protected $form = array();
 
     /**
      * Store form notification and errors
      *
      * @var array
      */
-    public $messages = array();
+    protected $messages = array();
 
     /**
      * Constructor
-     * 
-     * @param string $c container
+     *
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->form = $c['config']->load('form');
-        $this->logger = $this->c['logger'];
-        
+        $this->form = $config->load('form');
+        $this->logger = $logger;
         $this->messages['success'] = static::ERROR;
         $this->messages['code'] = 0;
 
@@ -234,7 +237,7 @@ class Form
      */
     public function getMessage($msg = '')
     {
-        if ( ! empty($msg) && is_string($msg)) {
+        if (! empty($msg) && is_string($msg)) {
             $this->messages['message'] = (string)$msg;
         }
         if (empty($this->messages['message'])) {
@@ -372,7 +375,7 @@ class Form
     public function setSelect($field = '', $value = '', $default = false, $selectedString = ' selected="selected"')
     {
         $validator = $this->c['validator'];
-        if ( ! isset($validator->fieldData[$field]) || ! isset($validator->fieldData[$field]['postdata'])) {
+        if (! isset($validator->fieldData[$field]) || ! isset($validator->fieldData[$field]['postdata'])) {
             if ($default === true && count($validator->fieldData) === 0) {
                 return $selectedString;
             }
@@ -380,7 +383,7 @@ class Form
         }
         $field = $validator->fieldData[$field]['postdata'];
         if (is_array($field)) {
-            if ( ! in_array($value, $field)) {
+            if (! in_array($value, $field)) {
                 return '';
             }
         } else {
@@ -426,8 +429,3 @@ class Form
     }
 
 }
-
-// END Form class
-/* End of file Form.php */
-
-/* Location: .Obullo/Form/Form.php */

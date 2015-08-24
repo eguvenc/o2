@@ -44,26 +44,36 @@ Yukarıdaki örnekte <b>modules/accounts</b> klasörü içerisindeki tüm sayfal
 #### Konfigürasyon
 
 Eğer tanımlı değilse <kbd>config/$env/domain.php</kbd> dosyası içerisinden uygulamanıza ait domainleri ve bu domainlere ait regex ( düzenli ) ifadeleri belirleyin.
-<kbd>app/classes/Service/User.php</kbd> dosyası auth servis sağlayıcısından <b>url.login</b> anahtarını login dizinine göre konfigüre edin.
+<kbd>app/classes/Service/User.php</kbd> dosyası auth servis parametrelerini ihtiyaçlarınıza göre konfigüre edin.
 
 ```php
 class User implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
-        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
+        $c['user'] = function () use ($c) {
 
             $parameters = [
-                'cache.key'     => 'Auth',
-                'db.adapter'    => '\Obullo\Authentication\Adapter\Database',
-                'db.model'      => '\Obullo\Authentication\Model\User', 
-                'db.provider'   => 'database',
-                'db.connection' => 'default',
-                'db.tablename'  => $params['table'],
+                'cache.key' => 'Auth',
+                'db.adapter'=> '\Obullo\Authentication\Adapter\Database',
+                'db.model'  => '\Obullo\Authentication\Model\Pdo\User',       // User model, you can replace it with your own.
+                'db.provider' => [
+                    'name' => 'database',
+                    'params' => [
+                        'connection' => 'default'
+                    ]
+                ],
+                'db.tablename' => 'users',
+                'db.id' => 'id',
+                'db.identifier' => 'username',
+                'db.password' => 'password',
+                'db.rememberToken' => 'remember_token',
+                'db.select' => [
+                    'date',
+                ]
             ];
             $manager = new AuthManager($c);
             $manager->setParameters($parameters);
-
             return $manager;
         };
     }
@@ -131,7 +141,7 @@ UniqueLogin özelliği opsiyoneldir ve <kbd>config/auth.php</kbd> konfigürasyon
 return array(
 
     'middleware' => [
-        'uniqueLogin' => true
+        'unique.login' => true
     ]
 );
 
@@ -192,7 +202,7 @@ class Auth extends Middleware
 
 ### User Servisini Dinamik Kullanmak
 
-User servisi üyelik tablosu farklı projelere göre değişkenlik gösterebilir. Böyle bir durumda servisi mevcut projenizde domain adresine göre <kbd>Request Middleware</kbd> içerisinde filtreleyerek servisin farklı domain adresleri için aşağıdaki gibi farklı üyelik tablolarını kullanmasını sağlayabilirsiniz.
+User servisi üyelik tablosu farklı projelere göre değişkenlik gösterebilir. Böyle bir durumda servisi mevcut projenizde domain adresine göre en tepe yükleme noktası olan <kbd>Request Middleware</kbd> içerisinde filtreleyerek servisin farklı domain adresleri için farklı üyelik tablolarını kullanmasını sağlayabilirsiniz. Servis en tepe yükleme noktasında bir kez bu parametreler ile yüklendikten sonra uygulamanın her yerinde artık parametre girmeden <kbd>$this->c['user']</kbd> çağrılarak kullanılabilir.
 
 ```php
 namespace Http\Middlewares;
@@ -286,16 +296,16 @@ class Login extends \Controller
 }
 ```
 
-Kullanıcı girişi yapmak için oluşturduğunuz sayfayı ziyaret edin.
+Kullanıcı girişi yapmak için kullanıcı alan adını ziyaret edin.
 
 ```php
 http://example.com/membership/login
 ```
 
-Yönetici girişi yapmak için oluşturduğunuz sayfayı ziyaret edin.
+Yönetici girişi yapmak için yönetici alan adını ziyaret edin.
 
 ```php
 http://admin.example.com/membership/login
 ```
 
-Artık yetkilendirme servisiniz alt domain isimleriyle uyumlu çalışıyor olmalı.
+Artık yetkilendirme servisiniz alt domain isimlerini kullanarak farklı tablolardan çalışabiliyor olmalı.

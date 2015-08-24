@@ -31,30 +31,33 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
 <li>
     <a href="#workers">İşçiler</a>
     <ul>
-        <li><a href="#define-worker">Bir İşçi Tanımlamak</a></li>
-        <li><a href="#delete-job">Tamamlanmış Bir İşi Kuyruktan Silmek</a></li>
-        <li><a href="#release-job">Bir İşi Kuyruğa Tekrar Atmak</a></li>
-        <li><a href="#job-attempt">Bir İşin Denenme Sayısını Almak</a></li>
-        <li><a href="#job-id">Bir İşin ID Değerini Almak</a></li>
+        <li><a href="#define-worker">İşçi Tanımlamak</a></li>
+        <li><a href="#delete-job">İşi Kuyruktan Silmek</a></li>
+        <li><a href="#release-job">İşi Kuyruğa Tekrar Atmak</a></li>
+        <li><a href="#job-attempt">İşin Denenme Sayısını Almak</a></li>
+        <li><a href="#job-id">İşin ID Değerini Almak</a></li>
+        <li><a href="#job-name">İşin Adını Almak (Kuyruk Adı)</a></li>
+        <li><a href="#job-body">İşe Ait Veriyi Almak</a></li>
     </ul>
 </li>
 
 <li>
     <a href="#running-workers">Konsoldan İşçileri Çalıştırmak</a>
     <ul>
-        <li><a href="#show">Kuyruğu Listelemek</a> (show)</li>
-        <li><a href="#listen">Kuyruğu Dinlemek</a> (listen)</li>
+        <li><a href="#show">Kuyruğu Listelemek</a></li>
+        <li><a href="#listen">Kuyruğu Dinlemek</a></li>
         <li>
-            <a href="#timeout">İşçi Parametreleri</a>
+            <a href="#worker-parameters">İşçi Parametreleri</a>
             <ul>
                 <li><a href="#worker">--worker</a></li>
                 <li><a href="#job">--job</a></li>
-                <li><a href="#output">--output</a></li>
+                <li><a href="#delay">--delay</a></li>
+                <li><a href="#memory">--memory</a></li>
                 <li><a href="#timeout">--timeout</a></li>
                 <li><a href="#sleep">--sleep</a></li>
-                <li><a href="#memory">--memory</a></li>
-                <li><a href="#delay">--delay</a></li>
                 <li><a href="#attempt">--attempt</a></li>
+                <li><a href="#output">--output</a></li>
+                <li><a href="#env">--env</a></li>
                 <li><a href="#var">--var</a></li>
             </ul>
         </li>
@@ -71,20 +74,18 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
         <li><a href="#displaying-all-workers">Bütün İşçileri Görüntülemek</a></li>
         <li><a href="#stopping-all-workers">Bütün İşçileri Durdurmak</a></li>
         <li><a href="#stopping-all-workers">Bütün İşçileri Durdurmak</a></li>
+        <li><a href="#worker-logs">İşci Loglarını Görüntülemek</a></li>
         <li><a href="#additional-info">Ek Bilgiler</a></li>
         <ul>
-          <li><a href="#worker-threads">İşlemci Başına Optitumum İş Parçaçığı</a></li>
-          <li><a href="#startup-config">Otomatik Başlat İle Çalıştırmak</a></li>
-          <li><a href="#worker-logs">İşci Loglarını Görüntülemek</a></li>
+          <li><a href="#startup-config">Sistem Açılışında Otomatik Başlatma</a></li>
           <li><a href="#web-interface">Supervisord İçin Web Arayüzü</a></li>
         </ul>
     </ul>
 </li>
 
 <li>
-    <a href="#failures">Başarısız İşler</a>
+    <a href="#saving-failed-jobs">Başarısız İşleri Kaydetmek</a>
     <ul>
-        <li><a href="#save-failures">Başarısız İşleri Veritabanına Kaydetmek</a></li>
         <li><a href="#failure-config">Konfigürasyon</a></li>
         <li><a href="#failure-sql-file">SQL Dosyası</a></li>
     </ul>
@@ -93,9 +94,8 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
 <li>
     <a href="#method-reference">Fonksiyon Referansı</a>
     <ul>
-        <li><a href="#queue-reference">Queue Sınıfı Metotları</a></li>
-        <li><a href="#job-reference">Job Sınıfı Metotları</a></li>
-        <li><a href="#worker-reference">Worker Sınıfı Metotları</a></li>
+        <li><a href="#queue-reference">Queue Sınıfı Referansı</a></li>
+        <li><a href="#job-reference">Job Sınıfı Referansı</a></li>
     </ul>
 </li>
 
@@ -126,6 +126,9 @@ return array(
         ]
     ],
 );
+
+
+
 ```
 <a name="server-requirements"></a>
 
@@ -134,6 +137,21 @@ return array(
 Kuyruklama servisinin çalışabilmesi için php AMQP extension kurulu olması gerekir. Php AMQP arayüzü ile çalışan birçok kuyruklama yazılımı mevcuttur. Bunlardan bir tanesi de <a href="https://www.rabbitmq.com/" target="_blank">RabbitMQ</a> yazılımıdır. Aşağıdaki linkten RabbitMQ yazılımı için Ubuntu işletim sistemi altında gerçekleştilen örnek bir kurulum bulabilirsiniz.
 
 <a href="https://github.com/obullo/warmup/tree/master/AMQP/RabbitMQ">RabbitMQ ve Php AMQP Extension Kurulumu </a>
+
+#### Diğer AMQP Yazılımları
+
+* 
+
+Bilinen ve yaygın kullanılan diğer AMQP yazılımları için buradaki <a href="http://www.fromdev.com/2012/04/top-5-open-source-amqp-advanced-message.html" target="_blank">makaleye</a> göz artabilirsiniz.
+
+#### Cloud AMQP İle RabbitMQ Kurulumu
+
+* 
+
+#### Scheduled Message Delivery
+
+http://www.javacodegeeks.com/2012/04/rabbitmq-scheduled-message-delivery.html
+
 
 <a name="service-configuration"></a>
 
@@ -194,24 +212,29 @@ $this->c['queue']->metod();
 
 <a name="queuing-a-job"></a>
 
-#### Bir İşi Kuyruğa Atmak
+#### İşi Kuyruğa Atmak
 
 Bir işi kuyruğa atmak için <kbd>$this->queue->push()</kbd> metodu kullanılır.
 
 ```php
-$this->queue->push('Workers\Mailer', 'mailer.1', array('mailer' => 'x', 'message' => 'Hello World !'));
+$this->queue->push('Workers@Mailer', 'mailer.1', array('mailer' => 'x', 'message' => 'Hello World !'));
 ```
 
 Birinci parametreye <kbd>app/classes/Workers/</kbd> klasörü altındaki işçiye ait sınıf yolu, ikinci parametreye kuyruk adı, üçüncü parametreye ise kuyruğa gönderilecek veriler girilir. Opsiyonel olan dördüncü parametreye ise varsa amqp sürücüsüne ait gönderim seçenekleri girilebilir.
 
+Aşağıda RabbitMQ AMQP sağlayıcısına ait web panelinden kuyruğa atılmış bir iş örneği görülüyor.
+
+
+
+
 <a name="delaying-a-job"></a>
 
-#### Bir İşin Çalışmasını Geciktirmek
+#### İşin Çalışmasını Geciktirmek
 
 ```php
 $this->queue->later(
     $delay = 60,
-    'Workers\Order',
+    'Workers@Order',
     'order.1',
     array('order_id' => 'x', 'order_data' => [])
 );
@@ -226,18 +249,18 @@ Eğer later metodu kullanılarak ilk parametreye integer türünde (unix time) b
 Uygulamada kuyruğu tüketen her işçi <kbd>app/classes/Workers/</kbd> klasörü altında çalışır. Bir işi kuyruğa gönderirken iş parametresine uygulamanızdaki klasör yolunu vererek kuyruğu tüketecek işçi belirlenir.
 
 ```php
-$this->queue->push('Workers\Mailer', 'mailer.1', array('mailer' => 'x', 'message' => 'Hello World !'));
+$this->queue->push('Workers@Mailer', 'mailer.1', array('mailer' => 'x', 'message' => 'Hello World !'));
 ```
 
-Yukarıdaki örnekte <kbd>Workers\Mailer</kbd> adlı işe ait girilen veriler <kbd>mailer.1</kbd> adlı kuyruğa gönderilir.
+Yukarıdaki örnekte <kbd>Workers@Mailer</kbd> adlı işe ait girilen veriler <kbd>mailer.1</kbd> adlı kuyruğa gönderilir.
 
 <a name="define-worker"></a>
 
-#### Bir İşçi Tanımlamak
+#### İşçi Tanımlamak
 
-Kuyruğa gönderme esnasında parametre olarak girilen işçi adı <kbd>app/classes/Workers/</kbd> klasörü altında bir sınıf olarak yaratılmalıdır. Sınıf içerisinde tanımlı olan fire metodu ilk parametresine iş sınıfı ikinci parametresine ise işe ait kuyruk verileri gönderilir.
+Kuyruğa gönderme esnasında parametre olarak girilen işçi adı <kbd>app/classes/Workers/</kbd> klasörü altında bir sınıf olarak yaratılmalıdır. Worker sınıfı içerisinde tanımlı olan fire metodu ilk parametresine iş sınıfı ikinci parametresine ise işe ait kuyruk verileri gönderilir.
 
-Aşağıda <kbd>Workers\Mailer</kbd> örneği görülüyor.
+Aşağıda <kbd>Workers@Mailer</kbd> örneği görülüyor.
 
 ```php
 namespace Workers;
@@ -275,23 +298,12 @@ class Mailer implements JobInterface
 /* Location: .app/classes/Workers/Mailer.php */
 ```
 
-> **Not:** Bir iş sınıfı içerisinde sadece <kbd>fire</kbd>  metodu ilan edilmesi job nesnesini ve kuyruğa atılan veriyi almak için yeterlidir.
+> **Not:** Bir iş sınıfı içerisinde sadece <kbd>fire</kbd> metodu ilan edilmesi job nesnesini ve kuyruğa atılan veriyi almak için yeterlidir.
 
-Mailer işçisi çalıştığında fire metodu ilk parametresine iş sınıfı gönderilir.
-
-```php
-php task queue listen --worker=Workers\Mailer --job=mailer.1 --output=1
-```
-
-Argümanlar için aşağıdaki gibi kısa yolları da kullanabilirsiniz.
-
-```php
-php task queue listen --e=Workers\Mailer --r=mailer.1 --o=1
-```
 
 <a name="delete-job"></a>
 
-#### Tamamlanmış Bir İşi Kuyruktan Silmek
+#### İşi Kuyruktan Silmek
 
 Fire metodu ile elde edilen iş nesnesi iş tamamlandıktan sonra <kbd>$job->delete()</kbd> metodu ile silinmelidir. Aksi durumda tüm işler kuyruklama yazılımında birikir.
 
@@ -308,307 +320,258 @@ public function fire($job, array $data)
 
 <a name="release-job"></a>
 
-#### Bir İşi Kuyruğa Tekrar Atmak
+#### İşi Kuyruğa Tekrar Atmak
 
-
-#### Bir İşin Denenme Sayısını Almak
-
-
-#### Bir İşin Denenme Sayısını Almak
-
-
-
-
-### Hello Queue !
-
-This tutorial simply demonstrate <b>pushing your data</b> to queue using your queue handler.
+Eğer bir iş herhangi bir tekrar kuyruğa atılmak isteniyorsa bunu <kbd>release</kbd> metodu ile yapabilirsiniz.
 
 ```php
-/**
- * $app hello_world
- * 
- * @var Controller
- */
-$app = new Controller(
-    function ($c) {
-        $c->load('queue');
-      
-        $this->queue->push('Workers/Logger', 'Server1.logger', array('log' => array('debug' => 'Test')));
-    }
-);
-
-$app->func(
-    'index',
-    function () {
-
-    }
-);
-
-/* End of file hello_world.php */
-/* Location: .public/tutorials/controller/hello_world.php */
-```
-
-### Displayin Queue Data
-
-To follow your Queue data <b>Open your console and type</b>
-
-```
-php task queue show --j=logger.1
-```
-
-Then you will see your Queue data here
-
-```
-Following queue data ...
-
-Worker : Workers/Logger
-Job    : logger.1
-------------------------------------------------------------------------------------------
- Job ID | Job Name             | Data 
-------------------------------------------------------------------------------------------
- 1      | Workers/Logger  | {"log":{"debug":"test"}}
- 2      | Workers/Logger  | {"message":"this is my message"}
- 3      | Workers/Logger  | {"log":{"debug":"test"}}
-```
-
-
-## Queue Control ( Command Line Interface )
-
-------
-
-Queue control allow to us <b>display, listen, delete</b> the queues also do <b>test</b> for workers.
-
-### Display Queues
-
-```php
-php task queue show --worker=Workers\Logger --job=logger.1
-```
-
-### Clear Queue Data
-
-```php
-php task queue show --worker=Workers\Logger --job=logger.1 --clear=1
-```
-
-### Running Your Queue Workers
-
-```php
-php task queue listen --worker=Workers\Logger --job=logger.1 --output=1
-```
-
-Advanced Parameters
-
-```php
-php task queue listen --worker=Workers\Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --sleep=3 --attempt=0 --output=1
-```
-
-### Zorunlu Parametreler
-
-<table>
-<thead>
-<tr>
-<th>Parametre</th>
-<th>Kısayol</th>
-<th>Açıklama</th>
-</thead>
-<tbody>
-<tr>
-<td>--worker</td>
-<td>--w</td>
-<td>Sets queue exchange ( Channel ).</td>
-</tr>
-<tr>
-<td>--job</td>
-<td>--j</td>
-<td>Sets queue name.</td>
-</tr>
-</tbody>
-</table>
-
-### Opsiyonel Parametreler
-
-<table>
-<thead>
-<tr>
-<th>Parametre</th>
-<th>Kısayol</th>
-<th>Açıklama</th>
-</thead>
-<tbody>
-<tr>
-<td>--output</td>
-<td>--o</td>
-<td>Print queue output and any possible exceptions. ( Designed for local environment  )</td>
-</tr>
-<tr>
-<td>--delay</td>
-<td>--d</td>
-<td>Sets delay time for uncompleted jobs.</td>
-</tr>
-<tr>
-<td>--memory</td>
-<td>--m</td>
-<td>Sets maximum allowed memory for current job.</td>
-</tr>
-<tr>
-<td>--timeout</td>
-<td>--t</td>
-<td>Sets time limit execution of the current job.</td>
-</tr>
-<tr>
-<td>--sleep</td>
-<td>--s</td>
-<td>If we have not job on the queue sleep the script for a given number of seconds.</td>
-</tr>
-<tr>
-<td>--attempt</td>
-<td>--a</td>
-<td>Sets the maximum number of times a job should be attempted.</td>
-</tr>
-<tr>
-<td>--var</td>
-<td>--v</td>
-<td>Sets a custom variable.</td>
-</tr>
-<tr>
-<td>--e</td>
-<td>--env</td>
-<td>Sets environment. ( default "local" )</td>
-</tr>
-</tbody>
-</table>
-
-### Deleting A Processed Job
-
-Once you have processed a job, it must be deleted from the queue, which can be done via the delete method on the Job instance:
-
-public function fire($job, $data)
-{
-    // Process the job...
-
-    $job->delete();
-}
-
-### Releasing A Job Back Onto The Queue
-
-If you wish to release a job back onto the queue, you may do so via the release method:
-
-public function fire($job, $data)
+public function fire($job, array $data)
 {
     // Process the job...
 
     $job->release();
 }
+```
 
-You may also specify the number of seconds to wait before the job is released:
+İlk parametreye bir sayı girerek işin tekrar kuyruğa atılma zamanını geciktirebilirsiniz.
 
+```php
 $job->release(5);
+```
 
-### Checking The Number Of Run Attempts
+<a name="job-attempt"></a>
 
-If an exception occurs while the job is being processed, it will automatically be released back onto the queue. You may check the number of attempts that have been made to run the job using the attempts method:
+#### İşin Denenme Sayısını Almak
 
-if ($job->attempts() > 3)
+Eğer iş işlenirken herhangi bir istisnai hata sözkonusu oluğunda, hatalı iş otomatik olarak tekrar kuyruğa atılır. Hatalı bir işin denenme sayısını <kbd>$job->getAttempts()</kbd> metodu ile elde edebilirsiniz.
+
+```php
+if ($job->getAttempts() > 3)
 {
     //
 }
-
-### Accessing The Job ID
-
-You may also access the job identifier:
-
-$job->getJobId();
-
-
-## Queue Service
-
-------
-
-The Queue class provides a interface for variety of different queue handlers.
-
-Push examle
-
-```php
-$c->load('queue');
-
-$this->queue->channel('Logs');
-$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', array('log' => array('debug' => 'Test')));
-$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', array('message' => 'This is my message'));
 ```
 
-Push example with delivery mode
+<a name="job-id"></a>
+
+#### İşin ID Değerini Almak
+
+İhtiyaç duyulduğunda işin ID değerini almak için <kbd>$job->getId()</kbd> metodunu kullanabilirsiniz.
 
 ```php
-$c->load('queue');
-
-$this->queue->channel('Logs');
-$this->queue->push($job = 'Workers/Logger', $route = 'MyHostname.Logger', 
-  $data = array('log' => 'test'), 
-  $delay = 0, 
-  $options = array(
-    'delivery_mode' => 1,  // 2 = "Persistent", 1 = "Non-persistent"
-    'content_type' => 'text/json'
-  )
-);
+$job->getId();  // 15
 ```
 
-### Function Reference
+<a name="job-name"></a>
 
-------
+#### İşin Adını Almak (Kuyruk Adı)
 
-#### $this->queue->channel(string $channelName);
+İhtiyaç duyulduğunda kuyruk / iş adını almak için <kbd>$job->getName()</kbd> metodunu kullanabilirsiniz.
 
-Sets your queue exchange.
+```php
+$job->getName();  // mailer.1
+```
 
-#### $this->queue->push(string $job, string $queueName, array $data, int $delay = 0, array $options = array());
+<a name="job-body"></a>
 
-Push a new job onto the queue.
+#### İşe Ait Veriyi Almak
 
-#### $this->queue->pop(string $queueName);
+İhtiyaç duyulduğunda işe ait veriyi almak için <kbd>$job->getRawBody()</kbd> metodunu kullanabilirsiniz.
 
-Pop the next job off of the queue.
+```php
+$job->getRawBody();  // {"job":"Workers\\Mailer","data":{"files":[{"name":"logs.jpg","type":"image\/jpeg","fileurl
+```
 
-#### $this->queue->purgeQueue(string $queueName);
+<a name="running-workers"></a>
 
-Clear the contents of a queue.
+### Konsoldan İşçileri Çalıştırmak
 
-#### $this->queue->deleteQueue(string $queueName);
+<a name="show"></a>
 
-Delete a queue and its contents.
+#### Kuyruğu Listelemek
 
+Konsol komutunu çalıştırabilmek için proje ana dizinine girin.
 
-## Queue Service Libraries
+```php
+cd /var/www/myproject/
+```
 
-### Job Class
+Show komutu ile kuyruktaki tüm işleri görebilirsiniz.
 
-Job class organize your jobs and send them to worker class. Look at Job Class documentation.
+```php
+php task queue show --worker=Workers@Mailer --job=mailer.1 --output=1
+```
 
-### Worker Class
+```php
+Following "mailer.1" queue ... 
 
-Queue Worker class works in application background and do jobs using Job class. Look at Worker Class documentation.
+------------------------------------------------------------------------------------------
+Job ID  | Job Name            | Data 
+------------------------------------------------------------------------------------------
+1       | Workers@Mailer      | {"files":[{"name":"logs.jpg","type":"image\/jpeg", .. }
 
-### Listener Class
+2       | Workers@Mailer      | {"files":[{"name":"logs.jpg","type":"image\/jpeg","fileurl":"..}
+```
 
-Listener class listen console parameters from Command Line Interface then launch the worker process using process library.
+<a name="listen"></a>
 
+#### Kuyruğu Dinlemek
 
-## Ubuntu Altında Supervisor Kurulumu
+Bir işçiyi çalıştarak bir kuyruğu dinlemek onu tüketmek anlamında gelir. Kuyruğu tüketmek için konsoldan aşağıdaki komut çalıştırılmalıdır.
 
-Supervisor is a client/server system that allows its users to control a number of processes on UNIX-like operating systems.
+```php
+php task queue listen --worker=Workers@Mailer --job=mailer.1 --output=1
+```
 
-<a href="http://supervisord.org/">http://supervisord.org/</a>
+##### Gelişmiş parametreler kullanmak
+
+Gelişmiş parametreler kullanarak işçinin kullanabileceği maximum hafıza, gecikme süresi, bekleme süresi gibi özellikleri belirleyebilirsiniz.
+
+```php
+php task queue listen --worker=Workers@Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --sleep=3
+```
+
+##### Parametreler için kısayollar
+
+Ayrıca işçi tanımlanırken aşağıdaki gibi kısa yollar da kullanabilir.
+
+```php
+php task queue listen --w=Workers@Mailer --j=mailer.1 --o=1
+```
+
+##### Hata Ayıklama Modu
+
+Konsoldan output değerini 1 yapmanız durumunda bulunan hatalar ekrana dökülür. Bu parametre <kbd>test</kbd> veya <kbd>local</kbd> çalışma ortamlarında kullanılmalıdır.
+
+```php
+php task queue listen --w=Workers@Logger --j=logger.1 --o=1
+```
+
+<a name="worker-parameters"></a>
+
+##### İşçi Parametreleri
+
+<a name="worker"></a>
+<a name="job"></a>
+<a name="delay"></a>
+<a name="memory"></a>
+<a name="timeout"></a>
+<a name="sleep"></a>
+<a name="attempt"></a>
+<a name="output"></a>
+<a name="env"></a>
+<a name="var"></a>
+
+<table>
+<thead>
+<tr>
+<th>Parametre</th>
+<th>Kısayol</th>
+<th>Açıklama</th>
+<th>Varsayılan</th>
+</thead>
+<tbody>
+<tr>
+<td>--worker</td>
+<td>--w</td>
+<td>Kuyruğun açılacağı kanalı (exchange) ve işe ait sınıf ismini belirler .</td>
+<td>null</td>
+</tr>
+<tr>
+<td>--job</td>
+<td>--j</td>
+<td>Kuyruğa ait iş ismini (route) belirler.</td>
+<td>null</td>
+</tr>
+<tr>
+<td>--delay</td>
+<td>--d</td>
+<td>Tamamlanmamış işler için gecikme zamanını belirler.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--memory</td>
+<td>--m</td>
+<td>Geçerli iş için kullanılabilecek maksimum belleği belirler. Değer MB cinsinden sayı olarak girilir.</td>
+<td>128</td>
+</tr>
+<tr>
+<td>--timeout</td>
+<td>--t</td>
+<td>Geçerli iş için maksimum çalışma süresini belirler.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--sleep</td>
+<td>--s</td>
+<td>Eğer kuyrukta iş yoksa girilen saniye kadar çalışma duraklatılır. En az 3 olarak girilmesi önerilir aksi durumda işlemci tüketimi artabilir.</td>
+<td>3</td>
+</tr>
+<tr>
+<td>--attempt</td>
+<td>--a</td>
+<td>Kuyrukta bir hatadan dolayı yapılamayan işin en fazla kaç kere daha yapılma girişimi için tekrar kuyruğa atılma limitini belirler. Bir sayı verilmez ise iş el ile silinene kadar kuyrukta kalır.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--output</td>
+<td>--o</td>
+<td>Output değeri 1 olması durumunda bulunan hatalar ekrana dökülür.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>--env</td>
+<td>--e</td>
+<td>Ortam değişkenini worker uygulamasına gönderir.</td>
+<td>null</td>
+</tr>
+<tr>
+<td>--var</td>
+<td>--v</td>
+<td>Bu parametre göndermek istediğiniz özel parametreler için ayrılmıştır.</td>
+<td>null</td>
+</tr>
+</tbody>
+</table>
+
+<a name="threading"></a>
+
+### Çoklu İş Parçalarını Kontrol Etmek ( Multi Threading )
+
+Uygulamanızda php işçilerini eş zamanlı çalıştırarak kuyruktaki verileri tüketme işlemini gerçekleştirmek multi threading olarak anılır.
+
+```php
+php task queue listen --worker=Workers@Logger --job=logger.1 --output=0
+```
+
+Yukarıdaki komut aynı anda birden fazla konsolda çalıştırıldığında <kbd>Obullo/Task/QueueController</kbd> sınıfı üzerinden her seferinde  <kbd>Obullo/Task/WorkerController.php</kbd> dosyasını çalıştırarak yeni bir iş parçaçığı oluşturur. Yerel ortamda birden fazla komut penceresi açarak kuyruğun eş zamanlı nasıl tüketildiğini test edebilirsiniz.
+
+```php
+php task queue listen --worker=Workers@Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --output=1
+```
+Yerel ortamda yada test işlemleri için output parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
+
+Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüketimini otomasyona geçirmek ve çoklu iş parçaları (multithreading) ile çalışmak için Supervisor adlı programdan yararlanabilirsiniz. <a href="http://supervisord.org/" target="_blank">http://supervisord.org/</a>.
+
+<a name="supervisor"></a>
+
+#### Ubuntu Altında Supervisor Kurulumu
+
+Supervisor UNIX benzeri işletim sistemlerinde kullanıcılarının bir dizi işlemi kontrol etmesini sağlayan bir istemci/suncu sistemidir. Daha fazla bilgi için bu adresi <a href="http://supervisord.org/">http://supervisord.org/</a> ziyaret edebilirsiniz.
+
+Kurulum için aşağıdaki komutları konsolunuzdan çalıştırın
 
 ```php
 sudo apt-get install supervisor
 ```
 
-Entering supervisor console
+Supervisor konsoluna giriş
 
 ```php
 supervisorctl
 ```
 
-Help for all commands
+Tüm yardım komutlarını listelemek
 
 ```php
 supervisor> help
@@ -623,13 +586,13 @@ avail  exit   maintail  pid   reload  reread  shutdown  status  tail  version
 
 ### İlk İşçimizi Yaratalım
 
-Konfigürasyon klasörüne girin.
+Supervisor konfigürasyon klasörüne girin.
 
 ```php
 cd /etc/supervisor/conf.d
 ```
 
-List config files
+Tüm konfigürasyon dosyalarını listeleyin.
 
 ```php
 ll
@@ -637,10 +600,10 @@ ll
 total 16
 drwxr-xr-x 2 root root 4096 May 31 13:19 ./
 drwxr-xr-x 3 root root 4096 May 31 13:10 ../
--rw-r--r-- 1 root root  142 May  9  2011 README
+-rw-r--j-- 1 root root  142 May  9  2011 README
 ```
 
-Favori editörünüzler bir .conf dosyası yaratın.
+Favori editörünüzle bir .conf dosyası yaratın.
 
 
 ```php
@@ -650,7 +613,7 @@ vi myMailer.conf
 ```php
 [program:myMailer]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/project/task queue listen --worker:MAILER --job:EMAILQUEUE --memory:128 --delay=0 --timeout=3
+command=php /var/www/project/task queue listen --worker:Workers@Mailer --job:mailer.1 --memory:128 --delay=0 --timeout=3
 numprocs=3
 autostart=true
 autorestart=true
@@ -658,13 +621,15 @@ stdout_logfile=/var/www/project/data/logs/myMailerProcess.log
 stdout_logfile_maxbytes=1MB
 ```
 
-<b>numprocs=3</b> means 3 workers will do same process at same time.
+> **Not:** Burada <kbd>numprocs=3</kbd> sayısı yani 3, işlem başına açılacak iş parçaçığı (thread) anlamına gelir. Bu sayı optimum performans için sunucunuzun işlemci sayısı ile aynı olmalıdır. Örneğin 16 çekirdekli bir makineye sahipseniz bu sayıyı 16 yapabilirsiniz. Böylece bir işi 16 işçi eş zamanlı çalışarak daha kısa zamanda bitirecektir.
+
+Bir işlemci için açılması gereken optimum işçi sayısının neden 1 olması gerektiği hakkındaki makaleye bu bağlantıdan gözatabilirsiniz. <a href="http://stackoverflow.com/questions/1718465/optimal-number-of-threads-per-core">Optimal Number of Threads Per Core</a>.
 
 <a name="multiple-workers"></a>
 
 #### Birden Fazla İşçiyi Çalıştırmak
 
-You can create multiple programs for different jobs.
+Birden fazla iş yaratmak için yeni bir konfigürasyon dosyası yaratın ve bu iş için gereken parametreleri girin. Aşağıda resim küçültme işi için bir örnek gösteriliyor.
 
 ```php
 vi myImages.conf
@@ -673,7 +638,7 @@ vi myImages.conf
 ```php
 [program:myImages]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/project/task queue listen --worker:IMAGERESIZER --job:IMAGEQUEUE --memory=256 
+command=php /var/www/project/task queue listen --worker:Workers\ImageResizer --job:images.1 --memory=256 
 numprocs=10
 autostart=true
 autorestart=true
@@ -683,7 +648,9 @@ stdout_logfile_maxbytes=1MB
 
 <a name="starting-all-workers"></a>
 
-### Bütün İşçileri Başlatmak
+#### Bütün İşçileri Başlatmak
+
+Tanımladığınız tüm işleri başlatmak için <kbd>start all</kbd> komutunu kullanabilirsiniz.
 
 ```php
 supervisorctl start all
@@ -699,7 +666,9 @@ myImages_00: started
 
 <a name="displaying-all-workers"></a>
 
-### Bütün İşçileri Görüntülemek
+#### Bütün İşçileri Görüntülemek
+
+Tanımladığınız tüm işleri görmek için <kbd>supervisorctl</kbd> komutunu kullanabilirsiniz.
 
 ```php
 supervisorctl
@@ -711,7 +680,9 @@ myMailer:myMailer_02           RUNNING    pid 16845, uptime 0:01:41
 
 <a name="stopping-all-workers"></a>
 
-### Bütün İşçileri Durdurmak
+#### Bütün İşçileri Durdurmak
+
+Tanımladığınız tüm işleri başlatmak için <kbd>stop all</kbd> komutunu kullanabilirsiniz.
 
 ```php
 supervisorctl stop all
@@ -720,97 +691,230 @@ myMailer_02: stopped
 myMailer_01: stopped
 myMailer_00: stopped
 ```
+<a name="worker-logs"></a>
 
+#### İşçi Loglarını Görüntülemek
 
-### Following Logs
+İşçi loglarını takip etmek için aşağıdaki komutu konsolunuzdan çalıştırabilirsiniz.
 
 ```php
 supervisorctl maintail -f
 ```
 
-### Automatically Run Supervisord on Startup
+<a name="additional-info"></a>
 
-You need add supervisord to your auto init programs file it depends on your OS.
+### Ek Bilgiler
 
-### Optimal number of threads per core
+<a name="startup-config"></a>
 
-Technical articles tell us the optimal number of threads is equal to the number of cores in the machine.
-Forexample if you have a machine with <b>16 core</b> processor thread value should be <b>numprocs=16</b>.
+#### Sistem Açılışında Otomatik Başlatma
 
-<a href="http://stackoverflow.com/questions/1718465/optimal-number-of-threads-per-core">Click to see tests: Optimal Number of Threads Per Core</a>
+Bunun için supervisord programını otomatik başlatma dosyanıza ekleyin. Bu dosya kullandığınız işletim sisteminize göre değişkenlik gösterecektir.
 
+<a name="web-interface"></a>
 
-### Web Interface for Supervisord
+#### Supervisord İçin Web Arayüzü
 
-It has a simple built-in web interface to help you manage processes, Look at below the article.
+Aşağıdaki makalede supervisor programında açılan işleri görsel olarak yönetmenizi sağlayan bir <a href="http://iambusychangingtheworld.blogspot.com.tr/2013/11/supervisord-using-built-in-web.html">web arayüzü</a> bulabilirsiniz.
 
-<a href="http://iambusychangingtheworld.blogspot.com.tr/2013/11/supervisord-using-built-in-web.html">http://iambusychangingtheworld.blogspot.com.tr/2013/11/supervisord-using-built-in-web.html</a>
+<a name="saving-failed-jobs"></a>
 
+### Başarısız İşleri Kaydetmek
 
-## FailedJob Class
+Eğer iş işlenirken herhangi bir istisnai hata sözkonusu oluğunda, hatalı iş otomatik olarak tekrar kuyruğa atılır fakat gerçekleşen hataları takip edebilmek için işleri bir veritabanına kaydetmek gerekir. Aşağıda başarısız işleri veritabanına kaydedebilmek için sırası ile yapmanız gerekenler anlatılıyor.
 
-Queues allow you to defer the processing of a time consuming task, such as sending an e-mail, until a later time, thus drastically speeding up the web requests to your application.
+<a name="failed-jobs-config"></a>
 
-**Tip:** You can extend below these classes and build your own.
+#### Konfigürasyon
 
-### Initializing the Class
+Başarısız işlere ait ayarlar <kbd>app/config/$env/queue.php</kbd> konfigürasyon dosyası failedJob anahtarından düzenlenir. Başarısız işlere ait kaydedici sınıf <kbd>storage</kbd> anahtarından düzenlenebilir. Mevcut kayıt edici sınıf <kbd>Obullo\Queue\Failed\Storage\Database</kbd> olarak belirlenmiştir. Eğer Obullo dizini içerisindeki bu sınıf ihtiyaçlarınızı karşılamıyorsa <kbd>storage</kbd> değerini <kbd>\Failed\Storage\MyClass</kbd> şeklinde değiştirerek bu sınıfı özelleştirebilirsiniz. Bu şekilde girilen bir kaydedici sınıfı <kbd>app/classes/Failed/Storage/</kbd> klasöründen çağrılacaktır.
 
-------
-
-When the job is fail this class automatically initialize by Queue Worker class.
-
-
-### Configuration Of Failed Jobs
-
-------
-
-Open your application config file and set your Failed Jobs Storage. Default is <b>Obullo\Queue\Failed\Storage\Database</b> class.
 
 ```php
-/*
-|--------------------------------------------------------------------------
-| Queue
-|--------------------------------------------------------------------------
-*/
-'queue' => array(
-
-),
+/**
+ * Failed job configuration
+ */
+'failedJob' => 
+[
+    'enabled' => true,
+    'storage' => '\Obullo\Queue\Failed\Storage\Database',
+    'provider' => [
+        'name' => 'database',
+        'params' => [
+            'connection' => 'failed',
+        ]
+    ],
+    'table' => 'failures',
+]
 ```
 
-### SQL File
+Başarısız işlerin kaydedilebilmesi için konfigürasyonda <kbd>enabled</kbd> anahtarının true olması gerekir.
 
-FailedJob database sql file is located in <b>Obullo/Queue/Failed/Database.sql</b> path.
+#### Kaydetme Arayüzü
+
+Kaydedici sınıflar yada sizin yaratmış olduğunuz yeni bir kaydedici sınıf aşağıdaki arayüzü kullanmak zorundadır.
 
 ```php
+interface StorageInterface
+{
+    public function save(array $event);
+    public function exists($file, $line);
+    public function update($id, array $event);
+}
+
+/* Location: .Obullo/Queue/Failed/Storage.php */
+```
+
+Mevcut kaydedici sınıf aşağıdaki gibi StorageInterface arayüzünü kullanır.
+
+```php
+class Database implements StorageInterface
+{
+    // 
+}
+
+/* Location: .Obullo/Queue/Failed/Storage/Database.php */
+```
+
+<a name="failed-jobs-database"></a>
+
+#### Veritabanına Kaydetmek
+
+Mevcut kaydedici (\Obullo\Queue\Failed\Storage\Database) sınıfına ait veritabanı (Database.sql) sql dosyasına <kbd>Obullo/Queue/Failed/</kbd> klasöründen ulaşabilirsiniz.
+
+```php
+--
+-- Database: `failed`
+--
+
+-- --------------------------------------------------------
+
+CREATE DATABASE IF NOT EXISTS `failed`;
+
+USE `failed`;
+
+--
+-- Table structure for table `failures`
+--
 CREATE TABLE IF NOT EXISTS `failures` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `job_id` int(11) NOT NULL,
-  `job_name` varchar(40) NOT NULL,
-  `job_body` text NOT NULL,
-  `job_attempts` int(11) NOT NULL DEFAULT '0',
-  `error_level` tinyint(3) NOT NULL,
-  `error_message` varchar(255) NOT NULL,
-  `error_file` varchar(255) NOT NULL,
-  `error_line` tinyint(4) NOT NULL,
-  `error_trace` text NOT NULL,
-  `error_xdebug` text NOT NULL,
-  `error_priority` tinyint(4) NOT NULL,
-  `failure_repeat` int(11) NOT NULL DEFAULT '0',
-  `failure_first_date` int(11) NOT NULL COMMENT 'unix timestamp',
-  `failure_last_date` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Failed Jobs' AUTO_INCREMENT=1 ;
+`id`  int(11) NOT NULL AUTO_INCREMENT ,
+`job_id`  int(11) NOT NULL ,
+`job_name`  varchar(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`job_body`  text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`job_attempts`  int(11) NOT NULL DEFAULT 0 ,
+`error_level`  tinyint(3) NOT NULL ,
+`error_message` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`error_file`  varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`error_line`  int UNSIGNED NOT NULL ,
+`error_trace`  text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`error_xdebug`  text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+`error_priority`  tinyint(4) NOT NULL ,
+`failure_repeat`  int(11) NOT NULL DEFAULT 0 ,
+`failure_first_date`  int(11) NOT NULL COMMENT 'unix timestamp' ,
+`failure_last_date`  int(11) NULL DEFAULT NULL ,
+PRIMARY KEY (`id`)
+)
+ENGINE=InnoDB
+DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
+COMMENT='Failed Jobs'
+AUTO_INCREMENT=1
+ROW_FORMAT=COMPACT;
 ```
 
-### Function Reference
+##### Kurulum ve Test
+
+* Yukarıdaki SQL kodu ile veritabanını oluşturun.
+* Test için <kbd>Workers/</kbd> içerisinde herhangi bir işçi dosyası fire metodu içerisinde bir istisnai hata yada php hatası yaratın.
+
+```php
+public function fire($job, array $data)
+{
+    echo $a;  // Error storage test.
+    throw new \Exception("Exception storage test.");
+}
+```
+
+* Başarısız işlerin kaydedilebilmesi için <kbd>enabled</kbd> anahtarının true olması gerekir. Queue konfigürasyon dosyasınızdan bu değeri kontrol edin.
+* İşçi dosyanızı konsoldan çalıştırın.
+
+Eğer herşey yolunda gittiyse bulunan hatalar veritabanına kaydedilmiş olmalı.
+
+<a name="queue-reference"></a>
+
+#### Queue Sınıfı Referansı
 
 ------
 
-#### $this->class->method();
+> Kuyruğa atma, silme ve okuma gibi işlemleri yürütür.
 
-Comments
+##### $this->queue->push(string $job, string $route, array $data, array $options = array());
+
+Bir işi kuyruk sağlayıcınıza gönderir. Birinci parametreye iş adı, ikinci parametreye kuyruk adı, üçüncü parametreye kuyruğa ait veri, opsiyonel olan son parametreye ise varsa gönderim opsiyonları girilebilir.
+
+##### $this->queue->later(int $delay, $job, string $route, array, $data, array $options = array());
+
+Bir işi kuyruk sağlayıcınıza gecikmeli olarak gönderir. Push metodundan tek farkı ilk parametrenin gecikme süresi için ayrılmış olmasıdır.
+
+##### $this->queue->exchange(string $job);
+
+Kuyruğu pop metodu ile okumak için ilk parametreye iş ismi girilerek exchange seçimi yapılması gerekir.
+
+##### $this->queue->pop(string $route);
+
+Girilen kuyruk adına göre kuyruktan bir veriyi okur ve sonraki veriye geçer. Exchange metodu ile birlikte kullanılmalıdır.
+
+```php
+$this->queue->exchange('Workers@Mailer');
+
+while (true) {
+    $job = $this->queue->pop("mailer.1");
+    if (! is_null($job)) {
+        echo $job->getRawBody()."\n";
+    }
+}
+```
+
+##### $this->queue->purgeQueue(string $route);
+
+Kuyruktaki tüm veriyi kalıcı olarak siler. Exchange metodu ile birlikte kullanılmalıdır.
+
+##### $this->queue->deleteQueue(string $route);
+
+Kuyruktaki tüm veriyi kuyruk adı ile birlikte kalıcı olarak siler. Exchange metodu ile birlikte kullanılmalıdır.
 
 
-## Emergency Handler Class
+<a name="job-reference"></a>
 
-Emergency handler send last failed job details to server admin using email library. You can extend this class and build your own.
+#### Job Sınıfı Referansı
+
+------
+
+> Kuyruğa atılan işi yönetir. Kuyruktaki işe ait detaylı bilgilere ulaşmanızı sağlar. İşçiler klasöründe içerisindeki sınıflarda bulunan fire metodu ile elde edilen $job nesnesidir.
+
+##### $job->delete()
+
+Bir işi tamamlandıktan sonra kuyruktan bu metot ile silinir.
+
+##### $job->isDeleted()
+
+Eğer iş kuyruktan silinmişse <kbd>true</kbd> değerine aksi durumda <kbd>false</kbd> değerine döner.
+
+##### $job->release($delay = 0)
+
+Bir işi tekrar kuyruğa atmak için kullanılır. Birinci parametreden varsa işin gecikme süresi tamsayı biçiminde girilir.
+
+##### $job->getId()
+
+İşe ait id değerini verir.
+
+##### $job->getName()
+
+İşin adını yani kuyruk adını verir.
+
+##### $job->getAttempts()
+
+Hatalı bir işin tekrar denenme sayısını verir.
+
+##### $job->getRawBody()
+
+İşe yüklenen veriyi json string biçiminde verir.

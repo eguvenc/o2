@@ -1,20 +1,22 @@
 <?php
 
-namespace Obullo\Session;
+namespace Obullo\Captcha;
 
+use Obullo\Captcha\Provider\Image;
+use Obullo\Captcha\Provider\ReCaptcha;
 use Obullo\Container\ContainerInterface;
 
 /**
- * SessionManager Class
+ * CaptchaManager Class
  * 
  * @category  Manager
- * @package   SessionManager
+ * @package   CaptchaManager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/session
  */
-class SessionManager
+class CaptchaManager
 {
     /**
      * Container class
@@ -29,13 +31,6 @@ class SessionManager
      * @var array
      */
     protected $params;
-
-    /**
-     * Session
-     * 
-     * @var object
-     */
-    protected $session;
 
     /**
      * Create classes
@@ -58,9 +53,12 @@ class SessionManager
      */
     public function setParameters(array $params)
     {
-        $session = $this->c['config']->load('session');
-        $session['locale']['timezone'] = $this->c['config']['locale']['timezone'];
-        $this->params = array_merge($params, $session);
+        $exp = explode("\\", $params['class']);
+        $this->provider = strtolower(end($exp));
+        $this->params = array_merge(
+            $params,
+            $this->c['config']->load('captcha/'.$this->provider)
+        );
     }
 
     /**
@@ -70,13 +68,28 @@ class SessionManager
      */
     public function getClass()
     {
-        if ($this->session == null) {
-            return $this->session = new Session(
-                $this->c['app']->provider($this->params['provider']['name']),
+        switch ($this->provider) {
+        case 'image':
+            return new Image(
+                $this->c,
+                $this->c['uri'],
+                $this->c['request'],
+                $this->c['session'],
+                $this->c['translator'],
                 $this->c['logger'],
                 $this->params
             );
+            break;
+        case 'recaptcha':
+            return new ReCaptcha(
+                $this->c,
+                $this->c['uri'],
+                $this->c['request'],
+                $this->c['translator'],
+                $this->c['logger'],
+                $this->params
+            );
+            break;
         }
-        return $this->session;
     }
 }

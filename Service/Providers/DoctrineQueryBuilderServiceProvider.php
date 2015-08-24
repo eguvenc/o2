@@ -26,13 +26,11 @@ class DoctrineQueryBuilderServiceProvider implements ServiceProviderInterface
     public $c;
 
     /**
-     * Registry
-     *
-     * @param object $c container
-     *
-     * @return void
+     * Constructor
+     * 
+     * @param string $c container
      */
-    public function register(ContainerInterface $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }

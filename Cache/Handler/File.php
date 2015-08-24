@@ -2,7 +2,7 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException;
+use RuntimeException;
 use Obullo\Cache\CacheInterface;
 use Obullo\Config\ConfigInterface;
 
@@ -41,7 +41,7 @@ class File implements CacheInterface
             $this->filePath = ROOT. str_replace('/', DS, $filePath) . DS;
         }
         if (! is_writable($this->filePath)) {
-            throw new RunTimeException(
+            throw new RuntimeException(
                 sprintf(
                     'Filepath %s is not writable.',
                     $this->filePath

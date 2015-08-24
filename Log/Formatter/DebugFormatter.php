@@ -2,6 +2,8 @@
 
 namespace Obullo\Log\Formatter;
 
+use Obullo\Config\ConfigInterface;
+
 /**
  * Debugger Formatter Helper for Debugger Module
  * 
@@ -15,21 +17,21 @@ namespace Obullo\Log\Formatter;
 class DebugFormatter
 {
     /**
-     * Format the line defined in config/env.$env/config.php
+     * Format the line defined in config/$env/logger.php
      *
      * [%datetime%] %channel%.%level%: --> %message% %context% %extra%\n
      * 
      * @param array  $record record data
-     * @param object $config object
+     * @param object $config \Obullo\Config\ConfigInterface
      * 
      * @return array
      */
-    public static function format(array $record, $config)
+    public static function format(array $record, ConfigInterface $config)
     {
         if (! is_array($record)) {
             return;
         }
-        $format = str_replace('\n', "", $config['format']['line']);
+        $format = str_replace('\n', "", $config['logger']['format']['line']);
         $format = preg_replace('#([^\s\w:\->%.]+)#', '', $format);
 
         $search = [

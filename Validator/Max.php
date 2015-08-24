@@ -30,8 +30,3 @@ class Max
         return (mb_strlen($str) > $val) ? false : true;   
     }
 }
-
-// END Max class
-/* End of file Max.php */
-
-/* Location: .Obullo/Validator/Max.php */

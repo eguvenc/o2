@@ -69,15 +69,13 @@ class AMQP implements QueueInterface
      * Create AMQPExchange if not exists otherswise get instance of it
      * 
      * @param object $name exchange name
-     * @param object $type available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
-     * @param object $flag available flags AMQP_DURABLE, AMQP_PASSIVE
      *
      * @return object
      */
-    public function exchange($name, $type = null, $flag = null)
+    protected function exchange($name)
     {
-        $type = (empty($type)) ? constant($this->config['exchange']['type']) : $type;
-        $flag = (empty($flag)) ? constant($this->config['exchange']['flag']) : $flag;
+        $type = constant($this->config['exchange']['type']); // available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
+        $flag = constant($this->config['exchange']['flag']); // available flags AMQP_DURABLE, AMQP_PASSIVE
 
         $this->exchange = new AMQPExchange($this->channel);
         $this->exchange->setName($name);
@@ -90,7 +88,7 @@ class AMQP implements QueueInterface
     /**
      * Push a new job onto the queue.
      *
-     * @param string $job     name
+     * @param string $job     name ( exchange )
      * @param string $route   queue name ( route key )
      * @param mixed  $data    payload
      * @param array  $options delivery options
@@ -102,9 +100,7 @@ class AMQP implements QueueInterface
      */
     public function push($job, $route, $data, $options = array())
     {
-        if (empty($this->exchange)) {
-            $this->exchange($job);
-        }
+        $this->exchange($job);
         $queue = $this->declareQueue($route); // Get queue
         return $this->publishJob($queue, $job, $data, $options);
     }
@@ -125,10 +121,8 @@ class AMQP implements QueueInterface
      */
     public function later($delay, $job, $route, $data, $options = array())
     {
-        if (empty($this->channel)) {
-            throw new AMQPException('Before push you need to set a channel.');
-        }
-        $queue = $this->declareDelayedQueue($route, $delay); // Get queue
+        $this->exchange($job);
+        $queue = $this->declareDelayedQueue($route, (int)$delay); // Get queue
         return $this->publishJob($queue, $job, $data, $options);
     }
 
@@ -155,7 +149,6 @@ class AMQP implements QueueInterface
             AMQP_MANDATORY, 
             $options
         );
-        $this->exchange = null;  //  Reset channel
         if (! $result) {
             throw new AMQPException('Could not push job to a queue');
         }
@@ -165,12 +158,14 @@ class AMQP implements QueueInterface
     /**
      * Pop the next job off of the queue.
      *
+     * @param string $job   exchange name
      * @param string $route queue name ( routing key )
      *
      * @return mixed job handler object or null
      */
-    public function pop($route = null)
+    public function pop($job, $route = null)
     {
+        $this->exchange($job);
         $queue    = $this->declareQueue($route); // Declare queue if not exists
         $envelope = $queue->get();  // Get envelope
     
@@ -187,7 +182,7 @@ class AMQP implements QueueInterface
      *
      * @return object AMQPQueue
      */
-    public function declareQueue($name = null)
+    protected function declareQueue($name = null)
     {
         $name = (empty($name)) ? $this->defaultQueueName : $name;
 
@@ -209,7 +204,7 @@ class AMQP implements QueueInterface
      *
      * @return object AMQPQueue delayed object
      */
-    public function declareDelayedQueue($destination, $delay)
+    protected function declareDelayedQueue($destination, $delay)
     {
         $destination = (empty($destination)) ? $this->defaultQueueName : $destination;
         $name = $destination . '_delayed_' . $delay;

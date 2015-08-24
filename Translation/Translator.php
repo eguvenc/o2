@@ -185,7 +185,7 @@ class Translator implements TranslatorInterface
             $this->setLocale($this->getDefault());  // Set default translation
 
             //  Translation code must be set with translator->setLocale() function.
-            //  You should use translation middleware in middlewares.php.
+            //  You need to use translation middleware in middlewares.php.
 
             $locale = $this->getLocale();
         }
@@ -285,7 +285,6 @@ class Translator implements TranslatorInterface
     public function getCookie()
     {
         $name = $this->config['cookie']['name'];
-
         return isset($_COOKIE[$name]) ? $_COOKIE[$name] : null;
     }
 
@@ -303,7 +302,6 @@ class Translator implements TranslatorInterface
             return false;
         }
         $this->locale = $locale;
-
         if ($writeCookie) {
             $this->setCookie();  // Write to cookie
         }

@@ -1,11 +1,16 @@
 <?php
 
-namespace Obullo\Captcha\Adapter;
+namespace Obullo\Captcha\Provider;
 
 use Obullo\Captcha\CaptchaResult;
-use Obullo\Captcha\AbstractAdapter;
-use Obullo\Captcha\AdapterInterface;
+use Obullo\Captcha\AbstractProvider;
+use Obullo\Captcha\ProviderInterface;
+
+use Obullo\Uri\Uri;
+use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Request\RequestInterface;
+use Obullo\Translation\TranslatorInterface;
 
 /**
  * Captcha ReCaptcha Adapter
@@ -15,8 +20,9 @@ use Obullo\Container\ContainerInterface;
  * You can follow label to "@see" for more details.
  *
  * @category  Captcha
- * @package   NoCaptcha
- * @author    Ali Ihsan CAGLAYAN <ihsancaglayan@gmail.com>
+ * @package   ReCaptcha
+ * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
+ * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -40,19 +46,33 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     const FAILURE_INVALID_INPUT_RESPONSE = 'invalid-input-response';
 
     /**
-     * The user's IP address. (optional)
-     * 
-     * @var string
-     */
-    protected $userIp = '';
-
-    /**
      * Current language
      * 
      * @var string
      * @see https://developers.google.com/recaptcha/docs/language
      */
-    protected $lang = '';
+    protected $lang;
+
+    /**
+     * Captcha html
+     * 
+     * @var string
+     */
+    protected $html;
+
+    /**
+     * The user's IP address. (optional)
+     * 
+     * @var string
+     */
+    protected $userIp;
+
+    /**
+     * Translator
+     * 
+     * @var object
+     */
+    protected $translator;
 
     /**
      * Error codes
@@ -63,30 +83,30 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected $errorCodes = array();
 
     /**
-     * Captcha html
-     * 
-     * @var string
-     */
-    protected $html = '';
-
-    /**
-     * Translator
-     * 
-     * @var object
-     */
-    protected $translator;
-
-    /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $uri        \Obullo\Uri\Uri
+     * @param object $request    \Obullo\Request\RequestInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LoggerInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(ContainerInterface $c)
-    {
+    public function __construct(
+        ContainerInterface $c,
+        Uri $uri,
+        RequestInterface $request,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        array $params
+    ) {
         $this->c = $c;
-        $this->config = $c['config']->load('recaptcha/recaptcha');
-        $this->translator = $c['translator'];
+        $this->config = $params;
+        $this->uri = $uri;
+        $this->request = $request;
+        $this->translator = $translator;
         $this->translator->load('captcha');
+        $this->logger = $logger;
 
         $this->errorCodes = array(
             self::FAILURE_MISSING_INPUT_SECRET   => $this->translator['OBULLO:RECAPTCHA:MISSING_INPUT_SECRET'],
@@ -94,7 +114,8 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
             self::FAILURE_MISSING_INPUT_RESPONSE => $this->translator['OBULLO:RECAPTCHA:MISSING_INPUT_RESPONSE'],
             self::FAILURE_INVALID_INPUT_RESPONSE => $this->translator['OBULLO:RECAPTCHA:INVALID_INPUT_RESPONSE']
         );
-        parent::__construct($c);
+        $this->init();
+        $this->logger->debug('ReCaptcha Class Initialized');
     }
 
     /**
@@ -105,9 +126,8 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function init()
     {
         if ($this->config['user']['autoSendIp']) {
-            $this->setUserIp($this->c['request']->getIpAddress());
+            $this->setUserIp($this->request->getIpAddress());
         }
-        $this->validationSet();
         $this->buildHtml();
     }
 
@@ -249,7 +269,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     public function result($response = null)
     {
         if ($response == null) {
-            $response = $this->c['request']->post('g-recaptcha-response');
+            $response = $this->request->post('g-recaptcha-response');
         }
         $response = $this->sendVerifyRequest(
             array(
@@ -305,7 +325,6 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     {
         $link = static::VERIFY_URL .'?'. http_build_query($query);
         $response = file_get_contents($link);
-
         return json_decode($response, true);
     }
 
@@ -350,29 +369,24 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Set validation
+     * We call this function using $this->validator->bind($this->captcha) method.
      * 
      * @return void
      */
-    protected function validationSet()
+    protected function callbackFunction()
     {
-        if (! $this->config['form']['validation']['enabled']) {
-            return;
-        }
         $label = $this->translator['OBULLO:CAPTCHA:LABEL'];
         $rules = 'required';
-        $post  = $this->c['request']->isPost();
+        $post  = $this->request->isPost();
 
-        if ($this->config['form']['validation']['callback'] AND $post) {  // Add callback if we have http post
-
+        if ($this->config['form']['validation']['callback'] && $post) {  // Add callback if we have http post
             $rules.= '|callback_captcha';  // Add callback validation rule
-
             $self = $this;
             $this->c['validator']->func(
                 'callback_captcha',
                 function () use ($self, $label) {
                     if ($self->result()->isValid() == false) {
-                        $this->setMessage('callback_captcha', $this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        $this->setMessage($this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
                         return false;
                     }
                     return true;

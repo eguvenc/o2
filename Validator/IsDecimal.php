@@ -36,8 +36,3 @@ class IsDecimal
         return false;
     }
 }
-
-// END IsDecimal class
-/* End of file IsDecimal.php */
-
-/* Location: .Obullo/Validator/IsDecimal.php */

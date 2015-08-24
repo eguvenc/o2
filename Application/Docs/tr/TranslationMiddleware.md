@@ -24,7 +24,7 @@ $c['app']->middleware(new Http\Middlewares\Translation);
 */
 $c['app']->middleware(new Http\Middlewares\Request);
 
-/* End of file middlewares.php */
+
 /* Location: .app/middlewares.php */
 ```
 
@@ -67,7 +67,6 @@ return array(
     'debug' => false, // Puts 'translate:' texts everywhere
 
 
-/* End of file translator.php */
 /* Location: ./config/translator.php */
 ```
 
@@ -95,7 +94,7 @@ $c['router']->group(
     [
         'name' => 'GenericUsers',
         'domain' => $c['config']['domain']['mydomain.com'],
-        'middleware' => array('Maintenance')
+        'middleware' => ['Maintenance']
     ],
     function () {
 

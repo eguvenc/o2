@@ -44,22 +44,31 @@ Eğer tanımlı değilse <kbd>config/$env/domain.php</kbd> dosyası içerisinden
 ```php
 class User implements ServiceInterface
 {
-    public function register(Container $c)
+    public function register(ContainerInterface $c)
     {
-        $c['user'] = function ($params = ['table' => 'users']) use ($c) {
+        $c['user'] = function () use ($c) {
 
             $parameters = [
-                'cache.key'     => 'Auth',
-                'url.login'     => '/membership/login',
-                'db.adapter'    => '\Obullo\Authentication\Adapter\Database',
-                'db.model'      => '\Obullo\Authentication\Model\User', 
-                'db.provider'   => 'database',
-                'db.connection' => 'default',
-                'db.tablename'  => $params['table'],
+                'cache.key' => 'Auth',
+                'db.adapter'=> '\Obullo\Authentication\Adapter\Database',
+                'db.model'  => '\Obullo\Authentication\Model\Pdo\User',       // User model, you can replace it with your own.
+                'db.provider' => [
+                    'name' => 'database',
+                    'params' => [
+                        'connection' => 'default'
+                    ]
+                ],
+                'db.tablename' => 'users',
+                'db.id' => 'id',
+                'db.identifier' => 'username',
+                'db.password' => 'password',
+                'db.rememberToken' => 'remember_token',
+                'db.select' => [
+                    'date',
+                ]
             ];
             $manager = new AuthManager($c);
             $manager->setParameters($parameters);
-
             return $manager;
         };
     }

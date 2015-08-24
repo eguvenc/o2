@@ -26,8 +26,3 @@ class IsNumeric
         return ( ! is_numeric($str)) ? false : true;
     }
 }
-
-// END IsNumeric Class
-/* End of file IsNumeric.php */
-
-/* Location: .Obullo/Validator/IsNumeric.php */

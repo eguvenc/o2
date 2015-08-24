@@ -12,7 +12,7 @@ namespace Obullo\Error;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/error
  */
-class Exception
+class Exception implements ExceptionInterface
 {
     /**
      * Display the exception view
@@ -22,7 +22,7 @@ class Exception
      * 
      * @return string view
      */
-    public function show($e, $fatalError = false)
+    public function show(\Exception $e, $fatalError = false)
     {
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
             return;

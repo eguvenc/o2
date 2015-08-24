@@ -2,8 +2,9 @@
 
 namespace Obullo\Log\Handler;
 
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 use Obullo\Log\Formatter\LineFormatter;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Abstract Log Handler
@@ -18,27 +19,29 @@ use Obullo\Container\ContainerInterface;
 abstract class AbstractHandler
 {
     /**
-     * Logger
+     * Application
      * 
-     * @var logger
+     * @var object
      */
-    protected $logger;
+    protected $app;
     
     /**
      * Config
      * 
-     * @var array
+     * @var object
      */
-    protected $config = array();
+    protected $config;
 
     /**
      * Constructor
+     * 
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
      */
-    public function __construct()
+    public function __construct(Application $app, ConfigInterface $config)
     {
-        global $c;
-        $this->config = $c['config']->load('logger');
-        $this->logger = $c['logger'];
+        $this->app = $app;
+        $this->config = $config;
     }
 
     /**
@@ -51,14 +54,14 @@ abstract class AbstractHandler
      */
     public function isAllowed(array $data)
     {
-        if (isset($_GET['o_debugger'])) {  //  Disable http debugger logs
-            return false;
+        if (in_array($data['request'], array(null, 'http','ajax','cli'))) { // Disable logs if request not allowed
+            return true;
         }
         if ($data['request'] == 'worker') {
-            return $this->logger->isRegisteredAsWorker();
+            return $this->config['logger']['app']['worker']['log'];  // Disable / enable worker logs
         }
-        if (in_array($data['request'], array(null, 'http','ajax','cli'))) {
-            return true;
+        if ($this->app->uri->segment(0) == 'debugger') {  // Disable http debugger logs
+            return false;
         }
         return false;
     }
@@ -74,7 +77,7 @@ abstract class AbstractHandler
     public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($this->config['format']['date'], $data['time']),
+            'datetime' => date($this->config['logger']['format']['date'], $data['time']),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],

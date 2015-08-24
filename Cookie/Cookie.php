@@ -3,7 +3,8 @@
 namespace Obullo\Cookie;
 
 use RuntimeException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * Control cookie set, get, delete and queue operations
@@ -55,13 +56,13 @@ class Cookie implements CookieInterface
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, LoggerInterface $logger)
     {
-        $this->config = $c['config'];
-        $this->logger = $c['logger'];
-
+        $this->config = $config;
+        $this->logger = $logger;
         $this->logger->debug('Cookie Class Initialized');
     }
 
@@ -87,7 +88,7 @@ class Cookie implements CookieInterface
     public function name($name)
     {
         $this->createId();
-        $this->cookies[$this->id]['name'] = $name;
+        $this->cookies[$this->id]['name'] = trim($name);
         return $this;
     }
     
@@ -234,7 +235,7 @@ class Cookie implements CookieInterface
     public function write(array $cookie)
     {
         setcookie(
-            $cookie['prefix'].$cookie['name'],
+            trim($cookie['prefix'].$cookie['name']),
             $cookie['value'],
             $cookie['expire'],
             $cookie['path'],
@@ -296,13 +297,14 @@ class Cookie implements CookieInterface
      */
     public function get($key, $prefix = '')
     {
-        if (! isset($_COOKIE[$key]) && $prefix == '' && $this->config['cookie']['prefix'] != '') {
+        if (! isset($_COOKIE[$key]) && empty($prefix) && ! empty($this->config['cookie']['prefix'])) {
             $prefix = $this->config['cookie']['prefix'];
         }
-        if (! isset($_COOKIE[$prefix.$key])) {
+        $realKey = trim($prefix.$key);
+        if (! isset($_COOKIE[$realKey])) {
             return false;
         }
-        return $_COOKIE[$prefix.$key];
+        return $_COOKIE[$realKey];
     }
 
     /**
@@ -330,6 +332,9 @@ class Cookie implements CookieInterface
         }
         if ($prefix != null) {
             $this->prefix($prefix);
+        }
+        if (isset($_COOKIE[$prefix.$name])) {
+            unset($_COOKIE[$prefix.$name]);
         }
         $this->value(null)->expire(-1)->prefix($prefix)->set();
     }

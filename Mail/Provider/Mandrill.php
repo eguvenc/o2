@@ -2,6 +2,10 @@
 
 namespace Obullo\Mail\Provider;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Container\ContainerInterface;
+use Obullo\Translation\TranslatorInterface;
+
 /**
  * Mandrill Transactional Api Provider
  *
@@ -16,15 +20,16 @@ namespace Obullo\Mail\Provider;
 class Mandrill extends AbstractProvider implements ProviderInterface
 {
     /**
-     * Create a new Mandrill transport instance.
+     * Constructor
      *
-     * @param array $params config & service parameters
-     * 
-     * @return void
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LogInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(array $params)
+    public function __construct(ContainerInterface $c, TranslatorInterface $translator, LoggerInterface $logger, array $params)
     {
-        parent::__construct($params);
+        parent::__construct($c, $translator, $logger, $params);
     }
 
     /**
@@ -41,7 +46,6 @@ class Mandrill extends AbstractProvider implements ProviderInterface
         $this->msgEvent['subject']    = $this->getSubject();
 
         $this->setMailType($this->getMailType());  // text / html
-
         foreach ($this->getRecipients() as $v) {
             $this->msgEvent['to'][] = array(
                 'email' => $v['email'],

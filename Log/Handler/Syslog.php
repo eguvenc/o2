@@ -2,7 +2,8 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 
 /**
  * Syslog LogHandler Class
@@ -33,11 +34,13 @@ class Syslog extends AbstractHandler implements HandlerInterface
     /**
      * Constructor
      * 
-     * @param array $params parameters
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array  $params syslog parameters
      */
-    public function __construct(array $params = array())
+    public function __construct(Application $app, ConfigInterface $config, array $params = array())
     {
-        parent::__construct();
+        parent::__construct($app, $config);
 
         if (isset($params['facility'])) {
             $this->facility = $params['facility'];  // Application facility

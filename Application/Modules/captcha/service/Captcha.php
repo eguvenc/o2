@@ -2,7 +2,7 @@
 
 namespace Service;
 
-use Obullo\Captcha\Adapter\Image;
+use Obullo\Captcha\CaptchaManager;
 use Obullo\Service\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
@@ -19,7 +19,13 @@ class Captcha implements ServiceInterface
     {
         $c['captcha'] = function () use ($c) {
 
-            $captcha = new Image($c);            
+            $parameters = [
+                'class' => '\Obullo\Captcha\Provider\Image'
+            ];
+            $manager = new CaptchaManager($c);
+            $manager->setParameters($parameters);
+            $captcha = $manager->getClass();
+
             $captcha->setMod('secure');
             $captcha->setPool('alpha');
             $captcha->setChar(5);

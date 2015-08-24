@@ -4,6 +4,7 @@ namespace Obullo\Authentication;
 
 use Auth\Identities\GenericUser;
 use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\AuthConfig;
 use Obullo\Authentication\Model\UserInterface;
 use Obullo\Authentication\User\IdentityInterface;
 use Obullo\Authentication\Storage\StorageInterface;
@@ -90,7 +91,7 @@ class Recaller
     {
         $resultRowArray = $this->model->execRecallerQuery($token);
 
-        if (! is_array($resultRowArray)) {           // If login query not success.
+        if (! is_array($resultRowArray)) {            // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
             $this->identity->forgetMe();
             return;

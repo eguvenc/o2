@@ -105,7 +105,7 @@ class OldVersion
     protected function getRandomBytes()
     {
         if (! function_exists('openssl_random_pseudo_bytes')) {
-            throw new RunTimeException("Unsupported hash format.");
+            throw new RuntimeException("Unsupported hash format.");
         }
         return openssl_random_pseudo_bytes(16);
     }

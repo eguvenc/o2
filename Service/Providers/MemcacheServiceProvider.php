@@ -2,64 +2,165 @@
 
 namespace Obullo\Service\Providers;
 
+use Memcache;
+use RuntimeException;
+use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
-use Obullo\Service\Providers\Connections\MemcacheConnectionProvider;
 
 /**
- * Memcache Service Provider
- *
- * @category  Provider
- * @package   MemcacheServiceProvider
+ * Memcache Connection Provider
+ * 
+ * @category  Connections
+ * @package   Service
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class MemcacheServiceProvider implements ServiceProviderInterface
+class MemcacheServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
 {
-    /**
-     * Connector
-     * 
-     * @var object
-     */
-    protected $connector;
+    protected $c;          // Container
+    protected $config;     // Database configuration items
+    protected $memcache;   // Memcache extension
 
     /**
-     * Registry
-     *
-     * @param object $c container
+     * Constructor
      * 
-     * @return void
+     * Automatically check if the Memcache extension has been installed.
+     * 
+     * @param string $c container
      */
-    public function register(ContainerInterface $c)
+    public function __construct(ContainerInterface $c)
     {
-        $this->connector = new MemcacheConnectionProvider($c);    // Register all Connectors as shared services
-        $this->connector->register();
+        $this->c = $c;
+        $this->config = $this->c['config']->load('cache/memcache');  // Load memcache configuration file
+
+        $this->setKey('memcache.connection.');
+
+        if (! extension_loaded('memcache')) {
+            throw new RuntimeException(
+                'The memcache extension has not been installed or enabled.'
+            );
+        }
+        $this->register();
     }
 
     /**
-     * Get connection
-     * 
-     * @param array $params array
+     * Register all connections as shared services ( It should be run one time )
      * 
      * @return void
+     */
+    public function register()
+    {
+        foreach ($this->config['connections'] as $key => $val) {
+            $this->c[$this->getKey($key)] = function () use ($val) {
+                if (empty($val['host']) || empty($val['port'])) {
+                    throw new RuntimeException(
+                        'Check your memcache configuration, "host" or "port" key seems empty.'
+                    );
+                }
+                return $this->createConnection($val);
+            };
+        }
+    }
+
+    /**
+     * Creates Memcache connections
+     * 
+     * @param array $value current connection array
+     * 
+     * @return object
+     */
+    protected function createConnection(array $value)
+    {
+        $this->memcache = new Memcache;
+
+        // http://php.net/manual/tr/memcache.connect.php
+        // If you have pool of memcache servers, do not use the connect() function. 
+        // If you have only single memcache server then there is no need to use the addServer() function.
+
+        // Check single server connection
+
+        if (empty($this->config['nodes'][0]['host'])) {  // If we haven't got any nodes use connect() method
+
+            $connect = true;
+            if ($value['options']['persistent']) {
+                $connect = $this->memcache->pconnect($value['host'], $value['port'], $value['options']['timeout']);
+            } else {
+                $connect = $this->memcache->connect($value['host'], $value['port'], $value['options']['timeout']);
+            }
+            if (! $connect) {
+                throw new RuntimeException(
+                    sprintf(
+                        "Memcache connection error could not connect to host: %s.",
+                        $value['host']
+                    )
+                );
+            }
+        }
+        return $this->memcache;
+    }
+
+    /**
+     * Retrieve shared Memcache connection instance from connection pool
+     *
+     * @param array $params provider parameters
+     * 
+     * @return object Memcache
      */
     public function get($params = array())
     {
-        return $this->connector->getConnection($params);     // Get existing connection
+        if (empty($params['connection'])) {
+            throw new RuntimeException(
+                sprintf(
+                    "Memcache provider requires connection parameter. <pre>%s</pre>",
+                    "\$c['app']->provider('memcache')->get(['connection' => 'default']);"
+                )
+            );
+        }
+        if (! isset($this->config['connections'][$params['connection']])) {
+            throw new UnexpectedValueException(
+                sprintf(
+                    'Connection key %s does not exist in your memcache configuration.',
+                    $params['connection']
+                )
+            );
+        }
+        return $this->c[$this->getKey($params['connection'])];  // return to shared connection
     }
 
     /**
-     * Create unnamed connection
+     * Create a new Memcache connection
      * 
-     * @param array $params array
+     * If you don't want to add it to config file and you want to create new one.
      * 
-     * @return void
+     * @param array $params connection parameters
+     * 
+     * @return object Memcache client
      */
     public function factory($params = array())
     {
-        return $this->connector->factory($params);
+        $cid = $this->getKey($this->getConnectionId($params));
+
+        if (! $this->c->has($cid)) {    //  create shared connection if not exists
+            $this->c[$cid] = function () use ($params) {
+                return $this->createConnection($params);
+            };
+        }
+        return $this->c[$cid];
     }
 
+    /**
+     * Close all connections
+     */
+    public function __destruct()
+    {
+        foreach (array_keys($this->config['connections']) as $key) {
+            $key = $this->getKey($key);
+            if ($this->c->active($key)) {   // Close any open connections
+                $this->c[$key]->close();  // http://php.net/manual/tr/memcache.close.php
+            }
+        }
+    }
 }

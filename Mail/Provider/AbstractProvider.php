@@ -8,7 +8,9 @@ use Obullo\Mail\File;
 use Obullo\Mail\Utils;
 use Obullo\Mail\Validator;
 use Obullo\Mail\MailResult;
-use Obullo\Translation\Translator;
+use Obullo\Log\LoggerInterface;
+use Obullo\Container\ContainerInterface;
+use Obullo\Translation\TranslatorInterface;
 
 /**
  * AbstractMailer
@@ -24,6 +26,7 @@ abstract class AbstractProvider
 {
     protected $date;
     protected $body = '';
+    protected $logger;
     protected $validator;
     protected $translator;
     protected $subject = '';
@@ -39,7 +42,7 @@ abstract class AbstractProvider
     protected $charset = 'utf-8';      // Default char set: iso-8859-1 or us-ascii
     protected $validate = false;       // true/false.  Enables email validation
     protected $priority = '3';         // Default priority (1 - 5)
-    protected $params = array();       // Config parameters
+    protected $params = array();       // Service & config parameters
     protected $headers = array();
     protected $ccArray = array();
     protected $bccArray = array();
@@ -50,15 +53,18 @@ abstract class AbstractProvider
 
     /**
      * Constructor
-     * 
-     * @param array $params config & service parameters
+     *
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LogInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(array $params)
+    public function __construct(ContainerInterface $c, TranslatorInterface $translator, LoggerInterface $logger, array $params)
     {
-        global $c;
         $this->c = $c;
         $this->params = $params;
-        $this->translator = $c['translator'];
+        $this->logger = $logger;
+        $this->translator = $translator;
         $this->translator->load('mailer');
         $this->init();
     }
@@ -99,7 +105,7 @@ abstract class AbstractProvider
         if ($this->validate) {
             $this->validator = new Validator;
         }
-        $this->result = new MailResult($this, $this->c['logger']);
+        $this->result = new MailResult($this, $this->logger);
         return $this;
     }
 
@@ -467,12 +473,12 @@ abstract class AbstractProvider
     protected function push(array $msgEvent, $options = array())
     {
         $route = $this->params['queue']['route'];
-        $msgEvent['mailer'] = $this->getMailer();
-
+        $msgEvent['mailer'] = $this->getProvider();
         $mailResult = $this->getMailResult();
-        $push = $this->c->get('queue')
+
+        $push = $this->c['queue']
             ->push(
-                'Workers\Mailer',
+                'Workers@Mailer',
                 $route,
                 $msgEvent,
                 $options
@@ -513,7 +519,7 @@ abstract class AbstractProvider
      * 
      * @return string
      */
-    public function getMailer()
+    public function getProvider()
     {
         $exp = explode("\\", get_class($this));
         return strtolower(end($exp));

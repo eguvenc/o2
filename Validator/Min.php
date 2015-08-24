@@ -30,8 +30,3 @@ class Min
         return (mb_strlen($str) < $val) ? false : true;
     }
 }
-
-// END Min class
-/* End of file Min.php */
-
-/* Location: .Obullo/Validator/Min.php */

@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Cache\Handler;
+namespace Obullo\Cache;
 
 /**
  * Cache Handler Interface

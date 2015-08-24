@@ -29,13 +29,6 @@ abstract Class AbstractLogger
     protected $enabled = false;
 
     /**
-     * Whether to know app is registered as worker if yes we enable log writing. Default = false.
-     * 
-     * @var boolean
-     */
-    protected $isWorker = false;
-
-    /**
      * Namespaces of defined filters
      * 
      * @var array
@@ -116,29 +109,6 @@ abstract Class AbstractLogger
         $this->registeredHandlers[$name] = array('priority' => $priority);
         $this->track[] = array('name' => $name);
         return $this;
-    }
-    
-    /**
-     * Default logging feature disabled for workers, 
-     * you need to turn on logs in order to define workers as an application.
-     * 
-     * @return object Logger
-     */
-    public function registerAsWorker()
-    {
-        $this->isWorker = true;
-        return $this;
-    }
-
-    /**
-     * Whether to know app is registered as
-     * worker if yes we enable log writing.
-     * 
-     * @return boolean
-     */
-    public function isRegisteredAsWorker()
-    {
-        return $this->isWorker;
     }
 
     /**

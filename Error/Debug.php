@@ -41,14 +41,14 @@ class Debug
         }
         static::$enabled = true;
         error_reporting(-1); // Report all PHP errors
-        if (defined('STDIN') AND $displayErrors) {
+        if (defined('STDIN') && $displayErrors) {
             ini_set('display_errors', 1);
             ini_set('error_reporting', 1); // Enables cli errors on console mode
         }
         ErrorHandler::register($level, $displayErrors);
         ExceptionHandler::register();
 
-        if ($displayErrors AND ( ! ini_get('log_errors') OR ini_get('error_log'))) {
+        if ($displayErrors && ( ! ini_get('log_errors') || ini_get('error_log'))) {
             ini_set('display_errors', 1);
             ini_set('error_reporting', 1); // Enables cli errors on console mode
         }

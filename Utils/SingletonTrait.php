@@ -57,8 +57,3 @@ trait SingletonTrait
         throw new RuntimeException(sprintf('Unserializing %s is not allowed.', __CLASS__));
     }
 }
-
-// END SingletonTrait
-/* End of file SingletonTrait.php
-
-/* Location: .Obullo/Utils/SingletonTrait.php */

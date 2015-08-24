@@ -13,10 +13,9 @@ trait UniqueLoginTrait
      */
     public function uniqueLoginCheck()
     {
-         $middleware = AuthConfig::get('middleware');
+         $middlewareConfig = AuthConfig::get('middleware');
 
-        if ($middleware['uniqueLogin']) {  // Unique session is the property whereby a single action of login activity
-
+        if ($middlewareConfig['unique.login']) {  // Unique session is the property whereby a single action of login activity
             $sessions = $this->user->storage->getUserSessions();
             if (empty($sessions) || sizeof($sessions) == 1) {  // If user have more than one session continue to destroy old sessions.
                 return;

@@ -17,15 +17,6 @@ use ArrayAccess;
 interface ContainerInterface extends ArrayAccess
 {
     /**
-     * Checks if a parameter or an object is set.
-     *
-     * @param string $cid The unique identifier for the parameter or object
-     *
-     * @return Boolean
-     */
-    public function has($cid);
-    
-    /**
      * Get instance of the class without 
      * register it into Controller object
      * 
@@ -35,15 +26,24 @@ interface ContainerInterface extends ArrayAccess
      * @return object
      */
     public function get($cid, $params = null);
+    
+    /**
+     * Checks if a parameter or an object is set.
+     *
+     * @param string $cid The unique identifier for the parameter or object
+     *
+     * @return Boolean
+     */
+    public function has($cid);
 
     /**
-     * Checks package is old / loaded before
+     * Checks package loaded before ( is old )
      * 
      * @param string $cid package id
      * 
      * @return boolean
      */
-    public function used($cid);
+    public function active($cid);
 
     /**
      * Gets a parameter or the closure defining an object.
@@ -60,22 +60,4 @@ interface ContainerInterface extends ArrayAccess
      * @return array An array of value names
      */
     public function keys();
-
-    /**
-     * Registers a service provider.
-     *
-     * @param array $providers provider name and namespace array
-     *
-     * @return static
-     */
-    public function register($providers)
-    ;
-    /**
-     * Check provider is registered
-     * 
-     * @param string $name provider key like cache, redis, memcache
-     * 
-     * @return boolean
-     */
-    public function isRegistered($name);
 }

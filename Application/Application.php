@@ -49,6 +49,36 @@ class Application
         ];
 
     /**
+     * Whether to know app is registered as worker if yes we enable log writing. Default = false.
+     * 
+     * @var boolean
+     */
+    protected $isWorker = false;
+    
+    /**
+     * Default logging feature disabled for workers, 
+     * you need to turn on logs in order to define workers as an application.
+     * 
+     * @return object Logger
+     */
+    public function worker()
+    {
+        $this->isWorker = true;
+        return $this;
+    }
+
+    /**
+     * Whether to know app is registered as
+     * worker if yes we enable log writing.
+     * 
+     * @return boolean
+     */
+    public function isWorker()
+    {
+        return $this->isWorker;
+    }
+
+    /**
      * Detects application environment using "app/environments.php" file.
      * 
      * @return void or die if fail
@@ -356,15 +386,27 @@ class Application
     }
 
     /**
+     * Check class is registered as service
+     * 
+     * @param string $cid class key
+     * 
+     * @return boolean
+     */
+    public function hasService($cid)
+    {
+        return $this->c->hasService($cid);
+    }
+
+    /**
      * Check provider is registered
      * 
      * @param string $name provider key like cache, redis, memcache
      * 
      * @return boolean
      */
-    public function isRegistered($name)
+    public function hasProvider($name)
     {
-        return $this->c->isRegistered($name);
+        return $this->c->hasProvider($name);
     }
 
     /**
@@ -384,9 +426,9 @@ class Application
      * 
      * @return string
      */
-    public static function version()
+    public function version()
     {
-        return 'Obullo/'.static::VERSION;
+        return static::VERSION;
     }
     
     /**

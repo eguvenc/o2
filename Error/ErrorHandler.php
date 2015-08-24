@@ -149,7 +149,15 @@ class ErrorHandler
         unset($context); // Remove context data 
         if ($logger instanceof LoggerInterface) {          // Log for local environment
             $logger->channel($c['config']['logger']['default']['channel']);
-            $logger->error($message, array('level' => $this->level, 'file' => DebugOutput::getSecurePath($file), 'line' => $line, 'extra' => null));
+            $logger->error(
+                $message,
+                [
+                    'level' => $this->level,
+                    'file' => DebugOutput::getSecurePath($file),
+                    'line' => $line,
+                    'extra' => null
+                ]
+            );
         }
         if ($this->displayErrors 
             && $level 
@@ -157,7 +165,8 @@ class ErrorHandler
             && $level
         ) {
             $e = new ErrorException($message, $level, 0, $file, $line);
-            $c['exception']->show($e);
+            $exception = new \Obullo\Error\Exception;
+            $exception->show($e, true);
         }
         return false;
     }
@@ -190,7 +199,8 @@ class ErrorHandler
             return;
         }
         $e = new ErrorException($error['message'], $type, 0, $error['file'], $error['line']);
-        $c['exception']->show($e, true);
+        $exception = new \Obullo\Error\Exception;
+        $exception->show($e, true);
     }
 
 }

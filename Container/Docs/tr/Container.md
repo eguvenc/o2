@@ -59,7 +59,19 @@ class Session implements ServiceInterface
     public function register(ContainerInterface $c)
     {
         $c['session'] = function () use ($c) {
-            $session = new SessionClass($c);
+            $parameters = [
+                'class' => '\Obullo\Session\SaveHandler\Cache',
+                'provider' => [
+                    'name' => 'cache',
+                    'params' => [
+                        'driver' => 'redis',
+                        'connection' => 'default'
+                    ]
+                ]
+            ];
+            $manager = new SessionManager($c);
+            $manager->setParameters($parameters);
+            $session = $manager->getClass();
             $session->registerSaveHandler();
             $session->setName();
             $session->start();
@@ -68,9 +80,6 @@ class Session implements ServiceInterface
     }
 }
 
-// END Session service
-
-/* End of file Session.php */
 /* Location: .classes/Service/Session.php */
 ```
 
@@ -498,7 +507,7 @@ Konteyner içerisinde kayıtlı bir sınıfın paylaşımlı nesnesine döner ve
 
 Bir sınıfın uygulamadaki kısa adının konteyner içerisine kayıtlı olup olmadığını kontrol eder. Kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 
-##### $c->used(string $class);
+##### $c->active(string $class);
 
 Bir sınıfın uygulama içerisinde daha önceden kullanılıp kullanılmadığını kontrol eder. Kullanılmış ise sınıf o seviyede uygulamada yüklüdür ve <b>true</b> aksi durumda <b>false</b> değerine geri döner.
 

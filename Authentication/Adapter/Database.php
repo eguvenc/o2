@@ -2,6 +2,7 @@
 
 namespace Obullo\Authentication\Adapter;
 
+use Obullo\Authentication\Token;
 use Auth\Identities\GenericUser;
 use Obullo\Session\SessionInterface;
 use Obullo\Authentication\AuthResult;
@@ -101,19 +102,20 @@ class Database extends AbstractAdapter
     /**
      * Constructor
      * 
-     * @param object $c        container
-     * @param object $session  session
-     * @param object $storage  storage
-     * @param object $identity user identity
-     * @param array  $params   config parameters
+     * @param object $c       container
+     * @param object $session session
+     * @param object $storage storage
+     * @param array  $params  config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, IdentityInterface $identity, array $params)
+    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params)
     {
         $this->c = $c;
         $this->params = $params;
         $this->storage = $storage;
         $this->session = $session;
-        $this->identity = $identity;
+        
+        // ! WARNING : If we inject identity object here, recaller does not work
+        // we get closure parameter error.
 
         $this->columnIdentifier = $params['db.identifier'];
         $this->columnPassword   = $params['db.password'];
@@ -128,7 +130,9 @@ class Database extends AbstractAdapter
      */
     protected function initialize(GenericUser $genericUser)
     {
-        if ($this->identity->guest()) {
+        $savedIdentifier = $this->storage->getUserId();
+
+        if ($this->c['auth.identity']->guest() || $savedIdentifier != $genericUser->getIdentifier()) {
             $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
         }
         $this->results = array(
@@ -173,10 +177,6 @@ class Database extends AbstractAdapter
      */
     public function authenticate(GenericUser $genericUser, $login = true)
     {
-        if ($this->identity->check()) {
-            $this->alreadyLoggedIn = true;
-            return false;
-        }
         $storageResult = $this->storage->query();  // First do query to permanent memory block if user exists return to cached auth
 
         /**
@@ -278,11 +278,6 @@ class Database extends AbstractAdapter
      */
     protected function validateResult()
     {
-        if ($this->alreadyLoggedIn) {
-            $this->results['code'] = AuthResult::WARNING_ALREADY_LOGIN;
-            $this->results['messages'][] = 'You have already logged in.';
-            return $this->createResult();
-        }
         if (! is_array($this->resultRowArray) || $this->failure) {   // We set failure variable when user password is fail.
             $this->results['code'] = AuthResult::FAILURE;
             $this->results['messages'][] = 'Supplied credential is invalid.';

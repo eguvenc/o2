@@ -19,11 +19,11 @@ interface ServiceProviderInterface
     /**
      * Registry
      *
-     * @param object $c container
+     * @param object $c \Obullo\Container\ContainerInterface
      * 
      * @return void
      */
-    public function register(ContainerInterface $c);
+    public function __construct(ContainerInterface $c);
 
     /**
      * Get connection

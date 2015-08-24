@@ -107,17 +107,17 @@ Aşağıdaki akış şeması uygulamada bir log mesajının kaydedilirken hangi 
 
 ![Akış Şeması](/Log/Docs/images/flowchart.png?raw=true)
 
-Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log servisinde önceden tanımlı olan filtreler tarafından filtrelemeden geçtikten sonra iki durum sözkonusu olur.
+Uygulamada loglanmaya başlanan veriler önce bir dizi içerisinde toplanır ve php <a href="http://php.net/manual/tr/class.splpriorityqueue.php" target="_blank">SplPriorityQueue</a> sınıfı yardımı ile toplanan veriler önemlilik derecesine göre dizi içeriside sıralanırlar. Sıralanan log verileri log yazıcılarına gönderilmeden önce aşağıdaki iki olasılık sözkonusu olur.
 
 * Kuyruk Servisinin Kapalı Olduğu Durum ( Varsayılan )
 
-Eğer kuyruğa atma opsiyonu log servisinden kapalı ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri önemlilik sırasına göre <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
+Eğer kuyruğa atma opsiyonu log servisinden kapalı ise mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra kuyruğa önemlilik sırasına göre <kbd>app/classes/Workers/Logger</kbd> sınıfına gönderilirler.
 
-Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
+Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek filtrelerden geçirilir ve log servisinden belirlenmiş yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
 
 * Kuyruk Servisinin Açık Olduğu Durum
 
-Eğer kuyruğa atma opsiyonu log servisinden açık ise bir <kbd>register_shutdown_function</kbd> fonksiyonu yardımı ile mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra kuyruğa atılırlar. Kuyruğa gönderilme işlemi her sayfa için bir kere yapılır. Kuyruğa atılan log verilerini tüketmek için <kbd>app/classes/workers/Logger</kbd> sınıfı konsoldan çalıştırılarak <kbd>php task queue listen</kbd> komutu yardımı ile dinlenerek tüketilir. Konsoldan <kbd>php task queue listen</kbd> komutunun işlemci sayısına göre birden fazla çalıştırılması çoklu iş parçacıkları (multi threading) oluşturarak kuyruğun daha hızlı tüketilmesini sağlar. 
+Eğer kuyruğa atma opsiyonu log servisinden açık ise mevcut sayfada bir dizi içerisine sıralanmış tüm log verileri uygulamanın kapatılmasından sonra kuyruğa atılırlar. Kuyruğa gönderilme işlemi her sayfa için bir kere yapılır. Kuyruğa atılan log verilerini <kbd>app/classes/workers/Logger</kbd> sınıfı konsoldan çalıştırılarak <kbd>php task queue listen</kbd> komutu yardımı ile dinlenerek tüketilir. Konsoldan <kbd>php task queue listen</kbd> komutunun işlemci sayısına göre birden fazla çalıştırılması çoklu iş parçacıkları (multi threading) oluşturarak kuyruğun daha hızlı tüketilmesini sağlar. 
 
 Şemaya göre <kbd>app/classes/Workers/Logger</kbd> sınıfının çalışmasından sonra elde edilen veri çözümlenerek RaidManager sınıfı ile log sürücülerinin yazma önceliklerini belirler. Belirlenen yazma önceliklerine göre önce birincil log yazıcısı ve sonra varsa ikincil olan log yazıcıları gönderilen veri içerisindeki log kayıtlarını alarak yazma işlemlerini gerçekleştirirler.
 
@@ -125,7 +125,7 @@ Eğer kuyruğa atma opsiyonu log servisinden açık ise bir <kbd>register_shutdo
 
 ## Konfigürasyon
 
-Uygulama loglarının aktif olması için <kbd>app/config/env/$env/config.php</kbd> dosyasından enabled anahtarının true olması gerekir.
+Uygulama loglarının aktif olması için <kbd>app/config/$env/config.php</kbd> dosyasından enabled anahtarının true olması gerekir.
 
 ```php
 /**
@@ -138,7 +138,7 @@ Uygulama loglarının aktif olması için <kbd>app/config/env/$env/config.php</k
 ],
 ```
 
-Logger sınıfına ait detaylı konfigürasyon dosyası ise <kbd>app/config/env/$env/logger.php</kbd> dosyasında tutulur.
+Logger sınıfına ait detaylı konfigürasyon dosyası ise <kbd>app/config/$env/logger.php</kbd> dosyasında tutulur.
 
 
 <a name="running"></a>
@@ -151,10 +151,10 @@ Logger sınıfına ait detaylı konfigürasyon dosyası ise <kbd>app/config/env/
 
 ### Servis Konfigürasyonu
 
-Örnekte gösterilen servis konfigürasyonu <kbd>app/classes/Service/Logger/Env/Local.php</kbd> dosyasıdır.
+Örnekte gösterilen servis konfigürasyonu <kbd>app/classes/Service/Logger/Local.php</kbd> dosyasıdır.
 
 ```php
-namespace Service\Logger\Env;
+namespace Service\Logger;
 
 use Obullo\Service\ServiceInterface;
 use Obullo\Container\ContainerInterface;
@@ -500,7 +500,7 @@ Eğer servis konfigürasyonunda kuyruğa atma seçeneği açık ise <kbd>Workers
 
 ## Kuyruklama
 
-Kuyruklamanın doğru çalışabilmesi için queue servisinin doğru kurulduğundan ve çalışıyor olduğundan emin olun. Kurulum doğru ise log servisi konfigürasyonundaki <kbd>queue => enabled</kbd> anahtarına ait değeri <b>true</b> ile değiştirdiğinizde log verileri artık queue servisinizde tanımlı olan kuyruk sürücünüze gönderilir. Kuyruklama queue servisi üzerinden yürütülür. Queue servisi log servisi içerisinde aşağıdaki tanımlı parametreleri kullanarak <kbd>Workers\Logger</kbd> adlı iş sınıfı üzerinden <b>channel</b> anahtarına ait değerde bir kanal açar ve bu kanal üzerinde <b>route</b> anahtarı değerinde bir kuyruk yaratır.
+Kuyruklamanın doğru çalışabilmesi için queue servisinin doğru kurulduğundan ve çalışıyor olduğundan emin olun. Kurulum doğru ise log servisi konfigürasyonundaki <kbd>queue => enabled</kbd> anahtarına ait değeri <b>true</b> ile değiştirdiğinizde log verileri artık queue servisinizde tanımlı olan kuyruk sürücünüze gönderilir. Kuyruklama queue servisi üzerinden yürütülür. Queue servisi log servisi içerisinde aşağıdaki tanımlı parametreleri kullanarak <kbd>Workers@Logger</kbd> adlı iş sınıfı üzerinden bir kanal açar ve bu kanal üzerinde <b>route</b> anahtarı değerinde bir kuyruk yaratır.
 
 ```php
 $parameters = [
@@ -517,7 +517,7 @@ Log mesajları <kbd>Obullo/Log/Logger</kbd> sınıfı içerisindeki <b>close</b>
 ```php
 $this->c->get('queue')
     ->push(
-        'Workers\Logger',
+        'Workers@Logger',
         $this->params['queue']['route'],
         $payload,
         $this->params['queue']['delay']
@@ -531,17 +531,17 @@ $this->c->get('queue')
 Konsoldan php task show komutunu yazarak kuyruktaki işleri görüntüleyebilirsiniz.
 
 ```php
-php task queue show --worker=Workers\Logger --job=logger.1
+php task queue show --w=Workers@Logger --j=logger.1
 ```
 
 ```php
-Worker : Workers\Logger
+Worker : Workers@Logger
 Job    : logger.1
 
 ------------------------------------------------------------------------------------------
 Job ID  | Job Name            | Data 
 ------------------------------------------------------------------------------------------
-1       | Workers\Logger      | {"time":1436249455,"record":[{"channel": .. }
+1       | Workers@Logger      | {"time":1436249455,"record":[{"channel": .. }
 ```
 
 <a name="workers"></a>
@@ -551,13 +551,13 @@ Job ID  | Job Name            | Data
 Kuyruğu tüketmek için konsoldan aşağıdaki komut ile bir php işçisi çalıştırmak gerekir.
 
 ```php
-php task queue listen --worker=Workers\Logger --job=logger.1 --output=0
+php task queue listen --worker=Workers@Logger --job=logger.1 --output=0
 ```
 
 Yukarıdaki komut aynı anda birden fazla konsolda çalıştırıldığında <kbd>Obullo/Task/QueueController</kbd> sınıfı üzerinden her seferinde  <kbd>Obullo/Task/WorkerController.php</kbd> dosyasını çalıştırarak yeni bir iş parçaçığı oluşturur. Yerel ortamda birden fazla komut penceresi açarak kuyruğun eş zamanlı nasıl tüketildiğini test edebilirsiniz.
 
 ```php
-php task queue listen --worker=Workers\Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --output=1
+php task queue listen --worker=Workers@Logger --job=logger.1 --delay=0 --memory=128 --timeout=0 --output=1
 ```
 Yerel ortamda yada test işlemleri için output parametresini 1 olarak gönderdiğinizde yapılan işlere ait hata çıktılarını konsoldan görebilirsiniz.
 
@@ -567,7 +567,7 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 
 <a name="worker-parameters"></a>
 
-### İşçi Parametreleri
+##### İşçi Parametreleri
 
 <table>
 <thead>
@@ -581,13 +581,13 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 <tr>
 <td>--worker</td>
 <td>--w</td>
-<td>Kuyruğun açılacağı kanalı (exchange) ve işi belirler .</td>
+<td>Kuyruğun açılacağı kanalı (exchange) ve işe ait sınıf ismini belirler .</td>
 <td>null</td>
 </tr>
 <tr>
 <td>--job</td>
 <td>--j</td>
-<td>Kuyruğa ait ismi (route) belirler.</td>
+<td>Kuyruğa ait iş ismini (route) belirler.</td>
 <td>null</td>
 </tr>
 <tr>
@@ -627,12 +627,6 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 <td>0</td>
 </tr>
 <tr>
-<td>--project</td>
-<td>--p</td>
-<td>Birden fazla projeniz varsa ve her proje için farklı konfigürasyonlar gerekiyorsa proje ismi bu parametre ile gönderilebilir.</td>
-<td>default</td>
-</tr>
-<tr>
 <td>--env</td>
 <td>--e</td>
 <td>Ortam değişkenini worker uygulamasına gönderir.</td>
@@ -654,7 +648,7 @@ Ayrıca UNIX benzeri işletim sistemlerinde prodüksiyon ortamında kuyruk tüke
 Output değeri 1 olması durumunda bulunan hatalar ekrana dökülür.
 
 ```php
-php task queue listen --w=Workers\Logger --j=logger.1 --o=1
+php task queue listen --w=Workers@Logger --j=logger.1 --o=1
 ```
 
 <a name="processing-jobs"></a>
@@ -726,8 +720,8 @@ Aşağıda log kuyruğunu çözümlemek için sadeleştirilmiş bir worker örne
 namespace Workers;
 
 use Obullo\Queue\Job;
-use Obullo\Log\LogRaidManager;
 use Obullo\Queue\JobInterface;
+use Obullo\Log\Filter\LogFilters;
 use Obullo\Container\ContainerInterface;
 
 Class Logger implements JobInterface
@@ -756,13 +750,15 @@ Class Logger implements JobInterface
             if ($handler == 'file') {
                 $handler = new FileHandler;
             }
-            if (is_object($handler) && $handler->isAllowed($data)) {
+            if (is_object($handler) && $handler->isAllowed($event)) { // Check write permissions
 
-                $handler->write($data);
+                $event = LogFilters::handle($event);
+
+                $handler->write($event);  // Do job
                 $handler->close();
                 
                 if ($this->job instanceof Job) {
-                    $this->job->delete();
+                    $this->job->delete();  // Delete job from queue
                 }
             }
         }
@@ -780,7 +776,7 @@ Class Logger implements JobInterface
 
 ### Tamamlanan İşleri Kuyruktan Silmek
 
-Log verileri kuyruğa gönderilirken ilk parametre <b>iş</b> sınıfının yolu yani <kbd>Workers\Logger</kbd> girildiğinden kuyruk tüketilmeye başlandığında <kbd>Obullo\Queue\Job</kbd> sınıfına genişleyen <kbd>Obullo\Queue\Job\JobHandler\AMQPJob</kbd> sınıfı <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ilk parametresine gönderilir.
+Log verileri kuyruğa gönderilirken ilk parametre <b>iş</b> sınıfının yolu yani <kbd>Workers@Logger</kbd> girildiğinden kuyruk tüketilmeye başlandığında <kbd>Obullo\Queue\Job</kbd> sınıfına genişleyen <kbd>Obullo\Queue\Job\JobHandler\AMQPJob</kbd> sınıfı <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ilk parametresine gönderilir.
 
 <kbd>app/classes/Workers/Logger</kbd> sınıfı fire metodu ilk parametresine gönderilen iş sınıfı ile kuyruktan alınan işler tamamlandığında delete metodu ile kuyruktan silinirler.
 
@@ -839,13 +835,13 @@ Debugger paketi [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu 
 
 ### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
 
-Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve logger servisi içerisinde diğer yapılandırmalara ek olarak aşağıdaki metodu çağırın.
+Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve <kbd>app/components.php</kbd> içerisindeki yapılandırmalara ek olarak aşağıdaki metodu çağırın.
 
 ```php
-$logger->registerAsWorker();
+$c['app']->worker();
 ```
 
-Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot log servisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
+Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot components.php içerisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
 
 Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task listen</kbd> komutu ile işçilerinizin kurulumunu yaparak loglarınızı işlemeye başlayabilirsiniz.
 
@@ -886,7 +882,7 @@ Bir log filtresi tanımlar. Birinci parametreye filtre adı ikinci parametreye f
 
 ##### $this->logger->registerHandler(integer $priority, string $name);
 
-Bir log sürücüsü tanımlar. Birinci parametreye sürücü önem derecesi girilir, ikinci parametreye ise sürücü adı girilir. Eğer özel bir sürücü tanımlanmak isteniyorsa herhangi bir isim girilir ve bu isim <kbd>Workers\Logger</kbd> sınıfına geldiğinde ilgili kullanmak istediğiniz özel sürücü sınıfı ilan edilir.
+Bir log sürücüsü tanımlar. Birinci parametreye sürücü önem derecesi girilir, ikinci parametreye ise sürücü adı girilir. Eğer özel bir sürücü tanımlanmak isteniyorsa herhangi bir isim girilir ve bu isim <kbd>Workers@Logger</kbd> sınıfına geldiğinde ilgili kullanmak istediğiniz özel sürücü sınıfı ilan edilir.
 
 ##### $this->logger->filter(string $name, $params = array());
 
@@ -896,9 +892,6 @@ RegisterFilter metodu ile tanımlı olan bir log filtresinin çalıştırılmas�
 
 Load metodu ile yüklenen bir log yazıcısına ait log verilerini yazılması için log olayına işler.
 
-##### $this->logger->registerAsWorker();
-
-Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot log servisi içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur.
 
 #### Mesaj Referansı
 
@@ -939,3 +932,14 @@ Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, 
 ##### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
 Detaylı hata ayıklama bilgileri.
+
+
+#### Yardımcı Metotlar
+
+##### $c['app']->worker();
+
+Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot components.php içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur.
+
+##### $c['app']->isWorker();
+
+Eğer uygulama bir worker uygulaması ise true değerine aksi durum false değerine geri döner.

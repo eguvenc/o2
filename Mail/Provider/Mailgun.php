@@ -2,7 +2,10 @@
 
 namespace Obullo\Mail\Provider;
 
+use Obullo\Log\LoggerInterface;
 use Mailgun\Mailgun as MailgunApi;
+use Obullo\Container\ContainerInterface;
+use Obullo\Translation\TranslatorInterface;
 
 /**
  * Mailgun Transactional Api Provider
@@ -18,15 +21,16 @@ use Mailgun\Mailgun as MailgunApi;
 class Mailgun extends AbstractProvider implements ProviderInterface
 {
     /**
-     * Create a new Mailgun transport instance.
-     * 
-     * @param array $params config & service parameters
-     * 
-     * @return void
+     * Constructor
+     *
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LogInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(array $params)
+    public function __construct(ContainerInterface $c, TranslatorInterface $translator, LoggerInterface $logger, array $params)
     {
-        parent::__construct($params);
+        parent::__construct($c, $translator, $logger, $params);
     }
 
     /**
@@ -42,7 +46,6 @@ class Mailgun extends AbstractProvider implements ProviderInterface
         $this->msgEvent['subject'] = $this->getSubject();
 
         $this->setMailType($this->getMailType());  // text / html
-
         foreach ($this->getRecipients() as $v) {
             $this->msgEvent[$v['type']][] = $v['email'];
         }

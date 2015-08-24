@@ -421,24 +421,22 @@ class Logger extends AbstractLogger implements LoggerInterface
     }
 
     /**
-     * Detect logger type
+     * Detect logger request type ( http, ajax, cli, worker )
      * 
      * @return void
      */
     protected function detectRequest()
     {
-        $this->request = 'http'; // Http request
+        $this->request = 'http';
         if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $this->request ='ajax';  // Ajax request
+            $this->request ='ajax';
         }
-        if (defined('STDIN')) {  // Cli request
+        if (defined('STDIN')) {
             $this->request = 'cli';
         }
         if (isset($_SERVER['argv'][1]) && $_SERVER['argv'][1] == 'worker') {  // Job Server request
             $this->request = 'worker';
-            if ($this->isRegisteredAsWorker() == false) {
-                $this->enabled = false;
-            }
+            $this->enabled = $this->config['app']['worker']['log']; // Initialize to config if $handler->isAllowed() method ignored.
         }      
     }
 
@@ -522,7 +520,7 @@ class Logger extends AbstractLogger implements LoggerInterface
 
                     $this->c->get('queue')
                         ->push(
-                            'Workers\Logger',
+                            'Workers@Logger',
                             $this->params['queue']['route'],
                             $payload,
                             $this->params['queue']['delay']

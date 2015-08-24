@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Service\Providers\Connections;
+namespace Obullo\Service\Providers;
 
 /**
  * Service Connnection Provider Helper
@@ -43,7 +43,7 @@ class AbstractConnectionProvider
     /**
      * Returns to connection prefix
      *
-     * e.g. amqp.connection.
+     * E.g. amqp.connection.
      * 
      * @param null|integer $id connection id
      * 

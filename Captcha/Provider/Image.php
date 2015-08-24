@@ -1,63 +1,89 @@
 <?php
 
-namespace Obullo\Captcha\Adapter;
+namespace Obullo\Captcha\Provider;
 
 use RuntimeException;
 use Obullo\Captcha\CaptchaResult;
-use Obullo\Captcha\AbstractAdapter;
-use Obullo\Captcha\AdapterInterface;
+use Obullo\Captcha\AbstractProvider;
+use Obullo\Captcha\ProviderInterface;
+
+use Obullo\Uri\Uri;
+use Obullo\Log\LoggerInterface;
+use Obullo\Session\SessionInterface;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Request\RequestInterface;
+use Obullo\Translation\TranslatorInterface;
 
 /**
- * Captcha Image Adapter
+ * Captcha Image Provider
  * 
- * @category  Adapter
+ * @category  Captcha
  * @package   Image
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-class Image extends AbstractAdapter implements AdapterInterface
+class Image extends AbstractProvider implements ProviderInterface
 {
-    public $fonts;      // Actual fonts
-    public $imageUrl;   // Captcha image display url with base url
-    public $width;      // Image width
-    public $configFontPath;     // Font path
-    public $defaultFontPath;    // Default font path
-    public $noiseColor;         // Noise color
-    public $textColor;          // Text color
-    public $imgName;            // Image name
-    
-    protected $html = '';       // Captcha html
-    protected $config = array();   // Configuration data
-    protected $imageId = '';      // Image unique id
-    protected $mods = array();    // Image captcha mods
-    protected $yPeriod = 12;    // Wave Y axis
-    protected $yAmplitude = 14; // Wave Y amplitude
-    protected $xPeriod = 11;    // Wave X axis
-    protected $xAmplitude = 5;  // Wave Y amplitude
-    protected $scale = 2;       // Wave default scale
-    protected $image;           // Gd image content
-    protected $code;            // Generated image code
-    protected $c;               // Container
+    protected $c;
+    protected $uri;
+    protected $request;
+    protected $session;
+    protected $logger;
+    protected $captcha;
     protected $translator;
+    protected $html = '';         // Captcha html
+    protected $config = array();  // Configuration data
+    protected $imageId = '';      // Image unique id
+    protected $mods = ['cool', 'secure'];
+    protected $yPeriod = 12;      // Wave Y axis
+    protected $yAmplitude = 14;   // Wave Y amplitude
+    protected $xPeriod = 11;      // Wave X axis
+    protected $xAmplitude = 5;    // Wave Y amplitude
+    protected $scale = 2;         // Wave default scale
+    protected $image;             // Gd image content
+    protected $code;              // Generated image code
+    protected $fonts;             // Actual fonts
+    protected $imageUrl;          // Captcha image display url with base url
+    protected $width;             // Image width
+    protected $configFontPath;    // Font path
+    protected $defaultFontPath;   // Default font path
+    protected $noiseColor;        // Noise color
+    protected $textColor;         // Text color
+    protected $imgName;           // Image name
 
     /**
      * Constructor
      *
-     * @param object $c container
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $uri        \Obullo\Uri\Uri
+     * @param object $request    \Obullo\Request\RequestInterface
+     * @param object $session    \Obullo\Session\SessionInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LoggerInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(ContainerInterface $c)
-    {
+    public function __construct(
+        ContainerInterface $c,
+        Uri $uri,
+        RequestInterface $request,
+        SessionInterface $session,
+        TranslatorInterface $translator,
+        LoggerInterface $logger,
+        array $params
+    ) {
         $this->c = $c;
-        $this->config = $c['config']->load('captcha/image');
-        $this->mods = array('cool', 'secure');
-        
-        $this->translator = $c['translator'];
+        $this->uri = $uri;
+        $this->request = $request;
+        $this->config = $params;
+        $this->logger = $logger;
+        $this->session = $session;
+        $this->translator = $translator;
         $this->translator->load('captcha');
 
-        parent::__construct($c);
+        $this->init();
+        $this->logger->debug('Captcha Class Initialized');
     }
 
     /**
@@ -67,11 +93,9 @@ class Image extends AbstractAdapter implements AdapterInterface
      */
     public function init()
     {
-        $this->validationSet();
         $this->buildHtml();
-
         $this->fonts = array_keys($this->config['fonts']);
-        $this->imageUrl = $this->c['uri']->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( DS )
+        $this->imageUrl = $this->uri->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( DS )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
         $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'Fonts' . DS;
     }
@@ -275,7 +299,6 @@ class Image extends AbstractAdapter implements AdapterInterface
             $font = array($font);
         }
         $this->setFont(array_diff($this->getFonts(), $font));
-
         return $this;
     }
 
@@ -418,7 +441,6 @@ class Image extends AbstractAdapter implements AdapterInterface
         $this->generateCode();  // generate captcha code
         $this->imageCreate();
         $this->filledEllipse();
-
         if ($this->config['image']['wave']) {
             $this->waveImage();
         }
@@ -446,15 +468,14 @@ class Image extends AbstractAdapter implements AdapterInterface
         $randTextColor  = $this->config['text']['colors']['text'][array_rand($this->config['text']['colors']['text'])];
         $randNoiseColor = $this->config['text']['colors']['noise'][array_rand($this->config['text']['colors']['noise'])];
         $this->calculateWidth();
-
-        // PHP.net recommends imagecreatetruecolor(), but it isn't always available
+        // PHP.net recommends imagecreatetruecolor()
+        // but it isn't always available
         if (function_exists('imagecreatetruecolor') && $this->config['image']['trueColor']) {
             $this->image = imagecreatetruecolor($this->width, $this->config['image']['height']);
         } else {
             $this->image = imagecreate($this->width, $this->config['image']['height']) or die('Cannot initialize new GD image stream');
         }
         imagecolorallocate($this->image, 255, 255, 255);
-
         $explodeColor     = explode(',', $this->config['colors'][$randTextColor]);
         $this->textColor  = imagecolorallocate($this->image, $explodeColor['0'], $explodeColor['1'], $explodeColor['2']);
         $explodeColor     = explode(',', $this->config['colors'][$randNoiseColor]);
@@ -470,14 +491,11 @@ class Image extends AbstractAdapter implements AdapterInterface
     {
         $xp = $this->scale * $this->xPeriod * rand(1, 3);   // X-axis wave generation
         $k  = rand(0, 10);
-
         for ($i = 0; $i < ($this->width * $this->scale); $i++) {
             imagecopy($this->image, $this->image, $i - 1, sin($k + $i / $xp) * ($this->scale * $this->xAmplitude), $i, 0, 1, $this->config['image']['height'] * $this->scale);
         }
-
         $k  = rand(0, 10);                                   // Y-axis wave generation
         $yp = $this->scale * $this->yPeriod * rand(1, 2);
-
         for ($i = 0; $i < ($this->config['image']['height'] * $this->scale); $i++) {
             imagecopy($this->image, $this->image, sin($k + $i / $yp) * ($this->scale * $this->yAmplitude), $i - 1, 0, $i, $this->width * $this->scale, 1);
         }
@@ -501,7 +519,6 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function filledEllipse()
     {
         $fonts = $this->getFonts();
-
         if (sizeof($fonts) == 0) {
             throw new RuntimeException('Image CAPTCHA requires fonts.');
         }
@@ -530,7 +547,6 @@ class Image extends AbstractAdapter implements AdapterInterface
         $y = ($this->config['image']['height'] - $textbox[5]) / 2;
 
         $this->setImageId(md5($this->session->get('session_id') . uniqid(time())));  // Generate an unique image id using the session id, an unique id and time.
-
         imagettftext($this->image, $this->config['font']['size'], 0, $x, $y, $this->textColor, $fontPath, $this->getCode()) or die('Error in imagettftext function');
     }
 
@@ -542,10 +558,8 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function imageLine()
     {
         if ($this->config['mod'] != 'cool') {
-
             $wHvalue = $this->width / $this->config['image']['height'];
             $wHvalue = $wHvalue / 2;
-
             for ($i = 0; $i < $wHvalue; $i++) {
                 imageline(
                     $this->image,
@@ -581,7 +595,7 @@ class Image extends AbstractAdapter implements AdapterInterface
     public function result($code = null)
     {
         if ($code == null) {
-            $code = $this->c['request']->post($this->config['form']['input']['attributes']['name']);
+            $code = $this->request->post($this->config['form']['input']['attributes']['name']);
         }
         if ($data = $this->session->get($this->config['form']['input']['attributes']['name'])) {
             return $this->validateCode($data, $code);
@@ -602,17 +616,13 @@ class Image extends AbstractAdapter implements AdapterInterface
     protected function validateCode($data, $code)
     {
         if ($data['expiration'] < time()) { // Expiration time of captcha ( second )
-
             $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove captcha data from session.
-
             $this->result['code'] = CaptchaResult::FAILURE_EXPIRED;
             $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:EXPIRED'];
             return $this->createResult();
         }
-
         if ($code == $data['code']) {  // Is code correct ?
             $this->session->remove($this->config['form']['input']['attributes']['name']); // Remove
-
             $this->result['code'] = CaptchaResult::SUCCESS;
             $this->result['messages'][] = $this->translator['OBULLO:CAPTCHA:SUCCESS'];
             return $this->createResult();
@@ -694,29 +704,24 @@ class Image extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Validation set
+     * We call this function using $this->validator->bind($this->captcha) method.
      * 
      * @return void
      */
-    protected function validationSet()
+    public function callbackFunction()
     {
-        if (! $this->config['form']['validation']['enabled']) {
-            return;
-        }
+        $post  = $this->request->isPost();
         $label = $this->translator['OBULLO:CAPTCHA:LABEL'];
         $rules = 'required|exact('.$this->config['characters']['length'].')|trim';
-        $post  = $this->c['request']->isPost();
 
         if ($this->config['form']['validation']['callback'] && $post) {  // Add callback if we have http post
-
             $rules.= '|callback_captcha';  // Add callback validation rule
-
             $self = $this;
             $this->c['validator']->func(
                 'callback_captcha',
                 function () use ($self, $label) {
                     if ($self->result()->isValid() == false) {
-                        $this->setMessage('callback_captcha', $this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
+                        $this->setMessage($this->translator->get('OBULLO:CAPTCHA:VALIDATION', $label));
                         return false;
                     }
                     return true;

@@ -3,9 +3,9 @@
 namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
-use RunTimeException;
+use RuntimeException;
 use Obullo\Cache\CacheInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
     
 /**
  * Memcached Caching Class
@@ -41,13 +41,13 @@ class Memcached implements CacheInterface
     /**
      * Constructor
      * 
-     * @param array  $c         container
-     * @param object $memcached Memcached
+     * @param object $config    \Obullo\Config\ConfigInterface
+     * @param object $memcached \Memcached
      */
-    public function __construct(ContainerInterface $c, \Memcached $memcached)
+    public function __construct(ConfigInterface $config, \Memcached $memcached)
     {
         $this->memcached = $memcached; 
-        $this->config = $c['config']['cache/memcached'];
+        $this->config = $config->load('cache/memcached');
 
         $this->connect();
     }
@@ -75,7 +75,7 @@ class Memcached implements CacheInterface
         }
         foreach ($this->config['nodes'] as $servers) {
             if (empty($servers['host']) || empty($servers['port'])) {
-                throw new RunTimeException(
+                throw new RuntimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
                         get_class()

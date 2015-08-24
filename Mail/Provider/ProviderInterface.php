@@ -2,6 +2,10 @@
 
 namespace Obullo\Mail\Provider;
 
+use Obullo\Log\LoggerInterface;
+use Obullo\Container\ContainerInterface;
+use Obullo\Translation\TranslatorInterface;
+
 /**
  * ProviderInterface for Mail Api Providers
  * 
@@ -16,8 +20,11 @@ interface ProviderInterface
 {
     /**
      * Constructor
-     * 
-     * @param array $params config & service parameters
+     *
+     * @param object $c          \Obullo\Container\ContainerInterface
+     * @param object $translator \Obullo\Translation\TranslatorInterface
+     * @param object $logger     \Obullo\Log\LogInterface
+     * @param array  $params     service parameters
      */
-    public function __construct(array $params);
+    public function __construct(ContainerInterface $c, TranslatorInterface $translator, LoggerInterface $logger, array $params);
 }

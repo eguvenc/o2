@@ -95,8 +95,3 @@ class Date
         return $date;
     }
 }
-
-// END Date class
-/* End of file Date.php */
-
-/* Location: .Obullo/Validator/Date.php */ 

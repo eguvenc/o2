@@ -122,7 +122,7 @@ abstract class Job
      * 
      * @return int
      */
-    abstract public function getJobId();
+    abstract public function getId();
 
     /**
      * Get the raw body string for the job.
@@ -140,8 +140,8 @@ abstract class Job
      */
     protected function resolveAndFire(array $payload)
     {
-        $class = ucfirst($payload['job']);
-        $this->instance = new $class($this->c, array('env' => $this->getEnv()));
+        $Class = str_replace('@', '\\', ucfirst($payload['job']));
+        $this->instance = new $Class($this->c, array('env' => $this->getEnv()));
         $this->instance->fire($this, $payload['data']);
     }
 

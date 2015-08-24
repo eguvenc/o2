@@ -1,11 +1,12 @@
 <?php
 
-namespace Obullo\Authentication\Model;
+namespace Obullo\Authentication\Model\Pdo;
 
 use Pdo;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Service\ServiceProviderInterface;
+use Obullo\Authentication\Model\UserInterface;
 
 /**
  * O2 User Model
@@ -19,22 +20,23 @@ use Obullo\Service\ServiceProviderInterface;
  */
 class User implements UserInterface
 {
-    public $db;                     // Database object
-    public $tablename;              // Users tablename
-    public $columnId;               // Primary key column name
-    public $columnIdentifier;       // Username column name
-    public $columnPassword;         // Password column name
-    public $columnRememberToken;    // Remember token column name
+    protected $db;                     // Database object
+    protected $select;                 // Selected fields
+    protected $tablename;              // Users tablename
+    protected $columnId;               // Primary key column name
+    protected $columnIdentifier;       // Username column name
+    protected $columnPassword;         // Password column name
+    protected $columnRememberToken;    // Remember token column name
 
      /**
      * Constructor
      * 
-     * @param object $provider ServiceProviderInterface
+     * @param object $provider \Obullo\Service\ServiceProviderInterface
      * @param object $params   Auth configuration & service configuration parameters
      */
     public function __construct(ServiceProviderInterface $provider, array $params)
     {
-        $this->tablename           = $params['db.tablename'];      // Db users tablename
+        $this->tablename           = $params['db.tablename'];
         $this->columnId            = $params['db.id'];
         $this->columnIdentifier    = $params['db.identifier'];
         $this->columnPassword      = $params['db.password'];
@@ -55,9 +57,30 @@ class User implements UserInterface
     {
         $this->db = $provider->get(
             [
-                'connection' => $params['db.connection']
+                'connection' => $params['db.provider']['params']['connection']
             ]
         );
+        $this->select($params);
+    }
+
+    /**
+     * Build select fields
+     *
+     * @param array $params parameters
+     * 
+     * @return void
+     */
+    protected function select(array $params)
+    {
+        $fields = [
+                $this->columnId,
+                $this->columnIdentifier,
+                $this->columnPassword,
+                $this->columnRememberToken
+            ];
+        if (! empty($params['db.select'])) {
+            $this->select = implode(",", array_merge($fields, $params['db.select']));
+        }
     }
 
     /**
@@ -69,7 +92,7 @@ class User implements UserInterface
      */
     public function execQuery(GenericUser $user)
     {
-        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE BINARY %s = ?', $this->tablename, $this->columnIdentifier))
+        return $this->db->prepare(sprintf('SELECT %s FROM %s WHERE BINARY %s = ?', $this->select, $this->tablename, $this->columnIdentifier))
             ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
             ->execute()
             ->rowArray();
@@ -84,9 +107,10 @@ class User implements UserInterface
      */
     public function execRecallerQuery($token)
     {
-        return $this->db->prepare(sprintf('SELECT * FROM %s WHERE %s = ?', $this->tablename, $this->columnRememberToken))
+        return $this->db->prepare(sprintf('SELECT %s FROM %s WHERE %s = ?', $this->select, $this->tablename, $this->columnRememberToken))
             ->bindValue(1, $token, PDO::PARAM_STR)
-            ->execute()->rowArray();
+            ->execute()
+            ->rowArray();
     }
 
     /**

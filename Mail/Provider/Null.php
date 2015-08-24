@@ -19,16 +19,6 @@ class Null
     /**
      * Constructor
      * 
-     * @param object $params parameters
-     */
-    public function __construct($params = array())
-    {
-        $params = null;
-    }
-
-    /**
-     * Constructor
-     * 
      * @return object
      */
     public function init()
@@ -157,6 +147,16 @@ class Null
     }
 
     /**
+     * Returns to mail provider name in lowercase letters
+     * 
+     * @return string
+     */
+    public function getProvider()
+    {
+        return 'null';
+    }
+
+    /**
      * Returns mailt type: html / text
      * 
      * @return string
@@ -197,6 +197,48 @@ class Null
     }
 
     /**
+     * Returns to recipients
+     * 
+     * @return array
+     */
+    public function getRecipients()
+    {
+        return array();
+    }
+
+    /**
+     * Return to attachments
+     * 
+     * @return array
+     */
+    public function getAttachments()
+    {
+        return array();
+    }
+
+    /**
+     * Returns to user agent
+     * 
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return "null";
+    }
+
+    /**
+     * Creates new message ID
+     *
+     * @param string $returnPath null
+     * 
+     * @return string
+     */
+    public function getMessageId($returnPath = null)
+    {
+        return $returnPath;
+    }
+
+    /**
      * Set Email Subject
      * 
      * @param string $subject email subject
@@ -223,6 +265,20 @@ class Null
     }
 
     /**
+     * Add custom message to msgEvent variable
+     * 
+     * @param string $key   key
+     * @param mixed  $value value
+     *
+     * @return $this
+     */
+    public function addMessage($key, $value)
+    {
+        $key = $value = null;
+        return $this;
+    }
+
+    /**
      * Assign file attachments
      * 
      * @param string $filename    attachment name
@@ -234,6 +290,16 @@ class Null
     {
         $filename = $disposition = null;
         return $this;
+    }
+
+    /**
+     * Returns to true if we have attached file otherwise false
+     * 
+     * @return boolean
+     */
+    public function hasAttachment()
+    {
+        return false;
     }
 
     /**

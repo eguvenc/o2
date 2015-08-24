@@ -230,7 +230,7 @@ class Http extends Application
      */
     public function close()
     {
-        if ($this->c->used('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+        if ($this->c->active('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }

@@ -2,8 +2,9 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException;
+use RuntimeException;
 use Obullo\Cache\CacheInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -42,7 +43,8 @@ class Memcache implements CacheInterface
     /**
      * Constructor
      * 
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $config   \Obullo\Config\ConfigInterface
+     * @param object $memcache \Memcache
      */
     public function __construct(ConfigInterface $config, \Memcache $memcache)
     {
@@ -80,7 +82,7 @@ class Memcache implements CacheInterface
 
         foreach ($this->config['nodes'] as $servers) {
             if (empty($servers['host']) || empty($servers['port'])) {
-                throw new RunTimeException(
+                throw new RuntimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
                         get_class()
@@ -149,7 +151,7 @@ class Memcache implements CacheInterface
     public function get($key)
     {
         $value = $this->memcache->get($key, false);
-        if (is_array($value) AND isset($value[0])) {
+        if (is_array($value) && isset($value[0])) {
             $value = $value[0];
         }
         return $value;

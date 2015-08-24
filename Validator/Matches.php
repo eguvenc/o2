@@ -30,8 +30,3 @@ class Matches
         return ($str !== $_REQUEST[$field]) ? false : true;
     }
 }
-
-// END Matches class
-/* End of file EMatches.php */
-
-/* Location: .Obullo/Validator/Matches.php */

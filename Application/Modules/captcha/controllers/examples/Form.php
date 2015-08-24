@@ -13,6 +13,7 @@ class Form extends \Controller
     {
         if ($this->request->isPost()) {
 
+            $this->validator->bind($this->captcha);
             $this->validator->setRules('username', 'Username', 'required|trim|max(100)');
 
             if ($this->validator->isValid()) {

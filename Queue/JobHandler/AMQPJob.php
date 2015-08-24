@@ -87,7 +87,11 @@ class AMQPJob extends Job
         $body = json_decode($body, true);
         $body['data']['attempts'] = $this->getAttempts() + 1; // Write attempts to body
 
-        $this->c['queue']->push($body['job'], $this->getName(), $body['data'], $delay);
+        if ($delay > 0) {
+            $this->c['queue']->later($delay, $body['job'], $this->getName(), $body['data']);
+        } else {
+            $this->c['queue']->push($body['job'], $this->getName(), $body['data']);
+        }
     }
 
     /**
@@ -106,7 +110,7 @@ class AMQPJob extends Job
      *
      * @return string
      */
-    public function getJobId()
+    public function getId()
     {
         return $this->envelope->getDeliveryTag();
     }

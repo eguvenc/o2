@@ -26,8 +26,3 @@ class Required
         return (empty($val) &&  $val != 0) ? false : true;
     }
 }
-
-// END Required class
-/* End of file Required.php */
-
-/* Location: .Obullo/Validator/Required.php */

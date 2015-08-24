@@ -3,7 +3,6 @@
 namespace Obullo\Container;
 
 use Closure;
-use stdClass;
 use RuntimeException;
 use InvalidArgumentException;
 
@@ -53,7 +52,10 @@ class Container implements ContainerInterface
      */
     public function has($cid) 
     {
-        return $this->offsetExists($cid);
+        if ($this->hasService($cid)) {  // Is it service ?
+            return true;
+        }
+        return $this->offsetExists($cid);   // Is it component ?
     }
 
     /**
@@ -63,7 +65,7 @@ class Container implements ContainerInterface
      * 
      * @return boolean
      */
-    public function used($cid) 
+    public function active($cid)
     {
         return isset($this->frozen[$cid]);
     }    
@@ -230,9 +232,7 @@ class Container implements ContainerInterface
         }
         $Class = $this->registeredProviders[$name];
         if (! isset($this->registeredConnections[$name])) {
-            $provider = new $Class;
-            $provider->register($this);
-            $this->registeredConnections[$name] = $provider;
+            $this->registeredConnections[$name] = new $Class($this);
         }
         return $this->registeredConnections[$name];
     }
@@ -339,7 +339,7 @@ class Container implements ContainerInterface
     protected function resolveService($serviceClass, $isDirectory = false)
     {
         if ($isDirectory) {
-            return '\\Service\\'.$serviceClass.'\Env\\'. ucfirst($this['app']->env());
+            return '\\Service\\'.$serviceClass.'\\'. ucfirst($this['app']->env());
         }
         return '\Service\\'.$serviceClass;
     }
@@ -360,13 +360,28 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Check class is registered as service
+     * 
+     * @param string $cid class key
+     * 
+     * @return boolean
+     */
+    public function hasService($cid)
+    {
+        if (isset($this->services[ucfirst($cid).'.php'])) {  // Is it service ?
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Check provider is registered
      * 
      * @param string $name provider key like cache, redis, memcache
      * 
      * @return boolean
      */
-    public function isRegistered($name)
+    public function hasProvider($name)
     {
         return isset($this->registeredProviders[$name]);
     }

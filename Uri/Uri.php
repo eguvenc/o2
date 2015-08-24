@@ -37,14 +37,14 @@ class Uri
      *
      * @param object $c      \Obullo\Container\ContainerInterface
      * @param object $app    \Obullo\Application\Application
-     * @param object $logger \Obullo\Log\LogInterface
      * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LogInterface
      * 
      * Simply globalizes the $RTR object.  The front
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct(ContainerInterface $c, Application $app, LoggerInterface $logger, ConfigInterface $config)
+    public function __construct(ContainerInterface $c, Application $app, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
         $this->app = $app;
@@ -108,7 +108,6 @@ class Uri
         $uri = $this->c['cli']->getCmdString(false);
         $this->setCliHeaders($uri);
         $this->setUriString($uri);
-        $this->logger->debug('php '.implode(' ', $_SERVER['argv'])); // Log all cli commands
     }
 
     /**

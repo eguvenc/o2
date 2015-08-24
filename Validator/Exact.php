@@ -30,8 +30,3 @@ class Exact
         return (mb_strlen($str) != $val) ? false : true;   
     }
 }
-
-// END Exact class
-/* End of file Exact.php */
-
-/* Location: .Obullo/Validator/Exact.php */

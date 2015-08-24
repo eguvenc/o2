@@ -26,8 +26,3 @@ class IsJson
         return ( ! is_object(json_decode($str))) ? false : true;
     }
 }
-
-// END IsJson Class
-/* End of file IsJson.php */
-
-/* Location: .Obullo/Validator/IsJson.php */

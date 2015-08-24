@@ -2,7 +2,7 @@
 
 namespace Obullo\Cache\Handler;
 
-use RunTimeException;
+use RuntimeException;
 use Obullo\Cache\CacheInterface;
 use Obullo\Config\ConfigInterface;
 
@@ -29,7 +29,7 @@ class Apc implements CacheInterface
     {
         $config = null;
         if (! extension_loaded('apc') || ini_get('apc.enabled') != '1') {
-            throw new RunTimeException(
+            throw new RuntimeException(
                 sprintf(
                     ' %s driver is not installed.', get_class()
                 )

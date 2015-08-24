@@ -2,7 +2,8 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Authentication\User\IdentityInterface;
+use Obullo\Authentication\Storage\StorageInterface;
 
 /**
  * O2 Authentication - Online Users Activity Class
@@ -46,13 +47,14 @@ class Activity
 
     /**
      * Constructor
-     *
-     * @param object $c container
+     * 
+     * @param StorageInterface  $storage  \Obullo\Authentication\Storage\StorageInterface;
+     * @param IdentityInterface $identity \Obullo\Authentication\User\IdentityInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(StorageInterface $storage, IdentityInterface $identity)
     {
-        $this->storage = $c['auth.storage'];
-        $this->identity = $c['auth.identity'];
+        $this->storage = $storage;
+        $this->identity = $identity;
 
         $this->attributes = $this->identity->_activity;
         $this->identifier = $this->identity->getIdentifier();

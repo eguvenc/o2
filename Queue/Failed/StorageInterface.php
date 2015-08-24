@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Queue\Failed\Storage;
+namespace Obullo\Queue\Failed;
 
 /**
  * Storage Handler Interface
@@ -24,21 +24,22 @@ interface StorageInterface
     public function save(array $event);
 
     /**
-     * Check same error exists
+     * Check same error is daily exists
      *
      * @param string  $file error file
      * @param integer $line error line
       * 
      * @return void
      */
-    public function dailyExists($file, $line);
+    public function exists($file, $line);
 
     /**
-     * Update failure repeats
+     * Update attempts
      * 
-     * @param integer $jobId queue delivery tag
+     * @param integer $id    queue failure id
+     * @param integer $event data
      * 
      * @return void
      */
-    public function updateRepeat($jobId);
+    public function update($id, array $event);
 }

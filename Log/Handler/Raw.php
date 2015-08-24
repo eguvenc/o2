@@ -2,7 +2,8 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 
 /**
  * Raw Handler Class
@@ -16,6 +17,17 @@ use Obullo\Container\ContainerInterface;
  */
 class Raw extends AbstractHandler implements HandlerInterface
 {
+    /**
+     * Constructor
+     * 
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     */
+    public function __construct(Application $app, ConfigInterface $config)
+    {
+        parent::__construct($app, $config);
+    }
+
     /**
      * Write output
      *

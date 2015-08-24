@@ -4,7 +4,10 @@ namespace Obullo\Validator;
 
 use Closure;
 use Controller;
-use Obullo\Container\ContainerInterface;
+use RuntimeException;
+use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Translation\TranslatorInterface;
 
 /**
  * Validator Class
@@ -20,33 +23,33 @@ use Obullo\Container\ContainerInterface;
  */
 class Validator 
 {
-    public $translator;
-    public $fieldData = array();    
-    public $errorArray = array();
-    public $errorMessages = array();    
-    public $errorPrefix = '<div>';
-    public $errorSuffix = '</div>';
-    public $errorString = '';
-    public $safeFormData = false;
-    public $validation = false;
-    public $callbackFunctions = array();
-    public $filters = array();
-    protected $c;
+    protected $translator;
+    protected $fieldData = array();    
+    protected $errorArray = array();
+    protected $errorMessages = array();    
+    protected $errorPrefix = '<div>';
+    protected $errorSuffix = '</div>';
+    protected $errorString = '';
+    protected $safeFormData = false;
+    protected $validation = false;
+    protected $callbackFunctions = array();
+    protected $filters = array();
 
     /**
      * Constructor
-     *
-     * @param object $c container
+     * 
+     * @param ConfigInterface     $config     \Obullo\Config\ConfigInterface
+     * @param TranslatorInterface $translator \Obullo\Translation\TranslatorInterface
+     * @param LoggerInterface     $logger     \Obullo\Logger\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ConfigInterface $config, TranslatorInterface $translator, LoggerInterface $logger)
     {    
-        mb_internal_encoding($c['config']['locale']['charset']);
+        mb_internal_encoding($config['locale']['charset']);
         
-        $this->c = $c;
-        $this->logger = $c['logger'];
-        $this->translator = $c['translator'];
-        $this->translator->load('validator');     // Load validator language file from app/translations.
-
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->translator = $translator;
+        $this->translator->load('validator');
         $this->logger->debug('Validator Class Initialized');
     }
 
@@ -376,7 +379,7 @@ class Validator
                 if (! class_exists($className)) {
                     include OBULLO .'Validator'. DS .$ruleClass. '.php';
                 }
-                $result = call_user_func_array(array(new $className($this->c), 'isValid'), array($postdata, $param));
+                $result = call_user_func_array(array(new $className($this->config, $this->logger), 'isValid'), array($postdata, $param));
                 if ($inArray == true) {
                     $this->fieldData[$row['field']]['postdata'][$cycles] = (is_bool($result)) ? $postdata : $result;
                 } else {
@@ -678,9 +681,27 @@ class Validator
         }
         return $label;
     }
+
+    /**
+     * Executes callbackFunction() method in given object.
+     * 
+     * @param object $object 
+     *
+     * @return void
+     */
+    public function bind($object)
+    {
+        $method = "callbackFunction";
+        if (! method_exists($object, $method)) {
+            throw new RuntimeException(
+                sprintf(
+                    "The object %s does not contain %s method.",
+                    get_class($object),
+                    $method
+                )
+            );
+        }
+        $object->$method();
+    }
+
 }
-
-// END Validator Class
-/* End of file Validator.php
-
-/* Location: .Obullo/Validator/Validator.php */

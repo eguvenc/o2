@@ -80,22 +80,22 @@ Optional
 echo Console::newline(2);
 echo Console::help("Usage for local:", true);
 echo Console::newline(2);
-echo Console::help("php task queue listen --worker=Workers\Logger --job=logger.1 --output=1");
+echo Console::help("php task queue listen --worker=Workers@Logger --job=logger.1 --output=1");
 echo Console::newline(2);
 echo Console::help("Usage for production:", true);
 echo Console::newline(2);
-echo Console::help("php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --delay=0 --sleep=3 --timeout=3 --attempt=4 --output=0");
+echo Console::help("php task queue listen --worker=Workers@Logger --job=logger.1 --memory=128 --delay=0 --sleep=3 --timeout=3 --attempt=4 --output=0");
 echo Console::newline(2);
 echo Console::help("Shortcuts:", true);
 echo Console::newline(2);
-echo Console::help("php task queue listen --w=Workers\Logger --j=logger.1 --m=128 --d=0 --s=3 --t=3 --a=4 --o=0");
+echo Console::help("php task queue listen --w=Workers@Logger --j=logger.1 --m=128 --d=0 --s=3 --t=3 --a=4 --o=0");
 echo Console::newline(2);
     }
 
     /**
      * List ( output ) queue data
      *
-     * Example : php task queue show --w=Workers\Logger --j=logger.1
+     * Example : php task queue show --w=Workers@Logger --j=logger.1
      * 
      * @return string
      */
@@ -106,7 +106,6 @@ echo Console::newline(2);
 
         $exchange = $this->cli->argument('worker');
         $route = $this->cli->argument('job', null);  // Sets queue route key ( queue name )
-        $clear = $this->cli->argument('clear');
 
         if (empty($exchange)) {
             echo Console::fail("Queue \"--worker\" (exchange) (--w) can't be empty.");
@@ -116,37 +115,30 @@ echo Console::newline(2);
             echo Console::fail("Queue \"--job\" (route) (--j) can't be empty.");
             exit;
         }
-        echo Console::body("Following queue data ...\n\n");
-        echo Console::body("Worker (Exchange) : ". $exchange."\n");
-        echo Console::body("Job (Route)   : ". $route."\n\n");
+        echo Console::body("Following \"". $route."\" queue ... \n\n");
 
-        $this->queue->exchange($exchange);  // Sets queue exchange
-        
         echo Console::body($break. "\n");
         echo Console::body("Job ID  | Job Name            | Data \n");
         echo Console::body($break. "\n");
 
         $lines = '';
         while (true) {
-            $job = $this->queue->pop($route);  // !!! Get the last message from queue but don't mark it as delivered
+            $job = $this->queue->pop($exchange, $route);  // !!! Get the last message from queue but don't mark it as delivered
             if (! is_null($job)) {
                 $raw = json_decode($job->getRawBody(), true);
-                $jobIdRepeat = 6 - strlen($job->getJobId());  // 999999
-                if (strlen($job->getJobId()) > 6) {
+                $jobIdRepeat = 6 - strlen($job->getId());  // 999999
+                if (strlen($job->getId()) > 6) {
                     $jobIdRepeat = 6;
                 }
                 $jobNameRepeat = 20 - strlen($raw['job']);
                 if (strlen($raw['job']) > 20) {
                     $jobNameRepeat = 20;
                 }
-                $lines = Console::body($job->getJobId().str_repeat(' ', $jobIdRepeat).'  | ');
+                $lines = Console::body($job->getId().str_repeat(' ', $jobIdRepeat).'  | ');
                 $lines.= Console::body($raw['job'].str_repeat(' ', $jobIdRepeat).' | ');
                 $lines.= Console::text(json_encode($raw['data'], true)."\n", 'yellow');
                 $lines.= "\n";
                 echo $lines;
-                if ($clear == 1) {  // Delete all jobs in the queue
-                     $job->delete();
-                }
             }
         }
     }
@@ -155,7 +147,7 @@ echo Console::newline(2);
      * Listen Queue
      *
      * Example : 
-     * php task queue listen --worker=Workers\Logger --job=logger.1 --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --output=0 --env=production
+     * php task queue listen --worker=Workers@Logger --job=logger.1 --memory=128 --delay=0 --timeout=3 --sleep=0 --tries=0 --output=0 --env=production
      * 
      * @return void
      */
@@ -189,7 +181,7 @@ echo Console::newline(2);
                 echo $process->getOutput();
             }
         }
-        $this->c['logger']->debug($cmd);
+        // $this->c['logger']->debug($cmd);
     }
 
 }

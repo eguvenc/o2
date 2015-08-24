@@ -29,7 +29,7 @@ class Email
             $username = null;
             $domain   = null;
             list($username, $domain) = explode('@', $str);
-            if ( ! checkdnsrr($domain, 'MX')) {
+            if (! checkdnsrr($domain, 'MX')) {
                 return false;
             }
             return true;
@@ -37,8 +37,3 @@ class Email
         return $isValid;
     }
 }
-
-// END Email class
-/* End of file Email.php */
-
-/* Location: .Obullo/Validator/Email.php */

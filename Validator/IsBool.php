@@ -26,8 +26,3 @@ class IsBool
         return ( is_bool($str) || $str == 0 || $str == 1 ) ? true : false;
     }
 }
-
-// END IsBool Class
-/* End of file IsBool.php */
-
-/* Location: .Obullo/Validator/IsBool.php */

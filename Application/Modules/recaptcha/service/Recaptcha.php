@@ -2,9 +2,9 @@
 
 namespace Service;
 
+use Obullo\Captcha\CaptchaManager;
 use Obullo\Service\ServiceInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 
 class Recaptcha implements ServiceInterface
 {
@@ -19,7 +19,12 @@ class Recaptcha implements ServiceInterface
     {
         $c['recaptcha'] = function () use ($c) {
 
-            $captcha = new ReCaptchaClass($c);
+            $parameters = [
+                'class' => '\Obullo\Captcha\Provider\ReCaptcha'
+            ];
+            $manager = new CaptchaManager($c);
+            $manager->setParameters($parameters);
+            $captcha = $manager->getClass();
             $captcha->setLang('en');
             return $captcha;
         };

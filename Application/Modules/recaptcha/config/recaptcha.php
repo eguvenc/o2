@@ -2,22 +2,45 @@
 
 return array(
     
+    /**
+     * ReCaptcha default locale
+     */
     'locale' => [
-        'lang' => 'en'                                             // Captcha language
+        'lang' => 'en'
     ],
+
+    /**
+     * ReCaptcha api keys
+     *
+     * Site : Public site key
+     * Secret : Secret site key
+     */
     'api' => [
         'key' => [
-            'site' => '6LcWtwUTAAAAACzJjC2NVhHipNPzCtjKa5tiE6tM',  // Api public site key
-            'secret' => '6LcWtwUTAAAAAEwwpWdoBMT7dJcAPlborJ-QyW6C',// Api secret key
+            'site' => '6LcWtwUTAAAAACzJjC2NVhHipNPzCtjKa5tiE6tM',
+            'secret' => '6LcWtwUTAAAAAEwwpWdoBMT7dJcAPlborJ-QyW6C',
         ]
     ],
-    'user' => [                                                    // Optional
-        'autoSendIp' => false                                      // The end user's ip address.
+
+    /**
+     * User settings
+     *
+     * AutoSendIp : The end user's ip address. (optional)
+     */
+    'user' => [
+        'autoSendIp' => false
     ],
-    'form' => [                                                    // Captcha input configuration.
+
+    /**
+     * ReCaptcha input configuration.
+     *
+     * Input : Creates hidden input for validator class
+     * Validator : Whether to use Obullo validator object.
+     */
+    'form' => [
         'input' => [
             'attributes' => [
-                'name' => 'recaptcha',  // Creates hidden input for validator class
+                'name' => 'recaptcha',
                 'id' => 'recaptcha',
                 'type' => 'text',
                 'value' => 1,
@@ -25,7 +48,6 @@ return array(
             ]
         ],
         'validation' => [
-            'enabled' => true,  // Whether to use validator package
             'callback' => true,
         ]
     ]

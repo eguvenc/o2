@@ -3,7 +3,8 @@
 namespace Obullo\Log\Handler;
 
 use Closure;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 
 /**
  * Email Handler Class
@@ -37,6 +38,17 @@ class Email extends AbstractHandler implements HandlerInterface
      * @var string
      */
     protected $newlineChar = '<br />';
+
+    /**
+     * Constructor
+     * 
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     */
+    public function __construct(Application $app, ConfigInterface $config)
+    {
+        parent::__construct($app, $config);
+    }
 
     /**
      * Sets your custom newline character

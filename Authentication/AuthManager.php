@@ -48,7 +48,7 @@ class AuthManager
      */
     public function setParameters(array $params)
     {
-        AuthConfig::setParameters($this->c['config'], $this->c['response'], $params);
+        AuthConfig::setParameters($this->c['config'], $params);
         $this->register();
     }
 
@@ -79,19 +79,15 @@ class AuthManager
         };
 
         $this->c['auth.login'] = function () use ($parameters) {
-            return new Login($this->c, $this->c['event'], $this->c['auth.storage'], $this->c['auth.identity'], $parameters);
+            return new Login($this->c, $this->c['event'], $this->c['auth.storage'], $parameters);
         };
 
-        $this->c['auth.activity'] = function () use ($parameters) {
-            return new Activity($this->c);
-        };
-
-        $this->c['auth.token'] = function () use ($parameters) {
-            return new Token($this->c['cookie'], $parameters);
+        $this->c['auth.activity'] = function () {
+            return new Activity($this->c['auth.storage'], $this->c['auth.identity']);
         };
 
         $this->c['auth.model'] = function () use ($parameters) {
-            return new $parameters['db.model']($this->c['app']->provider($parameters['db.provider']), $parameters);
+            return new $parameters['db.model']($this->c['app']->provider($parameters['db.provider']['name']), $parameters);
         };
 
         $this->c['auth.adapter'] = function () use ($parameters) {
@@ -99,14 +95,13 @@ class AuthManager
                 $this->c,
                 $this->c['session'],
                 $this->c['auth.storage'],
-                $this->c['auth.identity'],
                 $parameters
             );
         };
     }
 
     /**
-     * Service class loader
+     * User service class loader
      * 
      * @param string $class name
      * 

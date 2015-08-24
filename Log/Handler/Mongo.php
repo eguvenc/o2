@@ -4,7 +4,8 @@ namespace Obullo\Log\Handler;
 
 use MongoDate;
 use InvalidArgumentException;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Application\Application;
 
 /**
  * Mongo Log Handler Class
@@ -45,20 +46,22 @@ class Mongo extends AbstractHandler implements HandlerInterface
      * @var array
      */
     public $saveOptions;
-
+    
     /**
      * Constructor
      * 
      * @param object $mongo  $mongo service provider
-     * @param array  $params parameters
+     * @param object $app    \Obullo\Application\Application
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array  $params mongo driver options
      */
-    public function __construct($mongo, array $params = array())
+    public function __construct($mongo, Application $app, ConfigInterface $config, array $params = array())
     {
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
         $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
 
-        parent::__construct();
+        parent::__construct($app, $config);
         
         $this->options = $params;
         $this->mongoClient = $mongo;
@@ -107,7 +110,7 @@ class Mongo extends AbstractHandler implements HandlerInterface
     public function arrayFormat($data, $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($this->config['format']['date'], $data['time']))),
+            'datetime' => new MongoDate(strtotime(date($this->config['logger']['format']['date'], $data['time']))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -147,7 +150,9 @@ class Mongo extends AbstractHandler implements HandlerInterface
             $records, 
             array_merge(
                 $this->saveOptions, 
-                ['continueOnError' => true]
+                [
+                    'continueOnError' => true
+                ]
             )
         );
     }

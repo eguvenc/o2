@@ -129,7 +129,6 @@ class Mailer implements ServiceInterface
 
             $parameters = [
                 'queue' => [
-                    'channel' => 'mail',
                     'route' => 'mailer.1',
                     'delay' => 0,
                 ],
@@ -137,17 +136,19 @@ class Mailer implements ServiceInterface
                     'mandrill' => [
                         'pool' => 'Main Pool',
                         'key' => 'enter-your-api-key',
+                        'class' => 'Obullo\Mail\Provider\Mandrill',
                         'async' => false,
                     ],
                     'mailgun' => [
                         'domain' => 'enter-your-api-domain',  // example news.obullo.com
-                        'key' => 'enter-your-api-key'
+                        'key' => 'enter-your-api-key',
+                        'class' => '\Obullo\Mail\Provider\Mailgun',
                     ]
                 ]
             ];
             $mailer = new MailManager($c);
             $mailer->setParameters($parameters);
-            $mailer->setMailer('mailgun');
+            $mailer->setProvider('mailgun');
             $mailer->from('Admin <admin@example.com>');
             return $mailer;
         };
@@ -266,7 +267,7 @@ Bir başka örnek verirsek eğer varsayılan sağlayıcınız mandrill ise servi
 
 ```php
 $mailResult = $this->mailer
-    ->setMailer('mailgun')
+    ->setProvider('mailgun')
     ->from('Obullo\'s <noreply@news.obullo.com>')
     ->to('obullo@yandex.com')
     ->replyTo('obullo <obullo@yandex.com>')
@@ -399,19 +400,18 @@ Kuyruğa atma özelliğinin çalışabilmesi için kuyruklama işlemine ait kuyr
 ```php
 $parameters = [
     'queue' => [
-        'channel' => 'mail',
         'route' => 'mailer.1',
         'delay' => 0,
     ],
     'provider' => [
         'mailgun' => [
             'domain' => 'news.mydomain.com',
-            'key' => 'enter-your-api-key'
+            'key' => 'enter-your-api-key',
+            'class' => '\Obullo\Mail\Provider\Mailgun',
         ]
     ]
 ];
 
-/* End of file Mailer.php */
 /* Location: .app/classes/Service/Mailer.php */
 ```
 
@@ -423,7 +423,7 @@ Mail gönderme işlerini queue servisi üzerinden kuyruğa atmak uygulamanızın
 
 ```php
 $mailResult = $this->mailer
-    ->setMailer('mailgun')
+    ->setProvider('mailgun')
     ->from('Obullo\'s <noreply@news.obullo.com>')
     ->to('obullo@yandex.com')
     ->replyTo('obullo <obullo@yandex.com>')
@@ -446,7 +446,7 @@ if ($mailResult->hasError()) {
 Mail kuyruğunu tüketmek için konsoldan <kbd>app/classes/Workers/Mailer.php</kbd> işçisini çalıştırmanız gerekir. İşciyi test modunda çalıştırıp kuyruğu tüketmek için <kbd>--output</kbd> değerini 1 olarak girin.
 
 ```php
-php task queue listen --worker=Workers\Mailer --job=mailer.1 --output=1
+php task queue listen --worker=Workers@Mailer --job=mailer.1 --output=1
 ```
 
 Yukarıdaki komutu konsoldan çalıştırdığınızda <kbd>$data</kbd> değişkeni içerisinden Mailer işçisine kuyruktaki email verileri gönderilir. Aşağıda sizin için mailgun web servisi ile email gönderimi yapan bir örnek yaptık.
@@ -483,7 +483,7 @@ class Mailer implements JobInterface
 
     protected function sendWithMailgun(array $msgEvent)
     {
-        $mail = new Mailgun($this->c, $this->c['mailer']->getParameters());
+        $mail = $this->c['mailer']->setProvider('mailgun');
         $mailtype = (isset($msgEvent['html'])) ? 'html' : 'text';
 
         $mail->from($msgEvent['from']);
@@ -593,7 +593,7 @@ Array
 Dinleme komutu sonunda <kbd>--output</kbd> parametresine "1" değerini verdiğinizde kuyruğa gönderilen maillere ait çıktılar ve hata çıktılarını konsoldan takip edebilirsiniz.
 
 ```php
-php task queue listen --worker=Workers\Mailer --job=mailer.1 --output=1
+php task queue listen --worker=Workers@Mailer --job=mailer.1 --output=1
 ```
 
 Prodüksiyon çevre ortamında <kbd>--output</kbd> parametresi değeri her zaman "0" olmalıdır.
@@ -627,7 +627,7 @@ Output :
 
 -------
 
-##### $this->mailer->setMailer(string $mailer)
+##### $this->mailer->setProvider(string $mailer)
 
 Mail gönderici web servis sağlayıcısını belirler. Birinci parametreye sağlayıcı ismi girilmelidir. Örneğin: mailgun.
 
@@ -701,7 +701,7 @@ Tüm email değişkenlerini boş değerlerine geri döndürür. Bu fonksiyon bir
 
 -------
 
-##### $this->mailer->getMailer();
+##### $this->mailer->getProvider();
 
 Geçerli mail servis sağlayıcısı ismine geri döner. Örnek: mandrill.
 

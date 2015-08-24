@@ -59,7 +59,7 @@ class QueueManager
      * 
      * @return void
      */
-    public function getHandler()
+    public function getClass()
     {
         return new $this->params['class'](
             $this->c['config'],

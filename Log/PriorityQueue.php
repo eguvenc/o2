@@ -13,6 +13,7 @@ use SplPriorityQueue;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/log
+ * @link      (SplpriorityQueueFix, https://mwop.net/blog/253-Taming-SplPriorityQueue.html)
  */
 class PriorityQueue extends SplPriorityQueue 
 {

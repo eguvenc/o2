@@ -6,8 +6,8 @@ use PDO;
 use Exception;
 use RuntimeException;
 use SimpleXMLElement;
-use Obullo\Queue\Failed\FailedJob;
 use Obullo\Config\ConfigInterface;
+use Obullo\Queue\Failed\StorageInterface;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
@@ -20,7 +20,7 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-class Database extends FailedJob implements StorageInterface
+class Database implements StorageInterface
 {
     /**
      * Db instance
@@ -63,14 +63,17 @@ class Database extends FailedJob implements StorageInterface
     /**
      * Insert failed event data to storage
      * 
-     * @param array $event key value data
+     * @param array $event      key value data
+     * @param array $errorTrace error trace (optional)
      * 
      * @return void
      */
-    public function save(array $event)
+    public function save(array $event, $errorTrace = null)
     {
-        if ($id = $this->dailyExists($event['error_file'], $event['error_line'])) {
-            $this->updateRepeat($id);
+        $event['error_trace'] = $errorTrace;
+
+        if ($id = $this->exists($event['error_file'], $event['error_line'])) {
+            $this->update($id, $event);
             return;
         }
         try {
@@ -96,7 +99,8 @@ class Database extends FailedJob implements StorageInterface
 
         } catch (Exception $e) {
             $this->db->rollBack();
-            $this->exception->show($e);  // Display console errors
+            $exception = new \Obullo\Error\Exception;
+            $exception->show($e);
         }
     }
 
@@ -108,9 +112,9 @@ class Database extends FailedJob implements StorageInterface
       * 
      * @return void
      */
-    public function dailyExists($file, $line)
+    public function exists($file, $line)
     {
-        $row = $this->db->prepare("SELECT id, failure_first_date FROM $this->tablename WHERE error_file = ? AND error_line = ? LIMIT 1")
+        $row = $this->db->prepare("SELECT id FROM $this->tablename WHERE error_file = ? AND error_line = ? LIMIT 1")
             ->bindParam(1, $file, PDO::PARAM_STR)
             ->bindParam(2, $line, PDO::PARAM_INT)
             ->execute()
@@ -118,23 +122,49 @@ class Database extends FailedJob implements StorageInterface
         if ($row == false) {
             return false;
         }
-        if (date('Y-m-d') == date('Y-m-d', $row->failure_first_date)) {
-            return $row->id;
-        }
         return $row->id;
     }
 
     /**
-     * Update repeats
+     * Update attempts
      * 
-     * @param integer $id queue failure id
+     * @param integer $id    queue failure id
+     * @param integer $event data
      * 
      * @return void
      */
-    public function updateRepeat($id)
+    public function update($id, array $event)
     {
-        $sql = "UPDATE $this->tablename SET failure_first_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
-        return $this->db->exec(sprintf($sql, time(), $id));
+        $sql = "UPDATE $this->tablename SET job_attempts = %d, failure_last_date = %d, failure_repeat = failure_repeat + 1 WHERE id = %d";
+        try {
+            $this->db->beginTransaction();
+            $this->db->exec(sprintf($sql, $event['job_attempts'], time(), $id));
+            $this->db->commit();
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            $exception = new \Obullo\Error\Exception;
+            $exception->show($e);
+        }
+    }
+
+    /**
+     * Get database connection
+     * 
+     * @return object
+     */
+    public function getConnection()
+    {
+        return $this->db;
+    }
+
+    /**
+     * Returns to tablename in service parameters
+     * 
+     * @return string
+     */
+    public function getTablename()
+    {
+        return $this->tablename;
     }
 
 }

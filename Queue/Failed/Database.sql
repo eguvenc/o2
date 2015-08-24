@@ -22,6 +22,10 @@ SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
 
+CREATE DATABASE IF NOT EXISTS `failed`;
+
+USE `failed`;
+
 --
 -- Table structure for table `failures`
 --
@@ -46,7 +50,7 @@ PRIMARY KEY (`id`)
 ENGINE=InnoDB
 DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
 COMMENT='Failed Jobs'
-AUTO_INCREMENT=2
+AUTO_INCREMENT=1
 ROW_FORMAT=COMPACT
 ;
 

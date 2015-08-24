@@ -1,14 +1,16 @@
 <?php
 
-namespace Obullo\Service\Providers\Connections;
+namespace Obullo\Service\Providers;
 
-use AmqpConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
+use Obullo\Service\ServiceProviderInterface;
+
+use PhpAmqpLib\Connection\AMQPConnection;
 
 /**
- * AMQP Connection Provider
+ * AMQPLib Service Connection Provider
  * 
  * @category  ConnectionProvider
  * @package   ServiceProviders
@@ -17,7 +19,7 @@ use Obullo\Container\ContainerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-class AmqpConnectionProvider extends AbstractConnectionProvider
+class AmqpLibServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
 {
     protected $c;          // Container
     protected $config;     // AMQP configuration items
@@ -35,14 +37,10 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
         $this->c = $c;
         $this->config = $this->c['config']->load('queue')['amqp'];  // Load database configuration file
 
-        $this->setKey('amqp.connection.');
+        $this->setKey('amqpLib.connection.');
 
-        if (! extension_loaded('AMQP')) {
-            throw new RuntimeException(
-                'The AMQP extension has not been installed or enabled.'
-            );
-        }
         $this->AMQPClass = 'AMQPConnection';
+        $this->register();
     }
 
     /**
@@ -68,18 +66,21 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
      */
     protected function createConnection($params)
     {
-        if (empty($params['host']) || empty($params['port']) || empty($params['password'])) {
+        if (empty($params['host']) || empty($params['password'])) {
             throw new RuntimeException(
-                'Check your queue configuration "host", "port" or "password" key seems empty.'
+                'Check your queue configuration "host" or "password" key seems empty.'
             );
         }
-        $connection = new $this->AMQPClass;
-        $connection->setHost($params['host']); 
-        $connection->setPort($params['port']); 
-        $connection->setLogin($params['username']);
-        $connection->setPassword($params['password']); 
-        $connection->setVHost($params['vhost']); 
-        $connection->connect();
+        $params['port']  = empty($params['port']) ? "5672" : $params['port'];
+        $params['vhost'] = empty($params['vhost']) ? "/" : $params['vhost'];
+
+        $connection = new AMQPConnection(
+            $params['host'],
+            $params['port'],
+            $params['username'],
+            $params['password'],
+            $params['vhost']
+        );
         return $connection;
     }
 
@@ -90,7 +91,7 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
      * 
      * @return object AMQP
      */
-    public function getConnection($params = array())
+    public function get($params = array())
     {
         if (! isset($params['connection'])) {
             $params['connection'] = array_keys($this->config['connections'])[0]; //  Set default connection
@@ -107,13 +108,13 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
     }
 
     /**
-     * Create a new AMQP connection
+     * Create a new AMQPLib connection
      * 
      * If you don't want to add it config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
-     * @return object AMQP client
+     * @return object AMQPLib client
      */
     public function factory($params = array())
     {
@@ -125,17 +126,5 @@ class AmqpConnectionProvider extends AbstractConnectionProvider
             };
         }
         return $this->c[$cid];
-    }
-
-    /**
-     * Close all "active" connections
-     */
-    public function __destruct()
-    {
-        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
-            if ($this->c->used($key)) {
-                 $this->c[$key]->disconnect();
-            }
-        }
     }
 }

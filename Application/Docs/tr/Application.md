@@ -48,7 +48,7 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#get-methods-environments">$c['app']->environments()</a></li>
         <li><a href="#get-methods-envArray">$c['app']->envArray()</a></li>
         <li><a href="#get-methods-envPath">$c['app']->envPath()</a></li>
-        <li><a href="#get-methods-version">Application::version()</a></li>
+        <li><a href="#get-methods-version">$c['app']->version()</a></li>
         <li><a href="#get-methods-provider">$c['app']->provider()</a></li>
         <li><a href="#get-methods-x">$c['app']->x()</a></li>
     </ul>
@@ -71,7 +71,8 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#application-class-references">$this->c['app']->router->x()</a></li>
         <li><a href="#application-class-references">$this->c['app']->uri->x()</a></li>
         <li><a href="#application-class-references">$this->c['app']->register(array $providers)</a></li>
-        <li><a href="#application-class-references">$this->c['app']->isRegistered()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->hasService()</a></li>
+        <li><a href="#application-class-references">$this->c['app']->hasProvider()</a></li>
         <li><a href="#application-class-references">$this->c['app']->provider(string $name)->get(array $params)</a></li>
         <li><a href="#application-class-references">$this->c['app']->version()</a></li>
         <li><a href="#application-class-references">$this->c['app']->environments()</a></li>
@@ -363,8 +364,7 @@ return array(
     ],
 );
 
-/* End of file config.php */
-/* Location: .config/env/production/config.php */
+/* Location: .config/production/config.php */
 ```
 
 <a name="env-class"></a>
@@ -411,7 +411,6 @@ return array(
 
 );
 
-/* End of file mongo.php */
 /* Location: .config/local/mongo.php */
 ```
 
@@ -433,7 +432,6 @@ return array(
     ]
 );
 
-/* End of file environments.php */
 /* Location: .app/environments.php */
 ```
 
@@ -514,7 +512,6 @@ $c['app']->component(
     ]
 );
 
-/* End of file components.php */
 /* Location: .app/components.php */
 ```
 
@@ -588,12 +585,14 @@ echo $c['app']->envPath();  // Çıktı  /var/www/project.com/config/local/
 ```
 <a name="get-methods-version"></a>
 
-##### Obullo\Application\Application::version()
+##### $c['app']->version();
 
-Geçerli ortam değişkeninin dosya yoluna geri döner.
+Mevctur Obullo sürümüne geri döner.
 
 ```php
-\Obullo\Application\Application::version() // Çıktı  2.1
+$c['app']->version(); // Çıktı  2.1
+
+\Obullo\Application\Application::VERSION // Çıktı  2.1
 ```
 
 <a name="get-methods-provider"></a>
@@ -617,6 +616,22 @@ Uygulama sınıfında eğer metod ( x ) tanımlı değilse Controller sınfında
 $this->c['app']->test();  // Contoller sınıfı içerisindeki test metodunu çalıştırır.
 ```
 
+##### $this->c['app']->uri->x();
+
+Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri dönerek bu nesnenin metotlarına ulaşmanızı sağlar. Uygulama içerisinde bir katman ( HMVC bknz. [Layer](/Layer/Docs/tr/Layer.md) paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+
+```php
+$this->c['app']->uri->getUriString();
+```
+
+##### $this->c['app']->router->x();
+
+Uygulamada kullanılan evrensel <b>router</b> nesnesine geri dönerek bu nesnenin metotlarına ulaşmanızı sağlar. Uygulama içerisinde bir hiyerarşik katman ( HMVC bknz. [Layer](/Layer/Docs/tr/Layer.md) paketi  ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method ( x ) sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
+
+```php
+$this->c['app']->router->fetchMethod();
+```
+
 <a name="set-methods"></a>
 
 ### Set Metotları
@@ -625,7 +640,7 @@ Set türündeki metotlar uygulama sınıfındaki varolan değişkenlere yeni de�
 
 <a name="set-methods-register"></a>
 
-##### $this->c['app']->register(mixed $provider);
+##### $this->c['app']->register(array $provider);
 
 <kbd>app/routes.php</kbd> dosyası içerisinde servis sağlayıcısı tanımlanmasını sağlar.
 
@@ -694,7 +709,11 @@ Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri dönerek bu nesnenin m
 
 <kbd>.app/providers.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
 
-##### $this->c['app']->isRegistered(string $provider)
+##### $this->c['app']->hasService(string $name)
+
+Bir servis <kbd>app/classes/Service</kbd> klasöründe mevcut ise <b>true</b> değilse <b>false</b> değerine geri döner.
+
+##### $this->c['app']->hasProvider(string $provider)
 
 Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 
@@ -702,7 +721,7 @@ Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı is
 
 Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
 
-##### Obullo\Application\Application::version();
+##### $this->c['app']->version();
 
 Güncel Obullo versiyonuna geri döner.
 
@@ -718,6 +737,10 @@ Ortam konfigürasyon dosyasının ( app/environments.php ) içerisindeki tanıml
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.
 
-##### $this->c['app']->getUriString();
+##### $c['app']->worker();
 
-Layer ( Hmvc ) isteklerinden etkilenmeden geçerli evrensel http uri değerine geri döner.
+Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot <kbd>components.php</kbd> içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur. Detaylı bilgi için 
+
+##### $c['app']->isWorker();
+
+Eğer uygulama bir worker uygulaması ise true değerine aksi durum false değerine geri döner.

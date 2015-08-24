@@ -85,9 +85,10 @@ class Session implements SessionInterface
      * 
      * @return void
      */
-    public function registerSaveHandler($handler)
+    public function registerSaveHandler($handler = null)
     {
-        $this->saveHandler = new $handler($this->provider, $this->params);
+        $Class = (is_null($handler)) ? $this->params['class'] : $handler;
+        $this->saveHandler = new $Class($this->provider, $this->params);
         session_set_save_handler(
             array($this->saveHandler, 'open'),
             array($this->saveHandler, 'close'),
@@ -202,7 +203,7 @@ class Session implements SessionInterface
      */
     public function exists()
     {
-        if (session_status() == PHP_SESSION_ACTIVE AND session_id()) {  // Session is active and session not empty.
+        if (session_status() == PHP_SESSION_ACTIVE && session_id()) {  // Session is active and session not empty.
             return true;
         }
         if (headers_sent()) {

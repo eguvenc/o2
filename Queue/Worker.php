@@ -83,6 +83,13 @@ class Worker
     protected $parser;
 
     /**
+     * Queue job ( queue exchange )
+     * 
+     * @var string
+     */
+    protected $exchange;
+
+    /**
      * Queue route key ( queue name )
      * 
      * @var string
@@ -232,9 +239,7 @@ class Worker
                                                // Don't change here we already catch all errors except the notices.
         error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
 
-        $worker = $this->cli->argument('worker', null);
-        $this->queue->exchange($worker);
-        
+        $this->exchange = $this->cli->argument('worker', null);
         $this->route = $this->cli->argument('job', null);
         $this->memory = $this->cli->argument('memory', 128);
         $this->delay  = $this->cli->argument('delay', 0);
@@ -274,12 +279,10 @@ class Worker
     protected function getNextJob()
     {
         if (is_null($this->route)) {
-            return $this->queue->pop();
+            return $this->queue->pop($this->exchange, $this->route);
         }
-        foreach (explode(',', $this->route) as $this->route) {     // If comma seperated queue
-            if (! is_null($job = $this->queue->pop($this->route))) { 
-                return $job;
-            }
+        if (! is_null($job = $this->queue->pop($this->exchange, $this->route))) { 
+            return $job;
         }
     }
 
@@ -344,11 +347,11 @@ class Worker
                         'error_message' => $message,
                         'error_file' => $file,
                         'error_line' => $line,
-                        'error_trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
+                        'error_trace' => '',
                         'error_xdebug' => '',
                         'error_priority' => $priority,
                     );
-                    $this->saveFailedJob($event);
+                    $this->saveFailedJob($event, debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10));
                 }
                 return ! $continueNativeHandler;
             }
@@ -391,16 +394,16 @@ class Worker
                 } while ($exception);
 
                 foreach (array_reverse($messages) as $message) {
-                    $data = array(
+                    $event = array(
                         'error_level' => $message['level'],
                         'error_message' => $message['message'], 
                         'error_file' => $message['file'],
                         'error_line' => $message['line'],
-                        'error_trace' => $message['trace'],
+                        'error_trace' => '',
                         'error_xdebug' => $message['xdebug'],
                         'error_priority' => $message['priority'],
                     );
-                    $this->saveFailedJob($data);
+                    $this->saveFailedJob($event, $message['trace']);
                 }
                 if (! is_null($this->job) && ! $this->job->isDeleted()) { // If we catch an exception we will attempt to release the job back onto
                     $this->job->release($this->delay);  // the queue so it is not lost. This will let is be retried at a later time by another worker.
@@ -444,11 +447,12 @@ class Worker
     /**
      * Save failed job to database
      * 
-     * @param array $event failed data
+     * @param array $event      failed data
+     * @param array $errorTrace error trace (optional)
      * 
      * @return void
      */
-    protected function saveFailedJob(array $event)
+    protected function saveFailedJob(array $event, $errorTrace = null)
     {
         // Worker does not well catch failed job exceptions because of we
         // use this function in exception handler.Thats the point why we need to try catch block.
@@ -467,7 +471,7 @@ class Worker
             $this->app->provider($params['failedJob']['provider']['name']),
             $params
         );
-        $storage->save($event);
+        $storage->save($event, $errorTrace);
     }
 
     /**
@@ -485,7 +489,7 @@ class Worker
         return array_merge(
             $event,
             array(
-                'job_id' => $this->job->getJobId(),
+                'job_id' => $this->job->getId(),
                 'job_name' => $this->job->getName(),
                 'job_body' => $this->job->getRawBody(),
                 'job_attempts' => $this->job->getAttempts()

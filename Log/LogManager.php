@@ -64,7 +64,7 @@ class LogManager
      * 
      * @return object
      */
-    public function getLogger()
+    public function getClass()
     {
         return $this->logger;
     }

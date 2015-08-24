@@ -2,10 +2,7 @@
 
 namespace Obullo\Captcha;
 
-use RuntimeException;
-use Obullo\Captcha\Result;
-use Obullo\Captcha\CaptchaService;
-use Obullo\Container\ContainerInterface;
+use Obullo\Captcha\CaptchaResult;
 
 /**
  * Captcha abstract class.
@@ -17,7 +14,7 @@ use Obullo\Container\ContainerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/captcha
  */
-abstract class AbstractAdapter
+abstract class AbstractProvider
 {
     /**
      * Result
@@ -28,42 +25,6 @@ abstract class AbstractAdapter
         'code' => '',
         'messages' => [],
     );
-
-    /**
-     * Session instance
-     * 
-     * @var object
-     */
-    protected $session;
-
-    /**
-     * Logger instance
-     * 
-     * @var object
-     */
-    protected $logger;
-
-    /**
-     * Captcha Service
-     * 
-     * @var object
-     */
-    protected $captcha;
-
-    /**
-     * Constructor
-     *
-     * @param object $c \Obullo\Container\ContainerInterface
-     */
-    public function __construct(ContainerInterface $c)
-    {
-        $this->c = $c;
-        $this->session = $c['session'];
-        $this->logger  = $c['logger'];
-        
-        $this->init();
-        $this->logger->debug('Captcha Class Initialized');
-    }
 
     /**
      * Initialize
@@ -89,19 +50,12 @@ abstract class AbstractAdapter
     /**
      * Check captcha code
      * 
-     * @param string $code captcha code
+     * @param string|null $code captcha code
      * 
      * @return boolean
      */
-    abstract public function result($code);
-
-    /**
-     * Validation set
-     * 
-     * @return void
-     */
-    abstract protected function validationSet();
-
+    abstract public function result($code = null);
+    
     /**
      * Create result.
      * 

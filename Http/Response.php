@@ -161,7 +161,7 @@ class Response implements ResponseInterface
         }
         $headers = $options = array();
         
-        if ($this->c->used('response.headers')) {  // If response headers object loaded
+        if ($this->c->active('response.headers')) {  // If response headers object loaded
             $headers = $this->c['response.headers']->all();
             $options = $this->c['response.headers']->options();
         }

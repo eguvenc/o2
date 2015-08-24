@@ -55,11 +55,11 @@ class DatabaseManager
     }
 
     /**
-     * Returns to selected cache handler object
+     * Returns to selected db handler object
      * 
      * @return object
      */
-    public function getProvider()
+    public function getClass()
     {
         return $this->c['app']
             ->provider($this->params['provider']['name'])

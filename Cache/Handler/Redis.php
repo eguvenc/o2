@@ -3,9 +3,9 @@
 namespace Obullo\Cache\Handler;
 
 use ReflectionClass;
-use RunTimeException;
+use RuntimeException;
 use Obullo\Cache\CacheInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
 
 /**
  * Redis Caching Class
@@ -40,16 +40,16 @@ class Redis implements CacheInterface
     /**
      * Constructor
      * 
-     * @param array  $c     container
-     * @param object $redis Redis
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $redis  \Redis
      */
-    public function __construct(ContainerInterface $c, \Redis $redis)
+    public function __construct(ConfigInterface $config, \Redis $redis)
     {
         $this->redis = $redis;
-        $this->config = $c['config']['cache/redis'];
+        $this->config = $config->load('cache/redis');
 
         if (! $this->connect()) {
-            throw new RunTimeException(
+            throw new RuntimeException(
                 sprintf(
                     'Cache handler %s connection failed.',
                     get_class()
@@ -85,7 +85,7 @@ class Redis implements CacheInterface
         }
         foreach ($this->config['nodes'] as $servers) {
             if (empty($servers['host']) || empty($servers['port'])) {
-                throw new RunTimeException(
+                throw new RuntimeException(
                     sprintf(
                         ' %s node configuration error, host or port can\'t be empty.',
                         get_class()

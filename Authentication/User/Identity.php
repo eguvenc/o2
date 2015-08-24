@@ -73,13 +73,14 @@ class Identity extends AuthorizedUser implements IdentityInterface
         $this->session = $session;
         $this->storage = $storage;
 
+        $this->initialize();
+
         if ($rememberToken = $this->recallerExists()) {   // Remember the user if recaller cookie exists
             $recaller = new Recaller($c, $storage, $c['auth.model'], $this, $params);
             $recaller->recallUser($rememberToken);
+            $this->initialize();  // We need initialize again otherwise ignoreRecaller() does not work in Login class.
         }
-        $this->initialize();
-
-        if ($this->params['middleware']['uniqueLogin']) {
+        if ($this->params['middleware']['unique.login']) {
             register_shutdown_function(array($this, 'close'));
         }
     }
@@ -128,16 +129,23 @@ class Identity extends AuthorizedUser implements IdentityInterface
     }
 
     /**
-     * Check recaller cookie exists
+     * Check recaller cookie exists 
+     * 
+     * WARNING : To test this function remove "Auth/Identifier" value from session 
+     * or use "$this->user->identity->destroy()" method.
      *
      * @return string|boolean false
      */
     public function recallerExists()
     {
+        if ($this->session->get('Auth/IgnoreRecaller') == 1) {
+            $this->session->remove('Auth/IgnoreRecaller');
+            return false;
+        }
         $name = $this->params['login']['rememberMe']['cookie']['name'];
         $token = isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
-     
-        if (! $this->storage->hasIdentifier() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
+
+        if ($this->guest() && ctype_alnum($token) && strlen($token) == 32) {  // Check recaller cookie value is alfanumeric
             return $token;
         }
         return false;

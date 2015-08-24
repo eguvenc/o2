@@ -84,11 +84,11 @@ class AuthResult
      * @param mixed $identifier identifier
      * @param array $messages   messages
      */
-    public function __construct($code, $identifier, array $messages = array())
+    public function __construct($code, $identifier, $messages = array())
     {
         $this->code = (int) $code;
         $this->identifier = $identifier;
-        $this->messages = $messages;
+        $this->messages = (array)$messages;
     }
 
     /**
