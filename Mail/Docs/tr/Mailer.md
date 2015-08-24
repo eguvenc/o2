@@ -104,7 +104,6 @@ return array(
     ]
 );
 
-/* End of file mailer.php */
 /* Location: .config/env/local/mailer/mailer.php */
 ```
 
@@ -526,7 +525,6 @@ class Mailer implements JobInterface
     .
 }
 
-/* End of file Mailer.php */
 /* Location: .app/classes/Mailer.php */
 ```
 

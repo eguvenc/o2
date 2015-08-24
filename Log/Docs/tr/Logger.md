@@ -64,7 +64,7 @@ Logger sınıfı <kbd>handler</kbd> klasöründeki log sürücülerini kullanara
             <li><a href="#debug-mode">Hata Ayıklama Modu</a></li>
             <li><a href="#processing-jobs">Kuyruk Verilerini İşlemek</a></li>
             <li><a href="#removing-completed-jobs">Tamamlanan İşleri Kuyruktan Silmek</a></li>
-            <li><a href="#register-application-as-worker">Uygulamayı Bir İşci Uygulaması Olarak Kurmak</a></li>
+            <li><a href="#save-worker-logs">İşcilere Ait Log Kayıtlarını Tutmak</a></li>
         </ul>
     </li>
 
@@ -792,6 +792,27 @@ if (is_object($handler) && $handler->isAllowed($data)) {
 }
 ```
 
+<a name="save-worker-logs"></a>
+
+### İşçilere Ait Log Kayıtlarını Tutmak
+
+Varsayılan olarak konsoldan uygulamaya gelen işçi isteklerine gelen log kayıtları tutulmaz. İşçilere ait log verilerini kaydetmek için aşağıdaki gibi <kbd>app/config/$env/logger.php</kbd> dosyası içerisindeki yapılandırmalardan <kbd>app > worker > log</kbd> değerini açık hale getirmeniz gerekir.
+
+```php
+'app' => [
+    'worker' => [
+        'log' => true,
+    ]
+],
+```
+
+Bu işlemden sonra <kbd>php task listen</kbd> komutu ile işçiler konsoldan çalıştırıldığında işçilere ait log kayıtlarını elde etmiş olacaksınız. Kayıt edilen log verilerinden işçilere ait olanları bulabilmek için <kbd>request = "worker"</kbd> değeri ile log verilerinizi filtereleyebilirsiniz.
+
+> **Not:** Bir dağıtık yapı yani log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza sadece bir Obullo sürümü indirip servisleri konfigüre etmeniz yeterli olur.
+
+Kuyruklama hakkında detaylı bilgi için [Queue.md](/Queue/Docs/tr/Queue.md) dosyasına gözatabilirsiniz.
+
+
 <a name="displaying-logs"></a>
 
 ### Logları Görüntülemek
@@ -829,22 +850,6 @@ php task log clear
 ### Logları Debugger Modülü İle Takip Etmek
 
 Debugger paketi [Debugger.md](/Debugger/Docs/tr/Debugger.md) dökümentasyonunu inceleyiniz.
-
-
-<a name="register-application-as-worker"></a>
-
-### Uygulamayı Bir İşci Uygulaması Olarak Kurmak
-
-Dağıtık bir log yapısını, log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza bir Obullo sürümü indirin ve <kbd>app/components.php</kbd> içerisindeki yapılandırmalara ek olarak aşağıdaki metodu çağırın.
-
-```php
-$c['app']->worker();
-```
-
-Normal olarak kurulan bir uygulamada worker isteklerine gelen log verileri kapalıdır. Bu komut uygulamayı bir worker uygulaması olarak yapılandırır ve worker uygulamasına ait loglamaları açar. Eğer metot components.php içerisinde kullanılmaz ise worker uygulamanıza ait loglar çalışmayacaktır.
-
-Uygulamanızı worker olarak tanımladıysanız artık konsoldan <kbd>php task listen</kbd> komutu ile işçilerinizin kurulumunu yaparak loglarınızı işlemeye başlayabilirsiniz.
-
 
 <a name="method-reference"></a>
 
@@ -932,14 +937,3 @@ Bilgi amaçlı istenen yada ilgi çekici olaylar. Örnek: Kullanıcı logları, 
 ##### $this->logger->debug(string $message = '', $context = array(), integer $priority = 0);
 
 Detaylı hata ayıklama bilgileri.
-
-
-#### Yardımcı Metotlar
-
-##### $c['app']->worker();
-
-Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot components.php içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur.
-
-##### $c['app']->isWorker();
-
-Eğer uygulama bir worker uygulaması ise true değerine aksi durum false değerine geri döner.

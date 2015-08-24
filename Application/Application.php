@@ -47,37 +47,7 @@ class Application
             'response',
             'translator',
         ];
-
-    /**
-     * Whether to know app is registered as worker if yes we enable log writing. Default = false.
-     * 
-     * @var boolean
-     */
-    protected $isWorker = false;
-    
-    /**
-     * Default logging feature disabled for workers, 
-     * you need to turn on logs in order to define workers as an application.
-     * 
-     * @return object Logger
-     */
-    public function worker()
-    {
-        $this->isWorker = true;
-        return $this;
-    }
-
-    /**
-     * Whether to know app is registered as
-     * worker if yes we enable log writing.
-     * 
-     * @return boolean
-     */
-    public function isWorker()
-    {
-        return $this->isWorker;
-    }
-
+        
     /**
      * Detects application environment using "app/environments.php" file.
      * 

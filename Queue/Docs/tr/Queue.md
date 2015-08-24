@@ -61,6 +61,7 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
                 <li><a href="#var">--var</a></li>
             </ul>
         </li>
+        <li><a href="#save-worker-logs">İşçilere Ait Log Kayıtlarını Tutmak</a></li>
     </ul>
 </li>
 
@@ -533,6 +534,24 @@ php task queue listen --w=Workers@Logger --j=logger.1 --o=1
 </tr>
 </tbody>
 </table>
+
+<a name="save-worker-logs"></a>
+
+#### İşçilere Ait Log Kayıtlarını Tutmak
+
+Varsayılan olarak konsoldan uygulamaya gelen işçi isteklerine gelen log kayıtları tutulmaz. İşçilere ait log verilerini kaydetmek için aşağıdaki gibi <kbd>app/config/$env/logger.php</kbd> dosyası içerisindeki yapılandırmalardan <kbd>app > worker > log</kbd> değerini açık hale getirmeniz gerekir.
+
+```php
+'app' => [
+    'worker' => [
+        'log' => true,
+    ]
+],
+```
+
+Bu işlemden sonra <kbd>php task listen</kbd> komutu ile işçiler konsoldan çalıştırıldığında işçilere ait log kayıtlarını elde etmiş olacaksınız. Kayıt edilen log verilerinden işçilere ait olanları bulabilmek için <kbd>request = "worker"</kbd> değeri ile log verilerinizi filtereleyebilirsiniz.
+
+> **Not:** Bir dağıtık yapı yani log işleme ve diğer işleri http sunucusu yormamak için başka bir sunucuda Obullo çatısı ile kurmak mümkündür. Bunun için worker sunucunuza sadece bir Obullo sürümü indirip servisleri konfigüre etmeniz yeterli olur.
 
 <a name="threading"></a>
 

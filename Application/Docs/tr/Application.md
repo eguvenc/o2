@@ -221,8 +221,7 @@ return array(
     'REDIS_AUTH' => '',
 );
 
-/* End of file .env/local.php */
-/* Location: .env/local.php */
+/* Location: .env.local.php */
 ```
 
 > **Not:** Eğer bir versiyonlanma sistemi kullanıyorsanız <b>.env.*</b> dosyalarının gözardı (ignore) edilmesini sağlayarak bu dosyaların ortak kullanılmasını önleyebilirsiniz. Ortak kullanım önlediğinde her geliştiricinin kendine ait bir <b>env/local.php</b> konfigürasyon dosyası olacaktır. Uygulamanızı versiyonlanmak için <b>Git</b> yazılımını kullanıyorsanız ignore dosyalarını nasıl oluşturacağınız hakkında bu kaynak size yararlı olabilir. <a target="_blank" href="https://help.github.com/articles/ignoring-files/">https://help.github.com/articles/ignoring-files/</a>
@@ -262,7 +261,6 @@ return array(
     ],
 );
 
-/* End of file environments.php */
 /* Location: .app/environments.php */
 ```
 
@@ -736,11 +734,3 @@ Ortam konfigürasyon dosyasının ( app/environments.php ) içerisindeki tanıml
 ##### $this->c['app']->envPath();
 
 Geçerli ortam değişkeninin dosya yoluna geri döner.
-
-##### $c['app']->worker();
-
-Dağıtık log yapısı kurmak istediğinizde tüm uygulamanın bir kuyruk işçisi olarak kurulabilmesi mümkündür fakat varsayılan uygulamada loglama işçiler için kapalıdır. Bu metot <kbd>components.php</kbd> içerisinde ilan edildiğinde işçi uygulamasına ait log verileri aktif hale getirilerek işçilere ait log kayıtları elde edilmiş olur. Detaylı bilgi için 
-
-##### $c['app']->isWorker();
-
-Eğer uygulama bir worker uygulaması ise true değerine aksi durum false değerine geri döner.
