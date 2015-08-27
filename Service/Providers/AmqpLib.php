@@ -2,14 +2,15 @@
 
 namespace Obullo\Service\Providers;
 
-use AmqpConnection;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
 
+use PhpAmqpLib\Connection\AMQPConnection;
+
 /**
- * AMQP Service Connection Provider
+ * AMQPLib Service Connection Provider
  * 
  * @category  ConnectionProvider
  * @package   ServiceProviders
@@ -18,11 +19,21 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/provider
  */
-class AmqpServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class AmqpLib extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;          // Container
-    protected $config;     // AMQP configuration items
-    protected $AMQPClass;  // AMQP extension client name
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Amqp config array
+     * 
+     * @var array
+     */
+    protected $config;
 
     /**
      * Constructor
@@ -36,14 +47,7 @@ class AmqpServiceProvider extends AbstractConnectionProvider implements ServiceP
         $this->c = $c;
         $this->config = $this->c['config']->load('queue')['amqp'];  // Load database configuration file
 
-        $this->setKey('amqp.connection.');
-
-        if (! extension_loaded('AMQP')) {
-            throw new RuntimeException(
-                'The AMQP extension has not been installed or enabled.'
-            );
-        }
-        $this->AMQPClass = 'AMQPConnection';
+        $this->setKey('amqpLib.connection.');
         $this->register();
     }
 
@@ -78,13 +82,13 @@ class AmqpServiceProvider extends AbstractConnectionProvider implements ServiceP
         $params['port']  = empty($params['port']) ? "5672" : $params['port'];
         $params['vhost'] = empty($params['vhost']) ? "/" : $params['vhost'];
 
-        $connection = new $this->AMQPClass;
-        $connection->setHost($params['host']); 
-        $connection->setPort($params['port']); 
-        $connection->setLogin($params['username']);
-        $connection->setPassword($params['password']); 
-        $connection->setVHost($params['vhost']); 
-        $connection->connect();
+        $connection = new AMQPConnection(
+            $params['host'],
+            $params['port'],
+            $params['username'],
+            $params['password'],
+            $params['vhost']
+        );
         return $connection;
     }
 
@@ -112,13 +116,13 @@ class AmqpServiceProvider extends AbstractConnectionProvider implements ServiceP
     }
 
     /**
-     * Create a new AMQP connection
+     * Create a new AMQPLib connection
      * 
      * If you don't want to add it config file and you want to create new one.
      * 
      * @param array $params connection parameters
      * 
-     * @return object AMQP client
+     * @return object AMQPLib client
      */
     public function factory($params = array())
     {
@@ -130,17 +134,5 @@ class AmqpServiceProvider extends AbstractConnectionProvider implements ServiceP
             };
         }
         return $this->c[$cid];
-    }
-
-    /**
-     * Close all "active" connections
-     */
-    public function __destruct()
-    {
-        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
-            if ($this->c->active($key)) {
-                 $this->c[$key]->disconnect();
-            }
-        }
     }
 }

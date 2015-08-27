@@ -19,32 +19,11 @@ use DateTime;
 abstract class Job
 {
     /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
-
-    /**
-     * Console Debug on / off
-     * 
-     * @var boolean
-     */
-    public $debug = false;
-
-    /**
      * Queue instance
      * 
      * @var object
      */
     protected $queue;
-
-    /**
-     * AMQP Envolope instance
-     * 
-     * @var object
-     */
-    protected $envelope;
 
     /**
      * The job handler instance.
@@ -125,6 +104,13 @@ abstract class Job
     abstract public function getId();
 
     /**
+     * Get the name of the queue the job belongs to.
+     *
+     * @return string
+     */
+    abstract public function getName();
+
+    /**
      * Get the raw body string for the job.
      *
      * @return string
@@ -140,8 +126,9 @@ abstract class Job
      */
     protected function resolveAndFire(array $payload)
     {
+        global $c;
         $Class = str_replace('@', '\\', ucfirst($payload['job']));
-        $this->instance = new $Class($this->c, array('env' => $this->getEnv()));
+        $this->instance = new $Class($c, array('env' => $this->getEnv()));
         $this->instance->fire($this, $payload['data']);
     }
 
@@ -159,16 +146,6 @@ abstract class Job
         } else {
             return intval($delay);
         }
-    }
-
-    /**
-     * Get the name of the queue the job belongs to.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->queueName;
     }
 
     /**

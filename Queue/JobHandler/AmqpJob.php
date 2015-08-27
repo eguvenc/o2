@@ -5,6 +5,7 @@ namespace Obullo\Queue\JobHandler;
 use AMQPQueue;
 use AMQPEnvelope;
 use Obullo\Queue\Job;
+use Obullo\Queue\QueueInterface;
 
 /**
  * AMQPJob Handler
@@ -16,20 +17,41 @@ use Obullo\Queue\Job;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  */
-class AMQPJob extends Job
+class AmqpJob extends Job
 {
+    /**
+     * Queue
+     * 
+     * @var 
+     */
+    protected $queue;
+
+    /**
+     * AMQPQueue
+     * 
+     * @var object
+     */
+    protected $AMQPQueue;
+
+    /**
+     * AMQPEnvelope
+     * 
+     * @var object
+     */
+    protected $AMQPEnvelope;
+
     /**
      * Constructor
      * 
-     * @param object $queue    AMQPQueue object
-     * @param object $envelope AMQPEnvelope object
+     * @param object $queue        \Obullo\Queue\QueueInterface
+     * @param object $AMQPQueue    \AMQPQueue
+     * @param object $AMQPEnvelope \AMQPEnvelope
      */
-    public function __construct(AMQPQueue $queue, AMQPEnvelope $envelope)
+    public function __construct(QueueInterface $queue, AMQPQueue $AMQPQueue, AMQPEnvelope $AMQPEnvelope)
     {  
-        global $c;
-        $this->c = $c;
         $this->queue = $queue;
-        $this->envelope = $envelope;
+        $this->AMQPQueue = $AMQPQueue;
+        $this->AMQPEnvelope = $AMQPEnvelope;
     }
 
     /**
@@ -39,7 +61,7 @@ class AMQPJob extends Job
      */
     public function fire()
     {
-        $this->resolveAndFire(json_decode($this->envelope->getBody(), true));
+        $this->resolveAndFire(json_decode($this->AMQPEnvelope->getBody(), true));
     }
 
     /**
@@ -49,7 +71,7 @@ class AMQPJob extends Job
      */
     public function getRawBody()
     {
-        return $this->envelope->getBody();
+        return $this->AMQPEnvelope->getBody();
     }
 
     /**
@@ -60,7 +82,7 @@ class AMQPJob extends Job
     public function delete()
     {
         parent::delete();
-        $this->queue->ack($this->envelope->getDeliveryTag());
+        $this->AMQPQueue->ack($this->AMQPEnvelope->getDeliveryTag());
     }
 
     /**
@@ -70,7 +92,7 @@ class AMQPJob extends Job
      */
     public function getName()
     {
-        return $this->queue->getName();
+        return $this->AMQPQueue->getName();
     }
 
     /**
@@ -83,14 +105,15 @@ class AMQPJob extends Job
     public function release($delay = 0)
     {
         $this->delete(); // Delete the job
-        $body = $this->envelope->getBody();
+
+        $body = $this->AMQPEnvelope->getBody();
         $body = json_decode($body, true);
         $body['data']['attempts'] = $this->getAttempts() + 1; // Write attempts to body
 
         if ($delay > 0) {
-            $this->c['queue']->later($delay, $body['job'], $this->getName(), $body['data']);
+            $this->queue->later($delay, $body['job'], $this->getName(), $body['data']);
         } else {
-            $this->c['queue']->push($body['job'], $this->getName(), $body['data']);
+            $this->queue->push($body['job'], $this->getName(), $body['data']);
         }
     }
 
@@ -101,7 +124,7 @@ class AMQPJob extends Job
      */
     public function getAttempts()
     {
-        $body = json_decode($this->envelope->getBody(), true);
+        $body = json_decode($this->AMQPEnvelope->getBody(), true);
         return isset($body['data']['attempts']) ? $body['data']['attempts'] : 0;
     }
 
@@ -112,6 +135,6 @@ class AMQPJob extends Job
      */
     public function getId()
     {
-        return $this->envelope->getDeliveryTag();
+        return $this->AMQPEnvelope->getDeliveryTag();
     }
 }

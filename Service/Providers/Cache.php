@@ -17,9 +17,14 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class CacheServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Cache extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c; // Container
+    /**
+     * Container
+     *  
+     * @var object
+     */
+    protected $c;
 
     /**
      * Constructor

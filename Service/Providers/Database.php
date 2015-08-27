@@ -18,11 +18,28 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DatabaseServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Database extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;             // Container
-    protected $config;        // Configuration items
-    protected $adapterClass;  // Database Adapter Class
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Database config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Database adapter class
+     * 
+     * @var string
+     */
+    protected $adapterClass;
 
     /**
      * Constructor

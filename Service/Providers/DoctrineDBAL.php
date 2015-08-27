@@ -21,11 +21,28 @@ use Obullo\Database\Doctrine\DBAL\SQLLogger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DoctrineDBALServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class DoctrineDBAL extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;             // Container
-    protected $config;        // Configuration items
-    protected $adapterClass;  // Doctrine Adapter Class
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Database config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Doctrin adapter class
+     * 
+     * @var string
+     */
+    protected $adapterClass;
 
     /**
      * Constructor

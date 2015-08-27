@@ -472,24 +472,24 @@ abstract class AbstractProvider
      */
     protected function push(array $msgEvent, $options = array())
     {
-        $route = $this->params['queue']['route'];
+        $job = $this->params['queue']['job'];
         $msgEvent['mailer'] = $this->getProvider();
         $mailResult = $this->getMailResult();
 
         $push = $this->c['queue']
             ->push(
                 'Workers@Mailer',
-                $route,
+                $job,
                 $msgEvent,
                 $options
             );
         if (! $push) {
             $mailResult->setCode($mailResult::QUEUE_ERROR);
-            $mailResult->setMessage($this->translator->get('OBULLO:MAILER:QUEUE_FAILED', $route));
+            $mailResult->setMessage($this->translator->get('OBULLO:MAILER:QUEUE_FAILED', $job));
             $this->logger->error(
                 'Mailer queue failed', 
                 array(
-                    'route' => $route,
+                    'job' => $job,
                     'msgEvent' => $msgEvent
                 )
             );

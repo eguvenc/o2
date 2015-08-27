@@ -48,5 +48,13 @@ interface QueueInterface
      * @return mixed job handler object or null
      */
     public function pop($job, $route = null);
-    
+
+    /**
+     * Delete a queue
+     *
+     * @param string $queue queue name
+     * 
+     * @return object
+     */
+    public function delete($queue);
 }

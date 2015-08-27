@@ -17,11 +17,28 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class MongoServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Mongo extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;            // Container
-    protected $config;       // Configuration items
-    protected $mongoClass;   // Mongo extension client name
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Mongo config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Mongo extension
+     * 
+     * @var string
+     */
+    protected $mongoClass;
 
     /**
      * Constructor ( Works one time )

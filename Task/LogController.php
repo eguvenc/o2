@@ -90,7 +90,7 @@ class LogController extends Controller
             }
         }
         if ($this->c->has('queue')) {
-            $this->c['queue']->deleteQueue($this->c['config']['logger']['queue']['route']); // Clear queue data
+            $this->c['queue']->deleteQueue($this->c['config']['logger']['queue']['job']); // Clear queue data
         }
         echo Console::success('Application logs deleted.');
     }

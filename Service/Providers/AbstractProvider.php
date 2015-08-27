@@ -3,7 +3,7 @@
 namespace Obullo\Service\Providers;
 
 /**
- * Service Connnection Provider Helper
+ * Service Connnection Provider
  * 
  * @category  Connections
  * @package   Service
@@ -12,7 +12,7 @@ namespace Obullo\Service\Providers;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class AbstractConnectionProvider
+class AbstractProvider
 {
     /**
      * Connection id prefix

@@ -16,7 +16,7 @@ use Obullo\Database\Doctrine\DBAL\QueryBuilder;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DoctrineQueryBuilderServiceProvider implements ServiceProviderInterface
+class DoctrineQueryBuilder implements ServiceProviderInterface
 {
     /**
      * Container

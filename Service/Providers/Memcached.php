@@ -2,7 +2,6 @@
 
 namespace Obullo\Service\Providers;
 
-use Memcached;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
@@ -18,11 +17,28 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class MemcachedServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Memcached extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;          // Container
-    protected $config;     // Database configuration items
-    protected $memcached;  // Memcached extension
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Memcached config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Memcached extension
+     * 
+     * @var object
+     */
+    protected $memcached;
 
     /**
      * Constructor
@@ -75,9 +91,9 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
     protected function createConnection(array $value)
     {
         if ($value['options']['persistent'] && ! empty($value['options']['pool'])) {
-            $this->memcached = new Memcached($value['options']['pool']);
+            $this->memcached = new \Memcached($value['options']['pool']);
         } else {
-            $this->memcached = new Memcached;
+            $this->memcached = new \Memcached;
         }
         if (! $this->memcached->addServer($value['host'], $value['port'], $value['weight'])) {
             throw new RuntimeException(
@@ -88,7 +104,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
             );
         }
         $this->setOptions($value['options']);
-        $this->memcached->setOption(Memcached::OPT_CONNECT_TIMEOUT, $value['options']['timeout']);
+        $this->memcached->setOption(\Memcached::OPT_CONNECT_TIMEOUT, $value['options']['timeout']);
         return $this->memcached;
     }
 
@@ -105,7 +121,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
         $serializer = $this->getValue($options, 'serializer');
 
         if ($serializer == 'php') {
-            $this->memcached->setOption(Memcached::OPT_SERIALIZER, Memcached::SERIALIZER_PHP);
+            $this->memcached->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_PHP);
         }
         if ($serializer == 'igbinary') {
             $this->enableIgbinary();
@@ -114,7 +130,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
             $this->enableJson();
         }
         if ($prefix) {
-            $this->memcached->setOption(Memcached::OPT_PREFIX_KEY, $prefix);
+            $this->memcached->setOption(\Memcached::OPT_PREFIX_KEY, $prefix);
         }
     }
 
@@ -128,7 +144,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
         if (! extension_loaded('igbinary')) {
             throw new RuntimeException("Php igbinary extension not enabled on your server.");
         }
-        if (! Memcached::HAVE_IGBINARY) {
+        if (! \Memcached::HAVE_IGBINARY) {
             throw new RuntimeException(
                 sprintf(
                     "Memcached igbinary support not enabled on your server.<pre>%s</pre>",
@@ -136,7 +152,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
                 )
             );
         }
-        $this->memcached->setOption(Memcached::OPT_SERIALIZER, Memcached::SERIALIZER_IGBINARY);
+        $this->memcached->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_IGBINARY);
     }
 
     /**
@@ -149,7 +165,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
         if (! extension_loaded('json')) {
             throw new RuntimeException("Php json extension not enabled on your server.");
         }
-        if (! Memcached::HAVE_JSON) {
+        if (! \Memcached::HAVE_JSON) {
             throw new RuntimeException(
                 sprintf(
                     "Memcached json support not enabled on your server.<pre>%s</pre>",
@@ -157,7 +173,7 @@ class MemcachedServiceProvider extends AbstractConnectionProvider implements Ser
                 )
             );
         }
-        $this->memcached->setOption(Memcached::OPT_SERIALIZER, Memcached::SERIALIZER_JSON);
+        $this->memcached->setOption(\Memcached::OPT_SERIALIZER, \Memcached::SERIALIZER_JSON);
     }
 
     /**

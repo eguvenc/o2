@@ -2,7 +2,6 @@
 
 namespace Obullo\Service\Providers;
 
-use Memcache;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
@@ -18,11 +17,28 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class MemcacheServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Memcache extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;          // Container
-    protected $config;     // Database configuration items
-    protected $memcache;   // Memcache extension
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Memcache config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Memcache extension
+     * 
+     * @var object
+     */
+    protected $memcache;
 
     /**
      * Constructor
@@ -74,7 +90,7 @@ class MemcacheServiceProvider extends AbstractConnectionProvider implements Serv
      */
     protected function createConnection(array $value)
     {
-        $this->memcache = new Memcache;
+        $this->memcache = new \Memcache;
 
         // http://php.net/manual/tr/memcache.connect.php
         // If you have pool of memcache servers, do not use the connect() function. 
@@ -159,7 +175,7 @@ class MemcacheServiceProvider extends AbstractConnectionProvider implements Serv
         foreach (array_keys($this->config['connections']) as $key) {
             $key = $this->getKey($key);
             if ($this->c->active($key)) {   // Close any open connections
-                $this->c[$key]->close();  // http://php.net/manual/tr/memcache.close.php
+                $this->c[$key]->close();    // http://php.net/manual/en/memcache.close.php
             }
         }
     }

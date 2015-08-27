@@ -518,7 +518,7 @@ Log mesajları <kbd>Obullo/Log/Logger</kbd> sınıfı içerisindeki <b>close</b>
 $this->c->get('queue')
     ->push(
         'Workers@Logger',
-        $this->params['queue']['route'],
+        $this->params['queue']['job'],
         $payload,
         $this->params['queue']['delay']
     );

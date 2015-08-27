@@ -1,7 +1,7 @@
 
 ## Kuyruklama
 
-Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, sipariş alma gibi. ) ait verileri bir mesaj gönderim protokolü ( AMQP ) üzerinden arkaplanda işlem sırasına sokar. Kuyruğa atılan veriler eş zamanlı işlemler (multi threading) ile tüketilirek süreç arkaplanda yürütülür ve böylece uzun süren işlemler ön yüzde sadece işlem sırasına atıldığından uygulamanıza gelen http istekleri yorulmamış olur.
+Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, sipariş alma gibi. ) ait verileri mesaj gönderim protokolü  ( AMQP ) üzerinden arkaplanda işlem sırasına sokar. Kuyruğa atılan veriler eş zamanlı işlemler (multi threading) ile tüketilerek işler arkaplanda tamamlanır ve kuyruktan silinir, böylece uzun süren işlemler ön yüzde sadece işlem sırasına atıldığından uygulamanıza gelen http istekleri yorulmamış olur.
 
 <ul>
 
@@ -9,6 +9,7 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
     <a href="#configuration">Konfigürasyon</a>
     <ul>
         <li><a href="#service-configuration">Servis Konfigürasyonu</a></li>
+        <li><a href="#service-provider-configuration">Servis Sağlayıcısı Konfigürasyonu</a></li>
         <li><a href="#server-requirements">Sunucu Gereksinimleri</a></li>
     </ul>
 </li>
@@ -48,18 +49,6 @@ Kuyruklama paketi uzun sürmesi beklenen işlemlere ( loglama, email gönderme, 
         <li><a href="#listen">Kuyruğu Dinlemek</a></li>
         <li>
             <a href="#worker-parameters">İşçi Parametreleri</a>
-            <ul>
-                <li><a href="#worker">--worker</a></li>
-                <li><a href="#job">--job</a></li>
-                <li><a href="#delay">--delay</a></li>
-                <li><a href="#memory">--memory</a></li>
-                <li><a href="#timeout">--timeout</a></li>
-                <li><a href="#sleep">--sleep</a></li>
-                <li><a href="#attempt">--attempt</a></li>
-                <li><a href="#output">--output</a></li>
-                <li><a href="#env">--env</a></li>
-                <li><a href="#var">--var</a></li>
-            </ul>
         </li>
         <li><a href="#save-worker-logs">İşçilere Ait Log Kayıtlarını Tutmak</a></li>
     </ul>
@@ -111,25 +100,25 @@ Queue servisi ana konfigürasyonu <kbd>config/$env/queue/amqp.php</kbd> dosyası
 ```php
 return array(
 
-    'exchange' => [
-        'type' => 'AMQP_EX_TYPE_DIRECT',
-        'flag' => 'AMQP_DURABLE',
-    ],
-    
-    'connections' => 
-    [
-        'default' => [
-            'host'  => '127.0.0.1',
-            'port'  => 5672,
-            'username'  => 'root',
-            'password'  => $c['env']['AMQP_PASSWORD'],
-            'vhost' => '/',
-        ]
+    'amqp' => [
+
+        'exchange' => [
+            'type' => 'AMQP_EX_TYPE_DIRECT',
+            'flag' => 'AMQP_DURABLE',
+        ],
+        
+        'connections' => 
+        [
+            'default' => [
+                'host'  => '127.0.0.1',
+                'port'  => 5672,
+                'username'  => 'root',
+                'password'  => $c['env']['AMQP_PASSWORD'],
+                'vhost' => '/',
+            ]
+        ],
     ],
 );
-
-
-
 ```
 <a name="server-requirements"></a>
 
@@ -139,26 +128,18 @@ Kuyruklama servisinin çalışabilmesi için php AMQP extension kurulu olması g
 
 <a href="https://github.com/obullo/warmup/tree/master/AMQP/RabbitMQ">RabbitMQ ve Php AMQP Extension Kurulumu </a>
 
-#### Diğer AMQP Yazılımları
+##### Diğer AMQP Yazılımları ve Servisler
 
-* 
-
-Bilinen ve yaygın kullanılan diğer AMQP yazılımları için buradaki <a href="http://www.fromdev.com/2012/04/top-5-open-source-amqp-advanced-message.html" target="_blank">makaleye</a> göz artabilirsiniz.
-
-#### Cloud AMQP İle RabbitMQ Kurulumu
-
-* 
-
-#### Scheduled Message Delivery
-
-http://www.javacodegeeks.com/2012/04/rabbitmq-scheduled-message-delivery.html
+* <a href="http://zeromq.org/bindings:php/" target="_blank">ZeroMQ</a>
+* <a href="https://qpid.apache.org/" target="_blank">Apache Qpid</a>
+* <a href="http://https://www.cloudamqp.com/" target="_blank">Cloud AMQP</a>
 
 
 <a name="service-configuration"></a>
 
 #### Servis Konfigürasyonu
 
-Queue paketini kullanabilmeniz için aşağıdaki gibi servis olarak yapılandırılmış olması gerekir.
+Queue paketini kullanabilmeniz için aşağıdaki gibi servis ayarlarınının yapılandırılmış olması gerekir.
 
 ```php
 namespace Service;
@@ -174,7 +155,7 @@ class Queue implements ServiceInterface
         $c['queue'] = function () use ($c) {
 
             $parameters = [
-                'class' => '\Obullo\Queue\Handler\AMQP',
+                'class' => '\Obullo\Queue\Handler\Amqp',
                 'provider' => [
                     'name' => 'amqp',
                     'params' => [
@@ -190,6 +171,42 @@ class Queue implements ServiceInterface
     }
 }
 ```
+
+Mevcut Kuyruk Sınıfları
+
+* \Obullo\Queue\Handler\Amqp
+* \Obullo\Queue\Handler\AmqpLib
+
+
+<a name="service-provider-configuration"></a>
+
+#### Servis Sağlayıcısı Konfigürasyonu
+
+Servis ayarlarında tanımladığınız servis sağlayıcısının <kbd>app/providers.php</kbd> içerisinden tanımlı olması gerekir.
+
+```php
+$c['app']->register(
+    [
+        'database' => 'Obullo\Service\Providers\Database',
+        // 'database' => 'Obullo\Service\Providers\DoctrineDBAL',
+        // 'qb' => 'Obullo\Service\Providers\DoctrineQueryBuilder',
+        'cache' => 'Obullo\Service\Providers\Cache',
+        'redis' => 'Obullo\Service\Providers\Redis',
+        'memcached' => 'Obullo\Service\Providers\Memcached',
+        'amqp' => 'Obullo\Service\Providers\Amqp',
+        // 'amqp' => 'Obullo\Service\Providers\AmqpLib',
+        'mongo' => 'Obullo\Service\Providers\Mongo',
+    ]
+);
+```
+
+Mevcut Servis Sağlayıcıları 
+
+* amqp ( PECL )
+* amqpLib ( Composer / php-amqplib )
+
+Varsayılan servis sağlayıcısı pecl <b>amqp</b> sınıfıdır. Eğer servis sağlayıcı sınıfını <kbd>AmqpLib</kbd> olarak değiştirirseniz queue servisi içerisindeki class parametresini <kbd>\Obullo\Queue\Handler\AmqpLib</kbd> olarak değiştirmeniz gerekir.
+
 
 <a name="running"></a>
 
@@ -225,7 +242,11 @@ Birinci parametreye <kbd>app/classes/Workers/</kbd> klasörü altındaki işçiy
 
 Aşağıda RabbitMQ AMQP sağlayıcısına ait web panelinden kuyruğa atılmış bir iş örneği görülüyor.
 
+```php
+http://localhost:15672/
+```
 
+![RabbitMQ](/Queue/Docs/images/rabbitmq.png?raw=true)
 
 
 <a name="delaying-a-job"></a>
@@ -236,7 +257,7 @@ Aşağıda RabbitMQ AMQP sağlayıcısına ait web panelinden kuyruğa atılmı�
 $this->queue->later(
     $delay = 60,
     'Workers@Order',
-    'order.1',
+    'orders',
     array('order_id' => 'x', 'order_data' => [])
 );
 ```
@@ -857,6 +878,21 @@ public function fire($job, array $data)
 * İşçi dosyanızı konsoldan çalıştırın.
 
 Eğer herşey yolunda gittiyse bulunan hatalar veritabanına kaydedilmiş olmalı.
+
+
+<a href="cloud-solutions"></a>
+
+#### Bulut Çözümler
+
+#### Cloud AMQP Servisi
+
+Eğer RabbitMQ kullanıyor ve dağıtık bir kuyruklama servisi arıyorsanız <a href="https://www.cloudamqp.com/" target="_blank">cloud amqp</a> servisine bir gözatın.
+
+
+```php
+
+```
+
 
 <a name="queue-reference"></a>
 

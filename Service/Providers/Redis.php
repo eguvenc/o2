@@ -2,7 +2,6 @@
 
 namespace Obullo\Service\Providers;
 
-use Redis;
 use RuntimeException;
 use UnexpectedValueException;
 use Obullo\Container\ContainerInterface;
@@ -18,12 +17,35 @@ use Obullo\Service\ServiceProviderInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class RedisServiceProvider extends AbstractConnectionProvider implements ServiceProviderInterface
+class Redis extends AbstractProvider implements ServiceProviderInterface
 {
-    protected $c;         // Container
-    protected $redis;     // Redis extension
-    protected $config;    // Database configuration items
-    protected $defaultConnection = array();  // Default connection array in config redis.php
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Redis config array
+     * 
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * Redis extension
+     * 
+     * @var object
+     */
+    protected $redis;
+
+    /**
+     * Default connection items in redis config
+     *  
+     * @var array
+     */
+    protected $defaultConnection = array();
 
     /**
      * Constructor
@@ -76,7 +98,7 @@ class RedisServiceProvider extends AbstractConnectionProvider implements Service
      */
     protected function createConnection(array $value)
     {
-        $this->redis = new Redis;
+        $this->redis = new \Redis;
         $timeout = (empty($value['options']['timeout'])) ? 0 : $value['options']['timeout'];
 
         if (isset($value['options']['persistent']) && $value['options']['persistent']) {

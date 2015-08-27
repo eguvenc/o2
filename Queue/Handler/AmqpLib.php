@@ -8,7 +8,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 
 use Obullo\Queue\QueueInterface;
 use Obullo\Config\ConfigInterface;
-use Obullo\Queue\JobHandler\AMQPJob;
+use Obullo\Queue\JobHandler\AmqpLibJob;
 use Obullo\Service\ServiceProviderInterface;
 
 /**
@@ -17,13 +17,14 @@ use Obullo\Service\ServiceProviderInterface;
  * @category  Queue
  * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
+ * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/queue
  * @see       http://www.php.net/manual/pl/book.amqp.php
  * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
-class AMQPLib implements QueueInterface
+class AmqpLib implements QueueInterface
 {
     /**
      * AMQP channel name
@@ -121,7 +122,7 @@ class AMQPLib implements QueueInterface
         $this->channel->exchange_declare($queue, $params['type'], $params['passive'], $params['durable'], false);
         $this->channel->queue_bind($queue, $exchange);
 
-        return $this->publishJob($exchange, $data, $options);
+        return $this->publishJob($exchange, $data, null, $options);
     }
 
     /**
@@ -150,93 +151,50 @@ class AMQPLib implements QueueInterface
         */
         $exchange = $job;
         $destination = (empty($route)) ? $this->defaultQueueName : $route;
-        $queue = $destination . '_delayed_' . $delay;
+        $queueDelayed = $destination . '_delayed_' . $delay;
+        $exchangeDelayed = $job . '_delayed_' . $delay;
 
         $arguments = new AMQPTable(
             [
-               "x-dead-letter-exchange" => $exchange,
-               'x-dead-letter-routing-key' => $destination,
-               "x-expires" => $delay * (1000 + 1000)
+                'x-dead-letter-exchange' => $exchange,
+                'x-message-ttl'          => $delay * 1000,
+                'x-expires'              => $delay * 2000
             ]
         );
+        $this->channel->queue_declare($destination, false, true, false, false, false);
+        $this->channel->exchange_declare($job, 'direct', false, true, false);
+        $this->channel->queue_bind($destination, $job);
 
-        // "x-message-ttl" => $delay * 1000
+        $this->channel->queue_declare($queueDelayed, false, true, false, false, false, $arguments);
+        $this->channel->exchange_declare($exchangeDelayed, 'direct', false, true, false);
+        $this->channel->queue_bind($queueDelayed, $exchangeDelayed);
 
-        $this->channel->queue_declare($queue, false, true, false, false, false, $arguments);
-        $this->channel->exchange_declare($exchange, 'direct');
-        $this->channel->queue_bind($queue, $exchange);
-
-        return $this->publishJob($exchange, $data, $options);
+        return $this->publishJob($exchange, $data, $exchangeDelayed, $options);
     }
-
-
-    // public function later($delay, $job, $route, $data, $options = array())
-    // {
-    //     $destination = (empty($route)) ? $this->defaultQueueName : $route;
-    //     $queue = $destination . '_delayed_' . $delay;
-    //     $exchange = $job . '_delayed_' . $delay;
-
-    //     // $queue = new AMQPQueue($this->channel);
-    //     // $queue->setName($queue);
-    //     // $queue->setFlags(AMQP_DURABLE);
-    //     // $queue->setArguments(
-    //     //     array(
-    //     //     'x-dead-letter-exchange'    => $this->exchange->getName(),
-    //     //     'x-dead-letter-routing-key' => $destination,
-    //     //     'x-message-ttl'             => $delay * 1000,
-    //     //     )
-    //     // );
-    //     // $queue->declareQueue();
-    //     // $queue->bind($this->exchange->getName(), $queue);
-    //     // $queue->declareQueue();
-
-    //     // $this->channel->queue_declare($queue, false, true, false, false);
-    //     // $this->exchange($job);
-    //     // $this->channel->queue_bind($queue, $job);
-
-    //     $this->channel->queue_declare('queue.default');
-    //     $this->channel->exchange_declare('exchange.default', 'direct');
-    //     $this->channel->queue_bind('queue.default', 'exchange.default');
-
-    //     $this->channel->queue_declare(
-    //         $queue,
-    //         false,
-    //         true,
-    //         false,
-    //         false,
-    //         true,
-    //         array(
-    //             'x-message-ttl' => array('I', $delay * 1000),   // delay in seconds to milliseconds
-    //             "x-expires" => array("I", $delay * 1000 + 1000),
-    //             'x-dead-letter-exchange' => array('S', 'exchange.default') // after message expiration in delay queue, move message to the default queue
-    //         )
-    //     );
-    //     $this->channel->exchange_declare($exchange, 'direct');
-    //     $this->channel->queue_bind($queue, $exchange);
-
-    //     return $this->publishJob($exchange, $data, $options);
-    // }
 
     /**
      * Publish queue job
      * 
-     * @param string $job     exchange
-     * @param array  $data    payload
-     * @param array  $options delivery options
+     * @param string $exchange        job
+     * @param array  $data            payload
+     * @param mixed  $exchangeDelayed delayed exchange
+     * @param array  $options         delivery options
      * 
      * @return bool
      */
-    protected function publishJob($job, $data, $options = array())
+    protected function publishJob($exchange, $data, $exchangeDelayed = null, $options = array())
     {
         $options = empty($options) ? array(
             'delivery_mode' => 2,           // 2 = "Persistent", 1 = "Non-persistent"
             'content_type' => 'text/json'
         ) : $options;
 
-        $payload = json_encode(array('job' => $job, 'data' => $data));
+        $payload = json_encode(['job' => $exchange, 'data' => $data]);
         $message = new AMQPMessage($payload, $options);
         
-        return $this->channel->basic_publish($message, $job);
+        $job = ($exchangeDelayed == null) ? $exchange : $exchangeDelayed;
+        $this->channel->basic_publish($message, $job);
+        return true;
     }
 
     /**
@@ -257,103 +215,27 @@ class AMQPLib implements QueueInterface
         $this->channel->exchange_declare($exchange, $params['type'], $params['passive'], $params['durable'], false);
         $this->channel->queue_bind($queue, $exchange);
 
-        $envelope = $this->channel->basic_get($queue);
-        
+        $AMQPMessage = $this->channel->basic_get($queue);
+        $AMQPMessage->delivery_info['routing_key'] = $queue;  // Fill routing key it comes empty.
 
-        // $this->channel->basic_ack($envelope->delivery_info['delivery_tag']);
-
-        var_dump($envelope);
-
-        // $envelope = $queue->get();  // Get envelope
-    
-        // if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
-        //     return new AMQPJob($queue, $envelope);  // Send incoming message to job class.
-        // }
-        // return null;
+        if ($AMQPMessage instanceof AMQPMessage) {     // * Send Message to JOB QUEUE
+            return new AmqpLibJob($this, $this->channel, $AMQPMessage);  // Send incoming message to job class.
+        }
+        return null;
     }
-
+    
     /**
-     * Declare queue
-     * 
-     * @param string $name string
+     * Delete a queue and its contents.
      *
-     * @return object AMQPQueue
-     */
-    // public function declareQueue($name = null)
-    // {
-    //     $name = (empty($name)) ? $this->defaultQueueName : $name;
-
-    //     $this->queue = new AMQPQueue($this->channel);
-    //     $this->queue->setName($name);
-    //     $this->queue->setFlags(AMQP_DURABLE);
-    //     $this->queue->declareQueue();
-    //     $this->queue->bind($this->exchange->getName(), $name);
-    //     $this->queue->declareQueue();
-
-    //     return $this->queue;
-    // }
-
-    /**
-     * Declare delated queue
-     *
-     * @link http://stackoverflow.com/questions/21942063/how-to-delay-php-amqplib?rq=1
-     * 
-     * @param string  $destination delayed queue name
-     * @param integer $delay       interval
-     *
-     * @return object AMQPQueue delayed object
-     */
-    // public function declareDelayedQueue($destination, $delay)
-    // {
-    //     // $destination = (empty($destination)) ? $this->defaultQueueName : $destination;
-    //     // $name = $destination . '_delayed_' . $delay;
-
-    //     // $queue = new AMQPQueue($this->channel);
-    //     // $queue->setName($name);
-    //     // $queue->setFlags(AMQP_DURABLE);
-    //     // $queue->setArguments(
-    //     //     array(
-    //     //     'x-dead-letter-exchange'    => $this->exchange->getName(),
-    //     //     'x-dead-letter-routing-key' => $destination,
-    //     //     'x-message-ttl'             => $delay * 1000,
-    //     //     )
-    //     // );
-    //     // $queue->declareQueue();
-    //     // $queue->bind($this->exchange->getName(), $name);
-    //     // $queue->declareQueue();
-    //     // return $queue;
-    // }
-
-    /**
-     * Clear the contents of a queue
-     *
-     * @param string $name queue name
+     * @param string $queue queue name
      * 
      * @return object
      */
-    // public function purgeQueue($name)
-    // {
-    //     $channel = new AMQPChannel($this->AMQPconnection);
-    //     $queue = new AMQPQueue($channel);
-    //     $queue->setName($name);
-    //     $queue->purge();
-    //     return $this;
-    // }
-
-    // /**
-    //  * Delete a queue and its contents.
-    //  *
-    //  * @param string $name queue name
-    //  * 
-    //  * @return object
-    //  */
-    // public function deleteQueue($name)
-    // {
-    //     $channel = new AMQPChannel($this->AMQPconnection);
-    //     $queue = new AMQPQueue($channel);
-    //     $queue->setName($name);
-    //     $queue->delete();
-    //     return $this;
-    // }
+    public function delete($queue)
+    {
+        $channel = $this->AMQPconnection->channel();
+        $channel->queue_delete($queue);
+        return $this;
+    }
 
 }

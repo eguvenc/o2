@@ -76,25 +76,18 @@ class Worker
     protected $logger;
 
     /**
-     * Command line parser
-     * 
-     * @var object
-     */
-    protected $parser;
-
-    /**
-     * Queue job ( queue exchange )
-     * 
-     * @var string
-     */
-    protected $exchange;
-
-    /**
-     * Queue route key ( queue name )
+     * Queue name 
      * 
      * @var string
      */
     protected $route;
+
+    /**
+     * Sleep time
+     * 
+     * @var int
+     */
+    protected $sleep;
 
     /**
      * Job delay interval
@@ -104,7 +97,7 @@ class Worker
     protected $delay;
 
     /**
-     * Maximum allowed memory for current job
+     * Allowed memory
      * 
      * @var int
      */
@@ -125,18 +118,18 @@ class Worker
     protected $output;
 
     /**
-     * Sleep time
-     * 
-     * @var int
-     */
-    protected $sleep;
-
-    /**
      * Max attempts
      * 
      * @var int
      */
     protected $attempt;
+
+    /**
+     * Queue job ( exchange )
+     * 
+     * @var string
+     */
+    protected $exchange;
 
     /**
      * Your custom variable

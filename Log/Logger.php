@@ -521,7 +521,7 @@ class Logger extends AbstractLogger implements LoggerInterface
                     $this->c->get('queue')
                         ->push(
                             'Workers@Logger',
-                            $this->params['queue']['route'],
+                            $this->params['queue']['job'],
                             $payload,
                             $this->params['queue']['delay']
                         );
