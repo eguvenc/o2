@@ -251,8 +251,3 @@ class Uri
     }
 
 }
-
-// END Uri Class
-/* End of file Uri.php
-
-/* Location: .Obullo/Utils/Uri.php */

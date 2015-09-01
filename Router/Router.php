@@ -52,6 +52,7 @@ class Router
 
     /**
      * Constructor
+     * 
      * Runs the route mapping function.
      * 
      * @param array  $c      \Obullo\Container\ContainerInterface
@@ -62,9 +63,9 @@ class Router
     public function __construct(ContainerInterface $c, ConfigInterface $config, Uri $uri, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->uri    = $uri;
+        $this->uri = $uri;
         $this->logger = $logger;
-        $this->HOST   = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
+        $this->HOST = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
         if (defined('STDIN')) {
             $this->HOST = 'Cli';  // Define fake host for Command Line Interface
@@ -245,7 +246,7 @@ class Router
 
         $subDomain = null;
         if ($this->isSubDomain($this->DOMAIN)) {
-            $subDomain = isset($this->group['domain']['regex']) ? $this->group['domain']['regex'] : $this->group['domain'];
+            $subDomain = $this->group['domain'];
         }
         $this->routes[$this->DOMAIN][] = array(
             'group' => $this->group['name'],
@@ -727,9 +728,9 @@ class Router
         if (isset($options['domain'])) {
             $domain = $options['domain'];
         }
-        if (isset($options['domain']['regex'])) { // If regex defined
-            $domain = $options['domain']['regex'];
-        }
+        // if (isset($options['domain']['regex'])) { // If regex defined
+        //     $domain = $options['domain']['regex'];
+        // }
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true;                // Regex match.

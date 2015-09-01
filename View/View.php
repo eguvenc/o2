@@ -5,6 +5,8 @@ namespace Obullo\View;
 use Closure;
 use Controller;
 use Obullo\Layer\Layer;
+use Obullo\Log\LoggerInterface;
+use Obullo\Http\Response\ResponseInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -24,7 +26,21 @@ class View
      * 
      * @var object
      */
-    protected $c;                  // Container
+    protected $c;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
+     * Response
+     * 
+     * @var object
+     */
+    protected $response;
 
     /**
      * Protected variables
@@ -41,16 +57,20 @@ class View
     /**
      * Constructor
      * 
-     * @param array $c container
+     * @param object $c        \Obullo\Container\ContainerInterface
+     * @param object $response \Obullo\Http\ResponseInterface
+     * @param object $logger   \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, ResponseInterface $response, LoggerInterface $logger)
     {
         $this->c = $c;
+        $this->logger = $logger;
+        $this->response = $response;
         $this->_staticVars = array(
             '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
         );
-        $this->c['logger']->debug('View Class Initialized');
+        $this->logger->debug('View Class Initialized');
     }
 
     /**
@@ -84,7 +104,7 @@ class View
         if ($obulloViewData === false || $obulloViewInclude === false) {
             return $output;
         }
-        $this->c['response']->append($output);
+        $this->response->append($output);
         return;
     }
 

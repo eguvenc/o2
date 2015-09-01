@@ -7,11 +7,18 @@ use RuntimeException;
 trait UnderMaintenanceTrait
 {
     /**
-     * Route domain parameters
+     * Detected domain
      * 
      * @var array
      */
-    public $params = array();
+    protected $currentDomain;
+
+    /**
+     * Maintenance status : up / down
+     * 
+     * @var string
+     */
+    protected $currentDomainMaintenance;
 
     /**
      * Domain is down
@@ -22,8 +29,12 @@ trait UnderMaintenanceTrait
      */
     public function domainIsDown(array $params)
     {
-        $this->params = $params;
-
+        foreach ($this->config['domain'] as $domain) {
+            if ($domain['regex'] == $params['domain']) {  // If route domain equal to domain.php regex config
+                $this->currentDomain = $params['domain'];
+                $this->currentDomainMaintenance = $domain['maintenance'];
+            }
+        }
         $this->rootDomainIsDown();
         $this->subDomainIsDown();
     }
@@ -47,22 +58,15 @@ trait UnderMaintenanceTrait
      */
     public function subDomainIsDown()
     {
-        // We inject parameters into $this->params variable in app->middleware() method.
-
-        if ($this->params['domain'] == $this->config['url']['webhost']) {
-            $this->params['domain'] = array('regex' => $this->c['config']['url']['webhost']);
-        }
-        if (! is_array($this->params['domain']) || ! isset($this->params['domain']['regex'])) {
+        if (! is_string($this->currentDomain)) {
             throw new RuntimeException(
                 sprintf(
-                    'Correct your routes.php domain value it must be like this <pre>%s</pre>', 
-                    '$c[\'router\']->group( [\'domain\' => $c[\'config\'][\'domain\'][\'key\'], .., function () { .. }),.'
+                    'Routes.php domain value must be string. <pre>%s</pre>', 
+                    '$c[\'router\']->group( [\'domain\' => \'example.com\', .., function () { .. }),.'
                 )
             );
         }
-        if (isset($this->params['domain']['maintenance']) 
-            && $this->params['domain']['maintenance'] == 'down'
-        ) {
+        if ($this->currentDomainMaintenance == 'down') {
             $this->showMaintenance();
         }
     }

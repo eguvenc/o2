@@ -161,18 +161,18 @@ class Amqp implements QueueInterface
      * Pop the next job off of the queue.
      *
      * @param string $job   exchange name
-     * @param string $route queue name ( routing key )
+     * @param string $queue queue name ( routing key )
      *
      * @return mixed job handler object or null
      */
-    public function pop($job, $route = null)
+    public function pop($job, $queue = null)
     {
         $this->declareExchange($job);
-        $queue    = $this->declareQueue($route); // Declare queue if not exists
-        $envelope = $queue->get();  // Get envelope
+        $AMQPqueue    = $this->declareQueue($queue); // Declare queue if not exists
+        $AMQPenvelope = $AMQPqueue->get();  // Get envelope
     
-        if ($envelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
-            return new AmqpJob($this, $queue, $envelope);  // Send incoming message to job class.
+        if ($AMQPenvelope instanceof AMQPEnvelope) { // * Send Message to JOB QUEUE
+            return new AmqpJob($this, $AMQPqueue, $AMQPenvelope);  // Send incoming message to job class.
         }
         return null;
     }
@@ -237,9 +237,9 @@ class Amqp implements QueueInterface
     public function delete($queue)
     {
         $channel = new AMQPChannel($this->AMQPconnection);
-        $queue = new AMQPQueue($channel);
-        $queue->setName($queue);
-        $queue->delete();
+        $q = new AMQPQueue($channel);
+        $q->setName($queue);
+        $q->delete();
         return $this;
     }
 

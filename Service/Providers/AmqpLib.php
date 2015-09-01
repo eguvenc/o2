@@ -82,14 +82,13 @@ class AmqpLib extends AbstractProvider implements ServiceProviderInterface
         $params['port']  = empty($params['port']) ? "5672" : $params['port'];
         $params['vhost'] = empty($params['vhost']) ? "/" : $params['vhost'];
 
-        $connection = new AMQPConnection(
+        return new AMQPConnection(
             $params['host'],
             $params['port'],
             $params['username'],
             $params['password'],
             $params['vhost']
         );
-        return $connection;
     }
 
     /**
@@ -135,4 +134,17 @@ class AmqpLib extends AbstractProvider implements ServiceProviderInterface
         }
         return $this->c[$cid];
     }
+
+    /**
+     * Close all "active" connections
+     */
+    public function __destruct()
+    {
+        foreach (array_keys($this->config['connections']) as $key) {        // Close the connections
+            if ($this->c->active($key)) {
+                 $this->c[$key]->close();
+            }
+        }
+    }
+
 }

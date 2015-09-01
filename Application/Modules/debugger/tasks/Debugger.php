@@ -2,6 +2,6 @@
 
 namespace Tasks\Debugger;
 
-use Obullo\Task\DebuggerController;
+use Obullo\Cli\Task\DebuggerController;
 
 class Debugger extends DebuggerController {}

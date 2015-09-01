@@ -14,11 +14,11 @@ namespace Obullo\Utils;
  */
 class CaseInsensitiveArray implements \ArrayAccess, \Countable, \Iterator
 {
-	/**
-	 * Container 
-	 * 
-	 * @var array
-	 */
+    /**
+     * Container
+     * 
+     * @var array
+     */
     public $container = array();
 
     /**
@@ -111,7 +111,7 @@ class CaseInsensitiveArray implements \ArrayAccess, \Countable, \Iterator
      */
     public function next()
     {
-    	return next($this->container);
+        return next($this->container);
     }
 
     /**
@@ -144,8 +144,3 @@ class CaseInsensitiveArray implements \ArrayAccess, \Countable, \Iterator
         reset($this->container);
     }
 }
-
-// END CaseInsensitiveArray.php File
-/* End of file CaseInsensitiveArray.php
-
-/* Location: .Obullo/Utils/CaseInsensitiveArray.php */

@@ -539,4 +539,15 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->shutdown = true;
     }
 
+    /**
+     * Returns to service & config parameters
+     * 
+     * @return array
+     */
+    public function getParameters()
+    {
+        return array_merge($this->params, $this->config);
+    }
+
+
 }

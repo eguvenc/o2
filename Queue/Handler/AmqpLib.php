@@ -27,11 +27,11 @@ use Obullo\Service\ServiceProviderInterface;
 class AmqpLib implements QueueInterface
 {
     /**
-     * AMQP channel name
+     * AMQP channel
      * 
      * @var string
      */
-    protected $channel = null;
+    protected $ch = null;
 
     /**
      * AMQP connection instance
@@ -59,7 +59,7 @@ class AmqpLib implements QueueInterface
         $this->config = $config->load('queue')['amqp'];
         $this->AMQPconnection = $provider->get($params);
         
-        $this->channel = $this->AMQPconnection->channel();
+        $this->ch = $this->AMQPconnection->channel();
         $this->defaultQueueName = 'default';
     }
 
@@ -118,9 +118,9 @@ class AmqpLib implements QueueInterface
         $queue  = (empty($route)) ? $this->defaultQueueName : $route;
         $params = $this->getOptions();
 
-        $this->channel->queue_declare($queue, false, true, false, false);
-        $this->channel->exchange_declare($queue, $params['type'], $params['passive'], $params['durable'], false);
-        $this->channel->queue_bind($queue, $exchange);
+        $this->ch->queue_declare($queue, false, true, false, false);
+        $this->ch->exchange_declare($exchange, $params['type'], $params['passive'], $params['durable'], false);
+        $this->ch->queue_bind($queue, $exchange);
 
         return $this->publishJob($exchange, $data, null, $options);
     }
@@ -161,13 +161,13 @@ class AmqpLib implements QueueInterface
                 'x-expires'              => $delay * 2000
             ]
         );
-        $this->channel->queue_declare($destination, false, true, false, false, false);
-        $this->channel->exchange_declare($job, 'direct', false, true, false);
-        $this->channel->queue_bind($destination, $job);
+        $this->ch->queue_declare($destination, false, true, false, false, false);
+        $this->ch->exchange_declare($exchange, 'direct', false, true, false);
+        $this->ch->queue_bind($destination, $job);
 
-        $this->channel->queue_declare($queueDelayed, false, true, false, false, false, $arguments);
-        $this->channel->exchange_declare($exchangeDelayed, 'direct', false, true, false);
-        $this->channel->queue_bind($queueDelayed, $exchangeDelayed);
+        $this->ch->queue_declare($queueDelayed, false, true, false, false, false, $arguments);
+        $this->ch->exchange_declare($exchangeDelayed, 'direct', false, true, false);
+        $this->ch->queue_bind($queueDelayed, $exchangeDelayed);
 
         return $this->publishJob($exchange, $data, $exchangeDelayed, $options);
     }
@@ -189,11 +189,11 @@ class AmqpLib implements QueueInterface
             'content_type' => 'text/json'
         ) : $options;
 
-        $payload = json_encode(['job' => $exchange, 'data' => $data]);
-        $message = new AMQPMessage($payload, $options);
+        $message = new AMQPMessage(json_encode(['job' => $exchange, 'data' => $data]), $options);
         
         $job = ($exchangeDelayed == null) ? $exchange : $exchangeDelayed;
-        $this->channel->basic_publish($message, $job);
+        $this->ch->basic_publish($message, $job);
+        $this->ch->close();
         return true;
     }
 
@@ -201,25 +201,25 @@ class AmqpLib implements QueueInterface
      * Pop the next job off of the queue.
      *
      * @param string $job   exchange name
-     * @param string $route queue name ( routing key )
+     * @param string $queue queue name ( routing key )
      *
      * @return mixed job handler object or null
      */
-    public function pop($job, $route = null)
+    public function pop($job, $queue = null)
     {
         $exchange = $job;
-        $queue  = (empty($route)) ? $this->defaultQueueName : $route;
+        $queueName = (empty($queue)) ? $this->defaultQueueName : $queue;
         $params = $this->getOptions();
 
-        $this->channel->queue_declare($queue, false, true, false, false);
-        $this->channel->exchange_declare($exchange, $params['type'], $params['passive'], $params['durable'], false);
-        $this->channel->queue_bind($queue, $exchange);
+        $this->ch->queue_declare($queueName, false, true, false, false);
+        $this->ch->exchange_declare($exchange, $params['type'], $params['passive'], $params['durable'], false);
+        $this->ch->queue_bind($queueName, $exchange);
 
-        $AMQPMessage = $this->channel->basic_get($queue);
-        $AMQPMessage->delivery_info['routing_key'] = $queue;  // Fill routing key it comes empty.
+        $AMQPMessage = $this->ch->basic_get($queueName);
+        $AMQPMessage->delivery_info['routing_key'] = $queueName;  // Fill routing key it comes empty.
 
         if ($AMQPMessage instanceof AMQPMessage) {     // * Send Message to JOB QUEUE
-            return new AmqpLibJob($this, $this->channel, $AMQPMessage);  // Send incoming message to job class.
+            return new AmqpLibJob($this, $this->ch, $AMQPMessage);  // Send incoming message to job class.
         }
         return null;
     }

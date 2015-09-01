@@ -81,8 +81,3 @@ class Random
     }
 
 }
-
-// END Random Class
-/* End of file Random.php
-
-/* Location: .Obullo/Utils/Random.php */

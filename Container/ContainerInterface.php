@@ -18,46 +18,20 @@ interface ContainerInterface extends ArrayAccess
 {
     /**
      * Get instance of the class without 
-     * register it into Controller object
+     * register it into Controller
      * 
-     * @param string  $cid    class id
-     * @param boolean $params if array params not empty execute the closure() method
+     * @param string $cid class id
      * 
      * @return object
      */
-    public function get($cid, $params = null);
+    public function get($cid);
     
     /**
-     * Checks if a parameter or an object is set.
+     * Checks if a parameter or an object is registered.
      *
      * @param string $cid The unique identifier for the parameter or object
      *
      * @return Boolean
      */
     public function has($cid);
-
-    /**
-     * Checks package loaded before ( is old )
-     * 
-     * @param string $cid package id
-     * 
-     * @return boolean
-     */
-    public function active($cid);
-
-    /**
-     * Gets a parameter or the closure defining an object.
-     *
-     * @param string $cid The unique identifier for the parameter or object
-     *
-     * @return mixed The value of the parameter or the closure defining an object
-     */
-    public function raw($cid);
-
-    /**
-     * Returns all defined value names.
-     *
-     * @return array An array of value names
-     */
-    public function keys();
 }

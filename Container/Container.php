@@ -25,13 +25,10 @@ class Container implements ContainerInterface
     protected $raw = array();
     protected $keys = array();
     protected $unset = array();            // Stores classes we want to remove
-    protected $get = array();              // Stores get() (return) requests
     protected $services = array();         // Defined services
     protected $registeredServices = array();  // Lazy loading for service wrapper class
     protected $registeredProviders = array();  // Stack data for service provider wrapper class
     protected $registeredConnections = array(); // Lazy loading for service provider register method
-    protected $getParams = array();         // Stores get() method parameters
-    protected $valuesWithParams = array();  // Stores object values which they used with with get(, $params) 
 
     /**
      * Constructor
@@ -241,63 +238,13 @@ class Container implements ContainerInterface
      * Get instance of the class without 
      * register it into Controller object
      * 
-     * @param string  $cid       class id
-     * @param boolean $params    if array params not empty execute the closure() method
-     * @param boolean $singleton on / off singleton
+     * @param string $cid class id
      * 
      * @return object
      */
-    public function get($cid, $params = null, $singleton = true)
+    public function get($cid)
     {
-        if ($singleton == false) {
-            return $this->getClosure($cid, array());   // Create new object wihout params
-        }
-        if (is_array($params) && count($params) > 0) {
-            $pid = self::getParamsId($cid, $params);  // Get parameter id of object
-
-            if (isset($this->getParams[$pid])) {
-                return $this->valuesWithParams[$cid];  // Return cached serialized object
-            } else {
-                $this->get[$cid] = $cid;
-                $this->getParams[$pid] = $pid;
-                return $this->valuesWithParams[$cid] = $this->getClosure($cid, $params);  // Create and store object with params
-            }
-            return $this->getClosure($cid, $params);
-        }
-        $this->get[$cid] = $cid;
         return $this[$cid];
-    }
-
-    /**
-     * Serialize class parameters
-     * 
-     * @param string $cid    class key
-     * @param array  $params parameters
-     * 
-     * @return string
-     */
-    protected static function getParamsId($cid, array $params)
-    {
-        return sprintf("%u", crc32(serialize($params).$cid));
-    }
-
-    /**
-     * Get closure function of object
-     * 
-     * @param string $cid    class id
-     * @param array  $params closure params
-     * 
-     * @return object Closure
-     */
-    protected function getClosure($cid, $params = array())
-    {
-        if (! isset($this->keys[$cid])) {  // First load class to container if its not loaded
-            return $this->load($cid, $params);
-        }
-        if (isset($this->raw[$cid])) {  // Check is it available if yes return to closure()
-            return $this->raw[$cid]($params);
-        }
-        return $this->values[$cid]($params);     // else return to object
     }
 
     /**
