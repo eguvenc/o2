@@ -407,22 +407,22 @@ Yüklü olan bir konfigürasyona dinamik olarak yeni değerler atar.
 <kbd>config/</kbd> klasöründeki konfigürasyon dosyalarına veri yazmayı sağlar.
 
 
-#### Env Sınıfı Referansı
+#### EnvVariable Sınıfı Referansı
 
 ------
 
-##### $c['var']['variable'];
+##### $c['var']['x'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkene ulaşmayı sağlar.
 
-##### $c['var']['variable.default'];
+##### $c['var']['x.default'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa varsayılan olarak girilen ("default") değerin atanmasını sağlar.
 
-##### $c['var']['variable.null'];
+##### $c['var']['x.null'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa varsayılan olarak <b>"null"</b> boş değeri atanmasını sağlar.
 
-##### $c['var']['variable.default.required']; yada $c['var']['variable.required'];
+##### $c['var']['x.default.required']; yada $c['var']['x.required'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa uygulamanın durarak genel hata vermesini sağlar.
