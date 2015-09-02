@@ -770,8 +770,7 @@ class Router
     public function attach($route)
     {
         $match = $this->detectDomain($this->group);
-
-        // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
+                                                          // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
         if (isset($this->group['domain']) && ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }

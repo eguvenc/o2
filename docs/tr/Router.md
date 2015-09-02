@@ -28,9 +28,22 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
     <a href="#routing">Route Kuralları Oluşturmak</a>
     <ul>
         <li><a href="#route-types">İstek Türleri</a></li>
-        <li><a href="#route-group">Bir Route Grubu Oluşturmak</a></li>
+        <li><a href="#regex">Düzenli İfadeler</a></li>
+        <li><a href="#closures">İsimsiz Fonksiyonlar</a></li>
+        <li><a href="#parameters">Parametreler</a></li>
+        <li><a href="#route-groups">Route Grupları</a></li>
+        <li><a href="#sub-domains">Alt Alan Adları ve Gruplar</a></li>
+        <li><a href="#regex-sub-domains">Alt Alan Adları ve Düzenli İfadeler</a></li>
     </ul>
 </li>
+
+<li>
+    <a href="#middlewares">Http Katmanları</a>
+    <ul>
+        <li><a href="#route-types">-</a></li>
+    </ul>
+</li>
+
 
 
 </ul>
@@ -206,24 +219,25 @@ $c['router']->get('welcome(.*)', 'home/index/$1');
 
 Route kuralları <kdd>düzenli ifadeler</kdd> (regex) yada <kbd>/wildcards</kbd> kullanılarak tanılanabilir.
 
-
 <b>POST kuralı</b> - example.com/welcome/ örnek url adresine gelen http post isteklerini girilen değere yönlendirir.
 
 ```php
 $c['router']->post('welcome/(.+)', 'home/index/$1');
 ```
 
-<b>Birden fazla http istek kabul etmek</b> ( GET, POST, DELETE, PUT ve diğerleri )
+<b>Birden fazla http isteğini kabul etmek</b> ( GET, POST, DELETE, PUT ve diğerleri )
 
 ```php
 $c['router']->match(['get','post'], 'welcome/(.+)', 'home/index/$1');
 ```
 
-yukarıdaki örnekte eğer bir URL "welcome/$arg/$arg .." değerini içeriyorsa gelen argümanlar "home/home/index" yani home dizini, home sınıfı index metoduna gönderilir.
+yukarıdaki örnekte eğer bir URL "welcome/$arg/$arg .." değerini içeriyorsa gelen argümanlar "home/home/index/$arg" yani home dizini içerisinde home sınıfı index metoduna gönderilir.
 
 <a name="route-types"></a>
 
 #### İstek Türleri
+
+Route kuralları yazıldığında aynı zamanda http isteklerini istek tipine göre filtrelemeyi sağlar. Aşağıdaki tablo route kuralları için mevcut http metotlarını gösteriyor.
 
 <table>
   <thead>
@@ -262,24 +276,27 @@ yukarıdaki örnekte eğer bir URL "welcome/$arg/$arg .." değerini içeriyorsa 
   </tbody>
 </table>
 
-**Note:** Splitting routes allows to us filter them.
+<a name="regex"></a>
 
-<a name="route-group"></a>
+#### Düzenli İfadeler
 
-#### Route Grubu Oluşturmak
+Eğer regex yani düzenli ifadeler kullanmayı tercih ediyorsanız route kuralları içerisinde herhangi bir düzenli ifadeyi referans çağırımlı (back-references) olarak kullanabilirsiniz.
 
-If you prefer you can use regular expressions to define your routing rules. Any valid regular expression is allowed, as are back-references.
+> **Not:** Eğer referans çağırımı kullanıyorsanız çift backslash kullanmak yerine dolar $ işareti kullanmanız gerekir.
 
-**Note:** If you use back-references you must use the dollar syntax rather than the double backslash syntax.
-
-A typical RegEx route might look something like this:
+Tipik bir referanslı regex örneği.
 
 ```php
 $c['router']->get('([0-9]+)/([a-z]+)', 'welcome/$1/$2');
 ```
 
-In the above example, a URI similar to <kbd>example.com/1/test</kbd> call the <kbd>welcome</kbd> controller class index method with <kbd>1 - 2</kbd> arguments.
+Yukarıdaki örnekte <kbd>example.com/1/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd> kontrolör sınıfı index metodu parametresine <kbd>1 - 2</kbd> argümanlarını gönderir.
 
+<a name="closures"></a>
+
+#### İsimsiz Fonksiyonlar
+
+Route kuralları içerisinde isimsiz fonksiyonlar da kullanabilmek mümkündür.
 
 ```php
 $c['router']->get(
@@ -290,10 +307,13 @@ $c['router']->get(
 );
 ```
 
-In the above example, a URI similar to <kbd>example.com/welcome/123/test</kbd> call the <kbd>welcome</kbd> controller class index method with <kbd>123 - test</kbd> arguments.
+Bu örnekte, <kbd>example.com/welcome/123/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd>  kontrolör sınıfı index metodu parametresine <kbd>123 - test</kbd> argümanlarını gönderir.
 
-And also your closure function run in router level.
+<a name="parameters"></a>
 
+#### Parametreler
+
+Eğer girilen bölümleri fonksiyon içerisinden belirli kriterlere göre parametreler ile almak istiyorsanız süslü parentezler { } kullanın.
 
 ```php
 $c['router']->get(
@@ -301,21 +321,33 @@ $c['router']->get(
     function ($directory, $id, $name) use ($c) {
         $c['response']->show404($directory.'-'.$id.'-'.$name);
     }
-)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
+)->where(['id' => '([0-9]+)', 'name' => '([a-z]+)']);
 ```
 
-In the above example, a URI similar to <kbd>example.com/welcome/123/test</kbd> call the <kbd>welcome</kbd> controller class and arguments belonging to our url scheme.
+Yukarıdaki örnekte <kbd>/welcome/index/123/test</kbd> adresine benzer bir URL <kbd>where()</kbd> fonksiyonu içerisine girilen kriterlerle uyuştuğunda isimsiz fonksiyon içerisine girilen fonksiyonu çalıştırır.
+
+```php
+welcome/index/123/test
+```
 
 ```php
 $c['router']->get(
-    '{id}/{name}/{any}', 'tutorials/hello_world/$1/$2/$3',
+    '{id}/{name}/{any}', 'home/home/index/$1/$2/$3',
     function ($id, $name, $any) use ($c) {
         echo $id.'-'.$name.'-'.$any;
     }
 )->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
 ```
 
-In the above example URI scheme <kbd>{id}/{name}/{any}</kbd> replaced with your regex then if correct uri matched a URI like <kbd>welcome/123/electronic/mp3_player/</kbd> rewrite your kroute as <kbd>tutorials/hello_world/123/electronic/mp3_player/</kbd> and sends arguments to your closure function.
+Bu örnekte ise <kbd>{id}/{name}/{any}</kbd> olarak girilen URI şeması <kbd>product/index/123/electronic/mp3_player/</kbd> adresine benzer bir URL ile uyuştuğunda girdiğiniz düzenli ifade ile değiştirilir ve rewrite değerine <kbd>home/home/index/123/electronic/mp3_player/</kbd> olarak girdiğiniz URL argümanları isimsiz fonksiyona parametre olarak gönderilir.
+
+Kısacası yukarıdaki route kuralının çalışabilmesi için aşağıdaki gibi bir URL çağırılması gerekir.
+
+```php
+welcome/index/123/test/parameters/
+```
+
+Gelişmiş bir örnek:
 
 ```php
 $c['router']->get(
@@ -339,28 +371,65 @@ $c['router']->get(
 )->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
 ```
 
-In the above example URI scheme <kbd>shop/{id}/{name}</kbd> replaced with your regex then if correct uri matched a URI like <kbd>example.com/shop/123/mp3_player</kbd> sends arguments to your closure function.
+Bu örnekte ise <kbd>shop/{id}/{name}</kbd> olarak girilen URI şeması eğer <kbd>/shop/123/mp3_player</kbd> adresine benzer bir URL ile eşleşirse where() metodu içerisine girdiğiniz düzenli ifade ile değiştirilir ve tarayıcıdan girilen parametreler isimsiz fonksiyona gönderilir. Eğer parametre olarak alınan ID değeri veritabanı içerisinde sorgulanır ve bulunamazsa bir hata mesajı gösterilir.
 
-### Sub-Domain Routing
+<a name="route-groups"></a>
 
-Creating route group for shop.example.com domain.
+#### Route Grupları
+
+Route grupları bir kurallar bütününü topluca yönetmenizi grup kuralları belirli <b>alt domainler</b> için çalıştırılabildiği gibi belirli <b>http katmanlarına</b> da tayin edilebilirler. Örneğin tanımladığınız route grubunda belirlediğiniz http katmanlarının çalışmasını istiyorsanız grup tanımlamalarına katman isimlerini girdikten sonra <kbd>$this->attach()</kbd> metodu ile katmanı istediğiniz URL adreslerine tuturmanız gerekir. Birden fazla katman middleware dizisi içine girilebilir.
 
 ```php
 $c['router']->group(
-    array('name' => 'shop', 'domain' => 'shop.example.com'), 
-    function ($group) {
-        $this->get('welcome/(.+)', 'tutorials/hello_world', null, $group);
-        $this->get('product/{id}', 'product/list/$1', null, $group);
+    ['name' => 'test', 'middleware' => array('methodNotAllowed')],
+    function () {
+
+        $this->attach('welcome');
+        $this->attach('welcome/test');
     }
 );
 ```
 
-Creating route group for account.example.com domain.
+Bu tanımlamadan sonra eğer buna benzer bir URL <kbd>/welcome</kbd> çağırırsanız <b>methodNotAllowed</b> katmanı çalışır ve aşağıdaki hata ile karşılaşırsınız.
+
+```php
+Http Error 405 Get method not allowed.
+```
+
+> **Not:** Route gurubu seçeneklerine isim (name) değeri girmek zorunludur.
+
+<a name="sub-domains"></a>
+
+#### Alt Alan Adları ve Gruplar
+
+Eğer bir gurubu belirli bir alt alan adına tayin ederseniz grup içerisindeki route kuralları yalnızca bu alan adı için geçerli olur. Aşağıdaki örnekte <kbd>shop.example.com</kbd> alan adı için bir grup tanımladık.
+
+```php
+$c['router']->group(
+    array('name' => 'shop', 'domain' => 'shop.example.com'), 
+    function () {
+
+        $this->defaultPage('welcome');
+
+        $this->get('welcome/(.+)', 'home/index', null);
+        $this->get('product/{id}', 'product/list/$1', null);
+    }
+);
+```
+
+Tarayıcınızdan bu URL yi çağırdığınızda bu alt alan adı için tanımlanan route kuralları çalışmaya başlar.
+
+```php
+http://shop.example.com/product/123
+```
+
+Aşağıda <kbd>account.example.com</kbd> adlı bir alt alan adı için kurallar tanımladık.
 
 ```php
 $c['router']->group(
     array('name' => 'accounts', 'domain' => 'account.example.com'), 
-    function ($group) {
+    function () {
+
         $this->get(
             '{id}/{name}/{any}', 'user/account/$1/$2/$3',
             function ($id, $name, $any) {
@@ -371,22 +440,40 @@ $c['router']->group(
 );
 ```
 
-### Katmanlar
+Tarayıcınızdan aşağıdaki gibi bir URL çağırdığınızda bu alt alan adı için yazılan kurallar çalışmış olur.
+
+
+```php
+http://account.example.com/123/john/test
+```
+
+<a name="regex-sub-domains"></a>
+
+#### Alt Alan Adları ve Düzenli İfadeler
+
+Alt alan adlarınızda eğer <kbd>sports19.example.com</kbd>, <kbd>sports20.example.com</kbd>, <kbd>sports21.example.com</kbd> gibi değişen sayılar mevcut ise alan adı kısmında düzenli ifadeler kullanarak route grubuna alan adınızı tayin edebilirsiniz.
+
+```php
+$c['router']->group(
+    array('name' => 'sports', 'domain' => 'sports.*\d.example.com', 'middleware' => array('maintenance')),
+    function () {
+
+        $this->defaultPage('welcome');
+        $this->attach('.*');
+    }
+);
+```
+
+<a name="middlewares"></a>
+
+### Http Katmanları
 
 You can define your custom route filters from filters.php
-
-#### Bir Http Katmanının İşleyişi
 
 In order to understand how a filter works, let’s break one down by look at one of the most important, the authentication filter:
 
 ```php
-/*
-|--------------------------------------------------------------------------
-| Auth
-|--------------------------------------------------------------------------
-| Auth filter
-*/
-$c['router']->filter('auth', 'Http/Filters/AuhtFilter');
+
 ```
 
 #### Bir Kurala Katman Atamak
@@ -410,23 +497,7 @@ $c['router']->get(
 )->middleware('auth');
 ```
 
-#### Grup Kuralları
-
-Using a route pattern is perfect when you want to attach a filter to a very specific set of routes like above. However it’s often the case that your routes won’t fit into a nice pattern and so you would end up with multiple pattern definitions to cover all eventualities.
-
-A better solution is to use Group Filters:
-
-```php
-$c['router']->group(
-    array('name' => 'test', 'middleware' => array('auth')) 
-    function ($group) {
-        $this->attach('tutorials/hello_form', $group);
-        $this->attach('tutorials/hello_world', $group);
-    }
-);
-```
-
-### Bir Gruba Katman Atamak
+#### Bir Gruba Katman Atamak
 
 
 ```php
@@ -441,6 +512,31 @@ $c['router']->group(
 );
 ```
 
+#### Bir Grup İçinden Katman Atamak
+
+Aşağıdaki örnek tek bir iz için katmanlar tayin etmenizi sağlar.
+
+$router->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
+
+Eğer çok fazla güvenli adresleriniz varsa onları aşağıdaki gibi tanımlamak daha mantıklı olacaktır.
+
+
+```php
+$c['router']->group(
+    ['name' => 'Secure', 'domain' => 'framework', 'middleware' => array('Https')],
+    function () {
+
+        $this->match(['get', 'post'], 'orders/pay')->middleware('Csrf');
+        $this->match(['post'], 'orders/pay/post')->middleware('Csrf');
+        
+        $this->get('orders/bank_transfer');
+        $this->get('hello$', 'welcome/index');
+    }
+);
+```
+
+> **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olur. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
+
 ### Dosya Kısıtlama Örneği
 
 ```php
@@ -451,96 +547,7 @@ http://www.example.com/test/good_segment2
 $this->attach('^(test/(?!bad_segment).*)$');
 ```
 
-#### Filter Classes
-
-Keep filters in classes make organising and maintaining your filters a lot easier.
-
-Filter classes also use Container. This means that they will automatically be able to use dependency injection so you can very easily test that they are working correctly.
-
-Open your filters.php file then put below the content.
-
-```php
-/*
-|--------------------------------------------------------------------------
-| Hello Filter
-|--------------------------------------------------------------------------
-| Example class filter
-*/
-$c['router']->filter('hello', 'Http/Filters/HelloFilter');
-```
-
-An example of a filter class could be:
-
-```php
-
-Class HelloFilter
-{
-    /**
-     * Post
-     * 
-     * @var object
-     */
-    protected $post;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->post = $c['post'];
-    }
-
-    /**
-     * Before the controller
-     * 
-     * @return void
-     */
-    public function before()
-    {
-        if ($this->request->isPost() AND $this->request->post('apikey') != '123456') {
-            echo json_encode(
-                array(
-                'error' => 'Your api key is not valid'
-                )
-            );
-            die;
-        }
-    }
-
-    /**
-     * After the controller
-     * 
-     * @return void
-     */
-    public function after()
-    {
-        // ..
-    }
-
-    /**
-     * On load method of the controller
-     * 
-     * @return void
-     */
-    public function load()
-    {
-        // ..
-    }
-
-}
-```
-
-Then attach your filter in routes.php
-
-```php
-$c['router']->attach('tutorials/hello_world.*', array('auth'));
-```
-
-Filters allow you to very easily abstract complex route access logic into concise and easy to use nuggets of code. This allows you to define the logic once, but then apply it to many different routes.
-
-#### Example Filter ( Language Filter )
+#### Translation Katmanı
 
 Creating Locale filter
 
@@ -660,31 +667,6 @@ $c['router']->group(
     }
 );
 ```
-
-#### Tek Bir Route a Katman Atamak
-
-Aşağıdaki örnek tek bir iz için katmanlar tayin etmenizi sağlar.
-
-$router->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
-
-Eğer çok fazla güvenli adresleriniz varsa onları aşağıdaki gibi tanımlamak daha mantıklı olacaktır.
-
-
-```php
-$c['router']->group(
-    ['name' => 'Secure', 'domain' => 'framework', 'middleware' => array('Https')],
-    function () {
-
-        $this->match(['get', 'post'], 'orders/pay')->middleware('Csrf');
-        $this->match(['post'], 'orders/pay/post')->middleware('Csrf');
-        
-        $this->get('orders/bank_transfer');
-        $this->get('hello$', 'welcome/index');
-    }
-);
-```
-
-> **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olur. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
 
 #### Creating Maintenance Filters
 
@@ -845,88 +827,84 @@ $c['router']->attach('tutorials/hello_world.*', array('https://'));
 Now we force <b>http://example.com/tutorials/hello_world</b> request to https:// secure connection.
 
 
-### Route Reference
+#### Routes.php Referansı
 
 ------
 
-#### $c['router']->domain(string $domain);
+##### $c['router']->domain(string $domain);
 
 Sets a your default domain.
 
-#### $c['router']->defaultPage(string $pageController);
+##### $c['router']->defaultPage(string $uri);
 
 Sets your default controller.
 
-#### $c['router']->error404(string $errorController);
+##### $c['router']->error404(string $uri);
 
 Sets your error controller.
 
-#### $c['router']->match(array $methods, string $match, string $rewrite, object $closure = null)
+##### $c['router']->match(array $methods, string $match, string $rewrite, $closure = null)
 
 Girilen http istek metotlarına göre bir iz yaratır, istek metotları get,post,put ve delete metotlarıdır.
 
-#### $c['router']->get(string $match, string $rewrite, object $closure = null)
+##### $c['router']->get(string $match, string $rewrite, $closure = null)
 
 Creates a http GET based route.
 
-#### $c['router']->post(string $match, string $rewrite, object $closure = null)
+##### $c['router']->post(string $match, string $rewrite, $closure = null)
 
 Creates a http POST based route.
 
-#### $c['router']->put(string $match, string $rewrite, object $closure = null)
+##### $c['router']->put(string $match, string $rewrite, $closure = null)
 
 Creates a http PUT based route.
 
-#### $c['router']->delete(string $match, string $rewrite, object $closure = null)
+##### $c['router']->delete(string $match, string $rewrite, $closure = null)
 
 Creates a http DELETE based route.
 
-#### $c['router']->group(array $options, $closure);
+##### $c['router']->group(array $options, $closure);
 
 Creates a route group.
 
-#### $c['router']->where(array $replace);
+##### $c['router']->where(array $replace);
 
 Replaces your route schema with arguments.
 
 
-### Middleware Reference
+#### Middleware Referansı
 
 ------
 
-#### $c['router']->attach(string $route)
+##### $c['router']->attach(string $route)
 
 Geçerli grubun katmanlarını girilen ize tutturur.
 
-#### $c['router']->match(['get','post'], '/')->middleware(array $middlewares);
+##### $c['router']->match(['get','post'], '/')->middleware(array $middlewares);
 
 En son yazılan http izine girilen katmanları tutturur.
 
 
-### Function Reference
+#### Sınıf Referansı
 
 ------
 
-#### $this->router->getHost();
+##### $this->router->getHost();
 
 Gets current domain name.
 
-#### $this->router->getDomain();
+##### $this->router->getDomain();
 
 Returns domain name configured in routes.php
 
-#### $this->router->fetchModule();
+##### $this->router->fetchModule();
 
 Gets the currently working module name.
 
-#### $this->router->fetchDirectory();
+##### $this->router->fetchDirectory();
 
 Gets the currently working directory name.
 
-#### $this->router->fetchClass();
+##### $this->router->fetchClass();
 
 Gets the currently working directory name.
-
-#### $this->router->getAttachedRoutes();
-
-Returns to registered middlewares.
