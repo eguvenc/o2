@@ -54,8 +54,8 @@ class Controller
             $response->show404();
         }
         $this->blocks = '';
-        if ($reflection->hasMethod('load')) {
-            $this->blocks = $reflection->getMethod('load')->getDocComment();
+        if ($reflection->hasMethod('__construct')) {
+            $this->blocks = $reflection->getMethod('__construct')->getDocComment();
         }
         $this->blocks.= $reflection->getMethod($method)->getDocComment();
     }

@@ -93,7 +93,7 @@ public function index()
 
 #### Middleware
 
-@middleware komutu ile bir kontrolör sınıfı içerisindeb uygulamaya bir katman eklenebilir yada bir katman uygulamadan kaldıralabilir.
+@middleware komutu ile bir kontrolör sınıfı içerisinden uygulamaya bir katman eklenebilir yada bir katman uygulamadan kaldırılabilir.
 
 ```php
 /**
@@ -155,7 +155,7 @@ Bu örnekte index metodu çalıştığında <kbd>@event->subscribe</kbd> anotasy
 
 #### Yükleyici Anotasyonları
 
-Bazı durumlarda yüklenen kontrolör sınıfının tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>load</b> metodu üzerine yazmanız yeterli olacaktır.
+Bazı durumlarda yüklenen kontrolör sınıfının tüm metodlarında geçerli olabilecek bir filtreye ihtiyaç duyulabilir. Bu durumda filtreleri <b>__construct</b> metodu üzerine yazmanız yeterli olacaktır.
 
 ```php
 /**
@@ -165,7 +165,7 @@ Bazı durumlarda yüklenen kontrolör sınıfının tüm metodlarında geçerli 
  * 
  * @return void
  */
-public function load()
+public function __construct()
 {
     // ..
 }
