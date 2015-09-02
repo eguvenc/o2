@@ -549,99 +549,14 @@ $this->attach('^(test/(?!bad_segment).*)$');
 
 #### Translation Katmanı
 
-Creating Locale filter
-
-```php
-/*
-|--------------------------------------------------------------------------
-| Redirect locale
-|--------------------------------------------------------------------------
-| Current: http://example.com/news/sports/
-|
-| If URL doesn't contain language abridgement 'en, tr, de, nl',
-| it will be added to URL.
-| 
-| Then: http://example.com/en/news/sports
-*/
-$c['router']->filter('locale', 'Http\Filters\LocaleFilter');
-```
-
-Creating locale filter class.
-
-
-```php
-namespace Http\Filters;
-
-/**
- * Locale filter
- *
- * @category  Route
- * @package   Filters
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/router
- */
-Class LocaleFilter
-{
-    /**
-     * Cookie
-     * 
-     * @var object
-     */
-    protected $cookie;
-
-    /**
-     * Url
-     * 
-     * @var string
-     */
-    protected $url;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->url = $c->load('url');
-        $this->cookie = $c->load('cookie');
-    }
-
-    /**
-     * Before the controller
-     * 
-     * @return void
-     */
-    public function before()
-    {
-        $locale = $this->cookie->get('locale');
-        $languages = $this->c['config']->load('translator')['languages'];
-
-        if ( ! isset($languages[$locale])) {
-            $locale = $this->translator->getLocale();
-        }
-        $this->url->redirect($locale. '/' . $this->uri->getUriString());
-    }
-}
-
-// END LocaleFilter class
-
-/* End of file LocaleFilter.php */
-/* Location: .Http/Filters/LocaleFilter.php */
-```
-
-Then we attach filter to our route group.
-
 ```php
 $c['router']->group(
     array('name' => 'locale', 'domain' => '^www.example.com$|^example.com$', 'middleware' => array('locale')),
     function () {
 
         $this->defaultPage('welcome');
-        $this->get('(?:en|tr|de|nl)/(.*)', '$1', null, $group);  // Dispatch request for http://example.com/en/folder/class
-        $this->get('(?:en|tr|de|nl)', 'welcome/index',  null, $group);  // if request http://example.com/en  -> redirect it to default controller
+        $this->get('(?:en|tr|de|nl)/(.*)', '$1', null);  // Dispatch request for http://example.com/en/folder/class
+        $this->get('(?:en|tr|de|nl)', 'welcome/index',  null);  // if request http://example.com/en  -> redirect it to default controller
 
         $this->attach('/');         // Filter only works for below the urls
         $this->attach('welcome');
@@ -651,180 +566,14 @@ $c['router']->group(
 );
 ```
 
-#### Using Regex For Filters
-
-<b>Scenario:</b> We have sub domains like this <kbd>sports19.example.com</kbd> or <kbd>sports4.example.com</kbd> so we need to do maintenance page filter for <kbd>sports\d+.example.com/tutorials/hello_word</kbd> page.
-
-Example:
-
-```php
-$c['router']->group(
-    array('domain' => 'sports.*\d.example.com', 'middleware' => array('maintenance')),
-    function () {
-
-        $this->defaultPage('welcome');
-        $this->attach('tutorials/hello_world.*');
-    }
-);
-```
 
 #### Creating Maintenance Filters
-
-Maintenance filters display maintenance page using configured maintenance function.
-
-Open your filters.php file then put below the content.
-
-```php
-$c['router']->filter('maintenance', 'Http\Filters\MaintenanceFilter');
-```
-
-Then we can assign our domain to filter using attach method.
-
-Open your routes.php file then put below the content.
-
-```php
-$c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml()->route->all, 'filters' => array('maintenance')), 
-    function ($group) {
-        $this->defaultPage('welcome/index');
-        $this->attach('tutorials/hello_world.*', $group); // attached to "sports" sub domain "/tutorials/hello_world/" url.
-    }
-);
-```
-
-Configure example for <b>All Website</b> and <b>all</b> urls.
-
-```php
-$c['router']->group(
-    array('name' => 'general', 'domain' => $c['config']->xml()->route->all, 'filters' => array('maintenance')), 
-    function ($group) {
-        $this->defaultPage('welcome/index');
-        $this->attach('.*', $group); // all urls of your domain
-    }
-);
-```
-
-**Note:** <b>$c['config']->xml()->route->all</b> fetches your config.xml "<app><all> .. </all<app/>" keys as <b>simpleXmlElement object</b>.
-
-
-Then go to your console and type:
-
-```php
-php task route all down
-```
-
-Now your application show maintenance view for all pages.
-
-Configure example for <b>reverse</b> urls.
-
-```php
-$c['router']->group(
-    array('domain' => $c['config']->xml()->route->sports, 'filters' => array('maintenance', 'auth')), 
-    function ($group) {
-        $this->attach('((?!tutorials/hello_world).)*$', $group);  // all urls which not contains "tutorials/hello_world"
-    }
-);
-```
-
-Then go to your console and type:
-
-```php
-php task route all down
-```
-
-Now go to your console and type:
-
-```php
-php task route all up
-```
-
-Now your application "all" is up for your visitors.
 
 
 #### Creating Https Filter
 
-Open your filters.php file thn put below the content.
 
-```php
-/*
-|--------------------------------------------------------------------------
-| Https Filter
-|--------------------------------------------------------------------------
-| Force to https connection
-*/
-$c['router']->filter('https://', 'Http\Filters\'Https');
-
-/* End of file filters.php */
-/* Location: .filters.php */
-```
-
-And 
-
-
-```php
-namespace Http\Filters;
-
-/**
- * Https filter
- *
- * @category  Route
- * @package   Filters
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/router
- */
-Class HttpsFilter
-{
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Constructor
-     *
-     * @param object $c container
-     */
-    public function __construct($c)
-    {
-        $this->c = $c;
-        $this->uri = $c['uri'];
-        $this->url = $c->load('url');
-        $this->router = $c['router'];
-    }
-
-    /**
-     * Before the controller
-     * 
-     * @return void
-     */
-    public function before()
-    {
-        if ($this->c['request']->isSecure() == false) {
-            $this->url->redirect('https://'.$this->router->getDomain() . $this->uri->getRequestUri());
-        }
-    }
-}
-
-// END HttpsFilter class
-
-/* End of file HttpsFilter.php */
-/* Location: .Http/Filters/HttpsFilter.php */
-```
-
-Then attach your filter using routes.php
-
-```php
-$c['router']->attach('tutorials/hello_world.*', array('https://'));
-
-/* End of file routes.php */
-/* Location: .routes.php */
-```
-
-Now we force <b>http://example.com/tutorials/hello_world</b> request to https:// secure connection.
+.... coming soon.
 
 
 #### Routes.php Referansı
