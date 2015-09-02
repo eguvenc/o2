@@ -23,7 +23,7 @@ Konfigürasyon sınıfı <kbd>app/config</kbd> klasöründeki uygulamanıza ait 
         <li><a href="#environent-variable">Ortam Değişkeni</a></li>
         <li><a href="#environent-variables">Mevcut Ortam Değişkenleri</a></li>
         <li><a href="#env-files">Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak</a></li>
-        <li><a href="#env-class">Env Sınıfı</a></li>
+        <li><a href="#env-var">Konfigürasyon Değişkenleri ($c['var'])</a></li>
         <li><a href="#create-your-environment">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
         <li><a href="#creating-environment-config">Ortam Konfigürasyon Dosyası Yaratmak</a></li>
     </ul>
@@ -232,7 +232,7 @@ echo $c['app']->env();  // Çıktı  local
 
 #### Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak
 
-<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
+<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['var']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
 ```php
 return array(
@@ -264,18 +264,15 @@ No such file or directory in /o2/Config/Config.php on line 79
 
 > **Not:**  Eğer <b>config.php</b> dosyasında <kbd>error > debug</kbd> değeri <b>false</b> ise boş bir sayfa görüntülenebilir bu gibi durumlarla karşılaşmamak için <b>local</b> ortamda <kbd>error > debug</kbd> değerini her zaman <b>true</b> yapmanız önerilir.
 
-<a name="env-class"></a>
+<a name="env-var"></a>
 
-#### Env Sınıfı
+#### Konfigürasyon Değişkenleri ($c['var'])
 
-Env sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<kbd>.env.*.php</kbd> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <kbd>Obullo\Config\Env</kbd> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
+$c['var'] yani <kbd>Obullo\Config\EnvVariable</kbd> sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. <kbd>.env.*.php</kbd> dosyalarındaki değişkenler uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine ve konfigürasyon dosyalarındaki anahtarlara atanırlar. Sonuç olarak $c['var'] değişkenleri konfigürasyon dosyaları içerisinde kullanıldıklarında bu dosyalardaki hassas ya da istisnai olan ortak değerlerin yönetimini kolaylaştırırlar.
 
-Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek bir dosyadan yönetilmiş olur.
-
-Örnek bir env konfigürasyon çıktısı
 
 ```php
-echo $c['env']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
+echo $c['var']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
 ```
 
 Yukarıdaki örnekte fonksiyonun birinci parametresi <kbd>$_ENV</kbd> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
@@ -285,7 +282,7 @@ Eğer en son parametre <kbd>required</kbd> olarak girilirse <kbd>$_ENV</kbd> de�
 Boş gelemez zorunluluğuna bir örnek
 
 ```php
-echo $c['env']['MONGO_USERNAME.root.required']; // Root parametresi boş gelemez.
+echo $c['var']['MONGO_USERNAME.root.required']; // Root parametresi boş gelemez.
 ```
 
 Aşağıdaki örnekte ise mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin bu sınıf ile nasıl atandığını görüyorsunuz.
@@ -296,7 +293,7 @@ return array(
     'connections' =>
     [
         'default' => [
-            'server' => 'mongodb://root:'.$c['env']['MONGO_PASSWORD.null'].'@localhost:27017',
+            'server' => 'mongodb://root:'.$c['var']['MONGO_PASSWORD.null'].'@localhost:27017',
             'options'  => ['connect' => true]
         ],
         'second' => [
@@ -414,18 +411,18 @@ Yüklü olan bir konfigürasyona dinamik olarak yeni değerler atar.
 
 ------
 
-##### $c['env']['variable'];
+##### $c['var']['variable'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkene ulaşmayı sağlar.
 
-##### $c['env']['variable.default'];
+##### $c['var']['variable.default'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa varsayılan olarak girilen ("default") değerin atanmasını sağlar.
 
-##### $c['env']['variable.null'];
+##### $c['var']['variable.null'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa varsayılan olarak <b>"null"</b> boş değeri atanmasını sağlar.
 
-##### $c['env']['variable.default.required']; yada $c['env']['variable.required'];
+##### $c['var']['variable.default.required']; yada $c['var']['variable.required'];
 
 Bir konfigürasyon dosyası içerisinde çevre ortamına duyarlı bir değişkenin değeri yoksa uygulamanın durarak genel hata vermesini sağlar.

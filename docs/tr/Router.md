@@ -44,8 +44,6 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
     </ul>
 </li>
 
-
-
 </ul>
 
 <a name="configuration"></a>
@@ -468,6 +466,7 @@ $c['router']->group(
 
 ### Http Katmanları
 
+
 You can define your custom route filters from filters.php
 
 In order to understand how a filter works, let’s break one down by look at one of the most important, the authentication filter:
@@ -547,6 +546,8 @@ http://www.example.com/test/good_segment2
 $this->attach('^(test/(?!bad_segment).*)$');
 ```
 
+### Örnek Katmanlar
+
 #### Translation Katmanı
 
 ```php
@@ -567,10 +568,10 @@ $c['router']->group(
 ```
 
 
-#### Creating Maintenance Filters
+#### Maintenance Katmanı
 
 
-#### Creating Https Filter
+#### Https Katmanı
 
 
 .... coming soon.

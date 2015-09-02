@@ -21,7 +21,7 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#get-env-variable">Geçerli Ortam Değişkenini Almak</a></li>
         <li><a href="#existing-env-variables">Mevcut Ortam Değişkenleri</a></li>
         <li><a href="#create-env-variable-for-env-file">Ortam Değişkeni için Konfigürasyon Dosyalarını Yaratmak</a></li>
-        <li><a href="#env-class">Env Sınıfı</a></li>
+        <li><a href="#env-var">Konfigurasyon Değişkenleri ($c['var'])</a></li>
         <li><a href="#create-a-new-env-variable">Yeni Bir Ortam Değişkeni Yaratmak</a></li>
     </ul>
 </li>
@@ -169,7 +169,7 @@ Uygulamanızı doğru çalıştırabilmek için ilk aşamada bir ortam değişke
 
 #### Ortam Değişkenleri Dosyası ( .env.*.php ) Oluşturmak
 
-<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['env']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
+<b>.env*</b> dosyaları servis ve sınıf konfigürasyonlarında ortak kullanılan bilgiler yada şifreler gibi daha çok paylaşılması mümkün olmayan hassas bilgileri içerir. Bu dosyalar içerisindeki anahtarlara <b>$c['var']['variable']</b> fonksiyonu ile ulaşılmaktadır. Takip eden örnekte bir .env dosyasının nasıl gözüktüğü daha kolay anlaşılabilir.
 
 ```php
 return array(
@@ -330,19 +330,16 @@ return array(
 /* Location: .config/production/config.php */
 ```
 
-<a name="env-class"></a>
+<a name="env-var"></a>
 
+#### Konfigurasyon Değişkenleri ($c['var'])
 
-#### Env Sınıfı
+$c['var'] yani <kbd>Obullo\Config\EnvVariable</kbd> sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. <kbd>.env.*.php</kbd> dosyalarındaki değişkenler uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine ve konfigürasyon dosyalarındaki anahtarlara atanırlar. Sonuç olarak $c['var'] değişkenleri konfigürasyon dosyaları içerisinde kullanıldıklarında bu dosyalardaki hassas ya da istisnai olan ortak değerlerin yönetimini kolaylaştırırlar.
 
-Env sınıfı <kbd>Obullo/Application/Http.php</kbd> dosyasında ön tanımlı olarak gelir. Env fonksiyonları konfigürasyon dosyaları içerisinde kullanılırlar.<kbd>.env.*.php</kbd> dosyalarındaki anahtarlar uygulama çalıştığında ilk önce <kb>$_ENV</kbd> değişkenine atanırlar ve konfigürasyon dosyasında kullanmış olduğumuz <kbd>Obullo\Config\Env</kbd> sınıfı ile bu değerler konfigürasyon dosyalarındaki anahtarlara atanmış olurlar.
-
-Böylece konfigürasyon dosyalarındaki hassas ve istisnai ortak değerler tek bir dosyadan yönetilmiş olur.
-
-Örnek bir env konfigürasyon çıktısı
+Örnek bir env variable konfigürasyon çıktısı
 
 ```php
-echo $c['env']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
+echo $c['var']['MONGO_USERNAME.root']; // Bu konfigürasyon boş gelirse default değer root olacaktır.
 ```
 
 Yukarıdaki örnekte fonksiyonun birinci parametresi <kbd>$_ENV</kbd> değişkeninin içerisinden okunmak istenen anahtardır, noktadan sonraki ikinci parametre anahtarın varsayılan değerini tayin eder ve en son noktadan sonraki parametre anahtarın zorunlu olup olmadığını belirler.
@@ -352,7 +349,7 @@ Eğer en son parametre <kbd>required</kbd> olarak girilirse <kbd>$_ENV</kbd> de�
 Boş gelemez zorunluluğuna bir örnek
 
 ```php
-echo $c['env']['MONGO_USERNAME.root.required']; // Root parametresi boş gelemez.
+echo $c['var']['MONGO_USERNAME.root.required']; // Root parametresi boş gelemez.
 ```
 
 Aşağıdaki örnekte ise mongo veritabanına ait konfigürasyon içerisine $_ENV değerlerinin bu sınıf ile nasıl atandığını görüyorsunuz.
@@ -363,7 +360,7 @@ return array(
     'connections' =>
     [
         'default' => [
-            'server' => 'mongodb://root:'.$c['env']['MONGO_PASSWORD.null'].'@localhost:27017',
+            'server' => 'mongodb://root:'.$c['var']['MONGO_PASSWORD.null'].'@localhost:27017',
             'options'  => ['connect' => true]
         ],
         'second' => [
@@ -376,7 +373,6 @@ return array(
 
 /* Location: .config/local/mongo.php */
 ```
-
 
 <a name="create-a-new-env-variable"></a>
 

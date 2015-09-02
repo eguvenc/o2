@@ -3,10 +3,10 @@
 namespace Obullo\Config;
 
 use ArrayAccess;
-use Obullo\Container\ContainerInterface;;
+use Obullo\Container\ContainerInterface;
 
 /**
- * Config Object Class
+ * Config Env Variable Object
  * 
  * @category  Config
  * @package   Config
@@ -15,7 +15,7 @@ use Obullo\Container\ContainerInterface;;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-class Env implements ArrayAccess
+class EnvVariable implements ArrayAccess
 {
     /**
      * Current Environment

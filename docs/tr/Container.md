@@ -284,11 +284,11 @@ return array(
     'connections' => 
     [
         'default' => [
-            'host' => $c['env']['REDIS_HOST'],
+            'host' => $c['var']['REDIS_HOST'],
             'port' => 6379,
             'options' => [
                 'persistent' => false,
-                'auth' => $c['env']['REDIS_AUTH'],
+                'auth' => $c['var']['REDIS_AUTH'],
                 'timeout' => 30,
                 'attempt' => 100,
                 'serializer' => 'none',

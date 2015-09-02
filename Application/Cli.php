@@ -3,8 +3,8 @@
 namespace Obullo\Application;
 
 use Controller;
-use Obullo\Config\Env;
 use Obullo\Config\Config;
+use Obullo\Config\EnvVariable;
 use Obullo\Container\Container;
 
 /**
@@ -14,8 +14,8 @@ use Obullo\Container\Container;
  */
 $c = new Container;
 
-$c['env'] = function () use ($c) {
-    return new Env($c);
+$c['var'] = function () use ($c) {
+    return new EnvVariable($c);
 };
 $c['config'] = function () use ($c) {
     return new Config($c);

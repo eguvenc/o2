@@ -49,7 +49,7 @@ return array(
 
     'cookie' => [
         'name'   =>'locale',               // Translation value cookie name
-        'domain' => $c['env']['COOKIE_DOMAIN.null'], // Set to .your-domain.com for site-wide cookies
+        'domain' => $c['var']['COOKIE_DOMAIN.null'], // Set to .your-domain.com for site-wide cookies
         'expire' => (365 * 24 * 60 * 60),  // 365 day
         'secure' => false,                 // Cookie will only be set if a secure HTTPS connection exists.
         'httpOnly' => false,               // When true the cookie will be made accessible only 
