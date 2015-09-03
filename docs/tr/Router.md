@@ -14,7 +14,6 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
     </ul>
 </li>
 
-
 <li>
     <a href="#running">Çalıştırma</a>
     <ul>
@@ -38,11 +37,22 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
 </li>
 
 <li>
-    <a href="#middlewares">Http Katmanları</a>
+    <a href="#middlewares">Http Katmanlarını Route Kurallarına Atamak</a>
     <ul>
-        <li><a href="#route-types">-</a></li>
+        <li><a href="#route-md-assignment">Bir Kural İçin Katman Çalıştırmak</a></li>
+        <li><a href="#group-md-assignment">Bir Gruba Katman Atamak</a></li>
+        <li><a href="#inside-group-md-assignment">Bir Grup İçinden Katman Atamak</a></li>
+        <li><a href="#regex-md-run">Düzenli İfadeler Kullanmak</a></li>
     </ul>
 </li>
+
+<li>
+    <a href="#middlewares">Sık Kullanılan Katmanlar</a>
+    <ul>
+        <li><a href="#route-md-assignment"></a></li>
+    </ul>
+</li>
+
 
 </ul>
 
@@ -464,28 +474,21 @@ $c['router']->group(
 
 <a name="middlewares"></a>
 
-### Http Katmanları
+### Http Katmanlarını Route Kurallarına Atamak
 
+Http katmanları tek bir route kuralına atanarak direkt çalıştırılabilecekleri gibi bir route grubuna da tutturulduktan sonra <kbd>attach()</kbd> metodu ile dolaylı olarak da çalıştırılabilirler.
 
-You can define your custom route filters from filters.php
+<a name="route-md-assignment"></a>
 
-In order to understand how a filter works, let’s break one down by look at one of the most important, the authentication filter:
+#### Bir Kural İçin Katman Çalıştırmak
 
-```php
-
-```
-
-#### Bir Kurala Katman Atamak
-
-Once you have the filter set up, you need to attach it to a route in order for it to take effect.
-
-To attach a filter, simply pass it as an argument in the array of the second argument of a Route method definition:
+Tek bir route kuralı için katmanlar atayabilmek mümkündür. Aşağıdaki örnekte <b>/hello</b> sayfasına güvenli olmayan bir get yada post isteği geldiğinde <b>welcome/index</b> sayfasına yönlendirilir ve [Https katmanı](Middleware-Https.md) çalıştırılarak istek <kbd>https://</kbd> protokolü ile çalışmaya zorlanır.
 
 ```php
-$c['router']->attach('tutorials/hello_world', array('auth'));
+$c['router']->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
 ```
 
-Using attach method after routes
+Eğer rewrite özelliğini kullanmak istemiyorsanız rewrite parametresine null değeri girin.
 
 ```php
 $c['router']->get(
@@ -496,47 +499,54 @@ $c['router']->get(
 )->middleware('auth');
 ```
 
-#### Bir Gruba Katman Atamak
+Eğer birden fazla katman çalıştırmak isterseniz katmanları bir dizi içerisinde girin.
 
+```php
+$c['router']->get('membership/restricted')->middleware(array('auth', 'guest'));
+```
+
+
+<a name="group-md-assignment"></a>
+
+#### Bir Gruba Katman Atamak
 
 ```php
 $c['router']->group(
-    array('name' => 'shop', 'domain' => 'shop.example.com', 'middleware' => array('hello')), 
-    function ($group) {
-        $this->get('welcome/.+', 'tutorials/hello_world', null);
-        $this->get('product/{id}', 'product/list/$1', null);
+    array('name' => 'shop', 'domain' => 'shop.example.com', 'middleware' => array('Https')), 
+    function () {
 
-        $this->attach('.*'); // attach to all urls 
+        $this->get('welcome/.+', 'home/index');
+        $this->get('product/{id}', 'product/list/$1');
+
+        $this->attach('.*');
     }
 );
 ```
 
+<a name="inside-group-md-assignment"></a>
+
 #### Bir Grup İçinden Katman Atamak
 
-Aşağıdaki örnek tek bir iz için katmanlar tayin etmenizi sağlar.
-
-$router->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
-
-Eğer çok fazla güvenli adresleriniz varsa onları aşağıdaki gibi tanımlamak daha mantıklı olacaktır.
-
+Aşağıdaki örnekte <kbd>http://</kbd> protokolüyle ile güvenli olmayan bir istek geldiğinde istek [Https katmanı](Middleware-Https.md) çalıştırılarak <kbd>https://</kbd> protokolü ile çalışmaya zorlanıyor. Ayrıca <kbd>orders/pay</kbd> ve <kbd>orders/pay/post</kbd> sayfalarındaki formlar için [Csrf katmanı](Middleware-Csrf.md) çalıştırılıyor.
 
 ```php
 $c['router']->group(
-    ['name' => 'Secure', 'domain' => 'framework', 'middleware' => array('Https')],
+    ['name' => 'SecurePayment', 'domain' => 'pay.example.com', 'middleware' => array('Https')],
     function () {
 
         $this->match(['get', 'post'], 'orders/pay')->middleware('Csrf');
         $this->match(['post'], 'orders/pay/post')->middleware('Csrf');
         
-        $this->get('orders/bank_transfer');
-        $this->get('hello$', 'welcome/index');
+        $this->attach('.*');
     }
 );
 ```
 
-> **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olur. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
+> **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olacaktır. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
 
-### Dosya Kısıtlama Örneği
+<a name="regex-md-assignment"></a>
+ 
+#### Düzenli İfadeler Kullanmak
 
 ```php
 http://www.example.com/test/bad_segment
@@ -546,20 +556,24 @@ http://www.example.com/test/good_segment2
 $this->attach('^(test/(?!bad_segment).*)$');
 ```
 
-### Örnek Katmanlar
+### Sık Kullanılan Katmanlar için Örnekler
 
 #### Translation Katmanı
 
 ```php
 $c['router']->group(
-    array('name' => 'locale', 'domain' => '^www.example.com$|^example.com$', 'middleware' => array('locale')),
+    [
+        'name' => 'locale',
+        'domain' => '^www.example.com$|^example.com$',
+        'middleware' => array('locale')
+    ],
     function () {
 
         $this->defaultPage('welcome');
         $this->get('(?:en|tr|de|nl)/(.*)', '$1', null);  // Dispatch request for http://example.com/en/folder/class
         $this->get('(?:en|tr|de|nl)', 'welcome/index',  null);  // if request http://example.com/en  -> redirect it to default controller
 
-        $this->attach('/');         // Filter only works for below the urls
+        $this->attach('/');         // Run middlewares for below the urls
         $this->attach('welcome');
         $this->attach('sports/.*');
         $this->attach('support/.*');
@@ -567,14 +581,10 @@ $c['router']->group(
 );
 ```
 
-
 #### Maintenance Katmanı
 
 
-#### Https Katmanı
-
-
-.... coming soon.
+#### Auth ve Guest Katmanları 
 
 
 #### Routes.php Referansı
