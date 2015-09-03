@@ -2,7 +2,6 @@
 
 namespace Obullo\Cli;
 
-use InvalidArgumentException;
 use Obullo\Log\LoggerInterface;
 
 /**
@@ -15,7 +14,7 @@ use Obullo\Log\LoggerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class Cli implements CliInterface
+class Uri implements UriInterface
 {
     /**
      * Argument seperator
@@ -77,7 +76,7 @@ class Cli implements CliInterface
         $this->logger = $logger;
         $this->loggerExists();
         if ($this->exist) {
-            $this->logger->debug('Cli Class Initialized');
+            $this->logger->debug('Cli Uri Class Initialized');
         }
     }
 
@@ -97,9 +96,9 @@ class Cli implements CliInterface
      * 
      * @return array resolved parameters
      */
-    public function parse()
+    public function init()
     {
-        $argv = $this->getCmdString();
+        $argv = $this->getUriString();
         $parameters = explode("\n", strstr($argv, static::SIGN));
         if (! is_array($parameters) || ! isset($parameters[0])) {
             return array();
@@ -172,33 +171,13 @@ class Cli implements CliInterface
     }
 
     /**
-     * Get task controller
-     * 
-     * @return string
-     */
-    public function getClass()
-    {
-        return (empty($_SERVER['argv'][1])) ? null : $_SERVER['argv'][1];
-    }
-
-    /**
-     * Get task method
-     * 
-     * @return string
-     */
-    public function getMethod()
-    {
-        return (empty($_SERVER['argv'][2])) ? null : $_SERVER['argv'][2];
-    }
-    
-    /**
      * Get executed original command with parameters
      *
      * @param boolean $nl whether to use newline
      * 
      * @return string
      */
-    public function getCmdString($nl = true)
+    public function getUriString($nl = true)
     {
         $shortcuts = $this->getShortcuts();
         $cmdString = implode("\n", array_slice($_SERVER['argv'], 1));

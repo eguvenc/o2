@@ -3,16 +3,16 @@
 namespace Obullo\Cli;
 
 /**
- * Cli Interface
+ * Uri Interface
  * 
  * @category  Cli
- * @package   Cli
+ * @package   Uri
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-interface CliInterface
+interface UriInterface
 {
     /**
      * Reset variables
@@ -26,7 +26,7 @@ interface CliInterface
      * 
      * @return array resolved parameters
      */
-    public function parse();
+    public function init();
 
     /**
      * Get one segment
@@ -63,27 +63,13 @@ interface CliInterface
     public function argumentArray();
 
     /**
-     * Get task controller
-     * 
-     * @return string
-     */
-    public function getClass();
-
-    /**
-     * Get task method
-     * 
-     * @return string
-     */
-    public function getMethod();
-
-    /**
      * Get executed original command with parameters
      *
      * @param boolean $nl whether to use newlines
      * 
      * @return string
      */
-    public function getCmdString($nl = true);
+    public function getUriString($nl = true);
 
     /**
      * Returns to all argument shortcuts

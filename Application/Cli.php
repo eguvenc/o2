@@ -12,7 +12,7 @@ use Obullo\Container\Container;
  * 
  * @var object
  */
-$c = new Container;
+$c = new Container(scandir(APP .'classes'. DS . 'Service'));
 
 $c['var'] = function () use ($c) {
     return new EnvVariable($c);
@@ -24,7 +24,7 @@ $c['app'] = function () {
     return new Cli;
 };
 /**
- * Run Cli Application
+ * Run Cli Application ( Warning : Http middlewares & Layers disabled in Cli mode.)
  * 
  * @category  Container
  * @package   Container
@@ -57,17 +57,20 @@ class Cli extends Application
         $this->setDefaultTimezone();
         $this->setPhpDebugger();
 
-        // Warning : Http middlewares are disabled in Cli mode.
-
         include APP .'errors.php';
         $this->registerErrorHandlers();
         include OBULLO .'Controller'. DS .'Controller.php';
         
         include APP .'components.php';
+        unset($c['uri']);   // Replace Uri component 
+
+        $c['uri'] = function () use ($c) {
+            return new \Obullo\Cli\Uri($c['logger']);
+        };
         include APP .'providers.php';
         include APP .'events.php';
-        include APP .'routes.php';
-        
+
+
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
         
         register_shutdown_function(array($this, 'close'));
@@ -84,13 +87,15 @@ class Cli extends Application
     public function run()
     {    
         $this->init();
-        $this->c['router']->init();       // Initialize Routes
 
-        $class = $this->c['router']->fetchClass();
-        $method = $this->c['router']->fetchMethod();
-        $namespace = $this->c['router']->fetchNamespace();
+        $this->router = new \Obullo\Cli\Router($this->c['uri'], $this->c['logger']);
+        $this->router->init();
 
-        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
+        $class = $this->router->fetchClass();
+        $method = $this->router->fetchMethod();
+        $namespace = $this->router->fetchNamespace();
+
+        include MODULES .$this->router->fetchModule(DS).$this->router->fetchDirectory(). DS .$this->router->fetchClass().'.php';
 
         $this->className = '\\'.$namespace.'\\'.$class;
         $this->dispatchClass();
@@ -98,9 +103,6 @@ class Cli extends Application
         $this->class = new $this->className;  // Call the controller
         $this->method = $method;
 
-        if (method_exists($this->class, '__extend')) {      // View traits must be run at the top level otherwise layout view file
-            $this->class->__extend();                       // could not load view variables.
-        }
         $this->call();          
         $this->c['response']->flush();  // Send headers and echo output if output enabled
     }
@@ -115,13 +117,13 @@ class Cli extends Application
         $argumentSlice = 3;
         if (! method_exists($this->class, $this->method) || $this->method == '__extend') { // reserved methods
             $argumentSlice = 2;
-            $this->c['router']->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
+            $this->router->setMethod('index');    // If we have index method run it in cli mode. This feature enables task functionality.
             $this->method = 'index';
         }
         $this->dispatchMethod();  // Display 404 error if method doest not exist also run extend() method.
-        $arguments = array_slice($this->class->uri->routedSegments(), $argumentSlice);
+        $arguments = array_slice($this->class->uri->segmentArray(), $argumentSlice);
         
-        call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), $arguments);
+        call_user_func_array(array($this->class, $this->router->fetchMethod()), $arguments);
 
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));

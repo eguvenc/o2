@@ -29,7 +29,7 @@ class WorkerController extends \Controller
             $this->c['app'],
             $this->c['config'],
             $this->c['queue'],
-            $this->c['cli'],
+            $this->c['uri'],
             $this->c['logger']
         );
         $worker->init();

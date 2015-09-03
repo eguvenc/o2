@@ -40,7 +40,7 @@ class ModuleController extends Controller
      */
     public function add($module = null)
     {   
-        $module = (empty($module)) ? strtolower($this->cli->argument('name')) : $module;
+        $module = (empty($module)) ? strtolower($this->uri->argument('name')) : $module;
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");
@@ -85,7 +85,7 @@ class ModuleController extends Controller
      */
     public function remove($module = null)
     {
-        $module = (empty($module)) ? strtolower($this->cli->argument('name')) : $module;
+        $module = (empty($module)) ? strtolower($this->uri->argument('name')) : $module;
 
         if (empty($module)) {
             echo Console::fail("Module name can't be empty.");

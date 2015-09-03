@@ -42,14 +42,14 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
         <li><a href="#route-md-assignment">Bir Kural İçin Katman Çalıştırmak</a></li>
         <li><a href="#group-md-assignment">Bir Gruba Katman Atamak</a></li>
         <li><a href="#inside-group-md-assignment">Bir Grup İçinden Katman Atamak</a></li>
-        <li><a href="#regex-md-run">Düzenli İfadeler Kullanmak</a></li>
+        <li><a href="#regex-md">Düzenli İfadeler Kullanmak</a></li>
     </ul>
 </li>
 
 <li>
-    <a href="#middlewares">Sık Kullanılan Katmanlar</a>
+    <a href="#mostly-used-mds">Sık Kullanılan Katmanlar</a>
     <ul>
-        <li><a href="#route-md-assignment"></a></li>
+        <li><a href="#translation">Translation Katmanı</a></li>
     </ul>
 </li>
 
@@ -505,7 +505,6 @@ Eğer birden fazla katman çalıştırmak isterseniz katmanları bir dizi içeri
 $c['router']->get('membership/restricted')->middleware(array('auth', 'guest'));
 ```
 
-
 <a name="group-md-assignment"></a>
 
 #### Bir Gruba Katman Atamak
@@ -544,9 +543,11 @@ $c['router']->group(
 
 > **Not:** middleware(); fonksiyonu her bir route isteğine bir katman eklemenizi sağlar fakat gruba tayin edilen aynı isimde zaten genel bir katman var ise bu durumda route isteğine birer birer katman atamanız anlamsız olur böyle bir durumda ilgili katman uygulamaya yanlışlıkla iki kez eklenmiş olacaktır. Bu yüzden birer birer atanabilecek katman isimleri grup opsiyonu içerisinde kullanılmamalıdır.
 
-<a name="regex-md-assignment"></a>
+<a name="regex-md"></a>
  
 #### Düzenli İfadeler Kullanmak
+
+Bir grup içerisinde kullanılan katmanlar bazen URL adresinde belirli bölümler içerinde çalıştırılmak istenmeyebilir. Buna benzer durumlarda aşağıdaki gibi düzenli ifadeler ile katmanların sadece belirli URL adreslerinde çalışmasını sağlayabilirsiniz.
 
 ```php
 http://www.example.com/test/bad_segment
@@ -556,7 +557,12 @@ http://www.example.com/test/good_segment2
 $this->attach('^(test/(?!bad_segment).*)$');
 ```
 
+<a name="mostly-used-mds"></a>
+
 ### Sık Kullanılan Katmanlar için Örnekler
+
+
+<a name="translation"></a>
 
 #### Translation Katmanı
 

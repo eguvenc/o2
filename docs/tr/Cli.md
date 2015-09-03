@@ -42,9 +42,9 @@ Framework komut satırından yürütülen işlemleri <kbd>modules/tasks</kbd> kl
 
 <a name="cli"></a>
 
-### Cli Sınıfı
+### Konsol Uri Sınıfı
 
-Cli sınıfı <kbd>.modules/tasks</kbd> dizini içindeki komutlara "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->cli</kbd> ( veya <kbd>$this->c['cli']</kbd> ) nesnesi ile bu argümanların yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Obullo\Uri\Uri</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
+Uri sınıfı <kbd>.modules/tasks</kbd> dizini içindeki komutlara "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->uri</kbd> nesnesi ile bu argümanların yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Application/Cli</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
 
 Sınıfı daha iyi anlamak için aşağıdaki gibi <kbd>.modules/tasks</kbd> dizini altında bir task controller yaratın ve yaratığınız task komutuna bir argüman gönderin.
 
@@ -65,7 +65,7 @@ class Hello extends \Controller {
         echo Console::logo("Welcome to Hello Controller");
         echo Console::description("This is my first task controller.");
 
-        $planet = $this->cli->argument('planet');
+        $planet = $this->uri->argument('planet');
 
         echo Console::text("Hello ".$planet, 'yellow');
         echo Console::newline(2);
@@ -82,6 +82,12 @@ php task hello --planet=World
 ```
 
 > **Not:** Herhangi bir task controller sınıfı içerisinde http katmanları çalışmaz.
+
+Argümanları sayısal olarak da alabilirsiniz.
+
+```php
+$planet = $this->uri->segment(0);
+```
 
 Aşağıdaki gibi standart parametreler de desteklenmektedir.
 
@@ -440,38 +446,38 @@ php /var/www/framework/task help
 
 ------
 
-##### $this->cli->argument(string $name, string $defalt = '');
+##### $this->uri->argument(string $name, string $defalt = '');
 
 Girilen isme göre konsol komutundan gönderilen argümanın değerine geri döner.
 
-##### $this->cli->argumentArray();
+##### $this->uri->argumentArray();
 
 Çözümlenen argüman listesine "--key=value" olarak bir dizi içerisinde geri döner.
 
-##### $this->cli->segment(integer $n, string $default = '');
+##### $this->uri->segment(integer $n, string $default = '');
 
 Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman değerine geri döner.
 
-##### $this->cli->segmentArray();
+##### $this->uri->segmentArray();
 
 Çözümlenen argümanların listesine sadece "value" olarak bir dizi içerisinde geri döner.
 
-##### $this->cli->getClass();
+##### $this->uri->getClass();
 
 Çözümlenen sınıf ismine geri döner.
 
-##### $this->cli->getMethod();
+##### $this->uri->getMethod();
 
 Çözümlenen metot ismine geri döner.
 
-##### $this->cli->getCmdString();
+##### $this->uri->getCmdString();
 
 Çözümlenen tüm konsol komutuna argümanları ile birlikte string formatında geri döner.
 
-##### $this->cli->getShortcuts();
+##### $this->uri->getShortcuts();
 
 Argümanlar için tanımlı olan tüm kısayollara bir dizi içerisinde geri döner.
 
-##### $this->cli->clear();
+##### $this->uri->clear();
 
 Sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.

@@ -6,13 +6,12 @@ use Closure;
 use Controller;
 use LogicException;
 use Obullo\Uri\Uri;
-use BadMethodCallException;
 use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Router Class
+ * Http Router Class
  *
  * Modeled after Codeigniter router class 
  * 
@@ -67,10 +66,7 @@ class Router
         $this->logger = $logger;
         $this->HOST = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
-        if (defined('STDIN')) {
-            $this->HOST = 'Cli';  // Define fake host for Command Line Interface
-        }
-        if ($this->HOST != 'Cli' && strpos($this->HOST, $config['url']['webhost']) === false) {
+        if (strpos($this->HOST, $config['url']['webhost']) === false) {
             $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
@@ -112,9 +108,6 @@ class Router
     public function domain($domain = '')
     {
         $this->ROOT = trim($domain, '.');
-        if (defined('STDIN')) {
-            $this->ROOT = 'Cli'; // Define fake domain to Command Line Interface
-        }
         return $this;
     }
 
@@ -383,9 +376,6 @@ class Router
     {
         if (! isset($segments[0])) {
             return $segments;
-        }
-        if (defined('STDIN') && ! isset($_SERVER['LAYER_REQUEST'])) {  // Command Line Requests
-            array_unshift($segments, 'tasks');
         }
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments  = $this->detectModule($segments);
@@ -877,7 +867,7 @@ class Router
      */
     public function getAttachedRoutes()
     {
-        if (defined('STDIN') || ! isset($this->attach[$this->DOMAIN])) {  // Disable middlewares for CLI interface
+        if (! isset($this->attach[$this->DOMAIN])) {  // Check first
             return array();
         }
         return $this->attach[$this->DOMAIN];

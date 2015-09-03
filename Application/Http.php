@@ -21,7 +21,7 @@ if (error_get_last() != null) {
  * 
  * @var object
  */
-$c = new Container;
+$c = new Container(scandir(APP .'classes'. DS . 'Service'));
 
 $c['var'] = function () use ($c) {
     return new EnvVariable($c);

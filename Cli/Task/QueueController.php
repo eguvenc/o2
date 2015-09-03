@@ -74,7 +74,7 @@ Optional
     --sleep     : If we have not job on the queue sleep the script for a given number of seconds.
     --attempt   : Sets the maximum number of times a job should be attempted.
     --env       : Sets your environment variable to job class.
-    --project   : Sets your project name to works with multiple projects.
+    --host      : Sets a hostname if you need.
     --var       : Sets your custom variable if you need."
 );
 echo Console::newline(2);
@@ -104,8 +104,8 @@ echo Console::newline(2);
         $this->logo();
         $break = "------------------------------------------------------------------------------------------";
 
-        $exchange = $this->cli->argument('worker');
-        $route = $this->cli->argument('job', null);  // Sets queue route key ( queue name )
+        $exchange = $this->uri->argument('worker');
+        $route = $this->uri->argument('job', null);  // Sets queue route key ( queue name )
 
         if (empty($exchange)) {
             echo Console::fail("Queue \"--worker\" (exchange) (--w) can't be empty.");
@@ -153,16 +153,17 @@ echo Console::newline(2);
      */
     public function listen()
     {
-        $output   = $this->cli->argument('output', 0);         // Enable / Disabled console output.
-        $exchange = $this->cli->argument('worker', null);      // Sets queue worker / exchange
-        $route    = $this->cli->argument('job', null);         // Sets queue job name / route key ( queue name )
-        $memory   = $this->cli->argument('memory', 128);       // Sets maximum allowed memory for current job.
-        $delay    = $this->cli->argument('delay', 0);          // Sets job delay interval
-        $timeout  = $this->cli->argument('timeout', 0);        // Sets time limit execution of the current job.
-        $sleep    = $this->cli->argument('sleep', 3);          // If we have not job on the queue sleep the script for a given number of seconds.
-        $attempt  = $this->cli->argument('attempt', 0);        // If job attempt failed we push back on to queue and increase attempt number.
-        $env      = $this->cli->argument('env', 'local');      // Sets environment for current worker.
-        $var      = $this->cli->argument('var', null);         // Sets your custom variable
+        $output   = $this->uri->argument('output', 0);        // Enable / Disabled console output.
+        $exchange = $this->uri->argument('worker', null);     // Sets queue worker / exchange
+        $route    = $this->uri->argument('job', null);        // Sets queue job name / route key ( queue name )
+        $memory   = $this->uri->argument('memory', 128);      // Sets maximum allowed memory for current job.
+        $delay    = $this->uri->argument('delay', 0);         // Sets job delay interval
+        $timeout  = $this->uri->argument('timeout', 0);       // Sets time limit execution of the current job.
+        $sleep    = $this->uri->argument('sleep', 3);         // If we have not job on the queue sleep the script for a given number of seconds.
+        $attempt  = $this->uri->argument('attempt', 0);       // If job attempt failed we push back on to queue and increase attempt number.
+        $env      = $this->uri->argument('env');              // Sets environment for current worker.
+        $host     = $this->uri->argument('host');             // Sets a hostname or server ip.
+        $var      = $this->uri->argument('var', null);        // Sets your custom variable
         
         if (empty($exchange)) {
             echo Console::fail("Queue \"--worker\" (exchange) (--w) can't be empty.");
@@ -172,8 +173,14 @@ echo Console::newline(2);
             echo Console::fail("Queue \"--job\" (route) (--j) can't be empty.");
             exit;
         }
-        $cmd = "php task worker --worker=$exchange --job=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --attempt=$attempt --output=$output --env=$env --var=$var";
+        $cmd = "php task worker --worker=$exchange --job=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --attempt=$attempt --output=$output --env=$env";
 
+        if ($host) {
+            $cmd." --host=$host";
+        }
+        if ($var) {
+            $cmd." --var=$var";
+        }
         $process = new Process($cmd, ROOT, null, null, $timeout);
         while (true) {
             $process->run();
@@ -181,7 +188,6 @@ echo Console::newline(2);
                 echo $process->getOutput();
             }
         }
-        // $this->c['logger']->debug($cmd);
     }
 
 }

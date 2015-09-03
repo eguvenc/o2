@@ -24,20 +24,28 @@ class Container implements ContainerInterface
     protected $frozen = array();
     protected $raw = array();
     protected $keys = array();
-    protected $unset = array();            // Stores classes we want to remove
-    protected $services = array();         // Defined services
-    protected $registeredServices = array();  // Lazy loading for service wrapper class
-    protected $registeredProviders = array();  // Stack data for service provider wrapper class
+    protected $unset = array();                 // Stores classes we want to remove
+    protected $services = array();              // Defined services
+    protected $registeredServices = array();    // Lazy loading for service wrapper class
+    protected $registeredProviders = array();   // Stack data for service provider wrapper class
     protected $registeredConnections = array(); // Lazy loading for service provider register method
 
     /**
-     * Constructor
+     * Register service classes if required
+     * 
+     * @param array $services service files
+     * 
+     * @return void
      */
-    public function __construct() 
+    public function __construct($services = array())
     {
-        $services = scandir(APP .'classes'. DS . 'Service'); // Scan service folder
-        $this->services = array_flip($services);             // Normalize service array
-        unset($this->services['Providers']);
+        $safeServices = array();
+        foreach ($services as $value) {
+            if ($value != "." && $value != ".." && $value != "Providers") {
+                $safeServices[] = $value;
+            } 
+        }
+        $this->services = $safeServices;
     }
 
     /**
@@ -176,9 +184,9 @@ class Container implements ContainerInterface
         $isService = false;
         $cid = strtolower($class);
         $serviceName = ucfirst($class);
-        $isDirectory = (isset($this->services[$serviceName])) ? true : false;
+        $isDirectory = in_array($serviceName, $this->services) ? true : false;
 
-        if ($isDirectory || isset($this->services[$serviceName.'.php'])) {  // Resolve services
+        if ($isDirectory || in_array($serviceName.'.php', $this->services)) {  // Resolve services
             $isService = true;
             $serviceClass = $this->resolveService($serviceName, $isDirectory);
 
@@ -315,7 +323,8 @@ class Container implements ContainerInterface
      */
     public function hasService($cid)
     {
-        if (isset($this->services[ucfirst($cid).'.php'])) {  // Is it service ?
+        $service = ucfirst($cid);
+        if (in_array($service, $this->services) || in_array($service.'.php', $this->services)) {  // Is it service ?
             return true;
         }
         return false;

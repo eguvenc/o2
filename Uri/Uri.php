@@ -4,7 +4,6 @@ namespace Obullo\Uri;
 
 use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
 use Obullo\Container\ContainerInterface;
 
 /**
@@ -21,8 +20,6 @@ use Obullo\Container\ContainerInterface;
  */
 class Uri
 {
-    public $c;
-    public $app;
     public $config;
     public $logger;
     public $keyval = array();
@@ -35,8 +32,6 @@ class Uri
     /**
      * Constructor
      *
-     * @param object $c      \Obullo\Container\ContainerInterface
-     * @param object $app    \Obullo\Application\Application
      * @param object $config \Obullo\Config\ConfigInterface
      * @param object $logger \Obullo\Log\LogInterface
      * 
@@ -44,10 +39,8 @@ class Uri
      * loads the Router class early on so it's not available
      * normally as other classes are.
      */
-    public function __construct(ContainerInterface $c, Application $app, ConfigInterface $config, LoggerInterface $logger)
+    public function __construct(ConfigInterface $config, LoggerInterface $logger)
     {
-        $this->c = $c;
-        $this->app = $app;
         $this->config = $config;
         $this->logger = $logger;
 
@@ -72,10 +65,6 @@ class Uri
         $protocol = $this->config['uri']['protocol'];
         empty($protocol) && $protocol = 'REQUEST_URI';  // Default protocol REQUEST_URI
 
-        if ($this->app->isCli()) {     // Parse console arguments
-            $this->parseCli();
-            return;
-        }
         switch ($protocol)
         {
         case 'REQUEST_URI':
@@ -95,37 +84,6 @@ class Uri
             break;
         }
         $this->setUriString($uri);
-    }
-
-    /**
-     * Parse command line interface uri
-     * 
-     * @return void
-     */
-    protected function parseCli()
-    {
-        $this->c['cli']->parse();  // Bind arguments to cli object
-        $uri = $this->c['cli']->getCmdString(false);
-        $this->setCliHeaders($uri);
-        $this->setUriString($uri);
-    }
-
-    /**
-     * Set fake headers for cli
-     *
-     * @param string $uri valid uri
-     * 
-     * @return void
-     */
-    protected function setCliHeaders($uri)
-    {        
-        $HOST = str_replace('--host=', '', strstr($uri, '--host='));
-        
-        $_SERVER['HTTP_USER_AGENT'] = 'Cli';       /// Define cli headers for any possible isset errors.
-        $_SERVER['HTTP_ACCEPT_CHARSET'] = 'utf-8';
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $_SERVER['HTTP_HOST'] = $HOST;
-        $_SERVER['ORIG_PATH_INFO'] = $_SERVER['QUERY_STRING'] = $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'] = $uri;
     }
 
     /**
@@ -171,7 +129,6 @@ class Uri
         $uri = parse_url($_SERVER['REQUEST_URI']);
         $query = isset($uri['query']) ? $uri['query'] : '';
         $uri = isset($uri['path']) ? $uri['path'] : '';
-
         return array($uri, $query);
     }
 

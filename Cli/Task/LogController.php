@@ -27,19 +27,19 @@ class LogController extends Controller
     public function index()
     {
         $this->logo();
-        $dir = $this->cli->argument('dir', 'http');
-
+        
+        $dir = $this->uri->argument('dir', 'http');
         $writer = $this->logger->getWriter();
         $table = $db = null;
         if ($writer == 'mongo') {
-            $table = $this->cli->argument('table');
-            $db    = $this->cli->argument('db');
+            $table = $this->uri->argument('table');
+            $db    = $this->uri->argument('db');
             if (empty($table) || empty($db)) {
                  echo Console::fail('MongoDB database or table not given.');
                  return;
             }
         }
-        if ($this->cli->argument('help')) {
+        if ($this->uri->argument('help')) {
             return $this->help();
         }
         $reader = ucfirst($this->logger->getWriter());

@@ -6,7 +6,7 @@ use Exception;
 use ErrorException;
 use Obullo\Queue\Job;
 use Obullo\Cli\Console;
-use Obullo\Cli\CliInterface;
+use Obullo\Cli\UriInterface;
 use Obullo\Log\LoggerInterface;
 use Obullo\Queue\QueueInterface;
 use Obullo\Config\ConfigInterface;
@@ -201,18 +201,16 @@ class Worker
      * @param object $app    \Obullo\Application\Application
      * @param object $config \Obullo\Config\ConfigInterface
      * @param object $queue  \Obullo\Queue\QueueInterface
-     * @param object $cli    \Obullo\Cli\CliInterface
+     * @param object $uri    \Obullo\Cli\UriInterface
      * @param object $logger \Obullo\Log\LogInterface
      */
-    public function __construct(Application $app, ConfigInterface $config, QueueInterface $queue, CliInterface $cli, LoggerInterface $logger)
+    public function __construct(Application $app, ConfigInterface $config, QueueInterface $queue, UriInterface $uri, LoggerInterface $logger)
     {
         $this->app = $app;
-        $this->cli = $cli;
+        $this->uri = $uri;
         $this->config = $config;
         $this->queue = $queue;
         $this->logger = $logger;
-
-        $this->logger->channel('queue');
         $this->logger->debug('Queue Worker Class Initialized');
     }
 
@@ -232,16 +230,16 @@ class Worker
                                                // Don't change here we already catch all errors except the notices.
         error_reporting(E_NOTICE | E_STRICT);  // This is just Enable "Strict Errors" otherwise we couldn't see them.
 
-        $this->exchange = $this->cli->argument('worker', null);
-        $this->route = $this->cli->argument('job', null);
-        $this->memory = $this->cli->argument('memory', 128);
-        $this->delay  = $this->cli->argument('delay', 0);
-        $this->timeout = $this->cli->argument('timeout', 0);
-        $this->sleep = $this->cli->argument('sleep', 3);
-        $this->attempt = $this->cli->argument('attempt', 0);
-        $this->output = $this->cli->argument('output', 0);
-        $this->env = $this->cli->argument('env', 'local');
-        $this->var = $this->cli->argument('var', null);
+        $this->exchange = $this->uri->argument('worker', null);
+        $this->route = $this->uri->argument('job', null);
+        $this->memory = $this->uri->argument('memory', 128);
+        $this->delay  = $this->uri->argument('delay', 0);
+        $this->timeout = $this->uri->argument('timeout', 0);
+        $this->sleep = $this->uri->argument('sleep', 3);
+        $this->attempt = $this->uri->argument('attempt', 0);
+        $this->output = $this->uri->argument('output', 0);
+        $this->env = $this->uri->argument('env', 'local');
+        $this->var = $this->uri->argument('var', null);
 
         if ($this->memoryExceeded($this->memory)) {
             die; return;

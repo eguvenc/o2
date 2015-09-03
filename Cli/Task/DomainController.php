@@ -47,7 +47,7 @@ class DomainController extends Controller
      */
     public function down($name = null)
     {
-        $name = (empty($name)) ? $this->cli->argument('name', null) : $name;
+        $name = (empty($name)) ? $this->uri->argument('name', null) : $name;
         $this->isEmpty($name);
 
         $newArray = $this->config['domain'];
@@ -67,7 +67,7 @@ class DomainController extends Controller
      */
     public function up($name = null)
     {
-        $name = (empty($name)) ? $this->cli->argument('name', null) : $name;
+        $name = (empty($name)) ? $this->uri->argument('name', null) : $name;
         $this->isEmpty($name);
 
         $newArray = $this->config['domain'];

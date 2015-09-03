@@ -37,7 +37,7 @@ class MiddlewareController extends Controller
      */
     public function add($name = null)
     {   
-        $name = (empty($name)) ? $this->cli->argument('name') : $name;
+        $name = (empty($name)) ? $this->uri->argument('name') : $name;
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");
@@ -71,7 +71,7 @@ class MiddlewareController extends Controller
      */
     public function remove($name = null)
     {
-        $name = (empty($name)) ? $this->cli->argument('name') : $name;
+        $name = (empty($name)) ? $this->uri->argument('name') : $name;
 
         if (empty($name)) {
             echo Console::fail("Middleware name can't be empty.");
