@@ -67,7 +67,7 @@ class Config implements ConfigInterface
             $envConfig   = include $this->path .'config.php';
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
-        $this->array['domain'] = include $this->path .'domain.php';
+        $this->array['maintenance'] = include $this->path .'maintenance.php';
     }
 
     /**

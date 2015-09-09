@@ -6,7 +6,7 @@ use Controller;
 use Obullo\Cli\Console;
 
 /**
- * Domain Controller
+ * App Controller
  * 
  * @category  Cli
  * @package   Controller
@@ -15,7 +15,7 @@ use Obullo\Cli\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class DomainController extends Controller
+class App extends Controller
 {
     /**
      * Execute command
@@ -34,8 +34,8 @@ class DomainController extends Controller
      */
     public function logo()
     {
-        echo Console::logo("Welcome to Domain Manager (c) 2015");
-        echo Console::description("You are running \$php task domain command. For help type php task domain help");
+        echo Console::logo("Welcome to Application Manager (c) 2015");
+        echo Console::description("You are running \$php task app command. For help type php task app help");
     }
 
     /**
@@ -50,12 +50,12 @@ class DomainController extends Controller
         $name = (empty($name)) ? $this->uri->argument('name', null) : $name;
         $this->isEmpty($name);
 
-        $newArray = $this->config['domain'];
+        $newArray = $this->config['maintenance'];
         $newArray[$name]['maintenance'] = 'down';
 
-        $this->config->write('domain.php', $newArray);
+        $this->config->write('maintenance.php', $newArray);
 
-        echo Console::fail("Domain ".Console::foreground($name, 'red')." down for maintenance.");
+        echo Console::fail("Application ".Console::foreground($name, 'red')." down for maintenance.");
     }
 
     /**
@@ -70,12 +70,12 @@ class DomainController extends Controller
         $name = (empty($name)) ? $this->uri->argument('name', null) : $name;
         $this->isEmpty($name);
 
-        $newArray = $this->config['domain'];
+        $newArray = $this->config['maintenance'];
         $newArray[$name]['maintenance'] = 'up';
 
-        $this->config->write('domain.php', $newArray);
+        $this->config->write('maintenance.php', $newArray);
 
-        echo Console::success("Domain ".Console::foreground($name, 'green')." up.");
+        echo Console::success("Application ".Console::foreground($name, 'green')." up.");
     }
 
     /**
@@ -88,11 +88,11 @@ class DomainController extends Controller
     protected function isEmpty($name)
     {
         if (empty($name)) {
-            echo Console::fail('Domain "--name" can\'t be empty.');
+            echo Console::fail('Application "--name" can\'t be empty.');
             exit;
         }
-        if (! isset($this->config['domain'][$name])) {
-            echo Console::fail('Domain name "'.ucfirst($name).'" must be defined in your domain.php config file.');
+        if (! isset($this->config['maintenance'][$name])) {
+            echo Console::fail('Application name "'.ucfirst($name).'" must be defined in your maintenance.php config file.');
             die;
         }
     }
@@ -121,11 +121,11 @@ Available Arguments
 echo Console::newline(2);
 echo Console::help("Usage:", true);
 echo Console::newline(2);
-echo Console::help("php task domain [command] name");
+echo Console::help("php task app [command] name");
 echo Console::newline(2);
 echo Console::help("Description:", true);
 echo Console::newline(2);
-echo Console::help("Manages domain features which are defined in your domain.php config file.");
+echo Console::help("Manages domain features which are defined in your maintenance.php config file.");
 echo Console::newline(2);
     }
 }

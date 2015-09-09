@@ -1,7 +1,7 @@
 
 ## Request Class
 
-Http request sınıfı gelen istek türü, bağlantının güvenli olup olmadığı, ip adresi, ajax istekleri ve buna benzer sunucuda dinamik oluşan bilgilere ulaşmanızı sağlar. Bunun yanında süper küresel değişkenlerden elde edilen girdileri [filters](/Filters/Docs/tr/Filters.md) paketi yardımı ile opsiyonel doğrulama ve filtreleme işlevlerinden geçirerek güvenilir girdiler elde etmenizi yardımcı olur.
+Http request sınıfı gelen istek türü, bağlantının güvenli olup olmadığı, ip adresi, ajax istekleri ve buna benzer sunucuda dinamik oluşan bilgilere ulaşmanızı sağlar. Bunun yanında süper küresel değişkenlerden elde edilen girdileri [filters](Filters.md) paketi yardımı ile opsiyonel doğrulama ve filtreleme işlevlerinden geçirerek güvenilir girdiler elde etmenizi yardımcı olur.
 
 <ul>
     <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
@@ -180,7 +180,7 @@ Array
 
 ### Girdi Doğrulama / Filtreleme
 
-Request sınıfındaki get, post ve all metotlarına ikinci parametre olarak filtre ismi girilerek [Filters](/Filters/Docs/tr/Filters.md) paketine ait filtreler çalıştırılabilir. 
+Request sınıfındaki get, post ve all metotlarına ikinci parametre olarak filtre ismi girilerek [Filters](Filters.md) paketine ait filtreler çalıştırılabilir. 
 
 <a name="re-get"></a>
 
@@ -201,7 +201,7 @@ $cleanVariable = $this->request->get('variable', 'clean')->int();
 echo $cleanVariable;
 ```
 
-> **Not:** Daha fazla filtreleme örnekleri için filters paketine ait [Filters.md](/Filters/Docs/tr/Filters.md) sayfasını ziyaret edin.
+> **Not:** Daha fazla filtreleme örnekleri için filters paketine ait [Filters.md](Filters.md) sayfasını ziyaret edin.
 
 <a name="re-post"></a>
 

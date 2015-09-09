@@ -2,7 +2,7 @@
 
 namespace Obullo\Cli\Task;
 
-use Obullo\Queue\Worker;
+use Obullo\Queue\Worker as QueueWorker;
 
 /**
  * Worker Controller ( Private controller )
@@ -16,16 +16,16 @@ use Obullo\Queue\Worker;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class WorkerController extends \Controller
+class Worker extends \Controller
 {
     /**
-     * Execute command
+     * Run worker
      * 
      * @return void
      */
-    public function index()
+    public function run()
     {
-        $worker = new Worker(
+        $worker = new QueueWorker(
             $this->c['app'],
             $this->c['config'],
             $this->c['queue'],

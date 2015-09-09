@@ -24,18 +24,18 @@ use Obullo\Container\ContainerInterface;
  */
 class Router
 {
-    public $uri;                            // Uri class
-    public $logger;                         // Logger class
-    public $class = '';                     // Controller class name
-    public $routes = array();               // Routes config
-    public $method = 'index';               // Default method
-    public $directory = '';                 // Directory name
-    public $module = '';                    // Module name
-    public $middlewares = array();          // Defined route middlewares
-    public $attach = array();               // Attached after routes to middlewares
-    public $defaultController = 'welcome';  // Default controller name
-    public $pageNotFoundController = '';    // Page not found handler ( 404 )
-    public $groupDomain = '*';              // Groupped route domain address
+    protected $uri;                            // Uri class
+    protected $logger;                         // Logger class
+    protected $class = '';                     // Controller class name
+    protected $routes = array();               // Routes config
+    protected $method = 'index';               // Default method
+    protected $directory = '';                 // Directory name
+    protected $module = '';                    // Module name
+    protected $middlewares = array();          // Defined route middlewares
+    protected $attach = array();               // Attached after routes to middlewares
+    protected $defaultController = '';  // Default controller name
+    protected $pageNotFoundController = '';    // Page not found handler ( 404 )
+    protected $groupDomain = '*';              // Groupped route domain address
 
     protected $ROOT;                        // Defined host address in the config file.
     protected $HOST;                        // Host address user.example.com
@@ -69,6 +69,7 @@ class Router
         if (strpos($this->HOST, $config['url']['webhost']) === false) {
             $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
         }
+        $this->uri->init();
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
     }
 
@@ -79,7 +80,7 @@ class Router
      */
     public function clear()
     {
-        $this->uri = $this->c['uri'];   // reset cloned URI object.
+        $this->uri = $this->c['uri'];   // Reset cloned URI object.
         $this->class = '';
         $this->directory = '';
         $this->module = '';
@@ -99,42 +100,51 @@ class Router
     }
 
     /**
-     * Sets default host
+     * Configure router
+     * 
+     * @param array $params config params
+     * 
+     * @return void
+     */
+    public function configuration(array $params)
+    {
+        if (! isset($params['domain'])) {
+            throw new RuntimeException("Domain not configured in routes.php");
+        }
+        $this->ROOT = trim($params['domain'], '.');
+        $this->pageNotFoundController = $params['error404'];
+        $this->defaultController = $params['defaultPage'];
+        $this->init();
+    }
+
+    /**
+     * Set the route mapping ( Access must be public for Layer Class. )
      *
-     * @param string $domain your root domain name
-     * 
-     * @return object Router
+     * This function determines what should be served based on the URI request,
+     * as well as any "routes" that have been set in the routing config file.
+     *
+     * @return void
      */
-    public function domain($domain = '')
+    public function init()
     {
-        $this->ROOT = trim($domain, '.');
-        return $this;
-    }
-
-    /**
-     * Set default route
-     * 
-     * @param string $pageController controller
-     * 
-     * @return object
-     */
-    public function defaultPage($pageController)
-    {
-        $this->defaultController = $pageController;
-        return $this;
-    }
-
-    /**
-     * Error 404 not found controller
-     * 
-     * @param string $errorController error page
-     * 
-     * @return object
-     */
-    public function error404($errorController)
-    {
-        $this->pageNotFoundController = $errorController;
-        return $this;
+        if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
+            $layerRequest = isset($_SERVER['LAYER_REQUEST']);
+            if ($layerRequest) {  // Returns to false if we have Layer error.
+                $this->c['response']->setError('@LayerNotFound@'.static::DEFAULT_PAGE_ERROR);
+                return false;
+            }
+            $this->checkErrors();
+            $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
+            if ($layerRequest && $segments === false) {   // Returns to false if we have Layer connection error.
+                return false;  
+            }
+            $this->setClass($segments[1]);
+            $this->setMethod('index');
+            $this->uri->rsegments = $segments;  // Assign the segments to the URI class
+            $this->logger->debug('No URI present. Default controller set.');
+            return;
+        }
+        $this->dispatch();
     }
 
     /**
@@ -225,32 +235,57 @@ class Router
      */
     public function route($methods, $match, $rewrite = null, $closure = null)
     {
-        $domainMatch = $this->detectDomain($this->group);
-        $match = trim($match, '/');
-        $rewrite = trim($rewrite, '/');
-
-        if (! isset($this->group['name'])) {
-            $this->group['name'] = 'UNNAMED';
-        }
-        if ($domainMatch === false && $this->group['domain'] !== null) {
+        if ($this->detectDomain($this->group) === false && $this->group['domain'] !== null) {
             return;
         }
-        $scheme = (strpos($match, '}') !== false) ? $match : null;
-
-        $subDomain = null;
-        if ($this->isSubDomain($this->DOMAIN)) {
-            $subDomain = $this->group['domain'];
-        }
         $this->routes[$this->DOMAIN][] = array(
-            'group' => $this->group['name'],
-            'sub.domain' => $subDomain,
+            'group' => $this->_getGroupNameValue(),
+            'sub.domain' => $this->_getSubDomainValue(),
             'when' => $methods, 
-            'match' => $match,
-            'rewrite' => $rewrite,
-            'scheme' => $scheme,
+            'match' => trim($match, '/'),
+            'rewrite' => trim($rewrite, '/'),
+            'scheme' => $this->_getSchemeValue($match),
             'closure' => $closure,
         );
         return $this;
+    }
+
+    /**
+     * Get scheme value
+     * 
+     * @param string $match param
+     * 
+     * @return mixed
+     */
+    private function _getSchemeValue($match)
+    {
+        return (strpos($match, '}') !== false) ? trim($match, '/') : null;
+    }
+
+    /**
+     * Get group value
+     * 
+     * @return string
+     */
+    private function _getGroupNameValue()
+    {
+        if (! isset($this->group['name'])) {
+            $this->group['name'] = 'UNNAMED';
+        }
+        return $this->group['name'];
+    }
+
+    /**
+     * Get subdomain value
+     * 
+     * @return mixed
+     */
+    private function _getSubDomainValue()
+    {
+        if ($this->isSubDomain($this->DOMAIN)) {
+            return $this->group['domain'];
+        }
+        return null;
     }
 
     /**
@@ -279,40 +314,6 @@ class Router
     }
 
     /**
-     * Set the route mapping ( Access must be public for Layer Class. )
-     *
-     * This function determines what should be served based on the URI request,
-     * as well as any "routes" that have been set in the routing config file.
-     *
-     * @return void
-     */
-    public function init()
-    {
-        $this->uri->init();  // Initialize to complete URI string
-
-        if ($this->uri->getUriString() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
-
-            $layerRequest = isset($_SERVER['LAYER_REQUEST']);
-            if ($layerRequest) {  // Returns to false if we have Layer connection error.
-                $this->c['response']->setError('@LayerNotFound@'.static::DEFAULT_PAGE_ERROR);
-                return false;
-            }
-            $this->checkErrors();
-
-            $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
-            if ($layerRequest && $segments === false) {   // Returns to false if we have Layer connection error.
-                return false;  
-            }
-            $this->setClass($segments[1]);
-            $this->setMethod('index');
-            $this->uri->rsegments = $segments;  // Assign the segments to the URI class
-            $this->logger->debug('No URI present. Default controller set.');
-            return;
-        }
-        $this->dispatchRoutes();
-    }
-
-    /**
      * Check route errors
      * 
      * @return void
@@ -329,10 +330,15 @@ class Router
      * 
      * @return void
      */
-    protected function dispatchRoutes()
+    protected function dispatch()
     {
         $this->uri->removeUrlSuffix();   // Do we need to remove the URL suffix?
         $this->uri->explodeSegments();   // Compile the segments into an array 
+
+        if (empty($this->routes)) {
+            $this->setRequest($this->uri->segments);
+            return;
+        }
         $this->parseRoutes();            // Parse any custom routing that may exist
     }
 
@@ -359,7 +365,7 @@ class Router
             $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
             $this->setMethod('index');
         }
-        $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.    
+        $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.
     }
 
     /**
@@ -373,10 +379,31 @@ class Router
      * @return array
      */
     public function validateRequest($segments)
-    {
+    {     
         if (! isset($segments[0])) {
             return $segments;
         }
+        $segments = $this->resolve($segments);
+        if (! empty($segments)) {
+            return $segments;
+        }
+        if (isset($_SERVER['LAYER_REQUEST'])) {
+            $this->layerNotFound();
+            return false;
+        }
+        return $this->resolve(explode('/', $this->pageNotFoundController), true);
+    }
+
+    /**
+     * Resolve segments
+     * 
+     * @param array   $segments uri
+     * @param boolean $allow404 whether show 404
+     * 
+     * @return array
+     */
+    protected function resolve($segments, $allow404 = false)
+    {
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments  = $this->detectModule($segments);
         $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
@@ -388,14 +415,12 @@ class Router
             array_unshift($segments, $directory);
             return $segments;
         }
-        if (! empty($this->pageNotFoundController)) {
-            return $this->pageNotFound();
+        if ($allow404) {
+            $uri = $this->c['app']->uri->getUriString();
+            $page = (empty($uri)) ? $this->defaultController : null;
+            $this->c['response']->show404($page);
         }
-        if (isset($_SERVER['LAYER_REQUEST'])) {
-            $this->layerNotFound();
-            return false;
-        }
-        $this->c['response']->show404($this->uri->getUriString());
+        return array();
     }
 
     /**
@@ -419,20 +444,6 @@ class Router
     }
 
     /**
-     * Http 404
-     * 
-     * @return array page not found segments
-     */
-    protected function pageNotFound()
-    {
-        $exp = explode('/', $this->pageNotFoundController);   // If we've gotten this far it means that the URI does not correlate to a valid
-        $this->setDirectory($exp[0]);                         // controller class.  We will now see if there is an +override
-        $this->setClass($exp[1]);
-        $this->setMethod(isset($exp[2]) ? $exp[2] : 'index');
-        return $exp;
-    }
-
-    /**
      * Hmvc 404
      * 
      * @return array page not found segments
@@ -450,15 +461,10 @@ class Router
      *
      * @return void
      */
-    public function parseRoutes()
+    protected function parseRoutes()
     {
-        $uri = $this->uri->getUriString();  // Warning !: don't use $this->uri->segments in here instead of use getUriString otherwise
+        $uri = $this->uri->getUriString();  // Warning !: Don't use $this->uri->segments in here instead of use getUriString otherwise
                                             // we could not get url suffix ".html".
-
-        if (! isset($this->routes[$this->DOMAIN])) {
-            $this->setRequest($this->uri->segments); 
-            return;
-        }
         $parameters = array();
         foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
 
@@ -490,7 +496,7 @@ class Router
     protected function dispatchRouteMatches($uri, $val, $parameters)
     {
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
-            $this->app->middleware('MethodNotAllowed', $val['when']);
+            $this->c['app']->middleware('MethodNotAllowed', $val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
@@ -543,7 +549,7 @@ class Router
      * 
      * @return void
      */
-    public function bind($closure, $args = array(), $useCallUserFunc = false)
+    protected function bind($closure, $args = array(), $useCallUserFunc = false)
     {
         if (! is_callable($closure)) {
             return;
@@ -584,17 +590,6 @@ class Router
     }
 
     /**
-     * Fetch the current routed class name
-     *
-     * @return string
-     */
-    public function fetchClass()
-    {
-        $class = self::ucwordsUnderscore($this->class);
-        return $class;
-    }
-
-    /**
      * Set the directory name
      *
      * @param string $directory directory
@@ -628,7 +623,7 @@ class Router
      */
     public function fetchModule($separator = '')
     {
-        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator : '';
+        return (empty($this->module)) ? '' : filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator;
     }
 
     /**
@@ -639,6 +634,17 @@ class Router
     public function fetchDirectory()
     {
         return filter_var($this->directory, FILTER_SANITIZE_SPECIAL_CHARS);
+    }
+
+    /**
+     * Fetch the current routed class name
+     *
+     * @return string
+     */
+    public function fetchClass()
+    {
+        $class = self::ucwordsUnderscore($this->class);
+        return $class;
     }
 
     /**
@@ -687,7 +693,7 @@ class Router
      * 
      * @return boolean
      */
-    public function isSubDomain($domain)
+    protected function isSubDomain($domain)
     {
         $subDomain = $this->getSubDomain($domain);
         return (empty($subDomain)) ? false : true;
@@ -700,7 +706,7 @@ class Router
      * 
      * @return boolean
      */
-    public function getSubDomain($domain)
+    protected function getSubDomain($domain)
     {
         return str_replace($domain, '', $this->HOST);
     }
@@ -712,20 +718,50 @@ class Router
     * 
     * @return void
     */
-    public function detectDomain(array $options = array())
+    protected function detectDomain(array $options = array())
     {
         $domain = $this->ROOT;
         if (isset($options['domain'])) {
             $domain = $options['domain'];
         }
-        // if (isset($options['domain']['regex'])) { // If regex defined
-        //     $domain = $options['domain']['regex'];
-        // }
         if ($match = $this->matchDomain($domain)) { // If host matched with option['domain'] assign domain as $option['domain']
             $this->DOMAIN = $match;
             return true;                // Regex match.
         }
         return false;  // No regex match.
+    }
+
+    /**
+     * Detect class namespace
+     * 
+     * @param array $options array
+     * 
+     * @return bool
+     */
+    protected function detectNamespace($options = array())
+    {
+        if ($this->matchNamespace($options['namespace'])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Does the match class namespace ?
+     *
+     * @param string $namespace class namespace
+     * 
+     * @return bool
+     */
+    protected function matchNamespace($namespace)
+    {
+        if ($namespace == static::ucwordsUnderscore($this->c['app']->router->fetchModule())
+            || $namespace == static::ucwordsUnderscore($this->c['app']->router->fetchDirectory())
+            || $namespace == $this->c['app']->router->fetchNamespace()
+        ) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -735,12 +771,12 @@ class Router
      * 
      * @return array matches
      */
-    public function matchDomain($domain)
+    protected function matchDomain($domain)
     {
         if ($domain == $this->HOST) {
             return $domain;
         }
-        $key = $domain.$this->HOST;
+        $key = $domain;
         if (isset($this->domainMatches[$key])) {
             return $this->domainMatches[$key];
         }
@@ -843,19 +879,23 @@ class Router
      * @param array  $group   domain, directions and middleware name
      * @param object $closure which contains $this->attach(); methods
      * 
-     * @return void
+     * @return object
      */
-    public function group(array $group, $closure)
+    public function group(array $group, Closure $closure)
     {
-        if ($this->detectDomain($group) == false) {   // When run the group if domain not match with regex don't run the group function.
-            return;                                   // Forexample we define a sub domain in group but regex does not match with this domain
-        }                                             // we need to stop group process.
-        if (! isset($group['name'])) {
-            throw new LogicException('Please give a name to your route group.');
+        if (isset($group['namespace']) && ! $this->detectNamespace($group)) {
+            return $this;
         }
+        if (! $this->detectDomain($group)) {          // When run the group if domain not match with regex don't run the group function.
+            return $this;                             // Forexample we define a sub domain in group but regex does not match with this domain
+        }                                             // we need to stop group process.
         $this->group = $group;
         $closure = Closure::bind($closure, $this, get_class());
-        $closure();
+        $sub = false;
+        if (isset($group['domain']) && isset($this->domainMatches[$group['domain']])) {
+            $sub = strstr($this->domainMatches[$group['domain']], '.', true);
+        }
+        $closure($sub);
         $this->group = array('name' => 'UNNAMED', 'domain' => null);  // Reset group variable after foreach group definition
         return $this;
     }

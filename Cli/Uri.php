@@ -99,7 +99,8 @@ class Uri implements UriInterface
     public function init()
     {
         $argv = $this->getUriString();
-        $parameters = explode("\n", strstr($argv, static::SIGN));
+        $parameters = explode("\n", $argv);
+        
         if (! is_array($parameters) || ! isset($parameters[0])) {
             return array();
         }
@@ -186,7 +187,7 @@ class Uri implements UriInterface
             array_values($shortcuts),
             $cmdString
         );
-        if (! $nl) {
+        if ($nl == false) {
             $cmdString = str_replace("\n", "/", $cmdString);
         }
         return $cmdString;

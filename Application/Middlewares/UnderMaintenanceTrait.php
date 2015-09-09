@@ -7,18 +7,11 @@ use RuntimeException;
 trait UnderMaintenanceTrait
 {
     /**
-     * Detected domain
-     * 
-     * @var array
-     */
-    protected $currentDomain;
-
-    /**
      * Maintenance status : up / down
      * 
-     * @var string
+     * @var mixed
      */
-    protected $currentDomainMaintenance;
+    protected $maintenance;
 
     /**
      * Domain is down
@@ -27,16 +20,44 @@ trait UnderMaintenanceTrait
      * 
      * @return void
      */
-    public function domainIsDown(array $params)
+    public function check(array $params)
+    {   
+        $maintenance = $this->config['maintenance'];  // Default loaded in config class.
+        
+        $maintenance['root']['regex'] = null; 
+        $maintenance['root']['namespace'] = null;
+
+        $domain    = (isset($params['domain'])) ? $params['domain'] : null;
+        $namespace = (isset($params['namespace'])) ? $params['namespace'] : null;
+
+        $this->parse($maintenance, $domain, $namespace);
+
+        $this->checkRoot();
+        $this->checkNodes();
+    }
+
+    /**
+     * Parse maintenance configuration
+     * 
+     * @param array  $maintenance config
+     * @param string $domain      mixed
+     * @param string $namespace   mixed
+     * 
+     * @return void
+     */
+    public function parse($maintenance, $domain, $namespace)
     {
-        foreach ($this->config['domain'] as $domain) {
-            if ($domain['regex'] == $params['domain']) {  // If route domain equal to domain.php regex config
-                $this->currentDomain = $params['domain'];
-                $this->currentDomainMaintenance = $domain['maintenance'];
+        foreach ($maintenance as $label) {
+            if (! empty($label['regex']) && ! empty($label['namespace'])) {
+                if ($label['regex'] == $domain && $label['namespace'] == $namespace) {
+                    $this->maintenance = $label['maintenance'];
+                }
+            } elseif (! empty($label['regex']) && $label['regex'] == $domain) { // If route domain equal to domain.php regex config
+                $this->maintenance = $label['maintenance'];
+            } elseif (! empty($label['namespace']) && $label['namespace'] == $namespace) {
+                $this->maintenance = $label['maintenance'];
             }
         }
-        $this->rootDomainIsDown();
-        $this->subDomainIsDown();
     }
 
     /**
@@ -44,29 +65,24 @@ trait UnderMaintenanceTrait
      * 
      * @return boolean
      */
-    public function rootDomainIsDown()
+    public function checkRoot()
     {
-        if ($this->config['domain']['root']['maintenance'] == 'down') {  // First do filter for root domain
+        if ($this->config['maintenance']['root']['maintenance'] == 'down') {  // First do filter for root domain
             $this->showMaintenance();
         }
     }
 
     /**
-     * Check valid sub domain is down
+     * Check app nodes is down
      * 
      * @return void
      */
-    public function subDomainIsDown()
+    public function checkNodes()
     {
-        if (! is_string($this->currentDomain)) {
-            throw new RuntimeException(
-                sprintf(
-                    'Routes.php domain value must be string. <pre>%s</pre>', 
-                    '$c[\'router\']->group( [\'domain\' => \'example.com\', .., function () { .. }),.'
-                )
-            );
+        if (empty($this->maintenance)) {
+            return;
         }
-        if ($this->currentDomainMaintenance == 'down') {
+        if ($this->maintenance == 'down') {
             $this->showMaintenance();
         }
     }

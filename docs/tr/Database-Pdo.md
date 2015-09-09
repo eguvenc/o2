@@ -238,7 +238,7 @@ return array(
     ]
 );
 
-/* Location: .config/env/local/database.php */
+/* Location: .config/local/database.php */
 ```
 
 Konfigürasyon dosyasında varsayılan bağlantı ismi <b>default</b> anahtarıdır ve bağlantı adını değiştirmemeniz önerilir.

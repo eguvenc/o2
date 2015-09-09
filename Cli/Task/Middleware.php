@@ -15,7 +15,7 @@ use Obullo\Cli\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/task
  */
-class MiddlewareController extends Controller
+class Middleware extends Controller
 {
     /**
      * Print Logo

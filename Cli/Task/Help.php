@@ -15,7 +15,7 @@ use Obullo\Cli\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/Cli
  */
-class HelpController extends Controller
+class Help extends Controller
 {
     /**
      * Execute command

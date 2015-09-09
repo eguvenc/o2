@@ -64,7 +64,7 @@ return array(
                         'fr' => 'french',
                     ],
 
-    'debug' => false, // Puts 'translate:' texts everywhere
+    'debug' => false,
 
 
 /* Location: ./config/translator.php */
@@ -92,9 +92,9 @@ Yerel dilin doğru seçilebilmesi için herbir route grubunuza aşağıdaki gibi
 ```php
 $c['router']->group(
     [
-        'name' => 'GenericUsers',
+        'name' => 'Locale',
         'domain' => 'mydomain.com',
-        'middleware' => ['Maintenance']
+        'middleware' => array()
     ],
     function () {
 
@@ -102,8 +102,6 @@ $c['router']->group(
 
         $this->get('(?:en|tr|de|nl)/(.*)', '$1');  // For dynamic url requests http://example.com/en/welcome
         $this->get('(?:en|tr|de|nl)', 'welcome');  // For default page request http://example.com/en
-
-        $this->attach('.*');
     }
 );
 ```

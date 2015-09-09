@@ -686,4 +686,4 @@ Yukarıdaki veri çift tırnak karakterleri içerir ve form girdi yapısını bo
 > **Not:** Eğer form element sınıfı fonksiyonlarını zaten kullanıyorsanız bu fonksiyonu kullanmaya ihtiyacınız kalmaz çünkü form değerleri otomatik olarak güvenli formata dönüştürülür. Bu fonksiyonu yalnızca kendi form elementlerinizi oluşturduğunuz zaman kullanmanız önerilir.
 
 
-<kbd>Clean</kbd> ve diğer <kbd>Girdi Filtreleri</kbd> için filtre paketine ait [Filter.md](/Filters/Docs/tr/Filter.md) dökümentasyonunu gözden geçirmeyi unutmayın.
+<kbd>Clean</kbd> ve diğer <kbd>Girdi Filtreleri</kbd> için filtre paketine ait [Filters.md](Filters.md) dökümentasyonunu gözden geçirmeyi unutmayın.

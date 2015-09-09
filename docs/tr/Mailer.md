@@ -104,7 +104,7 @@ return array(
     ]
 );
 
-/* Location: .config/env/local/mailer/mailer.php */
+/* Location: .config/local/mailer/mailer.php */
 ```
 
 <a name="service-configuration"></a>

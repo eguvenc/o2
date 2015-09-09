@@ -18,7 +18,7 @@ use RecursiveDirectoryIterator;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class ModuleController extends Controller
+class Module extends Controller
 {
     /**
      * Print Logo
@@ -67,7 +67,7 @@ class ModuleController extends Controller
             $this->recursiveCopy($moduleFolder. DS .'config', CONFIG .$module);
         }
         if (is_dir($moduleFolder. DS .'tasks')) {
-            $this->recursiveCopy($moduleFolder. DS .'tasks', MODULES .'tasks'. DS .$module);
+            $this->recursiveCopy($moduleFolder. DS .'tasks', TASKS, false);
         }
         if (is_dir($moduleFolder. DS .'service')) {
             copy($moduleFolder. DS .'service'. DS .ucfirst($module).'.php', APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
@@ -111,8 +111,8 @@ class ModuleController extends Controller
         if (is_dir($moduleFolder. DS .'config') && is_dir(CONFIG .$module)) {
             $this->recursiveRemove(CONFIG .$module);
         }
-        if (is_dir($moduleFolder. DS .'tasks') && is_dir(MODULES .'tasks'. DS .$module)) {
-            $this->recursiveRemove(MODULES .'tasks'. DS .$module);
+        if (is_dir($moduleFolder. DS .'tasks') && is_file(MODULES .'tasks'. DS .ucfirst($module).'.php')) {
+            unlink(MODULES .'tasks'. DS .ucfirst($module).'.php');
         }
         if (is_dir($moduleFolder. DS .'service') && is_file(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php')) {
             unlink(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
@@ -123,16 +123,19 @@ class ModuleController extends Controller
     /**
      * Recursive copy
      * 
-     * @param string $src source
-     * @param string $dst destionation
+     * @param string $src   source
+     * @param string $dst   destionation
+     * @param string $mkdir mkdir option
      * 
      * @return void
      */
-    protected function recursiveCopy($src, $dst)
+    protected function recursiveCopy($src, $dst, $mkdir = true)
     { 
-        $dir = opendir($src); 
-        @mkdir($dst); 
-        while (false !== ( $file = readdir($dir)) ) { 
+        $dir = opendir($src);
+        if ($mkdir) {
+            @mkdir($dst); 
+        }
+        while (false !== ($file = readdir($dir)) ) { 
             if (( $file != '.' ) && ( $file != '..' )) { 
                 if (is_dir($src . DS . $file) ) {
                     $this->recursiveCopy($src . DS . $file, $dst . DS . $file);

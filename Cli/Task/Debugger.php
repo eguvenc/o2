@@ -5,7 +5,7 @@ namespace Obullo\Cli\Task;
 use RuntimeException;
 use Obullo\Cli\Console;
 
-class DebuggerController extends \Controller
+class Debugger extends \Controller
 {
     protected $socket;
     protected $msg;

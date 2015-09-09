@@ -45,7 +45,7 @@ Eğer önceden composer kurulumu yapılmadıysa yüklemeden sonra composer autol
 require 'vendor/autoload.php';
 ```
 
-Composer için daha detaylı kurulum bilgilerine [Composer.md](Application/Docs/tr/Composer.md) dosyasına gözatabilirsiniz.
+Composer için daha detaylı kurulum bilgilerine [Composer.md](Composer.md) dosyasına gözatabilirsiniz.
 
 #### Servis Konfigürasyonu
 
@@ -60,13 +60,6 @@ use Obullo\Container\ContainerInterface;
 
 class Http implements ServiceInterface
 {
-    /**
-     * Registry
-     *
-     * @param object $c container
-     * 
-     * @return void
-     */
     public function register(ContainerInterface $c)
     {
         $c['http'] = function () {

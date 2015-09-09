@@ -13,12 +13,12 @@ trait MethodNotAllowedTrait
      * 
      * @return void
      */
-    public function methodIsAllowed(array $params)
+    public function check(array $params)
     {
         $method = $_SERVER['REQUEST_METHOD'];
         $currentMethod = strtolower($method);
 
-        if (! in_array($currentMethod, $params)) {  // Get injected parameters
+        if (! in_array($currentMethod, $params)) {  // Check method is allowed
 
             $this->response->status(405)->showError(
                 sprintf(

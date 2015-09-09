@@ -24,9 +24,9 @@ Aşağıdaki örnek genel ziyaretçiler route grubu için RewriteLocale katmanı
 ```php
 $c['router']->group(
     [
-        'name' => 'GenericUsers', 
+        'name' => 'Locale', 
         'domain' => 'mydomain.com', 
-        'middleware' => array('Maintenance', 'RewriteLocale')
+        'middleware' => array('RewriteLocale')
     ],
     function () use ($c) {
 
@@ -36,6 +36,30 @@ $c['router']->group(
         $this->get('(?:en|tr|de|nl)', 'welcome');
 
         $this->attach('.*');
+    }
+);
+```
+
+Sadece belirli dizinler için katmanın çalışması sınırlandırılabilir.
+
+```php
+$c['router']->group(
+    [
+        'name' => 'Locale',
+        'domain' => '^example.com$',
+        'middleware' => array('RewriteLocale')
+    ],
+    function () {
+
+        $this->defaultPage('welcome');
+
+        $this->get('(?:en|tr|de|nl)/(.*)', '$1');           // Dispatch request for http://example.com/en/folder/class
+        $this->get('(?:en|tr|de|nl)', 'welcome/index');     // if request http://example.com/en  -> redirect it to default controller
+
+        $this->attach('/');         // Run middlewares for below the urls
+        $this->attach('welcome');
+        $this->attach('sports/.*');
+        $this->attach('support/.*');
     }
 );
 ```

@@ -17,17 +17,16 @@ use Obullo\Log\LoggerInterface;
  */
 class Router
 {
+    protected $uri;
     protected $logger;                         // Logger class
     protected $class = '';                     // Controller class name
     protected $routes = array();               // Routes config
     protected $method = 'index';               // Default method
     protected $directory = '';                 // Directory name
     protected $module = '';                    // Module name
-    protected $defaultController = 'welcome';  // Default controller name
-
-    protected $uri;
-    protected $HOST;                // Host address user.example.com
-    protected $DOMAIN;              // Current domain name
+    protected $classNamespace;
+    protected $defaultController = 'Help';     // Default controller name
+    protected $HOST;                           // Host address user.example.com
 
     /**
      * Constructor
@@ -78,7 +77,7 @@ class Router
     {        
         $this->uriString = $uriString;
         if ($host = $this->uri->argument('host')) {
-            $this->HOST = $this->DOMAIN = $host;
+            $this->HOST = $host;
         }
         $_SERVER['HTTP_USER_AGENT'] = 'Cli';       /// Define cli headers for any possible isset errors.
         $_SERVER['HTTP_ACCEPT_CHARSET'] = 'utf-8';
@@ -108,10 +107,10 @@ class Router
      * @return void
      */
     public function init()
-    {
+    {   
         if ($this->getUriString() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
-            $this->setClass($segments[1]);
+            $this->setClass($segments[0]);
             $this->setMethod('index');
             $this->logger->debug('No URI present. Default controller set.');
             return;
@@ -153,11 +152,10 @@ class Router
         if (count($segments) == 0) {
             return;
         }
-        $this->setClass($segments[1]);
-        if (! empty($segments[2])) {
-            $this->setMethod($segments[2]); // A standard method request
+        $this->setClass($segments[0]);
+        if (! empty($segments[1])) {
+            $this->setMethod($segments[1]); // A standard method request
         } else {
-            $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
             $this->setMethod('index');
         }
     }
@@ -177,54 +175,51 @@ class Router
         if (! isset($segments[0])) {
             return $segments;
         }
-        array_unshift($segments, 'tasks');
+        $Class = self::ucwordsUnderscore($segments[0]);
 
-        $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
-        $segments  = $this->detectModule($segments);
-        $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
-
-        if (! empty($segments[1]) && file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
+        if (! empty($segments[0]) && file_exists(TASKS .$Class.'.php')) {
+            $this->classNamespace = '\\Tasks\\'.$Class;
+            include_once TASKS .$Class.'.php';
             return $segments;
         }
-        if (file_exists(MODULES .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
-            array_unshift($segments, $directory);
+        if (! empty($segments[0]) && file_exists(OBULLO.'Cli'. DS .'Task'. DS .$Class.'.php')) {
+            $this->classNamespace = '\\Obullo\Cli\Task\\'.$Class;
+            include_once OBULLO.'Cli'. DS .'Task'. DS .$Class.'.php';
             return $segments;
         }
-        return $this->show404();
+        return $this->classNotFound();
+    }
+
+    /**
+     * Returns php namespace of the current route
+     * 
+     * @return string
+     */
+    public function fetchNamespace()
+    {
+        return $this->classNamespace;
     }
 
     /**
      * Task not found
-     *
-     * @param mixed $page null
      * 
      * @return string
      */
-    protected function show404($page = null)
+    public function classNotFound()
     {
-        $task = (empty($page)) ? $this->getUriString() : $page;
-        return '[Task Not Found]: The task file' .$task. ' you requested was not found.'."\n";
+        die('[Error]: The task command ' .$this->fetchNamespace(). ' not found.'."\n");
     }
 
     /**
-     * Check first segment if have a module set module name
+     * Task method not found
      * 
-     * @param array $segments uri segments
-     * 
-     * @return array
+     * @return string
      */
-    protected function detectModule($segments)
+    public function methodNotFound()
     {
-        if (isset($segments[1])
-            && strtolower($segments[1]) != 'view'  // http://example/debugger/view/index bug fix
-            && is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
-        ) {
-            $this->setModule($segments[0]);
-            $this->setDirectory($segments[1]);
-            array_shift($segments);
-        }
-        return $segments;
+        die('[Error]: The method ' .$this->fetchMethod(). ' not found in '.$this->fetchClass()." task.\n");
     }
+
 
     /**
      * Set the class name
@@ -264,53 +259,6 @@ class Router
     }
 
     /**
-     * Set the directory name
-     *
-     * @param string $directory directory
-     * 
-     * @return object Router
-     */
-    public function setDirectory($directory)
-    {
-        $this->directory = $directory;
-        return $this;
-    }
-
-    /**
-     * Sets stop directory http://example.com/api/user/delete/4
-     * 
-     * @param string $directory sets top directory
-     *
-     * @return void
-     */
-    public function setModule($directory)
-    {
-        $this->module = $directory;
-    }
-
-    /**
-     * Get module directory
-     *
-     * @param string $separator directory seperator
-     * 
-     * @return void
-     */
-    public function fetchModule($separator = '')
-    {
-        return ( ! empty($this->module)) ? filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator : '';
-    }
-
-    /**
-     * Fetch the directory (if any) that contains the requested controller class
-     *
-     * @return string
-     */
-    public function fetchDirectory()
-    {
-        return filter_var($this->directory, FILTER_SANITIZE_SPECIAL_CHARS);
-    }
-
-    /**
      * Returns to current method
      * 
      * @return string
@@ -318,18 +266,6 @@ class Router
     public function fetchMethod()
     {
         return $this->method;
-    }
-
-    /**
-     * Returns php namespace of the current route
-     * 
-     * @return string
-     */
-    public function fetchNamespace()
-    {
-        $namespace = self::ucwordsUnderscore($this->fetchModule()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
-        $namespace = trim($namespace, '\\');
-        return $namespace;
     }
 
     /**
@@ -347,16 +283,6 @@ class Router
         $str = str_replace('_', ' ', $string);
         $str = ucwords($str);
         return str_replace(' ', '_', $str);
-    }
-
-    /**
-     * Get domain which is configured in your routes.php
-     * 
-     * @return string
-     */
-    public function getDomain()
-    {
-        return $this->DOMAIN;
     }
 
     /**

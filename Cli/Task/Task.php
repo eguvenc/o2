@@ -40,7 +40,7 @@ class Task
         $this->logger = $logger;
         $this->loggerExists();
         if ($this->exist) {
-            $this->logger->debug('Task Class Initialized');
+            $this->logger->debug('Cli Task Class Initialized');
         }
     }
 
@@ -67,14 +67,14 @@ class Task
         if ($debug) {  // Enable debug output to log folder.
             $output = preg_replace(array('/\033\[36m/', '/\033\[31m/', '/\033\[0m/'), array('', '', ''), shell_exec($shell)); // Clean cli color codes
             if ($this->exist) {
-                $this->logger->debug('$_TASK request', array('command' => $shell, 'output' => $output));
+                $this->logger->debug('Cli task request', array('command' => $shell, 'output' => $output));
             }
             return $output;
         }
         shell_exec($shell . ' > /dev/null &');  // Async task
 
         if ($this->exist) {
-            $this->logger->debug('$_TASK executed', array('shell' => $shell));
+            $this->logger->debug('Cli task executed', array('shell' => $shell));
         }
     }
 

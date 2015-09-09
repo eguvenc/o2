@@ -6,7 +6,7 @@ use ArrayAccess;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Config Env Variable Object
+ * Config Variable Object
  * 
  * @category  Config
  * @package   Config
@@ -15,7 +15,7 @@ use Obullo\Container\ContainerInterface;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/config
  */
-class EnvVariable implements ArrayAccess
+class Variable implements ArrayAccess
 {
     /**
      * Current Environment

@@ -4,7 +4,7 @@ namespace Obullo\Application;
 
 use Controller;
 use Obullo\Config\Config;
-use Obullo\Config\EnvVariable;
+use Obullo\Config\Variable;
 use Obullo\Debugger\WebSocket;
 use Obullo\Container\Container;
 
@@ -24,7 +24,7 @@ if (error_get_last() != null) {
 $c = new Container(scandir(APP .'classes'. DS . 'Service'));
 
 $c['var'] = function () use ($c) {
-    return new EnvVariable($c);
+    return new Variable($c);
 };
 $c['config'] = function () use ($c) {
     return new Config($c);
@@ -77,8 +77,36 @@ class Http extends Application
         include APP .'providers.php';
         include APP .'events.php';
         include APP .'routes.php';
+        
+        $this->c['router']->init();
 
         register_shutdown_function(array($this, 'close'));
+    }
+
+    /**
+     * Check class exists
+     * 
+     * @return void
+     */
+    protected function dispatchClass()
+    {
+        if (! class_exists($this->className, false)) {
+            $this->c['response']->show404($this->uri->getUriString());
+        }
+    }
+
+    /**
+     * Check method exists
+     * 
+     * @return void
+     */
+    protected function dispatchMethod()
+    {
+        if (! method_exists($this->class, $this->method)
+            || $this->method == '__extend'
+        ) {
+            $this->c['response']->show404($this->uri->getUriString());
+        }
     }
 
     /**
@@ -91,8 +119,7 @@ class Http extends Application
      */
     public function run()
     {
-        $this->init();
-        $this->c['router']->init();                 // Initialize Routes
+        $this->init();   
 
         if ($this->c['config']['http']['debugger']['enabled']) {
             $this->websocket = new WebSocket($this->c['request'], $this->c['uri']->getUriString(), $this->c['config']);
@@ -116,7 +143,7 @@ class Http extends Application
                                        // does not work
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         
-        if (method_exists($this->class, '__extend')) {      // View traits must be run at the top level otherwise layout view file
+        if (method_exists($this->class, '__extend')) {    // View traits must be run at the top level otherwise layout view file
             $this->class->__extend();                     // could not load view variables.
         }
         $middleware->call();
@@ -137,7 +164,7 @@ class Http extends Application
 
             if ($value['route'] == $currentRoute) {     // if we have natural route match
                 $this->middleware($value['name'], $value['options']);
-            } elseif (preg_match('#'. $attachedRoute .'#', $currentRoute)) {
+            } elseif ($attachedRoute == '.*' || preg_match('#'. $attachedRoute .'#', $currentRoute)) {
                 $this->middleware($value['name'], $value['options']);
             }
         }

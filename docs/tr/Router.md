@@ -17,7 +17,7 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
 <li>
     <a href="#running">Çalıştırma</a>
     <ul>
-        <li><a href="#loading-service">Servisi Yüklemek</a></li>
+        <li><a href="#loading">Bileşeni Yüklemek</a></li>
         <li><a href="#url-rewriting">Url Yönlendirme</a></li>
         <li><a href="#modules">Modüller</a></li>
     </ul>
@@ -33,6 +33,7 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
         <li><a href="#route-groups">Route Grupları</a></li>
         <li><a href="#sub-domains">Alt Alan Adları ve Gruplar</a></li>
         <li><a href="#regex-sub-domains">Alt Alan Adları ve Düzenli İfadeler</a></li>
+        <li><a href="#namespaces">İsim Alanları Kullanmak</a></li>
     </ul>
 </li>
 
@@ -46,13 +47,7 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
     </ul>
 </li>
 
-<li>
-    <a href="#mostly-used-mds">Sık Kullanılan Katmanlar</a>
-    <ul>
-        <li><a href="#translation">Translation Katmanı</a></li>
-    </ul>
-</li>
-
+<li><a href="#method-reference">Fonksiyon Referansı</a></li>
 
 </ul>
 
@@ -121,11 +116,11 @@ BU tanımlamadan sonra herhangi bir 404 hatası oluştuğunda uygulama <kbd>erro
 
 ### Çalıştırma
 
-Servis konteyner içerisinden çağırıldığında tanımlı olan router metotlarına ulaşılmış olur. 
+Bileşen konteyner içerisinden çağırıldığında tanımlı olan router metotlarına ulaşılmış olur. 
 
-<a name="loading-service"></a>
+<a name="loading"></a>
 
-#### Servisi Yüklemek
+#### Bileşeni Yüklemek
 
 ```php
 $this->c['router']->method();
@@ -182,7 +177,7 @@ Alt klasörleri olan ve ana dizinleri kapsayan dizinlere modül adı verilir. Bi
 example.com/admin/membership/login/index
 ```
 
-Aşağıdaki örnekte <b>shop</b> klasörü bir dizindir, admin klasörü ise bir modüldür ve diğer dizinleri kapsar.
+Aşağıdaki örnekte shop klasörü bir dizin olarak görülüyor, <b>admin</b> klasörü ise bir modüldür ve membership isimli klasörü kapsar.
 
 ```php
 - modules
@@ -385,11 +380,11 @@ Bu örnekte ise <kbd>shop/{id}/{name}</kbd> olarak girilen URI şeması eğer <k
 
 #### Route Grupları
 
-Route grupları bir kurallar bütününü topluca yönetmenizi grup kuralları belirli <b>alt domainler</b> için çalıştırılabildiği gibi belirli <b>http katmanlarına</b> da tayin edilebilirler. Örneğin tanımladığınız route grubunda belirlediğiniz http katmanlarının çalışmasını istiyorsanız grup tanımlamalarına katman isimlerini girdikten sonra <kbd>$this->attach()</kbd> metodu ile katmanı istediğiniz URL adreslerine tuturmanız gerekir. Birden fazla katman middleware dizisi içine girilebilir.
+Route grupları bir kurallar bütününü topluca yönetmenizi sağlar. Grup kuralları belirli <b>alt domainler</b> için çalıştırılabildiği gibi belirli <b>http katmanlarına</b> da tayin edilebilirler. Örneğin tanımladığınız route grubunda belirlediğiniz http katmanlarının çalışmasını istiyorsanız grup tanımlamalarına katman isimlerini girdikten sonra <kbd>$this->attach()</kbd> metodu ile katmanı istediğiniz URL adreslerine tuturmanız gerekir. Birden fazla katman middleware dizisi içine girilebilir.
 
 ```php
 $c['router']->group(
-    ['name' => 'test', 'middleware' => array('methodNotAllowed')],
+    ['name' => 'Test', 'middleware' => array('MethodNotAllowed')],
     function () {
 
         $this->attach('welcome');
@@ -398,7 +393,7 @@ $c['router']->group(
 );
 ```
 
-Bu tanımlamadan sonra eğer buna benzer bir URL <kbd>/welcome</kbd> çağırırsanız <b>methodNotAllowed</b> katmanı çalışır ve aşağıdaki hata ile karşılaşırsınız.
+Bu tanımlamadan sonra eğer buna benzer bir URL <kbd>/welcome</kbd> çağırırsanız <b>MethodNotAllowed</b> katmanı çalışır ve aşağıdaki hata ile karşılaşırsınız.
 
 ```php
 Http Error 405 Get method not allowed.
@@ -414,7 +409,7 @@ Eğer bir gurubu belirli bir alt alan adına tayin ederseniz grup içerisindeki 
 
 ```php
 $c['router']->group(
-    array('name' => 'shop', 'domain' => 'shop.example.com'), 
+    array('name' => 'Shop', 'domain' => 'shop.example.com'), 
     function () {
 
         $this->defaultPage('welcome');
@@ -435,7 +430,7 @@ Aşağıda <kbd>account.example.com</kbd> adlı bir alt alan adı için kurallar
 
 ```php
 $c['router']->group(
-    array('name' => 'accounts', 'domain' => 'account.example.com'), 
+    array('name' => 'Accounts', 'domain' => 'account.example.com'), 
     function () {
 
         $this->get(
@@ -463,11 +458,54 @@ Alt alan adlarınızda eğer <kbd>sports19.example.com</kbd>, <kbd>sports20.exam
 
 ```php
 $c['router']->group(
-    array('name' => 'sports', 'domain' => 'sports.*\d.example.com', 'middleware' => array('maintenance')),
-    function () {
+    array('name' => 'Sports', 'domain' => 'sports.*\d.example.com', 'middleware' => array('maintenance')),
+    function ($subname) {
+
+        echo $subname;  // sports20
 
         $this->defaultPage('welcome');
         $this->attach('.*');
+    }
+);
+```
+
+<a name="namespaces"></a>
+
+#### İsim Alanları Kullanmak 
+
+Eğer bir gurubun <kbd>app/modules/</kbd> klasörü içerisinde ilan edilen isim alanları ile ilişkili çalışmasını istiyorsanız namespace değerine bir isim alanı adı verin.
+
+```php
+$c['router']->group(
+    [
+        'namespace' => 'Admin'
+    ],
+    function () use ($c) {
+
+        // Admin modülüne ait kurallar
+        // $this->get();
+        // $this->post();
+    }
+);
+```
+
+Tarayıcınızdan Admin modülünü ziyaret ettiğinizde bu modülün ismi geçen route grupları çalışmış olur.
+
+```php
+http://example.com/Admin/Membership/Login
+```
+
+Eğer modülünüz altında bir klasör daha varsa isim alanını aşağıdaki gibi girmeniz gerekir.
+
+```php
+$c['router']->group(
+    [
+        'namespace' => 'Ajax/Post'
+    ],
+    function () use ($c) {
+
+        // Ajax/Post isim alanına ait kurallar
+        // $this->post();
     }
 );
 ```
@@ -476,7 +514,7 @@ $c['router']->group(
 
 ### Http Katmanlarını Route Kurallarına Atamak
 
-Http katmanları tek bir route kuralına atanarak direkt çalıştırılabilecekleri gibi bir route grubuna da tutturulduktan sonra <kbd>attach()</kbd> metodu ile dolaylı olarak da çalıştırılabilirler.
+Http katmanları tek bir route kuralına atanarak direkt çalıştırılabilecekleri gibi bir route grubuna da tutturulduktan sonra <kbd>attach()</kbd> metodu ile çalıştırılabilirler.
 
 <a name="route-md-assignment"></a>
 
@@ -508,6 +546,8 @@ $c['router']->get('membership/restricted')->middleware(array('auth', 'guest'));
 <a name="group-md-assignment"></a>
 
 #### Bir Gruba Katman Atamak
+
+Bir grup için oluşturulan katmanı grup fonksiyonu içerisinde çalıştırabilmek için <kbd>$this->attach()</kbd> metodu kullanılır.
 
 ```php
 $c['router']->group(
@@ -554,123 +594,93 @@ http://www.example.com/test/bad_segment
 http://www.example.com/test/good_segment1
 http://www.example.com/test/good_segment2
 
-$this->attach('^(test/(?!bad_segment).*)$');
-```
-
-<a name="mostly-used-mds"></a>
-
-### Sık Kullanılan Katmanlar için Örnekler
-
-
-<a name="translation"></a>
-
-#### Translation Katmanı
-
-```php
 $c['router']->group(
-    [
-        'name' => 'locale',
-        'domain' => '^www.example.com$|^example.com$',
-        'middleware' => array('locale')
-    ],
+    ['name' => 'Test', 'domain' => 'example.com', 'middleware' => array('Test')],
     function () {
 
-        $this->defaultPage('welcome');
-        $this->get('(?:en|tr|de|nl)/(.*)', '$1', null);  // Dispatch request for http://example.com/en/folder/class
-        $this->get('(?:en|tr|de|nl)', 'welcome/index',  null);  // if request http://example.com/en  -> redirect it to default controller
-
-        $this->attach('/');         // Run middlewares for below the urls
-        $this->attach('welcome');
-        $this->attach('sports/.*');
-        $this->attach('support/.*');
+        $this->attach('^(test/(?!bad_segment).*)$');
     }
 );
 ```
 
-#### Maintenance Katmanı
+<a name="method-reference"></a>
 
-
-#### Auth ve Guest Katmanları 
-
-
-#### Routes.php Referansı
+#### Set Metotları
 
 ------
 
 ##### $c['router']->domain(string $domain);
 
-Sets a your default domain.
+Geçerli domain adresini konfigüre eder.
 
 ##### $c['router']->defaultPage(string $uri);
 
-Sets your default controller.
+Uygulamanın yada bir route grubunun açılış sayfasını belirler. ( Uri değeri dizin/sınıf/metot şeklinde girilmelidir. )
 
 ##### $c['router']->error404(string $uri);
 
-Sets your error controller.
+Uygulama içerisinde sayfa bulunamadı hataları ( Uri değeri dizin/sınıf/metot şeklinde girilmelidir. )
 
 ##### $c['router']->match(array $methods, string $match, string $rewrite, $closure = null)
 
-Girilen http istek metotlarına göre bir iz yaratır, istek metotları get,post,put ve delete metotlarıdır.
+Girilen http istek metotlarına göre bir route yaratır, istek metotları get,post,put ve delete metotlarıdır.
 
 ##### $c['router']->get(string $match, string $rewrite, $closure = null)
 
-Creates a http GET based route.
+Http GET isteği türünde bir route kuralı oluşturur.
 
 ##### $c['router']->post(string $match, string $rewrite, $closure = null)
 
-Creates a http POST based route.
+Http POST isteği türünde bir route kuralı oluşturur.
 
 ##### $c['router']->put(string $match, string $rewrite, $closure = null)
 
-Creates a http PUT based route.
+Http PUT isteği türünde bir route kuralı oluşturur.
 
 ##### $c['router']->delete(string $match, string $rewrite, $closure = null)
 
-Creates a http DELETE based route.
+Http DELETE isteği türünde bir route kuralı oluşturur.
 
 ##### $c['router']->group(array $options, $closure);
 
-Creates a route group.
+Bir route grubu oluşturur.
 
 ##### $c['router']->where(array $replace);
 
-Replaces your route schema with arguments.
+Bir route kuralı parameterelerini girilen düzenli ifadeler ile değiştirir.
 
+##### $c['router']->attach(string $route|$regex)
 
-#### Middleware Referansı
+Geçerli grubun katmanlarını route grubuna tayin eder.
 
-------
+##### $c['router']->middleware(string|array $middlewares);
 
-##### $c['router']->attach(string $route)
+Bir route kuralına girilen katmanları tayin eder.
 
-Geçerli grubun katmanlarını girilen ize tutturur.
-
-##### $c['router']->match(['get','post'], '/')->middleware(array $middlewares);
-
-En son yazılan http izine girilen katmanları tutturur.
-
-
-#### Sınıf Referansı
+#### Get Metotları
 
 ------
 
 ##### $this->router->getHost();
 
-Gets current domain name.
+Sunucuda çalışan host adresine geri döner. Örn: example.com
 
 ##### $this->router->getDomain();
 
-Returns domain name configured in routes.php
+App/routes.php dosyası içerisinde domain metodu ile tanımlanmış alan adına geri döner.
 
 ##### $this->router->fetchModule();
 
-Gets the currently working module name.
+Eğer bir modül çağrıldıysa modül ismine aksi durumda boş bir string '' değerine geri döner.
 
 ##### $this->router->fetchDirectory();
 
-Gets the currently working directory name.
+Çağırılan dizin adına geri döner.
 
 ##### $this->router->fetchClass();
 
-Gets the currently working directory name.
+Çağırılan sınıf adına geri döner.
+
+##### $this->router->fetchMethod();
+
+Çağırılan metot adına geri döner.

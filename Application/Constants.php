@@ -25,6 +25,7 @@ define('TRANSLATIONS',  RESOURCES .'translations'. DS);
 define('CLASSES',  APP .'classes'. DS);
 define('TEMPLATES',  APP . 'templates'. DS);
 define('MODULES', ROOT .'modules'. DS);
+define('TASKS', ROOT .'modules'. DS .'tasks'. DS);
 define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
 define('CLI_PHP', 'cli.php');

@@ -18,7 +18,7 @@ use Obullo\Utils\Process\Process;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class QueueController extends Controller
+class Queue extends Controller
 {
     /**
      * Run command
@@ -172,8 +172,8 @@ echo Console::newline(2);
         if (empty($route)) {
             echo Console::fail("Queue \"--job\" (route) (--j) can't be empty.");
             exit;
-        }
-        $cmd = "php task worker --worker=$exchange --job=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --attempt=$attempt --output=$output --env=$env";
+        } 
+        $cmd = "php task worker run --worker=$exchange --job=$route --memory=$memory --delay=$delay --timeout=$timeout --sleep=$sleep --attempt=$attempt --output=$output --env=$env";
 
         if ($host) {
             $cmd." --host=$host";

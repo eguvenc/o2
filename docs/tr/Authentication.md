@@ -401,7 +401,7 @@ print_r($params);  // Konfigürasyon değerleri
 
 ### Oturum Açma
 
-Oturum açma işlemi bir uygulamanın en kritik bölümlerinden biridir. Bir oturum açma işleminde oturum açma / kapatma, mevcut kullanıcı oturumları almak gibi işlemleri login sınıfı, oturum açma sonuçlarını ise AuthResult sınıfı kontrol eder. Oturum açma olaylarına abone olmak için ise [Anotasyonlar](/Annotations/Docs/tr/Annotations.md) kullanılır.
+Oturum açma işlemi bir uygulamanın en kritik bölümlerinden biridir. Bir oturum açma işleminde oturum açma / kapatma, mevcut kullanıcı oturumları almak gibi işlemleri login sınıfı, oturum açma sonuçlarını ise AuthResult sınıfı kontrol eder. Oturum açma olaylarına abone olmak için ise [Anotasyonlar](Annotations.md) kullanılır.
 
 <a name="login-attempt"></a>
 
@@ -958,7 +958,7 @@ Eğer mevcut database sorgularında değişiklik yapmak yada bir NoSQL çözüm�
 
 #### Ek Özellikler
 
-Auth paketi yetki doğrulama onayı ve aktivite verilerini kaydetme gibi bazı ek özellikler ile gelir. Bu türden özelliklere ihtiyacınız varsa [Auth-AdditionalFeatures.md](/Authentication/Docs/tr/AdditionalFeatures.md) dökümentasyonuna gözatın.
+Auth paketi yetki doğrulama onayı ve aktivite verilerini kaydetme gibi bazı ek özellikler ile gelir. Bu türden özelliklere ihtiyacınız varsa [Auth-AdditionalFeatures.md](Auth-AdditionalFeatures.md) dökümentasyonuna gözatın.
 
 <a name="events"></a>
 
@@ -974,4 +974,4 @@ Oturum açma olayları hakkında daha fazla bilgi için [Events.md](Events.md) d
 
 Auth katmanları uygulamanız içerisinde <kbd>app/classes/Http/Middlewares/</kbd> klasörü altında bulunan <b>Auth.php</b> ve <b>Guest.php</b> dosyalarıdır. Auth dosyası uygulamaya giriş yapmış olan kullanıcıları kontrol ederken Guest katmanı ise uygulamaya giriş yetkisi olmayan kullanıcıları kontrol eder. Auth ve Guest katmanlarının çalışabilmesi için route yapınızda middleware anahtarına ilgili modül için birkez tutturulmaları gerekir.
 
-Auth katmanları hakkında daha fazla bilgi için [Auth-Middleware.md](Auth-Middleware.md) dökümentasyonunu inceleyebilirsiniz.
+Auth katmanları hakkında daha fazla bilgi için [Middleware-Auth.md](Middleware-Auth.md) dökümentasyonunu inceleyebilirsiniz.

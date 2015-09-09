@@ -17,7 +17,7 @@ use Obullo\Cli\Console;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class LogController extends Controller
+class Log extends Controller
 {
     /**
      * Execute command
@@ -88,9 +88,6 @@ class LogController extends Controller
             if (is_file($path.$filename)) {
                 unlink($path.$filename);
             }
-        }
-        if ($this->c->has('queue')) {
-            $this->c['queue']->delete($this->c['logger']->getParameters()['queue']['job']); // Clear queue data
         }
         echo Console::success('Application logs deleted.');
     }

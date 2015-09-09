@@ -7,7 +7,8 @@ Cli paketi yani Command Line Interface komut satırından yürütülen işlemler
 <li>
     <a href="#flow">İşleyiş</a>
     <ul>
-        <li><a href="#cli">Cli Sınıfı</a></li>
+        <li><a href="#cli-uri">Uri Sınıfı</a></li>
+        <li><a href="#cli-router">Router Sınıfı</a></li>
     </ul>
 </li>
 
@@ -40,9 +41,15 @@ Framework komut satırından yürütülen işlemleri <kbd>modules/tasks</kbd> kl
 
 > **Not:** Bir task kontrolör dosyasının normal bir kontrolör dosyasından hiçbir farkı yoktur sadece dosyanın üzerinde <b>namespace</b> için <b>Tasks</b> belirtilmek zorundadır.
 
-<a name="cli"></a>
+Uygulama konsol dosyaları <kbd>modules/tasks</kbd> klasörü içerisinde mevcut değilse <kbd>Obullo\Cli\Task</kbd> klasöründen yüklenirler. Örneğin Log kontrolör dosyası sadece Obullo\Cli\Task dizininde mevcut olduğundan bu dizinden çağırılır.
 
-### Konsol Uri Sınıfı
+```php
+php task log
+```
+
+<a name="cli-uri"></a>
+
+### Uri Sınıfı
 
 Uri sınıfı <kbd>.modules/tasks</kbd> dizini içindeki komutlara "--" sembolü ile gönderilen konsol argümanlarını çözümlemek için kullanılır. Sınıf task komutu ile gönderilen isteklere ait argümanları çözümleyerek <kbd>$this->uri</kbd> nesnesi ile bu argümanların yönetilmesini kolaylaştırır. Cli arayüzünde argüman çözümleme esnasında Cli nesnesi <kbd>Application/Cli</kbd> sınıfı içerisinden uygulama içerisine kendiliğinden dahil edilir.
 
@@ -55,11 +62,6 @@ use Obullo\Cli\Console;
 
 class Hello extends \Controller {
   
-    /**
-     * Index
-     * 
-     * @return void
-     */
     public function index()
     {
         echo Console::logo("Welcome to Hello Controller");
@@ -92,6 +94,8 @@ $planet = $this->uri->segment(0);
 Aşağıdaki gibi standart parametreler de desteklenmektedir.
 
 ```php
+namespace Tasks;
+
 class Hello extends \Controller {
 
     public function index($planet = '')
@@ -111,36 +115,75 @@ Konsoldan hello komutunu <b>planet</b> argümanı ile aşağıdaki gibi çalış
 php task hello World
 ```
 
+<a name="cli-router"></a>
+
+### Router Sınıfı
+
+Cli router sınıfı http router ile benzer metotlara sahiptir. Router sınıfı bir task sınıfı içerisinde kullanıldığında çalıştırılan sınıfın adı, metot adı, isim alanı ve host bilgileri gibi bilgileri verir.
+
+
+```php
+namespace Tasks;
+
+class Hello extends \Controller {
+
+    public function index()
+    {
+        echo "Task Controller : " . $this->router->fetchClass()."\n";
+        echo "Method : ". $this->router->fetchMethod()."\n";
+        echo "Namespace : ". $this->router->fetchNamespace()."\n";
+        echo "Uri : ". $this->router->getUriString()."\n";
+        echo "Host: ". $this->router->getHost()."\n";
+    }
+}
+```
+
+Help komutunu çalıştırın
+
+```php
+php task hello index --h=test
+```
+
+Çalıştırdığınızda aşağıdaki gibi bir çıktı almanız gerekir.
+
+```php
+Task Controller : Help
+Method : index
+Namespace : \Obullo\Cli\Task\Help
+Uri : help/index/--host=test
+Host: test
+```
+
 <a name="running-console-commands"></a>
 
 ### Konsol Komutlarını Çalıştırmak
 
-Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>directory/controller/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmenize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark ise konsol komutlarında adres çözümlemesi için forward slash "/" yerine boşluk " " karakteri kullanılmasıdır.
+Konsol arayüzüne gönderilen her url task komutu http arayüzüne benzer bir şekilde <b>class/method</b> olarak çözümlenir. Konsol komutlarındaki url çözümlemesinin http arayüzünden farkı argümanları "--" öneki key => value olarak da gönderebilmenize olanak sağlayarak konsol işlerini kolaylaştırmasıdır. Diğer bir fark ise konsol komutlarında adres çözümlemesi için forward slash "/" yerine boşluk " " karakteri kullanılmasıdır.
 
-Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalışırın.
+Daha iyi anlamak için terminalinizi açıp aşağıdaki komutu çalıştırın.
 
 ```php
-php task help
+php task hello
 ```
 
-Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modules/tasks/</kbd> klasörü altındaki <b>Help</b> adlı controller dosyasının <b>index</b> metodunu çalıştırır.
+Yukarıdaki komut ana dizindeki task dosyasına bir istek göndererek <kbd>.modules/tasks/</kbd> klasörü altındaki <b>Hello</b> adlı controller dosyasının <b>index</b> metodunu çalıştırır.
 
 ```php
 - modules
   - tasks
-      Help.php
+      Hello.php
 ```
 
-> **Not:** Eğer bir method ismi yazmazsanız varsayılan method her zaman "index" metodudur.
+> **Not:** Eğer bir method ismi yazmazsanız varsayılan method her zaman "index" metodudur. Fakat argümanlar gönderiyorsanız index metodunu yazmanız gerekir.
 
 <a name="arguments"></a>
 
 #### Argümanlar
 
-Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra <kbd>name</kbd> adlı argüman ve ona ait Csrf değeri gönderiliyor.
+Argümanlar method çözümlemesinin hemen ardından gönderilirler. Aşağıdaki örnekte uygulamaya bir middleware eklemek için add metodu çözümlemesinden sonra Csrf argümanı gönderiliyor.
 
 ```php
-php task middleware add --name=Csrf
+php task middleware add Csrf
 ```
 
 Bir kuyruğu dinlemek için kullanılan konsol komutuna bir başka örnek.
@@ -240,7 +283,7 @@ Https katmanı için örnek bir kaldırma
 php task middleware remove https
 ```
 
-> Katmanlar hakkında daha geniş bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasına gözatın.
+> Katmanlar hakkında daha geniş bilgi için [Middlewares.md](Middlewares.md) dosyasına gözatın.
 
 <a name="module-command"></a>
 
@@ -260,13 +303,13 @@ Debugger modülü için örnek bir kaldırma
 php task module remove debugger
 ```
 
-> Modüller hakkında daha geniş bilgi için [Modules.md](/Application/Docs/tr/Modules.md) dosyasına gözatın.
+> Modüller hakkında daha geniş bilgi için [Modules.md](Modules.md) dosyasına gözatın.
 
 <a name="domain-command"></a>
 
-#### Domain Komutu
+#### App Komutu
 
-Domain komutu maintenance katmanını uygulamaya ekler. Eğer <kbd>config/domain.php</kbd> dosyanızda tanımlı olan domain adresleriniz varsa uygulamanızı konsoldan bakıma alma işlevlerini yürütebilirsiniz. 
+App komutu maintenance katmanını uygulamaya ekler. Eğer <kbd>config/maintenance.php</kbd> dosyanızda tanımlı domain adresleriniz yada isim alanlarınız varsa uygulamanızın konsoldan bakıma alma işlevlerini yürütebilirsiniz. 
 
 Maintenance katmanı için örnek bir kurulum
 
@@ -283,16 +326,16 @@ php task middleware remove maintenance
 Uygulamanızı bakıma almak için aşağıdaki komutu çalıştırın.
 
 ```php
-php task domain down root
+php task app down root
 ```
 
 Uygulamanızı bakımdan çıkarmak için aşağıdaki komutu çalıştırın.
 
 ```php
-php task domain up root
+php task app up root
 ```
 
-> Maintenance katmanı hakkında daha geniş bilgi için [MaintenanceMiddleware.md](MaintenanceMiddleware.md) dosyasına gözatın.
+> Maintenance katmanı hakkında daha geniş bilgi için [Middleware-Maintenance.md](Middleware-Maintenance.md) dosyasına gözatın.
 
 <a name="debugger-command"></a>
 
@@ -350,11 +393,6 @@ namespace Tasks;
 
 class Hello extends \Controller {
   
-    /**
-     * Index
-     * 
-     * @return void
-     */
     public function index()
     {
         echo Console::logo("Welcome to Hello Controller");
@@ -442,7 +480,7 @@ php /var/www/framework/task help
 
 <a name="method-reference"></a>
 
-#### Fonksiyon Referansı
+#### Uri Sınıfı
 
 ------
 
@@ -470,7 +508,7 @@ Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman de
 
 Çözümlenen metot ismine geri döner.
 
-##### $this->uri->getCmdString();
+##### $this->uri->getUriString();
 
 Çözümlenen tüm konsol komutuna argümanları ile birlikte string formatında geri döner.
 
@@ -481,3 +519,23 @@ Argümanlar için tanımlı olan tüm kısayollara bir dizi içerisinde geri dö
 ##### $this->uri->clear();
 
 Sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.
+
+#### Router Sınıfı
+
+------
+
+##### $this->router->fetchClass();
+
+Konsoldan gönderilan ilk parametre değerini yani sınıf adını verir.
+
+##### $this->router->fetchMethod();
+
+Konsoldan gönderilan ilk parametre değerini yani metot adını verir.
+
+##### $this->router->getUriString();
+
+Tüm konsol girdisine konsol parametreleri ile birlikte geri döner.
+
+##### $this->router->getHost();
+
+Eğer parametre olarak bir host değeri gönderilmişse bu değere aksi durumda null değerine geri döner.

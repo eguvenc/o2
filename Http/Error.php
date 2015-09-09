@@ -75,7 +75,9 @@ class Error
     public function show404($page = '')
     {
         if (empty($page)) {
-            $page = $this->app->uri->getUriString();
+            $exp = explode("/", $this->app->uri->getUriString());
+            $segments = array_slice($exp, 0, 4);
+            $page = implode("/", $segments);
         }
         $page = $this->sanitizeMessage($page);
         $message = '404 Page Not Found --> '.$page;
@@ -132,7 +134,7 @@ class Error
         $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
 
         if (defined('STDIN')) { // Cli
-            return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
+            return '['.$heading.']: The url '.$message.' you requested was not found.'."\n";
         } else {
             http_response_code($status);
         }

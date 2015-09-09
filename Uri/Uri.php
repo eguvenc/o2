@@ -30,6 +30,14 @@ class Uri
     public $uriProtocol = 'REQUEST_URI';
 
     /**
+     * Don't explode segments two times, otherwise default method index will not
+     * work.
+     * 
+     * @var string
+     */
+    protected $resolvedUri;
+
+    /**
      * Constructor
      *
      * @param object $config \Obullo\Config\ConfigInterface
@@ -220,12 +228,16 @@ class Uri
      */
     public function explodeSegments()
     {
+        if ($this->resolvedUri == $this->uriString) {
+            return;
+        }
         foreach (explode('/', preg_replace("|/*(.+?)/*$|", "\\1", $this->uriString)) as $val) {
             $val = trim($val);
             if ($val != '') {
                 $this->segments[] = $this->parseExtension($val);
             }
         }
+        $this->resolvedUri = $this->uriString;
     }
 
     /**
@@ -439,5 +451,6 @@ class Uri
         $this->segments = array();
         $this->rsegments = array();
         $this->uriExtension = '';
+        $this->resolvedUri = '';
     }
 }

@@ -210,32 +210,6 @@ class Application
     }
 
     /**
-     * Check class exists
-     * 
-     * @return void
-     */
-    protected function dispatchClass()
-    {
-        if (! class_exists($this->className, false)) {
-            $this->c['response']->show404($this->uri->getUriString());
-        }
-    }
-
-    /**
-     * Check method exists
-     * 
-     * @return void
-     */
-    protected function dispatchMethod()
-    {
-        if (! method_exists($this->class, $this->method)
-            || $this->method == '__extend'
-        ) {
-            $this->c['response']->show404($this->uri->getUriString());
-        }
-    }
-
-    /**
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.

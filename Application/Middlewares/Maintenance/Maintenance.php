@@ -18,7 +18,7 @@ class Maintenance extends Middleware
      */
     public function __construct(array $params)
     {   
-        $this->domainIsDown($params);
+        $this->check($params);
     }
 
     /**

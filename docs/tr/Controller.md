@@ -69,11 +69,11 @@ $c['router']->group(
 );
 ```
 
-> Route çözümlemeleri ilgili daha fazla bilgi için [Router.md](/Router/Docs/tr/Router.md) dosyasını gözden geçirebilirsiniz.
+> Route çözümlemeleri ilgili daha fazla bilgi için [Router.md](Router.md) dosyasını gözden geçirebilirsiniz.
 
 Eğer route yapınızda <b>middleware()</b> fonksiyonu ile yada middleware anahtarı içerisine tanımlanmış bir http katmanınız varsa ve gelen route isteği ile eşleşirse bu katman <b>app/Http/Middlewares</b> klasöründen çağrılarak çalıştırılır.
 
-> Http katmanları ile ilgili daha fazla bilgi için [Middlewares.md](/Application/Docs/tr/Middlewares.md) dosyasını gözden geçirebilirsiniz.
+> Http katmanları ile ilgili daha fazla bilgi için [Middlewares.md](Middlewares.md) dosyasını gözden geçirebilirsiniz.
 
 
 <a name="what-is-the-controller"></a>
@@ -177,7 +177,6 @@ class Welcome extends \Controller
     }
 }
 
-/* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```
 
@@ -220,7 +219,6 @@ class Welcome extends \Controller
     }
 }
 
-/* End of file welcome.php */
 /* Location: .modules/welcome/welcome.php */
 ```
 
@@ -258,7 +256,6 @@ class Computer extends \Controller
     }
 }
 
-/* End of file computer.php */
 /* Location: .modules/products/computer.php */
 ```
 
@@ -300,7 +297,6 @@ Bu nedenle route dosyanızı açıp varsayılan kontrolör sınıfınızı defau
 $c['router']->domain($c['config']['url']['webhost']);
 $c['router']->defaultPage('welcome/index');
 
-/* End of file routes.php */
 /* Location: .routes.php */
 ```
 
@@ -326,7 +322,7 @@ Config.php konfigürasyon dosyasını açın ve <b>annotations > enabled</b> ana
 ],
 ```
 
-> **Not:** Anotasyonlar hakkında daha fazla bilgiye [Annotations.md](/Application/Docs/tr/Annotations.md) dökümentasyonundan ulaşabilirsiniz.
+> **Not:** Anotasyonlar hakkında daha fazla bilgiye [Annotations.md](Annotations.md) dökümentasyonundan ulaşabilirsiniz.
 
 
 <a name="reserved-methods"></a>
@@ -350,4 +346,4 @@ Kontrolör sınıfı içerisine tanımlanmış yada tanımlanması olası bazı 
     </tbody>
 </table>
 
-<kbd>__extend()</kbd> metodu hakkında daha detaylı bilgi için [View.md](/View/Docs/tr/View.md) dökümentasyonunu inceleyiniz.
+<kbd>__extend()</kbd> metodu hakkında daha detaylı bilgi için [View.md](View.md) dökümentasyonunu inceleyiniz.
