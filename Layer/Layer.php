@@ -217,12 +217,13 @@ class Layer
         if (! class_exists($className, false)) {   // Don't allow multiple include.
             include $controller;                   // Load the controller file.
         }
+        if (! class_exists($className, false)) {
+            return $this->show404($method);
+        }
         $class = new $className;  // Call the controller
 
         if (! method_exists($class, $method)) {  // Check method exist or not
-            $this->reset();
-            $this->c['response']->setError('@LayerNotFound@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
-            return $this->c['response']->getError();
+            return $this->show404($method);
         }
         ob_start();
         call_user_func_array(array($class, $method), array_slice($this->c['uri']->routedSegments(), 3));
@@ -233,6 +234,20 @@ class Layer
         }
         $this->log('$_LAYER:', $this->getUri(), $start, $layerID, $response);
         return $response;
+    }
+
+    /**
+     * Show404 output and reset layer variables
+     * 
+     * @param string $method current method
+     * 
+     * @return string 404 message
+     */
+    protected function show404($method)
+    {   
+        $this->reset();
+        $this->c['response']->setError('@Layer404@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
+        return $this->c['response']->getError();
     }
 
     /**

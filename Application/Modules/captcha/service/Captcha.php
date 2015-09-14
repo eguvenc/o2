@@ -26,7 +26,7 @@ class Captcha implements ServiceInterface
             $manager->setParameters($parameters);
             $captcha = $manager->getClass();
 
-            $captcha->setMod('secure');
+            $captcha->setMod('cool');
             $captcha->setPool('alpha');
             $captcha->setChar(5);
             $captcha->setFont(array('NightSkK','AlphaSmoke','Popsf'));

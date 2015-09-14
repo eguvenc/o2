@@ -81,7 +81,7 @@ class Image extends AbstractProvider implements ProviderInterface
         $this->session = $session;
         $this->translator = $translator;
         $this->translator->load('captcha');
-
+        $this->config['mod'] = 'cool';
         $this->init();
         $this->logger->debug('Captcha Class Initialized');
     }

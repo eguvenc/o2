@@ -42,7 +42,7 @@ class Error
      */
     public static function getError($response)
     {
-        $error = str_replace('@LayerNotFound@', '', $response);
+        $error = str_replace('@Layer404@', '', $response);
         return (static::ERROR_HEADER . $error . static::ERROR_FOOTER);
     }
     

@@ -52,6 +52,9 @@ class File extends AbstractHandler implements HandlerInterface
             $lines .= $this->lineFormat($record);
         }
         $type = $event['request'];
+        if ($type == 'worker') {
+            $type = 'cli';
+        }
         if (isset($this->pathArray[$type])) {
             $this->path = self::resolvePath($this->pathArray[$type]);
         }

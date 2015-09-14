@@ -36,18 +36,18 @@ abstract Class AbstractLogger
     protected $filterNames = array();
 
     /**
-     * Map native PHP errors to priority
-     *
-     * @var array
-     */
-    protected $errorPriorities = null;
-
-    /**
      * Register log handlers
      * 
      * @var array
      */
     protected $registeredHandlers = array();
+    
+    /**
+     * Map native PHP errors to priority
+     *
+     * @var array
+     */
+    protected static $errorPriorities = null;
 
     /**
      * Enable logging

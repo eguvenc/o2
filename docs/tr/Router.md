@@ -8,6 +8,7 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
 <li>
     <a href="#configuration">Konfigürasyon</a>
     <ul>
+        <li><a href="#domain-name">Alan Adı</a></li>
         <li><a href="#index.php">Index.php</a></li>
         <li><a href="#default-page">Varsayılan Açılış Sayfası</a></li>
         <li><a href="#404-errors">404 Hata Yönetimi</a></li>
@@ -55,22 +56,34 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
 
 ### Konfigürasyon
 
+Router sınıfı konfigürasyon değerlerini aldıktan sonra router kurallarınızı çalıştırmaya başlar bu yüzden <kbd>$c['router']->configuration()</kbd> metodunun en tepede ilan edilmesi gerekir.
+
+<a name="domain-name"></a>
+
+#### Alan Adı
+
 Router sınıfı url yönlendirmelerini çalıştırabilmek için geçerli <b>kök domain</b> adresini bilmek zorundadır. Domain adresini aşağıdaki gibi tanımlayabilir,
 
 ```php
-$c['router']->domain('example.com');
+$c['router']->configuration(
+    [
+        'domain' => 'example.com',
+        'defaultPage' => 'welcome',
+        'error404' => null
+    ]
+);
 ```
 
 ya da ana konfigürasyon dosyasından gelmesini sağlayabilirsiniz.
 
 ```php
-$c['router']->domain($c['config']['url']['webhost']); 
+$c['config']['url']['webhost']; 
 ```
 
 Kök domain adresinizi başında <b>"www."</b> öneki olmadan girin.
 
 ```php
-$c['router']->domain('myproject.com'); 
+myproject.com 
 ```
 
 <a name="index.php"></a>
@@ -80,37 +93,60 @@ $c['router']->domain('myproject.com');
 Bu dosyanın tarayıcıda gözükmemesini istiyorsanız bir <kbd>.htaccess</kbd> dosyası içerisine aşağıdaki kuralları yazmanız yeterli olacaktır.
 
 ```php
+Options -Indexes
+
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond $1 !^(index\.php|assets|robots\.txt)
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+RewriteCond $1 !^(index\.php|resources/assets|robots\.txt)
 RewriteRule ^(.*)$ ./index.php/$1 [L,QSA]
 ```
+
+* Dosyadaki ilk kod bloğu güvenlik amacıyla dizin indexlemeyi kapatır.
+* İkinci kod bloğu tüm dosya ve dizin isteklerini güvenlik amacıyla index.php dosyasına yönlendirir.
+* Son kod bloğu ise sadece parentezler ( ) içerisinde olan dosya ve dizinler için direkt dosya erişimine izin verir.
+
+> **Not:** .htaccess dosyanızın çalışabilmesi için sunucunuzda apache mod_rewrite modülünün etkin olması gerekir.
+
 <a name="default-page"></a>
 
 #### Varsayılan Açılış Sayfası
 
-Url değerine hiçbirşey girilmediğinde varsayılan açılış sayfası konfigüre edilmişse uygulama ilk açılışta bu sayfaya yönlendirilir. Routes.php içerisinde en tepede ilan edilmelidir.
+Konfigürasyon kısmında defaulPage anahtarı varsayılan açılış sayfasına ait kontrolör dosyasını belirler.
 
 ```php
-$c['router']->defaultPage('main/home');
+
+$c['router']->configuration(
+    [
+        'domain' => 'example.com',
+        'defaultPage' => 'home/class/index',
+        'error404' => null
+    ]
+);
 ```
 
-Eğer varsayılan sayfa konfigüre edilmemişse <kbd>welcome/welcome</kbd> sayfası görüntülenir.
-
+Eğer varsayılan sayfa konfigüre edilmemişse <kbd>welcome/index</kbd> sayfası görüntülenir.
 
 <a name="404-errors"></a>
 
 #### 404 Hata Yönetimi
 
-Eğer 404 sayfa bulanamadı hatalarını sizin belirlediğiniz bir modül tarafından yönetilmesini istiyorsanız error404 metodunu kullanabilirsiniz.
+Error404 anahtarı 404 hataları olması durumunda uygulamanın çalıştıracağı kontrolör dosyasını belirler. Null değeri girerseniz uygulama app/templates klasöründen varsayılan şablonu yükler.
 
 ```php
-$c['router']->defaultPage('welcome');
-$c['router']->error404('errors/page_not_found');
+
+$c['router']->configuration(
+    [
+        'domain' => 'example.com',
+        'defaultPage' => 'home/class/index',
+        'error404' => 'errors/pageNotFound'
+    ]
+);
 ```
 
-BU tanımlamadan sonra herhangi bir 404 hatası oluştuğunda uygulama <kbd>errors/</kbd> modülü altında <kbd>page_not_found</kbd> kontrolör dosyasını çalıştırır.
+Yuklarıdaki tanımlamadan değer herhangi bir 404 hatası oluştuğunda uygulama <kbd>errors/</kbd> dizini altında <kbd>PageNotFound</kbd> kontrolör dosyasını çalıştırır.
 
 <a name="running"></a>
 
@@ -212,9 +248,20 @@ class Login extends \Controller
 
 ### Route Kuralları Oluşturmak
 
-Uygulama içerisindeki tüm route kuralları <kbd>app/routes.php</kbd> dosyası içerisinde tutulur.
+Uygulama içerisindeki tüm route kuralları <kbd>app/routes.php</kbd> dosyası içerisinde tutulur. Route kurallarında düzenli ifadeler kullanılabilir.
 
-<b>GET kuralı</b> - example.com/welcome/ örnek url adresine gelen http sget isteklerini girilen değere yönlendirir.
+```php
+http://example.com/54/test/whatever
+```
+Yukarıdaki gibi bir URL adresini framework içerisinde başka bir route adresine yönlendirmek istiyorsanız aşağıdaki gibi bir route kuralı yazmanız gerekir.
+
+```php
+$c['router']->get('([0-9]+)/([a-z]+).*', 'welcome/index/$1/$2');
+```
+
+Bu kurala göre URL adresi ancak ilk bölümü 0-9 sayıları arasında olan, ikinci bölümü a-z karakterkerini içeren ve üçüncü bölümü herhangi bir değerden oluşan adres <kbd>welcome/index</kbd> sayfasına yönlendirilir.
+
+<b>GET kuralı</b> - example.com/welcome/ örnek url adresine gelen http get isteklerini girilen değere yönlendirir.
 
 ```php
 $c['router']->get('welcome(.*)', 'home/index/$1');
@@ -235,6 +282,23 @@ $c['router']->match(['get','post'], 'welcome/(.+)', 'home/index/$1');
 ```
 
 yukarıdaki örnekte eğer bir URL "welcome/$arg/$arg .." değerini içeriyorsa gelen argümanlar "home/home/index/$arg" yani home dizini içerisinde home sınıfı index metoduna gönderilir.
+
+```php
+$c['router']->put('welcome(.*)', 'home/index/$1');
+```
+
+Eğer yukarıdaki gibi put metodu tanımlanmış bir kurala GET isteği gönderilirse "Http Error 405 Get method not allowed" hatası ile karşılaşırsınız.
+
+```php
+$c['router']->get(
+    'welcome/index', null,
+    function () use ($c) {
+        $c['view']->load('dummy');
+    }
+);
+```
+
+Eğer rewrite özelliğini kullanmak istemiyorsanız rewrite parametresine yukarıdaki gibi null değeri girin.
 
 <a name="route-types"></a>
 
@@ -290,7 +354,7 @@ Eğer regex yani düzenli ifadeler kullanmayı tercih ediyorsanız route kuralla
 Tipik bir referanslı regex örneği.
 
 ```php
-$c['router']->get('([0-9]+)/([a-z]+)', 'welcome/$1/$2');
+$c['router']->get('([0-9]+)/([a-z]+)', 'welcome/index/$1/$2');
 ```
 
 Yukarıdaki örnekte <kbd>example.com/1/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd> kontrolör sınıfı index metodu parametresine <kbd>1 - 2</kbd> argümanlarını gönderir.
@@ -303,14 +367,14 @@ Route kuralları içerisinde isimsiz fonksiyonlar da kullanabilmek mümkündür.
 
 ```php
 $c['router']->get(
-    'welcome/[0-9]+/[a-z]+', 'welcome/$1/$2', 
+    'welcome/[0-9]+/[a-z]+', 'welcome/index/$1/$2', 
     function () use ($c) {
-        $c['view']->load('dummy');  //  .modules/welcome/view/dummy.php
+        $c['view']->load('dummy');
     }
 );
 ```
 
-Bu örnekte, <kbd>example.com/welcome/123/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd>  kontrolör sınıfı index metodu parametresine <kbd>123 - test</kbd> argümanlarını gönderir.
+Bu örnekte, <kbd>example.com/welcome/123/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd>  kontrolör sınıfı index metodu parametresine <kbd>123 - test</kbd> argümanlarını gönderir url eşleşirse isimsiz fonksiyon çalıştırılır ve <kbd>.modules/welcome/view/</kbd> dizininden dummy.php adlı view dosyası yüklenir.
 
 <a name="parameters"></a>
 
@@ -320,9 +384,9 @@ Eğer girilen bölümleri fonksiyon içerisinden belirli kriterlere göre parame
 
 ```php
 $c['router']->get(
-    'welcome/{id}/{name}', null,
-    function ($directory, $id, $name) use ($c) {
-        $c['response']->show404($directory.'-'.$id.'-'.$name);
+    'welcome/index/{id}/{name}', null,
+    function ($id, $name) use ($c) {
+        $c['response']->showError($id.'-'.$name);
     }
 )->where(['id' => '([0-9]+)', 'name' => '([a-z]+)']);
 ```
@@ -333,21 +397,23 @@ Yukarıdaki örnekte <kbd>/welcome/index/123/test</kbd> adresine benzer bir URL 
 welcome/index/123/test
 ```
 
+Yukarıdaki örnek çalıştırıldığında, düzenli ifadeler route kuralı ile uyuşuyor ise sayfanın $id ve $name argümanlarından oluşan hata sayfasını çıktılaması gerekir.
+
 ```php
 $c['router']->get(
-    '{id}/{name}/{any}', 'home/home/index/$1/$2/$3',
+    '{id}/{name}/{any}', 'shop/index/$1/$2/$3',
     function ($id, $name, $any) use ($c) {
         echo $id.'-'.$name.'-'.$any;
     }
-)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.+)'));
+)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)', 'any' => '(.*)'));
 ```
 
-Bu örnekte ise <kbd>{id}/{name}/{any}</kbd> olarak girilen URI şeması <kbd>product/index/123/electronic/mp3_player/</kbd> adresine benzer bir URL ile uyuştuğunda girdiğiniz düzenli ifade ile değiştirilir ve rewrite değerine <kbd>home/home/index/123/electronic/mp3_player/</kbd> olarak girdiğiniz URL argümanları isimsiz fonksiyona parametre olarak gönderilir.
+Bu örnekte ise <kbd>{id}/{name}/{any}</kbd> olarak girilen URI şeması <kbd>/123/electronic/mp3_player/</kbd> adresine benzer bir URL ile uyuştuğunda girdiğiniz düzenli ifade ile değiştirilir ve rewrite değerine <kbd>$1/$2/$3</kbd> olarak girdiğiniz URL argümanları isimsiz fonksiyona parametre olarak gönderilir.
 
-Kısacası yukarıdaki route kuralının çalışabilmesi için aşağıdaki gibi bir URL çağırılması gerekir.
+Yukarıdaki route kuralının çalışabilmesi için aşağıdaki gibi bir URL çağırılması gerekir.
 
 ```php
-welcome/index/123/test/parameters/
+shop.example.com/123/electronic/mp3_player
 ```
 
 Gelişmiş bir örnek:
@@ -355,7 +421,7 @@ Gelişmiş bir örnek:
 ```php
 $c['router']->get(
     'shop/{id}/{name}', null,
-    function ($directory, $id, $name) use ($c) {
+    function ($id, $name) use ($c) {
         
         $db = $c['app']->provider('database')->get(['connection' => 'default']);
         $db->prepare('SELECT * FROM products WHERE id = ?');
@@ -374,7 +440,7 @@ $c['router']->get(
 )->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
 ```
 
-Bu örnekte ise <kbd>shop/{id}/{name}</kbd> olarak girilen URI şeması eğer <kbd>/shop/123/mp3_player</kbd> adresine benzer bir URL ile eşleşirse where() metodu içerisine girdiğiniz düzenli ifade ile değiştirilir ve tarayıcıdan girilen parametreler isimsiz fonksiyona gönderilir. Eğer parametre olarak alınan ID değeri veritabanı içerisinde sorgulanır ve bulunamazsa bir hata mesajı gösterilir.
+Bu örnekte ise <kbd>shop/{id}/{name}</kbd> olarak girilen URI şeması eğer <kbd>/shop/123/mp3_player</kbd> adresine benzer bir URL ile eşleşirse, parametre olarak alınan ID değeri veritabanı içerisinde sorgulanır ve bulunamazsa kullanıcıya bir hata mesajı gösterilir.
 
 <a name="route-groups"></a>
 
@@ -526,17 +592,6 @@ Tek bir route kuralı için katmanlar atayabilmek mümkündür. Aşağıdaki ör
 $c['router']->match(['get', 'post'], 'hello$', 'welcome/index')->middleware(['Https']);
 ```
 
-Eğer rewrite özelliğini kullanmak istemiyorsanız rewrite parametresine null değeri girin.
-
-```php
-$c['router']->get(
-    'welcome/(.*)', null,
-    function () use ($c) {
-        $c['view']->load('dummy');
-    }
-)->middleware('auth');
-```
-
 Eğer birden fazla katman çalıştırmak isterseniz katmanları bir dizi içerisinde girin.
 
 ```php
@@ -587,18 +642,33 @@ $c['router']->group(
  
 #### Düzenli İfadeler Kullanmak
 
-Bir grup içerisinde kullanılan katmanlar bazen URL adresinde belirli bölümler içerinde çalıştırılmak istenmeyebilir. Buna benzer durumlarda aşağıdaki gibi düzenli ifadeler ile katmanların sadece belirli URL adreslerinde çalışmasını sağlayabilirsiniz.
+Bir grup içerisinde kullanılan katmanlar bazen URL adresinde belirli bölümler içerinde çalıştırılmak istenmeyebilir. Aşağıdaki gibi URL adreslerimizin olduğunu varsayalım.
 
 ```php
 http://www.example.com/test/bad_segment
 http://www.example.com/test/good_segment1
 http://www.example.com/test/good_segment2
+```
 
+Buna benzer durumlarda aşağıdaki gibi katmanların sadece belirli URL adreslerinde çalışmasını sağlayabilirsiniz.
+
+```php
 $c['router']->group(
     ['name' => 'Test', 'domain' => 'example.com', 'middleware' => array('Test')],
     function () {
 
         $this->attach('^(test/(?!bad_segment).*)$');
+    }
+);
+```
+
+Veya aşağıdaki gibi katmanları sadece sadece belirli url parçalarını içeren kelimeler ile sınırlandararak tanımlanan sayfalar hariç tüm sayfalarda Auth ve Guest katmanları çalıştırılmasını sağlayabilirsiniz.
+
+```php
+$c['router']->group(
+    ['name' => 'auth', 'domain' => 'example.com', 'middleware' => ['Auth', 'Guest']],
+    function () {
+        $this->attach('^(?!login|logout|test|cart|payment).*$');
     }
 );
 ```
@@ -609,17 +679,17 @@ $c['router']->group(
 
 ------
 
-##### $c['router']->domain(string $domain);
+##### $c['router']->configuration(array $params);
 
-Geçerli domain adresini konfigüre eder.
+Geçerli domain adresi, varsayılan açılış sayfasını ve 404 error sayfasını konfigüre eder.
 
-##### $c['router']->defaultPage(string $uri);
+##### $c['router']->defaultPage($page);
 
-Uygulamanın yada bir route grubunun açılış sayfasını belirler. ( Uri değeri dizin/sınıf/metot şeklinde girilmelidir. )
+Konfigüre edilmiş varsayılan açılış sayfasını yeniden konfigüre eder.
 
-##### $c['router']->error404(string $uri);
+##### $c['router']->error404($page);
 
-Uygulama içerisinde sayfa bulunamadı hataları ( Uri değeri dizin/sınıf/metot şeklinde girilmelidir. )
+Konfigüre edilmiş error 404 sayfasını yeniden konfigüre eder.
 
 ##### $c['router']->match(array $methods, string $match, string $rewrite, $closure = null)
 

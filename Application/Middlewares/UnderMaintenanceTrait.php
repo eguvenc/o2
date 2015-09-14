@@ -23,14 +23,10 @@ trait UnderMaintenanceTrait
     public function check(array $params)
     {   
         $maintenance = $this->config['maintenance'];  // Default loaded in config class.
-        
-        $maintenance['root']['regex'] = null; 
-        $maintenance['root']['namespace'] = null;
+        $maintenance['root']['regex'] = null;
 
-        $domain    = (isset($params['domain'])) ? $params['domain'] : null;
-        $namespace = (isset($params['namespace'])) ? $params['namespace'] : null;
-
-        $this->parse($maintenance, $domain, $namespace);
+        $domain = (isset($params['domain'])) ? $params['domain'] : null;
+        $this->parse($maintenance, $domain);
 
         $this->checkRoot();
         $this->checkNodes();
@@ -41,20 +37,13 @@ trait UnderMaintenanceTrait
      * 
      * @param array  $maintenance config
      * @param string $domain      mixed
-     * @param string $namespace   mixed
      * 
      * @return void
      */
-    public function parse($maintenance, $domain, $namespace)
+    public function parse($maintenance, $domain)
     {
         foreach ($maintenance as $label) {
-            if (! empty($label['regex']) && ! empty($label['namespace'])) {
-                if ($label['regex'] == $domain && $label['namespace'] == $namespace) {
-                    $this->maintenance = $label['maintenance'];
-                }
-            } elseif (! empty($label['regex']) && $label['regex'] == $domain) { // If route domain equal to domain.php regex config
-                $this->maintenance = $label['maintenance'];
-            } elseif (! empty($label['namespace']) && $label['namespace'] == $namespace) {
+            if (! empty($label['regex']) && $label['regex'] == $domain) { // If route domain equal to domain.php regex config
                 $this->maintenance = $label['maintenance'];
             }
         }

@@ -62,7 +62,7 @@ class Request
      * 
      * @return string
      */
-    public function get($uri, $data = array(), $expiration = '')
+    public function get($uri = '/', $data = array(), $expiration = '')
     {
         if (is_numeric($data)) { // Set expiration as second param if data not provided
             $expiration = $data;
@@ -80,7 +80,7 @@ class Request
      * 
      * @return string
      */
-    public function post($uri, $data = array(), $expiration = '')
+    public function post($uri = '/', $data = array(), $expiration = '')
     {
         if (is_numeric($data)) {  // Set expiration as second param if data not provided
             $expiration = $data;
@@ -99,7 +99,7 @@ class Request
      * 
      * @return string
      */
-    public function request($method, $uriString, $data = array(), $expiration = '')
+    public function request($method, $uriString = '/', $data = array(), $expiration = '')
     {
         $layer = new Layer($this->c, $this->logger, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
         $layer->clear();       // Clear layer variables
@@ -109,7 +109,7 @@ class Request
         $response = $layer->execute($expiration); // Execute the process
         $layer->restore();  // Restore controller objects
 
-        if (strpos(trim($response), '@LayerNotFound@') === 0) {  // Error template support
+        if (strpos(trim($response), '@Layer404@') === 0) {  // Error template support
             return Error::getError($response);
         }
         return (string)$response;

@@ -23,8 +23,9 @@ use Obullo\Translation\TranslatorInterface;
  */
 class Validator 
 {
+    public $fieldData = array();
+    
     protected $translator;
-    protected $fieldData = array();    
     protected $errorArray = array();
     protected $errorMessages = array();    
     protected $errorPrefix = '<div>';

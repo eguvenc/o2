@@ -204,7 +204,7 @@ class Application
     protected function dispatchAnnotations()
     {
         if ($this->c['config']['controller']['annotations']) {
-            $docs = new \Obullo\Annotations\Controller($this->c, $this->c['response'], $this->class, $this->method);
+            $docs = new \Obullo\Annotations\Controller($this->c, $this->c['response'], $this->class, $this->c['router']->fetchMethod());
             $docs->parse();
         }
     }

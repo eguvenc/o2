@@ -51,13 +51,6 @@ class Response implements ResponseInterface
      * @var int
      */
     public $status = 200;
-
-    /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
     
     /**
      * Run callback function
@@ -76,13 +69,11 @@ class Response implements ResponseInterface
     /**
      * Constructor
      *
-     * @param object $c      \Obullo\Container\ContainerInterface
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $c \Obullo\Container\ContainerInterface
      */
-    public function __construct(ContainerInterface $c, ConfigInterface $config)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->config = $config->load('response');
         $this->output = '';
         $this->c['response.headers'] = function () {
             return new Headers;
@@ -287,24 +278,29 @@ class Response implements ResponseInterface
     /**
      * Encode json data and set json headers.
      * 
-     * @param array  $data   array data
-     * @param string $header config header
+     * @param array  $data    array data
+     * @param string $headers optional headers
      * 
      * @return string json encoded data
      */
-    public function json(array $data, $header = 'default')
+    public function json(array $data, $headers = array())
     {
         $this->disableOutput(); // Disable output, we need to send json headers.
 
-        if ($header != false) {
-            if (isset($this->config['headers']['json'][$header])) {  //  If selected headers defined in the response config set headers.
-                foreach ($this->config['headers']['json'][$header] as $value) {
-                    $this->headers->set($value);
-                }
-            }
-            list($status, $headers, $options) = $this->finalize();
-            $this->sendHeaders($status, $headers, $options);
+        $jsonHeaders = [
+                'Cache-Control: no-cache, must-revalidate',
+                'Expires: Mon, 26 Jul 1997 05:00:00 GMT',
+                'Content-type: application/json;charset=UTF-8'
+        ];
+        if (! empty($headers)) {
+            $jsonHeaders = $headers;
         }
+        foreach ($jsonHeaders as $value) {
+            $this->headers->set($value);
+        }
+        list($status, $headers, $options) = $this->finalize();
+        $this->sendHeaders($status, $headers, $options);
+
         return json_encode($data);
     }
 

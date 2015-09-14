@@ -77,7 +77,7 @@ class Http extends Application
         include APP .'providers.php';
         include APP .'events.php';
         include APP .'routes.php';
-        
+
         $this->c['router']->init();
 
         register_shutdown_function(array($this, 'close'));
@@ -91,8 +91,24 @@ class Http extends Application
     protected function dispatchClass()
     {
         if (! class_exists($this->className, false)) {
-            $this->c['response']->show404($this->uri->getUriString());
+            $this->c['router']->clear();
+            if ($error404 = $this->c['router']->get404Class()) {
+                $this->_includeClass();
+                echo $this->className = $error404;
+            } else {
+                $this->c['response']->show404();
+            }
         }
+    }
+
+    /**
+     * Include controller file
+     * 
+     * @return void
+     */
+    private function _includeClass()
+    {
+        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
     }
 
     /**
@@ -102,10 +118,11 @@ class Http extends Application
      */
     protected function dispatchMethod()
     {
-        if (! method_exists($this->class, $this->method)
-            || $this->method == '__extend'
+        $method = $this->c['router']->fetchMethod();
+        if (! method_exists($this->class, $method)
+            || $method == '__extend'
         ) {
-            $this->c['response']->show404($this->uri->getUriString());
+            $this->c['response']->show404();
         }
     }
 
@@ -122,24 +139,18 @@ class Http extends Application
         $this->init();   
 
         if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket = new WebSocket($this->c['request'], $this->c['uri']->getUriString(), $this->c['config']);
+            $this->websocket = new WebSocket($this->c['app'], $this->c['request'], $this->c['config']);
             $this->websocket->connect();
         }
-        $class = $this->c['router']->fetchClass();
-        $method = $this->c['router']->fetchMethod();
-        $namespace = $this->c['router']->fetchNamespace();
-
-        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
-
-        $this->className = '\\'.$namespace.'\\'.$class;
+        $this->_includeClass();
+        $this->className = '\\'.$this->c['router']->fetchNamespace().'\\'.$this->c['router']->fetchClass();
         $this->dispatchClass();
 
         $this->class = new $this->className;  // Call the controller
-        $this->method = $method;
 
         $this->dispatchMethod();
         $this->dispatchMiddlewares();
-        $this->dispatchAnnotations();  // Read annotations after the attaching middlewares otherwise @middleware->remove()
+        $this->dispatchAnnotations();  // WARNING !:  Read annotations after the attaching middlewares otherwise @middleware->remove()
                                        // does not work
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         
@@ -158,10 +169,8 @@ class Http extends Application
     {
         $c = $this->c; // Make available container in middleware.php
         $currentRoute = $this->uri->getUriString();
-
         foreach ($this->c['router']->getAttachedRoutes() as $value) {
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
-
             if ($value['route'] == $currentRoute) {     // if we have natural route match
                 $this->middleware($value['name'], $value['options']);
             } elseif ($attachedRoute == '.*' || preg_match('#'. $attachedRoute .'#', $currentRoute)) {
@@ -189,7 +198,6 @@ class Http extends Application
         }
         $middleware->setNextMiddleware(current($this->middleware));
         array_unshift($this->middleware, $middleware);
-
         $name = get_class($middleware);
         $this->middlewareNames[$name] = $name;  // Track names
         return $this;
@@ -240,7 +248,7 @@ class Http extends Application
         } else {
             ob_start();
         }
-        call_user_func_array(array($this->class, $this->method), array_slice($this->class->uri->routedSegments(), 3));
+        call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), array_slice($this->class->uri->routedSegments(), 3));
 
         $this->c['response']->flush();
         echo $this->finalOutput = ob_get_clean();

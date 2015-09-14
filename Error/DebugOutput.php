@@ -89,7 +89,7 @@ class DebugOutput
      * Dump arguments
      * This function borrowed from Kohana Php Framework
      * 
-     * @param mixed   &$var   variable
+     * @param mixed   $var    variable
      * @param integer $length length
      * @param integer $level  level
      * 
@@ -227,7 +227,7 @@ class DebugOutput
         $file = $trace['file'];
         $line_number = $trace['line'];
 
-        if ( ! $file OR ! is_readable($file)) {
+        if (! $file || ! is_readable($file)) {
             return false;   // Continuing will cause errors
         }
         $file = fopen($file, 'r');      // Open the file and set the line position

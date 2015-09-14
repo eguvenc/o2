@@ -134,6 +134,15 @@ class ErrorHandler
         if (0 === $this->level) {
             return false;
         }
+        // Disable 404 include errors for Application/Http.php _includeClass() method
+        // We use include file to avoid file_exists() function because of it is very expensive.
+
+        if ($level == 2 && strpos($message, MODULES) !== false) {
+            $stack = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            if (isset($stack[1]['function']) && $stack[1]['function'] == '_includeClass') {
+                return;
+            }
+        }
         if (strpos($message, 'shmop_open') === 0) {  // Hide shmop_open function errors.
             return false;
         }

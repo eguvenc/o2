@@ -213,12 +213,6 @@ class Url
             $extra['memory'] = $usage;
             $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
         }
-
     }
 
 }
-
-// END Url Class
-/* End of file Url.php
-
-/* Location: .Obullo/Url/Url.php */

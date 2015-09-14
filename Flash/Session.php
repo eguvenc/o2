@@ -32,11 +32,11 @@ class Session
     const NOTICE_INFO = 'info';
 
     /**
-     * Flash config
+     * Flash notification config
      * 
      * @var array
      */
-    protected $config;
+    protected $notification = array();
 
     /**
      * Session
@@ -71,7 +71,7 @@ class Session
     {
         $this->c = $c;
         $this->session = $session;
-        $this->config = $config->load('flash');
+        $this->notification = $config->load('notification');
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)
@@ -91,8 +91,8 @@ class Session
     {
         return str_replace(
             array('{class}','{icon}','{message}'), 
-            array($this->config[$key]['class'], $this->config[$key]['icon'], $message),
-            $this->config[static::MESSAGE]
+            array($this->notification[$key]['class'], $this->notification[$key]['icon'], $message),
+            $this->notification[static::MESSAGE]
         );
     }
 

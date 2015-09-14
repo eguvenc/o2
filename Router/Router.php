@@ -11,9 +11,7 @@ use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Http Router Class
- *
- * Modeled after Codeigniter router class 
+ * Http Router Class ( Modeled after Codeigniter router )
  * 
  * @category  Router
  * @package   Router
@@ -33,7 +31,7 @@ class Router
     protected $module = '';                    // Module name
     protected $middlewares = array();          // Defined route middlewares
     protected $attach = array();               // Attached after routes to middlewares
-    protected $defaultController = '';  // Default controller name
+    protected $defaultController = '';         // Default controller name
     protected $pageNotFoundController = '';    // Page not found handler ( 404 )
     protected $groupDomain = '*';              // Groupped route domain address
 
@@ -114,7 +112,32 @@ class Router
         $this->ROOT = trim($params['domain'], '.');
         $this->pageNotFoundController = $params['error404'];
         $this->defaultController = $params['defaultPage'];
-        $this->init();
+    }
+
+    /**
+     * Sets default page controller
+     * 
+     * @param string $page uri
+     * 
+     * @return object
+     */
+    public function defaultPage($page)
+    {
+        $this->defaultController = $page;
+        return $this;
+    }
+
+    /**
+     * Sets 404 not found controller
+     * 
+     * @param string $page uri
+     * 
+     * @return object
+     */
+    public function error404($page)
+    {
+        $this->pageNotFoundController = $page;
+        return $this;
     }
 
     /**
@@ -129,15 +152,12 @@ class Router
     {
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
             $layerRequest = isset($_SERVER['LAYER_REQUEST']);
-            if ($layerRequest) {  // Returns to false if we have Layer error.
-                $this->c['response']->setError('@LayerNotFound@'.static::DEFAULT_PAGE_ERROR);
+            if ($layerRequest) {
+                $this->c['response']->setError('@Layer404@'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
                 return false;
             }
             $this->checkErrors();
-            $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
-            if ($layerRequest && $segments === false) {   // Returns to false if we have Layer connection error.
-                return false;  
-            }
+            $segments = $this->resolve(explode('/', $this->defaultController));  // Turn the default route into an array.
             $this->setClass($segments[1]);
             $this->setMethod('index');
             $this->uri->rsegments = $segments;  // Assign the segments to the URI class
@@ -145,82 +165,6 @@ class Router
             return;
         }
         $this->dispatch();
-    }
-
-    /**
-     * Defines http $_GET based routes
-     * 
-     * @param string $match   uri string match regex
-     * @param string $rewrite uri rewrite regex value
-     * @param string $closure optional closure function
-     * 
-     * @return object router
-     */
-    public function get($match, $rewrite = null, $closure = null)
-    {
-        $this->route(array('get'), $match, $rewrite, $closure);
-        return $this;
-    }
-
-    /**
-     * Defines http $_POST based routes
-     * 
-     * @param string $match   uri string match regex
-     * @param string $rewrite uri rewrite regex value
-     * @param string $closure optional closure function
-     * 
-     * @return object router
-     */
-    public function post($match, $rewrite = null, $closure = null)
-    {
-        $this->route(array('post'), $match, $rewrite, $closure);
-        return $this;
-    }
-
-    /**
-     * Defines http $_REQUEST['PUT'] based routes
-     * 
-     * @param string $match   uri string match regex
-     * @param string $rewrite uri rewrite regex value
-     * @param string $closure optional closure function
-     * 
-     * @return object router
-     */
-    public function put($match, $rewrite = null, $closure = null)
-    {
-        $this->route(array('put'), $match, $rewrite, $closure);
-        return $this;
-    }
-
-    /**
-     * Defines http $_REQUEST['DELETE'] based routes
-     * 
-     * @param string $match   uri string match regex
-     * @param string $rewrite uri rewrite regex value
-     * @param string $closure optional closure function
-     * 
-     * @return object router
-     */
-    public function delete($match, $rewrite = null, $closure = null)
-    {
-        $this->route(array('delete'), $match, $rewrite, $closure);
-        return $this;
-    }
-
-    /**
-     * Defines multiple http request based routes
-     * 
-     * @param string $methods http methods
-     * @param string $match   uri string match regex
-     * @param string $rewrite uri rewrite regex value
-     * @param string $closure optional closure function
-     * 
-     * @return object router
-     */
-    public function match($methods, $match, $rewrite = null, $closure = null)
-    {
-        $this->route($methods, $match, $rewrite, $closure);
-        return $this;
     }
 
     /**
@@ -235,7 +179,7 @@ class Router
      */
     public function route($methods, $match, $rewrite = null, $closure = null)
     {
-        if ($this->detectDomain($this->group) === false && $this->group['domain'] !== null) {
+        if ($this->detectDomainMatch($this->group) === false && $this->group['domain'] !== null) {
             return;
         }
         $this->routes[$this->DOMAIN][] = array(
@@ -255,7 +199,7 @@ class Router
      * 
      * @param string $match param
      * 
-     * @return mixed
+     * @return string
      */
     private function _getSchemeValue($match)
     {
@@ -289,31 +233,6 @@ class Router
     }
 
     /**
-     * Replace route scheme
-     * 
-     * @param array $replace scheme replacement
-     * 
-     * @return object
-     */
-    public function where(array $replace)
-    {   
-        $count = count($this->routes) - 1;
-        if ($count == -1) {
-            return;
-        };
-        $domain = $this->ROOT;
-        if (! empty($this->routes[$this->DOMAIN][$count]['sub.domain'])) {
-            $domain = $this->routes[$this->DOMAIN][$count]['sub.domain'];
-        }
-        if ($this->DOMAIN == $domain) {
-            $scheme = str_replace(array_keys($replace), array_values($replace), $this->routes[$this->DOMAIN][$count]['scheme']);
-            $scheme = str_replace(array('{','}'), array('',''), $scheme);
-            $this->routes[$this->DOMAIN][$count]['match'] = $scheme;
-        }
-        return $this;
-    }
-
-    /**
      * Check route errors
      * 
      * @return void
@@ -334,7 +253,6 @@ class Router
     {
         $this->uri->removeUrlSuffix();   // Do we need to remove the URL suffix?
         $this->uri->explodeSegments();   // Compile the segments into an array 
-
         if (empty($this->routes)) {
             $this->setRequest($this->uri->segments);
             return;
@@ -354,73 +272,52 @@ class Router
      */
     public function setRequest($segments = array())
     {
-        $segments = $this->validateRequest($segments);
+        $segments = $this->resolve($segments);
         if (count($segments) == 0) {
             return;
         }
-        $this->setClass($segments[1]);
+        if (isset($segments[1])) {
+            $this->setClass($segments[1]);
+        }
         if (! empty($segments[2])) {
             $this->setMethod($segments[2]); // A standard method request
         } else {
-            $segments[2] = 'index'; // This lets the "routed" segment array identify that the default index method is being used.
+            $segments[2] = 'index';         // This lets the "routed" segment array identify that the default index method is being used.
             $this->setMethod('index');
         }
         $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.
     }
 
     /**
-     * Validates the supplied segments. Attempts to determine the path to
-     * the controller.
-     *
-     * Segments:  0 = directory, 1 = controller, 2 = method
-     *
-     * @param array $segments uri segments
+     * Resolve segments
+     * 
+     * @param array $segments uri parts
      * 
      * @return array
      */
-    public function validateRequest($segments)
-    {     
+    protected function resolve($segments)
+    {
         if (! isset($segments[0])) {
             return $segments;
         }
-        $segments = $this->resolve($segments);
-        if (! empty($segments)) {
-            return $segments;
-        }
-        if (isset($_SERVER['LAYER_REQUEST'])) {
-            $this->layerNotFound();
-            return false;
-        }
-        return $this->resolve(explode('/', $this->pageNotFoundController), true);
-    }
-
-    /**
-     * Resolve segments
-     * 
-     * @param array   $segments uri
-     * @param boolean $allow404 whether show 404
-     * 
-     * @return array
-     */
-    protected function resolve($segments, $allow404 = false)
-    {
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
-        $segments  = $this->detectModule($segments);
-        $directory = $this->fetchDirectory();   // if segment no = 1 exists set first segment as a directory 
-
-        if (! empty($segments[1]) && file_exists(MODULES .$this->fetchModule(DS).$directory. DS .self::ucwordsUnderscore($segments[1]).'.php')) {
-            return $segments;
+        $segments = $this->detectModule($segments);
+        $directory = $this->fetchDirectory();
+        $module = $this->fetchModule(DS);
+        $class = $this->fetchClass();
+        if (! empty($class) && ! empty($module)) {   // Module index file support e.g modules/demo/tutorials/tutorials.php
+            $directory = strtolower($class);
         }
-        if (file_exists(MODULES .$directory. DS .self::ucwordsUnderscore($directory). '.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
+        $checkIndexFile = false;
+        if (! isset($segments[1]) || isset($segments[1]) && $segments[1] == $this->fetchMethod()) { //  Just check index file if second segment is not a class.
+            $checkIndexFile = true;
+        }
+        if ($checkIndexFile && is_file(MODULES.$module.$directory. DS .self::ucwordsUnderscore($directory).'.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }
-        if ($allow404) {
-            $uri = $this->c['app']->uri->getUriString();
-            $page = (empty($uri)) ? $this->defaultController : null;
-            $this->c['response']->show404($page);
-        }
-        return array();
+
+        return $segments;
     }
 
     /**
@@ -444,16 +341,6 @@ class Router
     }
 
     /**
-     * Hmvc 404
-     * 
-     * @return array page not found segments
-     */
-    protected function layerNotFound()
-    {
-        $this->c['response']->setError('@LayerNotFound@<b>404 layer not found: </b>'.$this->uri->getUriString());  // Using getError method we show error in Layer package.
-    }
-
-    /**
      * Parse Routes
      *
      * This function matches any routes that may exist in the routes.php file against the URI to
@@ -465,24 +352,42 @@ class Router
     {
         $uri = $this->uri->getUriString();  // Warning !: Don't use $this->uri->segments in here instead of use getUriString otherwise
                                             // we could not get url suffix ".html".
-        $parameters = array();
         foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
-
-            if (strpos($val['scheme'], '}') !== false) {   // Do we have route Parameters like {id}/{name} ?
-                $parametersIndex = preg_split('#{(.*?)}#', $val['scheme']); // Get parameter indexes
-                foreach ($parametersIndex as $key => $values) {  // Find parameters we will send it to closure($args)
-                    $values = null;
-                    $parameters[] = (isset($this->uri->segments[$key])) ? $this->uri->segments[$key] : null;
-                }
-                $val['scheme'] = preg_replace('#{(.*?)}#', '', $val['scheme']);
-            }
-            if (static::hasMatch($val['match'], $uri)) {    // Does the route match ?
+            $parameters = $this->parseParameters($uri, $val);
+            if ($this->hasRegexMatch($val['match'], $uri)) {    // Does the route match ?
                 $this->dispatchRouteMatches($uri, $val, $parameters);
                 return;
             }
         }
         $this->setRequest($this->uri->segments);  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
     }
+
+    /**
+     * Parse closure parameters
+     * 
+     * @param string $uri uri
+     * @param array  $val route values
+     * 
+     * @return array
+     */
+    protected function parseParameters($uri, $val)
+    {
+        $parameters = array();
+        if (! is_null($val['scheme'])) {   // Do we have route scheme like {id}/{name} ?
+        
+            $parametersIndex = preg_split('#{(.*?)}#', $val['scheme']); // Get parameter indexes
+            $parameterUri = substr($uri, strlen($parametersIndex[0]));
+            $parametersReIndex = array_keys(array_slice($parametersIndex, 1));
+            $segments = explode('/', $parameterUri);
+
+            foreach ($parametersReIndex as $key) {  // Find parameters we will send it to closure($args)
+                $parameters[] = (isset($segments[$key])) ? $segments[$key] : null;
+            }
+            return $parameters;
+        }
+        return $parameters;
+    }
+
 
     /**
      * Dispatch route matches and assign middlewares
@@ -499,45 +404,36 @@ class Router
             $this->c['app']->middleware('MethodNotAllowed', $val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
-            $val['rewrite'] = preg_replace('#^' . $val['match'] . '$#', $val['rewrite'], $uri);
+            $val['rewrite'] = preg_replace('#^'.$val['match'].'$#', $val['rewrite'], $uri);
         }
         $segments = (empty($val['rewrite'])) ? $this->uri->segments : explode('/', $val['rewrite']);
-        $this->setSegments($val['closure'], $segments, $parameters);
-    }
-
-    /**
-     * Check route is matched if yes returns to true 
-     * otherwise false
-     * 
-     * @param string $match value
-     * @param string $uri   current uri
-     * 
-     * @return boolean
-     */
-    protected static function hasMatch($match, $uri)
-    {
-        if ($match == $uri) { // Is there any literal match ? 
-            return true;
-        }
-        if (preg_match('#^' . $match . '$#', $uri)) {  // Is there any regex match ?
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Set segments and run route closures
-     * 
-     * @param object $closure    function
-     * @param array  $segments   segment array
-     * @param array  $parameters closure parameters
-     *
-     * @return void
-     */
-    protected function setSegments($closure, $segments = array(), $parameters = array())
-    { 
         $this->setRequest($segments);
-        $this->bind($closure, $parameters, true);
+        $this->bind($val['closure'], $parameters, true);
+    }
+
+    /**
+     * Replace route scheme
+     * 
+     * @param array $replace scheme replacement
+     * 
+     * @return object
+     */
+    public function where(array $replace)
+    {   
+        $count = count($this->routes) - 1;
+        if ($count == -1) {
+            return;
+        };
+        $domain = $this->ROOT;
+        if (! empty($this->routes[$this->DOMAIN][$count]['sub.domain'])) {
+            $domain = $this->routes[$this->DOMAIN][$count]['sub.domain'];
+        }
+        if ($this->DOMAIN == $domain) {
+            $scheme = str_replace(array_keys($replace), array_values($replace), $this->routes[$this->DOMAIN][$count]['scheme']);
+            $scheme = str_replace(array('{','}'), array('',''), $scheme);
+            $this->routes[$this->DOMAIN][$count]['match'] = $scheme;
+        }
+        return $this;
     }
 
     /**
@@ -590,7 +486,7 @@ class Router
     }
 
     /**
-     * Set the directory name
+     * Set the directory name : It must be lowercase otherwise sub module does not work
      *
      * @param string $directory directory
      * 
@@ -598,7 +494,7 @@ class Router
      */
     public function setDirectory($directory)
     {
-        $this->directory = $directory;
+        $this->directory = strtolower($directory);
         return $this;
     }
 
@@ -611,7 +507,7 @@ class Router
      */
     public function setModule($directory)
     {
-        $this->module = $directory;
+        $this->module = strtolower($directory);
     }
 
     /**
@@ -627,7 +523,7 @@ class Router
     }
 
     /**
-     * Fetch the directory (if any) that contains the requested controller class
+     * Fetch the directory
      *
      * @return string
      */
@@ -712,13 +608,40 @@ class Router
     }
 
     /**
+     * Set grouped routes, options like middleware
+     * 
+     * @param array  $group   domain, directions and middleware name
+     * @param object $closure which contains $this->attach(); methods
+     * 
+     * @return object
+     */
+    public function group(array $group, Closure $closure)
+    {
+        if (isset($group['match']) && ! $this->detectGroupMatch($group)) {
+            return $this;
+        }
+        if (! $this->detectDomainMatch($group)) {     // When groups run if domain not match with regex don't continue.
+            return $this;                             // Forexample we define a sub domain but group domain does not match
+        }                                             // so we need to stop group process.
+        $this->group = $group;
+        $closure = Closure::bind($closure, $this, get_class());
+        $sub = false;
+        if (isset($group['domain']) && isset($this->domainMatches[$group['domain']])) {
+            $sub = strstr($this->domainMatches[$group['domain']], '.', true);
+        }
+        $closure($sub);
+        $this->group = array('name' => 'UNNAMED', 'domain' => null);  // Reset group variable after foreach group definition
+        return $this;
+    }
+
+    /**
     * Detect static domain
     * 
     * @param array $options subdomain array
     * 
     * @return void
     */
-    protected function detectDomain(array $options = array())
+    protected function detectDomainMatch(array $options = array())
     {
         $domain = $this->ROOT;
         if (isset($options['domain'])) {
@@ -738,27 +661,72 @@ class Router
      * 
      * @return bool
      */
-    protected function detectNamespace($options = array())
+    protected function detectGroupMatch($options = array())
     {
-        if ($this->matchNamespace($options['namespace'])) {
+        if ($this->matchGroup($options['match'])) {
             return true;
         }
         return false;
     }
 
     /**
-     * Does the match class namespace ?
+     * Does group has match ?
      *
-     * @param string $namespace class namespace
+     * @param string $match class namespace
      * 
      * @return bool
      */
-    protected function matchNamespace($namespace)
+    protected function matchGroup($match)
     {
-        if ($namespace == static::ucwordsUnderscore($this->c['app']->router->fetchModule())
-            || $namespace == static::ucwordsUnderscore($this->c['app']->router->fetchDirectory())
-            || $namespace == $this->c['app']->router->fetchNamespace()
-        ) {
+        $uri = $this->uri->getUriString();
+        if ($this->hasNaturalGroupMatch($match, $uri)) {
+            return true;
+        }
+        if ($this->hasRegexMatch($match, $uri)) {
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
+     * Before regex check natural uri match
+     * 
+     * @param string $match match url or regex
+     * @param string $uri   uri string
+     * 
+     * @return boolean
+     */
+    protected function hasNaturalGroupMatch($match, $uri)
+    {
+        $exp = explode('/', $uri);
+        $uriStr = '';
+        $keyValues = array_keys(explode('/', $match));
+        foreach ($keyValues as $k) {
+            if (isset($exp[$k])) {
+                $uriStr.= strtolower($exp[$k]).'/';
+            }
+        }
+        if ($match == rtrim($uriStr, '/')) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check regex regex match
+     * 
+     * @param string $match regex or string
+     * @param string $uri   current uri
+     * 
+     * @return boolean
+     */
+    protected function hasRegexMatch($match, $uri)
+    {
+        if ($match == $uri) { // Is there any literal match ? 
+            return true;
+        }
+        if (preg_match('#^'.$match.'$#', $uri)) {
             return true;
         }
         return false;
@@ -780,7 +748,7 @@ class Router
         if (isset($this->domainMatches[$key])) {
             return $this->domainMatches[$key];
         }
-        if (preg_match('#'.$domain.'#', $this->HOST, $matches)) {
+        if (preg_match('#^'.$domain.'$#', $this->HOST, $matches)) {
             return $this->domainMatches[$key] = $matches[0];
         }
         return false;
@@ -795,13 +763,12 @@ class Router
      */
     public function attach($route)
     {
-        $match = $this->detectDomain($this->group);
+        $match = $this->detectDomainMatch($this->group);
                                                           // Domain Regex Support, if we have defined domain and not match with host don't run the middleware.
         if (isset($this->group['domain']) && ! $match) {  // If we have defined domain and not match with host don't run the middleware.
             return;
         }
         $host = str_replace($this->getSubDomain($this->DOMAIN), '', $this->HOST);          // Attach Regex Support
-
         if (! $this->isSubDomain($this->DOMAIN) && $this->isSubDomain($this->HOST)) {
             $host = $this->HOST;  // We have a problem when the host is subdomain and config domain not. This fix the isssue.
         }
@@ -829,7 +796,6 @@ class Router
     {
         $routeLast = end($this->routes[$this->DOMAIN]);
         $route = $routeLast['match'];
-
         if (is_array($middlewares)) {
             $this->setMiddlewares($middlewares, $route, array());
             return;
@@ -874,36 +840,9 @@ class Router
     }
 
     /**
-     * Set grouped routes, options like middleware
-     * 
-     * @param array  $group   domain, directions and middleware name
-     * @param object $closure which contains $this->attach(); methods
-     * 
-     * @return object
-     */
-    public function group(array $group, Closure $closure)
-    {
-        if (isset($group['namespace']) && ! $this->detectNamespace($group)) {
-            return $this;
-        }
-        if (! $this->detectDomain($group)) {          // When run the group if domain not match with regex don't run the group function.
-            return $this;                             // Forexample we define a sub domain in group but regex does not match with this domain
-        }                                             // we need to stop group process.
-        $this->group = $group;
-        $closure = Closure::bind($closure, $this, get_class());
-        $sub = false;
-        if (isset($group['domain']) && isset($this->domainMatches[$group['domain']])) {
-            $sub = strstr($this->domainMatches[$group['domain']], '.', true);
-        }
-        $closure($sub);
-        $this->group = array('name' => 'UNNAMED', 'domain' => null);  // Reset group variable after foreach group definition
-        return $this;
-    }
-
-    /**
      * Returns attached middlewares of current domain
      * 
-     * @return void
+     * @return mixed
      */
     public function getAttachedRoutes()
     {
@@ -931,6 +870,96 @@ class Router
     public function getHost()
     {
         return $this->HOST;
+    }
+
+    /**
+     * Returns to 404 controller name
+     * 
+     * @return mixed
+     */
+    public function get404Class()
+    {
+        if (empty($this->pageNotFoundController)) {
+            return false;
+        } 
+        $this->setRequest(explode('/', $this->pageNotFoundController));
+        return '\\'.$this->fetchNamespace().'\\'.$this->fetchClass();
+    }
+
+    /**
+     * Defines http $_GET based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * 
+     * @return object router
+     */
+    public function get($match, $rewrite = null, $closure = null)
+    {
+        $this->route(array('get'), $match, $rewrite, $closure);
+        return $this;
+    }
+
+    /**
+     * Defines http $_POST based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * 
+     * @return object router
+     */
+    public function post($match, $rewrite = null, $closure = null)
+    {
+        $this->route(array('post'), $match, $rewrite, $closure);
+        return $this;
+    }
+
+    /**
+     * Defines http $_REQUEST['PUT'] based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * 
+     * @return object router
+     */
+    public function put($match, $rewrite = null, $closure = null)
+    {
+        $this->route(array('put'), $match, $rewrite, $closure);
+        return $this;
+    }
+
+    /**
+     * Defines http $_REQUEST['DELETE'] based routes
+     * 
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * 
+     * @return object router
+     */
+    public function delete($match, $rewrite = null, $closure = null)
+    {
+        $this->route(array('delete'), $match, $rewrite, $closure);
+        return $this;
+    }
+
+    /**
+     * Defines multiple http request based routes
+     * 
+     * @param string $methods http methods
+     * @param string $match   uri string match regex
+     * @param string $rewrite uri rewrite regex value
+     * @param string $closure optional closure function
+     * 
+     * @return object router
+     */
+    public function match($methods, $match, $rewrite = null, $closure = null)
+    {
+        $this->route($methods, $match, $rewrite, $closure);
+        return $this;
     }
 
 }

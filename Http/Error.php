@@ -80,11 +80,12 @@ class Error
             $page = implode("/", $segments);
         }
         $page = $this->sanitizeMessage($page);
-        $message = '404 Page Not Found --> '.$page;
-        $this->logger->error($message);
-
+        if (strlen($page) > 60) {   // Security fix
+            $page = '';
+        }
+        $this->logger->error('404 Page Not Found --> '.$page);
         echo $this->showHttpError('404 Page Not Found', $page, '404', 404);
-        exit();
+        exit;
     }
 
     /**
@@ -103,7 +104,7 @@ class Error
 
         header('Content-type: text/html; charset='.$this->config['locale']['charset']); // Some times we use utf8 chars in errors.
         echo $this->showHttpError($heading, $message, 'general', $status);
-        exit();
+        exit;
     }
     
     /**

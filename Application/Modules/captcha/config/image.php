@@ -1,12 +1,7 @@
 <?php
 
 return array(
-
-    /**
-     * Set default captcha style  ( "secure" or "cool" ].
-     */
-    'mod' => 'cool',
-
+    
     /**
      * Locale charset
      */

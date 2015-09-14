@@ -148,7 +148,7 @@ class Router
      */
     public function setRequest($segments = array())
     {
-        $segments = $this->validateRequest($segments);
+        $segments = $this->resolve($segments);
         if (count($segments) == 0) {
             return;
         }
@@ -170,7 +170,7 @@ class Router
      * 
      * @return array
      */
-    public function validateRequest($segments)
+    public function resolve($segments)
     {
         if (! isset($segments[0])) {
             return $segments;

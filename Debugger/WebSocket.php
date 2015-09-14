@@ -5,8 +5,8 @@ namespace Obullo\Debugger;
 use DOMDocument;
 use RuntimeException;
 use Obullo\Log\Handler\Debugger;
+use Obullo\Config\ConfigInterface;
 use Obullo\Http\Request\RequestInterface;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Debugger Websocket 
@@ -22,6 +22,20 @@ use Obullo\Container\ContainerInterface;
  */
 class WebSocket
 {
+    /**
+     * Application
+     * 
+     * @var object
+     */
+    protected $app;
+
+    /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
+
     /**
      * Host
      * 
@@ -81,14 +95,16 @@ class WebSocket
     /**
      * Constructor
      *
-     * @param object $request   \Obullo\Http\Request\RequestInterface
-     * @param object $config    \Obullo\Config\ConfigInterface
-     * @param object $uriString current uri string
+     * @param object $app     \Obullo\Application\Application
+     * @param object $request \Obullo\Http\Request\RequestInterface
+     * @param object $config  \Obullo\Config\ConfigInterface
      */
-    public function __construct(RequestInterface $request, ConfigInterface $config, $uriString)
+    public function __construct($app, RequestInterface $request, ConfigInterface $config)
     {
+        $this->app = $app;
+        $this->config = $config;
         $this->request = $request;
-        $this->uriString = $uriString;
+        $this->uriString = $app->uri->getUriString();
 
         if (false == preg_match(
             '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
@@ -145,7 +161,7 @@ class WebSocket
                 $data['record'] = array_merge($data['record'], $value['record']);  // Merge handlers and primary writer record
             }
         }
-        $handler = new Debugger;      // Log debug handler
+        $handler = new Debugger($this->app, $this->config);      // Log debug handler
         $this->lines = $handler->write($data);
 
         if ($this->request->isAjax()) {

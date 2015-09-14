@@ -44,7 +44,7 @@ class Form
      * 
      * @var array
      */
-    protected $form = array();
+    protected $notification = array();
 
     /**
      * Store form notification and errors
@@ -63,7 +63,7 @@ class Form
     public function __construct(ContainerInterface $c, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->form = $config->load('form');
+        $this->notification = $config->load('notification');
         $this->logger = $logger;
         $this->messages['success'] = static::ERROR;
         $this->messages['code'] = 0;
@@ -247,7 +247,7 @@ class Form
         return $this->messages['message'] = str_replace(
             array('{class}','{icon}','{message}'), 
             array($array['class'], $array['icon'], $this->messages['message']),
-            $this->form['message']
+            $this->notification['message']
         );
     }
 
@@ -265,10 +265,10 @@ class Form
             static::CODE_WARNING => 'warning',
             static::CODE_INFO => 'info',
         ];
-        if (isset($errors[$code]) && isset($this->form[$errors[$code]])) {
-            return $this->form[$errors[$code]];
+        if (isset($errors[$code]) && isset($this->notification[$errors[$code]])) {
+            return $this->notification[$errors[$code]];
         }
-        return ($this->getStatus()) ? $this->form['success'] : $this->form['error'];
+        return ($this->getStatus()) ? $this->notification['success'] : $this->notification['error'];
     }
 
     /**
