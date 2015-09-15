@@ -75,8 +75,11 @@ class Amqp implements QueueInterface
      */
     protected function declareExchange($name)
     {
-        $type = constant($this->config['exchange']['type']); // available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
-        $flag = constant($this->config['exchange']['flag']); // available flags AMQP_DURABLE, AMQP_PASSIVE
+        // available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
+        // available flags AMQP_DURABLE, AMQP_PASSIVE
+
+        $type = constant('AMOP_EX_TYPE_'.strtoupper($this->config['exchange']['type']));
+        $flag = constant('AMOP_'.strtoupper($this->config['exchange']['flag']));
 
         $this->exchange = new AMQPExchange($this->channel);
         $this->exchange->setName($name);
@@ -215,10 +218,10 @@ class Amqp implements QueueInterface
         $queue->setFlags(AMQP_DURABLE);
         $queue->setArguments(
             [
-                'x-dead-letter-exchange'    => $this->exchange->getName(),
+                'x-dead-letter-exchange' => $this->exchange->getName(),
                 'x-dead-letter-routing-key' => $destination,
-                'x-message-ttl'             => $delay * 1000,
-                'x-expires'              => $delay * 2000
+                'x-message-ttl' => $delay * 1000,
+                'x-expires' => $delay * 2000
             ]
         );
         $queue->declareQueue();

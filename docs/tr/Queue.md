@@ -105,17 +105,16 @@ return array(
     'amqp' => [
 
         'exchange' => [
-            'type' => 'AMQP_EX_TYPE_DIRECT',
-            'flag' => 'AMQP_DURABLE',
+            'type' => 'direct',
+            'flag' => 'durable',
         ],
-        
         'connections' => 
         [
             'default' => [
                 'host'  => '127.0.0.1',
                 'port'  => 5672,
-                'username'  => 'root',
-                'password'  => $c['var']['AMQP_PASSWORD'],
+                'username' => 'root',
+                'password' => $c['var']['AMQP_PASSWORD'],
                 'vhost' => '/',
             ]
         ],
@@ -905,8 +904,8 @@ Cloudamqp.com web panelinden aldığınız bilgileri <kbd>app/config/$env/queue.
 'amqp' => [
 
     'exchange' => [
-        'type' => 'AMQP_EX_TYPE_DIRECT',
-        'flag' => 'AMQP_DURABLE',
+        'type' => 'direct',
+        'flag' => 'durable',
     ],
     
     'connections' => 

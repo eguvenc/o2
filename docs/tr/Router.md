@@ -20,7 +20,6 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
     <ul>
         <li><a href="#loading">Bileşeni Yüklemek</a></li>
         <li><a href="#url-rewriting">Url Yönlendirme</a></li>
-        <li><a href="#modules">Modüller</a></li>
     </ul>
 </li>
 
@@ -34,7 +33,7 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
         <li><a href="#route-groups">Route Grupları</a></li>
         <li><a href="#sub-domains">Alt Alan Adları ve Gruplar</a></li>
         <li><a href="#regex-sub-domains">Alt Alan Adları ve Düzenli İfadeler</a></li>
-        <li><a href="#namespaces">İsim Alanları Kullanmak</a></li>
+        <li><a href="#uri-match">Url Eşleşmesi ve Düzenli İfadeler</a></li>
     </ul>
 </li>
 
@@ -45,6 +44,13 @@ Router sınıfı uygulamanızda index.php dosyasına gelen istekleri <kbd>app/ro
         <li><a href="#group-md-assignment">Bir Gruba Katman Atamak</a></li>
         <li><a href="#inside-group-md-assignment">Bir Grup İçinden Katman Atamak</a></li>
         <li><a href="#regex-md">Düzenli İfadeler Kullanmak</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="#additional-info">Ek Bilgiler</a>
+    <ul>
+        <li><a href="#modules">Modüller</a></li>
     </ul>
 </li>
 
@@ -166,7 +172,7 @@ $this->c['router']->method();
 
 #### Url Yönlendirme
 
-Tipik olarak bir URL girdisi ile ve ona uyan dizin arasında (<kbd>dizin/sınıf/metot/argümanlar</kbd>)  birebir ilşiki vardır. Bir URI içerisindeki bölümler aşağıdaki kalıbı izler.
+Tipik olarak bir URL girdisi ile ve ona uyan dizin arasında (<kbd>dizin/sınıf/metot/argümanlar</kbd>)  birebir ilişki vardır. Bir URI içerisindeki bölümler aşağıdaki kalıbı izler.
 
 ```php
 example.com/dizin/sınıf/metot/id
@@ -175,7 +181,7 @@ example.com/dizin/sınıf/metot/id
 Aşağıdaki URL takip eden dizin yapısındaki dosyayı çalıştırır.
 
 ```php
-example.com/index.php/shop/product/1
+example.com/index.php/shop/product/index/1
 ```
 
 Birebir ilişkili kontrolör sınıfınının görünümü
@@ -189,60 +195,24 @@ Birebir ilişkili kontrolör sınıfınının görünümü
 Fakat bazı durumlarda bu birebir ilişki yerine farklı <kbd>dizin/sınıf/method</kbd> ilişkisi yeniden kurgulanmak istenebilir. Örnek vermek gerekirse mevcut URL adreslerinizin aşağıdaki gibi olduğunu varsayalım.
 
 ```php
-example.com/shop/product/1/
-example.com/shop/product/2/
+example.com/shop/product/index/1
+example.com/shop/product/index/2
 ```
 
-Normalde URL nin 2. bölümü sınıf ismi için rezerve edilmiştir (show), fakat yukarıdaki örnekte <b>shop</b> bölümünü silip <b>product</b> değerleri ile gönderilen URL biçimine dönüştürmek (url rewriting) için bir route kuralı tanımlamanız gerekir.
-
-
-![Akış Şeması](images/router-flowchart.png?raw=true)
-
-
-Birinci bölümü <b>product</b> olan bir URL ve ikinci bölümü herhangi bir değer alabilen bölüm <b>shop</b> dizinine yönlendirilir product sınıfı çalıştırılarak sonraki gönderilen değerler argüman olarak çalıştırılır.  
-
-> **Not:**  Varsayılan metot her zaman <b>index</b> metodudur fakat açılış sayfasında bu metodu yazmanıza gerek kalmaz. Eğer argüman göndermek zorundaysanız (example.com/product/index/1 gibi.) bu durum da index metodunu yazmanız gerekir.
-
-<a name="modules"></a>
-
-#### Modüller
-
-Alt klasörleri olan ve ana dizinleri kapsayan dizinlere modül adı verilir. Bir modüle ulaşmak için modül adı URL adresinden girilmelidir.
+Normalde URL nin 2. bölümü sınıf ismi için rezerve edilmiştir, fakat yukarıdaki örnekte <b>shop</b> ve <b>product</b> bölümünü silip sadece değerler ile gönderilen bir URL biçimine dönüştürmek (url rewriting) için bir route kuralı tanımlamanız gerekir.
 
 ```php
-example.com/admin/membership/login/index
+$c['router']->get('([0-9])/(.*)', 'shop/product/index/$1/$2');
 ```
 
-Aşağıdaki örnekte shop klasörü bir dizin olarak görülüyor, <b>admin</b> klasörü ise bir modüldür ve membership isimli klasörü kapsar.
+Bu tanımlamadan sonra aşağıdaki gibi bir URL <b>shop</b> dizinine yönlendirilir ve product sınıfı çalıştırılarak sonraki değerler argüman olarak gönderilir.  
 
 ```php
-- modules
-    - shop
-      + view
-        Product.php
-    - admin
-        - membership
-            + view
-              - Login.php
-              - Logout.php
-        + dashboard
-    + views
-
+example.com/2/mp3-player
 ```
 
-Modülün çözümlenebilmesi için kontrolörler içerisindeki <b>namespace</b> değeri aşağıdaki olmalıdır.
+> **Not:**  Varsayılan metot her zaman <b>index</b> metodudur fakat açılış sayfasında bu metodu yazmanıza gerek kalmaz. Eğer argüman göndermek zorundaysanız bu durum da index metodunu yazmanız gerekir.
 
-```php
-namespace Admin\Membership;
-
-class Login extends \Controller
-{
-    public function index()
-    {
-        // ..
-    }
-}
-```
 
 <a name="routing"></a>
 
@@ -367,14 +337,14 @@ Route kuralları içerisinde isimsiz fonksiyonlar da kullanabilmek mümkündür.
 
 ```php
 $c['router']->get(
-    'welcome/[0-9]+/[a-z]+', 'welcome/index/$1/$2', 
+    'welcome/([0-9]+)/([a-z]+)', 'welcome/index/$1/$2', 
     function () use ($c) {
         $c['view']->load('dummy');
     }
 );
 ```
 
-Bu örnekte, <kbd>example.com/welcome/123/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd>  kontrolör sınıfı index metodu parametresine <kbd>123 - test</kbd> argümanlarını gönderir url eşleşirse isimsiz fonksiyon çalıştırılır ve <kbd>.modules/welcome/view/</kbd> dizininden dummy.php adlı view dosyası yüklenir.
+Bu örnekte, <kbd>example.com/welcome/123/test</kbd> adresine benzer bir URL <kbd>Welcome/welcome</kbd>  kontrolör sınıfı index metodu parametresine <kbd>123 - test</kbd> argümanlarını gönderir, eğer url eşleşirse isimsiz fonksiyon çalıştırılır ve <kbd>.modules/welcome/view/</kbd> dizininden dummy.php adlı view dosyası yüklenir.
 
 <a name="parameters"></a>
 
@@ -437,7 +407,7 @@ $c['router']->get(
             );
         }
     }
-)->where(array('id' => '([0-9]+)', 'name' => '([a-z]+)'));
+)->where(['id' => '([0-9]+)', 'name' => '([a-z]+)']);
 ```
 
 Bu örnekte ise <kbd>shop/{id}/{name}</kbd> olarak girilen URI şeması eğer <kbd>/shop/123/mp3_player</kbd> adresine benzer bir URL ile eşleşirse, parametre olarak alınan ID değeri veritabanı içerisinde sorgulanır ve bulunamazsa kullanıcıya bir hata mesajı gösterilir.
@@ -450,7 +420,10 @@ Route grupları bir kurallar bütününü topluca yönetmenizi sağlar. Grup kur
 
 ```php
 $c['router']->group(
-    ['name' => 'Test', 'middleware' => array('MethodNotAllowed')],
+    [
+        'name' => 'Test',
+        'middleware' => array('MethodNotAllowed')
+    ],
     function () {
 
         $this->attach('welcome');
@@ -475,13 +448,16 @@ Eğer bir gurubu belirli bir alt alan adına tayin ederseniz grup içerisindeki 
 
 ```php
 $c['router']->group(
-    array('name' => 'Shop', 'domain' => 'shop.example.com'), 
+    [
+        'name' => 'Shop',
+        'domain' => 'shop.example.com'
+    ], 
     function () {
 
         $this->defaultPage('welcome');
 
-        $this->get('welcome/(.+)', 'home/index', null);
-        $this->get('product/{id}', 'product/list/$1', null);
+        $this->get('welcome/(.+)', 'home/index');
+        $this->get('product/([0-9])', 'product/list/$1');
     }
 );
 ```
@@ -496,7 +472,10 @@ Aşağıda <kbd>account.example.com</kbd> adlı bir alt alan adı için kurallar
 
 ```php
 $c['router']->group(
-    array('name' => 'Accounts', 'domain' => 'account.example.com'), 
+    [
+        'name' => 'Accounts',
+        'domain' => 'account.example.com'
+    ],
     function () {
 
         $this->get(
@@ -524,7 +503,11 @@ Alt alan adlarınızda eğer <kbd>sports19.example.com</kbd>, <kbd>sports20.exam
 
 ```php
 $c['router']->group(
-    array('name' => 'Sports', 'domain' => 'sports.*\d.example.com', 'middleware' => array('maintenance')),
+    [
+        'name' => 'Sports',
+        'domain' => 'sports.*\d.example.com',
+        'middleware' => array('Maintenance')
+    ],
     function ($subname) {
 
         echo $subname;  // sports20
@@ -535,16 +518,16 @@ $c['router']->group(
 );
 ```
 
-<a name="namespaces"></a>
+<a name="uri-match"></a>
 
-#### İsim Alanları Kullanmak 
+#### Url Eşleşmesi ve Düzenli İfadeler
 
-Eğer bir gurubun <kbd>app/modules/</kbd> klasörü içerisinde ilan edilen isim alanları ile ilişkili çalışmasını istiyorsanız namespace değerine bir isim alanı adı verin.
+Eğer bir grubun URL den çağırılan değer ile eşleşme olduğunda çalışmasını istiyorsanız <kbd>match</kbd> ifadesi kullanmanız gerekir.
 
 ```php
 $c['router']->group(
     [
-        'namespace' => 'Admin'
+        'match' => 'admin'
     ],
     function () use ($c) {
 
@@ -558,20 +541,34 @@ $c['router']->group(
 Tarayıcınızdan Admin modülünü ziyaret ettiğinizde bu modülün ismi geçen route grupları çalışmış olur.
 
 ```php
-http://example.com/Admin/Membership/Login
+http://example.com/admin/membership/login
 ```
 
-Eğer modülünüz altında bir klasör daha varsa isim alanını aşağıdaki gibi girmeniz gerekir.
+Aynı anda uri ve domain eşleşmesi gerekiyorsa her iki ifadeyide kullanın.
 
 ```php
 $c['router']->group(
     [
-        'namespace' => 'Ajax/Post'
+        'match' => 'admin'
+        'domain' => 'example.com'
     ],
     function () use ($c) {
 
-        // Ajax/Post isim alanına ait kurallar
-        // $this->post();
+        // Admin modülüne ait kurallar
+    }
+);
+```
+
+Eğer düzenli bir ifade kullanmanız gerekiyorsa domain ifadesinde olduğu gibi match ifadesi de düzenli ifadeleri destekler.
+
+```php
+$c['router']->group(
+    [
+        'match' => 'admin/([0-9]+)/([a-z]+).*'
+    ],
+    function () use ($c) {
+
+        // Admin modülüne ait kurallar
     }
 );
 ```
@@ -671,6 +668,51 @@ $c['router']->group(
         $this->attach('^(?!login|logout|test|cart|payment).*$');
     }
 );
+```
+
+<a name="additional-info"></a>
+
+### Ek Bilgiler
+
+<a name="modules"></a>
+
+#### Modüller
+
+Alt klasörleri olan ve ana dizinleri kapsayan dizinlere modül adı verilir. Bir modül sadece içinde bulunan klasörleri kapsayan genel bir dizindir ve modül altında tekrar bir modül açılamaz. Modüllere ulaşmak için modül adı URL adresinden girilmelidir.
+
+```php
+example.com/admin/membership/login/index
+```
+
+Aşağıdaki örnekte shop klasörü bir dizin olarak görülüyor, <b>admin</b> klasörü ise bir modüldür ve membership isimli klasörü kapsar.
+
+```php
+- modules
+    - shop
+      + view
+        Product.php
+    - admin
+        - membership
+            + view
+              - Login.php
+              - Logout.php
+        + dashboard
+    + views
+
+```
+
+Bir modülün çözümlenebilmesi için kontrolörler içerisindeki <b>namespace</b> değeri aşağıdaki olmalıdır.
+
+```php
+namespace Admin\Membership;
+
+class Login extends \Controller
+{
+    public function index()
+    {
+        // ..
+    }
+}
 ```
 
 <a name="method-reference"></a>

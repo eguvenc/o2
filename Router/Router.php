@@ -233,6 +233,34 @@ class Router
     }
 
     /**
+     * Check domain has sub name
+     * 
+     * @param string $domain name
+     * 
+     * @return boolean
+     */
+    protected function isSubDomain($domain)
+    {
+        if (empty($domain)) {
+            return false;
+        }
+        $subDomain = $this->getSubDomain($domain);
+        return (empty($subDomain)) ? false : true;
+    }
+
+    /**
+     * Get sub domain e.g. test.example.com returns to "test".
+     * 
+     * @param string $domain name
+     * 
+     * @return boolean
+     */
+    protected function getSubDomain($domain)
+    {
+        return str_replace($domain, '', $this->HOST);
+    }
+
+    /**
      * Check route errors
      * 
      * @return void
@@ -352,11 +380,14 @@ class Router
     {
         $uri = $this->uri->getUriString();  // Warning !: Don't use $this->uri->segments in here instead of use getUriString otherwise
                                             // we could not get url suffix ".html".
-        foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
-            $parameters = $this->parseParameters($uri, $val);
-            if ($this->hasRegexMatch($val['match'], $uri)) {    // Does the route match ?
-                $this->dispatchRouteMatches($uri, $val, $parameters);
-                return;
+
+        if (! empty($this->routes[$this->DOMAIN])) {
+            foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
+                $parameters = $this->parseParameters($uri, $val);
+                if ($this->hasRegexMatch($val['match'], $uri)) {    // Does the route match ?
+                    $this->dispatchRouteMatches($uri, $val, $parameters);
+                    return;
+                }
             }
         }
         $this->setRequest($this->uri->segments);  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
@@ -374,7 +405,7 @@ class Router
     {
         $parameters = array();
         if (! is_null($val['scheme'])) {   // Do we have route scheme like {id}/{name} ?
-        
+
             $parametersIndex = preg_split('#{(.*?)}#', $val['scheme']); // Get parameter indexes
             $parameterUri = substr($uri, strlen($parametersIndex[0]));
             $parametersReIndex = array_keys(array_slice($parametersIndex, 1));
@@ -580,31 +611,6 @@ class Router
         $str = str_replace('_', ' ', $string);
         $str = ucwords($str);
         return str_replace(' ', '_', $str);
-    }
-
-    /**
-     * Check domain has sub name
-     * 
-     * @param string $domain name
-     * 
-     * @return boolean
-     */
-    protected function isSubDomain($domain)
-    {
-        $subDomain = $this->getSubDomain($domain);
-        return (empty($subDomain)) ? false : true;
-    }
-
-    /**
-     * Get sub domain e.g. test.example.com returns to "test".
-     * 
-     * @param string $domain name
-     * 
-     * @return boolean
-     */
-    protected function getSubDomain($domain)
-    {
-        return str_replace($domain, '', $this->HOST);
     }
 
     /**

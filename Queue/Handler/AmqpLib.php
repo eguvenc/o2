@@ -73,15 +73,12 @@ class AmqpLib implements QueueInterface
      */
     protected function getOptions($type = null, $flag = null)
     {
-        $type = (empty($type)) ? $this->config['exchange']['type'] : $type;
-        $flag = (empty($flag)) ? $this->config['exchange']['flag'] : $flag;
-
-        if ($typeStr = strstr($type, 'TYPE_')) {
-            $type = strtolower(substr($typeStr, 5));
-        }
+        $type = (empty($type)) ? strtolower($this->config['exchange']['type']) : strtolower($type);
+        $flag = (empty($flag)) ? strtolower($this->config['exchange']['flag']) : strtolower($flag);
+        
         $passive = true;
         $durable = false;
-        if ($flag == 'AMQP_DURABLE') {
+        if ($flag == 'durable') {
             $passive = false;
             $durable = true;
         }
