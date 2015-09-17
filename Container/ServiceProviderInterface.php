@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Service;
+namespace Obullo\Container;
 
 use Obullo\Container\ContainerInterface;
 

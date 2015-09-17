@@ -139,7 +139,7 @@ Eğer varsayılan sayfa konfigüre edilmemişse <kbd>welcome/index</kbd> sayfas�
 
 #### 404 Hata Yönetimi
 
-Error404 anahtarı 404 hataları olması durumunda uygulamanın çalıştıracağı kontrolör dosyasını belirler. Null değeri girerseniz uygulama app/templates klasöründen varsayılan şablonu yükler.
+Error404 anahtarı 404 hataları olması durumunda uygulamanın çalıştıracağı kontrolör dosyasını belirler. Null değeri girerseniz uygulama resources/templates klasöründen varsayılan şablonu yükler.
 
 ```php
 

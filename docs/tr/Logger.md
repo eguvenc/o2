@@ -156,7 +156,7 @@ Logger sınıfına ait detaylı konfigürasyon dosyası ise <kbd>app/config/$env
 ```php
 namespace Service\Logger;
 
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Local implements ServiceInterface

@@ -261,4 +261,4 @@ $this->response->show404('Page not found')
 
 ##### Hata Şablonlarını Özelleştirmek
 
-Ugyulama içinde gönderdiğiniz yukarıda bahsedilen hata metotlarına ait hata şablonlarını ihtiyaçlarınıza göre özelleştirebilirsiniz. <kbd>showError()</kbd> türündeki hataları düzenlemek için <kbd>app/templates/errors/general.php</kbd> dosyasını, <kbd>show404()</kbd> türündeki hataları düzenlemek içinse <kbd>app/templates/errors/404.php</kbd> dosyasını kullanabilirsiniz.
+Ugyulama içinde gönderdiğiniz yukarıda bahsedilen hata metotlarına ait hata şablonlarını ihtiyaçlarınıza göre özelleştirebilirsiniz. <kbd>showError()</kbd> türündeki hataları düzenlemek için <kbd>resources/templates/errors/general.php</kbd> dosyasını, <kbd>show404()</kbd> türündeki hataları düzenlemek içinse <kbd>resources/templates/errors/404.php</kbd> dosyasını kullanabilirsiniz.

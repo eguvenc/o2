@@ -1,11 +1,11 @@
 <?php
 
-namespace Obullo\Service\Providers;
+namespace Obullo\Service\Provider;
 
 use RuntimeException;
+use Obullo\Container\AbstractProvider;
 use Obullo\Container\ContainerInterface;
-use Obullo\Cache\Handler\HandlerInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * Cache Service Provider

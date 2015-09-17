@@ -81,6 +81,12 @@ class Hello extends Middleware
 
 Şimdi uygulamanızın ilk açılış sayfasına gidip çıktıları kontrol edin. Normal şartlarda yukarıdakileri yaptı iseniz <kbd>2 adet</kbd> hello çıktısı almanız gerekir.
 
+## Unutulmaması Gerekenler
+
+* Registering Middleware
+* Middleware Parameters
+
+
 <a name="attach-to-routes"></a>
 
 #### Katmanları Route Yapısına Tutturmak
@@ -118,6 +124,7 @@ $c['router']->group(
         'middleware' => ['Auth', 'Guest']
     ],
     function () {
+    
         $this->defaultPage('welcome');
         $this->attach('welcome/restricted'); // Attach middleware just for this url
     }

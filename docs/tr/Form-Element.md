@@ -94,7 +94,7 @@ Form element sınıfı opsiyonel olarak kullanılır bu yüzden çalışabilmesi
 ```php
 namespace Service;
 
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Form\Element as FormElement;
 use Obullo\Container\ContainerInterface;
 

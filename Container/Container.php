@@ -20,6 +20,7 @@ use InvalidArgumentException;
  */
 class Container implements ContainerInterface
 {
+    protected $env;
     protected $values = array();
     protected $frozen = array();
     protected $raw = array();
@@ -41,11 +42,24 @@ class Container implements ContainerInterface
     {
         $safeServices = array();
         foreach ($services as $value) {
-            if ($value != "." && $value != ".." && $value != "Providers") {
+            if ($value != "." && $value != ".." && $value != "Provider") {
                 $safeServices[] = $value;
             } 
         }
         $this->services = $safeServices;
+    }
+
+    /**
+     * Sets application environment
+     * 
+     * @param string $env value
+     * 
+     * @return object
+     */
+    public function setEnv($env)
+    {
+        $this->env = $env;
+        return $this;
     }
 
     /**
@@ -209,7 +223,7 @@ class Container implements ContainerInterface
         if (! $this->has($cid) && ! $isService) {   // Don't register service again.
             throw new RuntimeException(
                 sprintf(
-                    'The class "%s" is not available. Please register it in components.php or create a service.',
+                    'The class "%s" is not available. Please register it as component or create a service.',
                     $cid
                 )
             );
@@ -222,9 +236,9 @@ class Container implements ContainerInterface
      * 
      * @param string $name provider name
      * 
-     * @return object \Obullo\Service\Providers\ServiceProviderInterface
+     * @return object \Obullo\Service\ProviderServiceProviderInterface
      */
-    public function resolveProvider($name)
+    public function provider($name)
     {
         $name = strtolower($name);
         if (! isset($this->registeredProviders[$name])) {
@@ -294,7 +308,7 @@ class Container implements ContainerInterface
     protected function resolveService($serviceClass, $isDirectory = false)
     {
         if ($isDirectory) {
-            return '\\Service\\'.$serviceClass.'\\'. ucfirst($this['app']->env());
+            return '\\Service\\'.$serviceClass.'\\'. ucfirst($this->env);
         }
         return '\Service\\'.$serviceClass;
     }

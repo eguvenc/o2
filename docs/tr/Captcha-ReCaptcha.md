@@ -114,7 +114,7 @@ Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</k
 ```php
 namespace Service;
 
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 use Obullo\Captcha\Adapter\ReCaptcha as ReCaptchaClass;
 

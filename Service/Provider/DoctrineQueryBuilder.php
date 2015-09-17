@@ -1,9 +1,11 @@
 <?php
 
-namespace Obullo\Service\Providers;
+namespace Obullo\Service\Provider;
 
+use Obullo\Container\AbstractProvider;
 use Obullo\Container\ContainerInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
+
 use Obullo\Database\Doctrine\DBAL\QueryBuilder;
 
 /**

@@ -210,7 +210,7 @@ class Config implements ConfigInterface
         $error = error_get_last();
         $heading = 'Configuration Error';
         $message = 'Config file error '.(is_null($errorStr)) ? $error['message'] : $errorStr. ' at line: '.$error['line'];
-        include APP. 'templates'. DS . 'errors'. DS .'general.php';
+        include TEMPLATES . 'errors'. DS .'general.php';
         die;
 
     }

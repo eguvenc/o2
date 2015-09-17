@@ -17,15 +17,15 @@
 | INDEX_PHP         - The path of your index.php file.
 */
 define('APP',  ROOT .'app'. DS);
-define('CONFIG',  ROOT . 'config'. DS);
+define('CONFIG',  APP . 'config'. DS);
 define('RESOURCES',  ROOT .'resources'. DS);
 define('ASSETS',  RESOURCES .'assets'. DS);
 define('DATA',  RESOURCES .'data'. DS);
 define('TRANSLATIONS',  RESOURCES .'translations'. DS);
 define('CLASSES',  APP .'classes'. DS);
-define('TEMPLATES',  APP . 'templates'. DS);
-define('MODULES', ROOT .'modules'. DS);
-define('TASKS', ROOT .'modules'. DS .'tasks'. DS);
+define('TEMPLATES',  RESOURCES . 'templates'. DS);
+define('MODULES', APP .'modules'. DS);
+define('TASKS', APP .'modules'. DS .'tasks'. DS);
 define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
 define('CLI_PHP', 'cli.php');

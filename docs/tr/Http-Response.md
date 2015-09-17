@@ -266,7 +266,7 @@ Yukarıda örnek tanımlı ise <kbd>second</kbd> adlı konfigürasyona ait http 
 
 ##### $this->response->show404();
 
-<kbd>app/templates/errors/404.php</kbd> html şablon dosyasını kullanarak <kbd>404 Page Not Found</kbd> hatası oluşturur.
+<kbd>resources/templates/errors/404.php</kbd> html şablon dosyasını kullanarak <kbd>404 Page Not Found</kbd> hatası oluşturur.
 
 ```php
 $this->response->show404();
@@ -276,7 +276,7 @@ $this->response->show404();
 
 ##### $this->response->showError(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
 
-<kbd>app/templates/errors/general.php</kbd> html şablon dosyasını kullanarak uygulamaya özel hatalar oluşturur.
+<kbd>resources/templates/errors/general.php</kbd> html şablon dosyasını kullanarak uygulamaya özel hatalar oluşturur.
 
 ```php
 $this->response->showError('Custom error message');

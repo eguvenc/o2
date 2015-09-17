@@ -106,9 +106,9 @@ Sorgu oluşturucu <b>DoctrineDBALServiceProvider</b> servis sağlayıcısı olma
 ```php
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-       	'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+       	'database' => 'Obullo\Service\Provider\DoctrineDBALServiceProvider',
     ]
 );
 
@@ -129,10 +129,10 @@ Eğer servis sağlayıcısı tanımlı değilse <kbd>app/providers.php</kbd> dos
 ```php
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-       	'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
-        'this->db' => 'Obullo\Service\Providers\DoctrineQueryBuilderServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+       	'database' => 'Obullo\Service\Provider\DoctrineDBALServiceProvider',
+        'this->db' => 'Obullo\Service\Provider\DoctrineQueryBuilderServiceProvider',
     ]
 );
 

@@ -39,7 +39,7 @@ echo $this->view->load('filename', false);
 
 ------
 
-To load a template file as string from <kbd>app/templates</kbd> folder you need use the following function:
+To load a template file as string from <kbd>resources/templates</kbd> folder you need use the following function:
 
 ```php
 <?php
@@ -526,10 +526,6 @@ $this->request->router->method();
 ### Function Reference
 
 ------
-
-#### $this->view->setLayouts($layours = array());
-
-Sets layout array, useful in service configuration.
 
 #### $this->view->load('filename', $data = array(), $layout = null);
 

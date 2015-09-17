@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Service\Providers;
+namespace Obullo\Container;
 
 /**
  * Service Connnection Provider

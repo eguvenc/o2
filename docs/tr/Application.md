@@ -420,13 +420,13 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 */
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
-        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
-        'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
-        'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
-        'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+        'cache' => 'Obullo\Service\Provider\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Provider\RedisServiceProvider',
+        'memcached' => 'Obullo\Service\Provider\MemcachedServiceProvider',
+        'mailer' => 'Obullo\Service\Provider\MailerServiceProvider',
+        'amqp' => 'Obullo\Service\Provider\AmqpServiceProvider',
     ]
 );
 ```
@@ -605,11 +605,11 @@ Set türündeki metotlar uygulama sınıfındaki varolan değişkenlere yeni de�
 ```php
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-        'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
-        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
-        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+        'database' => 'Obullo\Service\Provider\DoctrineDBALServiceProvider',
+        'cache' => 'Obullo\Service\Provider\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Provider\RedisServiceProvider',
     ]
 );
 ```

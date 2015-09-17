@@ -117,7 +117,7 @@ Mailer paketini kullanabilmeniz için ilk önce servis ayarlarını yapılandır
 namespace Service;
 
 use Obullo\Mail\MailManager;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Mailer implements ServiceInterface

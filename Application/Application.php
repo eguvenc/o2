@@ -69,6 +69,7 @@ class Application
         if ($this->env == null) {
             die('We could not detect your application environment, please correct your app/environments.php hostnames.');
         }
+        $this->c->setEnv($this->env);
     }
     
     /**
@@ -362,7 +363,7 @@ class Application
      */
     public function provider($name)
     {
-        return $this->c->resolveProvider($name);
+        return $this->c->provider($name);
     }
 
     /**

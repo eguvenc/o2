@@ -97,7 +97,7 @@ Servis dosyası modül eklendiğinde otomatik olarak <kbd>app/classes/Service</k
 namespace Service;
 
 use Obullo\Captcha\Adapter\Image;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Captcha implements ServiceInterface

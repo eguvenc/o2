@@ -54,7 +54,7 @@ Flaş sınıfı varsayılan olarak session sürücüsü kullanır ve çalışabi
 namespace Service;
 
 use Obullo\Flash\Session;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Flash implements ServiceInterface

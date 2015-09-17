@@ -273,8 +273,8 @@ Veritabanı servis sağlayıcısı <kbd>Obullo/Service/Providers/DatabaseService
 ```php
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
     ]
 );
 ```
@@ -341,7 +341,7 @@ Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosy
 namespace Service;
 
 use Obullo\Database\DatabaseManager;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Db implements ServiceInterface

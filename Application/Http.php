@@ -240,16 +240,8 @@ class Http extends Application
      */
     public function call()
     {
-        if ($this->c['config']['response']['compress']['enabled'] && extension_loaded('zlib')  // Do we need to output compression ?
-            && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
-            && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
-        ) {
-            ob_start('ob_gzhandler');
-        } else {
-            ob_start();
-        }
+        ob_start();
         call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), array_slice($this->class->uri->routedSegments(), 3));
-
         $this->c['response']->flush();
         echo $this->finalOutput = ob_get_clean();
     }

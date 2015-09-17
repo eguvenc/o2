@@ -55,7 +55,7 @@ Http servisi varsayılan olarak Guzzle kütüphanesini kullanır ve çalışabil
 namespace Service;
 
 use GuzzleHttp\Client;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Http implements ServiceInterface

@@ -288,9 +288,9 @@ Mevcut olan servis sağlayıcısı <b>DatabaseServiceProvider.php</b> olarak tan
 ```php
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        // 'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-        'database' => 'Obullo\Service\Providers\DoctrineDBALServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+        'database' => 'Obullo\Service\Provider\DoctrineDBALServiceProvider',
     ]
 );
 ```
@@ -352,7 +352,7 @@ Uygulamada veritabanı nesnesi <kbd>app/classes/Service/Db.php</kbd> servis dosy
 namespace Service;
 
 use Obullo\Database\DatabaseManager;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Db implements ServiceInterface

@@ -146,7 +146,7 @@ Queue paketini kullanabilmeniz için aşağıdaki gibi servis ayarlarınının y
 namespace Service;
 
 use Obullo\Queue\QueueManager;
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 class Queue implements ServiceInterface
@@ -188,15 +188,15 @@ Servis ayarlarında tanımladığınız servis sağlayıcısının <kbd>app/prov
 ```php
 $c['app']->register(
     [
-        'database' => 'Obullo\Service\Providers\Database',
-        // 'database' => 'Obullo\Service\Providers\DoctrineDBAL',
-        // 'qb' => 'Obullo\Service\Providers\DoctrineQueryBuilder',
-        'cache' => 'Obullo\Service\Providers\Cache',
-        'redis' => 'Obullo\Service\Providers\Redis',
-        'memcached' => 'Obullo\Service\Providers\Memcached',
-        'amqp' => 'Obullo\Service\Providers\Amqp',
-        // 'amqp' => 'Obullo\Service\Providers\AmqpLib',
-        'mongo' => 'Obullo\Service\Providers\Mongo',
+        'database' => 'Obullo\Service\Provider\Database',
+        // 'database' => 'Obullo\Service\Provider\DoctrineDBAL',
+        // 'qb' => 'Obullo\Service\Provider\DoctrineQueryBuilder',
+        'cache' => 'Obullo\Service\Provider\Cache',
+        'redis' => 'Obullo\Service\Provider\Redis',
+        'memcached' => 'Obullo\Service\Provider\Memcached',
+        'amqp' => 'Obullo\Service\Provider\Amqp',
+        // 'amqp' => 'Obullo\Service\Provider\AmqpLib',
+        'mongo' => 'Obullo\Service\Provider\Mongo',
     ]
 );
 ```
@@ -931,8 +931,8 @@ CloudAMQP şuanda PECl Amqp sağlayıcısını desteklemiyor bu yüzden cloudamq
 $c['app']->register(
     [
         .
-        // 'amqp' => 'Obullo\Service\Providers\Amqp',
-        'amqp' => 'Obullo\Service\Providers\AmqpLib',
+        // 'amqp' => 'Obullo\Service\Provider\Amqp',
+        'amqp' => 'Obullo\Service\Provider\AmqpLib',
         .
         .
     ]

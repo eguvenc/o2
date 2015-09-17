@@ -123,7 +123,7 @@ class Variable implements ArrayAccess
         if ($required && $empty) {
             $heading = 'Undefined Env Variable';
             $message = 'Env configuration key <b>'.$key.'</b> is not defined or empty in your <b>.env.'.$this->env.'.php</b> file.';
-            include APP. 'templates'. DS . 'errors'. DS .'general.php';
+            include TEMPLATES . 'errors'. DS .'general.php';
             die;
         }
         if ($empty && $default != '') {     // default value
@@ -132,7 +132,7 @@ class Variable implements ArrayAccess
         if (! isset($_ENV[$key])) {
             $heading = 'Undefined Env Variable';
             $message = 'Env configuration key <b>'.$key.'</b> is not defined in your <b>.env.'.$this->env.'.php</b> file.';
-            include APP. 'templates'. DS . 'errors'. DS .'general.php';
+            include TEMPLATES . 'errors'. DS .'general.php';
             die;
         }
         return $_ENV[$key];

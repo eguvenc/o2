@@ -1,18 +1,16 @@
 <?php
 
-namespace Obullo\Service\Providers;
+namespace Obullo\Service\Provider;
 
 use RuntimeException;
 use UnexpectedValueException;
-use Doctrine\DBAL\Configuration;
-use Doctrine\DBAL\DriverManager;
+use Obullo\Database\SQLLogger;
+use Obullo\Container\AbstractProvider;
 use Obullo\Container\ContainerInterface;
-use Obullo\Service\ServiceProviderInterface;
-
-use Obullo\Database\Doctrine\DBAL\SQLLogger;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
- * Doctrine DBAL Connection Provider
+ * Database Connection Provider
  * 
  * @category  Connections
  * @package   Service
@@ -21,7 +19,7 @@ use Obullo\Database\Doctrine\DBAL\SQLLogger;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/service
  */
-class DoctrineDBAL extends AbstractProvider implements ServiceProviderInterface
+class Database extends AbstractProvider implements ServiceProviderInterface
 {
     /**
      * Container
@@ -38,7 +36,7 @@ class DoctrineDBAL extends AbstractProvider implements ServiceProviderInterface
     protected $config;
 
     /**
-     * Doctrin adapter class
+     * Database adapter class
      * 
      * @var string
      */
@@ -47,20 +45,22 @@ class DoctrineDBAL extends AbstractProvider implements ServiceProviderInterface
     /**
      * Constructor
      * 
+     * Automatically check if the PDO extension has been installed / enabled.
+     * 
      * @param string $c container
      */
     public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
         $this->config = $this->c['config']->load('database');  // Load database configuration file
-        $this->adapterClass = '\Obullo\Doctrine\DBAL\Adapter';
+        $this->adapterClass = '\Obullo\Database\Pdo\Adapter';
 
-        $this->setKey('doctrine.connection.');
+        $this->setKey('database.connection.');
         $this->register();
     }
 
     /**
-     * Register all connections as shared services ( It should be run one time )
+     * Register all connections as shared services ( run once )
      * 
      * @return void
      */
@@ -82,19 +82,14 @@ class DoctrineDBAL extends AbstractProvider implements ServiceProviderInterface
      */
     protected function createConnection($params)
     {
-        $dsnString = 'driver='.strstr($params['dsn'], ':', true).';'.ltrim(strstr($params['dsn'], ':'), ':');
-        parse_str(str_replace(';', '&', $dsnString), $formattedParams);
-        $params = array_merge($formattedParams, $params);
-
-        $config = isset($params['config']) ? $params['config'] : new Configuration;
-        $eventManager = isset($params['eventManager']) ? $params['eventManager'] : null;
+        $params['dsn'] = str_replace('pdo_', '', $params['dsn']);
+        $Class = '\\Obullo\Database\Pdo\Drivers\\'.ucfirst(strstr($params['dsn'], ':', true));
 
         if ($this->c['config']['logger']['app']['query']['log']) {
-            $config->setSQLLogger(new SQLLogger($this->c['logger']));
+            $params['logger'] = new SQLLogger($this->c['logger']);
         }
-        $params['wrapperClass'] = '\Obullo\Database\Doctrine\DBAL\Adapter';
+        return new $Class($params);
 
-        return DriverManager::getConnection($params, $config, $eventManager);
     }
 
     /**

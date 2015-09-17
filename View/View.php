@@ -6,8 +6,8 @@ use Closure;
 use Controller;
 use Obullo\Layer\Layer;
 use Obullo\Log\LoggerInterface;
-use Obullo\Http\Response\ResponseInterface;
 use Obullo\Container\ContainerInterface;
+use Obullo\Http\Response\ResponseInterface;
 
 /**
  * View Class

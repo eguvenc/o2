@@ -50,7 +50,7 @@ Obullo da servisler servis klasörü içerisindeki aracı sınıflar tarafından
 ```php
 namespace Service;
 
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 use Obullo\Session\Session as SessionClass;
 
@@ -249,13 +249,13 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 */
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
-        'database' => 'Obullo\Service\Providers\DatabaseServiceProvider',
-        'cache' => 'Obullo\Service\Providers\CacheServiceProvider',
-        'redis' => 'Obullo\Service\Providers\RedisServiceProvider',
-        'memcached' => 'Obullo\Service\Providers\MemcachedServiceProvider',
-        'mailer' => 'Obullo\Service\Providers\MailerServiceProvider',
-        'amqp' => 'Obullo\Service\Providers\AmqpServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
+        'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
+        'cache' => 'Obullo\Service\Provider\CacheServiceProvider',
+        'redis' => 'Obullo\Service\Provider\RedisServiceProvider',
+        'memcached' => 'Obullo\Service\Provider\MemcachedServiceProvider',
+        'mailer' => 'Obullo\Service\Provider\MailerServiceProvider',
+        'amqp' => 'Obullo\Service\Provider\AmqpServiceProvider',
     ]
 );
 ```
@@ -425,10 +425,10 @@ Eğer kendi oluşturduğunuz servis sağlayıcınızı çalıştırmak istiyorsa
 ```php
 namespace Service\Providers;
 
-use Obullo\Service\ServiceInterface;
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 use Obullo\Service\ServiceProviderInterface;
-use Obullo\Service\Providers\AbstractProvider;
+use Obullo\Service\Provider\AbstractProvider;
 
 class Cache extends AbstractProvider implements ServiceProviderInterface
 {
@@ -464,7 +464,7 @@ Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyas
 */
 $c['app']->register(
     [
-        'logger' => 'Obullo\Service\Providers\LoggerServiceProvider',
+        'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         'cache' => 'Service\Providers\CacheServiceProvider'
     ]
 );
