@@ -3,23 +3,19 @@
 namespace Obullo\Container;
 
 /**
- * Service Connnection Provider
+ * Abstract Service Connnection Provider
  * 
- * @category  Connections
- * @package   Service
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/service
  */
-class AbstractProvider
+class AbstractServiceProvider
 {
     /**
      * Connection id prefix
      * 
      * @var string
      */
-    protected $keyPrefix;
+    protected $connPrefix;
 
     /**
      * Connection ids
@@ -37,7 +33,7 @@ class AbstractProvider
      */
     public function setKey($prefix)
     {
-        $this->keyPrefix = $prefix;
+        $this->connPrefix = $prefix;
     }
 
     /**
@@ -51,7 +47,7 @@ class AbstractProvider
      */
     public function getKey($id = null)
     {
-        return ($id == null) ? $this->keyPrefix : $this->keyPrefix.$id;
+        return ($id == null) ? $this->connPrefix : $this->connPrefix.$id;
     }
 
     /**
@@ -64,7 +60,7 @@ class AbstractProvider
     public function getConnectionId($string)
     {
         $connid = sprintf("%u", crc32(serialize($string)));
-        $this->connections[$this->keyPrefix][] = $this->keyPrefix.$connid;
+        $this->connections[$this->connPrefix][] = $this->connPrefix.$connid;
         return $connid;
     }
 
@@ -75,6 +71,6 @@ class AbstractProvider
      */
     public function getFactoryConnections()
     {
-        return $this->connections[$this->keyPrefix];
+        return $this->connections[$this->connPrefix];
     }
 }

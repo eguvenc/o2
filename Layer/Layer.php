@@ -17,14 +17,11 @@ use Obullo\Container\ContainerInterface;
  */
 
 /**
- * Layer Class
+ * Layer
  * 
- * @category  Layer
- * @package   Layer
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/layer
  */
 class Layer
 {
@@ -73,6 +70,13 @@ class Layer
     protected $requestData = array();
 
     /**
+     * Layer error
+     * 
+     * @var null
+     */
+    protected $error = null;
+
+    /**
      * Constructor
      * 
      * @param object $c      \Obullo\Container\ContainerInterface
@@ -108,6 +112,7 @@ class Layer
     public function setUrl($uriString)
     {
         $this->hashString = '';        // Reset hash string otherwise it causes unique id errors.
+        
         $_SERVER['LAYER_REQUEST_URI'] = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
         $this->prepareHash($_SERVER['LAYER_REQUEST_URI']);
 
@@ -198,8 +203,8 @@ class Layer
             $this->reset();
             return base64_decode($response);
         }
-        if ($this->c['response']->getError() != '') {  // If router dispatch fail ?
-            $error = $this->c['response']->getError();
+        if ($this->getError() != '') {  // If router dispatch fail ?
+            $error = $this->getError();
             $this->reset();
             return $error;
         }
@@ -226,7 +231,7 @@ class Layer
             return $this->show404($method);
         }
         ob_start();
-        call_user_func_array(array($class, $method), array_slice($this->c['uri']->routedSegments(), 3));
+        call_user_func_array(array($class, $method), array_slice($this->c['uri']->getRoutedSegments(), 3));
         $response = ob_get_clean();
 
         if (is_numeric($expiration)) {
@@ -246,8 +251,8 @@ class Layer
     protected function show404($method)
     {   
         $this->reset();
-        $this->c['response']->setError('@Layer404@<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
-        return $this->c['response']->getError();
+        $this->setError('{Layer404}<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
+        return $this->getError();
     }
 
     /**
@@ -271,7 +276,7 @@ class Layer
      */
     public function clear()
     {
-        $this->c['response']->clear();  // Clear variables otherwise all responses of layer return to same error.
+        $this->error = null;    // Clear variables otherwise all responses of layer return to same error.
         $this->processDone = false;
         $this->requestMethod = 'GET';
         unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
@@ -361,6 +366,29 @@ class Layer
                 'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'" data-uristring="'.$uriString.'">' .$response. '</div>',
             )
         );
+    }
+
+    /**
+     * Set last response error
+     *
+     * @param string $error message
+     * 
+     * @return object
+     */
+    public function setError($error)
+    {
+        $this->error = $error;
+        return $this;
+    }
+
+    /**
+     * Get last response error
+     * 
+     * @return string
+     */
+    public function getError()
+    {
+        return $this->error;
     }
 
     /**

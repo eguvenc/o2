@@ -3,6 +3,8 @@
 
 Http response sınıfının ana fonksiyonu finalize edilmiş web çıktısını tarayıcıya göndermektir. Tarayıcı başlıklarını, json yanıtı, http durum kodunu, 404 page not found yada özel bir hata mesajı göndermek response sınıfının diğer fonksiyonlarındandır. Ayrıca response sınıfı tarayıcıya gönderilen çıktıyı gzip yöntemi ile sıkıştırabilir fakat bu özellik opsiyoneldir ve bütün tarayıcılar desteklemeyebilir.
 
+Http paketi Psr7 Standartlarını destekler ve Zend-Diactoros kütüphanesi bileşenlerinden oluşur.
+
 <ul>
     <li><a href="#loading-class">Sınıfı Yüklemek</a></li>
     <li>
@@ -10,16 +12,15 @@ Http response sınıfının ana fonksiyonu finalize edilmiş web çıktısını 
         <ul>
             <li><a href="#enableOutput">$this->response->enableOutput()</a></li>
             <li><a href="#disableOutput">$this->response->disableOutput()</a></li>
-            <li><a href="#append">$this->response->append()</a></li>
+            <li><a href="#write">$this->response->write()</a></li>
             <li><a href="#setOutput">$this->response->setOutput()</a></li>
             <li><a href="#getOutput">$this->response->getOutput()</a></li>
         </ul>
     </li>
 
     <li>
-        <a href="#callback-methods">Geri Çağırma Fonksiyonları</a>
+        <a href="#final-methods">Çıktı Sonlandırma Fonksiyonları</a>
         <ul>
-            <li><a href="#callback">$this->response->callback()</a></li>
             <li><a href="#finalize">$this->response->finalize()</a></li>
             <li><a href="#sendHeaders">$this->response->sendHeaders()</a></li>
         </ul>
@@ -28,12 +29,13 @@ Http response sınıfının ana fonksiyonu finalize edilmiş web çıktısını 
     <li>
         <a href="#header-methods">Http Başlık Fonksiyonları</a>
         <ul>
-            <li><a href="#status">$this->response->status()</a></li>
-            <li><a href="#geStatus">$this->response->getStatus()</a></li>
-            <li><a href="#headers-set">$this->response->headers->set()</a></li>
-            <li><a href="#headers-get">$this->response->headers->get()</a></li>
-            <li><a href="#headers-get">$this->response->headers->remove()</a></li>
-            <li><a href="#headers-all">$this->response->headers->all()</a></li>
+            <li><a href="#status">$this->response->withStatus()</a></li>
+            <li><a href="#geStatusCode">$this->response->getStatusCode()</a></li>
+            <li><a href="#geReasonPhrase">$this->response->geReasonPhrase()</a></li>
+            <li><a href="#headers-set">$this->response->setHeader()</a></li>
+            <li><a href="#headers-get">$this->response->getHeader()</a></li>
+            <li><a href="#headers-get">$this->response->withoutHeader()</a></li>
+            <li><a href="#headers-all">$this->response->getHeaders()</a></li>
         </ul>
     </li>
 
@@ -84,17 +86,17 @@ Konteyner nesnesi ile yüklenmesi gerekir. Response sınıfı <kbd>app/component
 
 Çıktılamayı pasif hale getirir bu opsiyon açık olduğunda tarayıcıya çıktı gönderilmez.
 
-<a name="append"></a>
+<a name="write"></a>
 
-##### $this->response->append(string $output);
+##### $this->response->write(string $output);
 
 Çıktı gövdesine oluşturduğunuz çıktıları ekler.
 
 ```php
-$this->response->append('<p>example append data</p>');
-$this->response->append('<p>example append data</p>');
+$this->response->write('<p>example append data</p>');
+$this->response->write('<p>example append data</p>');
 ```
-> **Not:** View paketi çıktıları oluştururken append fonksiyonunu kullanır. 
+> **Not:** View paketi çıktıları oluştururken write fonksiyonunu kullanır. 
 
 <a name="setOutput"></a>
 
@@ -117,41 +119,23 @@ En son oluşturulmuş çıktı verisini almanızı sağlar. Bir örnek:
 $string = $this->response->getOutput();
 ```
 
-<a name="callback-methods"></a>
+<a name="final-methods"></a>
 
-### Geri Çağırma Fonksiyonları
+### Çıktı Sonlandırma Fonksiyonları
 
-Eğer çıktı aşamaları kontrol edilmek isteniyorsa callback metodu içerisinden bir isimsiz fonksiyon yardımı ile çıktı oluşturma aşamaları kontrol edilebilir.
-
-<a name="callback"></a>
-
-##### $this->response->callback();
-
-```php
-$this->response->callback(
-    function ($response) {
-
-        list($status, $headers, $options, $output) = $response->finalize();
-        $response->sendHeaders($status, $headers, $options);
-
-        echo $output;
-    }
-);
-```
-
-Aşağıdaki metotlar yalnızca response callback metodu içerisinde çıktıyı kontrol etmek için kullanılırlar.
+Aşağıdaki metotlar yalnızca çıktıyı kontrol etmek için kullanılırlar.
 
 <a name="finalize"></a>
 
 ##### $this->response->finalize();
 
-Yalnızca response callback metodu içerisinde çıktıyı oluşturduktan sonra sırasıyla http durum kodu, http başlıkları ve opsiyonlarını ve çıktının kendisini bir dizi içerisinde verir.
+Çıktıyı oluşturduktan sonra sırasıyla http durum kodu, http başlıkları ve opsiyonlarını ve çıktının kendisini bir dizi içerisinde verir.
 
 <a name="sendHeaders"></a>
 
 ##### $this->response->sendHeaders();
 
-Yalnızca response callback metodu içerisinde kullanılır ve tarayıcıya http başlıklarını göndermeyi sağlar.
+Tarayıcıya http başlıklarını göndermeyi sağlar.
 
 
 <a name="header-methods"></a>
@@ -162,28 +146,46 @@ Tarayıcı başlıklarını kontrol eden fonksiyonları içerir.
 
 <a name="status"></a>
 
-##### $this->response->status($code = 401, 'text');
+##### $this->response->withStatus($code = 401, 'text');
 
 Tarayıcı gönderilen durum kodunu belirler.
 
 ```php
-$this->reponse->status('401');  // Http başlığını "Unauthorized" olarak ayarlar.
+$this->reponse->withStatus('401');  // Http başlığını "Unauthorized" olarak ayarlar.
 ```
 Http durum kodu listesi için [Buraya tıklayın](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
-<a name="getStatus"></a>
+<a name="getStatusCode"></a>
 
-##### $this->response->getStatus();
+##### $this->response->getStatusCode();
 
 Mevcut http durum kodu değerini verir.
 
 ```php
-echo $this->reponse->getStatus();   // 401
+echo $this->reponse->getStatusCode();   // 401
 ```
 
+<a name="getReasonPhrase"></a>
+
+##### $this->response->getReasonPhrase();
+
+Mevcut http durum kodu mesajına geri döner.
+
+```php
+echo $this->reponse->getReasonPhrase();  // OK
+```
+Bazı örnek http durum mesajları
+
+```php
+(200) OK
+(201) Created
+(202) Accepted
+(203) Non-Authoritative Information
+(404) Not Found
+```
 <a name="headers-set"></a>
 
-##### $this->response->headers->set(string $header, string $value = null, $replace = true);
+##### $this->response->withHeader(string $header, string $value = null, $replace = true);
 
 Çıktı tarayıcıya gönderilmeden önce http başlıkları eklemenizi sağlar. Takip eden örnekte bir çıktının içerik türü belirleniyor.
 
@@ -194,19 +196,19 @@ $this->response->headers->set("content-type", "application/json");
 Ya da aşağıdaki gibi birden fazla başlık eklenebilir.
 
 ```php
-$this->reponse->headers->set("HTTP/1.0 200 OK");
-$this->reponse->headers->set("HTTP/1.1 200 OK");
-$this->reponse->headers->set("last-modified", gmdate('D, d M Y H:i:s', time()).' GMT');
-$this->reponse->headers->set("cache-control", "no-store, no-cache, must-revalidate");
-$this->reponse->headers->set("cache-control", "post-check=0, pre-check=0");
-$this->reponse->headers->set("pragma", "no-cache");
+$this->response->withHeader("HTTP/1.0 200 OK");
+$this->response->withHeader("HTTP/1.1 200 OK");
+$this->response->withHeader("last-modified", gmdate('D, d M Y H:i:s', time()).' GMT');
+$this->response->withHeader("cache-control", "no-store, no-cache, must-revalidate");
+$this->response->withHeader("cache-control", "post-check=0, pre-check=0");
+$this->response->withHeader("pragma", "no-cache");
 ```
 
 Http başlıkları tam listesi için [Buraya tıklayın](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields)
 
 <a name="headers-get"></a>
 
-##### $this->response->headers->get();
+##### $this->response->getHeaders();
 
 Http başlığına eklenmiş bir başlığın değerine döner.
 
@@ -216,17 +218,17 @@ echo $this->response->headers->get('pragma');  // no-cache
 
 <a name="headers-remove"></a>
 
-##### $this->response->headers->remove();
+##### $this->response->withoutHeader();
 
 Http başlığından bir değeri siler.
 
 ```php
-echo $this->response->headers->remove('pragma');
+echo $this->response->withoutHeader('pragma');
 ```
 
 <a name="headers-all"></a>
 
-##### $this->response->headers->all();
+##### $this->response->getHeaders();
 
 Http başlığında ekleniş tüm başlıklara döner.
 
@@ -237,6 +239,11 @@ Array
     [pragma] => no-cache
 )
 ```
+
+##### $this->response->newInstance($body = 'php://memory', $status = 200, array $headers = []);
+
+Yeni bir response nesnesi oluşturur.
+
 
 <a name="custom-methods"></a>
 
@@ -283,31 +290,3 @@ $this->response->showError('Custom error message');
 ```
 
 > **Not:** Hata mesajları girdilerine güvenlik amacıyla response sınıfı içerisinde özel karakter filtrelmesi yapılır.
-
-<a name="compressing"></a>
-
-### Sıkıştırma
-
-Response sınıfı php <b>ob_gz_handler</b> fonksiyonunu kullanarak tarayıcıya gönderilen çıktıyı gzip formatında sıkıştırabilir. Sıkıştırma özelliğinin çalışabilmesi için bu opsiyonunun <kbd>config/response.php</kbd> konfigürasyon dosyasından açık olması gerekir.
-
-```php
-'compress' => [
-    'enabled' => true,
-]                       
-```
-
-<a name="compressing-test"></a>
-
-#### Sıkıştırılmış Bir Sayfayı Test Etmek
-
-Sıkıştırılmış bir web sayfasını test etmek için aşağıdaki 3 yöntemden birini kullanabilirsiniz.
-
-1. Sayfa Başlıkları Görüntülemek: Firefox <a href="https://addons.mozilla.org/en-US/firefox/addon/live-http-headers/" target="_blank">Live HTTP Headers</a> eklentisi çıktı başlıklarını görüntüleyin. "Content-encoding: gzip" satırını kontrol edin.
-
-2. Belge Boyutunu İncelemek: Firefox Web Developer eklentisi kullanılarak  <kbd>Toolbar > Information > View Document Size</kbd> sekmesi sayfanın sıkıştırılp sıkıştırılmadığı bilgisini verir.
-
-3. Bir Web Sitesi İle: <a href="https://www.google.com.tr/search?q=gzip+test+tool" target="_blank">Online Gzip test araçları</a>. 
-
-> **Not:** Yukarıdaki başlıklar online test için hazırlanmıştır yerel testlerde farklı yöntemler kullanmalısınız.
-
-Sıkıştırma açıkken eğer beyaz bir boş sayfa hatası alıyorsanız bu tarayıcıya yanlış bir çıktı gönderdiğiniz anlamına gelir. Php dosyalarınızın herhangi birininin sonunda fazladan bir satır boşluk karakteri kalmış olabilir. Sıkıştırmanın çalışabilmesi için çıktılama tamponundan önce response sınıfının tarayıcıya hiçbirşey göndermemesi gerekir.

@@ -12,7 +12,7 @@ namespace Obullo\Authentication\Model;
 
 use Auth\Identities\GenericUser;
 use Obullo\Container\ContainerInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 interface UserInterface
 {

@@ -162,7 +162,7 @@ $c['app']->error(
 
             $this->c['translator']->load('database');
 
-            echo $this->c['response']->status(200)->showError(
+            echo $this->c['response']->withStatus(200)->showError(
                 $this->c['translator']['OBULLO:TRANSACTION:ERROR'],
                 'System Unavailable'
             );
@@ -243,7 +243,7 @@ Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu dur
 ##### $this->response->showError('message')
 
 ```php
-$this->response->status(500)->showError('There is an error occured');
+$this->response->withStatus(500)->showError('There is an error occured');
 ```
 
 Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.

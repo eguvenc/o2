@@ -6,238 +6,205 @@ use Closure;
 use Obullo\Http\Response\Headers;
 use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\Response\ResponseInterface;
+use Obullo\Container\ContainerAwareInterface;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * Http response Class.
  * 
- * Set Http Response Code
- * Set Outputs
- * Set & Finalize Headers
+ * Set Http Response Code, Write Outputs, Set & Finalize Headers
  * 
- * @category  Http
- * @package   Response
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/http
  */
-class Response implements ResponseInterface
+class Response implements ResponseInterface, ContainerAwareInterface
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    public $c;
+    use MessageTrait;
 
     /**
-     * Final output string
+     * Map of standard HTTP status code/reason phrases
+     *
+     * @var array
+     */
+    private $phrases = [
+        // INFORMATIONAL CODES
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        102 => 'Processing',
+        // SUCCESS CODES
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-status',
+        208 => 'Already Reported',
+        // REDIRECTION CODES
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        306 => 'Switch Proxy', // Deprecated
+        307 => 'Temporary Redirect',
+        // CLIENT ERROR
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Time-out',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Request Entity Too Large',
+        414 => 'Request-URI Too Large',
+        415 => 'Unsupported Media Type',
+        416 => 'Requested range not satisfiable',
+        417 => 'Expectation Failed',
+        418 => 'I\'m a teapot',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        424 => 'Failed Dependency',
+        425 => 'Unordered Collection',
+        426 => 'Upgrade Required',
+        428 => 'Precondition Required',
+        429 => 'Too Many Requests',
+        431 => 'Request Header Fields Too Large',
+        // SERVER ERROR
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Time-out',
+        505 => 'HTTP Version not supported',
+        506 => 'Variant Also Negotiates',
+        507 => 'Insufficient Storage',
+        508 => 'Loop Detected',
+        511 => 'Network Authentication Required',
+    ];
+
+    /**
+     * Http status code
      * 
      * @var string
      */
-    public $output;
+    protected $statusCode;
 
     /**
-     * Response last error
+     * Http status code reason phrase
      * 
      * @var string
      */
-    public $error = null;
-
-    /**
-     * Status code
-     * 
-     * @var int
-     */
-    public $status = 200;
-    
-    /**
-     * Run callback function
-     * 
-     * @var object
-     */
-    protected $callback;
-
-    /**
-     * Enable / Disable flush ( send output to browser )
-     * 
-     * @var boolean
-     */
-    protected $enabled = true;
+    protected $reasonPhrase;
 
     /**
      * Constructor
-     *
-     * @param object $c \Obullo\Container\ContainerInterface
+     * 
+     * @param mixed $body    Stream  identifier and/or actual stream resource
+     * @param int   $status  Status  code for the response, if any.
+     * @param array $headers Headers for the response, if any.
+     * 
+     * @throws InvalidArgumentException on any invalid element.
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct($body = 'php://memory', $status = 200, array $headers = [])
+    {
+        if (! is_string($body) && ! is_resource($body) && ! $body instanceof StreamInterface) {
+            throw new InvalidArgumentException(
+                'Stream must be a string stream resource identifier, '
+                . 'an actual stream resource, '
+                . 'or a Psr\Http\Message\StreamInterface implementation'
+            );
+        }
+        if (null !== $status) {
+            $this->validateStatus($status);
+        }
+        $this->stream     = ($body instanceof StreamInterface) ? $body : new Stream($body, 'wb+');
+        $this->statusCode = $status ? (int) $status : 200;
+
+        list($this->headerNames, $headers) = $this->filterHeaders($headers);
+        $this->assertHeaders($headers);
+        $this->headers = $headers;
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param mixed $body    Stream  identifier and/or actual stream resource
+     * @param int   $status  Status  code for the response, if any.
+     * @param array $headers Headers for the response, if any.
+     * 
+     * @throws InvalidArgumentException on any invalid element.
+     *
+     * @return object
+     */
+    public function newInstance($body = 'php://memory', $status = 200, array $headers = [])
+    {
+        return new Self($body, $status, $headers);
+    }
+
+    /**
+     * Set container object
+     * 
+     * @param object $c container
+     * 
+     * @return object
+     */
+    public function setContainer(ContainerInterface $c = null)
     {
         $this->c = $c;
-        $this->output = '';
-        $this->c['response.headers'] = function () {
-            return new Headers;
-        };
-    }
-
-    /**
-    * Set Output
-    *
-    * Sets the output string
-    *
-    * @param string $output output
-    * 
-    * @return object response
-    */    
-    public function setOutput($output)
-    {        
-        $this->output = $output;
-        $this->length = strlen($this->output);
-        return $this;
-    }
-
-    /**
-    * Get Output
-    *
-    * Returns the current output string
-    *
-    * @return string
-    */    
-    public function getOutput()
-    {
-        $this->length = strlen($this->output);
-        return $this->output;
-    }
-
-    /**
-     * Append HTTP response body
-     * 
-     * @param string $output output
-     * 
-     * @return string output
-     */
-    public function append($output = '')
-    {
-        if ($this->output == '') {
-            $this->output = $output;
-        } else {
-            $this->output.= $output;
-        }
-        return $this->output;
-    }
-
-    /**
-     * Get content length
-     * 
-     * @return int
-     */
-    public function getLength()
-    {
-        return $this->length;
-    }
-
-    /**
-     * Finalize
-     *
-     * This prepares this response and returns an array
-     * of (status, headers, body).
-     *
-     * @return array[int status, array headers, string body]
-     */
-    public function finalize()
-    {
-        if (in_array($this->status, array(204, 304))) {
-            $this->c['response.headers']->remove('Content-Type');
-            $this->c['response.headers']->remove('Content-Length');
-        }
-        $headers = $options = array();
-        
-        if ($this->c->active('response.headers')) {  // If response headers object loaded
-            $headers = $this->c['response.headers']->all();
-            $options = $this->c['response.headers']->options();
-        }
-        return array($this->status, $headers, $options, $this->getOutput());
-    }
-
-    /**
-     * Send response headers
-     * 
-     * @param integer $status  http response code
-     * @param array   $headers http headers
-     * @param array   $options header replace option
-     * 
-     * @return object
-     */
-    public function sendHeaders($status, $headers, $options)
-    {
-        if (headers_sent() === false) {   // Send headers
-
-            http_response_code($status);
-
-            if (count($headers) > 0) {  // Are there any server headers to send ?
-                $replace = true;
-                foreach ($headers as $key => $value) {
-                    if (isset($options[$key]['replace'])) {
-                        $replace = $options[$key]['replace'];
-                    }
-                    if (! empty($value) && strpos($key, '-') > 0) {
-                        $key = array_map('ucfirst', explode('-', $key, 2)); // Normalize header
-                        $key = implode('-', $key).': '.$value;
-                    }
-                    header($key, $replace);
-                }            
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * Send headers and echo output
-     * 
-     * @return object
-     */
-    public function flush()
-    {
-        if ($this->isAllowed()) {  // Send output
-
-            list($status, $headers, $options, $output) = $this->finalize();
-            $this->sendHeaders($status, $headers, $options);
-
-            echo $output; // Send output
-
-        } elseif (is_callable($this->callback)) {
-            
-            $callback = $this->callback;
-            $callback($this);
-        }
-        return $this;
-    }
-
-    /**
-     * Set custom response function
-     *
-     * @param object $closure callback
-     * 
-     * @return object
-     */
-    public function callback(Closure $closure)
-    {
-        $this->disableOutput();
-        $this->callback = $closure;
         return $this;
     }
 
     /**
     * Set HTTP Status Header
     * 
-    * @param int $code the status code
+    * @param int    $code         the status code
+    * @param string $reasonPhrase reason
     * 
     * @return object
     */    
-    public function status($code = 200)
+    public function withStatus($code, $reasonPhrase = '')
     {
-        $this->status = $code;
-        return $this;
+        $this->validateStatus($code);
+
+        $new = clone $this;
+        $new->statusCode   = (int) $code;
+        $new->reasonPhrase = $reasonPhrase;
+        return $new;
+    }
+
+    /**
+     * Validate a status code.
+     *
+     * @param int|string $code code
+     * 
+     * @throws InvalidArgumentException on an invalid status code.
+     */
+    private function validateStatus($code)
+    {
+        if (! is_numeric($code)
+            || is_float($code)
+            || $code < 100
+            || $code >= 600
+        ) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Invalid status code "%s"; must be an integer between 100 and 599, inclusive',
+                    (is_scalar($code) ? $code : gettype($code))
+                )
+            );
+        }
     }
 
     /**
@@ -245,9 +212,24 @@ class Response implements ResponseInterface
      * 
      * @return int
      */
-    public function getStatus()
+    public function getStatusCode()
     {
-        return $this->status;
+        return $this->statusCode;
+    }
+
+    /**
+     * Returns http status code reason phrase
+     * 
+     * @return string
+     */
+    public function getReasonPhrase()
+    {
+        if (! $this->reasonPhrase
+            && isset($this->phrases[$this->statusCode])
+        ) {
+            $this->reasonPhrase = $this->phrases[$this->statusCode];
+        }
+        return $this->reasonPhrase;
     }
 
     /**
@@ -272,7 +254,7 @@ class Response implements ResponseInterface
     */
     public function showError($message, $heading = 'An Error Was Encountered')
     {
-        return $this->c['error']->showError($message, ($this->getStatus() == 200) ? 500 : $this->getStatus(), $heading);
+        return $this->c['error']->showError($message, ($this->getStatusCode() == 200) ? 500 : $this->getStatusCode(), $heading);
     }
 
     /**
@@ -285,100 +267,38 @@ class Response implements ResponseInterface
      */
     public function json(array $data, $headers = array())
     {
-        $this->disableOutput(); // Disable output, we need to send json headers.
+        $this->c['output']->disable(); // Disable output, we need to send json headers.
 
         $jsonHeaders = [
-                'Cache-Control: no-cache, must-revalidate',
-                'Expires: Mon, 26 Jul 1997 05:00:00 GMT',
-                'Content-type: application/json;charset=UTF-8'
+                'Cache-Control' => 'no-cache, must-revalidate',
+                'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
+                'Content-type' => 'application/json;charset=UTF-8'
         ];
         if (! empty($headers)) {
             $jsonHeaders = $headers;
         }
-        foreach ($jsonHeaders as $value) {
-            $this->headers->set($value);
+        foreach ($jsonHeaders as $key => $value) {
+            $response = $this->withAddedHeader($key, $value);
         }
-        list($status, $headers, $options) = $this->finalize();
-        $this->sendHeaders($status, $headers, $options);
+        list($statusCode, $headers) = $this->c['output']->finalize($response);
+
+        $this->c['output']->sendHeaders($response, $statusCode, $headers);
 
         return json_encode($data);
     }
 
     /**
-     * Enables write output method
-     * 
-     * @return object
-     */
-    public function enableOutput()
-    {
-        $this->enabled = true;
-        return $this;
-    }
-
-    /**
-     * Disables write output method
-     * 
-     * @return object
-     */
-    public function disableOutput()
-    {
-        $this->enabled = false;
-        return $this;
-    }
-
-    /**
-     * Returns to true if output enabled otherwise false
-     * 
-     * @return boolean
-     */
-    public function isAllowed()
-    {
-        return $this->enabled;
-    }
-
-    /**
-     * Set last response error
+     * Ensure header names and values are valid.
      *
-     * @param string $error message
+     * @param array $headers headers
      * 
-     * @return object
+     * @throws InvalidArgumentException
      */
-    public function setError($error)
+    private function assertHeaders(array $headers)
     {
-        $this->error = $error;
-        return $this;
+        foreach ($headers as $name => $headerValues) {
+            HeaderSecurity::assertValidName($name);
+            array_walk($headerValues, __NAMESPACE__ . '\HeaderSecurity::assertValid');
+        }
     }
-
-    /**
-     * Get last response error
-     * 
-     * @return string
-     */
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    /**
-     * Clear error variables for layer requests
-     * 
-     * @return object
-     */
-    public function clear()
-    {
-        $this->error = null;
-        return $this;
-    }
-
-    /**
-     * Response headers loader
-     * 
-     * @param string $variable name
-     * 
-     * @return object | bool
-     */
-    public function __get($variable)
-    {   
-        return $this->c['response.'.$variable];
-    }    
 }

@@ -5,7 +5,7 @@ namespace Obullo\Authentication\Model\Pdo;
 use Pdo;
 use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 use Obullo\Authentication\Model\UserInterface;
 
 /**

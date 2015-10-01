@@ -8,12 +8,9 @@ use Obullo\Container\ContainerInterface;
 /**
  * Config Class
  * 
- * @category  Config
- * @package   Config
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/config
  */
 class Config implements ConfigInterface
 {
@@ -57,8 +54,8 @@ class Config implements ConfigInterface
         $this->c = $c;
         $this->env = $c['app']->env();
         
-        $this->path  = CONFIG .$this->env. DS;
-        $this->local = CONFIG .'local'. DS;
+        $this->path  = CONFIG .$this->env. DIRECTORY_SEPARATOR;
+        $this->local = CONFIG .'local'. DIRECTORY_SEPARATOR;
         
         $this->assignEnvironments();
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
@@ -102,7 +99,7 @@ class Config implements ConfigInterface
         if ($filename == 'config') {  //  Config already loaded but someone may want to load it again.
             return $this->array;
         }
-        $fileUrl = str_replace('/', DS, $filename);
+        $fileUrl = str_replace('/', DIRECTORY_SEPARATOR, $filename);
         $envFile = $this->path . $fileUrl.'.php';
         $file = $this->local . $fileUrl.'.php';  // Default config path
 
@@ -126,6 +123,16 @@ class Config implements ConfigInterface
     }
 
     /**
+     * Get main configuration file
+     * 
+     * @return array
+     */
+    public function base()
+    {
+        return $this->array;
+    }
+
+    /**
      * Save array data config file
      *
      * @param string $filename full path of the file
@@ -135,14 +142,14 @@ class Config implements ConfigInterface
      */
     public function write($filename, array $data)
     {
-        $fullpath = CONFIG .$this->env. DS;
+        $fullpath = CONFIG .$this->env. DIRECTORY_SEPARATOR;
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
             $fullpath = CONFIG;
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->toFile($fullpath . str_replace('/', DS, $filename), $data);
+        $writer->toFile($fullpath . str_replace('/', DIRECTORY_SEPARATOR, $filename), $data);
     }
 
     /**
@@ -210,9 +217,7 @@ class Config implements ConfigInterface
         $error = error_get_last();
         $heading = 'Configuration Error';
         $message = 'Config file error '.(is_null($errorStr)) ? $error['message'] : $errorStr. ' at line: '.$error['line'];
-        include TEMPLATES . 'errors'. DS .'general.php';
-        die;
-
+        die($message);
     }
 
 }

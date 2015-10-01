@@ -6,7 +6,7 @@ use Obullo\Log\LoggerInterface;
 use Obullo\Session\SessionManager;
 use Obullo\Session\MetaData\MetaData;
 use Obullo\Session\MetaData\NullMetaData;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * Session Class

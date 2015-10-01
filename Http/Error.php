@@ -5,17 +5,15 @@ namespace Obullo\Http;
 use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Application\Application;
-use Obullo\Http\Response\ResponseInterface;
+
+use Psr\Http\Message\ResponseInterface;
 
 /**
- * Show http errors
+ * Http error handler
  * 
- * @category  Http
- * @package   Error
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/http
  */
 class Error
 {
@@ -53,7 +51,7 @@ class Error
      * @param object $app      \Obullo\Application\Application
      * @param object $config   \Obullo\Config\ConfigInterface
      * @param object $logger   \Obullo\Log\LoggerInterface
-     * @param object $response \Obullo\Http\Response\ResponseInterface
+     * @param object $response \Psr\Http\Message\ResponseInterface
      * 
      * @return void
      */

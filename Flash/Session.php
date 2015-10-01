@@ -71,7 +71,7 @@ class Session
     {
         $this->c = $c;
         $this->session = $session;
-        $this->notification = $config->load('notification');
+        $this->notification = $config->load('notification')['flash'];
 
         $this->flashdataSweep();  // Delete old flashdata (from last request)
         $this->flashdataMark();   // Marks all new flashdata as old (data will be deleted before next request)

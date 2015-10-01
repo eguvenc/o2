@@ -10,19 +10,6 @@ trait SingletonTrait
     protected static $instance = null;  // Presence of a static member variable
 
     /**
-     * Checks class is registered or not
-     * 
-     * @return boolean
-     */
-    public static function isRegistered()
-    {
-        if (self::$instance == null) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Returns the singleton instance of this class.
      *
      * @param object $c Container

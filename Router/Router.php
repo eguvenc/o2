@@ -5,20 +5,19 @@ namespace Obullo\Router;
 use Closure;
 use Controller;
 use LogicException;
-use Obullo\Uri\Uri;
+
 use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
+use Psr\Http\Message\UriInterface;
+
 /**
  * Http Router Class ( Modeled after Codeigniter router )
  * 
- * @category  Router
- * @package   Router
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/router
  */
 class Router
 {
@@ -54,20 +53,19 @@ class Router
      * 
      * @param array  $c      \Obullo\Container\ContainerInterface
      * @param array  $config \Obullo\Config\ConfigInterface
-     * @param object $uri    \Obullo\Uri\Uri
+     * @param object $uri    \Psr\Http\Message\UriInterface
      * @param array  $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, ConfigInterface $config, Uri $uri, LoggerInterface $logger)
+    public function __construct(ContainerInterface $c, ConfigInterface $config, UriInterface $uri, LoggerInterface $logger)
     {
         $this->c = $c;
         $this->uri = $uri;
         $this->logger = $logger;
-        $this->HOST = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
+        $this->HOST = $uri->getHost();
 
         if (strpos($this->HOST, $config['url']['webhost']) === false) {
-            $this->c['response']->status(500)->showError('Your host configuration is not correct in the main config file.');
+            $this->c['response']->withStatus(500)->showError('Your host configuration is not correct in the main config file.');
         }
-        $this->uri->init();
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
     }
 
@@ -153,14 +151,14 @@ class Router
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
             $layerRequest = isset($_SERVER['LAYER_REQUEST']);
             if ($layerRequest) {
-                $this->c['response']->setError('@Layer404@'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
+                $this->c['output']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
                 return false;
             }
             $this->checkErrors();
             $segments = $this->resolve(explode('/', $this->defaultController));  // Turn the default route into an array.
             $this->setClass($segments[1]);
             $this->setMethod('index');
-            $this->uri->rsegments = $segments;  // Assign the segments to the URI class
+            $this->uri->setRoutedSegments($segments);  // Assign the segments to the URI class
             $this->logger->debug('No URI present. Default controller set.');
             return;
         }
@@ -268,7 +266,7 @@ class Router
     protected function checkErrors()
     {        
         if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
-            $this->c['response']->status(404)->showError(static::DEFAULT_PAGE_ERROR, 404);
+            $this->c['response']->withStatus(404)->showError(static::DEFAULT_PAGE_ERROR, '404');
         }
     }
 
@@ -279,10 +277,9 @@ class Router
      */
     protected function dispatch()
     {
-        $this->uri->removeUrlSuffix();   // Do we need to remove the URL suffix?
-        $this->uri->explodeSegments();   // Compile the segments into an array 
+        $this->uri->parseSegments();   // Compile the segments into an array 
         if (empty($this->routes)) {
-            $this->setRequest($this->uri->segments);
+            $this->setRequest($this->uri->getSegments());
             return;
         }
         $this->parseRoutes();            // Parse any custom routing that may exist
@@ -313,7 +310,7 @@ class Router
             $segments[2] = 'index';         // This lets the "routed" segment array identify that the default index method is being used.
             $this->setMethod('index');
         }
-        $this->uri->rsegments = $segments;  // Update our "routed" segment array to contain the segments.
+        $this->uri->setRoutedSegments($segments);  // Update our "routed" segment array to contain the segments.
     }
 
     /**
@@ -390,7 +387,7 @@ class Router
                 }
             }
         }
-        $this->setRequest($this->uri->segments);  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
+        $this->setRequest($this->uri->getSegments());  // If we got this far it means we didn't encounter a matching route so we'll set the site default route
     }
 
     /**

@@ -6,11 +6,12 @@ use Obullo\Captcha\CaptchaResult;
 use Obullo\Captcha\AbstractProvider;
 use Obullo\Captcha\ProviderInterface;
 
-use Obullo\Uri\Uri;
 use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\Request\RequestInterface;
 use Obullo\Translation\TranslatorInterface;
+
+use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Captcha ReCaptcha Adapter
@@ -86,15 +87,15 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      * Constructor
      *
      * @param object $c          \Obullo\Container\ContainerInterface
-     * @param object $uri        \Obullo\Uri\Uri
-     * @param object $request    \Obullo\Request\RequestInterface
+     * @param object $uri        \Psr\Http\Message\UriInterface
+     * @param object $request    \Psr\Http\Message\RequestInterface
      * @param object $translator \Obullo\Translation\TranslatorInterface
      * @param object $logger     \Obullo\Log\LoggerInterface
      * @param array  $params     service parameters
      */
     public function __construct(
         ContainerInterface $c,
-        Uri $uri,
+        UriInterface $uri,
         RequestInterface $request,
         TranslatorInterface $translator,
         LoggerInterface $logger,

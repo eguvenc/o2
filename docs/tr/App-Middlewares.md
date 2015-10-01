@@ -70,9 +70,9 @@ class Hello extends Middleware
 {
     public function call()
     {
-        $this->c['response']->append('<pre>Hello <b>before</b> middleware of index</pre>');
+        $this->c['response']->write('<pre>Hello <b>before</b> middleware of index</pre>');
         $this->next->call();
-        $this->c['response']->append('<pre>Hello <b>after</b> middleware of index</pre>');
+        $this->c['response']->write('<pre>Hello <b>after</b> middleware of index</pre>');
     }
 }
 

@@ -3,10 +3,7 @@
 namespace Obullo\Application;
 
 use Controller;
-use Obullo\Config\Config;
-use Obullo\Config\Variable;
 use Obullo\Debugger\WebSocket;
-use Obullo\Container\Container;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,17 +18,39 @@ if (error_get_last() != null) {
  * 
  * @var object
  */
-$c = new Container(scandir(APP .'classes'. DS . 'Service'));
+$loader = new \Obullo\Container\Loader\PhpServiceLoader;
+$loader->registerPath('app/classes/');
+$loader->registerFolder('Service');
+
+$c = new \Obullo\Container\Container($loader);
 
 $c['var'] = function () use ($c) {
-    return new Variable($c);
+    return new \Obullo\Config\Variable($c);
 };
 $c['config'] = function () use ($c) {
-    return new Config($c);
+    return new \Obullo\Config\Config($c);
 };
 $c['app'] = function () {
     return new Http;
 };
+$c['request'] = function () use ($c) {
+    return \Obullo\Http\ServerRequestFactory::fromGlobals(
+        null,
+        null,
+        null,
+        null,
+        null,
+        $c['config']->base()
+    );
+};
+$c['uri'] = function () use ($c) {
+    return $c['request']->getUri();
+};
+$c['response'] = function () use ($c) {
+    $response = new \Obullo\Http\Response;
+    return $response->setContainer($c);
+};
+
 /**
  * Run Http Application
  * 
@@ -40,7 +59,7 @@ $c['app'] = function () {
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/container
+ * @link      http://obullo.com/docs
  */
 class Http extends Application
 {
@@ -120,7 +139,7 @@ class Http extends Application
     {
         $method = $this->c['router']->fetchMethod();
         if (! method_exists($this->class, $method)
-            || $method == '__extend'
+            || substr($method, 0, 1) == '_'
         ) {
             $this->c['response']->show404();
         }
@@ -154,8 +173,9 @@ class Http extends Application
                                        // does not work
         $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
         
-        if (method_exists($this->class, '__extend')) {    // View traits must be run at the top level otherwise layout view file
-            $this->class->__extend();                     // could not load view variables.
+        if (method_exists($this->class, '__invoke')) {    // View traits must be run at the top level
+            $invoke = $this->class;
+            $invoke();
         }
         $middleware->call();
     }
@@ -241,8 +261,8 @@ class Http extends Application
     public function call()
     {
         ob_start();
-        call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), array_slice($this->class->uri->routedSegments(), 3));
-        $this->c['response']->flush();
+        call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), array_slice($this->class->uri->getRoutedSegments(), 3));
+        $this->c['output']->flush($this->c['response']);
         echo $this->finalOutput = ob_get_clean();
     }
 

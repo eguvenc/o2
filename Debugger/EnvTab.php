@@ -3,7 +3,8 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
-use Obullo\Http\Request\RequestInterface;
+
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Debugger Environment Tab Builder
@@ -73,7 +74,7 @@ class EnvTab
         $ENVIRONMENTS['HTTP_HEADERS']  = headers_list();
         $ENVIRONMENTS['HTTP_RESPONSE'] = [$this->output];
 
-        $method = $this->request->method();
+        $method = $this->request->getMethod();
 
         $output = '';
         foreach ($ENVIRONMENTS as $key => $value) {

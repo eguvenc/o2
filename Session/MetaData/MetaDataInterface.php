@@ -4,7 +4,8 @@ namespace Obullo\Session\MetaData;
 
 use Obullo\Log\LoggerInterface;
 use Obullo\Session\SessionInterface;
-use Obullo\Http\Request\RequestInterface;
+
+use Psr\Http\Message\RequestInterface;
 
 /**
  * MetaData Storage Interface

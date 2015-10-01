@@ -488,7 +488,7 @@ php /var/www/framework/task help
 
 Girilen isme göre konsol komutundan gönderilen argümanın değerine geri döner.
 
-##### $this->uri->argumentArray();
+##### $this->uri->getArguments();
 
 Çözümlenen argüman listesine "--key=value" olarak bir dizi içerisinde geri döner.
 
@@ -496,7 +496,7 @@ Girilen isme göre konsol komutundan gönderilen argümanın değerine geri dön
 
 Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman değerine geri döner.
 
-##### $this->uri->segmentArray();
+##### $this->uri->getSegments();
 
 Çözümlenen argümanların listesine sadece "value" olarak bir dizi içerisinde geri döner.
 

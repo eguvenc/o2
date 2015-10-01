@@ -6,18 +6,17 @@ use Closure;
 use Controller;
 use Obullo\Layer\Layer;
 use Obullo\Log\LoggerInterface;
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\Response\ResponseInterface;
+
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * View Class
  * 
- * @category  View
- * @package   View
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/view
  */
 class View
 {
@@ -36,11 +35,11 @@ class View
     protected $logger;
 
     /**
-     * Response
+     * Output
      * 
      * @var object
      */
-    protected $response;
+    protected $output;
 
     /**
      * Protected variables
@@ -57,18 +56,19 @@ class View
     /**
      * Constructor
      * 
-     * @param object $c        \Obullo\Container\ContainerInterface
-     * @param object $response \Obullo\Http\ResponseInterface
-     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $output \Obullo\Http\Output
+     * @param object $config \Obullo\Config\ConfigInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, ResponseInterface $response, LoggerInterface $logger)
+    public function __construct(ContainerInterface $c, $output, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
         $this->logger = $logger;
-        $this->response = $response;
+        $this->output = $output;
         $this->_staticVars = array(
-            '@BASEURL' => rtrim($c['config']['url']['baseurl'], '/'),
-            '@WEBHOST' => rtrim($c['config']['url']['webhost'], '/'),
+            '@BASEURL' => rtrim($config['url']['baseurl'], '/'),
+            '@WEBHOST' => rtrim($config['url']['webhost'], '/'),
         );
         $this->logger->debug('View Class Initialized');
     }
@@ -104,7 +104,7 @@ class View
         if ($obulloViewData === false || $obulloViewInclude === false) {
             return $output;
         }
-        $this->response->append($output);
+        $this->output->write($output);
         return;
     }
 
@@ -223,7 +223,7 @@ class View
         if (! class_exists('Controller', false) || Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
-            $router = &Controller::$instance->router;  // Use nested controller router ( see the Layers )
+            $router = &Controller::$instance->router;  // Use nested controller router ( see the Layer package. )
         }
         /**
          * Fetch view ( also it can be nested )

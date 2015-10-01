@@ -31,7 +31,7 @@ trait RewriteLocaleTrait
     {
         $this->excludedMethods = $methods;
 
-        $method = strtolower($this->request->method());
+        $method = strtolower($this->request->getMethod());
         if (in_array($method, $this->excludedMethods)) {  // Except methods
             $this->stop();
         }

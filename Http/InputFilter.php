@@ -3,19 +3,24 @@
 namespace Obullo\Http;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerAwareInterface;
 
 /**
  * Input Filter
  * 
- * @category  Http
- * @package   Client
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/http
  */
-class InputFilter
+class InputFilter implements ContainerAwareInterface
 {
+    /**
+     * Container
+     * 
+     * @var object
+     */
+    protected $c;
+
     /**
      * Current input value
      * 
@@ -34,8 +39,10 @@ class InputFilter
      * Container
      * 
      * @param Contaner $c object
+     * 
+     * @return void
      */
-    public function __construct(ContainerInterface $c)
+    public function setContainer(ContainerInterface $c = null)
     {
         $this->c = $c;
     }

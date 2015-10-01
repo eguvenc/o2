@@ -9,7 +9,7 @@ use Controller;
 use RuntimeException;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\SQLLoggerInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
     
 /**
  * Adapter Class

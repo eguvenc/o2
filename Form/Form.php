@@ -63,7 +63,7 @@ class Form
     public function __construct(ContainerInterface $c, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->notification = $config->load('notification');
+        $this->notification = $config->load('notification')['form'];
         $this->logger = $logger;
         $this->messages['success'] = static::ERROR;
         $this->messages['code'] = 0;

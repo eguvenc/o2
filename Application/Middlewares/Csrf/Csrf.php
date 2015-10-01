@@ -26,7 +26,7 @@ class Csrf extends Middleware
 
         } elseif (! $verify) {     // Build your http errors
 
-            $this->response->status(401)->showError(
+            $this->response->withStatus(401)->showError(
                 'The action you have requested is not allowed.', 
                 'Access Denied'
             );

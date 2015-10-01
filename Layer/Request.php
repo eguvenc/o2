@@ -7,14 +7,11 @@ use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Request Class
+ * Layer Request
  * 
- * @category  Layers
- * @package   Request
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/layers
  */
 class Request
 {
@@ -109,7 +106,7 @@ class Request
         $response = $layer->execute($expiration); // Execute the process
         $layer->restore();  // Restore controller objects
 
-        if (strpos(trim($response), '@Layer404@') === 0) {  // Error template support
+        if (strpos(trim($response), '{Layer404}') === 0) {  // Error template support
             return Error::getError($response);
         }
         return (string)$response;

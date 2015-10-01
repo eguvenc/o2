@@ -140,7 +140,7 @@ class Uri implements UriInterface
      * 
      * @return array all segments
      */
-    public function segmentArray()
+    public function getSegments()
     {
         return $this->segments;
     }
@@ -166,7 +166,7 @@ class Uri implements UriInterface
      * 
      * @return array all arguments
      */
-    public function argumentArray() 
+    public function getArguments() 
     {
         return $this->arguments;
     }

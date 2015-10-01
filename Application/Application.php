@@ -14,22 +14,21 @@ use Obullo\Error\Debug;
 /**
  * Run Application
  * 
- * @category  Container
- * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/container
  */
 class Application
 {
     const VERSION = 'alpha-2.4';
 
     protected $env = null;         // Current environment
-    protected $envArray = array(); // Environments config
     protected $config;             // Config object
-    protected $exceptions = array();
     protected $fatalError;
+    protected $envArray = array(); // Environments config
+    protected $exceptions = array();
+    protected $providers = array();   // Stack data for service provider wrapper class
+    protected $connections = array(); // Lazy loading for service provider register method
 
     /**
      * Dependency map
@@ -43,6 +42,7 @@ class Application
             'router',
             'logger',
             'session',
+            'output',
             'request',
             'response',
             'translator',
@@ -59,7 +59,7 @@ class Application
         if ($this->env != null) {
             return;
         }
-        $this->envArray = include ROOT .'app'. DS .'environments.php';
+        $this->envArray = include ROOT .'app'. DIRECTORY_SEPARATOR .'environments.php';
         foreach ($this->environments() as $current) {
             if (in_array($hostname, $this->envArray[$current])) {
                 $this->env = $current;
@@ -259,7 +259,7 @@ class Application
      */
     public function envPath()
     {
-        return CONFIG . $this->env() . DS;
+        return CONFIG . $this->env() . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -301,45 +301,40 @@ class Application
             if ($d == 'c') {
                 $params[] = $this->c;
             } else {
-                if (in_array($d, static::$dependencies)) {
+                $isComponent = in_array($d, static::$dependencies);
+                if ($isComponent) {
                     $params[] = $this->c[$d];
                 } else {
-                    throw new RuntimeException(
-                        sprintf(
-                            'Dependency is missing for "%s" package. <pre>%s $%s</pre>',
-                            $component,
-                            $parameter->getClass()->name,
-                            $d
-                        )
-                    );
+
+                    if ($isComponent) {
+                        throw new RuntimeException(
+                            sprintf(
+                                'Dependency is missing for "%s" package. <pre>%s $%s</pre>',
+                                $component,
+                                $parameter->getClass()->name,
+                                $d
+                            )
+                        );
+                    }
                 }
             }
         }
         return $params;
     }
-    
-    /**
-     * Register provider
-     * 
-     * @param string $provider name
-     * 
-     * @return Obullo\Container\Contaiiner
-     */
-    public function register($provider)
-    {
-        return $this->c->register($provider);
-    }
 
     /**
-     * Check class is registered as service
-     * 
-     * @param string $cid class key
-     * 
-     * @return boolean
+     * Registers a service provider.
+     *
+     * @param array $providers provider name and namespace array
+     *
+     * @return static
      */
-    public function hasService($cid)
+    public function register($providers)
     {
-        return $this->c->hasService($cid);
+        foreach ((array)$providers as $name => $namespace) {
+            $this->providers[$name] = $namespace;
+        }
+        return $this;
     }
 
     /**
@@ -351,7 +346,7 @@ class Application
      */
     public function hasProvider($name)
     {
-        return $this->c->hasProvider($name);
+        return isset($this->providers[$name]);
     }
 
     /**
@@ -363,7 +358,20 @@ class Application
      */
     public function provider($name)
     {
-        return $this->c->provider($name);
+        $name = strtolower($name);
+        if (! isset($this->providers[$name])) {
+            throw new RuntimeException(
+                sprintf(
+                    "%s provider is not registered, please register it in providers.php",
+                    ucfirst($name)
+                )
+            );
+        }
+        $Class = $this->providers[$name];
+        if (! isset($this->connections[$name])) {
+            $this->connections[$name] = new $Class($this->c);
+        }
+        return $this->connections[$name];
     }
 
     /**

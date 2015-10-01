@@ -3,50 +3,40 @@
 namespace Obullo\Container;
 
 use Closure;
+use ArrayAccess;
 use RuntimeException;
 use InvalidArgumentException;
 
 /**
- * Container class
- *
- * This file modeled after Pimple Software 
+ * Obullo DI
  * 
- * @category  Container
- * @package   Container
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/container
  */
-class Container implements ContainerInterface
+class Container implements ArrayAccess, ContainerInterface
 {
     protected $env;
-    protected $values = array();
-    protected $frozen = array();
     protected $raw = array();
+    protected $frozen = array();
+    protected $values = array();
     protected $keys = array();
-    protected $unset = array();                 // Stores classes we want to remove
-    protected $services = array();              // Defined services
-    protected $registeredServices = array();    // Lazy loading for service wrapper class
-    protected $registeredProviders = array();   // Stack data for service provider wrapper class
-    protected $registeredConnections = array(); // Lazy loading for service provider register method
+    protected $unset = array();     // Stores classes we want to remove
+    protected $loader = array();    // Service loader object
+    protected $services = array();  // Service array
 
     /**
      * Register service classes if required
      * 
-     * @param array $services service files
+     * @param array $loader service loader object
      * 
      * @return void
      */
-    public function __construct($services = array())
+    public function __construct($loader = null)
     {
-        $safeServices = array();
-        foreach ($services as $value) {
-            if ($value != "." && $value != ".." && $value != "Provider") {
-                $safeServices[] = $value;
-            } 
+        if (is_object($loader)) {
+            $this->loader = $loader->scan();
+            $this->services = $loader();
         }
-        $this->services = $safeServices;
     }
 
     /**
@@ -63,6 +53,16 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Returns to application environment
+     * 
+     * @return string
+     */
+    public function getEnv()
+    {
+        return $this->env;
+    }
+
+    /**
      * Checks if a parameter or an object is set.
      *
      * @param string $cid The unique identifier for the parameter or object
@@ -71,9 +71,6 @@ class Container implements ContainerInterface
      */
     public function has($cid) 
     {
-        if ($this->hasService($cid)) {  // Is it service ?
-            return true;
-        }
         return $this->offsetExists($cid);   // Is it component ?
     }
 
@@ -195,70 +192,27 @@ class Container implements ContainerInterface
     public function load($classString, $params = array())
     {
         $class = trim($classString);
-        $isService = false;
         $cid = strtolower($class);
-        $serviceName = ucfirst($class);
-        $isDirectory = in_array($serviceName, $this->services) ? true : false;
 
-        if ($isDirectory || in_array($serviceName.'.php', $this->services)) {  // Resolve services
-            $isService = true;
-            $serviceClass = $this->resolveService($serviceName, $isDirectory);
-
-            if (! isset($this->registeredServices[$serviceName])) {
-
-                $service = new $serviceClass($this);
-                $service->register($this);
-
-                if (! $this->has($cid)) {
-                    throw new RuntimeException(
-                        sprintf(
-                            "%s service configuration error service class name must be same with container key.",
-                            $serviceName
-                        )
-                    );
-                }
-                $this->registeredServices[$serviceName] = true;
+        $isService = false;
+        if (count($this->services) > 0) {
+            if ($this->loader->resolve($this, $class, $this->services)) {
+                $isService = true;
             }
         }
-        if (! $this->has($cid) && ! $isService) {   // Don't register service again.
+        if (! $this->has($cid) && ! $isService) {
             throw new RuntimeException(
                 sprintf(
-                    'The class "%s" is not available. Please register it as component or create a service.',
+                    'The class "%s" is not available. Please register it as a component or service.',
                     $cid
                 )
             );
         }
         return $this->offsetGet($cid, $params);
     }
-    
-    /**
-     * Returns to provider instance
-     * 
-     * @param string $name provider name
-     * 
-     * @return object \Obullo\Service\ProviderServiceProviderInterface
-     */
-    public function provider($name)
-    {
-        $name = strtolower($name);
-        if (! isset($this->registeredProviders[$name])) {
-            throw new RuntimeException(
-                sprintf(
-                    "%s provider is not registered, please register it in providers.php",
-                    ucfirst($name)
-                )
-            );
-        }
-        $Class = $this->registeredProviders[$name];
-        if (! isset($this->registeredConnections[$name])) {
-            $this->registeredConnections[$name] = new $Class($this);
-        }
-        return $this->registeredConnections[$name];
-    }
 
     /**
-     * Get instance of the class without 
-     * register it into Controller object
+     * Alias of array access $c['key'];
      * 
      * @param string $cid class id
      * 
@@ -296,66 +250,7 @@ class Container implements ContainerInterface
     {
         return array_keys($this->values);
     }
-
-    /**
-     * Resolve environment based services or service providers
-     * 
-     * @param string $serviceClass namespace
-     * @param string $isDirectory  is directory
-     * 
-     * @return string class namespace
-     */
-    protected function resolveService($serviceClass, $isDirectory = false)
-    {
-        if ($isDirectory) {
-            return '\\Service\\'.$serviceClass.'\\'. ucfirst($this->env);
-        }
-        return '\Service\\'.$serviceClass;
-    }
-
-    /**
-     * Registers a service provider.
-     *
-     * @param array $providers provider name and namespace array
-     *
-     * @return static
-     */
-    public function register($providers)
-    {
-        foreach ((array)$providers as $name => $namespace) {
-            $this->registeredProviders[$name] = $namespace;
-        }
-        return $this;
-    }
-
-    /**
-     * Check class is registered as service
-     * 
-     * @param string $cid class key
-     * 
-     * @return boolean
-     */
-    public function hasService($cid)
-    {
-        $service = ucfirst($cid);
-        if (in_array($service, $this->services) || in_array($service.'.php', $this->services)) {  // Is it service ?
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check provider is registered
-     * 
-     * @param string $name provider key like cache, redis, memcache
-     * 
-     * @return boolean
-     */
-    public function hasProvider($name)
-    {
-        return isset($this->registeredProviders[$name]);
-    }
-
+    
     /**
      * Magic method var_dump($c) wrapper ( for PHP 5.6.0 and newer versions )
      * 

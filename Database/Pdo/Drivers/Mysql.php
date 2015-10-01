@@ -4,7 +4,7 @@ namespace Obullo\Database\Pdo\Drivers;
 
 use PDO;
 use Obullo\Database\Pdo\Adapter;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * Pdo Mysql Database Driver

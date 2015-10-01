@@ -6,7 +6,7 @@ use PDO;
 use Controller;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\CommonAdapterTrait;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Connection;

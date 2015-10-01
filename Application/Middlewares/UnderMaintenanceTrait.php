@@ -83,7 +83,7 @@ trait UnderMaintenanceTrait
      */
     public function showMaintenance()
     {
-        $this->response->status(503)->append($this->view->template('errors/maintenance'));
+        $this->response->withStatus(503)->write($this->view->template('errors/maintenance'));
         $this->response->flush();
         die;
     }

@@ -3,14 +3,11 @@
 namespace Obullo\Layer;
 
 /**
- * Error Class
+ * Layer error handler
  * 
- * @category  Layer
- * @package   Error
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/layer
  */
 class Error
 {
@@ -42,7 +39,7 @@ class Error
      */
     public static function getError($response)
     {
-        $error = str_replace('@Layer404@', '', $response);
+        $error = str_replace('{Layer404}', '', $response);
         return (static::ERROR_HEADER . $error . static::ERROR_FOOTER);
     }
     

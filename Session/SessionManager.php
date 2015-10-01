@@ -64,16 +64,31 @@ class SessionManager
     }
 
     /**
-     * Returns to selected queue handler object
+     * Set logger
+     * 
+     * @param object $logger LoggerInterface
+     *
+     * @return void
+     */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * Returns to session object
      * 
      * @return object
      */
     public function getClass()
     {
         if ($this->session == null) {
+
+            $provider = $this->c['app']->provider($this->params['provider']['name']);
+
             return $this->session = new Session(
-                $this->c['app']->provider($this->params['provider']['name']),
-                $this->c['logger'],
+                $provider,
+                $this->logger,
                 $this->params
             );
         }

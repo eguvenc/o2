@@ -9,7 +9,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Obullo\Queue\QueueInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Queue\JobHandler\AmqpLibJob;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * AMQP Handler for Composer package "videlalvaro/php-amqplib"

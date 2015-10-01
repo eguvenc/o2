@@ -7,12 +7,13 @@ use Obullo\Captcha\CaptchaResult;
 use Obullo\Captcha\AbstractProvider;
 use Obullo\Captcha\ProviderInterface;
 
-use Obullo\Uri\Uri;
 use Obullo\Log\LoggerInterface;
 use Obullo\Session\SessionInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\Request\RequestInterface;
 use Obullo\Translation\TranslatorInterface;
+
+use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Captcha Image Provider
@@ -57,8 +58,8 @@ class Image extends AbstractProvider implements ProviderInterface
      * Constructor
      *
      * @param object $c          \Obullo\Container\ContainerInterface
-     * @param object $uri        \Obullo\Uri\Uri
-     * @param object $request    \Obullo\Request\RequestInterface
+     * @param object $uri        \Psr\Http\Message\UriInterface
+     * @param object $request    \Psr\Http\Message\RequestInterface
      * @param object $session    \Obullo\Session\SessionInterface
      * @param object $translator \Obullo\Translation\TranslatorInterface
      * @param object $logger     \Obullo\Log\LoggerInterface
@@ -66,7 +67,7 @@ class Image extends AbstractProvider implements ProviderInterface
      */
     public function __construct(
         ContainerInterface $c,
-        Uri $uri,
+        UriInterface $uri,
         RequestInterface $request,
         SessionInterface $session,
         TranslatorInterface $translator,

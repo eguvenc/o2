@@ -3,26 +3,42 @@
 namespace Obullo\Application;
 
 use Controller;
-use Obullo\Config\Config;
-use Obullo\Config\Variable;
-use Obullo\Container\Container;
 
 /**
  * Container
  * 
  * @var object
  */
-$c = new Container(scandir(APP .'classes'. DS . 'Service'));
+$loader = new \Obullo\Container\Loader\PhpServiceLoader;
+$loader->registerPath('app/classes/');
+$loader->registerFolder('Service');
+
+$c = new \Obullo\Container\Container($loader);
 
 $c['var'] = function () use ($c) {
-    return new Variable($c);
+    return new \Obullo\Config\Variable($c);
 };
 $c['config'] = function () use ($c) {
-    return new Config($c);
+    return new \Obullo\Config\Config($c);
 };
 $c['app'] = function () {
     return new Cli;
 };
+$c['request'] = function () use ($c) {
+    return \Obullo\Http\ServerRequestFactory::fromGlobals(
+        null,
+        null,
+        null,
+        null,
+        null,
+        $c['config']->base()
+    );
+};
+$c['response'] = function () use ($c) {
+    $response = new \Obullo\Http\Response;
+    return $response->setContainer($c);
+};
+
 /**
  * Run Cli Application ( Warning : Http middlewares & Layers disabled in Cli mode.)
  * 
@@ -97,9 +113,7 @@ class Cli extends Application
      */
     protected function dispatchMethod()
     {
-        if (! method_exists($this->class, $this->router->fetchMethod())
-            || $this->router->fetchMethod() == '__extend'
-        ) {
+        if (! method_exists($this->class, $this->router->fetchMethod())) {
             $this->router->methodNotFound();
         }
     }
@@ -132,7 +146,7 @@ class Cli extends Application
     public function call()
     {
         $this->dispatchMethod();  // Display 404 error if method doest not exist
-        $arguments = array_slice($this->c['uri']->segmentArray(), 2);
+        $arguments = array_slice($this->c['uri']->getSegments(), 2);
 
         call_user_func_array(array($this->class, $this->router->fetchMethod()), $arguments);
 

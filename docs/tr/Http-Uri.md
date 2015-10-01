@@ -47,12 +47,12 @@ else
 }
 ```
 
-#### $this->uri->segmentArray()
+#### $this->uri->getSegments()
 
 Returns an array containing the URI segments. For example:
 
 ```php
-$segs = $this->uri->segmentArray();
+$segs = $this->uri->getSegments();
 
 foreach ($segs as $segment)
 {
@@ -61,7 +61,7 @@ foreach ($segs as $segment)
 }
 ```
 
-#### $this->uri->routedSegmentArray()
+#### $this->uri->getRoutedSegments()
 
 
 

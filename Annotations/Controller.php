@@ -4,7 +4,8 @@ namespace Obullo\Annotations;
 
 use ReflectionClass;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\Response\ResponseInterface;
+
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Annotations Reader for Controller
@@ -38,7 +39,7 @@ class Controller
      * Constructor
      *
      * @param object $c        \Obullo\Container\ContainerInterface
-     * @param object $response \Obullo\Http\Response\ResponseInterface
+     * @param object $response \Psr\Http\Message\ResponseInterface
      * @param object $class    controller object
      * @param string $method   controller method
      */

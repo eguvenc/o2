@@ -312,7 +312,6 @@ return array(
 
 );
 
-/* End of file redis.php */
 /* Location: .config/local/cache/redis.php */
 ```
 
@@ -387,14 +386,6 @@ Obullo için yazılan servis sağlayıcıları <kbd>Obullo\Service\Providers</kb
             <td>Uygulamanızdaki logger.php konfigürasyonunu kullanarak Logger servisini yapılandırmanıza yardımcı olur.</td>
         </tr>
         <tr>
-            <td><b>mailer</b></td>
-            <td>Uygulamanızdaki mailer/* konfigürasyonunu kullanarak mail gönderme isteklerini yönetmenize yardımcı olur.</td>
-        </tr>
-        <tr>
-            <td><b>memcache</b></td>
-            <td>Uygulamanızdaki cache/memcache.php konfigürasyonunu kullanarak memcache bağlantılarını yönetmenize yardımcı olur.</td>
-        </tr>
-        <tr>
             <td><b>memcached</b></td>
             <td>Uygulamanızdaki cache/memcached.php konfigürasyonunu kullanarak memcached bağlantılarını yönetmenize yardımcı olur.</td>
         </tr>
@@ -427,7 +418,7 @@ namespace Service\Providers;
 
 use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 use Obullo\Service\Provider\AbstractProvider;
 
 class Cache extends AbstractProvider implements ServiceProviderInterface

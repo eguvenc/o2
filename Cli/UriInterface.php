@@ -43,7 +43,7 @@ interface UriInterface
      * 
      * @return array all segments
      */
-    public function segmentArray();
+    public function getSegments();
 
     /**
      * Get one argument
@@ -60,7 +60,7 @@ interface UriInterface
      * 
      * @return array all arguments
      */
-    public function argumentArray();
+    public function getArguments();
 
     /**
      * Get executed original command with parameters

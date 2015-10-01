@@ -5,7 +5,8 @@ namespace Obullo\Security;
 use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Session\SessionInterface;
-use Obullo\Http\Request\RequestInterface;
+
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Csrf Class
@@ -129,7 +130,7 @@ class Csrf
      */
     protected function setCsrfToken()
     {
-        if ($this->request->method() !== 'POST') { // If it's not a POST request we will set the CSRF token
+        if ($this->request->getMethod() !== 'POST') { // If it's not a POST request we will set the CSRF token
             $this->setSession();     // Set token to session if we have empty data
             return true;
         }

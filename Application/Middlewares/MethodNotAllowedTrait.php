@@ -20,7 +20,7 @@ trait MethodNotAllowedTrait
 
         if (! in_array($currentMethod, $params)) {  // Check method is allowed
 
-            $this->response->status(405)->showError(
+            $this->response->withStatus(405)->showError(
                 sprintf(
                     "Http Error 405 %s method not allowed.", 
                     ucfirst($currentMethod)

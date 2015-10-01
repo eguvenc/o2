@@ -60,6 +60,7 @@ abstract class AbstractHandler
         if ($data['request'] == 'worker') {
             return $this->config['logger']['app']['worker']['log'];  // Disable / enable worker logs
         }
+        // $_SERVER['REQUEST_URI']
         if ($this->app->uri->segment(0) == 'debugger') {  // Disable http debugger logs
             return false;
         }

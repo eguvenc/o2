@@ -8,7 +8,7 @@ use RuntimeException;
 use SimpleXMLElement;
 use Obullo\Config\ConfigInterface;
 use Obullo\Queue\Failed\StorageInterface;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * FailedJob Database Handler

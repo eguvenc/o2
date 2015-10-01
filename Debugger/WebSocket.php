@@ -6,7 +6,8 @@ use DOMDocument;
 use RuntimeException;
 use Obullo\Log\Handler\Debugger;
 use Obullo\Config\ConfigInterface;
-use Obullo\Http\Request\RequestInterface;
+
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Debugger Websocket 
@@ -171,7 +172,7 @@ class WebSocket
                 setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
             }
             $this->handshake('Ajax');
-        } elseif ($this->request->isCli()) { 
+        } elseif ($this->app->isCli()) { 
             $this->handshake('Cli');
         } else {
             $this->handshake('Http');

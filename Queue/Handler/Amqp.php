@@ -12,7 +12,7 @@ use RuntimeException;
 use Obullo\Queue\QueueInterface;
 use Obullo\Config\ConfigInterface;
 use Obullo\Queue\JobHandler\AmqpJob;
-use Obullo\Service\ServiceProviderInterface;
+use Obullo\Container\ServiceProviderInterface;
 
 /**
  * AMQP Handler
