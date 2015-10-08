@@ -265,24 +265,7 @@ class Response implements ResponseInterface, ContainerAwareInterface
      */
     public function json(array $data, $headers = array())
     {
-        $this->c['output']->disable(); // Disable output, we need to send json headers.
-
-        $jsonHeaders = [
-                'Cache-Control' => 'no-cache, must-revalidate',
-                'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
-                'Content-type' => 'application/json;charset=UTF-8'
-        ];
-        if (! empty($headers)) {
-            $jsonHeaders = $headers;
-        }
-        foreach ($jsonHeaders as $key => $value) {
-            $response = $this->withAddedHeader($key, $value);
-        }
-        list($statusCode, $headers) = $this->c['output']->finalize($response);
-
-        $this->c['output']->sendHeaders($response, $statusCode, $headers);
-
-        return json_encode($data);
+        return $this->c['output']->setResponse($this)->json($data, $headers);
     }
 
     /**

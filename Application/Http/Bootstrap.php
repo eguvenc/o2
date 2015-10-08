@@ -62,33 +62,16 @@ $c['app'] = function () use ($c, $env) {
 
 require APP .'components.php';
 
-/**
- * Http request
- */
-$c['request'] = function () use ($c) {
-    return ServerRequestFactory::fromGlobals(
-        null,
-        null,
-        null,
-        null,
-        null,
-        $c['config']->base()
-    );
-};
-
-/**
- * Http uri
- */
-$c['uri'] = function () use ($c) {
-    $uri = $c['request']->getUri();
-    $c['logger']->debug("Uri Class Initialized", ['uri' => $uri->getUriString()]);
-    return $uri;
-};
-
-/**
- * Http reponse
- */
-$c['response'] = function () use ($c) {
-    $response = new Response;
-    return $response->setContainer($c);
-};
+// /**
+//  * Http request
+//  */
+// $c['request'] = function () use ($c) {
+//     return ServerRequestFactory::fromGlobals(
+//         null,
+//         null,
+//         null,
+//         null,
+//         null,
+//         $c['config']->base()
+//     );
+// };

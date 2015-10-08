@@ -65,7 +65,7 @@ class Http extends Application
         if (! class_exists($this->className, false)) {
             $this->c['router']->clear();
             if ($error404 = $this->c['router']->get404Class()) {
-                $this->_includeClass();
+                $this->includeClass();
                 echo $this->className = $error404;
             } else {
                 $this->c['response']->show404();
@@ -78,7 +78,7 @@ class Http extends Application
      * 
      * @return void
      */
-    private function _includeClass()
+    protected function includeClass()
     {
         include MODULES .$this->c['router']->fetchModule('/').$this->c['router']->fetchDirectory().'/'.$this->c['router']->fetchClass().'.php';
     }
@@ -111,10 +111,14 @@ class Http extends Application
         $this->init();   
 
         if ($this->c['config']['http']['debugger']['enabled']) {
-            $this->websocket = new WebSocket($this->c['app'], $this->c['request'], $this->c['config']);
+            $this->websocket = new WebSocket(
+                $this->c['app'],
+                $this->c['request'],
+                $this->c['config']
+            );
             $this->websocket->connect();
         }
-        $this->_includeClass();
+        $this->includeClass();
         $this->className = '\\'.$this->c['router']->fetchNamespace().'\\'.$this->c['router']->fetchClass();
         $this->dispatchClass();
 
@@ -214,9 +218,15 @@ class Http extends Application
     public function call()
     {
         ob_start();
-        call_user_func_array(array($this->class, $this->c['router']->fetchMethod()), array_slice($this->class->uri->getRoutedSegments(), 3));
-        $this->c['output']->flush($this->c['response']);
-        echo $this->finalOutput = ob_get_clean();
+        call_user_func_array(
+            array(
+                $this->class,
+                $this->c['router']->fetchMethod()),
+            array_slice($this->class->uri->getRoutedSegments(), 3)
+        );
+        $this->finalOutput = ob_get_clean();
+        
+        $this->c['response']->getBody()->write($this->finalOutput);
     }
 
     /**
@@ -230,7 +240,9 @@ class Http extends Application
      */
     public function close()
     {
-        if ($this->c->active('cookie') && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0) {
+        if ($this->c->active('cookie') 
+            && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0
+        ) {
             foreach ($cookies as $cookie) {
                 $this->c['cookie']->write($cookie);
             }
@@ -246,8 +258,13 @@ class Http extends Application
      */
     public function closeDebugger()
     {
-        if ($this->c['config']['http']['debugger']['enabled'] && $this->c['uri']->segment(0) != 'debugger') {
-            $this->websocket->emit($this->finalOutput, $this->c['logger']->getPayload());
+        if ($this->c['config']['http']['debugger']['enabled'] 
+            && $this->c['uri']->segment(0) != 'debugger'
+        ) {
+            $this->websocket->emit(
+                $this->finalOutput,
+                $this->c['logger']->getPayload()
+            );
         }
     }
 }

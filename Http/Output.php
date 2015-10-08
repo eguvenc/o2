@@ -14,49 +14,30 @@ use Psr\Http\Message\ResponseInterface;
 class Output
 {
     /**
-     * Final output string
+     * Http Response
      * 
-     * @var string
+     * @var object
      */
-    protected $output = '';
+    protected $response;
 
     /**
-     * Enable / Disable flush ( send output to browser )
+     * Enable / disable sending output
      * 
      * @var boolean
      */
-    protected $enabled = true;
+    protected $enabled = true;    
 
     /**
-     * Output length
+     * Set response object
      * 
-     * @var int
+     * @param ResponseInterface $response \Obullo\Http\Response
+     *
+     * @return object
      */
-    protected $length;
-
-    /**
-    * Sets the output string
-    *
-    * @param string $output output
-    * 
-    * @return object response
-    */    
-    public function setOutput($output)
-    {        
-        $this->output = $output;
-        $this->length = strlen($this->output);
-        return $this;
-    }
-
-    /**
-    * Returns the current output string
-    *
-    * @return string
-    */    
-    public function getOutput()
+    public function setResponse(ResponseInterface $response)
     {
-        $this->length = strlen($this->output);
-        return $this->output;
+        $this->response = $response;
+        return $this;
     }
 
     /**
@@ -68,12 +49,8 @@ class Output
      */
     public function write($output = '')
     {
-        if ($this->output == '') {
-            $this->output = $output;
-        } else {
-            $this->output.= $output;
-        }
-        return $this->output;
+        $this->response->getBody()->write($output);
+        return $this->response->getBody();
     }
 
     /**
@@ -81,22 +58,23 @@ class Output
      *
      * This prepares this response and returns an array
      * of (status, headers, body).
-     *
-     * @param object $response response class
      * 
-     * @return array[int status, array headers, string body]
+     * @return object Response
      */
-    public function finalize(ResponseInterface $response)
-    {
-        if (in_array($response->getStatusCode(), [204, 205, 304])) {
-            return $response->withoutHeader('Content-Type')->withoutHeader('Content-Length');
-        }
-        $size = $response->getBody()->getSize();
-        if ($size !== null) {
-            $response = $response->withAddedHeader('Content-Length', (string) $size);
-        }
-        return $response;
-    }
+    // public function finalize()
+    // {
+    //     if (in_array($this->response->getStatusCode(), [204, 205, 304])) {
+    //         return $this->response
+    //             ->withoutHeader('Content-Type')
+    //             ->withoutHeader('Content-Length');
+    //     }
+    //     $size = $this->response->getBody()->getSize();
+    //     if ($size !== null) {
+    //         $this->response
+    //             ->withAddedHeader('Content-Length', (string) $size);
+    //     }
+    //     return $this->response;
+    // }
 
     /**
      * Send response headers
@@ -106,51 +84,80 @@ class Output
      * 
      * @return object
      */
-    public function sendHeaders(ResponseInterface $response, $headers = null)
-    {
-        if (empty($headers)) {
-            $headers = $response->getHeaders();
-        }
-        if (headers_sent() === false) {   // Send headers
+    // public function sendHeaders(ResponseInterface $response, $headers = null)
+    // {
+    //     if (empty($headers)) {
+    //         $headers = $response->getHeaders();
+    //     }
+    //     if (headers_sent() === false) {   // Send headers
 
-            header(
-                sprintf(
-                    'HTTP/%s %s %s',
-                    $response->getProtocolVersion(),
-                    $response->getStatusCode(),
-                    $response->getReasonPhrase()
-                )
-            );
-            if (count($headers) > 0) {  // Are there any server headers to send ?
-                foreach ($headers as $name => $values) {
-                    foreach ($values as $value) {
-                        header(sprintf('%s: %s', $name, $value), false);
-                    }
-                }            
-            }
-        }
-        return $this;
-    }
+    //         header(
+    //             sprintf(
+    //                 'HTTP/%s %s %s',
+    //                 $response->getProtocolVersion(),
+    //                 $response->getStatusCode(),
+    //                 $response->getReasonPhrase()
+    //             )
+    //         );
+    //         if (count($headers) > 0) {  // Are there any server headers to send ?
+    //             foreach ($headers as $name => $values) {
+    //                 foreach ($values as $value) {
+    //                     header(sprintf('%s: %s', $name, $value), false);
+    //                 }
+    //             }            
+    //         }
+    //     }
+    //     return $this;
+    // }
 
     /**
      * Send headers and echo output
      * 
-     * @param object $response response class
-     * 
      * @return object
      */
-    public function flush(ResponseInterface $response)
-    {
-        if ($this->isAllowed()) {  // Send output
-            $response = $this->finalize($response);
-            $this->sendHeaders($response);
-            echo $this->getOutput();    // Send output
-        }
-        return $this;
-    }
+    // public function flush()
+    // {
+    //     if ($this->isAllowed()) {  // Send output
+
+    //         $this->response = $this->finalize();
+    //         $this->sendHeaders($this->response);
+
+    //         echo $this->response->getBody();
+    //     }
+    //     return $this;
+    // }
 
     /**
-     * Enables write output method
+     * Encode json data and set json headers.
+     * 
+     * @param array  $data    array data
+     * @param string $headers optional headers
+     * 
+     * @return string json encoded data
+     */
+    // public function json(array $data, $headers = array())
+    // {
+    //     $this->disable(); // Disable output, we need to send json headers.
+
+    //     $jsonHeaders = [
+    //             'Cache-Control' => 'no-cache, must-revalidate',
+    //             'Expires' => 'Mon, 26 Jul 1997 05:00:00 GMT',
+    //             'Content-type' => 'application/json;charset=UTF-8'
+    //     ];
+    //     if (! empty($headers)) {
+    //         $jsonHeaders = $headers;
+    //     }
+    //     foreach ($jsonHeaders as $key => $value) {
+    //         $this->response = $this->response->withAddedHeader($key, $value);
+    //     }
+    //     $this->response = $this->finalize();
+    //     $this->sendHeaders($this->response);
+
+    //     return json_encode($data);
+    // }
+
+    /**
+     * Enables flush method
      * 
      * @return object
      */
@@ -161,7 +168,7 @@ class Output
     }
 
     /**
-     * Disables write output method
+     * Disables flush method
      * 
      * @return object
      */
@@ -169,16 +176,6 @@ class Output
     {
         $this->enabled = false;
         return $this;
-    }
-
-    /**
-     * Get content length
-     * 
-     * @return int
-     */
-    public function getLength()
-    {
-        return $this->length;
     }
 
     /**

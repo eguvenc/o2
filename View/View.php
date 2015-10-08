@@ -35,11 +35,11 @@ class View
     protected $logger;
 
     /**
-     * Output
+     * Response
      * 
      * @var object
      */
-    protected $output;
+    protected $response;
 
     /**
      * Protected variables
@@ -56,16 +56,17 @@ class View
     /**
      * Constructor
      * 
-     * @param object $c      \Obullo\Container\ContainerInterface
-     * @param object $output \Obullo\Http\Output
-     * @param object $config \Obullo\Config\ConfigInterface
-     * @param object $logger \Obullo\Log\LoggerInterface
+     * @param object $c        \Obullo\Container\ContainerInterface
+     * @param object $response \Pst\Http\Message\ResponseInterface
+     * @param object $config   \Obullo\Config\ConfigInterface
+     * @param object $logger   \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, $output, ConfigInterface $config, LoggerInterface $logger)
+    public function __construct(ContainerInterface $c, ResponseInterface $response, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
         $this->logger = $logger;
-        $this->output = $output;
+        $this->response = $response;
+
         $this->_staticVars = array(
             '@BASEURL' => rtrim($config['url']['baseurl'], '/'),
             '@WEBHOST' => rtrim($config['url']['webhost'], '/'),
@@ -104,7 +105,7 @@ class View
         if ($obulloViewData === false || $obulloViewInclude === false) {
             return $output;
         }
-        $this->output->write($output);
+        $this->response->getBody()->write($output);
         return;
     }
 
