@@ -12,9 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
 /**
- * Http response Class.
- * 
- * Set Http Response Code, Write Outputs, Set & Finalize Headers
+ * Http response Class. Set Http Response Code, Write Outputs, Set & Finalize Headers
  * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo

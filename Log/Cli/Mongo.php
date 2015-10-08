@@ -5,14 +5,11 @@ namespace Obullo\Log\Cli;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Mongo Reader
+ * Mongo reader
  * 
- * @category  Log
- * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 class Mongo
 {
@@ -34,7 +31,7 @@ class Mongo
 
         // use default provider
 
-        $mongo = $c['app']->provider('mongo')->get(
+        $mongo = $c['mongo']->get(
             [
                 'connection' => 'default'
             ]

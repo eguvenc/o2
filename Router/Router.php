@@ -328,7 +328,7 @@ class Router
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments = $this->detectModule($segments);
         $directory = $this->fetchDirectory();
-        $module = $this->fetchModule(DS);
+        $module = $this->fetchModule('/');
         $class = $this->fetchClass();
         if (! empty($class) && ! empty($module)) {   // Module index file support e.g modules/demo/tutorials/tutorials.php
             $directory = strtolower($class);
@@ -337,7 +337,7 @@ class Router
         if (! isset($segments[1]) || isset($segments[1]) && $segments[1] == $this->fetchMethod()) { //  Just check index file if second segment is not a class.
             $checkIndexFile = true;
         }
-        if ($checkIndexFile && is_file(MODULES.$module.$directory. DS .self::ucwordsUnderscore($directory).'.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
+        if ($checkIndexFile && is_file(MODULES.$module.$directory.'/'.self::ucwordsUnderscore($directory).'.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
             array_unshift($segments, $directory);
             return $segments;
         }
@@ -356,7 +356,7 @@ class Router
     {
         if (isset($segments[1])
             && strtolower($segments[1]) != 'view'  // http://example/debugger/view/index bug fix
-            && is_dir(MODULES .$segments[0]. DS . $segments[1]. DS)  // Detect Module and change directory !!
+            && is_dir(MODULES .$segments[0].'/'. $segments[1].'/')  // Detect Module and change directory !!
         ) {
             $this->setModule($segments[0]);
             $this->setDirectory($segments[1]);

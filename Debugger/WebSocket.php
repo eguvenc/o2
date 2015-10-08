@@ -259,7 +259,7 @@ class WebSocket
                 if ($linkRow->getAttribute('type') == 'text/css') {
                     $href = $linkRow->getAttribute('href');
                     if (strpos($href, 'http') === false) {
-                        $css.= file_get_contents(ROOT. str_replace('/', DS, ltrim($href, '/')));
+                        $css.= file_get_contents(ROOT. ltrim($href, '/'));
                     } else {
                         $css.= file_get_contents($href);
                     }

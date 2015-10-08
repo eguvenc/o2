@@ -189,7 +189,7 @@ class Translator implements TranslatorInterface
 
             $locale = $this->getLocale();
         }
-        $fileUrl = TRANSLATIONS . $locale . DS . $filename . '.php';
+        $fileUrl = TRANSLATIONS . $locale.'/'.$filename . '.php';
         $fileKey = substr(strstr($fileUrl, $locale), 0, -4);
 
         if (in_array($fileKey, $this->loaded, true)) {
@@ -200,11 +200,11 @@ class Translator implements TranslatorInterface
         $translateArray = include $fileUrl;
 
         if (! isset($translateArray)) {
-            $this->logger->error('Translation file does not contain valid format: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
+            $this->logger->error('Translation file does not contain valid format: ' . TRANSLATIONS . $locale .'/'. $filename . '.php');
             return;
         }
         $this->loaded[] = $fileKey;
-        $this->logger->debug('Translation file loaded: ' . TRANSLATIONS . $locale . DS . $filename . '.php');
+        $this->logger->debug('Translation file loaded: ' . TRANSLATIONS . $locale .'/'. $filename . '.php');
 
         $this->translateArray = array_merge($this->translateArray, $translateArray);
         $this->loadFallback($fileKey);  // Load fallback translation if fallback enabled
@@ -224,8 +224,8 @@ class Translator implements TranslatorInterface
     {
         if ($this->config['fallback']['enabled']) {
             $locale   = $this->getFallback();
-            $filename = ltrim(strstr($fileKey, DS), '/');
-            $fileUrl  = TRANSLATIONS . $locale . DS . $filename . '.php';
+            $filename = ltrim(strstr($fileKey, '/'), '/');
+            $fileUrl  = TRANSLATIONS . $locale .'/'. $filename . '.php';
             $fileKey  = substr(strstr($fileUrl, $locale), 0, -4);
 
             $fallbackArray = include $fileUrl;

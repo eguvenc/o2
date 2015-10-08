@@ -58,7 +58,7 @@ class ServiceProviderConnector implements ServiceProviderInterface
      *
      * @return void;
      */
-    public function setContainer(ContainerInterface $c)
+    public function setContainer(ContainerInterface $c = null)
     {
         if ($this->c == null) {
             $this->c = $c;
@@ -104,13 +104,12 @@ class ServiceProviderConnector implements ServiceProviderInterface
      * 
      * @return object
      */
-    protected function provider()
+    protected function connector()
     {
-        $c = $this->getContainer();
         $class = $this->getClass();
 
         if (! isset(self::$connectors[$class])) {
-            self::$connectors[$class] = new $class($c); 
+            self::$connectors[$class] = new $class($this->c); 
         }
         return self::$connectors[$class];
     }
@@ -124,7 +123,7 @@ class ServiceProviderConnector implements ServiceProviderInterface
      */
     public function get($params = array())
     {
-        return $this->provider()->get($params);
+        return $this->connector()->get($params);
     }
 
     /**
@@ -136,7 +135,7 @@ class ServiceProviderConnector implements ServiceProviderInterface
      */
     public function factory($params = array())
     {
-        return $this->provider()->get($params);
+        return $this->connector()->get($params);
     }
 
 }

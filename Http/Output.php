@@ -88,33 +88,44 @@ class Output
      */
     public function finalize(ResponseInterface $response)
     {
-        return array($response->getStatusCode(), $response->getHeaders(), $this->getOutput());
+        if (in_array($response->getStatusCode(), [204, 205, 304])) {
+            return $response->withoutHeader('Content-Type')->withoutHeader('Content-Length');
+        }
+        $size = $response->getBody()->getSize();
+        if ($size !== null) {
+            $response = $response->withAddedHeader('Content-Length', (string) $size);
+        }
+        return $response;
     }
 
     /**
      * Send response headers
      *
-     * @param object  $response   response class
-     * @param integer $statusCode http response code
-     * @param array   $headers    http headers
+     * @param object $response response class
+     * @param array  $headers  http headers
      * 
      * @return object
      */
-    public function sendHeaders(ResponseInterface $response, $statusCode, $headers = null)
+    public function sendHeaders(ResponseInterface $response, $headers = null)
     {
         if (empty($headers)) {
             $headers = $response->getHeaders();
         }
         if (headers_sent() === false) {   // Send headers
 
-            http_response_code($statusCode);
-
+            header(
+                sprintf(
+                    'HTTP/%s %s %s',
+                    $response->getProtocolVersion(),
+                    $response->getStatusCode(),
+                    $response->getReasonPhrase()
+                )
+            );
             if (count($headers) > 0) {  // Are there any server headers to send ?
-                foreach ($headers as $key => $value) {
-                    if (isset($value[1])) {
-                        $replace = $value[1];
+                foreach ($headers as $name => $values) {
+                    foreach ($values as $value) {
+                        header(sprintf('%s: %s', $name, $value), false);
                     }
-                    header("$key:".trim($value[0]), $replace = false);
                 }            
             }
         }
@@ -131,9 +142,9 @@ class Output
     public function flush(ResponseInterface $response)
     {
         if ($this->isAllowed()) {  // Send output
-            list($statusCode, $headers, $output) = $this->finalize($response);
-            $this->sendHeaders($response, $statusCode, $headers);
-            echo $output; // Send output
+            $response = $this->finalize($response);
+            $this->sendHeaders($response);
+            echo $this->getOutput();    // Send output
         }
         return $this;
     }

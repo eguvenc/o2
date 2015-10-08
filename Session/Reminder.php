@@ -31,14 +31,15 @@ class Reminder
     public $session;
 
     /**
-     * Constructor
-     *
-     * @param object $c container
+     * Constructor 
+     * 
+     * @param SessionInterface $session session
+     * @param ConfigInterface  $config  config
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(SessionInterface $session, ConfigInterface $config)
     {
-        $this->session = $c['session'];
-        $this->config = $c['config']['session'];
+        $this->session = $session;
+        $this->config = $config['session'];
     }
 
     /**

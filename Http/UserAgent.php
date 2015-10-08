@@ -6,16 +6,11 @@ use Obullo\Log\LoggerInterface;
 use Obullo\Config\ConfigInterface;
 
 /**
- * Identifies the platform, browser, robot, or mobile devise of the browsing agent
- *
- * This file modeled after Codeigniter User Agent class 
+ * Identifies the platform, browser, robot, or mobile devise of the browsing agent. ( Modeled after Codeigniter User Agent class )
  * 
- * @category  UserAgent
- * @package   Agent
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/agent
  */
 class UserAgent
 {

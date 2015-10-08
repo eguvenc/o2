@@ -214,8 +214,8 @@ class Layer
         $className = $this->c['router']->fetchClass();
         $method    = $this->c['router']->fetchMethod();
 
-        $this->layerUri = $this->c['router']->fetchModule(DS) .$directory.'/'.$className;
-        $controller = MODULES .$this->c['router']->fetchModule(DS) .$directory. DS .$className. '.php';
+        $this->layerUri = $this->c['router']->fetchModule('/') .$directory.'/'.$className;
+        $controller = MODULES .$this->c['router']->fetchModule('/') .$directory.'/'.$className. '.php';
         $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
 
                                                    // Check class is exists in the storage

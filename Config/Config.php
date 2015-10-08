@@ -47,17 +47,17 @@ class Config implements ConfigInterface
      *
      * Sets the $config data from the primary config.php file as a class variable
      * 
-     * @param object $c container
+     * @param object $c   container
+     * @param string $env environment
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, $env)
     {
         $this->c = $c;
-        $this->env = $c['app']->env();
-        
-        $this->path  = CONFIG .$this->env. DIRECTORY_SEPARATOR;
-        $this->local = CONFIG .'local'. DIRECTORY_SEPARATOR;
-        
-        $this->assignEnvironments();
+        $this->env = $env;
+    
+        $this->path  = CONFIG .$this->env.'/';
+        $this->local = CONFIG .'local/';
+
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
         
         if ($this->env != 'local') {
@@ -65,21 +65,6 @@ class Config implements ConfigInterface
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
         $this->array['maintenance'] = include $this->path .'maintenance.php';
-    }
-
-    /**
-     * Assign environment variables
-     * 
-     * @return void
-     */
-    protected function assignEnvironments()
-    {
-        $dotenv = '.env.'. $this->env .'.php';
-        $filename = (substr($dotenv, -4) == '.php') ? $dotenv : $dotenv . '.php';
-        if (! $envVariables = include ROOT .'.'.ltrim($filename, '.')) {
-            static::configurationError();
-        }
-        $_ENV = $envVariables;
     }
 
     /**
@@ -99,13 +84,9 @@ class Config implements ConfigInterface
         if ($filename == 'config') {  //  Config already loaded but someone may want to load it again.
             return $this->array;
         }
-        $fileUrl = str_replace('/', DIRECTORY_SEPARATOR, $filename);
-        $envFile = $this->path . $fileUrl.'.php';
-        $file = $this->local . $fileUrl.'.php';  // Default config path
+        $envFile = $this->path . $filename.'.php';
+        $file = $this->local . $filename.'.php';  // Default config path
 
-        if (file_exists(CONFIG .$fileUrl.'.php')) {  // If shared file exists 
-            $file = CONFIG .$fileUrl.'.php';
-        }
         $isEnvFile = false;
         if (file_exists($envFile)) {   // Do we able to locate environment file ?
             $isEnvFile = true;
@@ -114,7 +95,7 @@ class Config implements ConfigInterface
         $config = include $file;
 
         if ($this->env != 'local' && $isEnvFile) { // Merge config variables if env not local.
-            $localConfig = include $this->local . $fileUrl .'.php';
+            $localConfig = include $this->local . $filename .'.php';
             return $this->array[$filename] = array_replace_recursive($localConfig, $config);
         } else {
             $this->array[$filename] = $config;
@@ -142,14 +123,14 @@ class Config implements ConfigInterface
      */
     public function write($filename, array $data)
     {
-        $fullpath = CONFIG .$this->env. DIRECTORY_SEPARATOR;
+        $fullpath = CONFIG .$this->env. '/';
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
             $fullpath = CONFIG;
             $filename = substr($filename, 3);
         }
         $writer = new PhpArray;
-        $writer->toFile($fullpath . str_replace('/', DIRECTORY_SEPARATOR, $filename), $data);
+        $writer->toFile($fullpath . $filename, $data);
     }
 
     /**
@@ -202,22 +183,6 @@ class Config implements ConfigInterface
     public function offsetUnset($key)
     {
         unset($this->array[$key]);
-    }
-
-    /**
-     * Include file errors
-     * 
-     * @param string $errorStr message
-     * 
-     * @return void exit
-     */
-    protected static function configurationError($errorStr = null)
-    {
-        $heading = $message = '';
-        $error = error_get_last();
-        $heading = 'Configuration Error';
-        $message = 'Config file error '.(is_null($errorStr)) ? $error['message'] : $errorStr. ' at line: '.$error['line'];
-        die($message);
     }
 
 }

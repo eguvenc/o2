@@ -5,14 +5,11 @@ namespace Obullo\Log\Cli;
 use Obullo\Container\ContainerInterface;
 
 /**
- * File Reader
+ * File reader
  * 
- * @category  Log
- * @package   Console
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/Cli
  */
 class File
 {
@@ -34,10 +31,10 @@ class File
             echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['logger']['file']['path'][$dir] array.\033[0m\n");
             exit;
         }
-        $path = str_replace('/', DS, trim($c['config']['logger']['file']['path'][$dir], '/'));
+        $path = trim($c['config']['logger']['file']['path'][$dir], '/');
         $file = $path;
         if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
-            $file = str_replace('data', DS . trim(DATA, DS), $path);
+            $file = str_replace('data', '/'. trim(DATA, '/'), $path);
         }
         echo "\n\33[0;37mFollowing File Handler ".ucfirst($dir)." Logs ...\33[0m\n";
 

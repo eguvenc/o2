@@ -138,7 +138,7 @@ class Error
             http_response_code($status);
         }
         ob_start();
-        include TEMPLATES .'errors'. DS .$template.'.php';
+        include TEMPLATES .'errors/'.$template.'.php';
         $buffer = ob_get_clean();
         return $buffer;
     }

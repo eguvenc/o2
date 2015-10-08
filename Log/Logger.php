@@ -14,18 +14,14 @@ use Obullo\Container\ContainerInterface;
 /**
  * Logger Class
  * 
- * @category  Log
- * @package   Logger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 class Logger extends AbstractLogger implements LoggerInterface
 {
     protected $c;                             // Container
     protected $p = 100;                       // Default priority
-    protected $config;                        // Config object
     protected $params = array();              // Service parameters
     protected $channel = 'system';            // Default log channel
     protected $writer;                        // Default writer
@@ -39,6 +35,7 @@ class Logger extends AbstractLogger implements LoggerInterface
     protected $priorityQueue = array();       // Log priority queue objects
     protected $handlerRecords = array();      // Handler records
     protected $loadedHandlers = array();      // Loaded handlers
+    protected $requestString;
 
     /**
      * Registered error handlers
@@ -58,10 +55,9 @@ class Logger extends AbstractLogger implements LoggerInterface
     public function __construct(ContainerInterface $c, $params = array())
     {
         $this->c = $c;
-        $this->params = $params;
+        $this->params  = $params;
         $this->enabled = $c['config']['log']['enabled'];
-        $this->config  = $c['config']->load('logger');  // Load logger package configuration
-
+        
         $this->initialize();
         register_shutdown_function(array($this, 'shutdown'));
     }
@@ -73,7 +69,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      */
     public function initialize()
     {
-        $this->channel = $this->config['default']['channel'];
+        $this->channel = $this->params['default']['channel'];
         $this->detectRequest();
     }
 
@@ -243,7 +239,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $recordUnformatted['message'] = $message;
         $recordUnformatted['context'] = $context;
         $this->sendToWriterQueue($recordUnformatted, $priority);    // Send to Job queue
-        $this->channel($this->config['default']['channel']);        // reset channel to default
+        $this->channel($this->params['default']['channel']);        // reset channel to default
         return $this;
     }
 
@@ -347,7 +343,6 @@ class Logger extends AbstractLogger implements LoggerInterface
         $errorReporting = error_reporting();
         $records = array();
         $errorPriorities = $this->getErrorPriorities();
-
         do {
             $priority = $this->getPriority('error');
             if ($e instanceof ErrorException && isset($errorPriorities[$e->getSeverity()])) {
@@ -389,7 +384,7 @@ class Logger extends AbstractLogger implements LoggerInterface
             unset($recordUnformatted['priority']);
             $this->sendToHandlerQueue($name, $recordUnformatted, $priority);  // Send to priority queue
         }
-        $this->channel($this->config['default']['channel']);    // Reset channel to default
+        $this->channel($this->params['default']['channel']);    // Reset channel to default
         $this->loadedHandlers = array();  // Reset loaded handler.
         array_pop($this->track);         // Remove last track to reset handler filters
     }
@@ -427,16 +422,17 @@ class Logger extends AbstractLogger implements LoggerInterface
      */
     protected function detectRequest()
     {
-        $this->request = 'http';
-        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $this->request ='ajax';
+        $this->requestString = 'http';
+        if ($this->c['request']->isAjax()) {
+            $this->requestString ='ajax';
         }
         if (defined('STDIN')) {
-            $this->request = 'cli';
+            $this->requestString = 'cli';
         }
-        if (isset($_SERVER['argv'][1]) && $_SERVER['argv'][1] == 'worker') {  // Job Server request
-            $this->request = 'worker';
-            $this->enabled = $this->config['app']['worker']['log']; // Initialize to config if $handler->isAllowed() method ignored.
+        $server = $this->c['request']->getServerParams();
+        if (isset($server['argv'][1]) && $server['argv'][1] == 'worker') {  // Job Server request
+            $this->requestString = 'worker';
+            $this->enabled = $this->params['app']['worker']['log']; // Initialize to config if $handler->isAllowed() method ignored.
         }      
     }
 
@@ -453,7 +449,7 @@ class Logger extends AbstractLogger implements LoggerInterface
             return;
         }
         $this->payload['writers'][10]['handler'] = $name;
-        $this->payload['writers'][10]['request'] = $this->request;
+        $this->payload['writers'][10]['request'] = $this->requestString;
         $this->payload['writers'][10]['type']    = 'writer';
         $this->payload['writers'][10]['time']    = time();
         $this->payload['writers'][10]['filters'] = $this->getFilters($name);
@@ -477,7 +473,7 @@ class Logger extends AbstractLogger implements LoggerInterface
             }
             $priority = $val['priority'];
             $this->payload['writers'][$priority]['handler'] = $name;
-            $this->payload['writers'][$priority]['request'] = $this->request;
+            $this->payload['writers'][$priority]['request'] = $this->requestString;
             $this->payload['writers'][$priority]['type']    = 'handler';
             $this->payload['writers'][$priority]['time']    = time();
             $this->payload['writers'][$priority]['filters'] = $this->getFilters($name);
@@ -538,16 +534,5 @@ class Logger extends AbstractLogger implements LoggerInterface
         }
         $this->shutdown = true;
     }
-
-    /**
-     * Returns to service & config parameters
-     * 
-     * @return array
-     */
-    public function getParameters()
-    {
-        return array_merge($this->params, $this->config);
-    }
-
 
 }

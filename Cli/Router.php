@@ -182,9 +182,9 @@ class Router
             include_once TASKS .$Class.'.php';
             return $segments;
         }
-        if (! empty($segments[0]) && file_exists(OBULLO.'Cli'. DS .'Task'. DS .$Class.'.php')) {
+        if (! empty($segments[0]) && file_exists(OBULLO .'Cli/Task/'.$Class.'.php')) {
             $this->classNamespace = '\\Obullo\Cli\Task\\'.$Class;
-            include_once OBULLO.'Cli'. DS .'Task'. DS .$Class.'.php';
+            include_once OBULLO.'Cli/Task/'.$Class.'.php';
             return $segments;
         }
         return $this->classNotFound();

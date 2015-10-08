@@ -3,14 +3,10 @@
 namespace Obullo\Event;
 
 /**
- * EventInterface Class
+ * Event interface modeled after Laravel event package 
  * 
- * @category  Event
- * @package   EventInterface
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/event
  */
 interface EventInterface
 {

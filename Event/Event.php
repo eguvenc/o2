@@ -6,16 +6,10 @@ use RuntimeException;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Event Class
+ * Event class modeled after Laravel event package 
  * 
- * Modeled after Laravel event package 
- * 
- * @category  Event
- * @package   Event
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/event
  */
 class Event implements EventInterface
 {
@@ -100,7 +94,10 @@ class Event implements EventInterface
     {
         if (is_string($subscriber)) {
             $Class = '\\'.$subscriber;
-            $subscriber = new $Class($this->c);
+            $subscriber = new $Class;
+            if (method_exists($subscriber, 'setContainer')) {
+                $subscriber->setContainer($this->c);
+            }
         }
         $subscriber->subscribe($this);
     }
@@ -140,8 +137,8 @@ class Event implements EventInterface
             $response = call_user_func_array($listener, $payload);
 
             if (! is_null($response) && $halt) {   // If a response is returned from the listener and event halting is enabled
-                array_pop($this->firing);            // we will just return this response, and not call the rest of the event
-                return $response;                    // listeners. Otherwise we will add the response on the response list.
+                array_pop($this->firing);          // we will just return this response, and not call the rest of the event
+                return $response;                  // listeners. Otherwise we will add the response on the response list.
             }
             if ($response === false) {    // If a boolean false is returned from a listener, we will stop propagating
                 break;                    // the event to any further listeners down in the chain, else we keep on
@@ -212,7 +209,11 @@ class Event implements EventInterface
             $data = func_get_args();
 
             if (! isset($this->subscribers[$handler])) {  // Lazy loading
-                $this->subscribers[$handler] = new $handler($this->c);
+                $subscriber = new $handler;
+                if (method_exists($subscriber, 'setContainer')) {
+                    $subscriber->setContainer($this->c);
+                }
+                $this->subscribers[$handler] = $subscriber;
             }
             return call_user_func_array(array($this->subscribers[$handler], $method), $data);  // Container make
         };

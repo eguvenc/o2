@@ -229,7 +229,7 @@ class View
          * Fetch view ( also it can be nested )
          */
         $return = $this->fetch(
-            MODULES .$router->fetchModule(DS) . $router->fetchDirectory() . DS .'view'. DS,
+            MODULES .$router->fetchModule('/') . $router->fetchDirectory() .'/view/',
             $filename,
             $data,
             $include

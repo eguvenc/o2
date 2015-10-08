@@ -5,12 +5,9 @@ namespace Obullo\Log;
 /**
  * Disable Logger Class
  * 
- * @category  Log
- * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 class NullLogger extends AbstractLogger implements LoggerInterface
 {
@@ -136,6 +133,16 @@ class NullLogger extends AbstractLogger implements LoggerInterface
     public function getPayload()
     {
         return array();
+    }
+
+    /**
+     * End of the logs and beginning of the handlers.
+     *
+     * @return void
+     */
+    public function shutdown()
+    {
+        return;
     }
 
 }

@@ -46,7 +46,7 @@ class Module extends Controller
             echo Console::fail("Module name can't be empty.");
             return;
         }
-        $moduleFolder = OBULLO .'Application'. DS .'Modules'. DS .$module;
+        $moduleFolder = OBULLO .'Application/Modules/' .$module;
 
         if (is_dir(MODULES .$module)) {
             echo Console::fail("Module #$module already exist in .modules/ folder.");
@@ -60,18 +60,18 @@ class Module extends Controller
             echo Console::fail("We could not create directory in modules folder please check your write permissions.");
             return;
         }
-        if (is_dir($moduleFolder. DS .'controllers')) {
-            $this->recursiveCopy($moduleFolder. DS .'controllers', MODULES .$module);
+        if (is_dir($moduleFolder.'/controllers')) {
+            $this->recursiveCopy($moduleFolder. '/controllers', MODULES .$module);
         }
         if (is_dir($moduleFolder. DS .'config')) {
-            $this->recursiveCopy($moduleFolder. DS .'config', CONFIG .$module);
+            $this->recursiveCopy($moduleFolder. '/config', CONFIG .$module);
         }
         if (is_dir($moduleFolder. DS .'tasks')) {
-            $this->recursiveCopy($moduleFolder. DS .'tasks', TASKS, false);
+            $this->recursiveCopy($moduleFolder. '/tasks', TASKS, false);
         }
         if (is_dir($moduleFolder. DS .'service')) {
-            copy($moduleFolder. DS .'service'. DS .ucfirst($module).'.php', APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
-            chmod(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php', 0777);
+            copy($moduleFolder.'/service/'.ucfirst($module).'.php', APP .'classes/Service/' .ucfirst($module).'.php');
+            chmod(APP .'classes/Service/' .ucfirst($module).'.php', 0777);
         }
         echo Console::success("New module #$module added successfully.");
     }
@@ -91,7 +91,7 @@ class Module extends Controller
             echo Console::fail("Module name can't be empty.");
             return;
         }
-        $moduleFolder = OBULLO .'Application'. DS .'Modules'. DS .$module;
+        $moduleFolder = OBULLO .'Application/Modules/'. $module;
 
         if (! is_dir(MODULES .$module)) {
             echo Console::fail("Module #$module already removed from .modules/ folder.");
@@ -105,17 +105,17 @@ class Module extends Controller
             echo Console::fail("We could not remove directories in modules folder please check write permissions.");
             return;
         }
-        if (is_dir($moduleFolder. DS .'controllers') && is_dir(MODULES .$module)) {
+        if (is_dir($moduleFolder .'/controllers') && is_dir(MODULES .$module)) {
             $this->recursiveRemove(MODULES .$module);
         }
-        if (is_dir($moduleFolder. DS .'config') && is_dir(CONFIG .$module)) {
+        if (is_dir($moduleFolder. '/config') && is_dir(CONFIG .$module)) {
             $this->recursiveRemove(CONFIG .$module);
         }
-        if (is_dir($moduleFolder. DS .'tasks') && is_file(MODULES .'tasks'. DS .ucfirst($module).'.php')) {
-            unlink(MODULES .'tasks'. DS .ucfirst($module).'.php');
+        if (is_dir($moduleFolder. '/tasks') && is_file(MODULES .'tasks/' .ucfirst($module).'.php')) {
+            unlink(MODULES .'tasks/' .ucfirst($module).'.php');
         }
-        if (is_dir($moduleFolder. DS .'service') && is_file(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php')) {
-            unlink(APP .'classes'. DS .'Service'. DS .ucfirst($module).'.php');
+        if (is_dir($moduleFolder .'/service') && is_file(APP .'classes/Service/' .ucfirst($module).'.php')) {
+            unlink(APP .'classes/Service/'.ucfirst($module).'.php');
         }
         echo Console::success("Module #$module removed successfully.");
     }
@@ -137,11 +137,11 @@ class Module extends Controller
         }
         while (false !== ($file = readdir($dir)) ) { 
             if (( $file != '.' ) && ( $file != '..' )) { 
-                if (is_dir($src . DS . $file) ) {
-                    $this->recursiveCopy($src . DS . $file, $dst . DS . $file);
+                if (is_dir($src .'/'. $file) ) {
+                    $this->recursiveCopy($src .'/'. $file, $dst .'/'. $file);
                 } else {
-                    copy($src . DS . $file, $dst . DS . $file);
-                    chmod($dst . DS . $file, 0777);
+                    copy($src .'/'. $file, $dst .'/'. $file);
+                    chmod($dst .'/'. $file, 0777);
                 } 
             } 
         } 

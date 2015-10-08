@@ -3,18 +3,16 @@
 namespace Obullo\Log;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Container\ServiceInterface;
 
 /**
- * LogManager Class
+ * Log Service Manager
  * 
- * @category  Manager
- * @package   LogManager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/service
  */
-class LogManager
+class LogManager implements ServiceInterface
 {
     /**
      * Container class
@@ -24,49 +22,31 @@ class LogManager
     protected $c;
 
     /**
-     * Logger instance
+     * Constructor
      * 
-     * @var object
+     * @param ContainerInterface $c      container
+     * @param array              $params service parameters
      */
-    protected $logger;
-
-    /**
-     * Create classes
-     * 
-     * @param object $c container
-     * 
-     * @return object
-     */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
+        $this->c['logger.params'] = array_merge($params, $c['config']->load('logger'));
     }
 
     /**
-     * Set logger service parameteres
-     *
-     * @param array $params provider parameters
+     * Register
      * 
-     * @return void
+     * @return object logger
      */
-    public function setParameters($params = array())
+    public function register()
     {
-        if (! $this->c['config']['log']['enabled']) {
-            $this->logger = new NullLogger;  // Use null handler if config disabled.
-            return;
-        }
-        $this->logger = new Logger($this->c, $params);
-        return;
-    }
+        $this->c['logger'] = function () {
 
-    /**
-     * Returns to logger instance
-     * 
-     * @return object
-     */
-    public function getClass()
-    {
-        return $this->logger;
+            if (! $this->c['config']['log']['enabled']) {
+                return new NullLogger;
+            }
+            return new Logger($this->c, $this->c['logger.params']);
+        };
     }
 
 }

@@ -11,59 +11,17 @@ use Obullo\Debugger\WebSocket;
 |--------------------------------------------------------------------------
 */
 if (error_get_last() != null) {
-    include TEMPLATES .'errors'. DS .'startup.php';
+    include TEMPLATES .'errors/startup.php';
 }
 /**
- * Container
+ * Http Application
  * 
- * @var object
- */
-$loader = new \Obullo\Container\Loader\PhpServiceLoader;
-$loader->registerPath('app/classes/');
-$loader->registerFolder('Service');
-
-$c = new \Obullo\Container\Container($loader);
-
-$c['var'] = function () use ($c) {
-    return new \Obullo\Config\Variable($c);
-};
-$c['config'] = function () use ($c) {
-    return new \Obullo\Config\Config($c);
-};
-$c['app'] = function () {
-    return new Http;
-};
-$c['request'] = function () use ($c) {
-    return \Obullo\Http\ServerRequestFactory::fromGlobals(
-        null,
-        null,
-        null,
-        null,
-        null,
-        $c['config']->base()
-    );
-};
-$c['uri'] = function () use ($c) {
-    return $c['request']->getUri();
-};
-$c['response'] = function () use ($c) {
-    $response = new \Obullo\Http\Response;
-    return $response->setContainer($c);
-};
-
-/**
- * Run Http Application
- * 
- * @category  Container
- * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs
  */
 class Http extends Application
 {
-    protected $c;                         // Container
     protected $class;                     // Current controller
     protected $method;                    // Current method
     protected $websocket;                 // Debugger websocket
@@ -79,21 +37,16 @@ class Http extends Application
      */
     public function init()
     {
-        global $c;
-        $this->c = $c;
-        $this->detectEnvironment();
+        $c = $this->c;  // make c global
+
         $this->setErrorReporting();
-        $this->setDefaultTimezone();
         $this->setPhpDebugger();
 
         $this->middleware = array($this); // Define default middleware stack
 
         include APP .'errors.php';
         $this->registerErrorHandlers();
-        include OBULLO .'Controller'. DS .'Controller.php';
-
-        include APP .'components.php';
-        include APP .'providers.php';
+        include OBULLO .'Controller/Controller.php';
         include APP .'events.php';
         include APP .'routes.php';
 
@@ -127,7 +80,7 @@ class Http extends Application
      */
     private function _includeClass()
     {
-        include MODULES .$this->c['router']->fetchModule(DS).$this->c['router']->fetchDirectory(). DS .$this->c['router']->fetchClass().'.php';
+        include MODULES .$this->c['router']->fetchModule('/').$this->c['router']->fetchDirectory().'/'.$this->c['router']->fetchClass().'.php';
     }
 
     /**

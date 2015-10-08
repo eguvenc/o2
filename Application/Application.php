@@ -6,10 +6,11 @@ use Closure;
 use Exception;
 use Controller;
 use ErrorException;
-use ReflectionClass;
 use RuntimeException;
 use ReflectionFunction;
 use Obullo\Error\Debug;
+use Obullo\Container\Dependency;
+use Obullo\Container\ContainerInterface;
 
 /**
  * Run Application
@@ -20,58 +21,26 @@ use Obullo\Error\Debug;
  */
 class Application
 {
-    const VERSION = 'alpha-2.4';
+    const VERSION = '2.0rc1';
 
-    protected $env = null;         // Current environment
-    protected $config;             // Config object
+    protected $c;
+    protected $env = null;
     protected $fatalError;
-    protected $envArray = array(); // Environments config
     protected $exceptions = array();
-    protected $providers = array();   // Stack data for service provider wrapper class
-    protected $connections = array(); // Lazy loading for service provider register method
 
     /**
-     * Dependency map
+     * Constructor
      * 
-     * @var array
+     * @param object $c   [description]
+     * @param [type] $env [description]
      */
-    protected static $dependencies = [
-            'app',
-            'uri',
-            'config',
-            'router',
-            'logger',
-            'session',
-            'output',
-            'request',
-            'response',
-            'translator',
-        ];
-        
-    /**
-     * Detects application environment using "app/environments.php" file.
-     * 
-     * @return void or die if fail
-     */
-    protected function detectEnvironment()
+    public function __construct($c, $env)
     {
-        $hostname = gethostname();
-        if ($this->env != null) {
-            return;
-        }
-        $this->envArray = include ROOT .'app'. DIRECTORY_SEPARATOR .'environments.php';
-        foreach ($this->environments() as $current) {
-            if (in_array($hostname, $this->envArray[$current])) {
-                $this->env = $current;
-                break;
-            }
-        }
-        if ($this->env == null) {
-            die('We could not detect your application environment, please correct your app/environments.php hostnames.');
-        }
-        $this->c->setEnv($this->env);
+        $this->c = $c;
+        $this->env = $env;
+        date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
     }
-    
+
     /**
      * Enable / Disable php error reporting
      *
@@ -85,16 +54,6 @@ class Application
         } else {
             error_reporting(0);
         }
-    }
-
-    /**
-     * Set php date default timezone
-     *
-     * @return void
-     */
-    protected function setDefaultTimezone()
-    {
-        date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
     }
 
     /**
@@ -233,33 +192,29 @@ class Application
     }
 
     /**
-     * Returns to all environment names
-     * 
-     * @return array
+     * Registers a service provider.
+     *
+     * @param array $providers provider name and namespace array
+     *
+     * @return object
      */
-    public function environments()
+    public function provider(array $providers)
     {
-        return array_keys($this->envArray);
+        $this->c->provider($providers);
+        return $this;
     }
 
     /**
-     * Returns to all environments data
+     * Register services
      * 
-     * @return array
-     */
-    public function envArray()
-    {
-        return $this->envArray;
-    }
-
-    /**
-     * Returns to valid environment path
+     * @param array $services services
      * 
-     * @return string
+     * @return object
      */
-    public function envPath()
+    public function service(array $services)
     {
-        return CONFIG . $this->env() . DIRECTORY_SEPARATOR;
+        $this->c->service($services);
+        return $this;
     }
 
     /**
@@ -271,108 +226,44 @@ class Application
      */
     public function component(array $namespaces)
     {   
-        foreach ($namespaces as $name => $Class) {
-            $this->c[$name] = function () use ($Class, $name) {
-                $Class = '\\'.ltrim($Class, '\\');
-                $reflector = new ReflectionClass($Class);
-                if (! $reflector->hasMethod('__construct')) {
-                    return $reflector->newInstance();
-                } else {
-                    return $reflector->newInstanceArgs($this->getDependencies($reflector, $name));
-                }
-            };
-        }
-    }
-
-    /**
-     * Parse dependency parameters
-     * 
-     * @param array  $reflector ReflectionClass
-     * @param string $component name
-     * 
-     * @return array
-     */
-    protected function getDependencies(ReflectionClass $reflector, $component)
-    {
-        $parameters = $reflector->getConstructor()->getParameters();
-        $params = array();
-        foreach ($parameters as $parameter) {
-            $d = $parameter->getName();
-            if ($d == 'c') {
-                $params[] = $this->c;
-            } else {
-                $isComponent = in_array($d, static::$dependencies);
-                if ($isComponent) {
-                    $params[] = $this->c[$d];
-                } else {
-
-                    if ($isComponent) {
-                        throw new RuntimeException(
-                            sprintf(
-                                'Dependency is missing for "%s" package. <pre>%s $%s</pre>',
-                                $component,
-                                $parameter->getClass()->name,
-                                $d
-                            )
-                        );
-                    }
-                }
-            }
-        }
-        return $params;
-    }
-
-    /**
-     * Registers a service provider.
-     *
-     * @param array $providers provider name and namespace array
-     *
-     * @return static
-     */
-    public function register($providers)
-    {
-        foreach ((array)$providers as $name => $namespace) {
-            $this->providers[$name] = $namespace;
+        $this->dependency = new Dependency($this->c);
+        foreach ($namespaces as $cid => $Class) {
+            $this->dependency->addComponent($cid, $Class);
+            $this->dependency->addDependency($cid);
         }
         return $this;
     }
 
     /**
-     * Check provider is registered
+     * Creates dependency
      * 
-     * @param string $name provider key like cache, redis, memcache
-     * 
-     * @return boolean
-     */
-    public function hasProvider($name)
-    {
-        return isset($this->providers[$name]);
-    }
-
-    /**
-     * Load service provider
-     * 
-     * @param string $name provider name
+     * @param array $deps dependencies
      * 
      * @return object
      */
-    public function provider($name)
+    public function dependency(array $deps)
     {
-        $name = strtolower($name);
-        if (! isset($this->providers[$name])) {
-            throw new RuntimeException(
-                sprintf(
-                    "%s provider is not registered, please register it in providers.php",
-                    ucfirst($name)
-                )
-            );
+        foreach ($deps as $cid) {
+            $this->dependency->addDependency($cid);
         }
-        $Class = $this->providers[$name];
-        if (! isset($this->connections[$name])) {
-            $this->connections[$name] = new $Class($this->c);
-        }
-        return $this->connections[$name];
+        return $this;
     }
+
+    /**
+     * Removes dependency
+     * 
+     * @param array $deps dependencies
+     * 
+     * @return object
+     */
+    public function removeDependency(array $deps)
+    {
+        foreach ($deps as $cid) {
+            $this->dependency->removeDependency($cid);
+        }
+        return $this;
+    }
+
 
     /**
      * Returns current version of Obullo

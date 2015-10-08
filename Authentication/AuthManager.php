@@ -49,6 +49,7 @@ class AuthManager
     public function setParameters(array $params)
     {
         AuthConfig::setParameters($this->c['config'], $params);
+        
         $this->register();
     }
 
@@ -72,8 +73,9 @@ class AuthManager
         $parameters = $this->getParameters();
 
         $this->c['auth.storage'] = function () use ($parameters) {
-            return new $parameters['cache']['storage']($this->c['session'], $this->c['app']->provider('cache'), $parameters);
+            return new $parameters['cache']['storage']($this->c['session'], $this->c['cache'], $parameters);
         };
+        
         $this->c['auth.identity'] = function () use ($parameters) {
             return new Identity($this->c, $this->c['session'], $this->c['auth.storage'], $parameters);
         };
@@ -87,7 +89,10 @@ class AuthManager
         };
 
         $this->c['auth.model'] = function () use ($parameters) {
-            return new $parameters['db.model']($this->c['app']->provider($parameters['db.provider']['name']), $parameters);
+
+            $provider = $parameters['db.provider']['name'];
+            
+            return new $parameters['db.model']($this->c[$provider], $parameters);
         };
 
         $this->c['auth.adapter'] = function () use ($parameters) {

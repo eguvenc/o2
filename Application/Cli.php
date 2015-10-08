@@ -5,53 +5,14 @@ namespace Obullo\Application;
 use Controller;
 
 /**
- * Container
- * 
- * @var object
- */
-$loader = new \Obullo\Container\Loader\PhpServiceLoader;
-$loader->registerPath('app/classes/');
-$loader->registerFolder('Service');
-
-$c = new \Obullo\Container\Container($loader);
-
-$c['var'] = function () use ($c) {
-    return new \Obullo\Config\Variable($c);
-};
-$c['config'] = function () use ($c) {
-    return new \Obullo\Config\Config($c);
-};
-$c['app'] = function () {
-    return new Cli;
-};
-$c['request'] = function () use ($c) {
-    return \Obullo\Http\ServerRequestFactory::fromGlobals(
-        null,
-        null,
-        null,
-        null,
-        null,
-        $c['config']->base()
-    );
-};
-$c['response'] = function () use ($c) {
-    $response = new \Obullo\Http\Response;
-    return $response->setContainer($c);
-};
-
-/**
  * Run Cli Application ( Warning : Http middlewares & Layers disabled in Cli mode.)
  * 
- * @category  Container
- * @package   Container
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/container
  */
 class Cli extends Application
 {
-    protected $c;           // Container
     protected $class;       // Current controller
     protected $router;      // Cli router
     protected $method;      // Current method
@@ -65,28 +26,19 @@ class Cli extends Application
     public function init()
     {
         if (isset($_SERVER['REMOTE_ADDR'])) die('Access denied');
-        
-        global $c;
-        $this->c = $c;
 
-        $this->detectEnvironment();
+        $c = $this->c;
         $this->setErrorReporting();
-        $this->setDefaultTimezone();
         $this->setPhpDebugger();
-
+        
         include APP .'errors.php';
         $this->registerErrorHandlers();
-        include OBULLO .'Controller'. DS .'Controller.php';
-        include APP .'components.php';
-        unset($c['uri'], $c['router']);   // Replace Uri & Router components
+        include OBULLO .'Controller/Controller.php';
+        unset($c['router']);   // Replace Uri & Router components
 
-        $c['uri'] = function () use ($c) {
-            return new \Obullo\Cli\Uri($c['logger']);
-        };
         $c['router'] = function () use ($c) {
             return new \Obullo\Cli\Router($c['uri'], $c['logger']);
         };
-        include APP .'providers.php';
         include APP .'events.php';
 
         $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
@@ -135,7 +87,7 @@ class Cli extends Application
         $this->dispatchClass();
         $this->class = new $this->className;  // Call the controller
         $this->call();          
-        $this->c['response']->flush();  // Send headers and echo output if output enabled
+        echo $this->c['output']->getOutput();
     }
 
     /**

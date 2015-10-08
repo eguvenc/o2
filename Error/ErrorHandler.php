@@ -195,7 +195,7 @@ class ErrorHandler
         if (0 === $this->level || ! in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE))) {
             return;
         }
-        $exp = explode(DS, $error['file']);
+        $exp = explode(DIRECTORY_SEPARATOR, $error['file']);
         $filename = end($exp);
         if ($filename != 'Logger.php') {  // Don't log logger class fatal errors.
             $logger = $c['logger'];

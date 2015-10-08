@@ -5,8 +5,16 @@ use Obullo\Error\DebugOutput;
 if (isset($fatalError)) {
     echo "Fatal Error\n";
     // We could not load error libraries when error is fatal.
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'MODULES' . DS), $e->getMessage())."\n";
-    echo str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'MODULES' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\n";
+    echo str_replace(
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'), 
+        array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
+        $e->getMessage()
+    )."\n";
+    echo str_replace(
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'),
+        array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
+        $e->getFile()
+    ) . ' Line : ' . $e->getLine()."\n";
     exit;
 }
 echo "Exception Error\n". DebugOutput::getSecurePath($e->getMessage())."\n";
@@ -37,7 +45,7 @@ if (isset($debugTraces[0]['file']) && isset($debugTraces[0]['line'])) {
                 if (isset($trace['class']) && isset($trace['function'])) {
                     $output.= $trace['class'] . '->' . $trace['function'];
                 }
-                if ( ! isset($trace['class']) && isset($trace['function'])) {
+                if (! isset($trace['class']) && isset($trace['function'])) {
                     $output.= $trace['function'];
                 }
                 $output.= (isset($trace['function'])) ? '()' : '';

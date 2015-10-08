@@ -1,12 +1,12 @@
 <?php 
 use Obullo\Error\DebugOutput; 
 
-include_once OBULLO .'Error'. DS .'View'. DS .'ExceptionHtmlHeader.php';
+include_once OBULLO .'Error/View/ExceptionHtmlHeader.php';
 
 $getError = function ($message) {
     return str_replace(
-        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), 
-        array('APP' . DS, 'DATA'. DS, 'CLASSES'. DS, 'ROOT' . DS, 'OBULLO'. DS, 'MODULES'. DS),
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT . 'vendor'), 
+        array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $message
     );
 }

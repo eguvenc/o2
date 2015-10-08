@@ -5,14 +5,11 @@ namespace Obullo\Cli;
 use Obullo\Log\LoggerInterface;
 
 /**
- * Console Argument Parser Class
+ * Console Uri
  * 
- * @category  Cli
- * @package   Parser
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cli
  */
 class Uri implements UriInterface
 {
@@ -41,13 +38,6 @@ class Uri implements UriInterface
     protected $arguments;
 
     /**
-     * Logger exist variable
-     * 
-     * @var boolean
-     */
-    protected $exist;
-
-    /**
      * Short commands
      * 
      * @var array
@@ -65,20 +55,6 @@ class Uri implements UriInterface
         '--v=' => '--var=',
         '--e=' => '--env='
     ]; 
-
-    /**
-     * Constructor
-     *
-     * @param object $logger LoggerInterface
-     */
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-        $this->loggerExists();
-        if ($this->exist) {
-            $this->logger->debug('Cli Uri Class Initialized');
-        }
-    }
 
     /**
      * Reset variables
@@ -201,19 +177,6 @@ class Uri implements UriInterface
     public function getShortcuts()
     {
         return static::$shortcuts;
-    }
-
-    /**
-     * If logger exists returns to true otherwise false
-     * 
-     * @return boolean
-     */
-    protected function loggerExists()
-    {
-        if (is_object($this->logger) && method_exists($this->logger, 'debug')) {
-            return $this->exist = true;
-        }
-        return $this->exist = false;
     }
 
 }

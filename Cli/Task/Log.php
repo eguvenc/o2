@@ -45,8 +45,8 @@ class Log extends Controller
         $reader = ucfirst($this->logger->getWriter());
 
         if ($reader == 'Null') {
-            echo Console::fail("Logging feature disabled from your config.");
-            echo Console::newline(1);
+            echo Console::text("Logging feature disabled from your config.", 'yellow');
+            echo Console::newline(2);
             return;
         }
         $Class = '\\Obullo\Log\Cli\\'.$reader;
@@ -62,7 +62,7 @@ class Log extends Controller
     public function logo() 
     {
         echo Console::logo("Welcome to Log Manager (c) 2015");
-        echo Console::description("You are displaying logs. For more help type \$php task log help.");
+        echo Console::description("You are displaying log data. For more help type \$php task log help.");
     }
 
     /**
@@ -80,10 +80,10 @@ class Log extends Controller
             trim($this->c['config']['logger']['file']['path']['cli'], '/'),
         );
         foreach ($files as $file) {
-            $file = ROOT. str_replace('/', DS, $file);
-            $exp = explode(DS, $file);
+            $file = ROOT. $file;
+            $exp = explode('/', $file);
             $filename = array_pop($exp);
-            $path = implode(DS, $exp). DS;
+            $path = implode('/', $exp). '/';
 
             if (is_file($path.$filename)) {
                 unlink($path.$filename);
@@ -128,7 +128,7 @@ echo Console::newline(2);
 
 echo Console::help("Description:", true);
 echo Console::newline(2);
-echo Console::help("Read log data from '". RESOURCES ."data". DS ."logs' folder.");
+echo Console::help("Read log data from '". RESOURCES ."data/logs' folder.");
 echo Console::newline(2);
     }
 

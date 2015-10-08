@@ -68,7 +68,7 @@ class Exception implements ExceptionInterface
     protected function getErrorView($file, $e)
     {   
         ob_start();
-        include OBULLO . 'Error' . DS . 'View'. DS .$file . '.php';
+        include OBULLO . 'Error/View/' .$file . '.php';
         return ob_get_clean();
     }
 

@@ -5,21 +5,19 @@ namespace Obullo\Event;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Event Listener Interface
+ * Event listener class modeled after Laravel event package 
  * 
- * @category  Event
- * @package   EventListenerInterface
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/event
  */
 interface EventListenerInterface
 {
     /**
-     * Constructor
+     * Subsrice to event
      * 
-     * @param object $c container object
+     * @param object $event EventInterface
+     * 
+     * @return void
      */
-    public function __construct(ContainerInterface $c);
+    public function subscribe(EventInterface $event);
 }

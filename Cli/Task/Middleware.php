@@ -45,7 +45,7 @@ class Middleware extends Controller
         }
         $name = ucfirst($name);
         $middleware = $name.'.php';
-        $middlewareFile = OBULLO .'Application'. DS .'Middlewares'. DS .$name. DS .$middleware;
+        $middlewareFile = OBULLO .'Application/Middlewares/'.$name.'/'.$middleware;
 
         if (! file_exists($middlewareFile)) {
             echo Console::fail("Middleware #$middleware does not exists in Obullo/Middlewares folder.");
@@ -97,7 +97,7 @@ class Middleware extends Controller
      */
     protected static function getMiddlewarePath($middleware = '')
     {
-        return APP .'classes'. DS .'Http'. DS. 'Middlewares'. DS .$middleware;
+        return APP .'classes/Http/Middlewares/' .$middleware;
     }
 
     /**

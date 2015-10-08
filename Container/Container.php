@@ -8,21 +8,21 @@ use RuntimeException;
 use InvalidArgumentException;
 
 /**
- * Obullo DI
+ * Obullo Lightweight Php DI
  * 
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Container implements ArrayAccess, ContainerInterface
+class Container implements ContainerInterface, ArrayAccess
 {
-    protected $env;
     protected $raw = array();
     protected $frozen = array();
     protected $values = array();
     protected $keys = array();
-    protected $unset = array();     // Stores classes we want to remove
-    protected $loader = array();    // Service loader object
-    protected $services = array();  // Service array
+    protected $unset = array();      // Stores classes we want to remove
+    protected $loader = array();     // Service loader object
+    protected $services = array();   // Service array
+    protected $providers = array();  // Service array
 
     /**
      * Register service classes if required
@@ -33,33 +33,49 @@ class Container implements ArrayAccess, ContainerInterface
      */
     public function __construct($loader = null)
     {
-        if (is_object($loader)) {
-            $this->loader = $loader->scan();
-            $this->services = $loader();
+        $this->loader = $loader;
+    }
+
+    /**
+     * Register your services
+     * 
+     * @param array $services service array
+     * 
+     * @return void
+     */
+    public function service(array $services)
+    {
+        $this->services = $services;
+    }
+
+    /**
+     * Register your service providers
+     * 
+     * @param array $providers service providers
+     * 
+     * @return void
+     */
+    public function provider(array $providers)
+    {
+        foreach ((array)$providers as $name => $namespace) {
+            $this->providers[$name] = $namespace;
         }
     }
 
     /**
-     * Sets application environment
+     * Resolve service providers
+     *
+     * @param string $cid class name
      * 
-     * @param string $env value
-     * 
-     * @return object
+     * @return object provider
      */
-    public function setEnv($env)
+    public function loadServiceProvider($cid)
     {
-        $this->env = $env;
-        return $this;
-    }
-
-    /**
-     * Returns to application environment
-     * 
-     * @return string
-     */
-    public function getEnv()
-    {
-        return $this->env;
+        $cid = strtolower($cid);
+        $connector = ServiceProviderConnector::getInstance();
+        $connector->setContainer($this);
+        $connector->setClass($this->providers[$cid]);
+        return $connector;
     }
 
     /**
@@ -121,8 +137,11 @@ class Container implements ArrayAccess, ContainerInterface
      */
     public function offsetGet($cid, $params = array())
     {
+        if (isset($this->providers[$cid])) {  // First resolve service providers
+            return $this->loadServiceProvider($cid);
+        }   
         if (! isset($this->values[$cid])) {     // If does not exist in container we load it directly.
-            return $this->load($cid);           // Load services and none component libraries like cookie, url ..
+            return $this->load($cid);           // Load services or components.
         }
         if (isset($this->raw[$cid])             // Returns to instance of class or raw closure.
             || ! is_object($this->values[$cid])
@@ -166,22 +185,6 @@ class Container implements ArrayAccess, ContainerInterface
     }
 
     /**
-    * Run closure with params
-    * 
-    * @param object $closure callable
-    * @param array  $params  parameters
-    * 
-    * @return object closure
-    */
-    protected function closure(Closure $closure, $params = array())
-    {
-        if (count($params) > 0) {
-            return $closure($params);
-        }
-        return $closure();
-    }
-
-    /**
      * Class and Service loader
      *
      * @param string $classString class command
@@ -195,15 +198,17 @@ class Container implements ArrayAccess, ContainerInterface
         $cid = strtolower($class);
 
         $isService = false;
-        if (count($this->services) > 0) {
-            if ($this->loader->resolve($this, $class, $this->services)) {
+        if (is_object($this->loader) && count($this->services) > 0) {
+
+            $this->loader->setContainer($this);
+            if ($this->loader->resolveServices($class)) {
                 $isService = true;
             }
         }
         if (! $this->has($cid) && ! $isService) {
             throw new RuntimeException(
                 sprintf(
-                    'The class "%s" is not available. Please register it as a component or service.',
+                    'The class "%s" is not available in container. Please register it as a component, service or service provider.',
                     $cid
                 )
             );
@@ -239,6 +244,32 @@ class Container implements ArrayAccess, ContainerInterface
             return $this->raw[$cid];
         }
         return $this->values[$cid];
+    }
+
+    /**
+     * Returns to service array
+     * 
+     * @return array
+     */
+    public function getServices()
+    {
+        return $this->services;
+    }
+
+    /**
+    * Closure helper: run callable function with params
+    * 
+    * @param object $func   callable
+    * @param array  $params parameters
+    * 
+    * @return object closure
+    */
+    protected function closure(Closure $func, $params = array())
+    {
+        if (count($params) > 0) {
+            return $func($params);
+        }
+        return $func();
     }
 
     /**

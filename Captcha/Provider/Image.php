@@ -96,9 +96,9 @@ class Image extends AbstractProvider implements ProviderInterface
     {
         $this->buildHtml();
         $this->fonts = array_keys($this->config['fonts']);
-        $this->imageUrl = $this->uri->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( DS )
-        $this->configFontPath  = ROOT . $this->config['font']['path'] . DS;
-        $this->defaultFontPath = OBULLO . 'Captcha' . DS . 'Fonts' . DS;
+        $this->imageUrl = $this->uri->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( / )
+        $this->configFontPath  = ROOT . $this->config['font']['path'] . '/';
+        $this->defaultFontPath = OBULLO . 'Captcha/Fonts/';
     }
 
     /**

@@ -9,12 +9,9 @@ use Obullo\Log\Formatter\LineFormatter;
 /**
  * Abstract Log Handler
  * 
- * @category  Log
- * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 abstract class AbstractHandler
 {
@@ -60,7 +57,6 @@ abstract class AbstractHandler
         if ($data['request'] == 'worker') {
             return $this->config['logger']['app']['worker']['log'];  // Disable / enable worker logs
         }
-        // $_SERVER['REQUEST_URI']
         if ($this->app->uri->segment(0) == 'debugger') {  // Disable http debugger logs
             return false;
         }

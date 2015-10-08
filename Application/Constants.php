@@ -16,17 +16,17 @@
 | TASK              - The full "static" path of the native cli task folder.
 | INDEX_PHP         - The path of your index.php file.
 */
-define('APP',  ROOT .'app'. DS);
-define('CONFIG',  APP . 'config'. DS);
-define('RESOURCES',  ROOT .'resources'. DS);
-define('ASSETS',  RESOURCES .'assets'. DS);
-define('DATA',  RESOURCES .'data'. DS);
-define('TRANSLATIONS',  RESOURCES .'translations'. DS);
-define('CLASSES',  APP .'classes'. DS);
-define('TEMPLATES',  RESOURCES . 'templates'. DS);
-define('MODULES', APP .'modules'. DS);
-define('TASKS', APP .'modules'. DS .'tasks'. DS);
+define('APP',  ROOT .'app/');
+define('CONFIG', APP);
+define('RESOURCES',  ROOT .'resources/');
+define('ASSETS',  RESOURCES .'assets/');
+define('DATA',  RESOURCES .'data/');
+define('TRANSLATIONS',  RESOURCES .'translations/');
+define('CLASSES',  APP .'classes/');
+define('TEMPLATES',  RESOURCES . 'templates/');
+define('MODULES', APP .'modules/');
+define('TASKS', APP .'modules/tasks/');
 define('TASK_FILE', 'task');
-define('TASK', PHP_PATH .' '. APP .'tasks'. DS .'cli'. DS);
+define('TASK', PHP_PATH .' '. APP .'tasks/cli/');
 define('CLI_PHP', 'cli.php');
 define('INDEX_PHP', 'index.php');

@@ -38,7 +38,7 @@ class File implements CacheInterface
         $filePath = ltrim($this->filePath, '/');
 
         if (strpos($filePath, 'resources') === 0) {
-            $this->filePath = ROOT. str_replace('/', DS, $filePath) . DS;
+            $this->filePath = ROOT. $filePath . '/';
         }
         if (! is_writable($this->filePath)) {
             throw new RuntimeException(

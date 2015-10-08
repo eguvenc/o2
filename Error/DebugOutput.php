@@ -56,30 +56,34 @@ class DebugOutput
     {
         if ($searchPaths) {
             $replace = array(
-                'APP' . DS,
-                'DATA' . DS,
-                'CLASSES' . DS,
-                'ROOT' . DS,
-                'OBULLO' . DS,
-                'MODULES' . DS,
+                'APP/',
+                'DATA/',
+                'CLASSES/',
+                'ROOT/',
+                'OBULLO/',
+                'MODULES/',
+                'VENDOR/',
             );
-            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), $replace, $file);
+            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), $replace, $file);
         }
         if (is_string($file)) {
             if (strpos($file, ROOT) === 0) {
-                $file = 'ROOT' . DS . substr($file, strlen(ROOT));
+                $file = 'ROOT/' . substr($file, strlen(ROOT));
             }
             if (strpos($file, APP) === 0) {
-                $file = 'APP' . DS . substr($file, strlen(APP));
+                $file = 'APP/' . substr($file, strlen(APP));
             }
             if (strpos($file, CLASSES) === 0) {
-                $file = 'CLASSES' . DS . substr($file, strlen(CLASSES));
+                $file = 'CLASSES/' . substr($file, strlen(CLASSES));
             }
             if (strpos($file, OBULLO) === 0) {
-                $file = 'PACKAGES' . DS . substr($file, strlen(OBULLO));
+                $file = 'PACKAGES/' . substr($file, strlen(OBULLO));
             }
             if (strpos($file, MODULES) === 0) {
-                $file = 'MODULES' . DS . substr($file, strlen(MODULES));
+                $file = 'MODULES/' . substr($file, strlen(MODULES));
+            }
+            if (strpos($file, VENDOR) === 0) {
+                $file = 'VENDOR/' . substr($file, strlen(VENDOR));
             }
         }
         return $file;

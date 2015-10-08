@@ -6,14 +6,11 @@ use Obullo\Config\ConfigInterface;
 use Obullo\Application\Application;
 
 /**
- * File Handler Class
+ * File Handler 
  * 
- * @category  Log
- * @package   Handler
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 class File extends AbstractHandler implements HandlerInterface
 {
@@ -78,7 +75,7 @@ class File extends AbstractHandler implements HandlerInterface
     {
         $path = ltrim($path, '/');
         if (strpos($path, "resources/") === 0) {    // Add root 
-            return ROOT .str_replace('/', DS, $path);
+            return ROOT .$path;
         }
         return $path;
     }

@@ -12,10 +12,8 @@ interface ServiceInterface
 {
     /**
      * Registry
-     *
-     * @param object $c container
      * 
      * @return void
      */
-    public function register(ContainerInterface $c);
+    public function register();
 }

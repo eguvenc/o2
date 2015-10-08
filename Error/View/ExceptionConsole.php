@@ -5,8 +5,17 @@ use Obullo\Error\DebugOutput;
 if (isset($fatalError)) {
     echo "\33[1;31mFatal Error\33[0m\n";
     // We could not load error libraries when error is fatal.
-    echo "\33[0;31m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'MODULES' . DS), $e->getMessage())."\33[0m\n";
-    echo "\33[0;31m".str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES), array('APP' . DS, 'DATA' . DS, 'CLASSES' . DS, 'ROOT' . DS, 'OBULLO' . DS, 'MODULES' . DS), $e->getFile()) . ' Line : ' . $e->getLine()."\33[0m\n";
+    
+    echo "\33[0;31m".str_replace(
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'), 
+        array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
+        $e->getMessage()
+    )."\33[0m\n";
+    echo "\33[0;31m".str_replace(
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'),
+        array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
+        $e->getFile()
+    ) . ' Line : ' . $e->getLine()."\33[0m\n";
     exit;
 }
 echo "\33[1;31mException Error\n". DebugOutput::getSecurePath($e->getMessage())."\33[0m\n";
