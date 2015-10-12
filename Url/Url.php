@@ -3,31 +3,35 @@
 namespace Obullo\Url;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Config\ConfigInterface;
+use Obullo\Log\LoggerInterface;
+
+use Psr\Http\Message\UriInterface;
 
 /**
  * Url Class
- *
- * Modeled after Codeigniter Url helper 
  * 
- * @category  Url
- * @package   Url
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/url
  */
-class Url
+class Url implements UrlInterface
 {
     /**
      * Constructor
-     *
-     * @param object $c container
+     * 
+     * @param ContainerInterface $c      container
+     * @param UriInterface       $uri    uri
+     * @param ConfigInterface    $config config
+     * @param LoggerInterface    $logger config
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, UriInterface $uri, ConfigInterface $config, LoggerInterface $logger)
     {
         $this->c = $c;
-        $this->uri = $c['uri'];
-        $this->c['logger']->debug('Url Class Initialized');
+        $this->uri = $uri;
+        $this->config = $config;
+        $this->logger = $logger;
+        $this->logger->debug('Url Class Initialized');
     }
 
     /**
@@ -38,16 +42,12 @@ class Url
      * @param string $uri        the URL
      * @param string $title      the link title
      * @param mixed  $attributes any attributes
-     * @param bool   $suffix     switch off suffix by manually
      * 
      * @return string
      */
-    public function anchor($uri = '', $title = '', $attributes = '', $suffix = true)
+    public function anchor($uri = '', $title = '', $attributes = '')
     {
-        if (strpos($uri, '@WEBHOST') !== false) {
-            $uri = str_replace('@WEBHOST', $this->c['config']['url']['webhost'], $uri);
-        }
-        $siteUrl = $this->getSiteUrl($uri, $suffix);
+        $siteUrl = $this->_getSiteUrl($uri);
         
         if (empty($title)) {
             $title = $siteUrl;
@@ -60,12 +60,11 @@ class Url
     /**
      * Get site url
      * 
-     * @param string $uri    uri
-     * @param string $suffix uri suffix
+     * @param string $uri uri
      * 
      * @return string site url
      */
-    protected function getSiteUrl($uri, $suffix = true)
+    private function _getSiteUrl($uri)
     {
         // "?" Question mark support
         // If we have question mark beginning of the  the uri
@@ -76,9 +75,74 @@ class Url
         if (! empty($queryString)) {
             $uri = rtrim(strstr($uri, '?', true), '/').$queryString;
         }
-        $siteUri = $this->uri->getSiteUrl($uri, $suffix);
+        $siteUri = $this->getSiteUrl($uri);
 
         return ( ! preg_match('!^\w+://! i', $uri)) ? $siteUri : $uri;
+    }
+
+
+    /**
+     * Get Assets URL
+     * 
+     * @param string $uri    asset uri
+     * @param string $folder whether to add asset folder
+     * 
+     * @return string
+     */
+    public function getAssetsUrl($uri = '', $folder = true)
+    {
+        $assetsFolder = ($folder) ? trim($this->config['url']['assets']['folder'], '/').'/' : '';
+        return $this->config['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
+    }
+
+    /**
+     * Get Base URL
+     * 
+     * @param string $uri custom uri
+     * 
+     * @return string
+     */
+    public function getBaseUrl($uri = '')
+    {
+        return rtrim($this->config['url']['baseurl'], '/') .'/'. ltrim($uri, '/');
+    }
+
+    /**
+     * Site URL
+     *
+     * @param string $uriStr the URI string
+     * 
+     * @return string
+     */
+    public function getSiteUrl($uriStr = '')
+    {
+        if (is_array($uriStr)) {
+            $uriStr = implode('/', $uriStr);
+        }
+        if ($uriStr == '') {
+            return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
+        } 
+        return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uriStr, '/');
+    }
+
+    /**
+     * Get current url
+     *
+     * @return string
+     */
+    public function getCurrentUrl()
+    {
+        return $this->getSiteUrl($this->getUrl());
+    }
+
+    /**
+     * Get current url
+     *
+     * @return string
+     */
+    public function getWebHost()
+    {
+        return trim($this->config['url']['webhost'], '/');
     }
 
     /**
@@ -107,44 +171,6 @@ class Url
         }
         return $protocol.$uri;
     }
-    
-    /**
-     * Header Redirect
-     *
-     * Header redirect in two flavors
-     * For very fine grained control over headers, you could use the Response
-     * package setHeader() function.
-     * 
-     * @param string  $uri              uri string
-     * @param string  $method           method
-     * @param integer $httpResponseCode response code
-     * @param boolean $suffix           suffix
-     * 
-     * @return void
-     */
-    public function redirect($uri = '', $method = 'location', $httpResponseCode = 302, $suffix = true)
-    {
-        $this->endBenchmark();
-
-        if (! preg_match('#^https?:\/\/#i', $uri)) {
-            $uri = $this->uri->getSiteUrl($uri, $suffix);
-        }
-        if (strpos($method, '[')) {
-            $index = explode('[', $method);
-            $param = str_replace(']', '', $index[1]);
-            header("Refresh:$param;url=" . $uri);
-            $this->c['logger']->shutdown(); // Manually shutdown logger
-            exit;
-        }
-        switch ($method) {
-        case 'refresh' : header("Refresh:0;url=" . $uri);
-            break;
-        default : header("Location: " . $uri, true, $httpResponseCode);
-            break;
-        }
-        $this->c['logger']->shutdown();    // Manually shutdown logger otherwise we use register shutdown
-        exit;
-    }
 
     /**
      * Parse out the attributes
@@ -156,7 +182,7 @@ class Url
      * 
      * @return string
      */
-    public static function parseAttributes($attributes, $javascript = false)
+    protected static function parseAttributes($attributes, $javascript = false)
     {
         if (is_string($attributes)) {
             return ($attributes != '') ? ' ' . $attributes : '';
@@ -193,26 +219,6 @@ class Url
             $str = 'http://' . $str;
         }
         return $str;
-    }
-
-    /**
-     * Finalize benchmark operation
-     * 
-     * @return void
-     */
-    protected function endBenchmark()
-    {
-        if ($this->c['config']->load('logger')['app']['benchmark']['log'] && isset($_SERVER['REQUEST_TIME_START'])) {     // Do we need to generate benchmark data ?
-
-            $end = microtime(true) - $_SERVER['REQUEST_TIME_START'];  // End Timer
-            $usage = 'memory_get_usage() function not found on your php configuration.';
-            if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
-                $usage = round($usage/1024/1024, 2). ' MB';
-            }
-            $extra['time']   = number_format($end, 4);
-            $extra['memory'] = $usage;
-            $this->c['logger']->debug('Redirect header sent to browser', $extra, -99);
-        }
     }
 
 }

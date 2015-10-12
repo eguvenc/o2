@@ -3,14 +3,11 @@
 namespace Obullo\Captcha;
 
 /**
- * O2 Captcha - Captcha Result Controller
- *
- * @category  Captcha
- * @package   CaptchaResult
+ * Captcha Result Handler
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/captcha
  */
 class CaptchaResult
 {

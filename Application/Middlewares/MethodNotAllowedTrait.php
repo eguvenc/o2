@@ -15,16 +15,17 @@ trait MethodNotAllowedTrait
      */
     public function check(array $params)
     {
-        $method = $_SERVER['REQUEST_METHOD'];
+        $method = $this->request->getMethod();
         $currentMethod = strtolower($method);
 
         if (! in_array($currentMethod, $params)) {  // Check method is allowed
 
-            $this->response->withStatus(405)->showError(
+            $this->response->showError(
                 sprintf(
                     "Http Error 405 %s method not allowed.", 
                     ucfirst($currentMethod)
                 ),
+                405,
                 'Method Not Allowed'
             );
         }

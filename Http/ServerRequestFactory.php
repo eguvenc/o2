@@ -57,8 +57,7 @@ abstract class ServerRequestFactory
         array $query = null,
         array $body = null,
         array $cookies = null,
-        array $files = null,
-        array $config = null
+        array $files = null
     ) {
         $server  = static::normalizeServer($server ?: $_SERVER);
         $files   = static::normalizeFiles($files ?: $_FILES);
@@ -69,8 +68,7 @@ abstract class ServerRequestFactory
             static::marshalUriFromServer($server, $headers),
             static::get('REQUEST_METHOD', $server, 'GET'),
             'php://input',
-            $headers,
-            $config
+            $headers
         );
         return $request
             ->withCookieParams($cookies ?: $_COOKIE)

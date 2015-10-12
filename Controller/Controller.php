@@ -57,8 +57,7 @@ class Controller
     public function __set($key, $val)  // Custom variables is not allowed !!! 
     {
         if (is_object($val)) {
-            $this->{$key} = $val; // WARNING : Store only app classes & packages 
-                                  // and object types if we don't do this every array params of 
+            $this->{$key} = $val; // WARNING : Store only object types if we don't do this every array params of 
                                   // container will be stored in the controller.
         }
     }

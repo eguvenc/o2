@@ -31,8 +31,8 @@ class Application
     /**
      * Constructor
      * 
-     * @param object $c   [description]
-     * @param [type] $env [description]
+     * @param object $c   container
+     * @param string $env environment
      */
     public function __construct($c, $env)
     {

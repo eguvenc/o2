@@ -53,11 +53,10 @@ trait RequestTrait
      * @param null|string                     $method  HTTP method for the request, if any.
      * @param string|resource|StreamInterface $body    Message body, if any.
      * @param array                           $headers Headers for the message, if any.
-     * @param array                           $config  Obullo config variables
      * 
      * @throws InvalidArgumentException for any invalid value.
      */
-    private function initialize($uri = null, $method = null, $body = 'php://memory', array $headers = [], array $config = null)
+    private function initialize($uri = null, $method = null, $body = 'php://memory', array $headers = [])
     {
         if (! $uri instanceof UriInterface && ! is_string($uri) && null !== $uri) {
             throw new InvalidArgumentException(
@@ -78,8 +77,6 @@ trait RequestTrait
 
         $this->method = $method ?: '';
         $this->uri    = $uri ?: new Uri();
-        $this->uri->setConfig($config);     // Send Obullo configration variables to uri object ( this is not a Zend standart but we need it )
-
         $this->stream = ($body instanceof StreamInterface) ? $body : new Stream($body, 'wb+');
 
         list($this->headerNames, $headers) = $this->filterHeaders($headers);

@@ -101,10 +101,10 @@ Konfigürasyon için <b>DoctrineDBALServiceProvider</b> ve <b>DoctrineQueryBuild
 
 #### Bağımlılıklar
 
-Sorgu oluşturucu <b>DoctrineDBALServiceProvider</b> servis sağlayıcısı olmadan çalışamaz. Eğer servis sağlayıcısı tanımlı değilse <kbd>app/providers.php</kbd> dosyasındaki database anahtarına aşağıdaki gibi tanımlamanız gerekir.
+Sorgu oluşturucu <b>DoctrineDBALServiceProvider</b> servis sağlayıcısı olmadan çalışamaz. Eğer servis sağlayıcısı tanımlı değilse <kbd>app/components.php</kbd> dosyasındaki database anahtarına aşağıdaki gibi tanımlamanız gerekir.
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -112,8 +112,7 @@ $c['app']->register(
     ]
 );
 
-/* End of file providers.php */
-/* Location: .app/providers.php */
+/* Location: .app/components.php */
 ```
 
 Böylelikle mevcut database servis sağlayıcısını doctrine dbal servis sağlayıcısı ile değiştirmiş olduk. Bu değişiklikten sonra varolan veritabanı fonksiyonlarınızda herhangi bir değişikliğe gitmenize gerek kalmaz.
@@ -124,10 +123,10 @@ Böylelikle mevcut database servis sağlayıcısını doctrine dbal servis sağl
 
 Sorgu oluşturucu <b>DoctrineQueryBuilderServiceProvider</b> isimli servis sağlayıcısı üzerinden çalışır. Servis sağlayıcı database servis sağlayıcısına bağlanarak önceden tanımlı olan bağlantı adına ilişkin veriler ile sorgu oluşturucuya ait veritabanı bağlantısını kurar. 
 
-Eğer servis sağlayıcısı tanımlı değilse <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi <b>this->db</b> anahtarına tanımlamanız önerilir.
+Eğer servis sağlayıcısı tanımlı değilse <kbd>app/components.php</kbd> dosyasına aşağıdaki gibi <b>this->db</b> anahtarına tanımlamanız önerilir.
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -136,8 +135,7 @@ $c['app']->register(
     ]
 );
 
-/* End of file providers.php */
-/* Location: .app/providers.php */
+/* Location: .app/components.php */
 ```
 
 <a name="loading-class"></a>
@@ -149,13 +147,13 @@ Servis sağlayıcısı yapılandırmasından sonra sorgu oluşturucuyu servis sa
 Sınıfı servis sağlayıcısı ile bir kez oluşturduktan sonra istediğiniz değişkene atayabilirsiniz.
 
 ```php
-$this->db = $this->c['app']->provider('this->db')->get(['connection' => 'default']);
+$this->db = $this->c['database']->get(['connection' => 'default']);
 ```
 
 Eğer parametre gönderilmezse database servis sağlayıcısı varsayılan olarak default bağlantısına bağlanacaktır.
 
 ```php
-$this->db = $this->c['app']->provider('this->db')->get();
+$this->db = $this->c['database']->get();
 
 $row = $this->db
     ->select('id', 'name')

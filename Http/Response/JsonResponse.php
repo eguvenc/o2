@@ -1,17 +1,12 @@
 <?php
-/**
- * Zend Framework (http://framework.zend.com/)
- *
- * @see       http://github.com/zendframework/zend-diactoros for the canonical source repository
- * @copyright Copyright (c) 2015 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   https://github.com/zendframework/zend-diactoros/blob/master/LICENSE.md New BSD License
- */
 
-namespace Zend\Diactoros\Response;
+namespace Obullo\Http\Response;
 
 use InvalidArgumentException;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\Stream;
+use Psr\Http\Message\ResponseInterface;
+
+use Obullo\Http\Response;
+use Obullo\Http\Stream;
 
 /**
  * JSON response.
@@ -20,37 +15,68 @@ use Zend\Diactoros\Stream;
  * serializes the data to JSON, sets a status code of 200 and sets the
  * Content-Type header to application/json.
  */
-class JsonResponse extends Response
+class JsonResponse
 {
     use InjectContentTypeTrait;
+
+    /**
+     * Http headers
+     * 
+     * @var array
+     */
+    protected $headers;
+
+    /**
+     * Raw body
+     * 
+     * @var string
+     */
+    protected $body;
 
     /**
      * Create a JSON response with the given data.
      *
      * Default JSON encoding is performed with the following options, which
      * produces RFC4627-compliant JSON, capable of embedding into HTML.
-     *
+     * 
      * - JSON_HEX_TAG
      * - JSON_HEX_APOS
      * - JSON_HEX_AMP
      * - JSON_HEX_QUOT
-     *
-     * @param mixed $data Data to convert to JSON.
-     * @param int $status Integer status code for the response; 200 by default.
-     * @param array $headers Array of headers to use at initialization.
-     * @param int $encodingOptions JSON encoding options to use.
-     * @throws InvalidArgumentException if unable to encode the $data to JSON.
+     * 
+     * @param array   $data            json data
+     * @param array   $headers         json headers
+     * @param integer $encodingOptions json ecoding options
+     * 
+     * @return void
      */
-    public function __construct($data, $status = 200, array $headers = [], $encodingOptions = 15)
+    public function __construct($data, array $headers = [], $encodingOptions = 15)
     {
         $body = new Stream('php://temp', 'wb+');
         $body->write($this->jsonEncode($data, $encodingOptions));
 
-        $headers = $this->injectContentType('application/json', $headers);
+        $this->body = $body;
+        $this->headers = $this->injectContentType('application/json', $headers);
+    }
 
-        $this->c['response']->newInstance($body, $status, $headers);
+    /**
+     * Returns to json headers
+     * 
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
 
-        // parent::__construct($body, $status, $headers);
+    /**
+     * Returns to raw body
+     * 
+     * @return string
+     */
+    public function getBody()
+    {
+        return $this->body;
     }
 
     /**

@@ -50,8 +50,6 @@ class View
     protected $_arrayStack  = array();    // Array type view variables
     protected $_stringStack = array();    // String type view variables
     protected $_objectStack = array();    // Object type view variables
-    protected $_staticVars  = array();    // Static variables ( @BASE, @WEBHOST , @ASSETS )
-    protected $_layoutArray;              // Layouts array
 
     /**
      * Constructor
@@ -66,31 +64,26 @@ class View
         $this->c = $c;
         $this->logger = $logger;
         $this->response = $response;
-
-        $this->_staticVars = array(
-            '@BASEURL' => rtrim($config['url']['baseurl'], '/'),
-            '@WEBHOST' => rtrim($config['url']['webhost'], '/'),
-        );
         $this->logger->debug('View Class Initialized');
     }
 
     /**
      * Fetch view
      * 
-     * @param string  $obulloViewFilePath full path
-     * @param string  $obulloViewFilename filename
-     * @param string  $obulloViewData     mixed data
-     * @param boolean $obulloViewInclude  fetch as string or include
+     * @param string  $_OVpath     full path
+     * @param string  $_OVfilename filename
+     * @param string  $_OVData     mixed data
+     * @param boolean $_OVInclude  fetch as string or include
      * 
      * @return void
      */
-    public function fetch($obulloViewFilePath, $obulloViewFilename, $obulloViewData = null, $obulloViewInclude = true)
+    public function fetch($_OVpath, $_OVfilename, $_OVData = null, $_OVInclude = true)
     {
-        $obulloViewInclude = ($obulloViewData === false) ? false : $obulloViewInclude;
-        $fileExtension = substr($obulloViewFilename, strrpos($obulloViewFilename, '.')); // Detect extension ( e.g. '.tpl' )
+        $_OVInclude = ($_OVData === false) ? false : $_OVInclude;
+        $fileExtension = substr($_OVfilename, strrpos($_OVfilename, '.')); // Detect extension ( e.g. '.tpl' )
         $ext = (strpos($fileExtension, '.') === 0) ? '' : '.php';
 
-        $this->assignVariables($obulloViewData);
+        $this->assignVariables($_OVData);
 
         extract($this->_stringStack, EXTR_SKIP);
         extract($this->_arrayStack, EXTR_SKIP);
@@ -98,28 +91,27 @@ class View
         extract($this->_boolStack, EXTR_SKIP);
 
         ob_start();   // Please open short tags in your php.ini file. ( it must be short_tag = On ).
-        include $obulloViewFilePath . $obulloViewFilename . $ext;
-        $output = ob_get_clean();
-        $output = str_replace(array_keys($this->_staticVars), array_values($this->_staticVars), $output);
+        include $_OVpath . $_OVfilename . $ext;
+        $body = ob_get_clean();
         
-        if ($obulloViewData === false || $obulloViewInclude === false) {
-            return $output;
+        if ($_OVData === false || $_OVInclude === false) {
+            return $body;
         }
-        $this->response->getBody()->write($output);
+        $this->response->getBody()->write($body);
         return;
     }
 
     /**
      * Assign view variables
      * 
-     * @param array $obulloViewData view data
+     * @param array $_OVData view data
      * 
      * @return void
      */
-    protected function assignVariables($obulloViewData)
+    protected function assignVariables($_OVData)
     {
-        if (is_array($obulloViewData)) {
-            foreach ($obulloViewData as $key => $value) {
+        if (is_array($_OVData)) {
+            foreach ($_OVData as $key => $value) {
                 $this->assign($key, $value);
             }
         }
@@ -159,7 +151,7 @@ class View
             return;
         }
         if (is_string($val)) {
-            $this->parseString($key, $val);
+            $this->_stringStack[$key] = $val;
             return;
         }
         $this->_arrayStack[$key] = array();  // Create empty array
@@ -185,22 +177,6 @@ class View
         $this->_stringStack[$key] = $val;
         $this->_arrayStack = array();
         return;
-    }
-
-    /**
-     * Parse string type variables
-     * 
-     * @param string $key key
-     * @param string $val value
-     * 
-     * @return void
-     */
-    protected function parseString($key, $val)
-    {
-        $this->_stringStack[$key] = $val;
-        if (strpos($key, '@') === 0) {
-            $this->setVar($key, $val);
-        }
     }
 
     /**
@@ -275,21 +251,6 @@ class View
     public function __get($key)
     {
         return $this->c[$key];
-    }
-
-    /**
-     * Assign static variables
-     * 
-     * @param string $name    key
-     * @param string $replace value
-     * 
-     * @return void
-     */
-    protected function setVar($name, $replace)
-    {
-        $name = strtoupper($name);
-        $name = str_replace('@', '', $name);
-        $this->_staticVars['@'.$name] = $replace;
     }
 
 }

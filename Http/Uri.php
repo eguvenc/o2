@@ -3,8 +3,8 @@
 namespace Obullo\Http;
 
 use InvalidArgumentException;
+
 use Psr\Http\Message\UriInterface;
-use Obullo\Config\ConfigAwareInterface;
 
 /**
  * After modeled from Zend Diactoros
@@ -18,7 +18,7 @@ use Obullo\Config\ConfigAwareInterface;
  * state of the current instance and return a new instance that contains the
  * changed state.
  */
-class Uri implements UriInterface, ConfigAwareInterface
+class Uri implements UriInterface
 {
     /**
      * Sub-delimiters used in query strings and fragments.
@@ -658,7 +658,6 @@ class Uri implements UriInterface, ConfigAwareInterface
         return rawurlencode($matches[0]);
     }
 
-
     //------------ OBULLO METHODS ---------------//
     
     /**
@@ -691,19 +690,6 @@ class Uri implements UriInterface, ConfigAwareInterface
     }
 
     /**
-     * Set configuration object
-     * 
-     * @param object $config Obullo config
-     *
-     * @return object
-     */
-    public function setConfig($config)
-    {
-        $this->config = $config;
-        return $this;
-    }
-
-    /**
      * Obullo set uri string ( * Also used in Layer package )
      * 
      * @param string $str uri str
@@ -732,7 +718,11 @@ class Uri implements UriInterface, ConfigAwareInterface
      */
     public function getRequestUri()
     {
-        return $this->getPath().'?'.$this->getQuery();
+        $queryParams = $this->getQuery();
+        if (! empty($queryParams)) {
+            return $this->getPath().'?'.$queryParams;
+        }
+        return $this->getPath();
     }
 
     /**
@@ -797,70 +787,6 @@ class Uri implements UriInterface, ConfigAwareInterface
     public function setRoutedSegments($segments)
     {
         $this->rsegments = $segments;
-    }
-
-    /**
-     * Get Assets URL
-     * 
-     * @param string $uri    asset uri
-     * @param string $folder whether to add asset folder
-     * 
-     * @return string
-     */
-    public function getAssetsUrl($uri = '', $folder = true)
-    {
-        $assetsFolder = ($folder) ? trim($this->config['url']['assets']['folder'], '/').'/' : '';
-        return $this->config['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
-    }
-
-    /**
-     * Get Base URL
-     * 
-     * @param string $uri custom uri
-     * 
-     * @return string
-     */
-    public function getBaseUrl($uri = '')
-    {
-        return rtrim($this->config['url']['baseurl'], '/') .'/'. ltrim($uri, '/');
-    }
-
-    /**
-     * Site URL
-     *
-     * @param string $uriStr the URI string
-     * 
-     * @return string
-     */
-    public function getSiteUrl($uriStr = '')
-    {
-        if (is_array($uriStr)) {
-            $uriStr = implode('/', $uriStr);
-        }
-        if ($uriStr == '') {
-            return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
-        } 
-        return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uriStr, '/');
-    }
-
-    /**
-     * Get current url
-     *
-     * @return string
-     */
-    public function getCurrentUrl()
-    {
-        return $this->getSiteUrl($this->getUrl());
-    }
-
-    /**
-     * Get current url
-     *
-     * @return string
-     */
-    public function getWebHost()
-    {
-        return trim($this->config['url']['webhost'], '/');
     }
 
     /**

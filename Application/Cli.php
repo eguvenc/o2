@@ -86,8 +86,7 @@ class Cli extends Application
         $this->className = $this->router->fetchNameSpace();
         $this->dispatchClass();
         $this->class = new $this->className;  // Call the controller
-        $this->call();          
-        echo $this->c['output']->getOutput();
+        $this->call();
     }
 
     /**

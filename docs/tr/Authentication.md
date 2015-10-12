@@ -136,12 +136,12 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>config/auth.php</kbd> dosyası
         </tr>
         <tr>
             <td>cache[provider][driver]</td>
-            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi servis sağlayıcısına bağlanacağını belirler. Varsayılan değer "redis" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['app']->provider('x')->get(["connection" => "y"])</b> örneğinde <b>"x"</b> yerine gelen değerdir.</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi servis sağlayıcısına bağlanacağını belirler. Varsayılan değer "redis" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['x']->get(["connection" => "y"])</b> örneğinde <b>"x"</b> yerine gelen değerdir.</td>
         </tr>
 
         <tr>
             <td>cache[provider][connection]</td>
-            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi bağlantıyı kullanacağını belirler. Varsayılan değer "second" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['app']->provider('x')->get(["connection" => "y"])</b> örneğinde <b>"y"</b> yerine gelen değerdir.</td>
+            <td>Hazıfa deposu içerisinde kullanılan servis sağlayıcısının hangi bağlantıyı kullanacağını belirler. Varsayılan değer "second" değeridir. Bu konfigürasyon servis sağlayıcısı çağrıldığında <b>$c['x']->get(["connection" => "y"])</b> örneğinde <b>"y"</b> yerine gelen değerdir.</td>
         </tr>
         <tr>
             <td>cache[block][permanent][lifetime]</td>

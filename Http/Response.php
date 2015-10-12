@@ -3,6 +3,8 @@
 namespace Obullo\Http;
 
 use Closure;
+use Controller;
+
 use Obullo\Http\Response\Headers;
 use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
@@ -136,35 +138,6 @@ class Response implements ResponseInterface, ContainerAwareInterface
     }
 
     /**
-     * Constructor
-     * 
-     * @param mixed $body    Stream  identifier and/or actual stream resource
-     * @param int   $status  Status  code for the response, if any.
-     * @param array $headers Headers for the response, if any.
-     * 
-     * @throws InvalidArgumentException on any invalid element.
-     *
-     * @return object
-     */
-    public function newInstance($body = 'php://memory', $status = 200, array $headers = [])
-    {
-        return new Self($body, $status, $headers);
-    }
-
-    /**
-     * Set container object
-     * 
-     * @param object $c container
-     * 
-     * @return object
-     */
-    public function setContainer(ContainerInterface $c = null)
-    {
-        $this->c = $c;
-        return $this;
-    }
-
-    /**
     * Set HTTP Status Header
     * 
     * @param int    $code         the status code
@@ -179,6 +152,8 @@ class Response implements ResponseInterface, ContainerAwareInterface
         $new = clone $this;
         $new->statusCode   = (int) $code;
         $new->reasonPhrase = $reasonPhrase;
+
+        // Controller::$instance->response = $new;  // Refresh controller instance
         return $new;
     }
 
@@ -231,44 +206,6 @@ class Response implements ResponseInterface, ContainerAwareInterface
     }
 
     /**
-    * 404 Page Not Found Handler
-    *
-    * @param string $page page name
-    * 
-    * @return void|string
-    */
-    public function show404($page = '')
-    {
-        return $this->c['error']->show404($page);
-    }
-
-    /**
-    * Manually Set General Http Errors
-    *
-    * @param string $message message
-    * @param int    $heading heading text
-    *
-    * @return void|string
-    */
-    public function showError($message, $heading = 'An Error Was Encountered')
-    {
-        return $this->c['error']->showError($message, ($this->getStatusCode() == 200) ? 500 : $this->getStatusCode(), $heading);
-    }
-
-    /**
-     * Encode json data and set json headers.
-     * 
-     * @param array  $data    array data
-     * @param string $headers optional headers
-     * 
-     * @return string json encoded data
-     */
-    public function json(array $data, $headers = array())
-    {
-        return $this->c['output']->setResponse($this)->json($data, $headers);
-    }
-
-    /**
      * Ensure header names and values are valid.
      *
      * @param array $headers headers
@@ -282,4 +219,176 @@ class Response implements ResponseInterface, ContainerAwareInterface
             array_walk($headerValues, __NAMESPACE__ . '\HeaderSecurity::assertValid');
         }
     }
+
+    //----------- OBULLO METHODS ----------//
+    
+    /**
+     * Set container object
+     * 
+     * @param object $c container
+     * 
+     * @return object
+     */
+    public function setContainer(ContainerInterface $c = null)
+    {
+        $this->c = $c;
+        return $this;
+    }
+
+    /**
+     * Create a JSON response with the given data.
+     *
+     * Default JSON encoding is performed with the following options, which
+     * produces RFC4627-compliant JSON, capable of embedding into HTML.
+     * 
+     * - JSON_HEX_TAG
+     * - JSON_HEX_APOS
+     * - JSON_HEX_AMP
+     * - JSON_HEX_QUOT
+     * 
+     * @param array   $data            json data
+     * @param integer $status          http status code
+     * @param array   $headers         json headers
+     * @param integer $encodingOptions json ecoding options
+     * 
+     * @return void
+     */
+    public function json(array $data, $status = 200, array $headers = [], $encodingOptions = 15)
+    {
+        $this->validateStatus($status);
+        $json = new \Obullo\Http\Response\JsonResponse($data, $headers, $encodingOptions);
+
+        $this->__construct($json->getBody(), $status, $json->getHeaders());  // Invoke response
+    }
+
+    /**
+     * Create an HTML response.
+     *
+     * Produces an HTML response with a Content-Type of text/html and a default
+     * status of 200.
+     * 
+     * @param string  $html    content
+     * @param integer $status  status
+     * @param array   $headers headers
+     * 
+     * @return void
+     */
+    public function html($html, $status = 200, array $headers = [])
+    {
+        $this->validateStatus($status);
+        $html = new \Obullo\Http\Response\HtmlResponse($html, $headers);
+
+        $this->__construct($html->getBody(), $status, $html->getHeaders());  // Invoke response
+    }
+
+    /**
+     * Redirect response
+     * 
+     * @param string  $uri     uri
+     * @param integer $status  status
+     * @param array   $headers headers
+     * 
+     * @return void
+     */
+    public function redirect($uri, $status = 301, array $headers = [])
+    {
+        $this->validateStatus($status);
+        $redirect = new \Obullo\Http\Response\RedirectResponse($uri, $this->c, $headers);
+
+        $this->__construct('php://temp', $status, $redirect->getHeaders());  // Invoke response
+    }
+
+    /**
+     * Empty response
+     * 
+     * @param integer $status  status
+     * @param array   $headers headers
+     * 
+     * @return object EmptyResponse
+     */
+    public function emptyContent($status = 201, array $headers = [])
+    {
+        $this->validateStatus($status);
+        $empty = new \Obullo\Http\Response\EmptyResponse($status, $headers);
+
+        $this->__construct($empty->getBody(), $status, $empty->getHeaders());  // Invoke response
+        return $empty;
+    }
+
+    /**
+    * Manually Set General Http Errors
+    *
+    * @param string $message message
+    * @param int    $status  status
+    * @param int    $heading heading text
+    * @param array  $headers custom http headers
+    *
+    * @return void
+    */
+    public function showError($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
+    {
+        $this->showHttpError($heading, $message, 'general', $status, $headers);
+    }
+
+    /**
+     * Show custom 404 errors
+     * 
+     * @param string $page custom page
+     *
+     * @return void
+     */
+    public function show404($page = null)
+    {
+        if (empty($page)) {
+            $exp = explode("/", $this->c['request']->getUri()->getUriString());
+            $segments = array_slice($exp, 0, 4);
+            $page = implode("/", $segments);
+        }
+        $page = filter_var($page, FILTER_SANITIZE_SPECIAL_CHARS);
+        if (strlen($page) > 60) {   // Security fix
+            $page = '';
+        }
+        $this->showHttpError('404 Page Not Found', $page, '404', 404);
+
+    }
+
+    /**
+     * Get error template
+     * 
+     * @param string $heading  error header
+     * @param string $message  message string
+     * @param string $template template name
+     * 
+     * @return string
+     */
+    protected function getErrorTemplate($heading, $message, $template)
+    {
+        $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
+        $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
+        ob_start();
+        include TEMPLATES .'errors/'.$template.'.php';
+        $buffer = ob_get_clean();
+
+        return $buffer;
+    }
+
+    /**
+    * General Http Errors
+    *
+    * @param string $heading  the heading
+    * @param string $message  the message
+    * @param string $template the template name
+    * @param int    $status   header status code
+    * @param array  $headers  http headers
+    * 
+    * @return string
+    */
+    protected function showHttpError($heading, $message, $template = 'general', $status = 500, $headers = [])
+    {
+        $buffer = $this->getErrorTemplate($heading, $message, $template);
+
+        $this->html($buffer, $status, $headers);
+        $this->c['logger']->error($heading, ['message' => $message]);
+    }
+
 }

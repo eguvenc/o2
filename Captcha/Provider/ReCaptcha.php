@@ -10,27 +10,20 @@ use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
 use Obullo\Translation\TranslatorInterface;
 
-use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * Captcha ReCaptcha Adapter
- * 
+ * Captcha Recaptcha Provider
+ *
  * The new reCAPTCHA is here. A significant number of your users can now attest they are human without having to solve a CAPTCHA 
  * Insteadwith just a single click they’ll confirm they are not a robot. We’re calling it the No CAPTCHA reCAPTCHA experience.
  * You can follow label to "@see" for more details.
- *
- * @category  Captcha
- * @package   ReCaptcha
- * @author    Ali Ihsan Caglayan <ihsancaglayan@gmail.com>
- * @author    Ersin Guvenc <eguvenc@gmail.com>
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/captcha
- * @see       https://www.google.com/recaptcha/intro/index.html
  */
-class ReCaptcha extends AbstractAdapter implements AdapterInterface
+class ReCaptcha extends AbstractProvider implements AdapterInterface
 {
     /**
      * Api data
@@ -84,10 +77,16 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     protected $errorCodes = array();
 
     /**
+     * Service parameters
+     * 
+     * @var array
+     */
+    protected $params = array();
+
+    /**
      * Constructor
      *
      * @param object $c          \Obullo\Container\ContainerInterface
-     * @param object $uri        \Psr\Http\Message\UriInterface
      * @param object $request    \Psr\Http\Message\RequestInterface
      * @param object $translator \Obullo\Translation\TranslatorInterface
      * @param object $logger     \Obullo\Log\LoggerInterface
@@ -95,15 +94,13 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function __construct(
         ContainerInterface $c,
-        UriInterface $uri,
         RequestInterface $request,
         TranslatorInterface $translator,
         LoggerInterface $logger,
         array $params
     ) {
         $this->c = $c;
-        $this->config = $params;
-        $this->uri = $uri;
+        $this->params = $params;
         $this->request = $request;
         $this->translator = $translator;
         $this->translator->load('captcha');
@@ -120,13 +117,29 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Set captcha parameters
+     * 
+     * @param array $params parameters
+     *
+     * @return $this
+     */
+    public function setParameters($params = array())
+    {
+        if (count($params) > 0) {
+            foreach ($params as $method => $arg) {
+                $this->{$method}($arg);
+            }
+        }
+    }
+
+    /**
      * Initialize
      * 
      * @return void
      */
     public function init()
     {
-        if ($this->config['user']['autoSendIp']) {
+        if ($this->params['user']['autoSendIp']) {
             $this->setUserIp($this->request->getIpAddress());
         }
         $this->buildHtml();
@@ -141,7 +154,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setSiteKey($siteKey)
     {
-        $this->config['api']['key']['site'] = $siteKey;
+        $this->params['api']['key']['site'] = $siteKey;
         return $this;
     }
 
@@ -154,7 +167,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setSecretKey($secretKey)
     {
-        $this->config['api']['key']['secret'] = $secretKey;
+        $this->params['api']['key']['secret'] = $secretKey;
         return $this;
     }
 
@@ -167,7 +180,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function setLang($lang)
     {
-        $this->config['locale']['lang'] = $lang;
+        $this->params['locale']['lang'] = $lang;
         return $this;
     }
 
@@ -201,7 +214,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getSiteKey()
     {
-        return $this->config['api']['key']['site'];
+        return $this->params['api']['key']['site'];
     }
 
     /**
@@ -211,7 +224,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getSecretKey()
     {
-        return $this->config['api']['key']['secret'];
+        return $this->params['api']['key']['secret'];
     }
 
     /**
@@ -221,7 +234,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getLang()
     {
-        return $this->config['locale']['lang'];
+        return $this->params['locale']['lang'];
     }
 
     /**
@@ -231,7 +244,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     public function getInputName()
     {
-        return $this->config['form']['input']['attributes']['name'];
+        return $this->params['form']['input']['attributes']['name'];
     }
 
     /**
@@ -336,8 +349,8 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
      */
     protected function buildHtml()
     {
-        unset($this->config['form']['validation']);
-        foreach ($this->config['form'] as $key => $val) {
+        unset($this->params['form']['validation']);
+        foreach ($this->params['form'] as $key => $val) {
             $this->html .= vsprintf(
                 '<%s %s/>',
                 array(
@@ -380,7 +393,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
         $rules = 'required';
         $post  = $this->request->isPost();
 
-        if ($this->config['form']['validation']['callback'] && $post) {  // Add callback if we have http post
+        if ($this->params['form']['validation']['callback'] && $post) {  // Add callback if we have http post
             $rules.= '|callback_captcha';  // Add callback validation rule
             $self = $this;
             $this->c['validator']->func(
@@ -396,7 +409,7 @@ class ReCaptcha extends AbstractAdapter implements AdapterInterface
         }
         if ($post) {
             $this->c['validator']->setRules(
-                $this->config['form']['input']['attributes']['name'],
+                $this->params['form']['input']['attributes']['name'],
                 $label,
                 $rules
             );

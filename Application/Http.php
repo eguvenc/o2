@@ -24,9 +24,9 @@ class Http extends Application
 {
     protected $class;                     // Current controller
     protected $method;                    // Current method
+    protected $response;                  // App response
     protected $websocket;                 // Debugger websocket
     protected $className;                 // Current controller name
-    protected $finalOutput = null;        // Final html output
     protected $middleware = array();      // Middleware objects
     protected $middlewareNames = array(); // Middleware names
 
@@ -108,8 +108,7 @@ class Http extends Application
      */
     public function run()
     {
-        $this->init();   
-
+        $this->init();
         if ($this->c['config']['http']['debugger']['enabled']) {
             $this->websocket = new WebSocket(
                 $this->c['app'],
@@ -135,6 +134,8 @@ class Http extends Application
             $invoke();
         }
         $middleware->call();
+
+        return Controller::$instance->response;
     }
 
     /**
@@ -217,16 +218,12 @@ class Http extends Application
      */
     public function call()
     {
-        ob_start();
         call_user_func_array(
             array(
                 $this->class,
                 $this->c['router']->fetchMethod()),
             array_slice($this->class->uri->getRoutedSegments(), 3)
         );
-        $this->finalOutput = ob_get_clean();
-        
-        $this->c['response']->getBody()->write($this->finalOutput);
     }
 
     /**

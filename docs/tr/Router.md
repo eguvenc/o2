@@ -393,7 +393,7 @@ $c['router']->get(
     'shop/{id}/{name}', null,
     function ($id, $name) use ($c) {
         
-        $db = $c['app']->provider('database')->get(['connection' => 'default']);
+        $db = $c['database']->get(['connection' => 'default']);
         $db->prepare('SELECT * FROM products WHERE id = ?');
         $db->bindValue(1, $id, PARAM_INT);
         $db->execute();

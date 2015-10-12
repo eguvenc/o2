@@ -61,17 +61,3 @@ $c['app'] = function () use ($c, $env) {
 };
 
 require APP .'components.php';
-
-// /**
-//  * Http request
-//  */
-// $c['request'] = function () use ($c) {
-//     return ServerRequestFactory::fromGlobals(
-//         null,
-//         null,
-//         null,
-//         null,
-//         null,
-//         $c['config']->base()
-//     );
-// };

@@ -271,7 +271,7 @@ Veritabanı servis sağlayıcısı <kbd>Obullo/Service/Providers/DatabaseService
 
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -279,7 +279,7 @@ $c['app']->register(
 );
 ```
 
-Eğer başka bir servis sağlayıcı kullanamk istityorsanız <kbd>app/providers.php</kbd> dosyasından database anahtarına ait isimalanı değerini yeni servis sağlayıcınız ile değiştirin.
+Eğer başka bir servis sağlayıcı kullanamk istityorsanız <kbd>app/components.php</kbd> dosyasından database anahtarına ait isimalanı değerini yeni servis sağlayıcınız ile değiştirin.
 
 
 <a name='getting-existing-connection'></a>

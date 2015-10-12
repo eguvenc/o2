@@ -49,7 +49,7 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
         <li><a href="#get-methods-envArray">$c['app']->envArray()</a></li>
         <li><a href="#get-methods-envPath">$c['app']->envPath()</a></li>
         <li><a href="#get-methods-version">$c['app']->version()</a></li>
-        <li><a href="#get-methods-provider">$c['app']->provider()</a></li>
+        <li><a href="#get-methods-provider">$c['provider']</a></li>
         <li><a href="#get-methods-x">$c['app']->x()</a></li>
     </ul>
 </li>
@@ -57,7 +57,7 @@ Uygulama sınıfı, ortam değişkenine ulaşmak, servis sağlayıcı veya middl
 <li>
     <a href="#set-methods">Set Metotları</a>
     <ul>
-        <li><a href="#set-methods-register">$c['app']->register()</a></li>
+        <li><a href="#set-methods-register">$c['app']->provider()</a></li>
         <li><a href="#set-methods-middleware">$c['app']->middleware()</a></li>
         <li><a href="#set-methods-remove">$c['app']->remove()</a></li>
     </ul>
@@ -408,9 +408,9 @@ Servis sağlayıcılarının tam olarak ne olduğu hakkında daha detaylı bilgi
 
 #### Servis Sağlayıcılarını Tanımlamak
 
-Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımlama sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
+Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/components.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımlama sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
 
-Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
+Servis sağlayıcıları <kbd>app/components.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
 
 ```php
 /*
@@ -418,7 +418,7 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 | Register application service providers
 |--------------------------------------------------------------------------
 */
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -556,13 +556,13 @@ $c['app']->version(); // Çıktı  2.1
 
 <a name="get-methods-provider"></a>
 
-##### $c['app']->provider($name)->x();
+##### $c['$provider']->x();
 
 ```php
-$this->db = $c['app']->provider('database')->get(['connection' => 'default']);
+$this->db = $c['database']->get(['connection' => 'default']);
 ```
 
-Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
+Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/components.php</kbd> dosyası içerisine kaydedilir.
 
 
 <a name="get-methods-x"></a>
@@ -576,7 +576,8 @@ $this->c['app']->test();  // Contoller sınıfı içerisindeki test metodunu ça
 ```
 
 ##### $this->c['app']->uri->x();
-Layer.md) paketi ) isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
+
+Layer paketi isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
 
 ```php
 $this->c['app']->uri->getUriString();
@@ -598,12 +599,12 @@ Set türündeki metotlar uygulama sınıfındaki varolan değişkenlere yeni de�
 
 <a name="set-methods-register"></a>
 
-##### $this->c['app']->register(array $provider);
+##### $this->c['app']->provider(array $provider);
 
 <kbd>app/routes.php</kbd> dosyası içerisinde servis sağlayıcısı tanımlanmasını sağlar.
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         // 'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -665,7 +666,7 @@ Uygulamada kullanılan evrensel <b>uri</b> nesnesine geri dönerek bu nesnenin m
 
 ##### $this->c['app']->register(array $providers);
 
-<kbd>.app/providers.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
+<kbd>.app/components.php</kbd> dosyasında servis sağlayıcılarını uygulamaya tanımlamak için kullanılır. Uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcıların önce bu dosyada tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır.
 
 ##### $this->c['app']->hasService(string $name)
 
@@ -673,11 +674,11 @@ Bir servis <kbd>app/classes/Service</kbd> klasöründe mevcut ise <b>true</b> de
 
 ##### $this->c['app']->hasProvider(string $provider)
 
-Bir servis sağlayıcısı <kbd>app/providers.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
+Bir servis sağlayıcısı <kbd>app/components.php</kbd> dosyasında kayıtlı ise <b>true</b> değilse <b>false</b> değerine geri döner.
 
 ##### $this->c['app']->provider(string $name)->get(array $params);
 
-Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/providers.php</kbd> dosyası içerisine kaydedilir.
+Uygulamaya tanımlanmış servis sağlayıcısı nesnesine geri döner. Tanımlı servis sağlayıcıları <kbd>app/components.php</kbd> dosyası içerisine kaydedilir.
 
 ##### $this->c['app']->version();
 

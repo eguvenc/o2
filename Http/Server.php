@@ -16,8 +16,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 class Server
 {
-    private $c;
-
     /**
      * @var callable
      */
@@ -50,12 +48,10 @@ class Server
      * @param ResponseInterface $response
      */
     public function __construct(
-        ContainerInterface $c,
         callable $callback,
         ServerRequestInterface $request,
         ResponseInterface $response
     ) {
-        $this->c = $c;
         $this->callback = $callback;
         $this->request  = $request;
         $this->response = $response;
@@ -99,7 +95,6 @@ class Server
      * - files; typically this will be the $_FILES superglobal
      *
      * @param callable $callback
-     * @param object $c
      * @param array $server
      * @param array $query
      * @param array $body
@@ -109,13 +104,13 @@ class Server
      */
     public static function createServer(
         callable $callback,
-        ContainerInterface $c,
         array $server,
         array $query,
         array $body,
         array $cookies,
         array $files
     ) {
+        global $c;
         $request  = ServerRequestFactory::fromGlobals($server, $query, $body, $cookies, $files);
         $response = new Response();
 
@@ -128,11 +123,12 @@ class Server
             return $uri;
         };
         $response->setContainer($c);
-
         $c['response'] = function () use ($response) {
             return $response;
-        };        
-        return new static($c, $callback, $request, $response);
+        };
+        $response = $c['app']->run();
+
+        return new static($callback, $request, $response);
     }
 
     /**
@@ -143,14 +139,12 @@ class Server
      *
      * If no Response object is provided, one will be created.
      *
-     * @param null|ContainerInterface $c
      * @param callable $callback
      * @param ServerRequestInterface $request
      * @param null|ResponseInterface $response
      * @return static
      */
     public static function createServerFromRequest(
-        ContainerInterface $c,
         callable $callback,
         ServerRequestInterface $request,
         ResponseInterface $response = null
@@ -158,7 +152,7 @@ class Server
         if (! $response) {
             $response = new Response();
         }
-        return new static($c, $callback, $request, $response);
+        return new static($callback, $request, $response);
     }
 
     /**
@@ -180,7 +174,7 @@ class Server
         ob_start();
         $bufferLevel = ob_get_level();
 
-        $response = $callback($this->c, $this->request, $this->response, $finalHandler);
+        $response = $callback($this->request, $this->response, $finalHandler);
         if (! $response instanceof ResponseInterface) {
             $response = $this->response;
         }

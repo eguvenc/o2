@@ -8,6 +8,7 @@ use Obullo\Captcha\AbstractProvider;
 use Obullo\Captcha\ProviderInterface;
 
 use Obullo\Log\LoggerInterface;
+use Obullo\Url\UrlInterface;
 use Obullo\Session\SessionInterface;
 use Obullo\Container\ContainerInterface;
 use Obullo\Translation\TranslatorInterface;
@@ -18,17 +19,14 @@ use Psr\Http\Message\RequestInterface;
 /**
  * Captcha Image Provider
  * 
- * @category  Captcha
- * @package   Image
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/captcha
  */
 class Image extends AbstractProvider implements ProviderInterface
 {
     protected $c;
-    protected $uri;
+    protected $url;
     protected $request;
     protected $session;
     protected $logger;
@@ -58,7 +56,7 @@ class Image extends AbstractProvider implements ProviderInterface
      * Constructor
      *
      * @param object $c          \Obullo\Container\ContainerInterface
-     * @param object $uri        \Psr\Http\Message\UriInterface
+     * @param object $url        \Obullo\Url\UrlInterface
      * @param object $request    \Psr\Http\Message\RequestInterface
      * @param object $session    \Obullo\Session\SessionInterface
      * @param object $translator \Obullo\Translation\TranslatorInterface
@@ -67,7 +65,7 @@ class Image extends AbstractProvider implements ProviderInterface
      */
     public function __construct(
         ContainerInterface $c,
-        UriInterface $uri,
+        UrlInterface $url,
         RequestInterface $request,
         SessionInterface $session,
         TranslatorInterface $translator,
@@ -75,7 +73,7 @@ class Image extends AbstractProvider implements ProviderInterface
         array $params
     ) {
         $this->c = $c;
-        $this->uri = $uri;
+        $this->url = $url;
         $this->request = $request;
         $this->config = $params;
         $this->logger = $logger;
@@ -88,6 +86,22 @@ class Image extends AbstractProvider implements ProviderInterface
     }
 
     /**
+     * Set captcha parameters
+     * 
+     * @param array $params parameters
+     *
+     * @return $this
+     */
+    public function setParameters($params = array())
+    {
+        if (count($params) > 0) {
+            foreach ($params as $method => $arg) {
+                $this->{$method}($arg);
+            }
+        }
+    }
+
+    /**
      * Initialize
      * 
      * @return void
@@ -96,7 +110,7 @@ class Image extends AbstractProvider implements ProviderInterface
     {
         $this->buildHtml();
         $this->fonts = array_keys($this->config['fonts']);
-        $this->imageUrl = $this->uri->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( / )
+        $this->imageUrl = $this->url->getSiteUrl($this->config['form']['img']['attributes']['src']); // add Directory Seperator ( / )
         $this->configFontPath  = ROOT . $this->config['font']['path'] . '/';
         $this->defaultFontPath = OBULLO . 'Captcha/Fonts/';
     }

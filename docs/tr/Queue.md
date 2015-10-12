@@ -183,10 +183,10 @@ Mevcut Kuyruk Sınıfları
 
 #### Servis Sağlayıcı Konfigürasyonu
 
-Servis ayarlarında tanımladığınız servis sağlayıcısının <kbd>app/providers.php</kbd> içerisinden tanımlı olması gerekir.
+Servis ayarlarında tanımladığınız servis sağlayıcısının <kbd>app/components.php</kbd> içerisinden tanımlı olması gerekir.
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         'database' => 'Obullo\Service\Provider\Database',
         // 'database' => 'Obullo\Service\Provider\DoctrineDBAL',
@@ -928,7 +928,7 @@ Cloudamqp.com web panelinden aldığınız bilgileri <kbd>app/config/$env/queue.
 CloudAMQP şuanda PECl Amqp sağlayıcısını desteklemiyor bu yüzden cloudamqp ile sorunsuz çalışabilmek için AmqpLib servis sağlayıcısını aşağıdaki aktif edin.
 
 ```php
-$c['app']->register(
+$c['app']->provider(
     [
         .
         // 'amqp' => 'Obullo\Service\Provider\Amqp',

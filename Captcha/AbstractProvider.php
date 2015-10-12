@@ -5,14 +5,11 @@ namespace Obullo\Captcha;
 use Obullo\Captcha\CaptchaResult;
 
 /**
- * Captcha abstract class.
+ * Captcha Abstract Class
  * 
- * @category  Captcha
- * @package   AbstractAdapter
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/captcha
  */
 abstract class AbstractProvider
 {

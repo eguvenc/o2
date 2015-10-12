@@ -73,7 +73,6 @@ class ServerRequest implements ServerRequestInterface
      * @param null|string $method HTTP method for the request, if any.
      * @param string|resource|StreamInterface $body Message body, if any.
      * @param array $headers Headers for the message, if any.
-     * @param array $config obullo config
      * @throws InvalidArgumentException for any invalid value.
      */
     public function __construct(
@@ -82,13 +81,12 @@ class ServerRequest implements ServerRequestInterface
         $uri = null,
         $method = null,
         $body = 'php://input',
-        array $headers = [],
-        array $config = null
+        array $headers = []
     ) {
         $this->validateUploadedFiles($uploadedFiles);
 
         $this->body = $this->getStream($body);
-        $this->initialize($uri, $method, $body, $headers, $config);
+        $this->initialize($uri, $method, $body, $headers);
         $this->serverParams  = $serverParams;
         $this->uploadedFiles = $uploadedFiles;
     }
@@ -366,6 +364,19 @@ class ServerRequest implements ServerRequestInterface
     //----------------- OBULLO METHODS -------------------//
 
     /**
+     * Set container
+     * 
+     * @param ContainerInterface $c container
+     *
+     * @return object
+     */
+    public function setContainer(ContainerInterface $c)
+    {
+        $this->c = $c;
+        return $this;
+    }
+
+    /**
      * This method borrowed from slim framework
      * 
      * Get request content type.
@@ -489,7 +500,6 @@ class ServerRequest implements ServerRequestInterface
         } elseif (isset($getParams[$key])) {
             $result = $getParams[$key];
         }
-
         return $result;
     }
 
@@ -567,7 +577,6 @@ class ServerRequest implements ServerRequestInterface
         return $ipAddress;
     }
 
-    
     /**
      * Validate IP adresss
      * 

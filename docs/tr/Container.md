@@ -237,9 +237,9 @@ Bir servis sağlayıcısı sınıfı yanlış yazılmış yada yapılandırılm�
 
 ### Servis Sağlayıcılarını Tanımlamak
 
-Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/providers.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
+Servis sağlayıcıları servislerden farklı olarak uygulama sınıfı içerisinden tanımlanırlar ve uygulamanın çoğu yerinde sıklıkla kullanılan servis sağlayıcılarının önce <kbd>app/components.php</kbd> dosyasında tanımlı olmaları gerekir. Tanımla sıralamasında öncelik önemlidir uygulamada ilk yüklenenen servis sağlayıcıları her zaman en üstte tanımlanmalıdır. Örneğin logger servis sağlayıcısı uygulama ilk yüklendiğinde en başta log servisi tarafından kullanıldığından bu servis sağlayıcısının her zaman en tepede ilan edilmesi gerekir.
 
-Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
+Servis sağlayıcıları <kbd>app/components.php</kbd> dosyasına aşağıdaki gibi tanımlanırlar.
 
 ```php
 /*
@@ -247,7 +247,7 @@ Servis sağlayıcıları <kbd>app/providers.php</kbd> dosyasına aşağıdaki gi
 | Register application service providers
 |--------------------------------------------------------------------------
 */
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         'database' => 'Obullo\Service\Provider\DatabaseServiceProvider',
@@ -268,7 +268,7 @@ Bir servis sağlayıcısı <b>$c['app']</b> sınıfının <b>provider()</b> meto
 
 
 ```php
-$this->cache = $this->c['app']->provider('cache')->get(
+$this->cache = $this->c['cache']->get(
     [
         'driver' => 'redis',
         'connection' => 'default'
@@ -284,11 +284,11 @@ return array(
     'connections' => 
     [
         'default' => [
-            'host' => $c['var']['REDIS_HOST'],
+            'host' => '127.0.0.1',
             'port' => 6379,
             'options' => [
                 'persistent' => false,
-                'auth' => $c['var']['REDIS_AUTH'],
+                'auth' => '123456',
                 'timeout' => 30,
                 'attempt' => 100,
                 'serializer' => 'none',
@@ -445,7 +445,7 @@ class Cache extends AbstractProvider implements ServiceProviderInterface
 /* Location: .app/classes/Service/Providers/Cache.php */
 ```
 
-Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyası içerisine eklediğinizde artık servis sağlayıcınız uygulama içerisinden çalışmaya başlayacaktır.
+Servis sağlayıcısını aşağıdaki gibi <kbd>.app/components.php</kbd> dosyası içerisine eklediğinizde artık servis sağlayıcınız uygulama içerisinden çalışmaya başlayacaktır.
 
 ```php
 /*
@@ -453,14 +453,14 @@ Servis sağlayıcısını aşağıdaki gibi <kbd>.app/providers.php</kbd> dosyas
 | Cache Service Provider
 |--------------------------------------------------------------------------
 */
-$c['app']->register(
+$c['app']->provider(
     [
         'logger' => 'Obullo\Service\Provider\LoggerServiceProvider',
         'cache' => 'Service\Providers\CacheServiceProvider'
     ]
 );
 
-/* Location: .app/providers.php */
+/* Location: .app/components.php */
 ```
 
 <a name="application-doc"></a>

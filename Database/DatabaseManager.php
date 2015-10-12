@@ -3,18 +3,16 @@
 namespace Obullo\Database;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Container\ServiceInterface;
 
 /**
- * DatabaseManager Class
+ * Database Service Manager
  * 
- * @category  Manager
- * @package   DatabaseManager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/database
  */
-class DatabaseManager
+class DatabaseManager implements ServiceInterface
 {
     /**
      * Container class
@@ -24,45 +22,35 @@ class DatabaseManager
     protected $c;
 
     /**
-     * Service Parameters
+     * Constructor
      * 
-     * @var array
+     * @param ContainerInterface $c      container
+     * @param array              $params service parameters
      */
-    protected $params;
-
-    /**
-     * Create classes
-     * 
-     * @param object $c container
-     * 
-     * @return object
-     */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
+        $this->c['db.params'] = array_merge($params, $c['config']->load('database'));
     }
 
     /**
-     * Set parameters
+     * Register
      * 
-     * @param array $params parameters
-     *
-     * @return void
+     * @return object logger
      */
-    public function setParameters(array $params)
+    public function register()
     {
-        $this->params = $params;
+        $this->c['db'] = function () {
+
+            $name = $this->c['db.params']['provider']['name'];
+            $params = $this->c['db.params']['provider']['params'];
+
+            return $this->c[$name]->get(
+                [
+                    $params
+                ]
+            );
+        };
     }
 
-    /**
-     * Returns to selected db handler object
-     * 
-     * @return object
-     */
-    public function getClass()
-    {
-        return $this->c['app']
-            ->provider($this->params['provider']['name'])
-            ->get($this->params['provider']['params']);
-    }
 }
