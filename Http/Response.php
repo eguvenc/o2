@@ -4,6 +4,7 @@ namespace Obullo\Http;
 
 use Closure;
 use Controller;
+use InvalidArgumentException;
 
 use Obullo\Http\Response\Headers;
 use Obullo\Config\ConfigInterface;
@@ -316,6 +317,25 @@ class Response implements ResponseInterface, ContainerAwareInterface
     }
 
     /**
+     * Custom response
+     * 
+     * @param string  $class   class name
+     * @param mixed   $data    custom data
+     * @param integer $status  http code
+     * @param array   $headers http headers
+     * 
+     * @return object
+     */
+    public function custom($class = '', $data = null, $status = 200, array $headers = [])
+    {
+        $Class = '\Obullo\Http\Response\\'.ucfirst($class);
+        $custom = new $Class($data, $status, $headers);
+
+        $this->__construct($custom->getBody(), $status, $custom->getHeaders());  // Invoke response
+        return $custom;
+    }
+
+    /**
     * Manually Set General Http Errors
     *
     * @param string $message message
@@ -325,9 +345,9 @@ class Response implements ResponseInterface, ContainerAwareInterface
     *
     * @return void
     */
-    public function showError($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
+    public function error($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
     {
-        $this->showHttpError($heading, $message, 'general', $status, $headers);
+        $this->httpError($heading, $message, 'general', $status, $headers);
     }
 
     /**
@@ -337,10 +357,10 @@ class Response implements ResponseInterface, ContainerAwareInterface
      *
      * @return void
      */
-    public function show404($page = null)
+    public function error404($page = null)
     {
         if (empty($page)) {
-            $exp = explode("/", $this->c['request']->getUri()->getUriString());
+            $exp = explode("/", $this->c['app']->uri->getUriString());
             $segments = array_slice($exp, 0, 4);
             $page = implode("/", $segments);
         }
@@ -348,7 +368,7 @@ class Response implements ResponseInterface, ContainerAwareInterface
         if (strlen($page) > 60) {   // Security fix
             $page = '';
         }
-        $this->showHttpError('404 Page Not Found', $page, '404', 404);
+        $this->httpError('404 Page Not Found', $page, '404', 404);
 
     }
 
@@ -383,11 +403,12 @@ class Response implements ResponseInterface, ContainerAwareInterface
     * 
     * @return string
     */
-    protected function showHttpError($heading, $message, $template = 'general', $status = 500, $headers = [])
+    protected function httpError($heading, $message, $template = 'general', $status = 500, $headers = [])
     {
         $buffer = $this->getErrorTemplate($heading, $message, $template);
 
         $this->html($buffer, $status, $headers);
+
         $this->c['logger']->error($heading, ['message' => $message]);
     }
 

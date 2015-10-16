@@ -30,7 +30,10 @@ class LogManager implements ServiceInterface
     public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
-        $this->c['logger.params'] = array_merge($params, $c['config']->load('logger'));
+        
+        if ($this->c['config']['log']['enabled']) {
+            $this->c['logger.params'] = array_merge($params, $c['config']->load('logger'));
+        }
     }
 
     /**

@@ -12,17 +12,15 @@ use Obullo\Queue\JobHandler\AmqpLibJob;
 use Obullo\Container\ServiceProviderInterface;
 
 /**
- * AMQP Handler for Composer package "videlalvaro/php-amqplib"
+ * For COMPOSER package videlalvaro/php-amqplib
+ */
+
+/**
+ * AmqpLib Handler
  * 
- * @category  Queue
- * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/queue
- * @see       http://www.php.net/manual/pl/book.amqp.php
- * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
 class AmqpLib implements QueueInterface
 {

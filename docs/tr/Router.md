@@ -356,7 +356,7 @@ Eğer girilen bölümleri fonksiyon içerisinden belirli kriterlere göre parame
 $c['router']->get(
     'welcome/index/{id}/{name}', null,
     function ($id, $name) use ($c) {
-        $c['response']->showError($id.'-'.$name);
+        $c['response']->error($id.'-'.$name);
     }
 )->where(['id' => '([0-9]+)', 'name' => '([a-z]+)']);
 ```
@@ -399,7 +399,7 @@ $c['router']->get(
         $db->execute();
 
         if ($db->row() == false) {
-            $c['response']->showError(
+            $c['response']->error(
                 sprintf(
                   'The product %s not found',
                   $name

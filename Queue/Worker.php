@@ -13,16 +13,11 @@ use Obullo\Config\ConfigInterface;
 use Obullo\Application\Application;
 
 /**
- * Queue Worker Class
- *
- * Worker consumes queue data and do jobs using your job handler class
+ * Queue Worker
  * 
- * @category  Queue
- * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/queue
  */
 class Worker
 {

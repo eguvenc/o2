@@ -2,86 +2,174 @@
 
 namespace Obullo\Application;
 
-use LogicException;
+use RuntimeException;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Abstract Middleware
+ * Middleware
  * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-abstract class Middleware
+class Middleware
 {
-    /**
-     * Reference to the next downstream middleware
-     * 
-     * @var mixed
-     */
-    protected $next;
-
     /**
      * Container
      * 
      * @var object
      */
-    private $__container;
+    protected $c;
 
     /**
-     * Container
+     * Count
      * 
-     * @param string $key key
-     * 
-     * @return object
+     * @var integer
      */
-    public function __get($key)
-    {   
-        if ($this->__container == null) {
-            global $c;
-            $this->__container = &$c;
-        }
-        if ($key == 'c') {
-            return $this->__container;
-        }
-        return $this->__container[$key];
+    protected $count;
+
+    /**
+     * Middleware stack
+     * 
+     * @var array
+     */
+    protected $middlewares = array();
+
+    /**
+     * Registered middlewares
+     * 
+     * @var array
+     */
+    protected $registered = array();
+
+    /**
+     * Names
+     * 
+     * @var array
+     */
+    protected $names;
+
+    /**
+     * Constructor
+     * 
+     * @param ContainerInterface $c container
+     */
+    public function __construct(ContainerInterface $c)
+    {
+        $this->c = $c;
     }
 
     /**
-     * Set next middleware
-     *
-     * This method injects the next downstream middleware into
-     * this middleware so that it may optionally be called
-     * when appropriate.
-     *
-     * @param Http\Middleware $next next middleware
-     *
+     * Register application middlewares
+     * 
+     * @param array $array middlewares
+     * 
+     * @return object Middleware
+     */
+    public function configure(array $array)
+    {
+        $this->registered = $array;
+
+        $this->add('Begin');  // Add first middleware
+        return $this;
+    }
+
+    /**
+     * Add middleware
+     * 
+     * @param string|array $name middleware key
+     * 
+     * @return object Middleware
+     */
+    public function add($name)
+    {
+        if (is_string($name)) {
+            return $this->resolveMiddleware($name);
+        } elseif (is_array($name)) { 
+            foreach ($name as $key) {
+                $this->resolveMiddleware($key);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Resolve middleware
+     * 
+     * @param string $name middleware key
+     * 
+     * @return object mixed
+     */
+    protected function resolveMiddleware($name)
+    {
+        $this->validateMiddleware($name);
+        $Class = $this->registered[$name];
+        ++$this->count;
+        $this->names[$name] = $this->count;
+        return $this->middlewares[$this->count] = $this->c['dependency']->resolveDependencies($name, $Class);  // Store middlewares
+    }
+
+    /**
+     * Removes middleware
+     * 
+     * @param string|array $name middleware key
+     * 
      * @return void
      */
-    final public function setNextMiddleware($next)
+    public function remove($name)
     {
-        $this->next = $next;
+        if (is_string($name)) {
+            $this->validateMiddleware($name);
+            $index = $this->middlewaresNames[$name];
+            unset($this->middlewares[$index], $this->names[$name]);
+            --$this->count;
+        }
+        if (is_array($name)) {
+            foreach ($name as $key) {
+                $this->remove($key);
+            }
+        }
     }
 
     /**
-     * Get next middleware
-     *
-     * This method retrieves the next downstream middleware
-     * previously injected into this middleware.
-     *
-     * @return \Http\Middleware
-     */
-    final public function getNextMiddleware()
-    {
-        return $this->next;
-    }
-    
-    /**
-     * Perform actions specific to this middleware and optionally
-     * call the next downstream middleware.
+     * Validate middleware
+     * 
+     * @param string $name middleware
      * 
      * @return void
      */
-    abstract public function call();
+    protected function validateMiddleware($name)
+    {
+        if (! isset($this->registered[$name])) {
+            throw new RuntimeException(
+                sprintf(
+                    'Middleware "%s" is not registered in middlewares.php',
+                    $name
+                )
+            );
+        }
+    }
+
+    /**
+     * Returns to all middleware objects
+     * 
+     * @return array
+     */
+    public function getValues()
+    {
+        $this->add('Finalize'); // Add last middleware
+
+        return array_values($this->middlewares);
+    }
+
+    /**
+     * Returns to all middleware names
+     * 
+     * @return array
+     */
+    public function getNames()
+    {
+        return array_keys($this->names);
+    }
 
 }

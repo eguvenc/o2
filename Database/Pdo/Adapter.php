@@ -10,16 +10,13 @@ use RuntimeException;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\SQLLoggerInterface;
 use Obullo\Container\ServiceProviderInterface;
-    
+
 /**
  * Adapter Class
  * 
- * @category  Database
- * @package   Adapter
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/database
  */
 class Adapter
 {

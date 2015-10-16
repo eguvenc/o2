@@ -1,18 +1,19 @@
 <?php
 
-namespace Obullo\Captcha;
+namespace Obullo\Queue;
 
-use Obullo\Captcha\Provider\ReCaptcha;
 use Obullo\Container\ContainerInterface;
+use Obullo\Container\ServiceInterface;
+use Obullo\Queue\Handler\Amqp;
 
 /**
- * ReCaptchaManager Class
+ * Queue Service Manager
  * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class RecaptchaManager implements ServiceInterface
+class QueueManagerAmqp implements ServiceInterface
 {
     /**
      * Container class
@@ -20,13 +21,6 @@ class RecaptchaManager implements ServiceInterface
      * @var object
      */
     protected $c;
-
-    /**
-     * Service parameters
-     * 
-     * @var array
-     */
-    protected $params;
 
     /**
      * Constructor
@@ -37,7 +31,7 @@ class RecaptchaManager implements ServiceInterface
     public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
-        $this->params = $params;
+        $this->c['queue.params'] = array_merge($params, $c['config']->load('queue'));
     }
 
     /**
@@ -47,19 +41,18 @@ class RecaptchaManager implements ServiceInterface
      */
     public function register()
     {
-        $this->c['recaptcha'] = function () {
+        $this->c['queue'] = function () {
 
-            $this->c['recaptcha.params'] = array_merge($this->params, $this->c['config']->load('captcha/recaptcha'));
+            $name = $this->c['queue.params']['provider']['name'];
+            $params = $this->c['queue.params']['provider']['params'];
 
-            return new ReCaptcha(
-                $this->c,
-                $this->c['request'],
-                $this->c['translator'],
-                $this->c['logger'],
-                $this->params
+            return new Amqp(
+                $this->c['config'],
+                $this->c[$name],
+                $params
             );
-        };
 
+        };
     }
 
 }

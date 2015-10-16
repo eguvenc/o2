@@ -9,19 +9,18 @@ use Obullo\Session\SessionInterface;
 use Psr\Http\Message\RequestInterface;
 
 /**
- * Csrf Class
- *
- * About csrf protection
- *
- * http://shiflett.org/articles/cross-site-request-forgeries
- * http://blog.beheist.com/csrf-protection-in-codeigniter-2-0-a-closer-look/
+ * ABOUT CSRF
  * 
- * @category  Security
- * @package   Csrf
+ * @see http://shiflett.org/articles/cross-site-request-forgeries
+ * @see http://blog.beheist.com/csrf-protection-in-codeigniter-2-0-a-closer-look/
+ */
+
+/**
+ * Csrf Class
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/security
  */
 class Csrf 
 {

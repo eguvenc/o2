@@ -2,12 +2,11 @@
 
 use Obullo\Container\Loader;
 use Obullo\Container\Container;
+use Obullo\Container\Dependency;
 use Obullo\Container\ContainerInterface;
 
 use Obullo\Config\Config;
 use Obullo\Application\Http;
-use Obullo\Http\ServerRequestFactory;
-use Obullo\Http\Response;
 
 /**
  * Detect environment
@@ -39,7 +38,8 @@ $env = $detectEnvironment();
  * 
  * @var object
  */
-$c = new Container(new Loader("app/".$env."/service", LOADER)); // Bind services to container
+$c = new Container(new Loader(ROOT ."app/".$env."/service", LOADER)); // Bind services to container
+$c['app.env'] = $env;
 
 /**
  * Include application
@@ -47,17 +47,24 @@ $c = new Container(new Loader("app/".$env."/service", LOADER)); // Bind services
 require OBULLO .'Application/Http.php';
 
 /**
+ * Dependency
+ */
+$c['dependency'] = function () use ($c) {
+    return new Dependency($c);
+};
+
+/**
  * Config
  */
-$c['config'] = function () use ($c, $env) {
-    return new Config($c, $env);
+$c['config'] = function () use ($c) {
+    return new Config($c);
 };
 
 /**
  * Application
  */
-$c['app'] = function () use ($c, $env) {
-    return new Http($c, $env);
+$c['app'] = function () use ($c) {
+    return new Http($c);
 };
 
-require APP .'components.php';
+include APP .'components.php';

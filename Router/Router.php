@@ -64,9 +64,9 @@ class Router
         $this->HOST = $uri->getHost();
 
         if (strpos($this->HOST, $config['url']['webhost']) === false) {
-            $this->c['response']->withStatus(500)->showError('Your host configuration is not correct in the main config file.');
+            $this->c['response']->error('Your host configuration is not correct in the main config file.');
         }
-        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
+        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 0);
     }
 
     /**
@@ -151,7 +151,7 @@ class Router
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
             $layerRequest = isset($_SERVER['LAYER_REQUEST']);
             if ($layerRequest) {
-                $this->c['output']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
+                $this->c['layer']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
                 return false;
             }
             $this->checkErrors();
@@ -266,7 +266,7 @@ class Router
     protected function checkErrors()
     {        
         if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
-            $this->c['response']->withStatus(404)->showError(static::DEFAULT_PAGE_ERROR, '404');
+            $this->c['response']->error404(static::DEFAULT_PAGE_ERROR);
         }
     }
 
@@ -429,7 +429,7 @@ class Router
     protected function dispatchRouteMatches($uri, $val, $parameters)
     {
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
-            $this->c['app']->middleware('MethodNotAllowed', $val['when']);
+            $this->c['middleware']->add('NotAllowed')->inject($val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^'.$val['match'].'$#', $val['rewrite'], $uri);
@@ -847,7 +847,7 @@ class Router
      * 
      * @return mixed
      */
-    public function getAttachedRoutes()
+    public function getAttachedMiddlewares()
     {
         if (! isset($this->attach[$this->DOMAIN])) {  // Check first
             return array();

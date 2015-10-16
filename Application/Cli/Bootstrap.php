@@ -2,12 +2,12 @@
 
 use Obullo\Container\Loader;
 use Obullo\Container\Container;
+use Obullo\Container\Dependency;
 use Obullo\Container\ContainerInterface;
 
+use Obullo\Cli\Uri;
 use Obullo\Config\Config;
 use Obullo\Application\Cli;
-
-use Obullo\Cli\Uri;
 use Obullo\Cli\NullRequest;
 use Obullo\Cli\NullResponse;
 
@@ -41,7 +41,8 @@ $env = $detectEnvironment();
  * 
  * @var object
  */
-$c = new Container(new Loader("app/".$env."/service", LOADER)); // Bind services to container
+$c = new Container(new Loader(ROOT ."app/".$env."/service", LOADER)); // Bind services to container
+$c['app.env'] = $env;
 
 /**
  * Include application
@@ -49,38 +50,45 @@ $c = new Container(new Loader("app/".$env."/service", LOADER)); // Bind services
 require OBULLO .'Application/Cli.php';
 
 /**
+ * Dependency
+ */
+$c['dependency'] = function () use ($c) {
+    return new Dependency($c);
+};
+
+/**
  * Config
  */
-$c['config'] = function () use ($c, $env) {
-    return new Config($c, $env);
+$c['config'] = function () use ($c) {
+    return new Config($c);
 };
 
 /**
  * Application
  */
-$c['app'] = function () use ($c, $env) {
-    return new Cli($c, $env);
+$c['app'] = function () use ($c) {
+    return new Cli($c);
 };
-
-require APP .'components.php';
 
 /**
  * Http request
  */
-$c['request'] = function () use ($c) {
+$c['request'] = function () {
     return new NullRequest;
 };
 
 /**
  * Cli uri
  */
-$c['uri'] = function () use ($c) {
+$c['uri'] = function () {
     return new Uri;
 };
 
 /**
  * Http reponse
  */
-$c['response'] = function () use ($c) {
+$c['response'] = function () {
     return new NullResponse;
 };
+
+include APP .'components.php';

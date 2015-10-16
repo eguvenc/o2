@@ -15,17 +15,18 @@ use Obullo\Queue\JobHandler\AmqpJob;
 use Obullo\Container\ServiceProviderInterface;
 
 /**
+ * Info
+ * 
+ * @see http://www.php.net/manual/pl/book.amqp.php
+ * @see http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
+ */
+
+/**
  * AMQP Handler
  * 
- * @category  Queue
- * @package   Queue
  * @author    Obullo Framework <obulloframework@gmail.com>
- * @author    Ersin Guvenc <eguvenc@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/queue
- * @see       http://www.php.net/manual/pl/book.amqp.php
- * @see       http://www.brandonsavage.net/publishing-messages-to-rabbitmq-with-php/
  */
 class Amqp implements QueueInterface
 {
@@ -78,8 +79,8 @@ class Amqp implements QueueInterface
         // available types AMQP_EX_TYPE_DIRECT, AMQP_EX_TYPE_FANOUT, AMQP_EX_TYPE_HEADER or AMQP_EX_TYPE_TOPIC,
         // available flags AMQP_DURABLE, AMQP_PASSIVE
 
-        $type = constant('AMOP_EX_TYPE_'.strtoupper($this->config['exchange']['type']));
-        $flag = constant('AMOP_'.strtoupper($this->config['exchange']['flag']));
+        $type = constant('AMQP_EX_TYPE_'.strtoupper($this->config['exchange']['type']));
+        $flag = constant('AMQP_'.strtoupper($this->config['exchange']['flag']));
 
         $this->exchange = new AMQPExchange($this->channel);
         $this->exchange->setName($name);

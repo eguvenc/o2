@@ -4,19 +4,16 @@ namespace Obullo\Session;
 
 use Obullo\Log\LoggerInterface;
 use Obullo\Session\SessionManager;
-use Obullo\Session\MetaData\MetaData;
-use Obullo\Session\MetaData\NullMetaData;
 use Obullo\Container\ServiceProviderInterface;
+
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Session Class
  * 
- * @category  Session
- * @package   Session
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/session
  */
 class Session implements SessionInterface
 {
@@ -26,13 +23,6 @@ class Session implements SessionInterface
      * @var string
      */
     protected $name;
-
-    /**
-     * MetaData Class
-     * 
-     * @var object
-     */
-    protected $meta;
 
     /**
      * Service parameters
@@ -59,16 +49,19 @@ class Session implements SessionInterface
      * Constructor
      * 
      * @param object $provider \Obullo\Service\ServiceProviderInterface
+     * @param object $request  \Psr\Http\Message\RequestInterface
      * @param object $logger   \Obullo\Log\LoggerInterface
      * @param array  $params   service parameters
      */
-    public function __construct(ServiceProviderInterface $provider, LoggerInterface $logger, array $params) 
+    public function __construct(ServiceProviderInterface $provider, RequestInterface $request, LoggerInterface $logger, array $params) 
     {
-        ini_set('session.cookie_domain', $this->params['cookie']['domain']);
-
-        $this->meta = ($this->params['meta']['enabled']) ? new MetaData($this) : new NullMetaData;
         $this->params = $params;
         $this->provider = $provider;
+
+        $this->server = $request->getServerParams();
+        $this->cookie = $request->getCookieParams();
+
+        ini_set('session.cookie_domain', $this->params['cookie']['domain']);
 
         $this->logger = $logger;
         $this->logger->debug('Session Class Initialized');
@@ -77,18 +70,31 @@ class Session implements SessionInterface
     }
 
     /**
+     * Set service parameters using class methods
+     * 
+     * @param array $params service params
+     * 
+     * @return void
+     */
+    public function setParameters(array $params)
+    {
+        foreach ($params as $method => $arg) {
+            $this->{$method}($arg);
+        }
+    }
+
+    /**
      * Register session save handler
      *
      * If save handler not provided we call it from config file
      * 
-     * @param null|object $handler save handler object
+     * @param string $handler save handler object
      * 
      * @return void
      */
-    public function registerSaveHandler($handler = null)
+    public function registerSaveHandler($handler)
     {
-        $Class = (is_null($handler)) ? $this->params['class'] : $handler;
-        $this->saveHandler = new $Class($this->provider, $this->params);
+        $this->saveHandler = new $handler($this->provider, $this->params);
         session_set_save_handler(
             array($this->saveHandler, 'open'),
             array($this->saveHandler, 'close'),
@@ -165,11 +171,9 @@ class Session implements SessionInterface
      */
     public function readSession()
     {
-        $cookie = (isset($_COOKIE[$this->getName()])) ? $_COOKIE[$this->getName()] : false;
+        $name = $this->getName();
+        $cookie = (isset($this->cookie[$name])) ? $this->cookie[$name] : false;
         if ($cookie === false) {
-            return false;
-        }
-        if (! $this->meta->isValid()) { // If meta data is not valid say good bye to user !
             return false;
         }
         return true;
@@ -191,8 +195,7 @@ class Session implements SessionInterface
         session_regenerate_id((bool) $deleteOldSession);
         $storageLifetime = ($lifetime == null) ? $this->params['storage']['lifetime'] : $lifetime;
         $this->saveHandler->setLifetime($storageLifetime);
-        $this->meta->create();
-        
+
         return session_id(); // new session_id
     }
 
@@ -227,31 +230,13 @@ class Session implements SessionInterface
             setcookie(
                 $this->getName(),                 // session name
                 '',                               // value
-                $_SERVER['REQUEST_TIME'] - 42000, // TTL for cookie
+                $this->server['REQUEST_TIME'] - 42000, // TTL for cookie
                 $this->params['cookie']['path'],
                 $this->params['cookie']['domain'],
                 $this->params['cookie']['secure'], 
                 $this->params['cookie']['httpOnly']
             );
         }
-    }
-
-    /**
-     * Check session id is expired
-     * 
-     * @return boolean 
-     */
-    public function isExpired()
-    {
-        $meta = $this->meta->read();
-        if (! isset($meta['la'])) {  // la = meta data last activity.
-            return false;
-        }
-        $expire = $this->getTime() - $this->params['storage']['lifetime'];
-        if ($meta['la'] <= $expire) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -310,7 +295,7 @@ class Session implements SessionInterface
                 unset($_SESSION[$prefix . $key]);
             }
         }
-        if (sizeof($_SESSION) == 0) {                   // If meta option closed and when we want to unset() data we couldn't remove the last session key from storage.
+        if (sizeof($_SESSION) == 0) {                   // When we want to unset() data we couldn't remove the last session key from storage.
             $this->saveHandler->destroy(session_id());  // This solution fix the issue.
         }
     }
@@ -337,11 +322,6 @@ class Session implements SessionInterface
      */
     public function close()
     {
-        if (! $this->readSession()) {
-            $this->meta->create();
-        } else {
-            $this->meta->update();
-        }
         session_write_close();
     }
 }

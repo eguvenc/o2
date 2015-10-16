@@ -41,7 +41,7 @@ class Dependency
      *
      * @return object
      */
-    public function __construct(ContainerInterface $c = null)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }
@@ -49,16 +49,16 @@ class Dependency
     /**
      * Add component 
      * 
-     * @param integer $cid   container id
+     * @param integer $key   container id
      * @param string  $class class path
      *
      * @return instance of class
      */
-    public function addComponent($cid, $class)
+    public function addComponent($key, $class)
     {
-        $this->c[$cid] = function () use ($cid, $class) {
-            $this->component[$cid] = $class;
-            return $this->resolveDependencies($cid, $class);
+        $this->c[$key] = function () use ($key, $class) {
+            $this->components[$key] = $class;
+            return $this->resolveDependencies($key, $class);
         };
     }
 
@@ -112,33 +112,39 @@ class Dependency
      * Resolve dependecy parameters
      * 
      * @param \ReflectionClass $reflector reflection instance
-     * @param string           $component cid class name
+     * @param string           $cid       cid class name
      *
      * @return array params
      */
-    protected function resolveParams(ReflectionClass $reflector, $component)
+    protected function resolveParams(ReflectionClass $reflector, $cid)
     {
         $parameters = $reflector->getConstructor()->getParameters();
         $params = array();
+        
+        $deps = $this->getDependencies();
+        $services = $this->getServices();
+        $components = $this->getComponents();
+
         foreach ($parameters as $parameter) {
-            
             $d = $parameter->getName();
 
             if ($d == 'c' || $d == 'container') {
                 $params[] = $this->c;
             } else {
-                $deps = $this->getDependencies();
-                $isComponent = isset($deps[$d]);
-                if ($isComponent) {
+                $isDependency = isset($deps[$d]);
+                if ($isDependency) {
                     $params[] = $this->c[$d];
                 } else {
 
-                    if ($isComponent) {
+                    $isService = isset($services[$d]);
+                    $isComponent = isset($components[$d]);
+
+                    if ($isService || $isComponent) {  // Detect missing dependecy
                         throw new RuntimeException(
                             sprintf(
-                                'Dependency is missing for "%s" package. <pre>%s $%s</pre>',
-                                $component,
+                                'Dependency "%s" is missing for "%s" component.',
                                 $parameter->getClass()->name,
+                                $cid,
                                 $d
                             )
                         );
@@ -147,6 +153,16 @@ class Dependency
             }
         }
         return $params;
+    }
+
+    /**
+     * Get all services
+     * 
+     * @return array
+     */
+    public function getServices()
+    {
+        return $this->c->getServices();
     }
 
     /**

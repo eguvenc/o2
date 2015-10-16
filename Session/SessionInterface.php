@@ -3,14 +3,11 @@
 namespace Obullo\Session;
 
 /**
- * Sessiom Interface
+ * Session Interface
  * 
- * @category  Log
- * @package   SessionInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 interface SessionInterface
 {
@@ -60,13 +57,6 @@ interface SessionInterface
      * @return void
      */
     public function destroy();
-
-    /**
-     * Check session id is expired
-     * 
-     * @return boolean 
-     */
-    public function isExpired();
 
     /**
      * Fetch a specific item from the session array

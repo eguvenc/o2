@@ -8,16 +8,11 @@ use Obullo\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Annotations Reader for Controller
- *
- * Read controller doc blocks and execute filters.
- *
- * @category  DocBlocks
- * @package   Controller
+ * Annotations Reader for Controller ( Executes filters & events )
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/blocks
  */
 class Controller
 {
@@ -49,10 +44,10 @@ class Controller
         $reflection = new ReflectionClass($class);
 
         $this->c['annotation.middleware'] = function () use ($c) {
-            return new Middleware($c, $c['app'], $c['event']);
+            return new Middleware($c, $c['request'], $c['app'], $c['event']);
         };
         if (! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
-            $response->show404();
+            $response->error404();
         }
         $this->blocks = '';
         if ($reflection->hasMethod('__construct')) {

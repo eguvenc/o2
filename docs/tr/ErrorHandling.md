@@ -34,8 +34,8 @@ Hata kontrolü ( hata raporlama ) uygulama ile tümleşik gelir ve <kbd>config/e
 <li>
     <a href="#sending-custom-http-errors">Özel Http Hataları Göndermek</a>
     <ul>
-        <li><a href="#showError">$this->response->showError()</a></li>
-        <li><a href="#show404">$this->response->show404()</a></li>
+        <li><a href="#showError">$this->response->error()</a></li>
+        <li><a href="#show404">$this->response->error404()</a></li>
         <li><a href="#error-message-customization">Hata Şablonlarını Özelleştirmek</a></li>
     </ul>
 </li>
@@ -162,7 +162,7 @@ $c['app']->error(
 
             $this->c['translator']->load('database');
 
-            echo $this->c['response']->withStatus(200)->showError(
+            echo $this->c['response']->withStatus(200)->error(
                 $this->c['translator']['OBULLO:TRANSACTION:ERROR'],
                 'System Unavailable'
             );
@@ -240,17 +240,17 @@ Kimi durumlarda uygulamaya özgü http hataları göstermeniz gerekebilir bu dur
 
 <a name="showError"></a>
 
-##### $this->response->showError('message')
+##### $this->response->error('message')
 
 ```php
-$this->response->withStatus(500)->showError('There is an error occured');
+$this->response->withStatus(500)->error('There is an error occured');
 ```
 
 Opsiyonal parametre <kbd>$status</kbd> ise hata ile birlikte hangi HTTP durum kodunun gönderileceğini belirler varsayılan değer <b>500 iç sunucu hatası</b> dır.
 
 <a name="show404"></a>
 
-##### $this->response->show404('message')
+##### $this->response->error404('message')
 
 ```php
 $this->response->show404('Page not found')
@@ -261,4 +261,4 @@ $this->response->show404('Page not found')
 
 ##### Hata Şablonlarını Özelleştirmek
 
-Ugyulama içinde gönderdiğiniz yukarıda bahsedilen hata metotlarına ait hata şablonlarını ihtiyaçlarınıza göre özelleştirebilirsiniz. <kbd>showError()</kbd> türündeki hataları düzenlemek için <kbd>resources/templates/errors/general.php</kbd> dosyasını, <kbd>show404()</kbd> türündeki hataları düzenlemek içinse <kbd>resources/templates/errors/404.php</kbd> dosyasını kullanabilirsiniz.
+Ugyulama içinde gönderdiğiniz yukarıda bahsedilen hata metotlarına ait hata şablonlarını ihtiyaçlarınıza göre özelleştirebilirsiniz. <kbd>error()</kbd> türündeki hataları düzenlemek için <kbd>resources/templates/errors/general.php</kbd> dosyasını, <kbd>error404()</kbd> türündeki hataları düzenlemek içinse <kbd>resources/templates/errors/404.php</kbd> dosyasını kullanabilirsiniz.

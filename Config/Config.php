@@ -29,13 +29,6 @@ class Config implements ConfigInterface
     protected $c;
 
     /**
-     * Current environment
-     * 
-     * @var string
-     */
-    protected $env;
-
-    /**
      * Current config folder
      * 
      * @var string
@@ -47,20 +40,17 @@ class Config implements ConfigInterface
      *
      * Sets the $config data from the primary config.php file as a class variable
      * 
-     * @param object $c   container
-     * @param string $env environment
+     * @param object $c container
      */
-    public function __construct(ContainerInterface $c, $env)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->env = $env;
-    
-        $this->path  = CONFIG .$this->env.'/';
+        $this->path  = CONFIG .$c['app.env'].'/';
         $this->local = CONFIG .'local/';
 
         $this->array = include $this->local .'config.php';  // Load current environment config variables 
         
-        if ($this->env != 'local') {
+        if ($c['app.env'] != 'local') {
             $envConfig   = include $this->path .'config.php';
             $this->array = array_replace_recursive($this->array, $envConfig);  // Merge config variables if env not local.
         }
@@ -94,7 +84,7 @@ class Config implements ConfigInterface
         }
         $config = include $file;
 
-        if ($this->env != 'local' && $isEnvFile) { // Merge config variables if env not local.
+        if ($c['app.env'] != 'local' && $isEnvFile) { // Merge config variables if env not local.
             $localConfig = include $this->local . $filename .'.php';
             return $this->array[$filename] = array_replace_recursive($localConfig, $config);
         } else {
@@ -123,7 +113,7 @@ class Config implements ConfigInterface
      */
     public function write($filename, array $data)
     {
-        $fullpath = CONFIG .$this->env. '/';
+        $fullpath = CONFIG .$this->c['app.env']. '/';
 
         if (strpos($filename, '../') === 0) {  // If we have shared config request
             $fullpath = CONFIG;

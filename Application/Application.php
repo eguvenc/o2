@@ -19,25 +19,23 @@ use Obullo\Container\ContainerInterface;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Application
+class Application implements ApplicationInterface
 {
     const VERSION = '2.0rc1';
 
     protected $c;
-    protected $env = null;
     protected $fatalError;
     protected $exceptions = array();
+    protected $dependency;
 
     /**
      * Constructor
      * 
-     * @param object $c   container
-     * @param string $env environment
+     * @param object $c container
      */
-    public function __construct($c, $env)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
-        $this->env = $env;
         date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
     }
 
@@ -157,19 +155,6 @@ class Application
     }
 
     /**
-     * Parse annotations
-     * 
-     * @return void
-     */
-    protected function dispatchAnnotations()
-    {
-        if ($this->c['config']['controller']['annotations']) {
-            $docs = new \Obullo\Annotations\Controller($this->c, $this->c['response'], $this->class, $this->c['router']->fetchMethod());
-            $docs->parse();
-        }
-    }
-
-    /**
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.
@@ -188,7 +173,7 @@ class Application
      */
     public function env()
     {
-        return $this->env;
+        return $this->c['app.env'];
     }
 
     /**
@@ -226,7 +211,7 @@ class Application
      */
     public function component(array $namespaces)
     {   
-        $this->dependency = new Dependency($this->c);
+        $this->dependency = $this->c['dependency'];
         foreach ($namespaces as $cid => $Class) {
             $this->dependency->addComponent($cid, $Class);
             $this->dependency->addDependency($cid);
@@ -276,9 +261,7 @@ class Application
     }
     
     /**
-     * Call controller methods from view files
-     *
-     * View files $this->method(); support.
+     * Call controller methods from view files ( View files $this->method(); support ).
      * 
      * @param string $method    called method
      * @param array  $arguments called arguments
@@ -287,7 +270,7 @@ class Application
      */
     public function __call($method, $arguments)
     {
-        if ($method == 'extend') {
+        if ($method == '__invoke') {
             return;
         }
         return Controller::$instance->$method($arguments);

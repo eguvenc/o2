@@ -22,13 +22,12 @@ if (error_get_last() != null) {
  */
 class Http extends Application
 {
-    protected $class;                     // Current controller
-    protected $method;                    // Current method
-    protected $response;                  // App response
-    protected $websocket;                 // Debugger websocket
-    protected $className;                 // Current controller name
-    protected $middleware = array();      // Middleware objects
-    protected $middlewareNames = array(); // Middleware names
+    protected $class;                 // Current controller
+    protected $method;                // Current method
+    protected $response;              // App response
+    protected $websocket;             // Debugger websocket
+    protected $className;             // Current controller name
+    protected $middlewares = array(); // Middleware names
 
     /**
      * Constructor
@@ -38,11 +37,8 @@ class Http extends Application
     public function init()
     {
         $c = $this->c;  // make c global
-
         $this->setErrorReporting();
         $this->setPhpDebugger();
-
-        $this->middleware = array($this); // Define default middleware stack
 
         include APP .'errors.php';
         $this->registerErrorHandlers();
@@ -50,8 +46,7 @@ class Http extends Application
         include APP .'events.php';
         include APP .'routes.php';
 
-        $this->c['router']->init();
-
+        $c['router']->init();
         register_shutdown_function(array($this, 'close'));
     }
 
@@ -68,7 +63,7 @@ class Http extends Application
                 $this->includeClass();
                 echo $this->className = $error404;
             } else {
-                $this->c['response']->show404();
+                $this->c['response']->error404();
             }
         }
     }
@@ -94,7 +89,7 @@ class Http extends Application
         if (! method_exists($this->class, $method)
             || substr($method, 0, 1) == '_'
         ) {
-            $this->c['response']->show404();
+            $this->c['response']->error404();
         }
     }
 
@@ -120,22 +115,20 @@ class Http extends Application
         $this->includeClass();
         $this->className = '\\'.$this->c['router']->fetchNamespace().'\\'.$this->c['router']->fetchClass();
         $this->dispatchClass();
-
         $this->class = new $this->className;  // Call the controller
-
         $this->dispatchMethod();
-        $this->dispatchMiddlewares();
-        $this->dispatchAnnotations();  // WARNING !:  Read annotations after the attaching middlewares otherwise @middleware->remove()
-                                       // does not work
-        $middleware = current($this->middleware);  // Invoke middleware chains using current then each middleware will call next 
-        
+
+        // WARNING !:  Read annotations after the attaching middlewares otherwise @middleware->remove() does not work
+        // 
+        if ($this->c['config']['controller']['annotations']) {
+            $docs = new \Obullo\Annotations\Controller($this->c, $this->c['response'], $this->class, $this->c['router']->fetchMethod());
+            $docs->parse();
+        }
         if (method_exists($this->class, '__invoke')) {    // View traits must be run at the top level
             $invoke = $this->class;
             $invoke();
         }
-        $middleware->call();
-
-        return Controller::$instance->response;
+        $this->dispatchMiddlewares();
     }
 
     /**
@@ -147,68 +140,20 @@ class Http extends Application
     {
         $c = $this->c; // Make available container in middleware.php
         $currentRoute = $this->uri->getUriString();
-        foreach ($this->c['router']->getAttachedRoutes() as $value) {
+
+        include APP .'middlewares.php';
+
+        foreach ($c['router']->getAttachedMiddlewares() as $value) {
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
             if ($value['route'] == $currentRoute) {     // if we have natural route match
-                $this->middleware($value['name'], $value['options']);
+                $object = $c['middleware']->add($value['name']);
             } elseif ($attachedRoute == '.*' || preg_match('#'. $attachedRoute .'#', $currentRoute)) {
-                $this->middleware($value['name'], $value['options']);
+                $object = $c['middleware']->add($value['name']);
+            }
+            if (method_exists($object, 'inject') && ! empty($value['options'])) {  // Inject parameters
+                $object->inject($value['options']);
             }
         }
-        include APP .'middlewares.php';
-    }
-
-    /**
-     * Add middleware
-     *
-     * This method prepends new middleware to the application middleware stack.
-     *
-     * @param mixed $middleware class name or \Http\Middlewares\Middleware object
-     * @param array $params     parameters we inject the parmeters inside middleware as a variable. ( $this->params )
-     *
-     * @return object
-     */
-    public function middleware($middleware, $params = array())
-    {
-        if (is_string($middleware)) {
-            $Class = strpos($middleware, '\Middlewares\\') ?  $middleware : '\\Http\\Middlewares\\'.ucfirst($middleware);
-            $middleware = new $Class($params);
-        }
-        $middleware->setNextMiddleware(current($this->middleware));
-        array_unshift($this->middleware, $middleware);
-        $name = get_class($middleware);
-        $this->middlewareNames[$name] = $name;  // Track names
-        return $this;
-    }
-
-    /**
-     * Removes middleware
-     * 
-     * @param string $middleware name
-     * 
-     * @return void
-     */
-    public function remove($middleware)
-    {
-        $removal = 'Http\\Middlewares\\'.ucfirst($middleware);
-        if (! isset($this->middlewareNames[$removal])) {  // Check middleware exist
-            return;
-        }
-        foreach ($this->middleware as $key => $value) {
-            if (get_class($value) == $removal) {
-                unset($this->middleware[$key]);
-            }
-        }
-    }
-
-    /**
-     * Returns to all middleware class names
-     * 
-     * @return array
-     */
-    public function getMiddlewares()
-    {
-        return $this->middlewareNames;
     }
 
     /**
@@ -259,7 +204,7 @@ class Http extends Application
             && $this->c['uri']->segment(0) != 'debugger'
         ) {
             $this->websocket->emit(
-                $this->finalOutput,
+                (string)$this->c['response']->getBody(),
                 $this->c['logger']->getPayload()
             );
         }

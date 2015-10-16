@@ -34,6 +34,20 @@ class RedirectResponse
     protected $headers;
 
     /**
+     * Config
+     * 
+     * @var object
+     */
+    protected $config;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
+    protected $logger;
+
+    /**
      * Create a redirect response.
      *
      * Produces a redirect response with a Location header and the given status
@@ -48,6 +62,8 @@ class RedirectResponse
     public function __construct($uri, ContainerInterface $c, array $headers = [])
     {
         $this->c = $c;
+        $this->config = $c['config'];  // Inject config & logger objects for benchmarkTrait
+        $this->logger = $c['logger'];
 
         if (! is_string($uri) && ! $uri instanceof UriInterface) {
             throw new InvalidArgumentException(
@@ -58,20 +74,15 @@ class RedirectResponse
                 )
             );
         }
-
         $uri = (string) $uri;
-        
         $headers['location'] = [$uri];
         $this->headers = $headers;
 
-        $this->benchmarkEnd('Redirect header sent to browser');  // Close benchmark logging
-
-        $this->c['logger']->shutdown(); // Manually shutdown logger otherwise we use register shutdown
-                                        // closing the logger manually is best way ..
+        $this->benchmarkEnd($c['request'], false);
     }
 
     /**
-     * Returns to json headers
+     * Returns to redirect headers
      * 
      * @return array
      */

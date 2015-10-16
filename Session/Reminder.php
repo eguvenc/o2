@@ -2,17 +2,15 @@
 
 namespace Obullo\Session;
 
+use Obullo\Config\ConfigInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
  * Session Reminder Class
  * 
- * @category  Session
- * @package   Reminder
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/session
  */
 class Reminder
 {

@@ -5,12 +5,9 @@ namespace Obullo\Queue\Failed;
 /**
  * Storage Handler Interface
  * 
- * @category  Queue
- * @package   StorageInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/log
  */
 interface StorageInterface
 {

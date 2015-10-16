@@ -3,6 +3,7 @@
 namespace Obullo\Http;
 
 use Obullo\Container\ContainerInterface;
+use Obullo\Application\Application;
 use OutOfBoundsException;
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -43,9 +44,9 @@ class Server
      *
      * Given a callback, a request, and a response, we can create a server.
      *
-     * @param callable $callback
+     * @param callable               $callback
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
+     * @param ResponseInterface      $response
      */
     public function __construct(
         callable $callback,
@@ -126,7 +127,7 @@ class Server
         $c['response'] = function () use ($response) {
             return $response;
         };
-        $response = $c['app']->run();
+        $c['app']->run();
 
         return new static($callback, $request, $response);
     }

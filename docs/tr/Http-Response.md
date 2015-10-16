@@ -43,8 +43,8 @@ Http paketi Psr7 Standartlarını destekler ve Zend-Diactoros kütüphanesi bile
         <a href="#custom-methods">Özel Çıktı Metotları</a>
         <ul>
             <li><a href="#response-json">$this->response->json()</a></li>
-            <li><a href="#response-show404">$this->response->show404()</a></li>
-            <li><a href="#response-showError">$this->response->showError()</a></li>
+            <li><a href="#response-show404">$this->response->error404()</a></li>
+            <li><a href="#response-showError">$this->response->error()</a></li>
         </ul>
     </li>
 
@@ -271,22 +271,22 @@ Yukarıda örnek tanımlı ise <kbd>second</kbd> adlı konfigürasyona ait http 
 
 <a name="response-show404"></a>
 
-##### $this->response->show404();
+##### $this->response->error404();
 
 <kbd>resources/templates/errors/404.php</kbd> html şablon dosyasını kullanarak <kbd>404 Page Not Found</kbd> hatası oluşturur.
 
 ```php
-$this->response->show404();
+$this->response->error404();
 ```
 
 <a name="response-showError"></a>
 
-##### $this->response->showError(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
+##### $this->response->error(string $message, $status_code = 500, $heading = 'An Error Was Encountered');
 
 <kbd>resources/templates/errors/general.php</kbd> html şablon dosyasını kullanarak uygulamaya özel hatalar oluşturur.
 
 ```php
-$this->response->showError('Custom error message');
+$this->response->error('Custom error message');
 ```
 
 > **Not:** Hata mesajları girdilerine güvenlik amacıyla response sınıfı içerisinde özel karakter filtrelmesi yapılır.

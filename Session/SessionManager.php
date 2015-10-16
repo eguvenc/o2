@@ -2,19 +2,17 @@
 
 namespace Obullo\Session;
 
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface;
 
 /**
- * SessionManager Class
+ * Session Manager
  * 
- * @category  Manager
- * @package   SessionManager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/session
  */
-class SessionManager
+class SessionManager implements ServiceInterface
 {
     /**
      * Container class
@@ -24,74 +22,38 @@ class SessionManager
     protected $c;
 
     /**
-     * Service Parameters
+     * Constructor
      * 
-     * @var array
+     * @param ContainerInterface $c      container
+     * @param array              $params service parameters
      */
-    protected $params;
-
-    /**
-     * Session
-     * 
-     * @var object
-     */
-    protected $session;
-
-    /**
-     * Create classes
-     * 
-     * @param object $c container
-     * 
-     * @return object
-     */
-    public function __construct(ContainerInterface $c)
+    public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
-    }
-
-    /**
-     * Set parameters
-     * 
-     * @param array $params parameters
-     *
-     * @return void
-     */
-    public function setParameters(array $params)
-    {
         $session = $this->c['config']->load('session');
         $session['locale']['timezone'] = $this->c['config']['locale']['timezone'];
-        $this->params = array_merge($params, $session);
+        $this->c['session.params'] = array_merge($params, $session);
     }
 
     /**
-     * Set logger
+     * Register
      * 
-     * @param object $logger LoggerInterface
-     *
-     * @return void
+     * @return object logger
      */
-    public function setLogger($logger)
+    public function register()
     {
-        $this->logger = $logger;
-    }
+        $this->c['session'] = function () {
 
-    /**
-     * Returns to session object
-     * 
-     * @return object
-     */
-    public function getClass()
-    {
-        if ($this->session == null) {
-
-            $provider = $this->c['app']->provider($this->params['provider']['name']);
+            $name = $this->c['session.params']['provider']['name'];
 
             return $this->session = new Session(
-                $provider,
-                $this->logger,
-                $this->params
+                $this->c[$name],  // Service Provider
+                $this->c['request'],
+                $this->c['logger'],
+                $this->c['session.params']
             );
-        }
-        return $this->session;
+
+        };
     }
+
 }
