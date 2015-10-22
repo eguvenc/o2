@@ -210,13 +210,13 @@ class Layer
         }
         $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$layerID); //  Create Layer ID
         
-        $directory = $this->c['router']->fetchDirectory();
-        $className = $this->c['router']->fetchClass();
-        $method    = $this->c['router']->fetchMethod();
+        $directory = $this->c['router']->getDirectory();
+        $className = $this->c['router']->getClass();
+        $method    = $this->c['router']->getMethod();
 
-        $this->layerUri = $this->c['router']->fetchModule('/') .$directory.'/'.$className;
-        $controller = MODULES .$this->c['router']->fetchModule('/') .$directory.'/'.$className. '.php';
-        $className = '\\'.$this->c['router']->fetchNamespace().'\\'.$className;
+        $this->layerUri = $this->c['router']->getModule('/') .$directory.'/'.$className;
+        $controller = MODULES .$this->c['router']->getModule('/') .$directory.'/'.$className. '.php';
+        $className = '\\'.$this->c['router']->getNamespace().'\\'.$className;
 
                                                    // Check class is exists in the storage
         if (! class_exists($className, false)) {   // Don't allow multiple include.

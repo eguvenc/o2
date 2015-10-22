@@ -24,10 +24,13 @@ class Exception implements ExceptionInterface
      */
     public function show(\Exception $e, $fatalError = false)
     {
-        if (strpos($e->getMessage(), 'shmop_') === 0) {  // Hide shmop function errors in debug mode.
+        if ($e->getCode() == 2 && substr($e->getFile(), 22) == 'Application/Http.php') { // Disable include 404 include error
             return;
         }
-        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Hide socket errors in debug mode.
+        if (strpos($e->getMessage(), 'shmop_') === 0) {  // Disable shmop function errors.
+            return;
+        }
+        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Disable socket errors.
             return;
         }
         if ($fatalError == false) { 

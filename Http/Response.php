@@ -21,7 +21,7 @@ use Psr\Http\Message\StreamInterface;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Response implements ResponseInterface, ContainerAwareInterface
+class Response implements ResponseInterface
 {
     use MessageTrait;
 
@@ -230,11 +230,11 @@ class Response implements ResponseInterface, ContainerAwareInterface
      * 
      * @return object
      */
-    public function setContainer(ContainerInterface $c = null)
-    {
-        $this->c = $c;
-        return $this;
-    }
+    // public function setContainer(ContainerInterface $c = null)
+    // {
+    //     $this->c = $c;
+    //     return $this;
+    // }
 
     /**
      * Create a JSON response with the given data.
@@ -280,6 +280,7 @@ class Response implements ResponseInterface, ContainerAwareInterface
         $html = new \Obullo\Http\Response\HtmlResponse($html, $headers);
 
         $this->__construct($html->getBody(), $status, $html->getHeaders());  // Invoke response
+        return $this;
     }
 
     /**
@@ -297,6 +298,7 @@ class Response implements ResponseInterface, ContainerAwareInterface
         $redirect = new \Obullo\Http\Response\RedirectResponse($uri, $this->c, $headers);
 
         $this->__construct('php://temp', $status, $redirect->getHeaders());  // Invoke response
+        return $this;
     }
 
     /**
@@ -305,7 +307,7 @@ class Response implements ResponseInterface, ContainerAwareInterface
      * @param integer $status  status
      * @param array   $headers headers
      * 
-     * @return object EmptyResponse
+     * @return object
      */
     public function emptyContent($status = 201, array $headers = [])
     {
@@ -313,64 +315,44 @@ class Response implements ResponseInterface, ContainerAwareInterface
         $empty = new \Obullo\Http\Response\EmptyResponse($status, $headers);
 
         $this->__construct($empty->getBody(), $status, $empty->getHeaders());  // Invoke response
-        return $empty;
+        return $this;
     }
 
-    /**
-     * Custom response
-     * 
-     * @param string  $class   class name
-     * @param mixed   $data    custom data
-     * @param integer $status  http code
-     * @param array   $headers http headers
-     * 
-     * @return object
-     */
-    public function custom($class = '', $data = null, $status = 200, array $headers = [])
-    {
-        $Class = '\Obullo\Http\Response\\'.ucfirst($class);
-        $custom = new $Class($data, $status, $headers);
+    // /**
+    // * Manually Set General Http Errors
+    // *
+    // * @param string $message message
+    // * @param int    $status  status
+    // * @param int    $heading heading text
+    // * @param array  $headers custom http headers
+    // *
+    // * @return object
+    // */
+    // public function error($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
+    // {
+    //     return $this->httpError($heading, $message, 'general', $status, $headers);
+    // }
 
-        $this->__construct($custom->getBody(), $status, $custom->getHeaders());  // Invoke response
-        return $custom;
-    }
-
-    /**
-    * Manually Set General Http Errors
-    *
-    * @param string $message message
-    * @param int    $status  status
-    * @param int    $heading heading text
-    * @param array  $headers custom http headers
-    *
-    * @return void
-    */
-    public function error($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
-    {
-        $this->httpError($heading, $message, 'general', $status, $headers);
-    }
-
-    /**
-     * Show custom 404 errors
-     * 
-     * @param string $page custom page
-     *
-     * @return void
-     */
-    public function error404($page = null)
-    {
-        if (empty($page)) {
-            $exp = explode("/", $this->c['app']->uri->getUriString());
-            $segments = array_slice($exp, 0, 4);
-            $page = implode("/", $segments);
-        }
-        $page = filter_var($page, FILTER_SANITIZE_SPECIAL_CHARS);
-        if (strlen($page) > 60) {   // Security fix
-            $page = '';
-        }
-        $this->httpError('404 Page Not Found', $page, '404', 404);
-
-    }
+    // *
+    //  * Show custom 404 errors
+    //  * 
+    //  * @param string $page custom page
+    //  *
+    //  * @return object
+     
+    // public function error404($page = null)
+    // {
+    //     if (empty($page)) {
+    //         $exp = explode("/", $this->c['app']->uri->getUriString());
+    //         $segments = array_slice($exp, 0, 4);
+    //         $page = implode("/", $segments);
+    //     }
+    //     $page = filter_var($page, FILTER_SANITIZE_SPECIAL_CHARS);
+    //     if (strlen($page) > 60) {   // Security fix
+    //         $page = '';
+    //     }
+    //     return $this->httpError('404 Page Not Found', $page, '404', 404);
+    // }
 
     /**
      * Get error template
@@ -381,16 +363,14 @@ class Response implements ResponseInterface, ContainerAwareInterface
      * 
      * @return string
      */
-    protected function getErrorTemplate($heading, $message, $template)
-    {
-        $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
-        $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
-        ob_start();
-        include TEMPLATES .'errors/'.$template.'.php';
-        $buffer = ob_get_clean();
-
-        return $buffer;
-    }
+    // public function getErrorTemplate($heading, $message, $template)
+    // {
+    //     $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
+    //     $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
+    //     ob_start();
+    //     include TEMPLATES .'errors/'.$template.'.php';
+    //     return ob_get_clean();
+    // }
 
     /**
     * General Http Errors
@@ -401,15 +381,13 @@ class Response implements ResponseInterface, ContainerAwareInterface
     * @param int    $status   header status code
     * @param array  $headers  http headers
     * 
-    * @return string
+    * @return object
     */
-    protected function httpError($heading, $message, $template = 'general', $status = 500, $headers = [])
-    {
-        $buffer = $this->getErrorTemplate($heading, $message, $template);
-
-        $this->html($buffer, $status, $headers);
-
-        $this->c['logger']->error($heading, ['message' => $message]);
-    }
+    // protected function httpError($heading, $message, $template = 'general', $status = 500, $headers = [])
+    // {
+    //     $buffer = $this->getErrorTemplate($heading, $message, $template);
+    //     $this->c['logger']->error($heading, ['message' => $message]);
+    //     return $this->html($buffer, $status, $headers);
+    // }
 
 }

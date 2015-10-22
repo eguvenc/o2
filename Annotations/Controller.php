@@ -3,7 +3,9 @@
 namespace Obullo\Annotations;
 
 use ReflectionClass;
+use Obullo\Router\RouterInterface;
 use Obullo\Container\ContainerInterface;
+use Obullo\Controller\ControllerInterface;
 
 use Psr\Http\Message\ResponseInterface;
 
@@ -24,36 +26,54 @@ class Controller
     protected $c;
 
     /**
-     * Doc blocks string
+     * Doc method
      * 
      * @var string
      */
-    protected $blocks;
+    protected $method = 'index';
+
+    /**
+     * ReflectionClass instance
+     * 
+     * @var object
+     */
+    protected $reflector;
 
     /**
      * Constructor
-     *
-     * @param object $c        \Obullo\Container\ContainerInterface
-     * @param object $response \Psr\Http\Message\ResponseInterface
-     * @param object $class    controller object
-     * @param string $method   controller method
+     * 
+     * @param ContainerInterface $c         container
+     * @param ReflectionClass    $reflector reflector
      */
-    public function __construct(ContainerInterface $c, ResponseInterface $response, $class, $method = 'index')
+    public function __construct(ContainerInterface $c, ReflectionClass $reflector)
     {
         $this->c = $c;
-        $reflection = new ReflectionClass($class);
-
+        $this->reflector = $reflector;
         $this->c['annotation.middleware'] = function () use ($c) {
-            return new Middleware($c, $c['request'], $c['app'], $c['event']);
+            return new Middleware($c['event'], $c['request'], $c['dependency'], $c['middleware']);
         };
-        if (! $reflection->hasMethod($method)) {  // Show404 if method doest not exist
-            $response->error404();
-        }
-        $this->blocks = '';
-        if ($reflection->hasMethod('__construct')) {
-            $this->blocks = $reflection->getMethod('__construct')->getDocComment();
-        }
-        $this->blocks.= $reflection->getMethod($method)->getDocComment();
+    }
+
+    /**
+     * Set controller method
+     * 
+     * @param string $method name
+     *
+     * @return void
+     */
+    public function setMethod($method)
+    {
+        $this->method = $method;
+    }
+
+    /**
+     * Get method
+     * 
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->method;
     }
 
     /**
@@ -63,14 +83,19 @@ class Controller
      */
     public function parse()
     {
-        $docs = str_replace('*', '', $this->blocks);
+        $blocks = '';
+        if ($reflector->hasMethod('__construct')) {
+            $blocks = $reflector->getMethod('__construct')->getDocComment();
+        }
+        $blocks.= $reflector->getMethod($this->getMethod())->getDocComment();
+
+        $docs = str_replace('*', '', $blocks);
         $docs = explode("@", $docs);
 
-        if (strpos($this->blocks, 'middleware->') > 0 || strpos($this->blocks, 'event->')) {
+        if (strpos($this->blocks, 'middleware->') > 0 || strpos($blocks, 'event->')) {
             foreach ($docs as $line) {
                 $methods = explode('->', $line);  // explode every methods
                 array_shift($methods);            // remove class name "filter"
-
                 foreach ($methods as $methodString) {
                     $this->callMethod($methodString);
                 }

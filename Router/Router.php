@@ -19,7 +19,7 @@ use Psr\Http\Message\UriInterface;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Router
+class Router implements RouterInterface
 {
     protected $uri;                            // Uri class
     protected $logger;                         // Logger class
@@ -327,14 +327,14 @@ class Router
         }
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments = $this->detectModule($segments);
-        $directory = $this->fetchDirectory();
-        $module = $this->fetchModule('/');
-        $class = $this->fetchClass();
+        $directory = $this->getDirectory();
+        $module = $this->getModule('/');
+        $class = $this->getClass();
         if (! empty($class) && ! empty($module)) {   // Module index file support e.g modules/demo/tutorials/tutorials.php
             $directory = strtolower($class);
         }
         $checkIndexFile = false;
-        if (! isset($segments[1]) || isset($segments[1]) && $segments[1] == $this->fetchMethod()) { //  Just check index file if second segment is not a class.
+        if (! isset($segments[1]) || isset($segments[1]) && $segments[1] == $this->getMethod()) { //  Just check index file if second segment is not a class.
             $checkIndexFile = true;
         }
         if ($checkIndexFile && is_file(MODULES.$module.$directory.'/'.self::ucwordsUnderscore($directory).'.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
@@ -375,9 +375,7 @@ class Router
      */
     protected function parseRoutes()
     {
-        $uri = $this->uri->getUriString();  // Warning !: Don't use $this->uri->segments in here instead of use getUriString otherwise
-                                            // we could not get url suffix ".html".
-
+        $uri = $this->uri->getUriString();
         if (! empty($this->routes[$this->DOMAIN])) {
             foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
                 $parameters = $this->parseParameters($uri, $val);
@@ -527,7 +525,7 @@ class Router
     }
 
     /**
-     * Sets stop directory http://example.com/api/user/delete/4
+     * Sets top directory http://example.com/api/user/delete/4
      * 
      * @param string $directory sets top directory
      *
@@ -545,9 +543,9 @@ class Router
      * 
      * @return void
      */
-    public function fetchModule($separator = '')
+    public function getModule($separator = '')
     {
-        return (empty($this->module)) ? '' : filter_var($this->module, FILTER_SANITIZE_SPECIAL_CHARS).$separator;
+        return (empty($this->module)) ? '' : filter_var($this->module, FILTER_SANITIZE_STRING).$separator;
     }
 
     /**
@@ -555,9 +553,9 @@ class Router
      *
      * @return string
      */
-    public function fetchDirectory()
+    public function getDirectory()
     {
-        return filter_var($this->directory, FILTER_SANITIZE_SPECIAL_CHARS);
+        return filter_var($this->directory, FILTER_SANITIZE_STRING);
     }
 
     /**
@@ -565,10 +563,10 @@ class Router
      *
      * @return string
      */
-    public function fetchClass()
+    public function getClass()
     {
         $class = self::ucwordsUnderscore($this->class);
-        return $class;
+        return filter_var($class, FILTER_SANITIZE_STRING);
     }
 
     /**
@@ -576,7 +574,7 @@ class Router
      * 
      * @return string
      */
-    public function fetchMethod()
+    public function getMethod()
     {
         return $this->method;
     }
@@ -586,9 +584,9 @@ class Router
      * 
      * @return string
      */
-    public function fetchNamespace()
+    public function getNamespace()
     {
-        $namespace = self::ucwordsUnderscore($this->fetchModule()).'\\'.self::ucwordsUnderscore($this->fetchDirectory());
+        $namespace = self::ucwordsUnderscore($this->getModule()).'\\'.self::ucwordsUnderscore($this->getDirectory());
         $namespace = trim($namespace, '\\');
         return $namespace;
     }
@@ -673,7 +671,7 @@ class Router
     }
 
     /**
-     * Does group has match ?
+     * Does group has match ? ( ['match' => $regex] )
      *
      * @param string $match class namespace
      * 
@@ -693,7 +691,7 @@ class Router
     }
 
     /**
-     * Before regex check natural uri match
+     * Before regex check natural uri match 
      * 
      * @param string $match match url or regex
      * @param string $uri   uri string
@@ -886,7 +884,7 @@ class Router
             return false;
         } 
         $this->setRequest(explode('/', $this->pageNotFoundController));
-        return '\\'.$this->fetchNamespace().'\\'.$this->fetchClass();
+        return '\\'.$this->getNamespace().'\\'.$this->getClass();
     }
 
     /**

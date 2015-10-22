@@ -129,9 +129,9 @@ class Hello extends \Controller {
 
     public function index()
     {
-        echo "Task Controller : " . $this->router->fetchClass()."\n";
-        echo "Method : ". $this->router->fetchMethod()."\n";
-        echo "Namespace : ". $this->router->fetchNamespace()."\n";
+        echo "Task Controller : " . $this->router->getClass()."\n";
+        echo "Method : ". $this->router->getMethod()."\n";
+        echo "Namespace : ". $this->router->getNamespace()."\n";
         echo "Uri : ". $this->router->getUriString()."\n";
         echo "Host: ". $this->router->getHost()."\n";
     }
@@ -524,11 +524,11 @@ Sınıf içerisindeki tüm değişkenlerin değerlerini başa döndürür.
 
 ------
 
-##### $this->router->fetchClass();
+##### $this->router->getClass();
 
 Konsoldan gönderilan ilk parametre değerini yani sınıf adını verir.
 
-##### $this->router->fetchMethod();
+##### $this->router->getMethod();
 
 Konsoldan gönderilan ilk parametre değerini yani metot adını verir.
 

@@ -52,10 +52,13 @@ class Dependency
      * @param integer $key   container id
      * @param string  $class class path
      *
-     * @return instance of class
+     * @return void
      */
     public function addComponent($key, $class)
     {
+        if ($this->c->has($key)) {
+            return;
+        }
         $this->c[$key] = function () use ($key, $class) {
             $this->components[$key] = $class;
             return $this->resolveDependencies($key, $class);

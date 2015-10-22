@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Http;
+namespace Obullo\Application\Middlewares;
 
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -15,13 +15,7 @@ trait BenchmarkTrait
      */
     public function benchmarkStart(ServerRequestInterface $request)
     {
-        unset($this->c['request']); // Remove & update old request object in container 
-
-        $request = $request->withAttribute('REQUEST_TIME_START', microtime(true));
-        $this->c['request'] = function () use ($request) {
-            return $request;
-        };
-        return $request;
+        return $request->withAttribute('REQUEST_TIME_START', microtime(true));
     }
 
     /**

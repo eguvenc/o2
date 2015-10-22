@@ -67,4 +67,37 @@ $c['app'] = function () use ($c) {
     return new Http($c);
 };
 
+/**
+ * Components
+ */
 include APP .'components.php';
+
+/**
+ * Create Server Request
+ */
+$request = \Obullo\Http\ServerRequestFactory::fromGlobals(
+    $_SERVER,
+    $_GET,
+    $_POST,
+    $_COOKIE,
+    $_FILES
+);
+$c['request'] = function () use ($request, $c) {
+    $request->setContainer($c);
+    return $request;
+};
+
+/**
+ * Uri package
+ */
+$c['uri'] = function () use ($request, $c) {
+    $uri = $request->getUri();
+    $c['logger']->debug("Uri Class Initialized", ['uri' => $uri->getUriString()]);
+    return $uri;
+};
+
+/**
+ * Initialize to application
+ */
+$c['app']->init();
+$c['app']->run();

@@ -52,11 +52,11 @@ class Middleware
     /**
      * Constructor
      * 
-     * @param ContainerInterface $c container
+     * @param Obullo\Container\Dependency $dependency object 
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct($dependency)
     {
-        $this->c = $c;
+        $this->dependency = $dependency;
     }
 
     /**
@@ -71,7 +71,23 @@ class Middleware
         $this->registered = $array;
 
         $this->add('Begin');  // Add first middleware
+
         return $this;
+    }
+
+    /**
+     * Check given middleware is registered
+     * 
+     * @param string $name middleware
+     * 
+     * @return boolean
+     */
+    public function isConfigured($name)
+    {
+        if (isset($this->registered[$name])) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -94,6 +110,53 @@ class Middleware
     }
 
     /**
+     * Check middleware is loaded returns true if registered otherwise false
+     * 
+     * @param string $name middleware name
+     * 
+     * @return boolean
+     */
+    public function has($name)
+    {
+        $this->validateMiddleware($name);
+        if (isset($this->names[$name]) 
+            && isset($this->middlewares[$this->names[$name]]) 
+            && $this->getClassNameByIndex($this->names[$name]) == $name
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get class name without namespace using explode method
+     * 
+     * @param integer $index number
+     * 
+     * @return string class name without namespace
+     */
+    protected function getClassNameByIndex($index)
+    {
+        $class = get_class($this->middlewares[$index]);
+        $exp = explode("\\", $class);
+        return end($exp);
+    }
+
+    /**
+     * Returns to middleware object to inject parameters
+     * 
+     * @param string $name middleware
+     * 
+     * @return object
+     */
+    public function get($name)
+    {
+        $this->validateMiddleware($name);
+        $index = $this->names[$name];
+        return $this->middlewares[$index];
+    }
+
+    /**
      * Resolve middleware
      * 
      * @param string $name middleware key
@@ -106,7 +169,7 @@ class Middleware
         $Class = $this->registered[$name];
         ++$this->count;
         $this->names[$name] = $this->count;
-        return $this->middlewares[$this->count] = $this->c['dependency']->resolveDependencies($name, $Class);  // Store middlewares
+        return $this->middlewares[$this->count] = $this->dependency->resolveDependencies($name, $Class);  // Store middlewares
     }
 
     /**
@@ -157,8 +220,6 @@ class Middleware
      */
     public function getValues()
     {
-        $this->add('Finalize'); // Add last middleware
-
         return array_values($this->middlewares);
     }
 

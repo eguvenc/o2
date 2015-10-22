@@ -17,13 +17,18 @@ use Psr\Http\Message\UriInterface;
  */
 class Url implements UrlInterface
 {
+    protected $c;
+    protected $uri;
+    protected $config;
+    protected $logger;
+
     /**
      * Constructor
      * 
      * @param ContainerInterface $c      container
      * @param UriInterface       $uri    uri
      * @param ConfigInterface    $config config
-     * @param LoggerInterface    $logger config
+     * @param LoggerInterface    $logger logger
      */
     public function __construct(ContainerInterface $c, UriInterface $uri, ConfigInterface $config, LoggerInterface $logger)
     {

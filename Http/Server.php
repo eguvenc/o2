@@ -111,23 +111,8 @@ class Server
         array $cookies,
         array $files
     ) {
-        global $c;
         $request  = ServerRequestFactory::fromGlobals($server, $query, $body, $cookies, $files);
         $response = new Response();
-
-        $c['request'] = function () use ($request) {
-            return $request;
-        };
-        $c['uri'] = function () use ($request, $c) {
-            $uri = $request->getUri();
-            $c['logger']->debug("Uri Class Initialized", ['uri' => $uri->getUriString()]);
-            return $uri;
-        };
-        $response->setContainer($c);
-        $c['response'] = function () use ($response) {
-            return $response;
-        };
-        $c['app']->run();
 
         return new static($callback, $request, $response);
     }

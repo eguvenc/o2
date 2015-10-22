@@ -3,8 +3,6 @@
 namespace Obullo\Annotations;
 
 use Obullo\Event\EventInterface;
-use Obullo\Application\ApplicationInterface;
-use Obullo\Container\ContainerInterface;
 
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -17,20 +15,6 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class Middleware
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
-    /**
-     * Application
-     * 
-     * @var object
-     */
-    protected $app;
-
     /**
      * Event
      * 
@@ -60,19 +44,33 @@ class Middleware
     protected $request;
 
     /**
+     * Container dependency
+     * 
+     * @var object
+     */
+    protected $dependency;
+
+    /**
+     * Application middleware
+     * 
+     * @var object
+     */
+    protected $middleware;
+
+    /**
      * Constructor
      * 
-     * @param ContainerInterface     $c       container
-     * @param ServerRequestInterface $request request
-     * @param ApplicationInterface   $app     app
-     * @param EventInterface         $event   event
+     * @param EventInterface                 $event      event
+     * @param ServerRequestInterface         $request    request
+     * @param \Obullo\Container\Dependency   $dependency object
+     * @param \Obullo\Application\Middleware $middleware object
      */
-    public function __construct(ContainerInterface $c, ServerRequestInterface $request, ApplicationInterface $app, EventInterface $event)
+    public function __construct(EventInterface $event, ServerRequestInterface $request, $dependency, $middleware)
     {
-        $this->c = $c;
-        $this->app = $app;
         $this->event = $event;
         $this->request = $request;
+        $this->dependency = $dependency;
+        $this->middleware = $middleware;
     }
 
     /**
@@ -113,7 +111,7 @@ class Middleware
             $middleware = array($middleware);
         }
         foreach ($middleware as $name) {
-            $this->c['middleware']->remove(ucfirst($name));
+            $this->middleware->remove(ucfirst($name));
         }
     }
 
@@ -145,7 +143,7 @@ class Middleware
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->c['middleware']->add('NotAllowed')->setMethods($params);
+        $this->middleware->add('NotAllowed')->inject($params);
         return;
     }
 
@@ -163,11 +161,14 @@ class Middleware
         $when = count($this->when);
 
         if ($when > 0 && in_array($this->request->getMethod(), $allowedMethods)) {
-            $this->event->subscribe(new $Class($this->c));
+
+            $this->dependency->resolveDependencies($name, $Class)
+
+            $this->event->subscribe(new $Class);
             $this->when = array();  // Reset when
             return $this;
         } elseif ($when == 0) {
-            $this->event->subscribe(new $Class($this->c));
+            $this->event->subscribe(new $Class);
         }
     }
 
@@ -181,7 +182,7 @@ class Middleware
     protected function addMiddleware(array $middlewares)
     {
         foreach ($middlewares as $name) {
-            $this->c['middleware']->add(ucfirst($name));
+            $this->middleware->add(ucfirst($name));
         }
     }
     

@@ -4,12 +4,8 @@ namespace Obullo\View;
 
 use Closure;
 use Controller;
-use Obullo\Layer\Layer;
-use Obullo\Log\LoggerInterface;
-use Obullo\Config\ConfigInterface;
-use Obullo\Container\ContainerInterface;
-
-use Psr\Http\Message\ResponseInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * View Class
@@ -18,7 +14,7 @@ use Psr\Http\Message\ResponseInterface;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class View
+class View implements ViewInterface
 {
     /**
      * Container
@@ -35,13 +31,6 @@ class View
     protected $logger;
 
     /**
-     * Response
-     * 
-     * @var object
-     */
-    protected $response;
-
-    /**
      * Protected variables
      * 
      * @var array
@@ -54,36 +43,33 @@ class View
     /**
      * Constructor
      * 
-     * @param object $c        \Obullo\Container\ContainerInterface
-     * @param object $response \Pst\Http\Message\ResponseInterface
-     * @param object $config   \Obullo\Config\ConfigInterface
-     * @param object $logger   \Obullo\Log\LoggerInterface
+     * @param object $c      \Obullo\Container\ContainerInterface
+     * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, ResponseInterface $response, ConfigInterface $config, LoggerInterface $logger)
+    public function __construct(Container $c, Logger $logger)
     {
         $this->c = $c;
         $this->logger = $logger;
-        $this->response = $response;
         $this->logger->debug('View Class Initialized');
     }
 
     /**
-     * Fetch view
+     * Get body / write body
      * 
-     * @param string  $_OVpath     full path
-     * @param string  $_OVfilename filename
-     * @param string  $_OVData     mixed data
-     * @param boolean $_OVInclude  fetch as string or include
+     * @param string  $_Vpath     full path
+     * @param string  $_Vfilename filename
+     * @param string  $_VData     mixed data
+     * @param boolean $_VInclude  fetch as string or include
      * 
-     * @return void
+     * @return mixed
      */
-    public function fetch($_OVpath, $_OVfilename, $_OVData = null, $_OVInclude = true)
+    public function getBody($_Vpath, $_Vfilename, $_VData = null, $_VInclude = true)
     {
-        $_OVInclude = ($_OVData === false) ? false : $_OVInclude;
-        $fileExtension = substr($_OVfilename, strrpos($_OVfilename, '.')); // Detect extension ( e.g. '.tpl' )
+        $_VInclude = ($_VData === false) ? false : $_VInclude;
+        $fileExtension = substr($_Vfilename, strrpos($_Vfilename, '.')); // Detect extension ( e.g. '.tpl' )
         $ext = (strpos($fileExtension, '.') === 0) ? '' : '.php';
 
-        $this->assignVariables($_OVData);
+        $this->assignVariables($_VData);
 
         extract($this->_stringStack, EXTR_SKIP);
         extract($this->_arrayStack, EXTR_SKIP);
@@ -91,27 +77,27 @@ class View
         extract($this->_boolStack, EXTR_SKIP);
 
         ob_start();   // Please open short tags in your php.ini file. ( it must be short_tag = On ).
-        include $_OVpath . $_OVfilename . $ext;
+        include $_Vpath . $_Vfilename . $ext;
         $body = ob_get_clean();
         
-        if ($_OVData === false || $_OVInclude === false) {
+        if ($_VData === false || $_VInclude === false) {
             return $body;
         }
-        $this->response->getBody()->write($body);
+        $this->c['response']->write($body);
         return;
     }
 
     /**
      * Assign view variables
      * 
-     * @param array $_OVData view data
+     * @param array $_VData view data
      * 
      * @return void
      */
-    protected function assignVariables($_OVData)
+    protected function assignVariables($_VData)
     {
-        if (is_array($_OVData)) {
-            foreach ($_OVData as $key => $value) {
+        if (is_array($_VData)) {
+            foreach ($_VData as $key => $value) {
                 $this->assign($key, $value);
             }
         }
@@ -180,7 +166,33 @@ class View
     }
 
     /**
-     * Load view file from /view folder
+     * Include nested view files from current module /view folder
+     * 
+     * @param string $filename filename
+     * @param mixed  $data     array data
+     * 
+     * @return string                      
+     */
+    public function load($filename, $data = null)
+    {
+        return $this->renderNestedView($filename, $data, true);
+    }
+
+    /**
+     * Get nested view files as string from current module /view folder
+     * 
+     * @param string $filename filename
+     * @param mixed  $data     array data
+     * 
+     * @return string
+     */
+    public function get($filename, $data = null)
+    {
+        return $this->renderNestedView($filename, $data, false);
+    }
+
+    /**
+     * Render nested view files
      * 
      * @param string  $filename filename
      * @param mixed   $data     array data
@@ -188,13 +200,13 @@ class View
      * 
      * @return string                      
      */
-    public function load($filename, $data = null, $include = true)
+    protected function renderNestedView($filename, $data, $include = true)
     {
         /**
          * IMPORTANT:
          * 
          * Router may not available in some levels, forexample if we define a closure route 
-         * which contains the view class, it will not work if router not available in the controller.
+         * which contains view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
         if (! class_exists('Controller', false) || Controller::$instance == null) {
@@ -205,40 +217,13 @@ class View
         /**
          * Fetch view ( also it can be nested )
          */
-        $return = $this->fetch(
-            MODULES .$router->fetchModule('/') . $router->fetchDirectory() .'/view/',
+        $return = $this->getBody(
+            MODULES .$router->getModule('/') . $router->getDirectory() .'/view/',
             $filename,
             $data,
             $include
         );
         return $return;
-    }
-
-    /**
-     * Get view as string
-     * 
-     * @param string $filename filename
-     * @param mixed  $data     array data
-     * 
-     * @return string
-     */
-    public function get($filename, $data = null)
-    {
-        return $this->load($filename, $data, false);
-    }
-
-    /**
-     * Load view file app / templates folder
-     * 
-     * @param string  $filename filename
-     * @param array   $data     variables
-     * @param boolean $include  no include ( fetch as string )
-     * 
-     * @return string                      
-     */
-    public function template($filename, $data = null, $include = false)
-    {
-        return $this->fetch(TEMPLATES, $filename, $data, $include);
     }
 
     /**

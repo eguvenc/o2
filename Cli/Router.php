@@ -8,12 +8,9 @@ use Obullo\Log\LoggerInterface;
 /**
  * Cli Router Class ( ! Warning : Midllewares & Layers Disabled in CLI mode )
  * 
- * @category  Router
- * @package   Router
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/router
  */
 class Router
 {
@@ -195,7 +192,7 @@ class Router
      * 
      * @return string
      */
-    public function fetchNamespace()
+    public function getNamespace()
     {
         return $this->classNamespace;
     }
@@ -207,7 +204,7 @@ class Router
      */
     public function classNotFound()
     {
-        die('[Error]: The task command ' .$this->fetchNamespace(). ' not found.'."\n");
+        die('[Error]: The task command ' .$this->getNamespace(). ' not found.'."\n");
     }
 
     /**
@@ -217,7 +214,7 @@ class Router
      */
     public function methodNotFound()
     {
-        die('[Error]: The method ' .$this->fetchMethod(). ' not found in '.$this->fetchClass()." task.\n");
+        die('[Error]: The method ' .$this->getMethod(). ' not found in '.$this->getClass()." task.\n");
     }
 
 
@@ -252,7 +249,7 @@ class Router
      *
      * @return string
      */
-    public function fetchClass()
+    public function getClass()
     {
         $class = self::ucwordsUnderscore($this->class);
         return $class;
@@ -263,7 +260,7 @@ class Router
      * 
      * @return string
      */
-    public function fetchMethod()
+    public function getMethod()
     {
         return $this->method;
     }

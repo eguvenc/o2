@@ -127,15 +127,6 @@ interface ApplicationInterface
     public function dependency(array $deps);
 
     /**
-     * Removes dependency
-     * 
-     * @param array $deps dependencies
-     * 
-     * @return object
-     */
-    public function removeDependency(array $deps);
-
-    /**
      * Returns current version of Obullo
      * 
      * @return string

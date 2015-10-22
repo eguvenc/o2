@@ -1,12 +1,14 @@
 <?php
 
+use Obullo\Controller\ControllerInterface;
+
 /**
  * Obullo Hmvc Based Controller.
  * 
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Controller
+class Controller implements ControllerInterface
 {
     /**
      * Container
@@ -57,8 +59,8 @@ class Controller
     public function __set($key, $val)  // Custom variables is not allowed !!! 
     {
         if (is_object($val)) {
-            $this->{$key} = $val; // WARNING : Store only object types if we don't do this every array params of 
-                                  // container will be stored in the controller.
+            $this->{$key} = $val; // WARNING : Store only object types otherwise container params
+                                  // variables come in here.
         }
     }
 }

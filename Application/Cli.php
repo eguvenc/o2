@@ -65,7 +65,7 @@ class Cli extends Application
      */
     protected function dispatchMethod()
     {
-        if (! method_exists($this->class, $this->router->fetchMethod())) {
+        if (! method_exists($this->class, $this->router->getMethod())) {
             $this->router->methodNotFound();
         }
     }
@@ -83,7 +83,7 @@ class Cli extends Application
         $this->init();
         $this->router = $this->c['router'];
         $this->router->init();
-        $this->className = $this->router->fetchNameSpace();
+        $this->className = $this->router->getNamespace();
         $this->dispatchClass();
         $this->class = new $this->className;  // Call the controller
         $this->call();
@@ -99,7 +99,7 @@ class Cli extends Application
         $this->dispatchMethod();  // Display 404 error if method doest not exist
         $arguments = array_slice($this->c['uri']->getSegments(), 2);
 
-        call_user_func_array(array($this->class, $this->router->fetchMethod()), $arguments);
+        call_user_func_array(array($this->class, $this->router->getMethod()), $arguments);
 
         if (isset($_SERVER['argv'])) {
             $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));

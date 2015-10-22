@@ -781,18 +781,18 @@ Sunucuda çalışan host adresine geri döner. Örn: example.com
 
 App/routes.php dosyası içerisinde domain metodu ile tanımlanmış alan adına geri döner.
 
-##### $this->router->fetchModule();
+##### $this->router->getModule();
 
 Eğer bir modül çağrıldıysa modül ismine aksi durumda boş bir string '' değerine geri döner.
 
-##### $this->router->fetchDirectory();
+##### $this->router->getDirectory();
 
 Çağırılan dizin adına geri döner.
 
-##### $this->router->fetchClass();
+##### $this->router->getClass();
 
 Çağırılan sınıf adına geri döner.
 
-##### $this->router->fetchMethod();
+##### $this->router->getMethod();
 
 Çağırılan metot adına geri döner.

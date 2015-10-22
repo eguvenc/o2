@@ -588,7 +588,7 @@ $this->c['app']->uri->getUriString();
 Uygulamada kullanılan evrensel <b>router</b> nesnesine geri dönerek bu nesnenin metotlarına ulaşmanızı sağlar. Uygulama içerisinde bir hiyerarşik katman ( HMVC bknz. [Layer](Layer.md) paketi  ) isteği gönderildiğinde router nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel router değişime uğrar. Böyle bir durumda bu method ( x ) sizin ilk durumdaki http isteği yapılan evrensel router nesnesine ulaşmanıza imkan tanır.
 
 ```php
-$this->c['app']->router->fetchMethod();
+$this->c['app']->router->getMethod();
 ```
 
 <a name="set-methods"></a>

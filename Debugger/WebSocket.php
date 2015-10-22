@@ -134,8 +134,8 @@ class WebSocket
         $this->connect = @socket_connect($this->socket, $this->host, $this->port);
 
         if ($this->connect == false) {
-            $message = "Debugger enabled in your config file but debug server is not running. 
-            Disable debugger or run debug server using below the console command. <pre>php task debugger</pre>";
+            $message = "Debugger enabled but socket server is not running. 
+            Run debug server or disable debugger. <pre>php task debugger</pre>";
             if ($this->request->isAjax()) {
                 $message = strip_tags($message);
             }
