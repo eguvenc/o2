@@ -2,7 +2,7 @@
 
 namespace Obullo\Log;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 use Obullo\Container\ServiceInterface;
 
 /**
@@ -27,12 +27,11 @@ class LogManager implements ServiceInterface
      * @param ContainerInterface $c      container
      * @param array              $params service parameters
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(Container $c, array $params)
     {
         $this->c = $c;
-        
         if ($this->c['config']['log']['enabled']) {
-            $this->c['logger.params'] = array_merge($params, $c['config']->load('logger'));
+            $this->c['logger.params'] = $params;
         }
     }
 

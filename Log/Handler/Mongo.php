@@ -4,8 +4,6 @@ namespace Obullo\Log\Handler;
 
 use MongoDate;
 use InvalidArgumentException;
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
 
 /**
  * Mongo Handler 
@@ -17,56 +15,58 @@ use Obullo\Application\Application;
 class Mongo extends AbstractHandler implements HandlerInterface
 {
     /**
-     * Options
+     * Service configuration
      * 
      * @var array
      */
-    public $options;
+    protected $params;
 
     /**
-     * MongoClient object
+     * Save format
      * 
-     * @var object
+     * @var array
      */
-    public $mongoClient;
-
-    /**
-     * MongoCollection object
-     * 
-     * @var object
-     */
-    public $mongoCollection;
+    protected $saveFormat;
 
     /**
      * Mongo save options
      * 
      * @var array
      */
-    public $saveOptions;
-    
+    protected $saveOptions;
+
+    /**
+     * MongoClient object
+     * 
+     * @var object
+     */
+    protected $mongoClient;
+
+    /**
+     * MongoCollection object
+     * 
+     * @var object
+     */
+    protected $mongoCollection;
+
     /**
      * Constructor
      * 
      * @param object $mongo  $mongo service provider
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
      * @param array  $params mongo driver options
      */
-    public function __construct($mongo, Application $app, ConfigInterface $config, array $params = array())
+    public function __construct($mongo, array $params)
     {
+        $this->params = $params;
+        $this->mongoClient = $mongo;
         $database = isset($params['database']) ? $params['database'] : null;
         $collection = isset($params['collection']) ? $params['collection'] : null;
-        $saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
-
-        parent::__construct($app, $config);
-        
-        $this->options = $params;
-        $this->mongoClient = $mongo;
+        $this->saveOptions = isset($params['save_options']) ? $params['save_options'] : array();
+        $this->saveFormat = $params['save_format'];
 
         self::checkConfigurations($collection, $database, $mongo);
-
         $this->mongoCollection = $this->mongoClient->selectCollection($database, $collection);
-        $this->saveOptions = $saveOptions;
+
     }
 
     /**
@@ -99,15 +99,15 @@ class Mongo extends AbstractHandler implements HandlerInterface
     /**
     * Format log records and build lines
     *
-    * @param string $data              all data
+    * @param string $event             handler log event
     * @param array  $unformattedRecord current record
     * 
     * @return array formatted record
     */
-    public function arrayFormat($data, $unformattedRecord)
+    public function arrayFormat(array $event, array $unformattedRecord)
     {
         $record = array(
-            'datetime' => new MongoDate(strtotime(date($this->config['logger']['format']['date'], $data['time']))),
+            'datetime' => new MongoDate(strtotime(date($this->params['format']['date'], $event['time']))),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -116,14 +116,14 @@ class Mongo extends AbstractHandler implements HandlerInterface
         );
         if (isset($unformattedRecord['context']['extra']) && count($unformattedRecord['context']['extra']) > 0) {
             $record['extra'] = $unformattedRecord['context']['extra']; // Default extra data format is array.
-            if ($this->options['save_format']['extra'] == 'json') { // if extra data format json ?
+            if ($this->saveFormat['extra'] == 'json') { // if extra data format json ?
                 $record['extra'] = json_encode($unformattedRecord['context']['extra'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
             }
             unset($unformattedRecord['context']['extra']);
         }
         if (count($unformattedRecord['context']) > 0) {
             $record['context'] = $unformattedRecord['context'];
-            if ($this->options['save_format']['context'] == 'json') {
+            if ($this->saveFormat['context'] == 'json') {
                 $record['context'] = json_encode($unformattedRecord['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
         }
@@ -133,15 +133,15 @@ class Mongo extends AbstractHandler implements HandlerInterface
     /**
      * Writer 
      *
-     * @param array $data log record
+     * @param array $event current hanfler log event
      * 
      * @return void
      */
-    public function write(array $data)
+    public function write(array $event)
     {
         $records = array();
-        foreach ($data['record'] as $record) {
-            $records[] = $this->arrayFormat($data, $record);
+        foreach ($event['record'] as $record) {
+            $records[] = $this->arrayFormat($event, $record);
         }
         $this->mongoCollection->batchInsert(
             $records, 

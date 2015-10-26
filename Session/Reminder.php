@@ -15,11 +15,11 @@ use Obullo\Container\ContainerInterface;
 class Reminder
 {
     /**
-     * Config parameters
+     * Service parameters
      * 
      * @var array
      */
-    public $config;
+    public $params;
 
     /**
      * Session Class
@@ -31,13 +31,13 @@ class Reminder
     /**
      * Constructor 
      * 
-     * @param SessionInterface $session session
-     * @param ConfigInterface  $config  config
+     * @param ContainerInterface $c       container
+     * @param SessionInterface   $session session
      */
-    public function __construct(SessionInterface $session, ConfigInterface $config)
+    public function __construct(Container $c, SessionInterface $session)
     {
         $this->session = $session;
-        $this->config = $config['session'];
+        $this->params = $c['session.params'];
     }
 
     /**
@@ -82,10 +82,10 @@ class Reminder
     {
         session_set_cookie_params(
             $lifetime,
-            $this->config['cookie']['path'],
-            $this->config['cookie']['domain'],
-            $this->config['cookie']['secure'],
-            $this->config['cookie']['httpOnly']
+            $this->params['cookie']['path'],
+            $this->params['cookie']['domain'],
+            $this->params['cookie']['secure'],
+            $this->params['cookie']['httpOnly']
         );
         if ($this->session->exists()) {
             $this->session->regenerateId($deleteOldSession, $lifetime); // There is a running session so we will regenerate id to send a new cookie.

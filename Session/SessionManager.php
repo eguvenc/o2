@@ -30,9 +30,8 @@ class SessionManager implements ServiceInterface
     public function __construct(ContainerInterface $c, array $params)
     {
         $this->c = $c;
-        $session = $this->c['config']->load('session');
-        $session['locale']['timezone'] = $this->c['config']['locale']['timezone'];
-        $this->c['session.params'] = array_merge($params, $session);
+        $params['locale']['timezone'] = $this->c['config']['locale']['timezone'];
+        $this->c['session.params'] = $params;
     }
 
     /**

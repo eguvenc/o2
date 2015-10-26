@@ -2,7 +2,7 @@
 
 namespace Obullo\Log\Filter;
 
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface as Logger;
 
 /**
  * Log filter handler
@@ -16,17 +16,13 @@ class LogFilters
     /**
      * Handle log filters
      * 
-     * @param array $event  writers data
-     * @param array $logger logger  optionally for testing
+     * @param array $event  current handler log event
+     * @param array $logger logger
      * 
      * @return array single event data of writer
      */
-    public static function handle(array $event, $logger = null)
+    public static function handle(array $event, Logger $logger)
     {
-        if ($logger == null) {
-            global $c;
-            $logger = $c['logger'];
-        }
         foreach ($event['filters'] as $value) {
             $Class = '\\'.$value['class'];
             $method = $value['method'];

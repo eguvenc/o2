@@ -2,7 +2,7 @@
 
 namespace Obullo\Queue;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 use Obullo\Container\ServiceInterface;
 use Obullo\Queue\Handler\AmqpLib;
 
@@ -28,10 +28,10 @@ class QueueManagerAmqpLib implements ServiceInterface
      * @param ContainerInterface $c      container
      * @param array              $params service parameters
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(Container $c, array $params)
     {
         $this->c = $c;
-        $this->c['queue.params'] = array_merge($params, $c['config']->load('queue'));
+        $this->c['queue.params'] = $params;
     }
 
     /**

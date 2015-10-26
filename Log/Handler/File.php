@@ -2,8 +2,7 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * File Handler 
@@ -15,23 +14,29 @@ use Obullo\Application\Application;
 class File extends AbstractHandler implements HandlerInterface
 {
     /**
-     * File configuration
+     * Service configuration
      * 
      * @var array
      */
-    protected $pathArray;
+    protected $params;
+
+    /**
+     * Handler configuration
+     * 
+     * @var array
+     */
+    protected $config;
 
     /**
      * Constructor
      * 
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array $params logger service parameters
+     * @param array $config config parameters
      */
-    public function __construct(Application $app, ConfigInterface $config)
+    public function __construct(array $params, $config = array())
     {
-        parent::__construct($app, $config);
-
-        $this->pathArray = $config['logger']['file']['path'];
+        $this->params = $params;
+        $this->config = $config;
     }
 
     /**
@@ -44,6 +49,7 @@ class File extends AbstractHandler implements HandlerInterface
     public function write(array $event)
     {
         $lines = '';
+        $path  = '';
         foreach ($event['record'] as $record) {
             $record = $this->arrayFormat($event, $record);
             $lines .= $this->lineFormat($record);
@@ -52,10 +58,10 @@ class File extends AbstractHandler implements HandlerInterface
         if ($type == 'worker') {
             $type = 'cli';
         }
-        if (isset($this->pathArray[$type])) {
-            $this->path = self::resolvePath($this->pathArray[$type]);
+        if (isset($this->config['path'][$type])) {
+            $path = self::resolvePath($this->config['path'][$type]);
         }
-        if (! $fop = fopen($this->path, 'ab')) {
+        if (! $fop = fopen($path, 'ab')) {
             return false;
         }
         flock($fop, LOCK_EX);

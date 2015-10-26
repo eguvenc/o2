@@ -5,19 +5,16 @@ namespace Obullo\Authentication;
 use Obullo\Authentication\User\Login;
 use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
- * AuthManager Class
+ * Auth Manager
  * 
- * @category  Auth
- * @package   Authentication
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
-class AuthManager
+class AuthManager implements ServiceInterface
 {
     /**
      * Container class
@@ -27,50 +24,25 @@ class AuthManager
     protected $c;
 
     /**
-     * Create classes
+     * Constructor
      * 
-     * @param object $c container
-     * 
-     * @return object
+     * @param ContainerInterface $c      container
+     * @param array              $params service parameters
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c, array $params)
     {
         $this->c = $c;
+        $this->c['auth.params'] = $params;
     }
 
     /**
-     * Merge auth configuration & service parameters 
-     * then pass parameters to register services.
+     * Register
      * 
-     * @param array $params parameters
-     *
-     * @return void
+     * @return object logger
      */
-    public function setParameters(array $params)
+    public function register()
     {
-        AuthConfig::setParameters($this->c['config'], $params);
-        
-        $this->register();
-    }
-
-    /**
-     * Returns to all parameters
-     * 
-     * @return array
-     */
-    public function getParameters()
-    {
-        return AuthConfig::getParameters();
-    }
-
-    /**
-     * Register authentication services
-     *
-     * @return void
-     */
-    protected function register()
-    {
-        $parameters = $this->getParameters();
+        $parameters = $this->c['auth.params'];
 
         $this->c['auth.storage'] = function () use ($parameters) {
             return new $parameters['cache']['storage']($this->c['session'], $this->c['cache'], $parameters);
@@ -89,9 +61,7 @@ class AuthManager
         };
 
         $this->c['auth.model'] = function () use ($parameters) {
-
             $provider = $parameters['db.provider']['name'];
-            
             return new $parameters['db.model']($this->c[$provider], $parameters);
         };
 

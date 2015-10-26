@@ -2,7 +2,7 @@
 
 namespace Obullo\Log\Filter;
 
-use Obullo\Log\Logger;
+use Obullo\Log\LoggerInterface as Logger;
 
 /**
  * Priority filter
@@ -30,7 +30,7 @@ class PriorityFilter
     /**
      * Constructor
      * 
-     * @param array  $params parameters
+     * @param array  $params filter parameters
      * @param object $logger Logger
      */
     public function __construct(array $params, Logger $logger)

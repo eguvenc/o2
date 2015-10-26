@@ -3,7 +3,7 @@
 namespace Obullo\View;
 
 use Closure;
-use Controller;
+use Obullo\Http\Controller;
 use Obullo\Log\LoggerInterface as Logger;
 use Obullo\Container\ContainerInterface as Container;
 use Obullo\View\ViewInterface as View;

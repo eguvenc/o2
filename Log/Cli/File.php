@@ -2,7 +2,7 @@
 
 namespace Obullo\Log\Cli;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * File reader
@@ -22,20 +22,19 @@ class File
      * 
      * @return void
      */
-    public function follow(ContainerInterface $c, $dir = 'http', $table = null)
+    public function follow(Container $c, $dir = 'http', $table = null)
     {
-        $c['config']->load('logger');
-
-        $table = null; // Unused variable
-        if (! isset($c['config']['logger']['file']['path'][$dir])) {
-            echo("\n\n\033[1;31mPath Error: $dir item not found in ['config']['logger']['file']['path'][$dir] array.\033[0m\n");
+        $c = $table = null;  // Unused variables
+        $directions = [
+            'http'  => '/resources/data/logs/http.log',
+            'cli'   => '/resources/data/logs/cli.log',
+            'ajax'  => '/resources/data/logs/ajax.log',
+        ];
+        if (! isset($directions[$dir])) {
+            echo("\n\n\033[1;31mPath Error: $dir item not defined in ".__CLASS__." \033[0m\n");
             exit;
         }
-        $path = trim($c['config']['logger']['file']['path'][$dir], '/');
-        $file = $path;
-        if (strpos($path, 'data') === 0) {  // Replace "data" word to application data path
-            $file = str_replace('data', '/'. trim(DATA, '/'), $path);
-        }
+        $file = $directions[$dir];
         echo "\n\33[0;37mFollowing File Handler ".ucfirst($dir)." Logs ...\33[0m\n";
 
         $size = 0;

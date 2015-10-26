@@ -100,4 +100,3 @@ $c['uri'] = function () use ($request, $c) {
  * Initialize to application
  */
 $c['app']->init();
-$c['app']->run();

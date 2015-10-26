@@ -2,9 +2,6 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
-
 /**
  * Syslog Handler 
  * 
@@ -29,21 +26,27 @@ class Syslog extends AbstractHandler implements HandlerInterface
     public $name = 'LogHandler.Syslog';
 
     /**
+     * Service configuration
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
      * Constructor
      * 
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
-     * @param array  $params syslog parameters
+     * @param array $params service parameters
+     * @param array $config handler config
      */
-    public function __construct(Application $app, ConfigInterface $config, array $params = array())
+    public function __construct(array $params, $config = array())
     {
-        parent::__construct($app, $config);
+        $this->params = $params;
 
-        if (isset($params['facility'])) {
-            $this->facility = $params['facility'];  // Application facility
+        if (! empty($config['facility'])) {
+            $this->facility = $config['facility'];  // Application facility
         }
-        if (isset($params['name'])) {       // Application name
-            $this->name = $params['name'];
+        if (! empty($config['name'])) {       // Application name
+            $this->name = $config['name'];
         }
         openlog($this->name, LOG_PID, $this->facility);
     }
@@ -51,14 +54,14 @@ class Syslog extends AbstractHandler implements HandlerInterface
     /**
      * Write output
      *
-     * @param string $data single record data
+     * @param string $event current handler log event
      * 
      * @return void
      */
-    public function write(array $data)
+    public function write(array $event)
     {
-        foreach ($data['record'] as $record) {
-            $record = $this->arrayFormat($data, $record);
+        foreach ($event['record'] as $record) {
+            $record = $this->arrayFormat($event, $record);
             syslog($record['level'], $this->lineFormat($record));
         }
     }

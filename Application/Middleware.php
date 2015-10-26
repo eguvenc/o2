@@ -70,7 +70,8 @@ class Middleware
     {
         $this->registered = $array;
 
-        $this->add('Begin');  // Add first middleware
+        // $this->add('Router');  // Add first middlewares
+        // $this->add('Begin');
 
         return $this;
     }
@@ -169,7 +170,7 @@ class Middleware
         $Class = $this->registered[$name];
         ++$this->count;
         $this->names[$name] = $this->count;
-        return $this->middlewares[$this->count] = $this->dependency->resolveDependencies($name, $Class);  // Store middlewares
+        return $this->middlewares[$this->count] = $this->dependency->resolveDependencies($Class);  // Store middlewares
     }
 
     /**

@@ -2,10 +2,8 @@
 
 namespace Obullo\Application;
 
-use Controller;
-use Obullo\Debugger\WebSocket;
-
 use Psr\Http\Message\ResponseInterface as Response;
+use Obullo\Http\Middleware\ControllerAwareInterface;
 
 /**
  * Http Application
@@ -16,11 +14,6 @@ use Psr\Http\Message\ResponseInterface as Response;
  */
 class Http extends Application
 {
-    protected $class;                 // Current controller
-    protected $method;                // Current method
-    protected $websocket;             // Debugger websocket
-    protected $className;             // Current controller name
-
     /**
      * Constructor
      *
@@ -37,68 +30,11 @@ class Http extends Application
         include APP .'middlewares.php';
 
         $this->registerErrorHandlers();
-
-        include OBULLO .'Controller/Controller.php';
         include APP .'events.php';
-        include APP .'routes.php';
 
-        $c['router']->init();
+        $this->boot();
+
         register_shutdown_function(array($this, 'close'));
-    }
-
-    /**
-     * Check class exists
-     * 
-     * @return void
-     */
-    protected function dispatchClass()
-    {
-        include MODULES .$this->c['router']->getModule('/').$this->c['router']->getDirectory().'/'.$this->c['router']->getClass().'.php';
-
-        $this->className = '\\'.$this->c['router']->getNamespace().'\\'.$this->c['router']->getClass();
-
-        if (! class_exists($this->className, false)) {
-            $this->c['router']->clear();
-            if ($error404 = $this->c['router']->get404Class()) {
-                $this->includeClass();
-                $this->className = $error404;
-            } else {
-                $this->c['middleware']->add('NotFound');
-            }
-            return;
-        }
-        $this->class = new $this->className;  // Call the controller
-    }
-
-    /**
-     * Check method exists
-     * 
-     * @return void
-     */
-    protected function dispatchMethod()
-    {
-        $method = $this->c['router']->getMethod();
-        if (! method_exists($this->class, $method)
-            || substr($method, 0, 1) == '_'
-        ) {
-            $this->c['middleware']->add('NotFound');
-            // $this->c['response']->error404();
-        }
-    }
-
-    /**
-     * Run
-     *
-     * This method invokes the middleware stack, including the core application;
-     * the result is an array of HTTP status, header, and output.
-     * 
-     * @return void
-     */
-    public function run()
-    {
-        $this->dispatchClass();
-        $this->dispatchMethod();
-        $this->dispatchMiddlewares();
     }
 
     /**
@@ -106,23 +42,15 @@ class Http extends Application
      * 
      * @return void
      */
-    protected function dispatchMiddlewares()
+    protected function boot()
     {
         $c = $this->c; // Make global
         $middleware = $c['middleware'];
 
-        if ($middleware->has('Annotation')) {
-            $middleware->get('Annotation')->inject($this->class, $this->c, $this->c['response']);
-        }
-        if ($middleware->has('View')) {
-            $middleware->get('View')->inject($this->class);
-        }
-        $middleware->get('Begin')->inject($this->class);
+        // Assign route middlewares
 
-        // Route middlewares
-
-        $uriString = $this->uri->getUriString();
-        foreach ($c['router']->getAttachedMiddlewares() as $value) {
+        $uriString = $this->c['uri']->getUriString();
+        foreach ($this->c['router']->getAttachedMiddlewares() as $value) {
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
             if ($value['route'] == $uriString) {     // if we have natural route match
                 $object = $middleware->add($value['name']);
@@ -140,28 +68,81 @@ class Http extends Application
      *
      * @param Psr\Http\Message\ResponseInterface $response response
      * 
-     * @return void
+     * @return mixed
      */
     public function call(Response $response)
     {
+        $router = $this->c['router'];
+        $middleware = $this->c['middleware'];
+
+        include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
+        $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
+        
+        $check404Error = $this->dispatchController($className, $router);
+        if (! $check404Error) {
+            return false;
+        }
+        $controller = new $className;
+        $method = $router->getMethod();
+        $check404Error = $this->dispatchMethod($controller, $method);
+        if (! $check404Error) {
+            return false;
+        }
         unset($this->c['response']);
         $this->c['response'] = function () use ($response) {
             return $response;
         };
-        if (empty($this->class)) {
-            return $response;
+        foreach ($middleware->getNames() as $name) {
+            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
+                $middleware->get($name)->inject($controller);
+            } 
         }
         $result = call_user_func_array(
             array(
-                $this->class,
-                $this->c['router']->getMethod()
+                $controller,
+                $method
             ),
-            array_slice($this->class->uri->getRoutedSegments(), 3)
+            array_slice($controller->uri->getRoutedSegments(), 3)
         );
         if ($result instanceof Response) {
             $response = $result;
         }
         return $response;   
+    }
+
+    /**
+     * Dispatch controller
+     * 
+     * @param string $file   full path
+     * @param object $router 
+     * 
+     * @return void
+     */
+    protected function dispatchController($file, $router)
+    {
+        if (! class_exists($file)) {
+            $router->clear();  //  fix layer errors
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Dispatch method
+     * 
+     * @param object $controller controller
+     * @param string $method     method
+     * 
+     * @return void
+     */
+    protected function dispatchMethod($controller, $method)
+    {
+        if (! method_exists($controller, $method)
+            || substr($method, 0, 1) == '_'
+        ) {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Obullo\Log\Cli;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Mongo reader
@@ -23,9 +23,10 @@ class Mongo
      * 
      * @return void
      */
-    public function follow(ContainerInterface $c, $dir = 'http', $db = null, $collection = null)
+    public function follow(Container $c, $dir = 'http', $db = null, $collection = null)
     {
-        $c['config']->load('logger');
+        $dir = null;
+        $logger = $c['config']->load('service/logger')['params'];
 
         echo "\n\33[1;37mFollowing Mongo Handler ".ucfirst($collection)." Collection ...\33[0m\n";
 
@@ -61,7 +62,7 @@ class Mongo
                             (is_array($val['context'])) ? json_encode($val['context'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $val['context'],
                             $val['extra']
                         ),
-                        str_replace('\n', "\n", $c['config']['logger']['format']['line'])
+                        str_replace('\n', "\n", $logger['format']['line'])
                     );
                     $printer->printLine($i, $line);
                     $i++;

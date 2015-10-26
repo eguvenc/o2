@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
-use Obullo\Http\BenchmarkTrait;
+use Obullo\Application\Middlewares\BenchmarkTrait;
 use Obullo\Http\Stream;
 use Obullo\Http\Response;
 
@@ -18,13 +18,6 @@ use Obullo\Http\Response;
 class RedirectResponse
 {
     use BenchmarkTrait;
-
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
 
     /**
      * Http headers
@@ -55,13 +48,12 @@ class RedirectResponse
      *
      * Note: this method overwrites the `location` $headers value.
      *
-     * @param string|UriInterface       $uri     URI for the Location header.
-     * @param object|ContainerInterface $c       Container class
-     * @param array                     $headers Array of headers to use at initialization.
+     * @param string|UriInterface $uri     URI for the Location header.
+     * @param array               $headers Array of headers to use at initialization.
      */
-    public function __construct($uri, ContainerInterface $c, array $headers = [])
+    public function __construct($uri,  array $headers = [])
     {
-        $this->c = $c;
+        global $c;
         $this->config = $c['config'];  // Inject config & logger objects for benchmarkTrait
         $this->logger = $c['logger'];
 

@@ -3,8 +3,6 @@
 namespace Obullo\Log\Handler;
 
 use Closure;
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
 
 /**
  * Email Handler 
@@ -37,14 +35,20 @@ class Email extends AbstractHandler implements HandlerInterface
     protected $newlineChar = '<br />';
 
     /**
+     * Service configuration
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
      * Constructor
      * 
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array $params logger service parameters
      */
-    public function __construct(Application $app, ConfigInterface $config)
+    public function __construct(array $params)
     {
-        parent::__construct($app, $config);
+        $this->params = $params;
     }
 
     /**
@@ -86,15 +90,15 @@ class Email extends AbstractHandler implements HandlerInterface
     /**
      * Writer 
      *
-     * @param array $data log record
+     * @param array $event current handler event
      * 
      * @return void
      */
-    public function write(array $data)
+    public function write(array $event)
     {
         $lines = '';
-        foreach ($data['record'] as $record) {
-            $record = $this->arrayFormat($data, $record);
+        foreach ($event['record'] as $record) {
+            $record = $this->arrayFormat($event, $record);
             $lines .= str_replace("\n", $this->newlineChar, $this->lineFormat($record));
         }
         $message = sprintf($this->message, $lines);

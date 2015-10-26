@@ -3,7 +3,7 @@
 namespace Obullo\Layer;
 
 use stdClass;
-use Controller;
+use Obullo\Http\Controller;
 use Obullo\Log\LoggerInterface;
 use Obullo\Container\ContainerInterface;
 

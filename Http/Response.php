@@ -3,13 +3,7 @@
 namespace Obullo\Http;
 
 use Closure;
-use Controller;
 use InvalidArgumentException;
-
-use Obullo\Http\Response\Headers;
-use Obullo\Config\ConfigInterface;
-use Obullo\Container\ContainerInterface;
-use Obullo\Container\ContainerAwareInterface;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -24,6 +18,13 @@ use Psr\Http\Message\StreamInterface;
 class Response implements ResponseInterface
 {
     use MessageTrait;
+
+    /**
+     * Zend stratigility support
+     * 
+     * @var bool
+     */
+    private $complete = false;
 
     /**
      * Map of standard HTTP status code/reason phrases
@@ -153,8 +154,6 @@ class Response implements ResponseInterface
         $new = clone $this;
         $new->statusCode   = (int) $code;
         $new->reasonPhrase = $reasonPhrase;
-
-        // Controller::$instance->response = $new;  // Refresh controller instance
         return $new;
     }
 
@@ -222,19 +221,6 @@ class Response implements ResponseInterface
     }
 
     //----------- OBULLO METHODS ----------//
-    
-    /**
-     * Set container object
-     * 
-     * @param object $c container
-     * 
-     * @return object
-     */
-    // public function setContainer(ContainerInterface $c = null)
-    // {
-    //     $this->c = $c;
-    //     return $this;
-    // }
 
     /**
      * Create a JSON response with the given data.
@@ -252,7 +238,7 @@ class Response implements ResponseInterface
      * @param array   $headers         json headers
      * @param integer $encodingOptions json ecoding options
      * 
-     * @return void
+     * @return object
      */
     public function json(array $data, $status = 200, array $headers = [], $encodingOptions = 15)
     {
@@ -260,6 +246,7 @@ class Response implements ResponseInterface
         $json = new \Obullo\Http\Response\JsonResponse($data, $headers, $encodingOptions);
 
         $this->__construct($json->getBody(), $status, $json->getHeaders());  // Invoke response
+        return $this;
     }
 
     /**
@@ -295,7 +282,7 @@ class Response implements ResponseInterface
     public function redirect($uri, $status = 301, array $headers = [])
     {
         $this->validateStatus($status);
-        $redirect = new \Obullo\Http\Response\RedirectResponse($uri, $this->c, $headers);
+        $redirect = new \Obullo\Http\Response\RedirectResponse($uri, $headers);
 
         $this->__construct('php://temp', $status, $redirect->getHeaders());  // Invoke response
         return $this;
@@ -309,7 +296,7 @@ class Response implements ResponseInterface
      * 
      * @return object
      */
-    public function emptyContent($status = 201, array $headers = [])
+    public function emptyContent($status = 204, array $headers = [])
     {
         $this->validateStatus($status);
         $empty = new \Obullo\Http\Response\EmptyResponse($status, $headers);
@@ -317,77 +304,5 @@ class Response implements ResponseInterface
         $this->__construct($empty->getBody(), $status, $empty->getHeaders());  // Invoke response
         return $this;
     }
-
-    // /**
-    // * Manually Set General Http Errors
-    // *
-    // * @param string $message message
-    // * @param int    $status  status
-    // * @param int    $heading heading text
-    // * @param array  $headers custom http headers
-    // *
-    // * @return object
-    // */
-    // public function error($message, $status = 500, $heading = 'An Error Was Encountered', array $headers = [])
-    // {
-    //     return $this->httpError($heading, $message, 'general', $status, $headers);
-    // }
-
-    // *
-    //  * Show custom 404 errors
-    //  * 
-    //  * @param string $page custom page
-    //  *
-    //  * @return object
-     
-    // public function error404($page = null)
-    // {
-    //     if (empty($page)) {
-    //         $exp = explode("/", $this->c['app']->uri->getUriString());
-    //         $segments = array_slice($exp, 0, 4);
-    //         $page = implode("/", $segments);
-    //     }
-    //     $page = filter_var($page, FILTER_SANITIZE_SPECIAL_CHARS);
-    //     if (strlen($page) > 60) {   // Security fix
-    //         $page = '';
-    //     }
-    //     return $this->httpError('404 Page Not Found', $page, '404', 404);
-    // }
-
-    /**
-     * Get error template
-     * 
-     * @param string $heading  error header
-     * @param string $message  message string
-     * @param string $template template name
-     * 
-     * @return string
-     */
-    // public function getErrorTemplate($heading, $message, $template)
-    // {
-    //     $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
-    //     $message = filter_var($message, FILTER_SANITIZE_SPECIAL_CHARS);
-    //     ob_start();
-    //     include TEMPLATES .'errors/'.$template.'.php';
-    //     return ob_get_clean();
-    // }
-
-    /**
-    * General Http Errors
-    *
-    * @param string $heading  the heading
-    * @param string $message  the message
-    * @param string $template the template name
-    * @param int    $status   header status code
-    * @param array  $headers  http headers
-    * 
-    * @return object
-    */
-    // protected function httpError($heading, $message, $template = 'general', $status = 500, $headers = [])
-    // {
-    //     $buffer = $this->getErrorTemplate($heading, $message, $template);
-    //     $this->c['logger']->error($heading, ['message' => $message]);
-    //     return $this->html($buffer, $status, $headers);
-    // }
 
 }

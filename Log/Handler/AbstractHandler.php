@@ -2,9 +2,9 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
 use Obullo\Log\Formatter\LineFormatter;
+use Obullo\Container\ContainerInterface as Container;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
  * Abstract Log Handler
@@ -16,49 +16,26 @@ use Obullo\Log\Formatter\LineFormatter;
 abstract class AbstractHandler
 {
     /**
-     * Application
-     * 
-     * @var object
-     */
-    protected $app;
-    
-    /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
-     * Constructor
-     * 
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
-     */
-    public function __construct(Application $app, ConfigInterface $config)
-    {
-        $this->app = $app;
-        $this->config = $config;
-    }
-
-    /**
      * Check log writing is allowed, deny not allowed
      * requests.
      *
-     * @param string $data log records
+     * @param array                                   $event   handler log event
+     * @param Psr\Http\Message\ServerRequestInterface $request request
      * 
      * @return boolean
      */
-    public function isAllowed(array $data)
+    public function isAllowed(array $event, Request $request)
     {
-        if (in_array($data['request'], array(null, 'http','ajax','cli'))) { // Disable logs if request not allowed
+        $isBrowserRequest = ($event['request'] == 'http' || $event['request'] == 'ajax') ? true : false;
+
+        if (in_array($event['request'], array(null, 'http','ajax','cli'))) { // Disable logs if request not allowed
+            if ($isBrowserRequest && $request->getUri()->segment(0) == 'debugger') {  // Disable http debugger logs
+                return false;
+            }
             return true;
         }
-        if ($data['request'] == 'worker') {
-            return $this->config['logger']['app']['worker']['log'];  // Disable / enable worker logs
-        }
-        if ($this->app->uri->segment(0) == 'debugger') {  // Disable http debugger logs
-            return false;
+        if ($event['request'] == 'worker') {
+            return $this->params['app']['worker']['log'];    // Disable / enable worker logs
         }
         return false;
     }
@@ -66,15 +43,15 @@ abstract class AbstractHandler
     /**
     * Format log records
     *
-    * @param string $data              all data
+    * @param string $event             all log data
     * @param array  $unformattedRecord current log record
     * 
     * @return array formatted record
     */
-    public function arrayFormat($data, $unformattedRecord)
+    public function arrayFormat(array $event, array $unformattedRecord)
     {
         $record = array(
-            'datetime' => date($this->config['logger']['format']['date'], $data['time']),
+            'datetime' => date($this->params['format']['date'], $event['time']),
             'channel'  => $unformattedRecord['channel'],
             'level'    => $unformattedRecord['level'],
             'message'  => $unformattedRecord['message'],
@@ -101,17 +78,17 @@ abstract class AbstractHandler
      */
     public function lineFormat(array $record)
     {
-        return LineFormatter::format($record, $this->config);
+        return LineFormatter::format($record, $this->params);
     }
 
     /**
      * Write log data
      *
-     * @param array $records all log data
+     * @param array $event all log data
      * 
      * @return boolean
      */
-    abstract public function write(array $records);
+    abstract public function write(array $event);
 
     /**
      * Close connection

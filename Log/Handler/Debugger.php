@@ -2,8 +2,6 @@
 
 namespace Obullo\Log\Handler;
 
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
 use Obullo\Log\Formatter\DebugFormatter;
 
 /**
@@ -16,29 +14,35 @@ use Obullo\Log\Formatter\DebugFormatter;
 class Debugger extends AbstractHandler implements HandlerInterface
 {
     /**
+     * Service configuration
+     * 
+     * @var array
+     */
+    protected $params;
+
+    /**
      * Constructor
      * 
-     * @param object $app    \Obullo\Application\Application
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array $params logger service parameters
      */
-    public function __construct(Application $app, ConfigInterface $config)
+    public function __construct(array $params)
     {
-        parent::__construct($app, $config);
+        $this->params = $params;
     }
 
     /**
      * Write output
      *
-     * @param string $data single record data
+     * @param string $event single record data
      * 
      * @return mixed
      */
-    public function write(array $data)
+    public function write(array $event)
     {
         $lines = '';
-        foreach ($data['record'] as $record) {
-            $record = $this->arrayFormat($data, $record);
-            $lines.= DebugFormatter::format($record, $this->config);
+        foreach ($event['record'] as $record) {
+            $record = $this->arrayFormat($event, $record);
+            $lines.= DebugFormatter::format($record, $this->params);
         }
         return $lines;
     }

@@ -2,7 +2,7 @@
 
 namespace Obullo\Application\Middlewares;
 
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 trait BenchmarkTrait
 {
@@ -13,7 +13,7 @@ trait BenchmarkTrait
      * 
      * @return object RequestInterface
      */
-    public function benchmarkStart(ServerRequestInterface $request)
+    public function benchmarkStart(Request $request)
     {
         return $request->withAttribute('REQUEST_TIME_START', microtime(true));
     }
@@ -27,11 +27,11 @@ trait BenchmarkTrait
      * 
      * @return void
      */
-    public function benchmarkEnd(ServerRequestInterface $request, $logging = true, $extra = array())
+    public function benchmarkEnd(Request $request, $logging = true, $extra = array())
     {
-        $logger = $this->config->load('logger');
+        $logger = $this->config->load('service/logger');
 
-        if ($logger['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
+        if ($logger['params']['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
 
             $time = $request->getAttribute('REQUEST_TIME_START');
             $end = microtime(true) - $time;

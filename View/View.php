@@ -3,7 +3,7 @@
 namespace Obullo\View;
 
 use Closure;
-use Controller;
+use Obullo\Http\Controller;
 use Obullo\Log\LoggerInterface as Logger;
 use Obullo\Container\ContainerInterface as Container;
 
@@ -209,7 +209,7 @@ class View implements ViewInterface
          * which contains view class, it will not work if router not available in the controller.
          * So first we need check Controller is available if not we use container->router.
          */
-        if (! class_exists('Controller', false) || Controller::$instance == null) {
+        if (! class_exists('Obullo\Http\Controller', false) || Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
             $router = &Controller::$instance->router;  // Use nested controller router ( see the Layer package. )

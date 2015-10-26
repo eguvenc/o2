@@ -42,30 +42,21 @@ class Router implements RouterInterface
     protected $group = array('name' => 'UNNAMED', 'domain' => null);       // Group configuration array
 
     /**
-     * If default route not detected
-     */
-    const DEFAULT_PAGE_ERROR = 'Unable to determine what should be displayed. A default route has not been specified in the routing file.';
-
-    /**
      * Constructor
      * 
      * Runs the route mapping function.
      * 
      * @param array  $c      \Obullo\Container\ContainerInterface
-     * @param array  $config \Obullo\Config\ConfigInterface
      * @param object $uri    \Psr\Http\Message\UriInterface
      * @param array  $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, ConfigInterface $config, UriInterface $uri, LoggerInterface $logger)
+    public function __construct(ContainerInterface $c, UriInterface $uri, LoggerInterface $logger)
     {
         $this->c = $c;
         $this->uri = $uri;
         $this->logger = $logger;
         $this->HOST = $uri->getHost();
 
-        if (strpos($this->HOST, $config['url']['webhost']) === false) {
-            $this->c['response']->error('Your host configuration is not correct in the main config file.');
-        }
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 0);
     }
 
@@ -104,11 +95,12 @@ class Router implements RouterInterface
      */
     public function configuration(array $params)
     {
+        $c = $this->c;
         if (! isset($params['domain'])) {
             throw new RuntimeException("Domain not configured in routes.php");
         }
+        include APP .'routes.php';
         $this->ROOT = trim($params['domain'], '.');
-        $this->pageNotFoundController = $params['error404'];
         $this->defaultController = $params['defaultPage'];
     }
 
@@ -126,19 +118,6 @@ class Router implements RouterInterface
     }
 
     /**
-     * Sets 404 not found controller
-     * 
-     * @param string $page uri
-     * 
-     * @return object
-     */
-    public function error404($page)
-    {
-        $this->pageNotFoundController = $page;
-        return $this;
-    }
-
-    /**
      * Set the route mapping ( Access must be public for Layer Class. )
      *
      * This function determines what should be served based on the URI request,
@@ -149,13 +128,15 @@ class Router implements RouterInterface
     public function init()
     {
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
-            $layerRequest = isset($_SERVER['LAYER_REQUEST']);
-            if ($layerRequest) {
-                $this->c['layer']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
-                return false;
-            }
-            $this->checkErrors();
+
+            // $layerRequest = isset($_SERVER['LAYER_REQUEST']);
+            // if ($layerRequest) {
+            //     $this->c['layer']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
+            //     return false;
+            // }
+            // $this->checkErrors();
             $segments = $this->resolve(explode('/', $this->defaultController));  // Turn the default route into an array.
+
             $this->setClass($segments[1]);
             $this->setMethod('index');
             $this->uri->setRoutedSegments($segments);  // Assign the segments to the URI class
@@ -256,18 +237,6 @@ class Router implements RouterInterface
     protected function getSubDomain($domain)
     {
         return str_replace($domain, '', $this->HOST);
-    }
-
-    /**
-     * Check route errors
-     * 
-     * @return void
-     */
-    protected function checkErrors()
-    {        
-        if ($this->defaultController == '') {   // Set the default controller so we can display it in the event the URI doesn't correlated to a valid controller.
-            $this->c['response']->error404(static::DEFAULT_PAGE_ERROR);
-        }
     }
 
     /**
@@ -874,17 +843,13 @@ class Router implements RouterInterface
     }
 
     /**
-     * Returns to 404 controller name
+     * Returns to default contoller configured in router middleware
      * 
-     * @return mixed
+     * @return string
      */
-    public function get404Class()
+    public function getDefaultPage()
     {
-        if (empty($this->pageNotFoundController)) {
-            return false;
-        } 
-        $this->setRequest(explode('/', $this->pageNotFoundController));
-        return '\\'.$this->getNamespace().'\\'.$this->getClass();
+        return $this->defaultController;
     }
 
     /**

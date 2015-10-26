@@ -14,11 +14,11 @@ interface HandlerInterface
     /**
      * Write
      *
-     * @param array $data data
+     * @param array $event all log data
      * 
      * @return void
      */
-    public function write(array $data);
+    public function write(array $event);
 
     /**
      * Close

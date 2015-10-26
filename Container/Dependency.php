@@ -5,6 +5,8 @@ namespace Obullo\Container;
 use ReflectionClass;
 use RuntimeException;
 
+use Obullo\Container\ContainerInterface as Container;
+
 /**
  * Dependency Manager
  * 
@@ -41,7 +43,7 @@ class Dependency
      *
      * @return object
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
     }
@@ -59,9 +61,9 @@ class Dependency
         if ($this->c->has($key)) {
             return;
         }
-        $this->c[$key] = function () use ($key, $class) {
-            $this->components[$key] = $class;
-            return $this->resolveDependencies($key, $class);
+        $this->components[$key] = $class;
+        $this->c[$key] = function () use ($class) {
+            return $this->resolveDependencies($class);
         };
     }
 
@@ -95,19 +97,18 @@ class Dependency
     /**
      * Resolve dependecies
      * 
-     * @param string $cid   class name
      * @param string $class path
      * 
      * @return object class instance
      */
-    public function resolveDependencies($cid, $class)
+    public function resolveDependencies($class)
     {
         $Class = '\\'.ltrim($class, '\\');
         $reflector = new ReflectionClass($Class);
         if (! $reflector->hasMethod('__construct')) {
             return $reflector->newInstance();
         } else {
-            return $reflector->newInstanceArgs($this->resolveParams($reflector, $cid));
+            return $reflector->newInstanceArgs($this->resolveParams($reflector));
         }
     }
 
@@ -115,15 +116,14 @@ class Dependency
      * Resolve dependecy parameters
      * 
      * @param \ReflectionClass $reflector reflection instance
-     * @param string           $cid       cid class name
      *
      * @return array params
      */
-    protected function resolveParams(ReflectionClass $reflector, $cid)
+    protected function resolveParams(ReflectionClass $reflector)
     {
         $parameters = $reflector->getConstructor()->getParameters();
         $params = array();
-        
+
         $deps = $this->getDependencies();
         $services = $this->getServices();
         $components = $this->getComponents();
@@ -147,7 +147,6 @@ class Dependency
                             sprintf(
                                 'Dependency "%s" is missing for "%s" component.',
                                 $parameter->getClass()->name,
-                                $cid,
                                 $d
                             )
                         );

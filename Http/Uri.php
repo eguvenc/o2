@@ -3,7 +3,6 @@
 namespace Obullo\Http;
 
 use InvalidArgumentException;
-
 use Psr\Http\Message\UriInterface;
 
 /**

@@ -1,18 +1,32 @@
 <?php
 
-namespace Obullo\Http;
+namespace Obullo\Zend\Stratigility;
+
+use Obullo\Http\Middleware\MiddlewareInterface;
 
 use InvalidArgumentException;
-use Zend\Stratigility\MiddlewareInterface;
-use Zend\Stratigility\FinalHandler;
-use Zend\Stratigility\Next;
-use Zend\Stratigility\Route;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use SplQueue;
 
 /**
- * Borrowed from Zend Stratigility.
+ * Pipe middleware like unix pipes.
+ *
+ * This class implements a pipe-line of middleware, which can be attached using
+ * the `pipe()` method, and is itself middleware.
+ *
+ * The request and response objects are decorated using the Zend\Stratigility\Http
+ * variants in this package, ensuring that the request may store arbitrary
+ * properties, and the response exposes the convenience `write()`, `end()`, and
+ * `isComplete()` methods.
+ *
+ * It creates an instance of `Next` internally, invoking it with the provided
+ * request and response instances; if no `$out` argument is provided, it will
+ * create a `FinalHandler` instance and pass that to `Next` as well.
+ *
+ * Inspired by Sencha Connect.
+ *
+ * @see https://github.com/sencha/connect
  */
 class MiddlewarePipe implements MiddlewareInterface
 {
@@ -22,15 +36,23 @@ class MiddlewarePipe implements MiddlewareInterface
     protected $pipeline;
 
     /**
+     * App environment
+     * 
+     * @var string
+     */
+    protected $env;
+
+    /**
      * Constructor
      *
+     * @param string $env environment
+     * 
      * Initializes the queue.
      */
-    public function __construct($request, $response)
+    public function __construct($env)
     {
+        $this->env = $env;
         $this->pipeline = new SplQueue();
-        $this->request = $request;
-        $this->response = $response;
     }
 
     /**
@@ -53,12 +75,9 @@ class MiddlewarePipe implements MiddlewareInterface
         $request  = $this->decorateRequest($request);
         $response = $this->decorateResponse($response);
 
-        $done   = $out ?: new FinalHandler([], $response);
-                // echo get_class($response);
+        $done   = $out ?: new FinalHandler(['env' => $this->env], $response);
         $next   = new Next($this->pipeline, $done);
         $result = $next($request, $response);
-
-        // echo get_class($result);
 
         return ($result instanceof Response ? $result : $response);
     }
@@ -137,10 +156,11 @@ class MiddlewarePipe implements MiddlewareInterface
      */
     private function decorateRequest(Request $request)
     {
-        if ($request instanceof \Obullo\Http\Request) {
+        if ($request instanceof Http\Request) {
             return $request;
         }
-        return $this->request;
+
+        return new Http\Request($request);
     }
 
     /**
@@ -151,9 +171,10 @@ class MiddlewarePipe implements MiddlewareInterface
      */
     private function decorateResponse(Response $response)
     {
-        if ($response instanceof \Obullo\Http\Response) {
+        if ($response instanceof Http\Response) {
             return $response;
         }
-        return $this->response;
+
+        return new Http\Response($response);
     }
 }

@@ -1,9 +1,11 @@
 <?php
 
-use Obullo\Controller\ControllerInterface;
+namespace Obullo\Http;
+
+use Obullo\Http\ControllerInterface;
 
 /**
- * Obullo Hmvc Based Controller.
+ * Obullo Layer ( Hmvc ) Based Controller.
  * 
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
@@ -40,7 +42,7 @@ class Controller implements ControllerInterface
         if ($key == 'c') {
             return $this->__container;
         }
-        if (self::$instance == null || in_array($key, ['uri', 'router', 'view'])) {  // Create new layers for core classes ( Otherwise Layer does not work )
+        if (self::$instance == null || in_array($key, ['uri', 'router', 'view'])) {  // Create new layer for core classes ( Otherwise Layer does not work )
             self::$instance = &$this;
         }
         return $this->__container[$key];

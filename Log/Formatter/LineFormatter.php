@@ -2,8 +2,6 @@
 
 namespace Obullo\Log\Formatter;
 
-use Obullo\Config\ConfigInterface;
-
 /**
  * Line formatter
  * 
@@ -14,16 +12,16 @@ use Obullo\Config\ConfigInterface;
 class LineFormatter
 {
     /**
-     * Format the line defined in config/$env/logger.php
+     * Format the line defined in service/logger.php
      *
      * [%datetime%] %channel%.%level%: --> %message% %context% %extra%\n
      * 
-     * @param array  $record record data
-     * @param object $config \Obullo\Config\ConfigInterface
+     * @param array $record record data
+     * @param array $params logger service parameters
      * 
      * @return array
      */
-    public static function format(array $record, ConfigInterface $config)
+    public static function format(array $record, array $params)
     {
         if (! is_array($record)) {
             return;
@@ -46,7 +44,7 @@ class LineFormatter
             (empty($record['extra'])) ? '' : $record['extra'],
             $record['extra'],
             ),
-            str_replace('\n', "\n", $config['logger']['format']['line'])
+            str_replace('\n', "\n", $params['format']['line'])
         );
     }
 

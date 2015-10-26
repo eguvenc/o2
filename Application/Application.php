@@ -4,13 +4,13 @@ namespace Obullo\Application;
 
 use Closure;
 use Exception;
-use Controller;
 use ErrorException;
 use RuntimeException;
 use ReflectionFunction;
 use Obullo\Error\Debug;
+use Obullo\Http\Controller;
 use Obullo\Container\Dependency;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Run Application
@@ -33,7 +33,7 @@ class Application implements ApplicationInterface
      * 
      * @param object $c container
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 

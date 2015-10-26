@@ -2,9 +2,8 @@
 
 namespace Obullo\Annotations;
 
-use Obullo\Event\EventInterface;
-
-use Psr\Http\Message\ServerRequestInterface;
+use Obullo\Event\EventInterface as Event;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 /**
  * Annotations Middleware Class
@@ -65,7 +64,7 @@ class Middleware
      * @param \Obullo\Container\Dependency   $dependency object
      * @param \Obullo\Application\Middleware $middleware object
      */
-    public function __construct(EventInterface $event, ServerRequestInterface $request, $dependency, $middleware)
+    public function __construct(Event $event, Request $request, $dependency, $middleware)
     {
         $this->event = $event;
         $this->request = $request;
@@ -161,10 +160,10 @@ class Middleware
         $when = count($this->when);
 
         if ($when > 0 && in_array($this->request->getMethod(), $allowedMethods)) {
-
-            $this->dependency->resolveDependencies($name, $Class)
-
-            $this->event->subscribe(new $Class);
+            
+            $event = new $Class;
+            $this->dependency->resolveDependencies($Class);
+            $this->event->subscribe($event);
             $this->when = array();  // Reset when
             return $this;
         } elseif ($when == 0) {
