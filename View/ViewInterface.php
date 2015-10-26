@@ -12,16 +12,6 @@ namespace Obullo\View;
 interface ViewInterface
 {
     /**
-     * Set variables
-     * 
-     * @param mixed $key view key => data or combined array
-     * @param mixed $val mixed
-     * 
-     * @return void
-     */
-    public function assign($key, $val = null);
-
-    /**
      * Include nested view files from current module /view folder
      * 
      * @param string $filename filename
@@ -42,7 +32,17 @@ interface ViewInterface
     public function get($filename, $data = null);
 
     /**
-     * Get body / write body
+     * Set variables
+     * 
+     * @param mixed $key view key => data or combined array
+     * @param mixed $val mixed
+     * 
+     * @return void
+     */
+    public function assign($key, $val = null);
+
+    /**
+     * Get body / write & return to body
      * 
      * @param string  $_Vpath     full path
      * @param string  $_Vfilename filename

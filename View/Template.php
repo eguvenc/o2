@@ -56,19 +56,6 @@ class Template implements TemplateInterface
     }
 
     /**
-     * Set variables
-     * 
-     * @param mixed $key view key => data or combined array
-     * @param mixed $val mixed
-     * 
-     * @return void
-     */
-    public function assign($key, $val = null)
-    {
-        $this->view->assign($key, $val);        
-    }
-
-    /**
      * Include template file from /resources/templates folder
      * 
      * @param string $filename name
@@ -109,6 +96,19 @@ class Template implements TemplateInterface
         $body = new Stream(fopen('php://temp', 'r+'));
         $body->write($output);
         return $body;
+    }
+
+    /**
+     * Set variables
+     * 
+     * @param mixed $key view key => data or combined array
+     * @param mixed $val mixed
+     * 
+     * @return void
+     */
+    public function assign($key, $val = null)
+    {
+        $this->view->assign($key, $val);        
     }
 
     /**

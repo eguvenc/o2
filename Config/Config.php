@@ -3,7 +3,7 @@
 namespace Obullo\Config;
 
 use Obullo\Config\Writer\PhpArray;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Config Class
@@ -42,7 +42,7 @@ class Config implements ConfigInterface
      * 
      * @param object $c container
      */
-    public function __construct(ContainerInterface $c)
+    public function __construct(Container $c)
     {
         $this->c = $c;
         $this->path  = CONFIG .$c['app.env'].'/';
