@@ -2,8 +2,8 @@
 
 namespace Obullo\Cli\Task;
 
-use Controller;
 use Obullo\Cli\Console;
+use Obullo\Http\Controller;
 
 /**
  * Log Controller
@@ -30,6 +30,7 @@ class Log extends Controller
         
         $dir = $this->uri->argument('dir', 'http');
         $writer = $this->logger->getWriter();
+
         $table = $db = null;
         if ($writer == 'mongo') {
             $table = $this->uri->argument('table');
@@ -49,7 +50,7 @@ class Log extends Controller
             echo Console::newline(2);
             return;
         }
-        $Class = '\\Obullo\Log\Cli\\'.$reader;
+        $Class = '\\Obullo\Cli\LogReader\\'.$reader;
         $class = new $Class;
         $class->follow($this->c, $dir, $db, $table);
     }
@@ -74,11 +75,8 @@ class Log extends Controller
      */
     public function clear()
     {
-        $files = array(
-            trim($this->c['config']['logger']['file']['path']['http'], '/'),
-            trim($this->c['config']['logger']['file']['path']['ajax'], '/'),
-            trim($this->c['config']['logger']['file']['path']['cli'], '/'),
-        );
+        $files = \Obullo\Cli\LogReader\File::getPathArray();
+
         foreach ($files as $file) {
             $file = ROOT. $file;
             $exp = explode('/', $file);

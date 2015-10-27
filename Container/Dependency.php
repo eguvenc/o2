@@ -5,8 +5,6 @@ namespace Obullo\Container;
 use ReflectionClass;
 use RuntimeException;
 
-use Obullo\Container\ContainerInterface as Container;
-
 /**
  * Dependency Manager
  * 
@@ -43,7 +41,7 @@ class Dependency
      *
      * @return object
      */
-    public function __construct(Container $c)
+    public function __construct(ContainerInterface $c)
     {
         $this->c = $c;
     }

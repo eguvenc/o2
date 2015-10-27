@@ -112,17 +112,7 @@ Some variables pre defined in view file and automatically replaced when you use 
 
 <tbody>
 
-<tr>
-<td>@BASEURL</td>
-<td><b>echo $this->config['url']['baseurl'];</b></td>
-<td>Generally "/" a trailing slash</td>
-</tr>
 
-<tr>
-<td>@WEBHOST</td>
-<td><b>echo $this->config['url']['webhost'];</b></td>
-<td>Root domain "example.com" ( without http://www. ) or "localhost"</td>
-</tr>
 
 <tr>
 <td>@ASSETS</td>

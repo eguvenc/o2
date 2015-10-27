@@ -4,7 +4,6 @@ namespace Obullo\Http;
 
 use Closure;
 use InvalidArgumentException;
-
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 

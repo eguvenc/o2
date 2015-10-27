@@ -2,11 +2,12 @@
 
 namespace Obullo\Url;
 
-use Obullo\Container\ContainerInterface;
-use Obullo\Config\ConfigInterface;
-use Obullo\Log\LoggerInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Config\ConfigInterface as Config;
+use Obullo\Container\ContainerInterface as Container;
 
-use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\UriInterface as Uri;
+use Psr\Http\Message\RequestInterface as Request;
 
 /**
  * Url Class
@@ -17,25 +18,25 @@ use Psr\Http\Message\UriInterface;
  */
 class Url implements UrlInterface
 {
-    protected $c;
     protected $uri;
-    protected $config;
+    protected $request;
     protected $logger;
+    protected $params;
 
     /**
      * Constructor
      * 
-     * @param ContainerInterface $c      container
-     * @param UriInterface       $uri    uri
-     * @param ConfigInterface    $config config
-     * @param LoggerInterface    $logger logger
+     * @param RequestInterface $request request
+     * @param LoggerInterface  $logger  logger
+     * @param array            $params  service parameters
      */
-    public function __construct(ContainerInterface $c, UriInterface $uri, ConfigInterface $config, LoggerInterface $logger)
+    public function __construct(Request $request, Logger $logger, array $params)
     {
-        $this->c = $c;
-        $this->uri = $uri;
-        $this->config = $config;
+        $this->request = $request;
+        $this->uri = $request->getUri();
+        $this->params = $params;
         $this->logger = $logger;
+
         $this->logger->debug('Url Class Initialized');
     }
 
@@ -71,16 +72,7 @@ class Url implements UrlInterface
      */
     private function _getSiteUrl($uri)
     {
-        // "?" Question mark support
-        // If we have question mark beginning of the  the uri
-        // example:  example.com/?service_type=email&user_id=50  replace with:  example.com?service_type=email&user_id=50
-
-        $queryString = strstr($uri, '?');
-
-        if (! empty($queryString)) {
-            $uri = rtrim(strstr($uri, '?', true), '/').$queryString;
-        }
-        $siteUri = $this->getSiteUrl($uri);
+        $siteUri = $this->siteUrl($uri);
 
         return ( ! preg_match('!^\w+://! i', $uri)) ? $siteUri : $uri;
     }
@@ -94,10 +86,10 @@ class Url implements UrlInterface
      * 
      * @return string
      */
-    public function getAssetsUrl($uri = '', $folder = true)
+    public function assetsUrl($uri = '', $folder = true)
     {
-        $assetsFolder = ($folder) ? trim($this->config['url']['assets']['folder'], '/').'/' : '';
-        return $this->config['url']['assets']['url'].$assetsFolder.ltrim($uri, '/');
+        $assetsFolder = ($folder) ? trim($this->params['assets']['folder'], '/').'/' : '';
+        return $this->params['assets']['url'] . $assetsFolder . ltrim($uri, '/');
     }
 
     /**
@@ -107,9 +99,9 @@ class Url implements UrlInterface
      * 
      * @return string
      */
-    public function getBaseUrl($uri = '')
+    public function baseUrl($uri = '')
     {
-        return rtrim($this->config['url']['baseurl'], '/') .'/'. ltrim($uri, '/');
+        return rtrim($this->params['baseurl'], '/') .'/'. ltrim($uri, '/');
     }
 
     /**
@@ -119,15 +111,15 @@ class Url implements UrlInterface
      * 
      * @return string
      */
-    public function getSiteUrl($uriStr = '')
+    public function siteUrl($uriStr = '')
     {
         if (is_array($uriStr)) {
             $uriStr = implode('/', $uriStr);
         }
         if ($uriStr == '') {
-            return $this->getBaseUrl() . $this->config['rewrite']['index.php'];
+            return $this->baseUrl() . $this->params['rewrite']['index.php'];
         } 
-        return $this->getBaseUrl() . $this->config['url']['rewrite']['index.php'] . trim($uriStr, '/');
+        return $this->baseUrl() . $this->params['rewrite']['index.php'] . trim($uriStr, '/');
     }
 
     /**
@@ -135,9 +127,9 @@ class Url implements UrlInterface
      *
      * @return string
      */
-    public function getCurrentUrl()
+    public function currentUrl()
     {
-        return $this->getSiteUrl($this->getUrl());
+        return $this->siteUrl($this->uri->getRequestUri());
     }
 
     /**
@@ -145,9 +137,9 @@ class Url implements UrlInterface
      *
      * @return string
      */
-    public function getWebHost()
+    public function webhost()
     {
-        return trim($this->config['url']['webhost'], '/');
+        return trim($this->params['webhost'], '/');
     }
 
     /**
@@ -161,15 +153,15 @@ class Url implements UrlInterface
      */
     public function asset($uri, $protocol = '', $url = '')
     {
-        $url = empty($url) ? $this->c['config']['url']['assets']['url'] : $url;
-        $uri = $url.trim($this->c['config']['url']['assets']['folder'], '/').'/'.ltrim($uri, '/');
+        $url = empty($url) ? $this->params['assets']['url'] : $url;
+        $uri = $url.trim($this->params['assets']['folder'], '/').'/'.ltrim($uri, '/');
 
         if ($protocol == false) {
             $uri = preg_replace('#^https?:\/\/#i', '', $uri);
             $protocol = '';
         }
         if ($protocol == true) {  // Auto detect
-            $protocol = ($this->c['request']->isSecure()) ? 'https://' : 'http://';
+            $protocol = ($this->request->isSecure()) ? 'https://' : 'http://';
         }
         if (! empty($protocol) || is_bool($protocol)) {
             $uri = preg_replace('#^https?:\/\/#i', '', $uri);

@@ -2,7 +2,7 @@
 
 namespace Obullo\Cli\Task;
 
-use Controller;
+use Obullo\Http\Controller;
 use Obullo\Cli\Console;
 use Obullo\Utils\Process\Process;
 

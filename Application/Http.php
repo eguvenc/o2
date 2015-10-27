@@ -2,8 +2,9 @@
 
 namespace Obullo\Application;
 
-use Psr\Http\Message\ResponseInterface as Response;
+use Obullo\Http\Middleware\ParamsAwareInterface;
 use Obullo\Http\Middleware\ControllerAwareInterface;
+use Psr\Http\Message\ResponseInterface as Response;
 
 /**
  * Http Application
@@ -28,7 +29,6 @@ class Http extends Application
 
         include APP .'errors.php';
         include APP .'middlewares.php';
-
         $this->registerErrorHandlers();
         include APP .'events.php';
 
@@ -46,18 +46,18 @@ class Http extends Application
     {
         $c = $this->c; // Make global
         $middleware = $c['middleware'];
+        $uriString = $this->c['uri']->getUriString(); // Assign route middlewares
 
-        // Assign route middlewares
-
-        $uriString = $this->c['uri']->getUriString();
         foreach ($this->c['router']->getAttachedMiddlewares() as $value) {
+
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
+
             if ($value['route'] == $uriString) {     // if we have natural route match
-                $object = $middleware->add($value['name']);
+                $object = $middleware->queue($value['name']);
             } elseif ($attachedRoute == '.*' || preg_match('#'. $attachedRoute .'#', $uriString)) {
-                $object = $middleware->add($value['name']);
+                $object = $middleware->queue($value['name']);
             }
-            if (method_exists($object, 'inject') && ! empty($value['options'])) {  // Inject parameters
+            if ($object instanceof ParamsAwareInterface && ! empty($value['options'])) {  // Inject parameters
                 $object->inject($value['options']);
             }
         }

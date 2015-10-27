@@ -78,7 +78,7 @@ class Config implements ConfigInterface
         $file = $this->local . $filename.'.php';  // Default config path
 
         $isEnvFile = false;
-        if (file_exists($envFile)) {   // Do we able to locate environment file ?
+        if (is_file($envFile)) {   // Do we able to locate environment file ?
             $isEnvFile = true;
             $file = $envFile;
         }

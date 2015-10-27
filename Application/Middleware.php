@@ -98,7 +98,7 @@ class Middleware
      * 
      * @return object Middleware
      */
-    public function add($name)
+    public function queue($name)
     {
         if (is_string($name)) {
             return $this->resolveMiddleware($name);
@@ -180,7 +180,7 @@ class Middleware
      * 
      * @return void
      */
-    public function remove($name)
+    public function unqueue($name)
     {
         if (is_string($name)) {
             $this->validateMiddleware($name);
@@ -190,7 +190,7 @@ class Middleware
         }
         if (is_array($name)) {
             foreach ($name as $key) {
-                $this->remove($key);
+                $this->unqueue($key);
             }
         }
     }
@@ -215,11 +215,11 @@ class Middleware
     }
 
     /**
-     * Returns to all middleware objects
+     * Returns to middleware queue
      * 
      * @return array
      */
-    public function getValues()
+    public function getQueue()
     {
         return array_values($this->middlewares);
     }

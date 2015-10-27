@@ -2,8 +2,6 @@
 
 namespace Obullo\Application;
 
-use Controller;
-
 /**
  * Run Cli Application ( Warning : Http middlewares & Layers disabled in Cli mode.)
  * 
@@ -33,7 +31,6 @@ class Cli extends Application
         
         include APP .'errors.php';
         $this->registerErrorHandlers();
-        include OBULLO .'Controller/Controller.php';
         unset($c['router']);   // Replace Uri & Router components
 
         $c['router'] = function () use ($c) {

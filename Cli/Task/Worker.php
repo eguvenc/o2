@@ -2,6 +2,7 @@
 
 namespace Obullo\Cli\Task;
 
+use Obullo\Http\Controller;
 use Obullo\Queue\Worker as QueueWorker;
 
 /**
@@ -16,7 +17,7 @@ use Obullo\Queue\Worker as QueueWorker;
  * @license   http://opensource.org/licenses/MIT MIT license
  * @link      http://obullo.com/package/cli
  */
-class Worker extends \Controller
+class Worker extends Controller
 {
     /**
      * Run worker

@@ -142,7 +142,7 @@ class Middleware
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->middleware->add('NotAllowed')->inject($params);
+        $this->middleware->queue('NotAllowed')->inject($params);
         return;
     }
 
@@ -181,7 +181,7 @@ class Middleware
     protected function addMiddleware(array $middlewares)
     {
         foreach ($middlewares as $name) {
-            $this->middleware->add(ucfirst($name));
+            $this->middleware->queue(ucfirst($name));
         }
     }
     

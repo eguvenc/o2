@@ -24,7 +24,7 @@ abstract class AbstractHandler
      * 
      * @return boolean
      */
-    public function isAllowed(array $event, Request $request)
+    public function isAllowed(array $event, $request)
     {
         $isBrowserRequest = ($event['request'] == 'http' || $event['request'] == 'ajax') ? true : false;
 

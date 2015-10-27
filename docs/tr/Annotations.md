@@ -67,11 +67,11 @@ public function index()
     </thead>
     <tbody>
         <tr>
-            <td><b>@middleware->add();</b></td>
+            <td><b>@middleware->queue();</b></td>
             <td>Bir middleware katmanını uygulamaya ekler. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
         </tr>
         <tr>
-            <td><b>@middleware->remove();</b></td>
+            <td><b>@middleware->unqueue();</b></td>
             <td>Varolan bir middleware katmanını uygulamadan çıkarır. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
         </tr>
         <tr>
@@ -79,7 +79,7 @@ public function index()
             <td>Http protokolü tarafından gönderilen istek metodu belirlenen metotlardan biri ile eşleşmez ise sayfaya erişime izin verilmez. Virgül ile birden fazla katman ismi gönderebilirsiniz.</td>
         </tr>
          <tr>
-            <td><b>@middleware->when()->add()</b></td>
+            <td><b>@middleware->when()->queue()</b></td>
             <td>Katmanı koşullu olarak uygulamaya ekler. Eğer http protokolü tarafından gönderilen istek metodu when metodu içerisine yazılan metotlardan biri ile eşleşmez ise bu anotasyonun kullanıldığı katman uygulumaya eklenmez.</td>
         </tr>
         <tr>
@@ -99,7 +99,7 @@ public function index()
 /**
  * Index
  *
- * @middleware->add("Example");
+ * @middleware->queue("Example");
  * @middleware->method("get", "post");
  *
  * @return void
@@ -112,7 +112,7 @@ Yukarıdaki örnek Controller sınıfı index ( middleware call ) metodundan ön
 /**
  * Index
  *
- * @middleware->when("post")->add("XssFilter");
+ * @middleware->when("post")->queue("Xss");
  * 
  * @return void
  */
@@ -125,7 +125,7 @@ Yukarıdaki örnek sadece http <b>post</b> isteklerinde ve index() metodunun ça
 /**
  * Index
  *
- * @middleware->when("post")->remove("Csrf");
+ * @middleware->when("post")->unqueue("Csrf");
  *
  * @return void
  */

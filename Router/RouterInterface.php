@@ -83,6 +83,4 @@ interface RouterInterface
      * @return string
      */
     public function getNamespace();
-
-
 }

@@ -3,11 +3,7 @@
 namespace Obullo\Annotations;
 
 use ReflectionClass;
-use Obullo\Router\RouterInterface;
-use Obullo\Container\ContainerInterface;
-use Obullo\Controller\ControllerInterface;
-
-use Psr\Http\Message\ResponseInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Annotations Reader for Controller ( Executes filters & events )
@@ -45,7 +41,7 @@ class Controller
      * @param ContainerInterface $c         container
      * @param ReflectionClass    $reflector reflector
      */
-    public function __construct(ContainerInterface $c, ReflectionClass $reflector)
+    public function __construct(Container $c, ReflectionClass $reflector)
     {
         $this->c = $c;
         $this->reflector = $reflector;

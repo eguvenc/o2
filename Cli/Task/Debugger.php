@@ -3,9 +3,10 @@
 namespace Obullo\Cli\Task;
 
 use RuntimeException;
+use Obullo\Http\Controller;
 use Obullo\Cli\Console;
 
-class Debugger extends \Controller
+class Debugger extends Controller
 {
     protected $socket;
     protected $msg;

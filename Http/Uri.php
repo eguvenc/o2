@@ -85,11 +85,11 @@ class Uri implements UriInterface
     //-------------- OBULLO VARIABLES ----------------//
     
     /**
-     * Obullo Url
+     * Obullo Uri string
      * 
      * @var string
      */
-    private $url = '';
+    private $uriPath = '';
 
     /**
      * Url segments
@@ -666,26 +666,21 @@ class Uri implements UriInterface
      * 
      * @return string url
      */
-    public function withUrl($file)
+    public function removeIndexFile($file)
     {
         $path = $this->getPath();
 
+        $url = '';
         if (strpos($path, $file) === 0) {
             $url = substr($path, strlen($file));
         } elseif (strpos($path, dirname($file)) === 0) {
-            $url = substr($path, strlen(dirname($file)));
+            $url = substr($path, strlen(dirname($file)) - 1);
         }
-        $url = (string)$url;  // convert to string
-
-        if ($url === $this->url) {
-            // Do nothing if no change was made.
-            return clone $this;
+        if ($url == '/') {  // If the URI contains only a slash 
+            $url = '';      // we kill it otherwiser we get segment error in welcome page
         }
-
-        $new = clone $this;
-        $new->url = $url;
-
-        return $new;
+        $this->uriPath = (string)$url;
+        return $this;
     }
 
     /**
@@ -697,7 +692,7 @@ class Uri implements UriInterface
      */
     public function setUriString($str = '')
     {
-        $this->url = ($str == '/') ? '' : $str;  // If the URI contains only a slash we kill it
+        $this->uriPath = ($str == '/') ? '' : $str;  // If the URI contains only a slash we kill it
     }
 
     /**
@@ -707,7 +702,7 @@ class Uri implements UriInterface
      */
     public function getUriString()
     {
-        return $this->url;
+        return $this->uriPath;
     }
 
     /**
@@ -732,7 +727,7 @@ class Uri implements UriInterface
      */
     public function parseSegments()
     {
-        $url = trim($this->url, '/');
+        $url = trim($this->uriPath, '/');
         foreach (explode('/', $url) as $val) {
             $val = trim($val);
             if ($val != '') {
@@ -795,7 +790,7 @@ class Uri implements UriInterface
      */
     public function clear()
     {
-        $this->url = '';
+        $this->uriPath = '';
         $this->segments = array();
         $this->rsegments = array();
     }

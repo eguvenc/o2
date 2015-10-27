@@ -32,7 +32,7 @@ interface UrlInterface
      * 
      * @return string
      */
-    public function getAssetsUrl($uri = '', $folder = true);
+    public function assetsUrl($uri = '', $folder = true);
 
     /**
      * Get Base URL definition
@@ -41,7 +41,7 @@ interface UrlInterface
      * 
      * @return string
      */
-    public function getBaseUrl($uri = '');
+    public function baseUrl($uri = '');
 
     /**
      * Site URL
@@ -50,21 +50,21 @@ interface UrlInterface
      * 
      * @return string
      */
-    public function getSiteUrl($uriStr = '');
+    public function siteUrl($uriStr = '');
 
     /**
      * Get current url
      *
      * @return string
      */
-    public function getCurrentUrl();
+    public function currentUrl();
 
     /**
      * Get webhost definition
      *
      * @return string
      */
-    public function getWebHost();
+    public function webhost();
 
     /**
      * Create static assets urls

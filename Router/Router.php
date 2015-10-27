@@ -129,14 +129,7 @@ class Router implements RouterInterface
     {
         if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
 
-            // $layerRequest = isset($_SERVER['LAYER_REQUEST']);
-            // if ($layerRequest) {
-            //     $this->c['layer']->setError('{Layer404}'.static::DEFAULT_PAGE_ERROR); // Returns to false if we have Layer error.
-            //     return false;
-            // }
-            // $this->checkErrors();
             $segments = $this->resolve(explode('/', $this->defaultController));  // Turn the default route into an array.
-
             $this->setClass($segments[1]);
             $this->setMethod('index');
             $this->uri->setRoutedSegments($segments);  // Assign the segments to the URI class
@@ -396,7 +389,7 @@ class Router implements RouterInterface
     protected function dispatchRouteMatches($uri, $val, $parameters)
     {
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
-            $this->c['middleware']->add('NotAllowed')->inject($val['when']);
+            $this->c['middleware']->queue('NotAllowed')->inject($val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^'.$val['match'].'$#', $val['rewrite'], $uri);
@@ -514,7 +507,7 @@ class Router implements RouterInterface
      */
     public function getModule($separator = '')
     {
-        return (empty($this->module)) ? '' : filter_var($this->module, FILTER_SANITIZE_STRING).$separator;
+        return (empty($this->module)) ? '' : htmlspecialchars($this->module).$separator;
     }
 
     /**
@@ -524,7 +517,7 @@ class Router implements RouterInterface
      */
     public function getDirectory()
     {
-        return filter_var($this->directory, FILTER_SANITIZE_STRING);
+        return htmlspecialchars($this->directory);
     }
 
     /**
@@ -534,8 +527,7 @@ class Router implements RouterInterface
      */
     public function getClass()
     {
-        $class = self::ucwordsUnderscore($this->class);
-        return filter_var($class, FILTER_SANITIZE_STRING);
+        return htmlspecialchars(self::ucwordsUnderscore($this->class));
     }
 
     /**
@@ -545,7 +537,7 @@ class Router implements RouterInterface
      */
     public function getMethod()
     {
-        return $this->method;
+        return htmlspecialchars($this->method);
     }
 
     /**
@@ -767,10 +759,10 @@ class Router implements RouterInterface
         $routeLast = end($this->routes[$this->DOMAIN]);
         $route = $routeLast['match'];
         if (is_array($middlewares)) {
-            $this->setMiddlewares($middlewares, $route, array());
+            $this->setMiddlewares($middlewares, $route);
             return;
         }
-        $this->setMiddleware($middlewares, $route, array());
+        $this->setMiddleware($middlewares, $route);
         return $this;
     }
 
@@ -783,7 +775,7 @@ class Router implements RouterInterface
      * 
      * @return void
      */
-    protected function setMiddlewares(array $middlewares, $route, $options)
+    protected function setMiddlewares(array $middlewares, $route, $options = array())
     {
         foreach ($middlewares as $value) {
             $this->setMiddleware($value, $route, $options);
@@ -799,7 +791,7 @@ class Router implements RouterInterface
      *
      * @return void
      */
-    protected function setMiddleware($middleware, $route, $options)
+    protected function setMiddleware($middleware, $route, $options = array())
     {
         $this->attach[$this->DOMAIN][] = array(
             'name' => $middleware,

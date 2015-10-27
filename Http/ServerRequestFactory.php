@@ -205,7 +205,6 @@ abstract class ServerRequestFactory
                 $name = strtr(substr($key, 5), '_', ' ');
                 $name = strtr(ucwords(strtolower($name)), ' ', '-');
                 $name = strtolower($name);
-
                 $headers[$name] = $value;
                 continue;
             }
@@ -267,9 +266,8 @@ abstract class ServerRequestFactory
             $query = ltrim($server['QUERY_STRING'], '?');
         }
 
-        return $uri
-            ->withPath($path)
-            ->withUrl($server['SCRIPT_NAME'])  // This is not a Zend standart but we need it for "Obullo"
+        return $uri->withPath($path)
+            ->removeIndexFile($server['SCRIPT_NAME']) // This is not a Zend standart but we need it to remove index.php in "Obullo".
             ->withQuery($query);
     }
 
