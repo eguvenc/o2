@@ -4,16 +4,17 @@ namespace Obullo\Layer;
 
 use stdClass;
 use Obullo\Http\Controller;
-use Obullo\Log\LoggerInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
  * to scale your applications.
  * 
- * Derived from HMVC pattern and named as "Layers" in Obullo.
+ * Derived from Java HMVC pattern 2009
+ * Named as "Layers" in Obullo 2015
  * 
- * Copyright (c) 2009 - 2015 Ersin Guvenc
+ * @author Ersin Guvenc <eguvenc@gmail.com>
  */
 
 /**
@@ -83,7 +84,7 @@ class Layer
      * @param object $logger \Obullo\Log\LoggerInterface
      * @param array  $params config parameters
      */
-    public function __construct(ContainerInterface $c, LoggerInterface $logger, array $params)
+    public function __construct(Container $c, Logger $logger, array $params)
     {
         $this->c = $c;
         $this->params = $params;
@@ -100,6 +101,8 @@ class Layer
     public function setHeaders()
     {
         $_SERVER['LAYER_REQUEST'] = true;   // Set Headers
+
+        // $this->c['LAYER_REQUEST'] = true;
     }
 
     /**
@@ -113,16 +116,18 @@ class Layer
     {
         $this->hashString = '';        // Reset hash string otherwise it causes unique id errors.
         
-        $_SERVER['LAYER_REQUEST_URI'] = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
+        $_SERVER['LAYER_REQUEST_URI'] = $uriString = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
         $this->prepareHash($_SERVER['LAYER_REQUEST_URI']);
 
         $this->cloneObjects();
         $this->makeGlobals();
 
-        $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
+        // $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
+        $this->c['request']->getUri()->clear();
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
         
-        $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
+        // $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
+        $this->c['request']->getUri()->setUriString($uriString);
         $this->c['router']->init();
     }
 
@@ -134,10 +139,12 @@ class Layer
     protected function cloneObjects()
     {
         $this->controller = Controller::$instance;      // We need get backup object of main controller
-        $this->uri = Controller::$instance->uri;        // Create copy of original Uri class.
+        // $this->uri = Controller::$instance->uri;        // Create copy of original Uri class.
+        $this->request = Controller::$instance->request;
         $this->router = Controller::$instance->router;  // Create copy of original Router class.
 
-        $this->uri = clone $this->uri;
+        // $this->uri = clone $this->uri;
+        $this->request = clone $this->request;
         $this->router = clone $this->router;
     }
 
@@ -148,9 +155,12 @@ class Layer
      */
     public function makeGlobals()
     {
-        $this->c['app.uri'] = function () {
-            return $this->uri;
+        $this->c['app.request'] = function () {
+            return $this->request;
         };
+        // $this->c['app.uri'] = function () {
+        //     return $this->uri;
+        // };
         $this->c['app.router'] = function () {
             return $this->router;
         };
@@ -172,18 +182,18 @@ class Layer
         $this->prepareHash($data); // Set unique id foreach requests
         $_SERVER['LAYER_REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
 
-        foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
-            $_REQUEST[$key] = $val;
-            if ($this->requestMethod == 'POST') {
-                $_POST[$key] = $val;
-                $this->requestData['POST'][$key] = $val;
-            } 
-            if ($this->requestMethod == 'GET') {
-                $_GET[$key] = $val;
-                $this->requestData['GET'][$key] = $val;
-            }
-            $this->requestData['REQUEST'][$key] = $val;
-        }
+        // foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
+        //     $_REQUEST[$key] = $val;
+        //     if ($this->requestMethod == 'POST') {
+        //         $_POST[$key] = $val;
+        //         $this->requestData['POST'][$key] = $val;
+        //     } 
+        //     if ($this->requestMethod == 'GET') {
+        //         $_GET[$key] = $val;
+        //         $this->requestData['GET'][$key] = $val;
+        //     }
+        //     $this->requestData['REQUEST'][$key] = $val;
+        // }
     }
 
     /**
@@ -198,8 +208,11 @@ class Layer
         $layerID = $this->getId();  // Get layer id
         $start = microtime(true);   // Start query timer 
 
+        // $uri = $this->c['uri'];
+        $uri = $this->c['request']->getUri();
+
         if ($this->params['cache'] && $response = $this->c['cache']->get($layerID)) {   
-            $this->log('$_LAYER_CACHED:', $this->c['uri']->getUriString(), $start, $layerID, $response);
+            $this->log('$_LAYER_CACHED:', $uri->getUriString(), $start, $layerID, $response);
             $this->reset();
             return base64_decode($response);
         }
@@ -208,7 +221,7 @@ class Layer
             $this->reset();
             return $error;
         }
-        $this->c['uri']->setUriString(rtrim($this->c['uri']->getUriString(), '/') . '/' .$layerID); //  Create Layer ID
+        $uri->setUriString(rtrim($uri->getUriString(), '/') . '/' .$layerID); //  Create Layer ID
         
         $directory = $this->c['router']->getDirectory();
         $className = $this->c['router']->getClass();
@@ -231,7 +244,7 @@ class Layer
             return $this->show404($method);
         }
         ob_start();
-        call_user_func_array(array($class, $method), array_slice($this->c['uri']->getRoutedSegments(), 3));
+        call_user_func_array(array($class, $method), array_slice($uri->getRoutedSegments(), 3));
         $response = ob_get_clean();
 
         if (is_numeric($expiration)) {
@@ -279,7 +292,11 @@ class Layer
         $this->error = null;    // Clear variables otherwise all responses of layer return to same error.
         $this->processDone = false;
         $this->requestMethod = 'GET';
-        unset($_SERVER['LAYER_REQUEST'], $_SERVER['LAYER_REQUEST_URI'], $_SERVER['LAYER_REQUEST_METHOD']);
+        unset(
+            $_SERVER['LAYER_REQUEST'],
+            $_SERVER['LAYER_REQUEST_URI'],
+            $_SERVER['LAYER_REQUEST_METHOD']
+        );
     }
 
     /**
@@ -289,17 +306,18 @@ class Layer
      */
     public function restore()
     {
-        if (isset($this->requestData[$this->requestMethod])) {
-            $data['REQUEST'] = &$_REQUEST;
-            $data['POST']    = &$_POST;
-            $data['GET']     = &$_GET;
-            foreach (array_keys($this->requestData[$this->requestMethod]) as $v) {
-                unset($data[$this->requestMethod][$v]);
-            }
-        }
+        // if (isset($this->requestData[$this->requestMethod])) {
+        //     $data['REQUEST'] = &$_REQUEST;
+        //     $data['POST']    = &$_POST;
+        //     $data['GET']     = &$_GET;
+        //     foreach (array_keys($this->requestData[$this->requestMethod]) as $v) {
+        //         unset($data[$this->requestMethod][$v]);
+        //     }
+        // }
         $this->reset();
         Controller::$instance = $this->controller;
-        Controller::$instance->uri = $this->uri;
+        // Controller::$instance->uri = $this->uri;
+        Controller::$instance->request = $this->request;
         Controller::$instance->router = $this->router;
         $this->processDone = true;
     }
@@ -356,7 +374,8 @@ class Layer
      */
     public function log($label, $uri, $start, $id, $response)
     {
-        $uriString = md5($this->c['app']->uri->getUriString());
+        // $uriString = md5($this->c['app']->uri->getUriString());
+        $uriString = md5($this->c['app']->request->getUri()->getUriString());
 
         $this->c['logger']->debug(
             $label.' '.strtolower($uri), 

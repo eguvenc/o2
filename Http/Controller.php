@@ -42,7 +42,7 @@ class Controller implements ControllerInterface
         if ($key == 'c') {
             return $this->__container;
         }
-        if (self::$instance == null || in_array($key, ['uri', 'router', 'view'])) {  // Create new layer for core classes ( Otherwise Layer does not work )
+        if (self::$instance == null || in_array($key, ['request', 'router', 'view'])) {  // Create new layer for each core classes ( Otherwise Layer does not work )
             self::$instance = &$this;
         }
         return $this->__container[$key];

@@ -46,7 +46,9 @@ class Http extends Application
     {
         $c = $this->c; // Make global
         $middleware = $c['middleware'];
-        $uriString = $this->c['uri']->getUriString(); // Assign route middlewares
+
+        // $uriString = $this->c['uri']->getUriString(); // Assign route middlewares
+        $uriString = $this->c['request']->getUri()->getUriString();
 
         foreach ($this->c['router']->getAttachedMiddlewares() as $value) {
 
@@ -102,7 +104,7 @@ class Http extends Application
                 $controller,
                 $method
             ),
-            array_slice($controller->uri->getRoutedSegments(), 3)
+            array_slice($controller->request->getUri()->getRoutedSegments(), 3)
         );
         if ($result instanceof Response) {
             $response = $result;

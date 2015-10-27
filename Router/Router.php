@@ -3,14 +3,12 @@
 namespace Obullo\Router;
 
 use Closure;
-use Controller;
+use Obullo\Http\Controller;
 use LogicException;
 
-use Obullo\Log\LoggerInterface;
-use Obullo\Config\ConfigInterface;
-use Obullo\Container\ContainerInterface;
-
-use Psr\Http\Message\UriInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Container\ContainerInterface as Container;
+use Psr\Http\Message\RequestInterface as Request;
 
 /**
  * Http Router Class ( Modeled after Codeigniter router )
@@ -46,16 +44,16 @@ class Router implements RouterInterface
      * 
      * Runs the route mapping function.
      * 
-     * @param array  $c      \Obullo\Container\ContainerInterface
-     * @param object $uri    \Psr\Http\Message\UriInterface
-     * @param array  $logger \Obullo\Log\LoggerInterface
+     * @param array  $c       \Obullo\Container\ContainerInterface
+     * @param object $request \Psr\Http\Message\RequestInterface
+     * @param array  $logger  \Obullo\Log\LoggerInterface
      */
-    public function __construct(ContainerInterface $c, UriInterface $uri, LoggerInterface $logger)
+    public function __construct(Container $c, Request $request, Logger $logger)
     {
         $this->c = $c;
-        $this->uri = $uri;
+        $this->uri = $request->getUri();
         $this->logger = $logger;
-        $this->HOST = $uri->getHost();
+        $this->HOST = $this->uri->getHost();
 
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 0);
     }
@@ -67,7 +65,7 @@ class Router implements RouterInterface
      */
     public function clear()
     {
-        $this->uri = $this->c['uri'];   // Reset cloned URI object.
+        $this->uri = $this->c['request']->getUri();   // Reset cloned URI object.
         $this->class = '';
         $this->directory = '';
         $this->module = '';

@@ -86,16 +86,6 @@ $c['request'] = function () use ($request, $c) {
     $request->setContainer($c);
     return $request;
 };
-
-/**
- * Uri package
- */
-$c['uri'] = function () use ($request, $c) {
-    $uri = $request->getUri();
-    $c['logger']->debug("Uri Class Initialized", ['uri' => $uri->getUriString()]);
-    return $uri;
-};
-
 /**
  * Initialize to application
  */
