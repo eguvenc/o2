@@ -84,23 +84,6 @@ trait RequestTrait
         $this->headers = $headers;
     }
 
-    //---------- OBULLO CHANGES ----------//
-
-    /**
-     * If some one intend to "clone $request" object uri should be 
-     * clonable otherwise request object cannot clone completely.
-     * 
-     * This feature also allow to us create our HMVC design pattern.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        $this->uri = clone $this->uri;
-    }
-
-    //---------- END OBULLO CHANGES ----------//
-
     /**
      * Retrieves the message's request target.
      *

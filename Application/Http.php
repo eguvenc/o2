@@ -60,7 +60,7 @@ class Http extends Application
                 $object = $middleware->queue($value['name']);
             }
             if ($object instanceof ParamsAwareInterface && ! empty($value['options'])) {  // Inject parameters
-                $object->inject($value['options']);
+                $object->setParams($value['options']);
             }
         }
     }
@@ -94,9 +94,10 @@ class Http extends Application
         $this->c['response'] = function () use ($response) {
             return $response;
         };
+        $controller->__setContainer($this->c);
         foreach ($middleware->getNames() as $name) {
             if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
-                $middleware->get($name)->inject($controller);
+                $middleware->get($name)->setController($controller);
             } 
         }
         $result = call_user_func_array(

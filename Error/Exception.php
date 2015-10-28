@@ -5,12 +5,8 @@ namespace Obullo\Error;
 /**
  * Exception Class
  * 
- * @category  Error
- * @package   Exception
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/error
  */
 class Exception implements ExceptionInterface
 {
@@ -24,7 +20,9 @@ class Exception implements ExceptionInterface
      */
     public function show(\Exception $e, $fatalError = false)
     {
-        if ($e->getCode() == 2 && substr($e->getFile(), 22) == 'Application/Http.php') { // Disable include 404 include error
+        if ($e->getCode() == 2
+            && substr($e->getFile(), -9) == 'Layer.php' || substr($e->getFile(), -20) == 'Application/Http.php'
+        ) { // Disable include 404 include error
             return;
         }
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Disable shmop function errors.

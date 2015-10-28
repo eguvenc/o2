@@ -5,7 +5,7 @@ include_once OBULLO .'Error/View/ExceptionHtmlHeader.php';
 
 $getError = function ($message) {
     return str_replace(
-        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT . 'vendor'), 
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), 
         array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $message
     );

@@ -16,5 +16,5 @@ interface ControllerAwareInterface
      * 
      * @return void
      */
-    public function inject(Controller $controller);
+    public function setController(Controller $controller);
 }

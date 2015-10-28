@@ -6,12 +6,12 @@ if (isset($fatalError)) {
     echo "Fatal Error\n";
     // We could not load error libraries when error is fatal.
     echo str_replace(
-        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'), 
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), 
         array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $e->getMessage()
     )."\n";
     echo str_replace(
-        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, ROOT .'vendor'),
+        array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR),
         array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $e->getFile()
     ) . ' Line : ' . $e->getLine()."\n";

@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Http;
+namespace Obullo\Cli;
 
 use Obullo\Http\ControllerInterface;
 use Obullo\Container\ContainerInterface as Container;
@@ -19,13 +19,6 @@ class Controller implements ControllerInterface
      * @var object
      */
     protected $c;
-
-    /**
-     * Controller instance
-     * 
-     * @var object
-     */
-    public static $instance = null;
     
     /**
      * Set container
@@ -50,9 +43,6 @@ class Controller implements ControllerInterface
      */
     public function __get($key)
     {
-        if (self::$instance == null || in_array($key, ['request', 'router', 'view'])) {  // Create new layer for each core classes ( Otherwise Layer does not work )
-            self::$instance = &$this;
-        }
         return $this->c[$key];
     }
 

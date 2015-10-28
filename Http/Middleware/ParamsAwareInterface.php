@@ -14,5 +14,5 @@ interface ParamsAwareInterface
      * 
      * @return void
      */
-    public function inject(array $params);
+    public function setParams(array $params);
 }

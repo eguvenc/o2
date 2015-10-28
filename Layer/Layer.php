@@ -7,6 +7,8 @@ use Obullo\Http\Controller;
 use Obullo\Log\LoggerInterface as Logger;
 use Obullo\Container\ContainerInterface as Container;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
  * to scale your applications.
@@ -40,7 +42,21 @@ class Layer
      * 
      * @var string
      */
-    protected $layerUri;
+    protected $uri;
+
+    /**
+     * Process flag
+     * 
+     * @var boolean
+     */
+    protected $done = false;
+
+    /**
+     * Config
+     * 
+     * @var array
+     */
+    protected $params = array();
 
     /**
      * Unique connection string.
@@ -50,27 +66,6 @@ class Layer
     protected $hashString = null;
 
     /**
-     * Process flag
-     * 
-     * @var boolean
-     */
-    protected $processDone = false;
-
-    /**
-     * Request method
-     * 
-     * @var string
-     */
-    protected $requestMethod = 'GET';
-
-    /**
-     * Request data
-     * 
-     * @var array
-     */
-    protected $requestData = array();
-
-    /**
      * Layer error
      * 
      * @var null
@@ -78,92 +73,77 @@ class Layer
     protected $error = null;
 
     /**
+     * Original http Super Globals
+     * 
+     * @var array
+     */
+    protected $globals = array();
+
+    /**
      * Constructor
      * 
-     * @param object $c      \Obullo\Container\ContainerInterface
-     * @param object $logger \Obullo\Log\LoggerInterface
-     * @param array  $params config parameters
+     * @param object $c       \Obullo\Container\ContainerInterface
+     * @param array  $params  config parameters
+     * @param array  $globals http super globals
      */
-    public function __construct(Container $c, Logger $logger, array $params)
+    public function __construct(Container $c, array $params, array $globals)
     {
         $this->c = $c;
         $this->params = $params;
-        $this->logger = $logger;
+        $this->globals = $globals;
 
         register_shutdown_function(array($this, 'close'));  // Close current layer
     }
 
     /**
-     * Set request headers
-     *
-     * @return void
-     */
-    public function setHeaders()
-    {
-        $_SERVER['LAYER_REQUEST'] = true;   // Set Headers
-
-        // $this->c['LAYER_REQUEST'] = true;
-    }
-
-    /**
-     * Prepare Request ( Set the URI String ).
+     * Create new http request
      * 
-     * @param string $uriString uri
+     * @param ServerRequestInterface $request psr7 request
+     * @param string                 $uri     request uri
+     * @param string                 $method  request method
+     * @param array                  $data    any possible data
      * 
      * @return void
      */
-    public function setUrl($uriString)
+    public function newRequest(ServerRequestInterface $request, $uri, $method = 'GET', $data = array())
     {
-        $this->hashString = '';        // Reset hash string otherwise it causes unique id errors.
-        
-        $_SERVER['LAYER_REQUEST_URI'] = $uriString = trim($uriString, '/'); // Set uri string to $_SERVER GLOBAL
-        $this->prepareHash($_SERVER['LAYER_REQUEST_URI']);
+        $uri = '/'.trim($uri, '/');  // Normalize uri
+        $this->hashString = '';      // Reset hash string otherwise it causes unique id errors.
 
-        $this->cloneObjects();
-        $this->makeGlobals();
+        $this->setMethod($method, $data);
+        $this->setHash($uri);
 
-        // $this->c['uri']->clear();      // Reset uri objects we will reuse it for layer
-        $this->c['request']->getUri()->clear();
-        $this->c['router']->clear();   // Reset router objects we will reuse it for layer
-        
-        // $this->c['uri']->setUriString($_SERVER['LAYER_REQUEST_URI']);
-        $this->c['request']->getUri()->setUriString($uriString);
-        $this->c['router']->init();
-    }
-
-    /**
-     * Clone controller, router and uri objects
-     * 
-     * @return void
-     */
-    protected function cloneObjects()
-    {
         $this->controller = Controller::$instance;      // We need get backup object of main controller
-        // $this->uri = Controller::$instance->uri;        // Create copy of original Uri class.
-        $this->request = Controller::$instance->request;
-        $this->router = Controller::$instance->router;  // Create copy of original Router class.
+        $this->request = clone Controller::$instance->request;
+        $this->router = clone Controller::$instance->router;  // Create copy of original Router class.
 
-        // $this->uri = clone $this->uri;
-        $this->request = clone $this->request;
-        $this->router = clone $this->router;
-    }
-
-    /**
-     * Make available global objects in the container
-     * 
-     * @return void
-     */
-    public function makeGlobals()
-    {
         $this->c['app.request'] = function () {
             return $this->request;
         };
-        // $this->c['app.uri'] = function () {
-        //     return $this->uri;
-        // };
         $this->c['app.router'] = function () {
             return $this->router;
         };
+        unset($this->c['request']);
+        $this->c['request'] = function () use ($request) {
+            return $request;
+        };
+        $this->createUri($uri);
+    }
+
+    /**
+     * Create uri string
+     * 
+     * @param string $uri uri
+     * 
+     * @return void
+     */
+    protected function createUri($uri)
+    {
+        $this->c['request']->getUri()->clear(); // Reset uri objects we will reuse it for layer
+        $this->c['request']->getUri()->setUriString($uri);
+
+        $this->c['router']->clear();   // Reset router objects we will reuse it for layer
+        $this->c['router']->init();
     }
 
     /**
@@ -174,84 +154,60 @@ class Layer
      * 
      * @return void
      */
-    public function setMethod($method, $data = array())
+    public function setMethod($method = 'GET', $data = array())
     {
-        if (empty($data)) {
-            $data = array();
-        }
-        $this->prepareHash($data); // Set unique id foreach requests
-        $_SERVER['LAYER_REQUEST_METHOD'] = $this->requestMethod = strtoupper($method);
+        $this->setHash($data); // Set unique id foreach requests
+        $_SERVER['REQUEST_METHOD'] = $method = strtoupper($method);
 
-        // foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
-        //     $_REQUEST[$key] = $val;
-        //     if ($this->requestMethod == 'POST') {
-        //         $_POST[$key] = $val;
-        //         $this->requestData['POST'][$key] = $val;
-        //     } 
-        //     if ($this->requestMethod == 'GET') {
-        //         $_GET[$key] = $val;
-        //         $this->requestData['GET'][$key] = $val;
-        //     }
-        //     $this->requestData['REQUEST'][$key] = $val;
-        // }
+        if (empty($data)) {
+            return;
+        }
+        foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
+            if ($method == 'POST') {
+                $_POST[$key] = $val;
+            } 
+            if ($method == 'GET') {
+                $_GET[$key] = $val;
+            }
+        }
     }
 
     /**
      * Execute Layer Request
      * 
-     * @param integer $expiration cache ttl
-     * 
      * @return string
      */
-    public function execute($expiration = '')
+    public function execute()
     {
-        $layerID = $this->getId();  // Get layer id
-        $start = microtime(true);   // Start query timer 
-
-        // $uri = $this->c['uri'];
+        $id  = $this->getId(); // Get layer id
         $uri = $this->c['request']->getUri();
 
-        if ($this->params['cache'] && $response = $this->c['cache']->get($layerID)) {   
-            $this->log('$_LAYER_CACHED:', $uri->getUriString(), $start, $layerID, $response);
-            $this->reset();
-            return base64_decode($response);
-        }
-        if ($this->getError() != '') {  // If router dispatch fail ?
-            $error = $this->getError();
-            $this->reset();
-            return $error;
-        }
-        $uri->setUriString(rtrim($uri->getUriString(), '/') . '/' .$layerID); //  Create Layer ID
+        $this->uri = $uri->getUriString();
+        $uri->setUriString($this->uri. '/' .$id); //  Create Layer ID
         
         $directory = $this->c['router']->getDirectory();
         $className = $this->c['router']->getClass();
         $method    = $this->c['router']->getMethod();
 
-        $this->layerUri = $this->c['router']->getModule('/') .$directory.'/'.$className;
-        $controller = MODULES .$this->c['router']->getModule('/') .$directory.'/'.$className. '.php';
+        $class = MODULES .$this->c['router']->getModule('/') .$directory.'/'.$className. '.php';
         $className = '\\'.$this->c['router']->getNamespace().'\\'.$className;
 
-                                                   // Check class is exists in the storage
-        if (! class_exists($className, false)) {   // Don't allow multiple include.
-            include $controller;                   // Load the controller file.
+        if (! class_exists($className, false)) {
+            include $class;
         }
         if (! class_exists($className, false)) {
             return $this->show404($method);
         }
-        $class = new $className;  // Call the controller
+        $controller = new $className;
+        $controller->__setContainer($this->c);
 
-        if (! method_exists($class, $method)) {  // Check method exist or not
+        if (! method_exists($controller, $method)) {
             return $this->show404($method);
         }
         ob_start();
-        call_user_func_array(array($class, $method), array_slice($uri->getRoutedSegments(), 3));
-        $response = ob_get_clean();
-
-        if (is_numeric($expiration)) {
-            $this->c['cache']->set($layerID, base64_encode($response), (int)$expiration); // Write to Cache
-        }
-        $this->log('$_LAYER:', $this->getUri(), $start, $layerID, $response);
-        return $response;
+        call_user_func_array(array($controller, $method), array_slice($uri->getRoutedSegments(), 3));
+        
+        return ob_get_clean();
     }
 
     /**
@@ -264,7 +220,13 @@ class Layer
     protected function show404($method)
     {   
         $this->reset();
-        $this->setError('{Layer404}<b>404 layer not found:</b> '.$this->layerUri.'/'.$method);
+        $this->setError(
+            [
+                'code' => '404',
+                'error' => 'request not found',
+                'uri' => $this->getUri().'/'.$method
+            ]
+        );
         return $this->getError();
     }
 
@@ -276,7 +238,7 @@ class Layer
      */
     protected function reset()
     {
-        if (! isset($_SERVER['LAYER_REQUEST_URI'])) { // If no layer header return to null;
+        if (! isset($_SERVER['LAYER_REQUEST'])) { // If no layer header return to null;
             return;
         }
         $this->clear();  // Reset all Layer variables.
@@ -289,14 +251,9 @@ class Layer
      */
     public function clear()
     {
+        $this->id = null;
         $this->error = null;    // Clear variables otherwise all responses of layer return to same error.
-        $this->processDone = false;
-        $this->requestMethod = 'GET';
-        unset(
-            $_SERVER['LAYER_REQUEST'],
-            $_SERVER['LAYER_REQUEST_URI'],
-            $_SERVER['LAYER_REQUEST_METHOD']
-        );
+        $this->done  = false;
     }
 
     /**
@@ -306,20 +263,29 @@ class Layer
      */
     public function restore()
     {
-        // if (isset($this->requestData[$this->requestMethod])) {
-        //     $data['REQUEST'] = &$_REQUEST;
-        //     $data['POST']    = &$_POST;
-        //     $data['GET']     = &$_GET;
-        //     foreach (array_keys($this->requestData[$this->requestMethod]) as $v) {
-        //         unset($data[$this->requestMethod][$v]);
-        //     }
-        // }
         $this->reset();
+
+        $_SERVER = $_GET = $_POST = array();
+        $_SERVER = &$this->globals['_SERVER'];
+        $_GET = &$this->globals['_GET'];
+        $_POST = &$this->globals['_POST'];
+        unset(
+            $this->c['request'],
+            $this->c['router']
+        );
+        /**
+         * Restore request objects
+         */
+        $this->c['request'] = function () {
+            return $this->request;
+        };
+        $this->c['router'] = function () {
+            return $this->router;
+        };
         Controller::$instance = $this->controller;
-        // Controller::$instance->uri = $this->uri;
-        Controller::$instance->request = $this->request;
         Controller::$instance->router = $this->router;
-        $this->processDone = true;
+        Controller::$instance->request = $this->request;
+        $this->done = true;
     }
 
     /**
@@ -329,7 +295,7 @@ class Layer
      *
      * @return void
      */
-    protected function prepareHash($resource)
+    protected function setHash($resource)
     {
         if (is_array($resource)) {
             if (sizeof($resource) > 0) {
@@ -347,8 +313,11 @@ class Layer
      */
     public function getId()
     {
-        $id = trim($this->hashString);
-        return self::CACHE_KEY. sprintf("%u", crc32((string)$id));
+        if ($this->id = null) {
+            $id = trim($this->hashString);
+            $this->id = self::CACHE_KEY. sprintf("%u", crc32((string)$id));
+        }
+        return $this->id;
     }
 
     /**
@@ -358,43 +327,17 @@ class Layer
      */
     public function getUri()
     {
-        return $this->layerUri;
-    }
-
-    /**
-     * Log response data
-     * 
-     * @param string $label    log label
-     * @param string $uri      uri string
-     * @param string $start    start time
-     * @param string $id       layer id
-     * @param string $response data
-     * 
-     * @return void
-     */
-    public function log($label, $uri, $start, $id, $response)
-    {
-        // $uriString = md5($this->c['app']->uri->getUriString());
-        $uriString = md5($this->c['app']->request->getUri()->getUriString());
-
-        $this->c['logger']->debug(
-            $label.' '.strtolower($uri), 
-            array(
-                'time' => number_format(microtime(true) - $start, 4),
-                'id' => $id, 
-                'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'" data-uristring="'.$uriString.'">' .$response. '</div>',
-            )
-        );
+        return $this->uri;
     }
 
     /**
      * Set last response error
      *
-     * @param string $error message
+     * @param array $error data
      * 
      * @return object
      */
-    public function setError($error)
+    public function setError(array $error)
     {
         $this->error = $error;
         return $this;
@@ -421,11 +364,11 @@ class Layer
      */
     public function close()
     {
-        if ($this->processDone == false) {  // If "processDone == true" we understand process completed successfully.
-            $this->restore();               // otherwise process is failed and we need to shutdown connection.
+        if ($this->done == false) {  // If "done == true" we understand process completed successfully.
+            $this->restore();        // otherwise process is failed and we need to restore variables.
             return;
         }
-        $this->processDone = false;
+        $this->done = false;
     }
     
 }

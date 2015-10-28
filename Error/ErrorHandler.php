@@ -3,19 +3,13 @@
 namespace Obullo\Error;
 
 use ErrorException;
-use Obullo\Log\LoggerInterface;
+use Obullo\Log\LoggerInterface as Logger;
 
 /**
- * Error Handler Class
+ * Error Handler Class ( Modeled after Symfony ErrorHandler  )
  * 
- * Modeled after Symfony ErrorHandler 
- * 
- * @category  Error
- * @package   ErrorHandler
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/error
  */
 class ErrorHandler
 {
@@ -199,7 +193,7 @@ class ErrorHandler
         $filename = end($exp);
         if ($filename != 'Logger.php') {  // Don't log logger class fatal errors.
             $logger = $c['logger'];
-            if ($logger instanceof LoggerInterface) {
+            if ($logger instanceof Logger) {
                 $logger->channel($c['config']['logger']['default']['channel']);
                 $logger->error($error['message'], array('level' => $type, 'file' => $error['file'], 'line' => $error['line']));
             }

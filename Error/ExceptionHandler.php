@@ -3,17 +3,13 @@
 namespace Obullo\Error;
 
 use Exception;
-use Obullo\Log\LoggerInterface;
+use Obullo\Log\LoggerInterface as Logger;
 
 /**
- * Exception Handler Class
+ * Exception handler
  * 
- * @category  Error
- * @package   ExceptionHandler
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/error
  */
 class ExceptionHandler
 {
@@ -62,7 +58,8 @@ class ExceptionHandler
         $file    = $e->getFile();
         $line    = $e->getLine();
         $logger  = $c['logger'];
-        if ($logger instanceof LoggerInterface) {         // Log for local environment
+        
+        if ($logger instanceof Logger) {         // Log for local environment
             $logger->channel($c['config']['logger']['default']['channel']);
             $logger->error(
                 $message,

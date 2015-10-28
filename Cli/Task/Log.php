@@ -3,7 +3,7 @@
 namespace Obullo\Cli\Task;
 
 use Obullo\Cli\Console;
-use Obullo\Http\Controller;
+use Obullo\Cli\Controller;
 
 /**
  * Log Controller
@@ -19,6 +19,8 @@ use Obullo\Http\Controller;
  */
 class Log extends Controller
 {
+    protected $uri;
+
     /**
      * Execute command
      * 
@@ -27,7 +29,8 @@ class Log extends Controller
     public function index()
     {
         $this->logo();
-        
+        $this->uri = $this->request->getUri();
+
         $dir = $this->uri->argument('dir', 'http');
         $writer = $this->logger->getWriter();
 

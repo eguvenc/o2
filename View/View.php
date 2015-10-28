@@ -212,7 +212,7 @@ class View implements ViewInterface
         if (! class_exists('Obullo\Http\Controller', false) || Controller::$instance == null) {
             $router = $this->c['router'];
         } else {
-            $router = &Controller::$instance->router;  // Use nested controller router ( see the Layer package. )
+            $router = &Controller::$instance->router;  // Use nested controller router ( @see the Layer package. )
         }
         /**
          * Fetch view ( also it can be nested )

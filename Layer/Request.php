@@ -2,9 +2,11 @@
 
 namespace Obullo\Layer;
 
-use Obullo\Log\LoggerInterface;
-use Obullo\Config\ConfigInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Http\ServerRequestFactory;
+
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Config\ConfigInterface as Config;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Layer Request
@@ -37,17 +39,64 @@ class Request
     protected $params;
 
     /**
+     * Get backup of super globals
+     * 
+     * @var array
+     */
+    protected $globals;
+
+    /**
      * Constructor
      *
      * @param object $c      ContainerInterface
      * @param object $logger LoggerInterface
      * @param object $config ConfigInterface
      */
-    public function __construct(ContainerInterface $c, LoggerInterface $logger, ConfigInterface $config)
+    public function __construct(Container $c, Logger $logger, Config $config)
     {   
         $this->c = $c;
         $this->logger = $logger;
         $this->params = $config['layer'];
+
+        $this->createEnvironment();
+    }
+
+    /**
+     * Clone http super globals
+     * 
+     * @return void
+     */
+    protected function createEnvironment()
+    {
+        /**
+         * Backup original super globals
+         */
+        $this->globals['_SERVER'] = &$_SERVER;
+        $this->globals['_GET'] = &$_GET;
+        $this->globals['_POST'] = &$_POST;
+    }
+
+    /**
+     * Create new request
+     * 
+     * @param string $uri request uri
+     * 
+     * @return object
+     */
+    protected function createRequest($uri)
+    {
+        $_SERVER = $_GET = $_POST = array();
+
+        $_SERVER['LAYER_REQUEST'] = true;
+        $_SERVER['REQUEST_URI'] = $uri;
+        $_SERVER['SCRIPT_NAME'] = 'index.php';
+        $_SERVER['QUERY_STRING'] = '';
+
+        return ServerRequestFactory::fromGlobals(
+            $_SERVER,
+            $_GET,
+            $_POST
+        );
     }
 
     /**
@@ -65,7 +114,7 @@ class Request
             $expiration = $data;
             $data = array();
         }
-        return $this->request('GET', $uri, $data, $expiration);
+        return $this->newRequest('GET', $uri, $data, $expiration);
     }
 
     /**
@@ -83,32 +132,70 @@ class Request
             $expiration = $data;
             $data = array();
         }
-        return $this->request('POST', $uri, $data, $expiration);
+        return $this->newRequest('POST', $uri, $data, $expiration);
     }
 
     /**
-     * Send Request
+     * Create new request
+     * 
+     * Layer always must create new instance other ways we can't use nested layers.
      * 
      * @param string  $method     request method
-     * @param string  $uriString  uri string
+     * @param string  $uri        uri string
      * @param array   $data       request data
      * @param integer $expiration ttl
      * 
      * @return string
      */
-    public function request($method, $uriString = '/', $data = array(), $expiration = '')
+    public function newRequest($method, $uri = '/', $data = array(), $expiration = '')
     {
-        $layer = new Layer($this->c, $this->logger, $this->params);  // Layer always must create new instance other ways we can't use nested layers !!
-        $layer->clear();       // Clear layer variables
-        $layer->setHeaders();  // Headers must be at the top
-        $layer->setUrl($uriString);
-        $layer->setMethod($method, $data);
-        $response = $layer->execute($expiration); // Execute the process
+        $layer = new Layer(
+            $this->c,
+            $this->params,
+            $this->globals
+        );
+        $layer->clear();
+        $layer->newRequest(
+            $this->createRequest($uri),
+            $uri,
+            $method,
+            $data
+        );
+
+        $id = $layer->getId();
+
+        /**
+         * Dispatch route errors
+         */
+        if ($layer->getError() != '') {
+            $error = $layer->getError();
+            $layer->restore();
+            return Error::getError($error);
+        }
+        /**
+         * Cache support
+         */
+        if ($this->params['cache'] && $response = $this->c['cache']->get($id)) {   
+            $layer->restore();
+            return base64_decode($response);
+        }
+
+        $response = $layer->execute(); // Execute the process
+
+        /**
+         * Cache support
+         */
+        if (is_numeric($expiration)) {
+            $this->c['cache']->set($id, base64_encode($response), (int)$expiration); // Write to Cache
+        }
         $layer->restore();  // Restore controller objects
 
-        if (strpos(trim($response), '{Layer404}') === 0) {  // Error template support
-            return Error::getError($response);
+        if (is_array($response) && isset($response['error'])) {
+            return Error::getError($response);  // Error template support
         }
+
+        
+        
         return (string)$response;
     }
 
@@ -123,7 +210,34 @@ class Request
     public function flush($uri, $data = array())
     {
         $flush = new Flush($this->logger, $this->c['cache']);
+
         return $flush->uri($uri, $data);
     }
+
+    /**
+     * Log response data
+     * 
+     * @param string $label    log label
+     * @param string $uri      uri string
+     * @param string $start    start time
+     * @param string $id       layer id
+     * @param string $response data
+     * 
+     * @return void
+     */
+    protected function log($label, $uri, $start, $id, $response)
+    {
+        $uriString = md5($this->c['app']->request->getUri()->getUriString());
+
+        $this->logger->debug(
+            $label.' '.strtolower($uri), 
+            array(
+                'time' => number_format(microtime(true) - $start, 4),
+                'id' => $id, 
+                'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'" data-uristring="'.$uriString.'">' .$response. '</div>',
+            )
+        );
+    }
+
     
 }

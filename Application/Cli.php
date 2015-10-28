@@ -34,7 +34,7 @@ class Cli extends Application
         unset($c['router']);   // Replace Uri & Router components
 
         $c['router'] = function () use ($c) {
-            return new \Obullo\Cli\Router($c['uri'], $c['logger']);
+            return new \Obullo\Cli\Router($c['request']->getUri(), $c['logger']);
         };
         include APP .'events.php';
 
@@ -83,6 +83,7 @@ class Cli extends Application
         $this->className = $this->router->getNamespace();
         $this->dispatchClass();
         $this->class = new $this->className;  // Call the controller
+        $this->class->__setContainer($this->c);
         $this->call();
     }
 
@@ -94,7 +95,7 @@ class Cli extends Application
     public function call()
     {
         $this->dispatchMethod();  // Display 404 error if method doest not exist
-        $arguments = array_slice($this->c['uri']->getSegments(), 2);
+        $arguments = array_slice($this->c['request']->getUri()->getSegments(), 2);
 
         call_user_func_array(array($this->class, $this->router->getMethod()), $arguments);
 

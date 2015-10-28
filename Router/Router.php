@@ -29,7 +29,6 @@ class Router implements RouterInterface
     protected $middlewares = array();          // Defined route middlewares
     protected $attach = array();               // Attached after routes to middlewares
     protected $defaultController = '';         // Default controller name
-    protected $pageNotFoundController = '';    // Page not found handler ( 404 )
     protected $groupDomain = '*';              // Groupped route domain address
 
     protected $ROOT;                        // Defined host address in the config file.
@@ -69,19 +68,6 @@ class Router implements RouterInterface
         $this->class = '';
         $this->directory = '';
         $this->module = '';
-    }
-
-    /**
-     * Clone URI object for layers
-     * 
-     * When "clone" word used in Layer object it use the cloned 
-     * URI instead of orginal.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        $this->uri = clone $this->uri;
     }
 
     /**

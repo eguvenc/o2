@@ -2,6 +2,8 @@
 
 namespace Obullo\Cli;
 
+use Obullo\Cli\Uri;
+
 /**
  * Disabled http request
  * 
@@ -11,6 +13,26 @@ namespace Obullo\Cli;
  */
 class NullRequest
 {
+    /**
+     * Uri
+     * 
+     * @var object
+     */
+    protected $uri;
+
+    /**
+     * Returns to cli uri
+     * 
+     * @return object
+     */
+    public function getUri()
+    {
+        if ($this->uri == null) {  // Lazy loader
+            $this->uri = new Uri; 
+        }
+        return $this->uri;
+    }
+
     /**
      * Magic null
      * 

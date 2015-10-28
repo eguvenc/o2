@@ -11,7 +11,7 @@ namespace Obullo\Layer;
  */
 class Error
 {
-    const ERROR_HEADER = '<div style="
+    const HEADER = '<div style="
     white-space: pre-wrap;
     white-space: -moz-pre-wrap;
     white-space: -pre-wrap;
@@ -28,7 +28,7 @@ class Error
     padding:5px 10px;
     color:#E53528;
     font-size:12px;">';
-    const ERROR_FOOTER = '</div>';
+    const FOOTER = '</div>';
 
     /**
      * Format layer errors
@@ -39,8 +39,18 @@ class Error
      */
     public static function getError($response)
     {
-        $error = str_replace('{Layer404}', '', $response);
-        return (static::ERROR_HEADER . $error . static::ERROR_FOOTER);
+        $errorStr = $response['error'];
+        
+        $uri   = isset($response['uri']) ? $response['uri'] : false;
+        $code  = isset($response['code']) ? $response['code'] : 0;
+
+        if ($code > 0) {
+            $errorStr = $code. ': '.$errorStr; 
+        }
+        if ($uri) {
+            $errorStr = $errorStr. ' url : '. $uri;
+        }
+        return static::HEADER .$errorStr. static::FOOTER;
     }
     
 }

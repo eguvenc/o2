@@ -5,7 +5,6 @@ use Obullo\Container\Container;
 use Obullo\Container\Dependency;
 use Obullo\Container\ContainerInterface;
 
-use Obullo\Cli\Uri;
 use Obullo\Config\Config;
 use Obullo\Application\Cli;
 use Obullo\Cli\NullRequest;
@@ -75,13 +74,6 @@ $c['app'] = function () use ($c) {
  */
 $c['request'] = function () {
     return new NullRequest;
-};
-
-/**
- * Cli uri
- */
-$c['uri'] = function () {
-    return new Uri;
 };
 
 /**
