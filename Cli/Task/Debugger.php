@@ -3,7 +3,7 @@
 namespace Obullo\Cli\Task;
 
 use RuntimeException;
-use Obullo\Http\Controller;
+use Obullo\Cli\Controller;
 use Obullo\Cli\Console;
 
 class Debugger extends Controller

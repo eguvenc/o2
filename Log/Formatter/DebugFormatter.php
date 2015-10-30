@@ -48,7 +48,7 @@ class DebugFormatter
         $line = str_replace($search, $replace, $format)."</div>\n";
 
         $levelPatterns = array(
-            '#<div class="p">(.*(Uri Class Initialized\b).*)<\/div>#',
+            '#<div class="p">(.*(Request Uri\b).*)<\/div>#',
             '#<div class="p">(.*(.*\.error\b).*)<\/div>#',
             '#<div class="p">(.*(.*\.warning\b).*)<\/div>#',
             '#<div class="p">(.*(.*\.notice\b).*)<\/div>#',

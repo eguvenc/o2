@@ -2,21 +2,21 @@
 
 namespace Obullo\Cli\Task;
 
-use Obullo\Http\Controller;
+use Obullo\Cli\Controller;
 use Obullo\Cli\Console;
 
-/**
- * App Controller
- * 
- * @category  Cli
- * @package   Controller
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cli
- */
 class App extends Controller
 {
+    protected $uri;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->uri = $this->request->getUri();
+    }
+
     /**
      * Execute command
      * 

@@ -7,14 +7,11 @@ use Obullo\Log\Handler\Raw;
 use Obullo\Container\ContainerInterface;
 
 /**
- * Manager Class
+ * Manager class
  * 
- * @category  Debug
- * @package   Manager
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/debugger
  */
 class Manager
 {
@@ -47,7 +44,7 @@ class Manager
         global $c;
         $this->c = $c;
         $this->logger = $c['logger'];
-        $this->config = $c['config']->load('logger');
+        $this->config = $c['config']->load('service/logger');
     }
 
     /**
@@ -64,10 +61,14 @@ class Manager
          */
         $websocketUrl = $this->c['config']['http']['debugger']['socket'];
         $debuggerOff  = (int)$this->c['config']['http']['debugger']['enabled'];
-        $debuggerUrl  = $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/body');
+        $debuggerUrl  = $this->c['url']->baseUrl(INDEX_PHP.'/debugger/body');
 
-        $envtab = new EnvTab($this->c['request']);
-        $envHtml = $envtab->printHtml();
+        $env = new Environment(
+            $this->c['request'],
+            $this->c['session']
+        );
+        $envHtml = $env->printHtml();
+        $cookies = $this->c['request']->getCookieParams();
 
         ob_start();
         include_once 'View.php';

@@ -6,11 +6,11 @@ use Exception;
 use ErrorException;
 use Obullo\Queue\Job;
 use Obullo\Cli\Console;
-use Obullo\Cli\UriInterface;
-use Obullo\Log\LoggerInterface;
-use Obullo\Queue\QueueInterface;
-use Obullo\Config\ConfigInterface;
-use Obullo\Application\Application;
+use Obullo\Cli\UriInterface as Uri;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Queue\QueueInterface as Queue;
+use Obullo\Config\ConfigInterface as Config;
+use Obullo\Application\ApplicationInterface as Application;
 
 /**
  * Queue Worker
@@ -199,7 +199,7 @@ class Worker
      * @param object $uri    \Obullo\Cli\UriInterface
      * @param object $logger \Obullo\Log\LogInterface
      */
-    public function __construct(Application $app, ConfigInterface $config, QueueInterface $queue, UriInterface $uri, LoggerInterface $logger)
+    public function __construct(Application $app, Config $config, Queue $queue, Uri $uri, Logger $logger)
     {
         $this->app = $app;
         $this->uri = $uri;

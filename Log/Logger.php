@@ -9,7 +9,7 @@ use ErrorException;
 use RuntimeException;
 use Obullo\Queue\Queue;
 use Obullo\Error\ErrorHandler;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Logger Class
@@ -52,7 +52,7 @@ class Logger extends AbstractLogger implements LoggerInterface
      * @param object $c      container
      * @param array  $params parameters
      */
-    public function __construct(ContainerInterface $c, $params = array())
+    public function __construct(Container $c, $params = array())
     {
         $this->c = $c;
         $this->params  = $params;
@@ -523,7 +523,8 @@ class Logger extends AbstractLogger implements LoggerInterface
                         );
 
                 } else {
-                    $worker = new \Workers\Logger($this->c);
+                    $worker = new \Workers\Logger;
+                    $worker->setContainer($this->c);
                     $worker->fire(null, $payload);
                 }
 

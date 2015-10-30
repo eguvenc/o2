@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Annotations;
+namespace Obullo\Application\Annotations;
 
 use Obullo\Event\EventInterface as Event;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -142,7 +142,8 @@ class Middleware
         if (is_string($params)) {
             $params = array($params);
         }
-        $this->middleware->queue('NotAllowed')->inject($params);
+        $this->middleware->queue('NotAllowed')->setParams($params);
+        echo 'OK';
         return;
     }
 
@@ -160,7 +161,6 @@ class Middleware
         $when = count($this->when);
 
         if ($when > 0 && in_array($this->request->getMethod(), $allowedMethods)) {
-            
             $event = new $Class;
             $this->dependency->resolveDependencies($Class);
             $this->event->subscribe($event);

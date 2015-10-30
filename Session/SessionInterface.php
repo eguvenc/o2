@@ -89,4 +89,11 @@ interface SessionInterface
      */
     public function remove($new = array(), $prefix = '');
 
+    /**
+     * Returns to all session data
+     * 
+     * @return data
+     */
+    public function getAll();
+
 }

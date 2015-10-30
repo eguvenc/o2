@@ -2,7 +2,7 @@
 
 namespace Obullo\Cli;
 
-use Obullo\Http\ControllerInterface;
+use Obullo\Cli\ControllerInterface;
 use Obullo\Container\ContainerInterface as Container;
 
 /**
@@ -18,7 +18,7 @@ class Controller implements ControllerInterface
      * 
      * @var object
      */
-    protected $c;
+    protected $c; 
     
     /**
      * Set container

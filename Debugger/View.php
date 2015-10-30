@@ -311,21 +311,18 @@ pre span.string {color: #cc0000;}
 
 <?php 
 $getDebuggerURl = function ($method = 'index') {
-    return $this->c['app']->uri->getBaseUrl(INDEX_PHP.'/debugger/'.$method);
+    return $this->c['app']->url->baseUrl(INDEX_PHP.'/debugger/'.$method);
 };
 ?>
 <script type="text/javascript">
 /**
  * Obullo debbugger js.
  * 
- * @category  Debugger
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @author    Rabih Abou Zaid
  * @author    Erkan Yeter
  * @author    Ersin Güvenç
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/debugger
  */
 var debuggerOff = <?php echo "'".$debuggerOff."'" ?>;
 var debuggerOffMessage = '<span class="error">Debugger seems disabled. Please enable debugger from application config.</span>';
@@ -651,7 +648,7 @@ function decode64(input) {
             <li class="favicon">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAAcElEQVQ4y2NgGGjAiMx5aqrxnxhN0qdvMGIYQKxmdENY0CXWnLuJV2OIkToDAwMDw0Rmxv/5f/8zsmBTlP/3PyNOAxgYUFzKRGkgjhpABQMwojHESB0jqvABspLymnM34WkFI8FMZGYkaAi+hEYyAAAveB/cnCrFwQAAAABJRU5ErkJggg=="/>
             </li>
-            <?php $activeTab = isset($_COOKIE['o_debugger_active_tab']) ? $_COOKIE['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
+            <?php $activeTab = isset($cookies['o_debugger_active_tab']) ? $cookies['o_debugger_active_tab'] : 'obulloDebugger-http-log'; ?>
 
             <li <?php echo ($activeTab == 'obulloDebugger-http-log') ? 'class="obulloDebugger-activeTab obulloDebugger-http-log "' : '' ?> onclick="debuggerShowTab(this, 'obulloDebugger-http-log')" class="obulloDebugger-http-log">
                 <a href="javascript:void(0);">HTTP</a> 

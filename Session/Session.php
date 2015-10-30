@@ -2,11 +2,10 @@
 
 namespace Obullo\Session;
 
-use Obullo\Log\LoggerInterface;
-use Obullo\Session\SessionManager;
-use Obullo\Container\ServiceProviderInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Container\ServiceProviderInterface as ServiceProvider;
 
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\RequestInterface as Request;
 
 /**
  * Session Class
@@ -53,7 +52,7 @@ class Session implements SessionInterface
      * @param object $logger   \Obullo\Log\LoggerInterface
      * @param array  $params   service parameters
      */
-    public function __construct(ServiceProviderInterface $provider, RequestInterface $request, LoggerInterface $logger, array $params) 
+    public function __construct(ServiceProvider $provider, Request $request, Logger $logger, array $params) 
     {
         $this->params = $params;
         $this->provider = $provider;
@@ -274,6 +273,19 @@ class Session implements SessionInterface
                 $_SESSION[$prefix . $key] = $val;
             }
         }
+    }
+
+    /**
+     * Returns all session data
+     * 
+     * @return array
+     */
+    public function getAll()
+    {
+        if (isset($_SESSION)) {
+            return $_SESSION;
+        }
+        return array();
     }
 
     /**

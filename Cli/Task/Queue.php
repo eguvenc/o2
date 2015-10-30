@@ -2,22 +2,10 @@
 
 namespace Obullo\Cli\Task;
 
-use Obullo\Http\Controller;
 use Obullo\Cli\Console;
+use Obullo\Cli\Controller;
 use Obullo\Utils\Process\Process;
 
-/**
- * Queue Controller
- *
- * Listen queue data and workers
- * 
- * @category  Cli
- * @package   Controller
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cli
- */
 class Queue extends Controller
 {
     /**
@@ -101,6 +89,8 @@ echo Console::newline(2);
      */
     public function show()
     {
+        $this->uri = $this->request->getUri();
+
         $this->logo();
         $break = "------------------------------------------------------------------------------------------";
 
@@ -153,6 +143,8 @@ echo Console::newline(2);
      */
     public function listen()
     {
+        $this->uri = $this->request->getUri();
+        
         $output   = $this->uri->argument('output', 0);        // Enable / Disabled console output.
         $exchange = $this->uri->argument('worker', null);     // Sets queue worker / exchange
         $route    = $this->uri->argument('job', null);        // Sets queue job name / route key ( queue name )

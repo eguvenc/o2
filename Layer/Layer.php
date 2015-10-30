@@ -13,8 +13,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * Layers is a programming technique that delivers you to "Multitier Architecture" 
  * to scale your applications.
  * 
- * Derived from Java HMVC pattern 2009
- * Named as "Layers" in Obullo 2015
+ * Derived from Java HMVC pattern 2009 Named as "Layers" in Obullo 2015
  * 
  * @author Ersin Guvenc <eguvenc@gmail.com>
  */
@@ -123,23 +122,25 @@ class Layer
         $this->c['app.router'] = function () {
             return $this->router;
         };
-        unset($this->c['request']);
-        $this->c['request'] = function () use ($request) {
-            return $request;
-        };
-        $this->createUri($uri);
+        $this->createUri($request, $uri);
     }
 
     /**
      * Create uri string
      * 
-     * @param string $uri uri
+     * @param object $request request
+     * @param string $uri     uri
      * 
      * @return void
      */
-    protected function createUri($uri)
+    protected function createUri(ServerRequestInterface $request, $uri)
     {
-        $this->c['request']->getUri()->clear(); // Reset uri objects we will reuse it for layer
+        unset($this->c['request']);   // Create new request object
+
+        $this->c['request'] = function () use ($request) {
+            return $request;
+        };
+        $this->c['request']->getUri()->clear();     // Reset uri objects we will reuse it for layer
         $this->c['request']->getUri()->setUriString($uri);
 
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
@@ -156,13 +157,25 @@ class Layer
      */
     public function setMethod($method = 'GET', $data = array())
     {
-        $this->setHash($data); // Set unique id foreach requests
-        $_SERVER['REQUEST_METHOD'] = $method = strtoupper($method);
+        $_SERVER['REQUEST_METHOD'] = strtoupper($method);
+        $this->setHash($data);
 
         if (empty($data)) {
             return;
         }
-        foreach ($data as $key => $val) { //  Assign all post data to REQUEST variable.
+        $this->withBody($data);
+    }
+
+    /**
+     * Http request withbody
+     * 
+     * @param array $data data
+     * 
+     * @return void
+     */
+    protected function withBody(array $data)
+    {
+        foreach ($data as $key => $val) { // Assign all post data to REQUEST variable.
             if ($method == 'POST') {
                 $_POST[$key] = $val;
             } 
@@ -173,17 +186,17 @@ class Layer
     }
 
     /**
-     * Execute Layer Request
+     * Execute layer
      * 
      * @return string
      */
     public function execute()
     {
-        $id  = $this->getId(); // Get layer id
+        $id  = $this->getId();
         $uri = $this->c['request']->getUri();
 
         $this->uri = $uri->getUriString();
-        $uri->setUriString($this->uri. '/' .$id); //  Create Layer ID
+        $uri->setUriString($this->uri. '/' .$id); //  Create unique uri
         
         $directory = $this->c['router']->getDirectory();
         $className = $this->c['router']->getClass();
@@ -269,13 +282,9 @@ class Layer
         $_SERVER = &$this->globals['_SERVER'];
         $_GET = &$this->globals['_GET'];
         $_POST = &$this->globals['_POST'];
-        unset(
-            $this->c['request'],
-            $this->c['router']
-        );
-        /**
-         * Restore request objects
-         */
+
+        unset($this->c['request'], $this->c['router']);
+
         $this->c['request'] = function () {
             return $this->request;
         };

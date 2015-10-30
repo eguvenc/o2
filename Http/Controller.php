@@ -18,7 +18,7 @@ class Controller implements ControllerInterface
      * 
      * @var object
      */
-    protected $c;
+    protected $c; 
 
     /**
      * Controller instance

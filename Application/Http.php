@@ -3,7 +3,6 @@
 namespace Obullo\Application;
 
 use Obullo\Http\Middleware\ParamsAwareInterface;
-use Obullo\Http\Middleware\ControllerAwareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 
 /**
@@ -46,8 +45,6 @@ class Http extends Application
     {
         $c = $this->c; // Make global
         $middleware = $c['middleware'];
-
-        // $uriString = $this->c['uri']->getUriString(); // Assign route middlewares
         $uriString = $this->c['request']->getUri()->getUriString();
 
         foreach ($this->c['router']->getAttachedMiddlewares() as $value) {
@@ -63,6 +60,18 @@ class Http extends Application
                 $object->setParams($value['options']);
             }
         }
+
+        foreach ($middleware->getNames() as $name) {
+            echo $name;    
+            // if ($middleware->get($name) instanceof ControllerAwareInterface) {
+            //     $middleware->get($name)->setController($controller);
+            // }
+        }
+
+
+        if ($this->c['config']['http']['debugger']['enabled']) {  // Boot debugger
+            $middleware->queue('Debugger');
+        }
     }
 
     /**
@@ -72,45 +81,9 @@ class Http extends Application
      * 
      * @return mixed
      */
-    public function call(Response $response)
+    public function call($controller, $method, Response $response)
     {
-        $router = $this->c['router'];
-        $middleware = $this->c['middleware'];
 
-        include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
-        $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
-        
-        $check404Error = $this->dispatchController($className, $router);
-        if (! $check404Error) {
-            return false;
-        }
-        $controller = new $className;
-        $method = $router->getMethod();
-        $check404Error = $this->dispatchMethod($controller, $method);
-        if (! $check404Error) {
-            return false;
-        }
-        unset($this->c['response']);
-        $this->c['response'] = function () use ($response) {
-            return $response;
-        };
-        $controller->__setContainer($this->c);
-        foreach ($middleware->getNames() as $name) {
-            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
-                $middleware->get($name)->setController($controller);
-            } 
-        }
-        $result = call_user_func_array(
-            array(
-                $controller,
-                $method
-            ),
-            array_slice($controller->request->getUri()->getRoutedSegments(), 3)
-        );
-        if ($result instanceof Response) {
-            $response = $result;
-        }
-        return $response;   
     }
 
     /**
@@ -166,24 +139,8 @@ class Http extends Application
         //         $this->c['cookie']->write($cookie);
         //     }
         // }
-        $this->closeDebugger();
+        // $this->closeDebugger();
         $this->registerFatalError();
     }
 
-    /**
-     * Check debugger module is enabled ?
-     * 
-     * @return void
-     */
-    public function closeDebugger()
-    {
-        if ($this->c['config']['http']['debugger']['enabled'] 
-            && $this->c['uri']->segment(0) != 'debugger'
-        ) {
-            $this->websocket->emit(
-                (string)$this->c['response']->getBody(),
-                $this->c['logger']->getPayload()
-            );
-        }
-    }
 }

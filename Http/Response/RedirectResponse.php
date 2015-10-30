@@ -2,43 +2,20 @@
 
 namespace Obullo\Http\Response;
 
-use Psr\Http\Message\UriInterface;
-
+use Psr\Http\Message\UriInterface as Uri;
 use InvalidArgumentException;
-
-use Obullo\Log\LoggerInterface;
-use Obullo\Container\ContainerInterface;
-use Obullo\Application\Middlewares\BenchmarkTrait;
-use Obullo\Http\Stream;
-use Obullo\Http\Response;
 
 /**
  * Produce a redirect response.
  */
 class RedirectResponse
 {
-    use BenchmarkTrait;
-
     /**
      * Http headers
      * 
      * @var array
      */
     protected $headers;
-
-    /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    protected $logger;
 
     /**
      * Create a redirect response.
@@ -53,11 +30,7 @@ class RedirectResponse
      */
     public function __construct($uri,  array $headers = [])
     {
-        global $c;
-        $this->config = $c['config'];  // Inject config & logger objects for benchmarkTrait
-        $this->logger = $c['logger'];
-
-        if (! is_string($uri) && ! $uri instanceof UriInterface) {
+        if (! is_string($uri) && ! $uri instanceof Uri) {
             throw new InvalidArgumentException(
                 sprintf(
                     'Uri provided to %s MUST be a string or Psr\Http\Message\UriInterface instance; received "%s"',
@@ -69,8 +42,6 @@ class RedirectResponse
         $uri = (string) $uri;
         $headers['location'] = [$uri];
         $this->headers = $headers;
-
-        $this->benchmarkEnd($c['request'], false);
     }
 
     /**

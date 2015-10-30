@@ -3,7 +3,6 @@
 namespace Obullo\Application;
 
 use RuntimeException;
-use Obullo\Container\ContainerInterface;
 
 /**
  * Middleware
@@ -14,13 +13,6 @@ use Obullo\Container\ContainerInterface;
  */
 class Middleware
 {
-    /**
-     * Container
-     * 
-     * @var object
-     */
-    protected $c;
-
     /**
      * Count
      * 
@@ -33,7 +25,7 @@ class Middleware
      * 
      * @var array
      */
-    protected $middlewares = array();
+    protected $queue = array();
 
     /**
      * Registered middlewares
@@ -69,10 +61,6 @@ class Middleware
     public function configure(array $array)
     {
         $this->registered = $array;
-
-        // $this->add('Router');  // Add first middlewares
-        // $this->add('Begin');
-
         return $this;
     }
 
@@ -121,26 +109,12 @@ class Middleware
     {
         $this->validateMiddleware($name);
         if (isset($this->names[$name]) 
-            && isset($this->middlewares[$this->names[$name]]) 
+            && isset($this->queue[$this->names[$name]]) 
             && $this->getClassNameByIndex($this->names[$name]) == $name
         ) {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Get class name without namespace using explode method
-     * 
-     * @param integer $index number
-     * 
-     * @return string class name without namespace
-     */
-    protected function getClassNameByIndex($index)
-    {
-        $class = get_class($this->middlewares[$index]);
-        $exp = explode("\\", $class);
-        return end($exp);
     }
 
     /**
@@ -154,7 +128,21 @@ class Middleware
     {
         $this->validateMiddleware($name);
         $index = $this->names[$name];
-        return $this->middlewares[$index];
+        return $this->queue[$index];
+    }
+
+    /**
+     * Get class name without namespace using explode method
+     * 
+     * @param integer $index number
+     * 
+     * @return string class name without namespace
+     */
+    protected function getClassNameByIndex($index)
+    {
+        $class = get_class($this->queue[$index]);
+        $exp = explode("\\", $class);
+        return end($exp);
     }
 
     /**
@@ -170,7 +158,7 @@ class Middleware
         $Class = $this->registered[$name];
         ++$this->count;
         $this->names[$name] = $this->count;
-        return $this->middlewares[$this->count] = $this->dependency->resolveDependencies($Class);  // Store middlewares
+        return $this->queue[$this->count] = $this->dependency->resolveDependencies($Class);  // Store middlewares
     }
 
     /**
@@ -184,8 +172,8 @@ class Middleware
     {
         if (is_string($name)) {
             $this->validateMiddleware($name);
-            $index = $this->middlewaresNames[$name];
-            unset($this->middlewares[$index], $this->names[$name]);
+            $index = $this->queueNames[$name];
+            unset($this->queue[$index], $this->names[$name]);
             --$this->count;
         }
         if (is_array($name)) {
@@ -221,7 +209,7 @@ class Middleware
      */
     public function getQueue()
     {
-        return array_values($this->middlewares);
+        return array_values($this->queue);
     }
 
     /**

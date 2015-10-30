@@ -1,6 +1,6 @@
 <?php
 
-namespace Obullo\Annotations;
+namespace Obullo\Application\Annotations;
 
 use ReflectionClass;
 use Obullo\Container\ContainerInterface as Container;
@@ -36,18 +36,35 @@ class Controller
     protected $reflector;
 
     /**
-     * Constructor
+     * Set container 
      * 
-     * @param ContainerInterface $c         container
-     * @param ReflectionClass    $reflector reflector
+     * @param Container $c container
+     *
+     * @return void
      */
-    public function __construct(Container $c, ReflectionClass $reflector)
+    public function setContainer(Container $c)
     {
         $this->c = $c;
-        $this->reflector = $reflector;
-        $this->c['annotation.middleware'] = function () use ($c) {
-            return new Middleware($c['event'], $c['request'], $c['dependency'], $c['middleware']);
+        $c['annotation.middleware'] = function () use ($c) {
+            return new Middleware(
+                $c['event'],
+                $c['request'],
+                $c['dependency'],
+                $c['middleware']
+            );
         };
+    }
+
+    /**
+     * Set reflector
+     * 
+     * @param ReflectionClass $reflector reflection class
+     *
+     * @return void
+     */
+    public function setReflectionClass(ReflectionClass $reflector)
+    {
+        $this->reflector = $reflector;
     }
 
     /**
@@ -63,16 +80,6 @@ class Controller
     }
 
     /**
-     * Get method
-     * 
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->method;
-    }
-
-    /**
      * Parse docs blocks and execute filters
      * 
      * @return void
@@ -80,15 +87,15 @@ class Controller
     public function parse()
     {
         $blocks = '';
-        if ($reflector->hasMethod('__construct')) {
-            $blocks = $reflector->getMethod('__construct')->getDocComment();
+        if ($this->reflector->hasMethod('__construct')) {
+            $blocks = $this->reflector->getMethod('__construct')->getDocComment();
         }
-        $blocks.= $reflector->getMethod($this->getMethod())->getDocComment();
+        $blocks.= $this->reflector->getMethod($this->getMethod())->getDocComment();
 
         $docs = str_replace('*', '', $blocks);
         $docs = explode("@", $docs);
 
-        if (strpos($this->blocks, 'middleware->') > 0 || strpos($blocks, 'event->')) {
+        if (strpos($blocks, 'middleware->') > 0 || strpos($blocks, 'event->')) {
             foreach ($docs as $line) {
                 $methods = explode('->', $line);  // explode every methods
                 array_shift($methods);            // remove class name "filter"
@@ -120,4 +127,13 @@ class Controller
         $this->c['annotation.middleware']->$method($parray);  // Execute middleware methods
     }
 
+    /**
+     * Get method
+     * 
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
 }

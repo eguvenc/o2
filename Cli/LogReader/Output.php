@@ -50,7 +50,7 @@ class Output
      */
     protected function writeHeader($line)
     {
-        $header = $this->has('Uri Class Initialized');
+        $header = $this->has('Request Uri');
         $break = "\n------------------------------------------------------------------------------------------";
 
         if ($header) {

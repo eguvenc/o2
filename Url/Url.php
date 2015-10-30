@@ -18,9 +18,32 @@ use Psr\Http\Message\RequestInterface as Request;
  */
 class Url implements UrlInterface
 {
+    /**
+     * Uri
+     * 
+     * @var object
+     */
     protected $uri;
+
+    /**
+     * Request
+     * 
+     * @var object
+     */
     protected $request;
+
+    /**
+     * Logger
+     * 
+     * @var object
+     */
     protected $logger;
+
+    /**
+     * Service Parameters
+     * 
+     * @var array
+     */
     protected $params;
 
     /**

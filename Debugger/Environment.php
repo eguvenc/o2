@@ -3,20 +3,18 @@
 namespace Obullo\Debugger;
 
 use RuntimeException;
+use Psr\Http\Message\RequestInterface as Request;
 
-use Psr\Http\Message\RequestInterface;
+use Obullo\Session\SessionInterface as Session;
 
 /**
- * Debugger Environment Tab Builder
+ * Debugger environment tab
  * 
- * @category  Debug
- * @package   Debugger
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/debugger
  */
-class EnvTab
+class Environment
 {
     /**
      * Html output
@@ -36,12 +34,14 @@ class EnvTab
      * Constructor
      * 
      * @param object $request \Obullo\Http\Request\RequestInterface
+     * @param object $session \Obullo\Http\Session\SessionInterface
      * @param string $output  html output
      */
-    public function __construct(RequestInterface $request, $output = null)
+    public function __construct(Request $request, Session $session, $output = null)
     {
         $this->output = $output;
         $this->request = $request;
+        $this->session = $session;
     }
 
     /**
@@ -49,14 +49,15 @@ class EnvTab
      * 
      * @return array
      */
-    protected static function buildSuperGlobals()
+    protected function buildSuperGlobals()
     {
         $ENVIRONMENTS = array();
-        $ENVIRONMENTS['POST'] = $_POST;
-        $ENVIRONMENTS['GET'] = $_GET;
-        $ENVIRONMENTS['COOKIE'] = isset($_COOKIE) ? $_COOKIE : [];
-        $ENVIRONMENTS['SESSION'] = isset($_SESSION) ? $_SESSION : [];
-        $ENVIRONMENTS['SERVER'] = isset($_SERVER) ? $_SERVER : [];
+        
+        $ENVIRONMENTS['POST'] = $this->request->getParsedBody();
+        $ENVIRONMENTS['GET'] = $this->request->getQueryParams();
+        $ENVIRONMENTS['COOKIE'] = $this->request->getCookieParams();
+        $ENVIRONMENTS['SESSION'] = $this->session->getAll();
+        $ENVIRONMENTS['SERVER'] = $this->request->getServerParams();
 
         return $ENVIRONMENTS;
     }
@@ -68,9 +69,9 @@ class EnvTab
      */
     public function printHtml()
     {
-        $ENVIRONMENTS = static::buildSuperGlobals();
+        $ENVIRONMENTS = $this->buildSuperGlobals();
 
-        $ENVIRONMENTS['HTTP_REQUEST']  = $this->request->headers->all();
+        $ENVIRONMENTS['HTTP_REQUEST']  = $this->request->getHeaders();
         $ENVIRONMENTS['HTTP_HEADERS']  = headers_list();
         $ENVIRONMENTS['HTTP_RESPONSE'] = [$this->output];
 
@@ -81,7 +82,7 @@ class EnvTab
             $label = (strpos($key, 'HTTP_') === 0) ? $key : '$_'.$key;
             $output.= '<a href="javascript:void(0);" onclick="fireMiniTab(this)" data_target="'.strtolower($key).'" class="fireMiniTab">'.$label.'</a>'."\n";
 
-            $style = static::getDefaultTab($method, $key);
+            $style = $this->getDefaultTab($method, $key);
 
             if ($key == 'HTTP_RESPONSE') {
                 $style = 'style="display:block;"';
@@ -123,7 +124,7 @@ class EnvTab
      * 
      * @return string
      */
-    protected static function getDefaultTab($method, $env)
+    protected function getDefaultTab($method, $env)
     {
         if ($method == 'POST' && $env == 'POST') {
             $style = 'style="display:block;"';

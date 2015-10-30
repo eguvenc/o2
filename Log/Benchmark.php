@@ -22,16 +22,14 @@ class Benchmark
     /**
      * Finalize benchmark
      *
-     * @param container $c       object
-     * @param boolean   $logging enabled
-     * @param array     $extra   extra benchmark data
+     * @param container $c     object
+     * @param array     $extra extra benchmark data
      * 
      * @return void
      */
-    public static function end(Container $c, $logging = true, $extra = array())
+    public static function end(Container $c, $extra = array())
     {
         $logger = $c['config']->load('service/logger');
-
         $time = $c['REQUEST_TIME_START'];
 
         if ($logger['params']['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
@@ -42,12 +40,13 @@ class Benchmark
             if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
                 $usage = round($usage/1024/1024, 2). ' MB';
             }
+            if ($c['config']['http']['debugger']['enabled']) {  // Exclude debugger cost from benchmark results.
+                $end = $end - 0.0003;
+            }
             $extra['time']   = number_format($end, 4);
             $extra['memory'] = $usage;
 
-            if ($logging) {
-                $c['logger']->debug('Final output sent to browser', $extra, -9999);
-            }
+            $c['logger']->debug('Final output sent to browser', $extra, -9999);
         }
     }
 }

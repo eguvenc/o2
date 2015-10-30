@@ -3,12 +3,12 @@
 namespace Obullo\Router;
 
 use Closure;
-use Obullo\Http\Controller;
 use LogicException;
+use Obullo\Http\Controller;
 
 use Obullo\Log\LoggerInterface as Logger;
-use Obullo\Container\ContainerInterface as Container;
 use Psr\Http\Message\RequestInterface as Request;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Http Router Class ( Modeled after Codeigniter router )
@@ -54,6 +54,7 @@ class Router implements RouterInterface
         $this->logger = $logger;
         $this->HOST = $this->uri->getHost();
 
+        $this->logger->debug('Request Uri', ['uri' => $this->uri->getUriString()]);
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 0);
     }
 
@@ -83,9 +84,9 @@ class Router implements RouterInterface
         if (! isset($params['domain'])) {
             throw new RuntimeException("Domain not configured in routes.php");
         }
-        include APP .'routes.php';
-        $this->ROOT = trim($params['domain'], '.');
+        $this->DOMAIN = $this->ROOT = trim($params['domain'], '.');
         $this->defaultController = $params['defaultPage'];
+        include APP .'routes.php';
     }
 
     /**
@@ -268,26 +269,42 @@ class Router implements RouterInterface
      */
     protected function resolve($segments)
     {
-        if (! isset($segments[0])) {
+        if (empty($segments[0])) {
             return $segments;
         }
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments = $this->detectModule($segments);
         $directory = $this->getDirectory();
         $module = $this->getModule('/');
-        $class = $this->getClass();
-        if (! empty($class) && ! empty($module)) {   // Module index file support e.g modules/demo/tutorials/tutorials.php
-            $directory = strtolower($class);
-        }
-        $checkIndexFile = false;
-        if (! isset($segments[1]) || isset($segments[1]) && $segments[1] == $this->getMethod()) { //  Just check index file if second segment is not a class.
-            $checkIndexFile = true;
-        }
-        if ($checkIndexFile && is_file(MODULES.$module.$directory.'/'.self::ucwordsUnderscore($directory).'.php')) {  // if segments[1] not exists. forexamle http://example.com/welcome
-            array_unshift($segments, $directory);
-            return $segments;
-        }
+        $hasSegmentOne = empty($segments[1]) ? false : true;
 
+        if ($hasSegmentOne && $directory == $segments[1]) {   
+            array_shift($segments); // Remove index file iterations http://project/debugger/debugger
+        }
+        $file = MODULES.$module.$directory.'/'.self::ucwordsUnderscore($directory).'.php';
+
+        if (empty($module)) {  // If just directory request
+            
+            if (is_file($file)) {
+                array_unshift($segments, $directory);
+                return $segments;
+            }
+
+        } else {  // If we have module request
+
+            // Add support e.g http://project/widgets/tutorials/helloWorld.php
+
+            if ($hasSegmentOne && is_file(MODULES.$module.$directory.'/'.self::ucwordsUnderscore($segments[1]).'.php')) {
+                return $segments;
+            } else {
+                
+                // Add index file support 
+                //  Rewrite /widgets/tutorials/tutorials/test to /widgets/tutorials/test
+
+                array_unshift($segments, $directory); 
+                return $segments;
+            }
+        }
         return $segments;
     }
 
@@ -300,7 +317,7 @@ class Router implements RouterInterface
      */
     protected function detectModule($segments)
     {
-        if (isset($segments[1])
+        if (! empty($segments[1])
             && strtolower($segments[1]) != 'view'  // http://example/debugger/view/index bug fix
             && is_dir(MODULES .$segments[0].'/'. $segments[1].'/')  // Detect Module and change directory !!
         ) {
@@ -321,10 +338,11 @@ class Router implements RouterInterface
      */
     protected function parseRoutes()
     {
-        $uri = $this->uri->getUriString();
+        $uri = ltrim($this->uri->getUriString(), '/'); // fix route errors with trim()
         if (! empty($this->routes[$this->DOMAIN])) {
             foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
                 $parameters = $this->parseParameters($uri, $val);
+
                 if ($this->hasRegexMatch($val['match'], $uri)) {    // Does the route match ?
                     $this->dispatchRouteMatches($uri, $val, $parameters);
                     return;
@@ -373,7 +391,7 @@ class Router implements RouterInterface
     protected function dispatchRouteMatches($uri, $val, $parameters)
     {
         if (count($val['when']) > 0) {  //  Dynamically add method not allowed middleware
-            $this->c['middleware']->queue('NotAllowed')->inject($val['when']);
+            $this->c['middleware']->queue('NotAllowed')->setParams($val['when']);
         }
         if (! empty($val['rewrite']) && strpos($val['rewrite'], '$') !== false && strpos($val['match'], '(') !== false) {  // Do we have a back-reference ?
             $val['rewrite'] = preg_replace('#^'.$val['match'].'$#', $val['rewrite'], $uri);
@@ -566,7 +584,7 @@ class Router implements RouterInterface
         if (isset($group['match']) && ! $this->detectGroupMatch($group)) {
             return $this;
         }
-        if (! $this->detectDomainMatch($group)) {     // When groups run if domain not match with regex don't continue.
+        if (! $this->detectDomainMatch($group)) {     // When groups run, if domain not match with regex don't continue.
             return $this;                             // Forexample we define a sub domain but group domain does not match
         }                                             // so we need to stop group process.
         $this->group = $group;
@@ -624,7 +642,7 @@ class Router implements RouterInterface
      */
     protected function matchGroup($match)
     {
-        $uri = $this->uri->getUriString();
+        $uri = ltrim($this->uri->getUriString(), '/');
         if ($this->hasNaturalGroupMatch($match, $uri)) {
             return true;
         }

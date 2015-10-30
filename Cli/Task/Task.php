@@ -2,18 +2,8 @@
 
 namespace Obullo\Cli\Task;
 
-use Obullo\Log\LoggerInterface;
+use Obullo\Log\LoggerInterface as Logger;
 
-/**
- * Task Class
- * 
- * @category  Cli
- * @package   Task
- * @author    Obullo Framework <obulloframework@gmail.com>
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/task
- */
 class Task
 {
     /**
@@ -35,7 +25,7 @@ class Task
      *
      * @param object $logger \Obullo\Log\LoggerInterface
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
         $this->loggerExists();

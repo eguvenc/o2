@@ -5,23 +5,18 @@ namespace Obullo\Debugger;
 use DOMDocument;
 use RuntimeException;
 use Obullo\Log\Handler\Debugger;
-use Obullo\Config\ConfigInterface;
 
-use Psr\Http\Message\RequestInterface;
+use Obullo\Config\ConfigInterface as Config;
+use Psr\Http\Message\RequestInterface as Request;
+use Obullo\Application\ApplicationInterface as Application;
 
 /**
  * Debugger Websocket 
  * 
- * Handler requests and do handshake
- * 
- * @category  Debug
- * @package   Debugger
- * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/debugger
  */
-class WebSocket
+class Websocket
 {
     /**
      * Application
@@ -80,13 +75,6 @@ class WebSocket
     protected $connect;
 
     /**
-     * Request class
-     * 
-     * @var object
-     */
-    protected $request;
-
-    /**
      * Current uriString
      * 
      * @var object
@@ -95,17 +83,17 @@ class WebSocket
 
     /**
      * Constructor
-     *
-     * @param object $app     \Obullo\Application\Application
-     * @param object $request \Obullo\Http\Request\RequestInterface
-     * @param object $config  \Obullo\Config\ConfigInterface
+     * 
+     * @param Application $app    app
+     * @param Config      $config config
+     * @param array       $params params
      */
-    public function __construct($app, RequestInterface $request, ConfigInterface $config)
+    public function __construct(Application $app, Config $config, array $params)
     {
         $this->app = $app;
         $this->config = $config;
-        $this->request = $request;
-        $this->uriString = $app->uri->getUriString();
+        $this->params = $params;
+        $this->uriString = $app->request->getUri()->getUriString();
 
         if (false == preg_match(
             '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 
@@ -136,7 +124,8 @@ class WebSocket
         if ($this->connect == false) {
             $message = "Debugger enabled but socket server is not running. 
             Run debug server or disable debugger. <pre>php task debugger</pre>";
-            if ($this->request->isAjax()) {
+
+            if ($this->app->request->isAjax()) {
                 $message = strip_tags($message);
             }
             throw new RuntimeException($message);
@@ -162,13 +151,16 @@ class WebSocket
                 $data['record'] = array_merge($data['record'], $value['record']);  // Merge handlers and primary writer record
             }
         }
-        $handler = new Debugger($this->app, $this->config);      // Log debug handler
+        $handler = new Debugger($this->params);      // Log debug handler
         $this->lines = $handler->write($data);
 
-        if ($this->request->isAjax()) {
-            if (isset($_COOKIE['o_debugger_active_tab']) && $_COOKIE['o_debugger_active_tab'] != 'obulloDebugger-environment') {
+        if ($this->app->request->isAjax()) {
+
+            $cookies = $this->app->request->getCookieParams();
+
+            if (isset($cookies['o_debugger_active_tab']) && $cookies['o_debugger_active_tab'] != 'obulloDebugger-environment') {
                 setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/');  // Select ajax tab
-            } elseif (! isset($_COOKIE['o_debugger_active_tab'])) {
+            } elseif (! isset($cookies['o_debugger_active_tab'])) {
                 setcookie('o_debugger_active_tab', "obulloDebugger-ajax-log", 0, '/'); 
             }
             $this->handshake('Ajax');
@@ -198,9 +190,12 @@ class WebSocket
      */
     protected function handshake($type = 'Ajax') 
     {
-        $envtab = new EnvTab($this->request, $this->getOutput());
-
-        $base64EnvData = base64_encode($envtab->printHtml());
+        $env = new Environment(
+            $this->app->request,
+            $this->app->session,
+            $this->getOutput()
+        );
+        $base64EnvData = base64_encode($env->printHtml());
         $base64LogData = base64_encode($this->lines);
 
         $upgrade = "Request: $type\r\n" .
