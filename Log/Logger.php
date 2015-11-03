@@ -501,6 +501,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         if ($this->shutdown) {  // If we already shutdown logger don't do again.
             return;             // Using just register shutdown we couldn't catch the fatal errors.
         }                       // This way is the best to catch all errors.
+
         
         if ($this->isEnabled() && $this->isConnected()) {   // Lazy loading for Logger service
                                                             // if connect method executed one time then we open connections and load classes

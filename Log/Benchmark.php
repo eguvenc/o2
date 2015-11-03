@@ -2,39 +2,39 @@
 
 namespace Obullo\Log;
 
-use Obullo\Container\ContainerInterface as Container;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class Benchmark
 {
     /**
-     * Start application benchmark
+     * Start app benchmark
      * 
-     * @param ContainerInterface $c container
+     * @param Request $request object
      * 
-     * @return object RequestInterface
+     * @return object
      */
-    public static function start(Container $c)
+    public static function start(Request $request)
     {
-        $c['REQUEST_TIME_START'] = microtime(true);
+        return $request->withAttribute('REQUEST_TIME_START', microtime(true));
     }
 
     /**
      * Finalize benchmark
-     *
-     * @param container $c     object
-     * @param array     $extra extra benchmark data
+     * 
+     * @param Request $request request
+     * @param array   $extra   extra
      * 
      * @return void
      */
-    public static function end(Container $c, $extra = array())
+    public static function end(Request $request, $extra = array())
     {
-        $logger = $c['config']->load('service/logger');
-        $time = $c['REQUEST_TIME_START'];
+        $c = $request->getContainer();
 
-        if ($logger['params']['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
+        $config = $c['config']->load('service/logger');
 
-            $end = microtime(true) - $time;
+        if ($config['params']['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
+
+            $end = microtime(true) - $request->getAttribute('REQUEST_TIME_START');
             $usage = 'memory_get_usage() function not found on your php configuration.';
             
             if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {

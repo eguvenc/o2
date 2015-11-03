@@ -4,6 +4,7 @@ namespace Obullo\Application;
 
 use Obullo\Http\Middleware\ParamsAwareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
+use Obullo\Http\Middleware\ControllerAwareInterface;
 
 /**
  * Http Application
@@ -61,14 +62,6 @@ class Http extends Application
             }
         }
 
-        foreach ($middleware->getNames() as $name) {
-            echo $name;    
-            // if ($middleware->get($name) instanceof ControllerAwareInterface) {
-            //     $middleware->get($name)->setController($controller);
-            // }
-        }
-
-
         if ($this->c['config']['http']['debugger']['enabled']) {  // Boot debugger
             $middleware->queue('Debugger');
         }
@@ -81,65 +74,119 @@ class Http extends Application
      * 
      * @return mixed
      */
-    public function call($controller, $method, Response $response)
-    {
+    // public function call(Response $response)
+    // {
+    //     $router = $this->c['router'];
+    //     $middleware = $this->c['middleware'];
 
-    }
+    //     include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
+    //     $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
+        
+    //     // $check404Error = $this->dispatchController($className, $router);
+    //     // if (! $check404Error) {
+    //     //     return false;
+    //     // }
+    //     $controller = new $className;
+    //     // $reflector = new \ReflectionClass($controller);
+    //     $method = $router->getMethod();  // default index
+
+    //     // if (! $reflector->hasMethod($method)) {
+    //     //     $body = $this->c['template']->make('404');
+    //     //     return $response->withStatus(404)
+    //     //         ->withHeader('Content-Type', 'text/html')
+    //     //         ->withBody($body);
+    //     // }
+    //     // $docs = new \Obullo\Application\Annotations\Controller;
+    //     // $docs->setContainer($this->c);
+    //     // $docs->setReflectionClass($reflector);
+    //     // $docs->setMethod($method);
+    //     // $docs->parse();
+
+    //     $controller->__setContainer($this->c);
+
+    //     unset($this->c['response']);
+    //     $this->c['response'] = function () use ($response) {
+    //         return $response;
+    //     };
+
+    //     foreach ($middleware->getNames() as $name) {
+    //         // echo $name;    
+    //         if ($middleware->get($name) instanceof ControllerAwareInterface) {
+    //             $middleware->get($name)->setController($controller);
+    //         }
+    //     }
+
+    //     // ECHO 'OUTPUT';
+    //     $result = call_user_func_array(
+    //         array(
+    //             $controller,
+    //             $method
+    //         ),
+    //         array_slice($controller->request->getUri()->getRoutedSegments(), 3)
+    //     );
+    //     if ($result instanceof Response) {
+    //         $response = $result;
+    //     }
+    //     return $response;
+    // }
 
     /**
-     * Dispatch controller
+     * Execute the controller
+     *
+     * @param Psr\Http\Message\ResponseInterface $response response
      * 
-     * @param string $file   full path
-     * @param object $router 
-     * 
-     * @return void
+     * @return mixed
      */
-    protected function dispatchController($file, $router)
+    public function call(Response $response)
     {
-        if (! class_exists($file)) {
-            $router->clear();  //  fix layer errors
+        $router = $this->c['router'];
+        $middleware = $this->c['middleware'];
+
+        include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
+        $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
+        
+        if (! class_exists($className)) {
+            $router->clear();  // Fix layer errors.
             return false;
         }
-        return true;
-    }
+        $controller = new $className;
+        $method = $router->getMethod();
 
-    /**
-     * Dispatch method
-     * 
-     * @param object $controller controller
-     * @param string $method     method
-     * 
-     * @return void
-     */
-    protected function dispatchMethod($controller, $method)
-    {
         if (! method_exists($controller, $method)
             || substr($method, 0, 1) == '_'
         ) {
             return false;
         }
-        return true;
+        unset($this->c['response']);
+        $this->c['response'] = function () use ($response) {
+            return $response;
+        };
+        $controller->__setContainer($this->c);
+        foreach ($middleware->getNames() as $name) {
+            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
+                $middleware->get($name)->setController($controller);
+            } 
+        }
+        $result = call_user_func_array(
+            array(
+                $controller,
+                $method
+            ),
+            array_slice($controller->request->getUri()->getRoutedSegments(), 3)
+        );
+        if ($result instanceof Response) {
+            $response = $result;
+        }
+        return $response;   
     }
 
     /**
      * Register shutdown
-     *
-     * 1 . Write cookies if package loaded and we have queued cookies.
-     * 2 . Check debugger module
-     * 3 . Register fatal error handler
      * 
      * @return void
      */
     public function close()
     {
-        // if ($this->c->active('cookie') 
-        //     && count($cookies = $this->c['cookie']->getQueuedCookies()) > 0
-        // ) {
-        //     foreach ($cookies as $cookie) {
-        //         $this->c['cookie']->write($cookie);
-        //     }
-        // }
-        // $this->closeDebugger();
         $this->registerFatalError();
     }
 

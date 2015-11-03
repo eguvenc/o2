@@ -7,6 +7,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use SplQueue;
 
+use Obullo\Container\ContainerInterface as Container;
+
 /**
  * Iterate a queue of middlewares and execute them.
  */
@@ -40,12 +42,12 @@ class Next
      * @param SplQueue $queue
      * @param callable $done
      */
-    public function __construct(SplQueue $queue, callable $done)
+    public function __construct(SplQueue $queue, callable $done, Container $c)
     {
         $this->queue    = clone $queue;
         $this->done     = $done;
 
-        $this->dispatch = new Dispatch();
+        $this->dispatch = new Dispatch($c);
     }
 
     /**

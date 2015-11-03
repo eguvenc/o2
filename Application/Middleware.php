@@ -222,4 +222,17 @@ class Middleware
         return array_keys($this->names);
     }
 
+    /**
+     * Get regsitered 
+     * 
+     * @param string $name middleware key
+     * 
+     * @return string
+     */
+    public function getPath($name)
+    {
+        $this->validateMiddleware($name);
+        return $this->registered[$name];
+    }
+
 }

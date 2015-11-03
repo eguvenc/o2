@@ -143,7 +143,6 @@ class Middleware
             $params = array($params);
         }
         $this->middleware->queue('NotAllowed')->setParams($params);
-        echo 'OK';
         return;
     }
 

@@ -7,7 +7,7 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Borrowed from Zend Diactoros
@@ -372,10 +372,20 @@ class ServerRequest implements ServerRequestInterface
      *
      * @return object
      */
-    public function setContainer(ContainerInterface $c)
+    public function setContainer(Container $c)
     {
         $this->c = $c;
         return $this;
+    }
+
+    /**
+     * Returns to container object
+     * 
+     * @return object
+     */
+    public function getContainer()
+    {
+        return $this->c;
     }
 
     /**

@@ -54,8 +54,8 @@ class Router implements RouterInterface
         $this->logger = $logger;
         $this->HOST = $this->uri->getHost();
 
-        $this->logger->debug('Request Uri', ['uri' => $this->uri->getUriString()]);
-        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 0);
+        $this->logger->debug('Request Uri', ['uri' => $this->uri->getUriString()], 9999);
+        $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
     }
 
     /**

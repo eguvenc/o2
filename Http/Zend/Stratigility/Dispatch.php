@@ -9,6 +9,8 @@ use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use Obullo\Container\ContainerInterface as Container;
+
 /**
  * Dispatch middleware
  *
@@ -18,6 +20,23 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class Dispatch
 {
+    /**
+     * Container 
+     * 
+     * @var object
+     */
+    protected $c;
+
+    /**
+     * Constructor
+     * 
+     * @param Container $c container
+     */
+    public function __construct(Container $c)
+    {
+        $this->c = $c;
+    }
+
     /**
      * Dispatch middleware
      *
@@ -69,6 +88,7 @@ class Dispatch
         // @todo Trigger event with Route, original URL from request?
 
         try {
+            
             if ($hasError && $arity === 4) {
                 return call_user_func($handler, $err, $request, $response, $next);
             }
@@ -76,8 +96,11 @@ class Dispatch
             if (! $hasError && $arity < 4) {
                 return call_user_func($handler, $request, $response, $next);
             }
+            
         } catch (Exception $e) {
+
             $err = $e;
+            $this->c['app']->handleException($err);
         }
 
         return $next($request, $response, $err);

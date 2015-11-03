@@ -193,8 +193,6 @@ class Request
         if (is_array($response) && isset($response['error'])) {
             return Error::getError($response);  // Error template support
         }
-
-        
         
         return (string)$response;
     }

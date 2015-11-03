@@ -233,6 +233,16 @@ class Request implements ServerRequestInterface
     }
 
     /**
+     * Proxy to ServerRequestInterface::getContainer()
+     *
+     * {@inheritdoc}
+     */
+    public function getContainer()
+    {
+        return $this->psrRequest->getContainer();
+    }
+
+    /**
      * Allow mutating the URI
      *
      * {@inheritdoc}

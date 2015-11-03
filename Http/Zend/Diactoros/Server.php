@@ -162,6 +162,7 @@ class Server
         $bufferLevel = ob_get_level();
 
         $response = $callback($this->request, $this->response, $finalHandler);
+        
         if (! $response instanceof ResponseInterface) {
             $response = $this->response;
         }

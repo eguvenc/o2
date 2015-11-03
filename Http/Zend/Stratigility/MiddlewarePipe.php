@@ -2,6 +2,7 @@
 
 namespace Obullo\Http\Zend\Stratigility;
 
+use Obullo\Log\Benchmark;
 use Obullo\Http\Middleware\MiddlewareInterface;
 use Obullo\Container\ContainerInterface as Container;
 
@@ -32,25 +33,18 @@ use SplQueue;
 class MiddlewarePipe implements MiddlewareInterface
 {
     /**
-     * SplQueue
-     * 
-     * @var object
-     */
-    protected $pipeline;
-
-    /**
-     * App environment
-     * 
-     * @var string
-     */
-    protected $env;
-
-    /**
      * Container
      * 
      * @var object
      */
     protected $c;
+
+    /**
+     * SplQueue
+     * 
+     * @var object
+     */
+    protected $pipeline;
 
     /**
      * Constructor
@@ -61,12 +55,45 @@ class MiddlewarePipe implements MiddlewareInterface
      */
     public function __construct(Container $c)
     {
-        $this->env = $c['app.env'];
+        $this->c = $c;
         $this->pipeline = new SplQueue();
 
+        $c['middleware']->queue('App');
+        $c['middleware']->queue('Error');  // Error middleware must be defined end of the queue.
+        
         foreach ($c['middleware']->getQueue() as $middleware) {
             $this->pipe($middleware);
         }
+    }
+
+    /**
+     * Get app request
+     * 
+     * @return object
+     */
+    public function getRequest()
+    {
+        return Benchmark::start($this->c['request']);
+    }
+
+    /**
+     * Returns to final handler class
+     *
+     * @param Response $response response
+     * 
+     * @return object
+     */
+    public function getFinalHandler($response)
+    {
+        $class = '\\Http\Middlewares\FinalHandler\\Zend';
+
+        return new $class(
+            [
+                'env' => $this->c['app.env']
+            ],
+            $this->c['logger'],
+            $response
+        );
     }
 
     /**
@@ -79,18 +106,19 @@ class MiddlewarePipe implements MiddlewareInterface
      * $next has exhausted the pipeline; otherwise, a FinalHandler instance
      * is created and passed to $next during initialization.
      *
-     * @param Request $request
-     * @param Response $response
-     * @param callable $out
+     * @param Request  $request  request
+     * @param Response $response response
+     * @param callable $out      callable
+     * 
      * @return Response
      */
     public function __invoke(Request $request, Response $response, callable $out = null)
     {
         $request  = $this->decorateRequest($request);
         $response = $this->decorateResponse($response);
+        $done     = $this->getFinalHandler($response);
 
-        $done   = $out ?: new FinalHandler(['env' => $this->env], $response);
-        $next   = new Next($this->pipeline, $done);
+        $next   = new Next($this->pipeline, $done, $this->c);
         $result = $next($request, $response);
 
         return ($result instanceof Response ? $result : $response);
@@ -130,10 +158,12 @@ class MiddlewarePipe implements MiddlewareInterface
             throw new InvalidArgumentException('Middleware must be callable');
         }
 
-        $this->pipeline->enqueue(new Route(
-            $this->normalizePipePath($path),
-            $middleware
-        ));
+        $this->pipeline->enqueue(
+            new Route(
+                $this->normalizePipePath($path),
+                $middleware
+            )
+        );
 
         // @todo Trigger event here with route details?
         return $this;
