@@ -13,7 +13,7 @@ use Obullo\Container\Dependency;
 use Obullo\Container\ContainerInterface as Container;
 
 /**
- * Run Application
+ * Application
  * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
@@ -36,36 +36,41 @@ class Application implements ApplicationInterface
     public function __construct(Container $c)
     {
         $this->c = $c;
-        date_default_timezone_set($this->c['config']['locale']['date']['php_date_default_timezone']);   //  Set Default Time Zone Identifer. 
     }
 
     /**
-     * Enable / Disable php error reporting
+     * Set error handlers
      *
      * @return void
      */
-    public function setErrorReporting()
+    public function registerErrorHandlers()
     {
-        if ($this->c['config']['error']['debug'] == false) {
-            error_reporting(E_ALL | E_STRICT | E_NOTICE);
-            ini_set('display_errors', 1);
-        } else {
-            error_reporting(0);
+        set_error_handler(array($this, 'handleError'));
+        set_exception_handler(array($this, 'handleException'));
+    }
+
+    /**
+     * Register fatal error handler
+     * 
+     * @return mixed
+     */
+    public function registerFatalError()
+    {
+        $closure = $this->fatalError;
+        if (null != $error = error_get_last()) {  // If we have a fatal error convert to it to exception obj
+
+            $e = new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']);
+            $exception = $this->c['exception'];
+            
+            if ($this->c['app.env'] != 'production') {
+                echo $exception->make($e);  // Print exceptions
+            }
+            if ($exception->isCatchable($e)) {
+                $closure($e);
+            }
         }
     }
 
-    /**
-     * Set framework debugger
-     *
-     * @return void
-     */
-    protected function setPhpDebugger()
-    {
-        if ($this->c['config']['error']['debug']) {  // If framework debug feature enabled we register error & exception handlers.
-            Debug::enable(E_ALL | E_NOTICE | E_STRICT);
-        }        
-    }
-    
     /**
      * Sets application exception errors
      * 
@@ -118,40 +123,20 @@ class Application implements ApplicationInterface
      */
     public function handleException(Exception $e)
     {
+        $exception = $this->c['exception'];
+
+        if ($this->c['app.env'] != 'production') {
+            echo $exception->make($e);  // Print exceptions to see errors
+        }
         $return = false;
-        foreach ($this->exceptions as $val) {
-            if ($val['exception']->isInstance($e)) {
-                $return = $val['closure']($e);
+        if ($exception->isCatchable($e)) {
+            foreach ($this->exceptions as $val) {
+                if ($val['exception']->isInstance($e)) {
+                    $return = $val['closure']($e);
+                }
             }
         }
         return $return;
-    }
-
-    /**
-     * Set error handlers
-     *
-     * @return void
-     */
-    public function registerErrorHandlers()
-    {
-        if ($this->c['config']['error']['debug'] == false) {  // If debug "disabled" from config use app handler otherwise use Error/Debug package.
-            set_error_handler(array($this, 'handleError'));
-            set_exception_handler(array($this, 'handleException'));
-        }
-    }
-
-    /**
-     * Register fatal error handler
-     * 
-     * @return mixed
-     */
-    public function registerFatalError()
-    {
-        $closure = $this->fatalError;
-        if (null != $error = error_get_last()) {  // If we have a fatal error
-            $closure(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']));
-            $this->c['logger']->shutdown();       // Close the logger if have fatal error otherwise log writers not write.
-        }
     }
 
     /**

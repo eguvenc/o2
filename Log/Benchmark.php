@@ -30,9 +30,12 @@ class Benchmark
     {
         $c = $request->getContainer();
 
-        $config = $c['config']->load('service/logger');
+        $logger = $c['logger'];
+        $config = $c['config'];
+        
+        $params = $config->load('service/logger')['params'];
 
-        if ($config['params']['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
+        if ($params['app']['benchmark']['log']) {     // Do we need to generate benchmark data ?
 
             $end = microtime(true) - $request->getAttribute('REQUEST_TIME_START');
             $usage = 'memory_get_usage() function not found on your php configuration.';
@@ -40,13 +43,13 @@ class Benchmark
             if (function_exists('memory_get_usage') && ($usage = memory_get_usage()) != '') {
                 $usage = round($usage/1024/1024, 2). ' MB';
             }
-            if ($c['config']['http']['debugger']['enabled']) {  // Exclude debugger cost from benchmark results.
+            if ($config['http']['debugger']['enabled']) {  // Exclude debugger cost from benchmark results.
                 $end = $end - 0.0003;
             }
             $extra['time']   = number_format($end, 4);
             $extra['memory'] = $usage;
 
-            $c['logger']->debug('Final output sent to browser', $extra, -9999);
+            $logger->debug('Final output sent to browser', $extra, -9999);
         }
     }
 }

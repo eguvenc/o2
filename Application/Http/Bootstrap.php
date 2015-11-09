@@ -86,6 +86,7 @@ $c['request'] = function () use ($request, $c) {
     $request->setContainer($c);
     return $request;
 };
+
 /**
  * Initialize to application
  */

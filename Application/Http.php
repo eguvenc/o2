@@ -6,6 +6,8 @@ use Obullo\Http\Middleware\ParamsAwareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Obullo\Http\Middleware\ControllerAwareInterface;
 
+use ReflectionClass;
+
 /**
  * Http Application
  * 
@@ -15,6 +17,9 @@ use Obullo\Http\Middleware\ControllerAwareInterface;
  */
 class Http extends Application
 {
+    protected $error;
+    protected $controller;
+
     /**
      * Constructor
      *
@@ -24,17 +29,15 @@ class Http extends Application
     {
         $c = $this->c;  // make global
 
-        $this->setErrorReporting();
-        $this->setPhpDebugger();
-
         include APP .'errors.php';
         include APP .'middlewares.php';
+
         $this->registerErrorHandlers();
+
         include APP .'events.php';
+        include APP .'routes.php';
 
         $this->boot();
-
-        register_shutdown_function(array($this, 'close'));
     }
 
     /**
@@ -44,91 +47,85 @@ class Http extends Application
      */
     protected function boot()
     {
-        $c = $this->c; // Make global
-        $middleware = $c['middleware'];
-        $uriString = $this->c['request']->getUri()->getUriString();
+        $router = $this->c['router'];
+        $router->init();
 
-        foreach ($this->c['router']->getAttachedMiddlewares() as $value) {
+        include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
+        $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
+
+        $method = $router->getMethod();
+
+        if (! class_exists($className)) {
+            $router->clear();  // Fix layer errors.
+            $this->error = true;
+            return;
+        }
+        $this->controller = new $className;
+        $this->controller->__setContainer($this->c);
+
+        if (! method_exists($this->controller, $method)
+            || substr($method, 0, 1) == '_'
+        ) {
+            $this->error = true;
+            return;
+        }
+        $this->bootAnnotations($method);
+        $this->bootMiddlewares();
+    }
+
+    /**
+     * Boot middlewares
+     * 
+     * @return void
+     */
+    protected function bootMiddlewares()
+    {
+        $router     = $this->c['router'];
+        $request    = $this->c['request'];
+        $middleware = $this->c['middleware'];
+
+        $uriString = $request->getUri()->getPath();
+
+        foreach ($router->getAttachedMiddlewares() as $value) {
 
             $attachedRoute = str_replace('#', '\#', $value['attachedRoute']);  // Ignore delimiter
 
             if ($value['route'] == $uriString) {     // if we have natural route match
                 $object = $middleware->queue($value['name']);
-            } elseif ($attachedRoute == '.*' || preg_match('#'. $attachedRoute .'#', $uriString)) {
+            } elseif (ltrim($attachedRoute, '.') == '*' || preg_match('#'. $attachedRoute .'#', $uriString)) {
                 $object = $middleware->queue($value['name']);
             }
             if ($object instanceof ParamsAwareInterface && ! empty($value['options'])) {  // Inject parameters
                 $object->setParams($value['options']);
             }
         }
-
         if ($this->c['config']['http']['debugger']['enabled']) {  // Boot debugger
             $middleware->queue('Debugger');
         }
     }
 
     /**
-     * Execute the controller
-     *
-     * @param Psr\Http\Message\ResponseInterface $response response
+     * Read controller annotations
      * 
-     * @return mixed
+     * @param string $method method
+     * 
+     * @return void
      */
-    // public function call(Response $response)
-    // {
-    //     $router = $this->c['router'];
-    //     $middleware = $this->c['middleware'];
+    protected function bootAnnotations($method)
+    {
+        if ($this->c['config']['controller']['annotation']) {
 
-    //     include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
-    //     $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
-        
-    //     // $check404Error = $this->dispatchController($className, $router);
-    //     // if (! $check404Error) {
-    //     //     return false;
-    //     // }
-    //     $controller = new $className;
-    //     // $reflector = new \ReflectionClass($controller);
-    //     $method = $router->getMethod();  // default index
+            $reflector = new ReflectionClass($this->controller);
 
-    //     // if (! $reflector->hasMethod($method)) {
-    //     //     $body = $this->c['template']->make('404');
-    //     //     return $response->withStatus(404)
-    //     //         ->withHeader('Content-Type', 'text/html')
-    //     //         ->withBody($body);
-    //     // }
-    //     // $docs = new \Obullo\Application\Annotations\Controller;
-    //     // $docs->setContainer($this->c);
-    //     // $docs->setReflectionClass($reflector);
-    //     // $docs->setMethod($method);
-    //     // $docs->parse();
-
-    //     $controller->__setContainer($this->c);
-
-    //     unset($this->c['response']);
-    //     $this->c['response'] = function () use ($response) {
-    //         return $response;
-    //     };
-
-    //     foreach ($middleware->getNames() as $name) {
-    //         // echo $name;    
-    //         if ($middleware->get($name) instanceof ControllerAwareInterface) {
-    //             $middleware->get($name)->setController($controller);
-    //         }
-    //     }
-
-    //     // ECHO 'OUTPUT';
-    //     $result = call_user_func_array(
-    //         array(
-    //             $controller,
-    //             $method
-    //         ),
-    //         array_slice($controller->request->getUri()->getRoutedSegments(), 3)
-    //     );
-    //     if ($result instanceof Response) {
-    //         $response = $result;
-    //     }
-    //     return $response;
-    // }
+            if ($reflector->hasMethod($method)) {
+                $docs = new \Obullo\Application\Annotations\Controller;
+                $docs->setContainer($this->c);
+                $docs->setReflectionClass($reflector);
+                $docs->setMethod($method);
+                $docs->parse();
+            }
+        }
+    }
 
     /**
      * Execute the controller
@@ -139,55 +136,30 @@ class Http extends Application
      */
     public function call(Response $response)
     {
-        $router = $this->c['router'];
         $middleware = $this->c['middleware'];
-
-        include MODULES .$router->getModule('/').$router->getDirectory().'/'.$router->getClass().'.php';
-        $className = '\\'.$router->getNamespace().'\\'.$router->getClass();
-        
-        if (! class_exists($className)) {
-            $router->clear();  // Fix layer errors.
-            return false;
+        foreach ($middleware->getNames() as $name) {
+            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
+                $middleware->get($name)->setController($this->controller);
+            }
         }
-        $controller = new $className;
-        $method = $router->getMethod();
-
-        if (! method_exists($controller, $method)
-            || substr($method, 0, 1) == '_'
-        ) {
+        if ($this->error) {
             return false;
         }
         unset($this->c['response']);
         $this->c['response'] = function () use ($response) {
             return $response;
         };
-        $controller->__setContainer($this->c);
-        foreach ($middleware->getNames() as $name) {
-            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
-                $middleware->get($name)->setController($controller);
-            } 
-        }
         $result = call_user_func_array(
             array(
-                $controller,
-                $method
+                $this->controller,
+                $this->c['router']->getMethod()
             ),
-            array_slice($controller->request->getUri()->getRoutedSegments(), 3)
+            array_slice($this->controller->request->getUri()->getRoutedSegments(), 3)
         );
         if ($result instanceof Response) {
             $response = $result;
         }
         return $response;   
-    }
-
-    /**
-     * Register shutdown
-     * 
-     * @return void
-     */
-    public function close()
-    {
-        $this->registerFatalError();
     }
 
 }

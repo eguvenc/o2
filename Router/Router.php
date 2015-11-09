@@ -10,6 +10,9 @@ use Obullo\Log\LoggerInterface as Logger;
 use Psr\Http\Message\RequestInterface as Request;
 use Obullo\Container\ContainerInterface as Container;
 
+use Obullo\Router\Resolver\DirectoryResolver;
+use Obullo\Router\Resolver\ModuleResolver;
+
 /**
  * Http Router Class ( Modeled after Codeigniter router )
  * 
@@ -19,17 +22,17 @@ use Obullo\Container\ContainerInterface as Container;
  */
 class Router implements RouterInterface
 {
-    protected $uri;                            // Uri class
-    protected $logger;                         // Logger class
-    protected $class = '';                     // Controller class name
-    protected $routes = array();               // Routes config
-    protected $method = 'index';               // Default method
-    protected $directory = '';                 // Directory name
-    protected $module = '';                    // Module name
-    protected $middlewares = array();          // Defined route middlewares
-    protected $attach = array();               // Attached after routes to middlewares
-    protected $defaultController = '';         // Default controller name
-    protected $groupDomain = '*';              // Groupped route domain address
+    protected $uri;                          // Uri class
+    protected $logger;                       // Logger class
+    protected $class = '';                   // Controller class name
+    protected $routes = array();             // Routes config
+    protected $method = 'index';             // Default method
+    protected $directory = '';               // Directory name
+    protected $module = '';                  // Module name
+    protected $middlewares = array();        // Defined route middlewares
+    protected $attach = array();             // Attached after routes to middlewares
+    protected $defaultController = '';       // Default controller name
+    protected $groupDomain = '*';            // Groupped route domain address
 
     protected $ROOT;                        // Defined host address in the config file.
     protected $HOST;                        // Host address user.example.com
@@ -54,7 +57,7 @@ class Router implements RouterInterface
         $this->logger = $logger;
         $this->HOST = $this->uri->getHost();
 
-        $this->logger->debug('Request Uri', ['uri' => $this->uri->getUriString()], 9999);
+        $this->logger->debug('Request Uri', ['uri' => $this->uri->getPath()], 9999);
         $this->logger->debug('Router Class Initialized', array('host' => $this->HOST), 9998);
     }
 
@@ -80,13 +83,11 @@ class Router implements RouterInterface
      */
     public function configuration(array $params)
     {
-        $c = $this->c;
         if (! isset($params['domain'])) {
             throw new RuntimeException("Domain not configured in routes.php");
         }
         $this->DOMAIN = $this->ROOT = trim($params['domain'], '.');
         $this->defaultController = $params['defaultPage'];
-        include APP .'routes.php';
     }
 
     /**
@@ -112,8 +113,7 @@ class Router implements RouterInterface
      */
     public function init()
     {
-        if ($this->uri->getUriString() == '') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
-
+        if ($this->uri->getPath() == '/') {     // Is there a URI string ? If not, the default controller specified in the "routes" file will be shown.
             $segments = $this->resolve(explode('/', $this->defaultController));  // Turn the default route into an array.
             $this->setClass($segments[1]);
             $this->setMethod('index');
@@ -245,6 +245,7 @@ class Router implements RouterInterface
     public function setRequest($segments = array())
     {
         $segments = $this->resolve($segments);
+
         if (count($segments) == 0) {
             return;
         }
@@ -274,38 +275,18 @@ class Router implements RouterInterface
         }
         $this->setDirectory($segments[0]);      // Set first segment as default "top" directory 
         $segments = $this->detectModule($segments);
-        $directory = $this->getDirectory();
         $module = $this->getModule('/');
-        $hasSegmentOne = empty($segments[1]) ? false : true;
 
-        if ($hasSegmentOne && $directory == $segments[1]) {   
-            array_shift($segments); // Remove index file iterations http://project/debugger/debugger
-        }
-        $file = MODULES.$module.$directory.'/'.self::ucwordsUnderscore($directory).'.php';
-
-        if (empty($module)) {  // If just directory request
+        if (empty($module)) {  // If we have directory request
             
-            if (is_file($file)) {
-                array_unshift($segments, $directory);
-                return $segments;
-            }
+            $resolver = new DirectoryResolver($this);
+            return $resolver->resolve($segments);
 
         } else {  // If we have module request
 
-            // Add support e.g http://project/widgets/tutorials/helloWorld.php
-
-            if ($hasSegmentOne && is_file(MODULES.$module.$directory.'/'.self::ucwordsUnderscore($segments[1]).'.php')) {
-                return $segments;
-            } else {
-                
-                // Add index file support 
-                //  Rewrite /widgets/tutorials/tutorials/test to /widgets/tutorials/test
-
-                array_unshift($segments, $directory); 
-                return $segments;
-            }
+            $resolver = new ModuleResolver($this);
+            return $resolver->resolve($segments);
         }
-        return $segments;
     }
 
     /**
@@ -338,7 +319,8 @@ class Router implements RouterInterface
      */
     protected function parseRoutes()
     {
-        $uri = ltrim($this->uri->getUriString(), '/'); // fix route errors with trim()
+        $uri = ltrim($this->uri->getPath(), '/'); // fix route errors with trim()
+
         if (! empty($this->routes[$this->DOMAIN])) {
             foreach ($this->routes[$this->DOMAIN] as $val) {   // Loop through the route array looking for wild-cards
                 $parameters = $this->parseParameters($uri, $val);
@@ -529,7 +511,7 @@ class Router implements RouterInterface
      */
     public function getClass()
     {
-        return htmlspecialchars(self::ucwordsUnderscore($this->class));
+        return htmlspecialchars($this->ucwordsUnderscore($this->class));
     }
 
     /**
@@ -549,7 +531,7 @@ class Router implements RouterInterface
      */
     public function getNamespace()
     {
-        $namespace = self::ucwordsUnderscore($this->getModule()).'\\'.self::ucwordsUnderscore($this->getDirectory());
+        $namespace = $this->ucwordsUnderscore($this->getModule()).'\\'.$this->ucwordsUnderscore($this->getDirectory());
         $namespace = trim($namespace, '\\');
         return $namespace;
     }
@@ -564,7 +546,7 @@ class Router implements RouterInterface
      * 
      * @return void
      */
-    protected static function ucwordsUnderscore($string)
+    public function ucwordsUnderscore($string)
     {
         $str = str_replace('_', ' ', $string);
         $str = ucwords($str);
@@ -642,7 +624,7 @@ class Router implements RouterInterface
      */
     protected function matchGroup($match)
     {
-        $uri = ltrim($this->uri->getUriString(), '/');
+        $uri = ltrim($this->uri->getPath(), '/');
         if ($this->hasNaturalGroupMatch($match, $uri)) {
             return true;
         }

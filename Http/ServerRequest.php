@@ -208,6 +208,7 @@ class ServerRequest implements ServerRequestInterface
      */
     public function getParsedBody()
     {
+        // @todo should be middleware
         // Begin none Psr7 standart ( This part is not PSR 7 standart  )
         
         $mediaType = $this->getMediaType();

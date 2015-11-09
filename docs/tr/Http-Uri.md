@@ -156,7 +156,7 @@ switch($this->uri->getExtension())
 }
 ```
 
-#### $this->uri->getUriString()
+#### $this->uri->getPath()
 
 Returns a string with the complete URI. For example, if this is your full URL:
 

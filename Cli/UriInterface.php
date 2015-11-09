@@ -66,7 +66,7 @@ interface UriInterface
      * 
      * @return string
      */
-    public function getUriString($nl = true);
+    public function getPath($nl = true);
 
     /**
      * Returns to all argument shortcuts

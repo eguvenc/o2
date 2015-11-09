@@ -2,7 +2,7 @@
 
 namespace Obullo\Http;
 
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 use Obullo\Container\ContainerAwareInterface;
 
 /**
@@ -42,7 +42,7 @@ class InputFilter implements ContainerAwareInterface
      * 
      * @return void
      */
-    public function setContainer(ContainerInterface $c = null)
+    public function setContainer(Container $c = null)
     {
         $this->c = $c;
     }

@@ -8,30 +8,17 @@ use Obullo\Cli\Controller;
 class Log extends Controller
 {
     /**
-     * Execute command
+     * Index
+     * 
+     * @param string $direction http / ajax / cli
      * 
      * @return void
      */
-    public function index()
+    public function index($direction = 'http') 
     {
         $this->logo();
+
         $this->uri = $this->request->getUri();
-
-        $dir = $this->uri->argument('dir', 'http');
-        $writer = $this->logger->getWriter();
-
-        $table = $db = null;
-        if ($writer == 'mongo') {
-            $table = $this->uri->argument('table');
-            $db    = $this->uri->argument('db');
-            if (empty($table) || empty($db)) {
-                 echo Console::fail('MongoDB database or table not given.');
-                 return;
-            }
-        }
-        if ($this->uri->argument('help')) {
-            return $this->help();
-        }
         $reader = ucfirst($this->logger->getWriter());
 
         if ($reader == 'Null') {
@@ -41,18 +28,37 @@ class Log extends Controller
         }
         $Class = '\\Obullo\Cli\LogReader\\'.$reader;
         $class = new $Class;
-        $class->follow($this->c, $dir, $db, $table);
+        $class->follow($this->c, $direction);
     }
 
     /**
-     * Print Logo
+     * Follow http log data
      * 
-     * @return string colorful logo
+     * @return void
      */
-    public function logo() 
+    public function http()
     {
-        echo Console::logo("Welcome to Log Manager (c) 2015");
-        echo Console::description("You are displaying log data. For more help type \$php task log help.");
+        $this->index(__FUNCTION__);
+    }
+
+    /**
+     * Follow ajax log
+     * 
+     * @return void
+     */
+    public function ajax()
+    {
+        $this->index(__FUNCTION__);
+    }
+
+    /**
+     * Follow cli log data
+     * 
+     * @return void
+     */
+    public function cli()
+    {
+        $this->index(__FUNCTION__);
     }
 
     /**
@@ -80,6 +86,17 @@ class Log extends Controller
     }
 
     /**
+     * Print Logo
+     * 
+     * @return string colorful logo
+     */
+    public function logo() 
+    {
+        echo Console::logo("Welcome to Log Manager (c) 2015");
+        echo Console::description("You are displaying log data. For more help type \$php task log help.");
+    }
+
+    /**
      * Log help
      * 
      * @return string
@@ -95,22 +112,20 @@ echo Console::help(
 
     clear    : Clear log data ( also removes the queue logs ).
     help     : Help
+    http     : Follow http logs.
+    ajax     : Follow ajax logs.
+    cli      : Follow console logs.");
 
-Available Arguments
-
-    --dir    : Sets log direction for reader. Directions : cli, ajax, http ( default )
-    --db     : Database name if mongo driver used.
-    --table  : Collection name if mongo driver used.");
 echo Console::newline(2);
 echo Console::help("Usage:",true);
 echo Console::newline(2);
 echo Console::help(
 "php task log --dir=value
 
-    php task log 
-    php task log --dir=cli
-    php task log --dir=ajax
-    php task log --dir=http --table=logs");
+    php task log
+    php task log http
+    php task log cli
+    php task log ajax");
 echo Console::newline(2);
 
 echo Console::help("Description:", true);

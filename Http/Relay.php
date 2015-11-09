@@ -8,7 +8,6 @@ use Obullo\Container\ContainerInterface as Container;
 
 use Exception;
 use Relay\RelayBuilder;
-use Obullo\Log\Benchmark;
 
 /**
  * Relay wrapper
@@ -43,7 +42,7 @@ class Relay
      */
     public function getRequest()
     {
-        return Benchmark::start($this->c['request']);
+        return $this->c['request'];
     }
 
     /**
@@ -56,14 +55,16 @@ class Relay
     public function getFinalHandler($response)
     {
         $class = '\\Http\Middlewares\FinalHandler\\Relay';
-
-        return new $class(
+        $handler = new $class(
             [
                 'env' => $this->c['app.env']
             ],
+            $this->c['app'],
             $this->c['logger'],
             $response
         );
+        $handler->setContainer($this->c);
+        return $handler;
     }
 
     /**
@@ -71,12 +72,14 @@ class Relay
      * 
      * @param Psr\Http\Message\ServerRequestInterface $request  request
      * @param Psr\Http\Message\ResponseInterface      $response response
-     * @param callable                                $next     final handler
+     * @param callable                                $out      final handler
      * 
      * @return response object
      */
-    public function __invoke(Request $request, Response $response, callable $next = null)
+    public function __invoke(Request $request, Response $response, callable $out = null)
     {
+        $out = $err = null;
+
         try {
 
             $this->c['middleware']->queue('App');
@@ -85,9 +88,8 @@ class Relay
             $response = $dispatcher($request, $response);
 
         } catch (Exception $e) {
-            
-            $err = $e;            
-            $this->c['app']->handleException($err);
+        
+            $err = $e;
         }
 
         $done = $this->getFinalHandler($response);

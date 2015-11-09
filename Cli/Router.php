@@ -50,7 +50,7 @@ class Router
     protected function parseCli()
     {
         $this->uri->init();
-        $this->setCliHeaders($this->uri->getUriString(false));
+        $this->setCliHeaders($this->uri->getPath(false));
     }
 
     /**
@@ -58,7 +58,7 @@ class Router
      * 
      * @return string
      */
-    public function getUriString()
+    public function getPath()
     {
         return $this->uriString;
     }
@@ -105,7 +105,7 @@ class Router
      */
     public function init()
     {   
-        if ($this->getUriString() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
+        if ($this->getPath() == '') {     // Is there a URI string ? // If not, the default controller specified in the "routes" file will be shown.
             $segments = $this->validateRequest(explode('/', $this->defaultController));  // Turn the default route into an array.
             $this->setClass($segments[0]);
             $this->setMethod('index');
@@ -124,7 +124,7 @@ class Router
     public function explodeSegments()
     {
         $segments = array();
-        foreach (explode('/', $this->getUriString()) as $val) {
+        foreach (explode('/', $this->getPath()) as $val) {
             $val = trim($val);
             if ($val != '') {
                 $segments[] = $val;

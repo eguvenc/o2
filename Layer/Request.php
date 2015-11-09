@@ -225,7 +225,7 @@ class Request
      */
     protected function log($label, $uri, $start, $id, $response)
     {
-        $uriString = md5($this->c['app']->request->getUri()->getUriString());
+        $uriString = md5($this->c['app']->request->getUri()->getPath());
 
         $this->logger->debug(
             $label.' '.strtolower($uri), 

@@ -59,7 +59,6 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->enabled = $c['config']['log']['enabled'];
         
         $this->initialize();
-        register_shutdown_function(array($this, 'shutdown'));
     }
 
     /**
@@ -70,7 +69,7 @@ class Logger extends AbstractLogger implements LoggerInterface
     public function initialize()
     {
         $this->channel = $this->params['default']['channel'];
-        $this->detectRequest();
+        $this->detectRequest($this->c['request']);
     }
 
     /**
@@ -218,6 +217,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         if (! $this->isEnabled()) {
             return $this;
         }
+
         if (is_object($message) && $message instanceof Exception) {
             $this->logExceptionError($message);
             return $this;
@@ -418,18 +418,22 @@ class Logger extends AbstractLogger implements LoggerInterface
     /**
      * Detect logger request type ( http, ajax, cli, worker )
      * 
+     * @param Request $request request
+     *
+     * @todo do it logger middleware
+     * 
      * @return void
      */
-    protected function detectRequest()
+    protected function detectRequest($request)
     {
         $this->requestString = 'http';
-        if ($this->c['request']->isAjax()) {
+        if ($request->isAjax()) {
             $this->requestString ='ajax';
         }
         if (defined('STDIN')) {
             $this->requestString = 'cli';
         }
-        $server = $this->c['request']->getServerParams();
+        $server = $request->getServerParams();
         if (isset($server['argv'][1]) && $server['argv'][1] == 'worker') {  // Job Server request
             $this->requestString = 'worker';
             $this->enabled = $this->params['app']['worker']['log']; // Initialize to config if $handler->isAllowed() method ignored.
@@ -453,7 +457,7 @@ class Logger extends AbstractLogger implements LoggerInterface
         $this->payload['writers'][10]['type']    = 'writer';
         $this->payload['writers'][10]['time']    = time();
         $this->payload['writers'][10]['filters'] = $this->getFilters($name);
-        $this->payload['writers'][10]['record']  = $records; // set record array
+        $this->payload['writers'][10]['record']  = $records; // set record array      
     }
 
     /**
@@ -493,48 +497,35 @@ class Logger extends AbstractLogger implements LoggerInterface
 
     /**
      * End of the logs and beginning of the handlers.
-     *
+     *  
      * @return void
      */
     public function shutdown()
     {
-        if ($this->shutdown) {  // If we already shutdown logger don't do again.
-            return;             // Using just register shutdown we couldn't catch the fatal errors.
-        }                       // This way is the best to catch all errors.
-
-        
         if ($this->isEnabled() && $this->isConnected()) {   // Lazy loading for Logger service
                                                             // if connect method executed one time then we open connections and load classes
                                                             // When connect booelan is true we execute standart worker or queue.
-                
-            try {   // We couldn't catch exceptions when app use register shutdown function
+            $this->execWriter();
+            $this->execHandlers();
+            $payload = $this->getPayload();
 
-                $this->execWriter();
-                $this->execHandlers();
-                $payload = $this->getPayload();
-                
-                if ($this->params['queue']['enabled']) { // Queue Logger
+            if ($this->params['queue']['enabled']) { // Queue Logger
 
-                    $this->c->get('queue')
-                        ->push(
-                            'Workers@Logger',
-                            $this->params['queue']['job'],
-                            $payload,
-                            $this->params['queue']['delay']
-                        );
+                $this->c->get('queue')
+                    ->push(
+                        'Workers@Logger',
+                        $this->params['queue']['job'],
+                        $payload,
+                        $this->params['queue']['delay']
+                    );
 
-                } else {
-                    $worker = new \Workers\Logger;
-                    $worker->setContainer($this->c);
-                    $worker->fire(null, $payload);
-                }
+            } else {
 
-            } catch (Exception $e) {
-                $this->c['exception']->show($e);  // Display exception errors
+                $worker = new \Workers\Logger;
+                $worker->setContainer($this->c);
+                $worker->fire(null, $payload);
             }
-
         }
-        $this->shutdown = true;
     }
 
 }

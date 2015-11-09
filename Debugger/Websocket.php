@@ -93,7 +93,7 @@ class Websocket
         $this->app = $app;
         $this->config = $config;
         $this->params = $params;
-        $this->uriString = $app->request->getUri()->getUriString();
+        $this->uriString = $app->request->getUri()->getPath();
 
         if (false == preg_match(
             '#(ws:\/\/(?<host>(.*)))(:(?<port>\d+))(?<url>.*?)$#i', 

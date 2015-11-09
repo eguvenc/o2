@@ -2,14 +2,46 @@
 
 namespace Obullo\Error;
 
+use Obullo\Http\Stream;
+use Obullo\Cli\NullRequest;
+
 /**
  * Exception Class
  * 
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Exception implements ExceptionInterface
+class Exception
 {
+    /**
+     * Constructor
+     * 
+     * @param app     $app     application
+     * @param request $request http / cli request
+     */
+    public function __construct($app, $request)
+    {
+        $this->app = $app;
+        $this->request = $request;
+    }
+
+    /**
+     * Get exception view with http stream body
+     * 
+     * @param object  $e          exception object
+     * @param boolean $fatalError whether to fatal error
+     * 
+     * @return string view
+     */
+    public function withBody(\Exception $e, $fatalError = false)
+    {
+        $html = $this->make($e, $fatalError);
+
+        $body = new Stream(fopen('php://temp', 'r+'));
+        $body->write($html);
+        return $body;
+    }
+    
     /**
      * Display the exception view
      * 
@@ -18,35 +50,72 @@ class Exception implements ExceptionInterface
      * 
      * @return string view
      */
-    public function show(\Exception $e, $fatalError = false)
+    public function make(\Exception $e, $fatalError = false)
     {
-        if ($e->getCode() == 2
-            && substr($e->getFile(), -9) == 'Layer.php' || substr($e->getFile(), -20) == 'Application/Http.php'
-        ) { // Disable include 404 include error
+        if (! $this->isDisplayable($e)) {
             return;
+        }
+
+        return $this->display($e, $fatalError);
+    }
+
+    /**
+     * Check whether to exception is development error if 
+     * not we display it to developer
+     *
+     * @param object $e exception object
+     * 
+     * @return boolean
+     */
+    public function isDisplayable($e)
+    {
+        if (self::hasPerformanceBoostErrors($e)) {  // Disable http controller file_exists errors.
+            return false;
         }
         if (strpos($e->getMessage(), 'shmop_') === 0) {  // Disable shmop function errors.
-            return;
+            return false;
         }
-        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Disable socket errors.
-            return;
+        if (strpos($e->getMessage(), 'socket_connect') === 0) {  // Disable debugger socket connection errors.
+            return false;
         }
+        return true;
+    }
+
+    /**
+     * Check exception is catchable from app/errors.php
+     *
+     * @param object $e exception object
+     * 
+     * @return boolean
+     */
+    public function isCatchable($e)
+    {
+        if (self::hasPerformanceBoostErrors($e)) {  // Disable http controller file_exists errors.
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Display exception view
+     * 
+     * @param ErrorException $e          error exception object
+     * @param boolean        $fatalError bool
+     * 
+     * @return string
+     */
+    protected function display($e, $fatalError = false)
+    {
         if ($fatalError == false) { 
             unset($fatalError);  // Fatal error variable used in view file
         }
-        if (defined('STDIN')) {  // Cli
-            echo $this->getErrorView('ExceptionConsole', $e);
-            return;
+        if ($this->request instanceof NullRequest) {  // Cli
+            return $this->view('console', $e);
         }
-        $isAjax = false;
-        if (! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $isAjax = true;
+        if ($this->request->isAjax()) {
+            return $this->view('ajax', $e);
         }
-        if ($isAjax) {
-            echo $this->getErrorView('ExceptionAjax', $e);
-            return;
-        }
-        echo '<!DOCTYPE html> 
+        return '<!DOCTYPE html> 
         <html>
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -55,7 +124,25 @@ class Exception implements ExceptionInterface
 
                 </style>
             </head>
-            <body><div>'.$this->getErrorView('ExceptionHtml', $e).'</div></body></html>';
+            <body><div>'.$this->view('html', $e).'</div></body></html>';
+    }
+
+    /**
+     * Disable include 404 include file errors
+     * 
+     * @param \Exception $e exception
+     * 
+     * @return boolean
+     */
+    protected static function hasPerformanceBoostErrors(\Exception $e)
+    {
+        if ($e->getCode() == 2 
+            && substr($e->getFile(), -9) == 'Layer.php' 
+            || substr($e->getFile(), -20) == 'Application/Http.php'
+        ) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -66,10 +153,10 @@ class Exception implements ExceptionInterface
      * 
      * @return string
      */
-    protected function getErrorView($file, $e)
+    protected function view($file, $e)
     {   
         ob_start();
-        include OBULLO . 'Error/View/' .$file . '.php';
+        include OBULLO . 'Error/view/' .$file . '.php';
         return ob_get_clean();
     }
 

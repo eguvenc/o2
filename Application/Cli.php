@@ -18,24 +18,30 @@ class Cli extends Application
      */
     public function init()
     {
-        if (isset($_SERVER['REMOTE_ADDR'])) die('Access denied');
-
         $c = $this->c;
-        $this->setErrorReporting();
-        $this->setPhpDebugger();
-        
         include APP .'errors.php';
-        $this->registerErrorHandlers();
-        unset($c['router']);   // Replace Uri & Router components
 
-        $c['router'] = function () use ($c) {
-            return new \Obullo\Cli\Router($c['request']->getUri(), $c['logger']);
+        $this->registerErrorHandlers();
+
+        $logger     = $c['logger'];
+        $request    = $c['request'];
+        $translator = $c['translator'];
+
+        unset($c['router']);   // Replace router component
+
+        $c['router'] = function () use ($request, $logger) {
+            return new \Obullo\Cli\Router($request->getUri(), $logger);
         };
         include APP .'events.php';
 
-        $this->c['translator']->setLocale($this->c['translator']->getDefault());  // Set default translation
-        
-        register_shutdown_function(array($this, 'close'));
+        $translator->setLocale($translator->getDefault());  // Set default translation
+
+        register_shutdown_function(
+            function () use ($logger) {
+                $this->registerFatalError();
+                $logger->shutdown();
+            }
+        );
     }
 
     /**
@@ -50,9 +56,11 @@ class Cli extends Application
     {    
         $this->init();
 
-        $router = $this->c['router'];
-        $router->init();
+        $router  = $this->c['router'];
+        $logger  = $this->c['logger'];
+        $request = $this->c['request'];
 
+        $router->init();
         $className = $router->getNamespace();
 
         if (! class_exists($className, false)) {
@@ -61,30 +69,22 @@ class Cli extends Application
         $controller = new $className;  // Call the controller
         $controller->__setContainer($this->c);
         
-        if (! method_exists($className, $this->router->getMethod())) {
+        if (! method_exists($className, $router->getMethod())) {
             $this->router->methodNotFound();
         }
-        $arguments = array_slice($this->c['request']->getUri()->getSegments(), 2);
+        $arguments = array_slice($request->getUri()->getSegments(), 2);
 
-        call_user_func_array(array($controller, $router->getMethod()), $arguments);
+        call_user_func_array(
+            array(
+                $controller,
+                $router->getMethod()
+            ), 
+            $arguments
+        );
 
         if (isset($_SERVER['argv'])) {
-            $this->c['logger']->debug('php '.implode(' ', $_SERVER['argv']));
+            $logger->debug('php '.implode(' ', $_SERVER['argv']));
         }
-        $this->c['logger']->shutdown();  // Manually shutdown logger
-    }
-
-    /**
-     * Register shutdown
-     *
-     * 1 . Check debugger module
-     * 1 . Write fatal errors
-     * 
-     * @return void
-     */
-    public function close()
-    {
-        $this->registerFatalError();
     }
 
 }

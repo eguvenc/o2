@@ -1,7 +1,8 @@
-<?php 
-use Obullo\Error\DebugOutput; 
+<?php
 
-include_once OBULLO .'Error/View/ExceptionHtmlHeader.php';
+use Obullo\Error\Utils; 
+
+include_once OBULLO .'Error/view/header.php';
 
 $getError = function ($message) {
     return str_replace(
@@ -82,7 +83,7 @@ if (isset($lastQuery) && ! empty($lastQuery)) {
                                 if ($trace['function'] == 'createConnection' || $trace['function'] == 'connect') { // Hide database password for security.
                                     $html.= '<td>***********</td>';
                                 } else {
-                                    $html.= '<td>' . DebugOutput::dumpArgument($arg_val) . '</td>';
+                                    $html.= '<td>' . Utils::dumpArgument($arg_val) . '</td>';
                                 }
                                 
                                 $html.= '</tr>';
@@ -108,7 +109,7 @@ if (isset($lastQuery) && ! empty($lastQuery)) {
                 echo ' ( ' ?><?php echo ' Line : ' . $trace['line'] . ' ) '; ?></a>
                 </div>
 
-                <?php echo DebugOutput::debugFileSource($trace, $key, $prefix) ?>
+                <?php echo Utils::debugFileSource($trace, $key, $prefix) ?>
 
         <?php } // end foreach  ?>
 

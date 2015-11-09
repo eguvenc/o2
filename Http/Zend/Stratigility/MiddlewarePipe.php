@@ -114,6 +114,8 @@ class MiddlewarePipe implements MiddlewareInterface
      */
     public function __invoke(Request $request, Response $response, callable $out = null)
     {
+        $out = null;
+
         $request  = $this->decorateRequest($request);
         $response = $this->decorateResponse($response);
         $done     = $this->getFinalHandler($response);

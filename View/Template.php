@@ -91,10 +91,22 @@ class Template implements TemplateInterface
      */
     public function make($filename, $data = null)
     {
-        $output = $this->view->getBody(TEMPLATES, $filename, $data, false);
-        
+        $html = $this->view->getBody(TEMPLATES, $filename, $data, false);
+    
+        return $this->body($html);
+    }
+
+    /**
+     * Create http body
+     * 
+     * @param string $html output
+     * 
+     * @return object
+     */
+    public function body($html)
+    {
         $body = new Stream(fopen('php://temp', 'r+'));
-        $body->write($output);
+        $body->write($html);
         return $body;
     }
 

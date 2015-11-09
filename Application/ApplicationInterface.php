@@ -15,13 +15,6 @@ use Exception;
 interface ApplicationInterface
 {
     /**
-     * Enable / Disable php error reporting
-     *
-     * @return void
-     */
-    public function setErrorReporting();
-    
-    /**
      * Sets application exception errors
      * 
      * @param Closure $closure function

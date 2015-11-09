@@ -660,49 +660,15 @@ class Uri implements UriInterface
     //------------ OBULLO METHODS ---------------//
     
     /**
-     * Removes index.php file
-     * 
-     * @param string $file $_SERVER['SCRIPT_NAME']
-     * 
-     * @return string url
-     */
-    public function removeIndexFile($file)
-    {
-        $path = $this->getPath();
-
-        $url = '';
-        if (strpos($path, $file) === 0) {
-            $url = substr($path, strlen($file));
-        } elseif (strpos($path, dirname($file)) === 0) {
-            $url = substr($path, strlen(dirname($file)) - 1);
-        }
-        if ($url == '/') {  // If the URI contains only a slash 
-            $url = '';      // we kill it otherwiser we get segment error in welcome page
-        }
-        $this->uriPath = (string)$url;
-        return $this;
-    }
-
-    /**
-     * Obullo set uri string ( * Also used in Layer package )
-     * 
-     * @param string $str uri str
+     * Set path
+     *
+     * @param string $uri uri
      *
      * @return void
      */
-    public function setUriString($str = '')
+    public function setPath($uri = '')
     {
-        $this->uriPath = ($str == '/') ? '' : $str;  // If the URI contains only a slash we kill it
-    }
-
-    /**
-     * Obullo get uri string
-     * 
-     * @return string
-     */
-    public function getUriString()
-    {
-        return $this->uriPath;
+        $this->path = $uri;
     }
 
     /**
@@ -727,7 +693,7 @@ class Uri implements UriInterface
      */
     public function parseSegments()
     {
-        $url = trim($this->uriPath, '/');
+        $url = trim($this->getPath(), '/');
         foreach (explode('/', $url) as $val) {
             $val = trim($val);
             if ($val != '') {
@@ -790,7 +756,6 @@ class Uri implements UriInterface
      */
     public function clear()
     {
-        $this->uriPath = '';
         $this->segments = array();
         $this->rsegments = array();
     }

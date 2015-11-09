@@ -141,7 +141,7 @@ class Layer
             return $request;
         };
         $this->c['request']->getUri()->clear();     // Reset uri objects we will reuse it for layer
-        $this->c['request']->getUri()->setUriString($uri);
+        $this->c['request']->getUri()->setPath($uri);
 
         $this->c['router']->clear();   // Reset router objects we will reuse it for layer
         $this->c['router']->init();
@@ -195,8 +195,8 @@ class Layer
         $id  = $this->getId();
         $uri = $this->c['request']->getUri();
 
-        $this->uri = $uri->getUriString();
-        $uri->setUriString($this->uri. '/' .$id); //  Create unique uri
+        $this->uri = $uri->getPath();
+        $uri->setPath($this->uri. '/' .$id); //  Create unique uri
         
         $directory = $this->c['router']->getDirectory();
         $className = $this->c['router']->getClass();

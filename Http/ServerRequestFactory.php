@@ -267,7 +267,6 @@ abstract class ServerRequestFactory
         }
 
         return $uri->withPath($path)
-            ->removeIndexFile($server['SCRIPT_NAME']) // This is not a Zend standart but we need remove index.php in "Obullo".
             ->withQuery($query);
     }
 

@@ -2,91 +2,14 @@
 
 namespace Obullo\Error;
 
-use Obullo\Logger\LoggerInterface;
-
 /**
- * DebugOutput Class
- * 
- * @copyright 2009-2015 Obullo
- * @license   http://opensource.org/licenses/MIT MIT license
+ * Debugger Utility methods
  */
-class DebugOutput
+class Utils
 {
     /**
-     * Config
-     * 
-     * @var object
-     */
-    public $config;
-
-    /**
-     * Logger
-     * 
-     * @var object
-     */
-    public $logger;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        global $c;
-        $this->config = $c['config'];
-        $this->logger = $c['logger'];
-        if ($this->logger instanceof LoggerInterface) {
-            $this->logger->debug('Debug Output Class Initialized');
-        }
-    }
-
-    /**
-     * Don't show root paths for security
-     * reason.
-     * 
-     * @param string $file        file path
-     * @param string $searchPaths replace paths with secure constant names
-     * 
-     * @return string
-     */
-    public static function getSecurePath($file, $searchPaths = false)
-    {
-        if ($searchPaths) {
-            $replace = array(
-                'APP/',
-                'DATA/',
-                'CLASSES/',
-                'ROOT/',
-                'OBULLO/',
-                'MODULES/',
-                'VENDOR/',
-            );
-            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), $replace, $file);
-        }
-        if (is_string($file)) {
-            if (strpos($file, ROOT) === 0) {
-                $file = 'ROOT/' . substr($file, strlen(ROOT));
-            }
-            if (strpos($file, APP) === 0) {
-                $file = 'APP/' . substr($file, strlen(APP));
-            }
-            if (strpos($file, CLASSES) === 0) {
-                $file = 'CLASSES/' . substr($file, strlen(CLASSES));
-            }
-            if (strpos($file, OBULLO) === 0) {
-                $file = 'PACKAGES/' . substr($file, strlen(OBULLO));
-            }
-            if (strpos($file, MODULES) === 0) {
-                $file = 'MODULES/' . substr($file, strlen(MODULES));
-            }
-            if (strpos($file, VENDOR) === 0) {
-                $file = 'VENDOR/' . substr($file, strlen(VENDOR));
-            }
-        }
-        return $file;
-    }
-
-    /**
      * Dump arguments
+     * 
      * This function borrowed from Kohana Php Framework
      * 
      * @param mixed   $var    variable
@@ -111,7 +34,7 @@ class DebugOutput
                 if (isset($meta['uri'])) {
                     $file = $meta['uri'];
                     if (stream_is_local($file)) { 
-                        $file = static::getSecurePath($file);
+                        $file = static::securePath($file);
                     }
                     return '<small>resource</small><span>(' . $type . ')</span> ' . htmlspecialchars($file, ENT_NOQUOTES, $c['config']['locale']['charset']);
                 }
@@ -258,5 +181,51 @@ class DebugOutput
 
         return '<div id="error_toggle_' . $prefix . $key . '" ' . $display . '><pre class="source"><code>' . $source . '</code></pre></div>';
     }
-    
-}
+
+    /**
+     * Don't show root paths for security
+     * reason.
+     * 
+     * @param string $file        file path
+     * @param string $searchPaths replace paths with secure constant names
+     * 
+     * @return string
+     */
+    public static function securePath($file, $searchPaths = false)
+    {
+        if ($searchPaths) {
+            $replace = array(
+                'APP/',
+                'DATA/',
+                'CLASSES/',
+                'ROOT/',
+                'OBULLO/',
+                'MODULES/',
+                'VENDOR/',
+            );
+            return str_replace(array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), $replace, $file);
+        }
+        if (is_string($file)) {
+            if (strpos($file, ROOT) === 0) {
+                $file = 'ROOT/' . substr($file, strlen(ROOT));
+            }
+            if (strpos($file, APP) === 0) {
+                $file = 'APP/' . substr($file, strlen(APP));
+            }
+            if (strpos($file, CLASSES) === 0) {
+                $file = 'CLASSES/' . substr($file, strlen(CLASSES));
+            }
+            if (strpos($file, OBULLO) === 0) {
+                $file = 'PACKAGES/' . substr($file, strlen(OBULLO));
+            }
+            if (strpos($file, MODULES) === 0) {
+                $file = 'MODULES/' . substr($file, strlen(MODULES));
+            }
+            if (strpos($file, VENDOR) === 0) {
+                $file = 'VENDOR/' . substr($file, strlen(VENDOR));
+            }
+        }
+        return $file;
+    }
+
+ }

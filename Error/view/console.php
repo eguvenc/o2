@@ -1,30 +1,34 @@
 <?php
 
-use Obullo\Error\DebugOutput;
+use Obullo\Error\Utils;
 
 if (isset($fatalError)) {
-    echo "Fatal Error\n";
+    echo "\33[1;31mFatal Error\33[0m\n";
     // We could not load error libraries when error is fatal.
-    echo str_replace(
+    
+    echo "\33[0;31m".str_replace(
         array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR), 
         array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $e->getMessage()
-    )."\n";
-    echo str_replace(
+    )."\33[0m\n";
+    echo "\33[0;31m".str_replace(
         array(APP, DATA, CLASSES, ROOT, OBULLO, MODULES, VENDOR),
         array('APP/', 'DATA/', 'CLASSES/', 'ROOT/', 'OBULLO/', 'MODULES/', 'VENDOR/'),
         $e->getFile()
-    ) . ' Line : ' . $e->getLine()."\n";
+    ) . ' Line : ' . $e->getLine()."\33[0m\n";
     exit;
 }
-echo "Exception Error\n". DebugOutput::getSecurePath($e->getMessage())."\n";
+echo "\33[1;31mException Error\n". Utils::securePath($e->getMessage())."\33[0m\n";
 
 if (isset($lastQuery) && ! empty($lastQuery)) {
-    echo 'SQL: ' . $lastQuery . "\n";
+    echo "\33[0;31m".'SQL: ' . $lastQuery . "\33[0m\n";
 }
-echo $e->getCode().' '.DebugOutput::getSecurePath($e->getFile()). ' Line : ' . $e->getLine() . "\n";
+echo "\33[0;31m".$e->getCode().' '.Utils::securePath($e->getFile()). ' Line : ' . $e->getLine() ."\33[0m\n";
 
-echo "Details: \n";
+if (isset($eTrace)) {
+    echo "\33[0;31m".strip_tags(Utils::debugFileSource($eTrace))."\33[0m";
+}
+
 $fullTraces  = $e->getTrace();
 $debugTraces = array();
 
@@ -34,6 +38,8 @@ foreach ($fullTraces as $key => $val) {
     }
 }
 if (isset($debugTraces[0]['file']) && isset($debugTraces[0]['line'])) {
+
+    echo "\33[1;31mDetails: \33[0m\n\33[0;31m";
 
     if (isset($debugTraces[1]['file']) && isset($debugTraces[1]['line'])) {    
         $output = '';
@@ -55,11 +61,12 @@ if (isset($debugTraces[0]['file']) && isset($debugTraces[0]['line'])) {
             ++$key;
             
             if ($i == 1)  // Just show the head file
-            echo "\n".DebugOutput::getSecurePath($trace['file']).' Line : ' . $trace['line'] . "\n";
+            echo "\n".Utils::securePath($trace['file']).' Line : ' . $trace['line'] . "\n";
 
         } // end foreach 
 
-        echo "\n";
-
     }   // end if isset debug traces
+    
 }   // end if isset 
+
+echo "\33[0m";

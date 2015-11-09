@@ -74,7 +74,7 @@ class Uri implements UriInterface
      */
     public function init()
     {
-        $argv = $this->getUriString();
+        $argv = $this->getPath();
         $parameters = explode("\n", $argv);
         
         if (! is_array($parameters) || ! isset($parameters[0])) {
@@ -154,7 +154,7 @@ class Uri implements UriInterface
      * 
      * @return string
      */
-    public function getUriString($nl = true)
+    public function getPath($nl = true)
     {
         $shortcuts = $this->getShortcuts();
         $cmdString = implode("\n", array_slice($_SERVER['argv'], 1));

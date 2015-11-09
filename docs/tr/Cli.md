@@ -132,7 +132,7 @@ class Hello extends \Controller {
         echo "Task Controller : " . $this->router->getClass()."\n";
         echo "Method : ". $this->router->getMethod()."\n";
         echo "Namespace : ". $this->router->getNamespace()."\n";
-        echo "Uri : ". $this->router->getUriString()."\n";
+        echo "Uri : ". $this->router->getPath()."\n";
         echo "Host: ". $this->router->getHost()."\n";
     }
 }
@@ -508,7 +508,7 @@ Argüman değerini anahtarlar yerine sayılarla alır ve elde edilen argüman de
 
 Çözümlenen metot ismine geri döner.
 
-##### $this->uri->getUriString();
+##### $this->uri->getPath();
 
 Çözümlenen tüm konsol komutuna argümanları ile birlikte string formatında geri döner.
 
@@ -532,7 +532,7 @@ Konsoldan gönderilan ilk parametre değerini yani sınıf adını verir.
 
 Konsoldan gönderilan ilk parametre değerini yani metot adını verir.
 
-##### $this->router->getUriString();
+##### $this->router->getPath();
 
 Tüm konsol girdisine konsol parametreleri ile birlikte geri döner.
 

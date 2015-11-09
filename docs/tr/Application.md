@@ -580,7 +580,7 @@ $this->c['app']->test();  // Contoller sınıfı içerisindeki test metodunu ça
 Layer paketi isteği gönderildiğinde uri nesnesi istek gönderilen url değerinin yerel değişkenlerinden yeniden oluşturulur ve bu yüzden evrensel uri değişime uğrar. Böyle bir durumda bu method sizin ilk durumdaki http isteği yapılan evrensel uri nesnesine ulaşmanıza imkan tanır.
 
 ```php
-$this->c['app']->uri->getUriString();
+$this->c['app']->uri->getPath();
 ```
 
 ##### $this->c['app']->router->x();
