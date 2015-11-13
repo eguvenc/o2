@@ -28,5 +28,4 @@ define('MODULES', APP .'modules/');
 define('TASKS', APP .'modules/tasks/');
 define('TASK_FILE', 'task');
 define('TASK', PHP_PATH .' '. APP .'tasks/cli/');
-define('CLI_PHP', 'cli.php');
 define('INDEX_PHP', 'index.php');

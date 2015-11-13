@@ -242,7 +242,8 @@ class Session
      */
     public function flashdataMark()
     {
-        $session = $_SESSION;
+        $session = $this->session->getAll();
+
         foreach ($session as $name => $value) {
             $parts = explode(':new:', $name);
             if (is_array($parts) && count($parts) === 2) {
@@ -260,7 +261,8 @@ class Session
      */
     public function flashdataSweep()
     {
-        $session = $_SESSION;
+        $session = $this->session->getAll();
+        
         foreach ($session as $key => $value) {
             $value = null;
             if (strpos($key, ':old:')) {

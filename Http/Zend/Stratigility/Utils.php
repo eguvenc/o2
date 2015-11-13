@@ -3,9 +3,9 @@
 namespace Obullo\Http\Zend\Stratigility;
 
 use Exception;
-use Psr\Http\Message\ResponseInterface;
-use ReflectionFunction;
 use ReflectionMethod;
+use ReflectionFunction;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Utility methods

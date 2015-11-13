@@ -5,8 +5,9 @@ namespace Obullo\Database\Pdo;
 use PDO;
 use Closure;
 use Exception;
-use Controller;
 use RuntimeException;
+
+use Obullo\Http\Controller;
 use Obullo\Database\AdapterInterface;
 use Obullo\Database\SQLLoggerInterface;
 use Obullo\Container\ServiceProviderInterface;
@@ -60,7 +61,7 @@ class Adapter
      * 
      * @var object
      */
-    protected $logger;
+    protected $sqlLogger;
 
     /**
      * Available drivers
@@ -87,7 +88,7 @@ class Adapter
     public function __construct(array $params)
     {
         $this->params = $params;
-        $this->logger = $this->getSQLLogger();
+        $this->sqlLogger = $this->getSQLLogger();
     }
 
     /**
@@ -411,8 +412,8 @@ class Adapter
         if (is_null($params)) {
             $params = $this->getParameters(null);
         }
-        if ($this->logger) {
-            $this->logger->startQuery($sql, $params, $types);
+        if ($this->sqlLogger) {
+            $this->sqlLogger->startQuery($sql, $params, $types);
         }
     }
 
@@ -423,8 +424,8 @@ class Adapter
      */
     protected function stopQuery()
     {
-        if ($this->logger) {
-            $this->logger->stopQuery();
+        if ($this->sqlLogger) {
+            $this->sqlLogger->stopQuery();
         }
         $this->parameters = array();
     }

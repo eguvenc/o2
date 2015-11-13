@@ -2,8 +2,8 @@
 
 namespace Obullo\Database;
 
-use Obullo\Container\ContainerInterface;
 use Obullo\Container\ServiceInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Database Service Manager
@@ -27,7 +27,7 @@ class DatabaseManager implements ServiceInterface
      * @param ContainerInterface $c      container
      * @param array              $params service parameters
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(Container $c, array $params)
     {
         $this->c = $c;
         $this->c['db.params'] = array_merge($params, $c['config']->load('database'));

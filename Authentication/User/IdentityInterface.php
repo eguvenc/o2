@@ -2,20 +2,16 @@
 
 namespace Obullo\Authentication\User;
 
-use Auth\Identities\GenericUser;
-use Obullo\Session\SessionInterface;
-use Obullo\Container\ContainerInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+use Obullo\Session\SessionInterface as Session;
+use Obullo\Container\ContainerInterface as Container;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
  * Identity Interface
  * 
- * @category  Authentication
- * @package   IdentityInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 interface IdentityInterface
 {
@@ -27,7 +23,7 @@ interface IdentityInterface
      * @param object $storage auth storage
      * @param object $params  auth config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params);
+    public function __construct(Container $c, Session $session, Storage $storage, array $params);
 
     /**
      * Initializer
@@ -172,11 +168,11 @@ interface IdentityInterface
     /**
      * Refresh the rememberMe token
      *
-     * @param object $genericUser GenericUser
+     * @param array $credentials credentials
      *
      * @return int|boolean
      */
-    public function refreshRememberToken(GenericUser $genericUser);
+    public function refreshRememberToken(array $credentials);
 
     /**
      * Removes rememberMe cookie from user browser

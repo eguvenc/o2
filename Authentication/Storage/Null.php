@@ -2,18 +2,15 @@
 
 namespace Obullo\Authentication\Storage;
 
-use Obullo\Session\SessionInterface;
 use Obullo\Container\ServiceProviderInterface;
+use Obullo\Session\SessionInterface as Session;
 
 /**
- * O2 Authentication - Null Storage
+ * Null Storage
  * 
- * @category  Authentication
- * @package   Storage
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Null extends AbstractNull implements StorageInterface
 {
@@ -28,7 +25,7 @@ class Null extends AbstractNull implements StorageInterface
      * @param object $provider provider
      * @param array  $params   parameters
      */
-    public function __construct(SessionInterface $session, ServiceProviderInterface $provider, array $params)
+    public function __construct(Session $session, ServiceProviderInterface $provider, array $params)
     {
         $provider = $params = null;
         $this->cacheKey = (string)$params['cache.key'];
@@ -86,7 +83,7 @@ class Null extends AbstractNull implements StorageInterface
         $loginID = $this->getLoginId();
 
         $this->data[$block] = array($loginID => $credentials);
-        if ( ! empty($pushData) && is_array($pushData)) {
+        if (! empty($pushData) && is_array($pushData)) {
             $this->data[$block] = array($loginID => array_merge($credentials, $pushData));
         }
         $ttl = null;
@@ -130,7 +127,7 @@ class Null extends AbstractNull implements StorageInterface
         $loginID = $this->getLoginId();
         $credentials = $this->session->get($this->getBlock($block));  // Don't do container cache
 
-        if ( ! isset($credentials[$loginID])) {  // already removed
+        if (! isset($credentials[$loginID])) {  // already removed
             return;
         }
         unset($credentials[$loginID]);

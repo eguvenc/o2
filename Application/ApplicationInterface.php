@@ -33,41 +33,6 @@ interface ApplicationInterface
     public function fatal(Closure $closure);
 
     /**
-     * Error handler, convert all errors to exceptions
-     * 
-     * @param integer $level   name
-     * @param string  $message error message
-     * @param string  $file    file
-     * @param integer $line    line
-     * 
-     * @return boolean whether to continue displaying php errors
-     */
-    public function handleError($level, $message, $file = '', $line = 0);
-
-    /**
-     * Exception error handler
-     * 
-     * @param Exception $e exception class
-     * 
-     * @return boolean
-     */
-    public function handleException(Exception $e);
-
-    /**
-     * Set error handlers
-     *
-     * @return void
-     */
-    public function registerErrorHandlers();
-
-    /**
-     * Register fatal error handler
-     * 
-     * @return mixed
-     */
-    public function registerFatalError();
-
-    /**
      * Is Cli ?
      *
      * Test to see if a request was made from the command line.

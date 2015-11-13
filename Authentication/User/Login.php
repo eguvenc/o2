@@ -2,23 +2,19 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Event\EventInterface;
-use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\AuthResult;
-use Obullo\Authentication\AuthConfig;
-use Obullo\Container\ContainerInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+
+use Obullo\Event\EventInterface as Event;
+use Obullo\Container\ContainerInterface as Container;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
- * O2 Authentication - Login Class
- *
- * @category  Authentication
- * @package   Login
+ * Login
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Login
 {
@@ -37,7 +33,7 @@ class Login
      * @param object $storage \Obullo\Authentication\Storage\Storage
      * @param array  $params  Auth config parameters
      */
-    public function __construct(ContainerInterface $c, EventInterface $event, StorageInterface $storage, array $params)
+    public function __construct(Container $c, Event $event, Storage $storage, array $params)
     {
         $this->c = $c;
         $this->event = $event;
@@ -56,6 +52,7 @@ class Login
     public function attempt(array $credentials, $rememberMe = false)
     {
         $this->ignoreRecaller();  // Ignore recaller if user has remember cookie
+        
         $credentials['__rememberMe'] = ($rememberMe) ? 1 : 0;
 
         $credentials = $this->formatCredentials($credentials);
@@ -86,7 +83,10 @@ class Login
     public function hasRememberMe()
     {
         $name = $this->params['login']['rememberMe']['cookie']['name'];
-        return isset($_COOKIE[$name]) ? $_COOKIE[$name] : false;
+
+        $cookies = $this->c['request']->getCookieParams();
+
+        return isset($cookies[$name]) ? $cookies[$name] : false;
     }
 
     /**
@@ -111,12 +111,15 @@ class Login
      */
     public function formatCredentials(array $credentials)
     {   
-        $i = AuthConfig::get('db.identifier');
-        $p = AuthConfig::get('db.password');
+        $i = $this->c['auth.params']['db.identifier'];
+        $p = $this->c['auth.params']['db.password'];
 
         if (isset($credentials[$i]) && isset($credentials[$p])) {
+
             return $credentials;
+
         } elseif (isset($credentials['db.identifier']) && isset($credentials['db.password'])) {
+            
             $credentials[$i] = $credentials['db.identifier'];
             $credentials[$p] = $credentials['db.password'];
             return $credentials;
@@ -131,17 +134,14 @@ class Login
      * 
      * @return object AuthResult
      */
-    protected function createResults($credentials)
+    protected function createResults(array $credentials)
     {
-        $genericUser = new GenericUser;
-        $genericUser->setCredentials($credentials);
-
         /**
          * Login Query
          * 
          * @var object
          */
-        $authResult = $this->c['auth.adapter']->login($genericUser);
+        $authResult = $this->c['auth.adapter']->login($credentials);
 
         /**
          * Generate User Identity
@@ -166,20 +166,15 @@ class Login
     /**
      * Validate a user's credentials without authenticate the user.
      *
-     * @param string $tablename   modelname
-     * @param array  $credentials identities
+     * @param array $credentials identities
      * 
      * @return bool
      */
-    public function validate($tablename, array $credentials = array())
+    public function validate(array $credentials = array())
     {        
-        $this->setQueryModel($tablename);
         $credentials = $this->formatCredentials($credentials);
 
-        $genericUser = new GenericUser;
-        $genericUser->setCredentials($credentials);
-
-        return $this->c['auth.adapter']->authenticate($genericUser, false);
+        return $this->c['auth.adapter']->authenticate($credentials, false);
     }
 
     /**
@@ -194,10 +189,10 @@ class Login
      */
     public function validateCredentials(AuthorizedUser $user, array $credentials)
     {
-        $password = AuthConfig::get('db.password');
+        $password = $this->c['auth.params']['db.password'];
         $plain = $credentials[$password];
 
-        return $this->c['password']->verify($plain, $user->getPassword());
+        return password_verify($plain, $user->getPassword());
     }
 
     /**

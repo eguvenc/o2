@@ -264,7 +264,6 @@ class Layer
      */
     public function clear()
     {
-        $this->id = null;
         $this->error = null;    // Clear variables otherwise all responses of layer return to same error.
         $this->done  = false;
     }
@@ -322,11 +321,8 @@ class Layer
      */
     public function getId()
     {
-        if ($this->id = null) {
-            $id = trim($this->hashString);
-            $this->id = self::CACHE_KEY. sprintf("%u", crc32((string)$id));
-        }
-        return $this->id;
+        $hashString = trim($this->hashString);
+        return self::CACHE_KEY. sprintf("%u", crc32((string)$hashString));
     }
 
     /**

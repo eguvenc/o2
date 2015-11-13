@@ -165,7 +165,7 @@ Yetki doğrulama paketine ait konfigürasyon <kbd>config/auth.php</kbd> dosyası
             <td>Session id nin önceden çalınabilme ihtimaline karşı uygulanan bir güvenlik yöntemlerinden bir tanesidir. Bu opsiyon aktif durumdaysa oturum açma işleminden önce session id yeniden yaratılır ve tarayıcıda kalan eski oturum id si artık işe yaramaz hale gelir.</td>
         </tr>
         <tr>
-            <td>middleware[unique.login]</td>
+            <td>middleware[unique.session]</td>
             <td>Tekil oturum açma opsiyonu aktif olduğunda aynı kimlik bilgileri ile farklı aygıtlardan yalnızca bir kullanıcı oturum açabilir. Auth katmanı içerisinde kullandığınız trait sınıfının davranışına göre en son açılan oturum her zaman aktif kalırken eski oturumlar otomatik olarak sonlandırılır. Fakat bu fonksiyon <b>app/classes/Http/Middlewares</b> dizinindeki auth katmanı çalıştırıldığı zaman devreye girer. Katmanı çalıştırmak için onu <b>route</b> yapısına tutturmanız gerekmektedir. Katman içerisindeki unique login özelliği <b>Authentication/Middleware</b> klasöründen çağrılarak bu sınıf içerisinden tetiklenir. Http katmanları hakkında daha geniş bilgiye <b>application</b> ve <b>router</b> paketi dökümentasyonlarını inceleyerek ulaşabilirsiniz.</td> 
         </tr>
     </tbody>
@@ -815,7 +815,7 @@ Oturumu kapatır ve __isAuthenticated anahtarı önbellekte <b>0</b> değeri ile
 
 Beni hatırla çerezinin bütünüyle tarayıcıdan siler.
 
-##### $this->user->identity->refreshRememberToken(\Obullo\Authentication\Model\UserInterface $model, GenericUser $genericUser);
+##### $this->user->identity->refreshRememberToken(\Obullo\Authentication\Model\UserInterface $model, array $credentials);
 
 Beni hatırla çerezini yenileyerek veritabanı ve çerezlere kaydeder.
 

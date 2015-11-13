@@ -3,14 +3,11 @@
 namespace Obullo\Authentication\Adapter;
 
 /**
- * Abstract Adapter
+ * Abstract Adapater
  * 
- * @category  Authentication
- * @package   Adapter
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
@@ -38,9 +35,12 @@ abstract class AbstractAdapter implements AdapterInterface
     {
         $cost = $this->params['security']['passwordNeedsRehash']['cost'];
 
-        if ($this->c['password']->verify($plain, $hash)) {
-            if ($this->c['password']->needsRehash($hash, array('cost' => $cost))) {
-                $value = $this->c['password']->hash($plain, array('cost' => $cost));
+        if (password_verify($plain, $hash)) {
+
+            if (password_needs_rehash($hash, PASSWORD_BCRYPT, array('cost' => $cost))) {
+
+                $value = password_hash($plain, PASSWORD_BCRYPT, array('cost' => $cost));
+
                 return array('hash' => $value);
             }
             return true;

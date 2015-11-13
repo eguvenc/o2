@@ -2,8 +2,10 @@
 
 namespace Obullo\Application;
 
-use Obullo\Http\Middleware\ParamsAwareInterface;
 use Psr\Http\Message\ResponseInterface as Response;
+
+use Obullo\Container\ContainerAwareInterface;
+use Obullo\Http\Middleware\ParamsAwareInterface;
 use Obullo\Http\Middleware\ControllerAwareInterface;
 
 use ReflectionClass;
@@ -102,6 +104,27 @@ class Http extends Application
         if ($this->c['config']['http']['debugger']['enabled']) {  // Boot debugger
             $middleware->queue('Debugger');
         }
+        $this->inject($middleware);
+    }
+
+    /**
+     * Inject controller object
+     * 
+     * @param object $middleware middleware
+     * 
+     * @return void
+     */
+    protected function inject($middleware)
+    {
+        foreach ($middleware->getNames() as $name) {
+            $object = $middleware->get($name);
+            if ($object instanceof ContainerAwareInterface) {
+                $object->setContainer($this->c);
+            }
+            if ($object instanceof ControllerAwareInterface) {
+                $object->setController($this->controller);
+            }
+        }
     }
 
     /**
@@ -136,12 +159,6 @@ class Http extends Application
      */
     public function call(Response $response)
     {
-        $middleware = $this->c['middleware'];
-        foreach ($middleware->getNames() as $name) {
-            if ($middleware->has($name) && $middleware->get($name) instanceof ControllerAwareInterface) {
-                $middleware->get($name)->setController($this->controller);
-            }
-        }
         if ($this->error) {
             return false;
         }

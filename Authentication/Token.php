@@ -3,17 +3,14 @@
 namespace Obullo\Authentication;
 
 use Obullo\Utils\Random;
-use Obullo\Cookie\CookieInterface;
+use Obullo\Cookie\CookieInterface as Cookie;
 
 /**
- * O2 Authentication - Token
- *
- * @category  Authentication
- * @package   Token
+ * Token generator
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Token
 {
@@ -25,7 +22,7 @@ class Token
      * 
      * @return string token
      */
-    public static function getRememberToken(CookieInterface $cookie, array $params)
+    public static function getRememberToken(Cookie $cookie, array $params)
     {
         $cookieParams = $params['login']['rememberMe']['cookie'];
 

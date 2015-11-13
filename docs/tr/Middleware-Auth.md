@@ -141,11 +141,11 @@ UniqueLogin özelliği opsiyoneldir ve <kbd>config/auth.php</kbd> konfigürasyon
 return array(
 
     'middleware' => [
-        'unique.login' => true
+        'unique.session' => true
     ]
 );
 
-/* Location: .config/auth.php */
+/* Location: .config/service/auth.php */
 ```
 
  UniqueLoginTrait sınıfı Auth http katmanı içerisinden çağrılarak kullanılır. Tekil oturum açma özelliğinin tam olarak çalışabilmesi için Auth katmanı içerisinde <kbd>$this->uniqueLoginCheck()</kbd> metodunun aşağıdaki gibi kullanılıyor olması gerekir.

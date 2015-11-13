@@ -31,11 +31,11 @@ class Application implements ApplicationInterface
     /**
      * Constructor
      * 
-     * @param object $c container
+     * @param object $container container
      */
-    public function __construct(Container $c)
+    public function __construct(Container $container)
     {
-        $this->c = $c;
+        $this->c = $container;
     }
 
     /**
@@ -55,12 +55,12 @@ class Application implements ApplicationInterface
      * @return mixed
      */
     public function registerFatalError()
-    {
-        $closure = $this->fatalError;
+    {   
         if (null != $error = error_get_last()) {  // If we have a fatal error convert to it to exception obj
 
+            $closure = $this->getFatalCallback();
             $e = new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']);
-            $exception = $this->c['exception'];
+            $exception = new \Obullo\Error\Exception;
             
             if ($this->c['app.env'] != 'production') {
                 echo $exception->make($e);  // Print exceptions
@@ -111,7 +111,13 @@ class Application implements ApplicationInterface
      */
     public function handleError($level, $message, $file = '', $line = 0)
     {
-        return $this->handleException(new ErrorException($message, $level, 0, $file, $line));
+        $exception = new \Obullo\Error\Exception;
+        $e = new ErrorException($message, $level, 0, $file, $line);
+
+        if ($this->c['app.env'] != 'production') {
+            echo $exception->make($e);  // Print exceptions to see errors
+        }
+        return $this->logException($e);
     }
 
     /**
@@ -123,11 +129,24 @@ class Application implements ApplicationInterface
      */
     public function handleException(Exception $e)
     {
-        $exception = $this->c['exception'];
+        $exception = new \Obullo\Error\Exception;
 
         if ($this->c['app.env'] != 'production') {
             echo $exception->make($e);  // Print exceptions to see errors
         }
+        return $this->logException($e);
+    }
+
+    /**
+     * Exception log handler
+     * 
+     * @param Exception $e exception class
+     * 
+     * @return boolean
+     */
+    public function logException($e)
+    {
+        $exception = new \Obullo\Error\Exception;
         $return = false;
         if ($exception->isCatchable($e)) {
             foreach ($this->exceptions as $val) {
@@ -137,6 +156,26 @@ class Application implements ApplicationInterface
             }
         }
         return $return;
+    }
+
+    /**
+     * Returns to fatal error closure
+     * 
+     * @return Closure object
+     */
+    public function getFatalCallback()
+    {
+        return $this->fatalError;
+    }
+
+    /**
+     * Returns to defined exception closures in app/errors.php
+     * 
+     * @return array
+     */
+    public function getExceptions()
+    {
+        return $this->exceptions;
     }
 
     /**

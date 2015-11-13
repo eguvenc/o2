@@ -3,14 +3,11 @@
 namespace Obullo\Authentication;
 
 /**
- * O2 Authentication - Authentication Result Controller
- *
- * @category  Authentication
- * @package   AuthResult
+ * Auth Result Controller
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/docs/auth
  */
 class AuthResult
 {

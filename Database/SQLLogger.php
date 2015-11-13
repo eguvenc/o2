@@ -3,7 +3,7 @@
 namespace Obullo\Database;
 
 use PDO;
-use Obullo\Log\LoggerInterface;
+use Obullo\Log\LoggerInterface as Logger;
 
 /**
  * SQLLogger for Obullo Pdo
@@ -54,7 +54,7 @@ class SQLLogger implements SQLLoggerInterface
      * 
      * @param \Obullo\Log\Logger $logger object
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(Logger $logger)
     {
         $this->logger = $logger;
     }

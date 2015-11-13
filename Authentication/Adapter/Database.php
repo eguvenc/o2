@@ -2,23 +2,20 @@
 
 namespace Obullo\Authentication\Adapter;
 
-use Obullo\Authentication\Token;
 use Auth\Identities\GenericUser;
-use Obullo\Session\SessionInterface;
+use Obullo\Authentication\Token;
 use Obullo\Authentication\AuthResult;
-use Obullo\Container\ContainerInterface;
-use Obullo\Authentication\User\IdentityInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+
+use Obullo\Session\SessionInterface as Session;
+use Obullo\Container\ContainerInterface as Container;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
- * O2 Authentication - Database Adapter
+ * Database Adapter
  * 
- * @category  Authentication
- * @package   Database
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Database extends AbstractAdapter
 {
@@ -107,7 +104,7 @@ class Database extends AbstractAdapter
      * @param object $storage storage
      * @param array  $params  config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params)
+    public function __construct(Container $c, Session $session, Storage $storage, array $params)
     {
         $this->c = $c;
         $this->params = $params;
@@ -124,20 +121,21 @@ class Database extends AbstractAdapter
     /**
      * Creates array data before authenticate
      *
-     * @param object $genericUser generic identity object
+     * @param array $credentials username and plain password
      * 
      * @return boolean if success
      */
-    protected function initialize(GenericUser $genericUser)
+    protected function initialize(array $credentials)
     {
         $savedIdentifier = $this->storage->getUserId();
+        $identifier = $credentials[$this->columnIdentifier];
 
-        if ($this->c['auth.identity']->guest() || $savedIdentifier != $genericUser->getIdentifier()) {
-            $this->storage->setIdentifier($genericUser->getIdentifier()); // Set current identifier to storage
+        if ($this->c['auth.identity']->guest() || $savedIdentifier != $identifier) {
+            $this->storage->setIdentifier($identifier); // Set current identifier to storage
         }
         $this->results = array(
             'code' => AuthResult::FAILURE,
-            'identity' => $genericUser->getIdentifier(),
+            'identity' => $identifier,
             'messages' => array()
         );
         return true;
@@ -146,15 +144,15 @@ class Database extends AbstractAdapter
     /**
      * Performs an authentication attempt
      *
-     * @param object  $genericUser generic identity object
+     * @param array   $credentials username and plain password
      * @param boolean $login       whether to authenticate user
      * 
      * @return object authResult
      */
-    public function login(GenericUser $genericUser, $login = true)
+    public function login(array $credentials, $login = true)
     {
-        $this->initialize($genericUser);
-        $this->authenticate($genericUser, $login);  // Perform Query
+        $this->initialize($credentials);
+        $this->authenticate($credentials, $login);  // Perform Query
         
         if (($authResult = $this->validateResultSet()) instanceof AuthResult) {
             return $authResult;  // If we have errors return to auth results.
@@ -170,28 +168,29 @@ class Database extends AbstractAdapter
      * If memory login fail it will connect to "database table" and run sql 
      * query to find a record matching the provided identity.
      *
-     * @param object  $genericUser identity
+     * @param array   $credentials username and plain password
      * @param boolean $login       whether to authenticate user
      * 
      * @return object
      */
-    public function authenticate(GenericUser $genericUser, $login = true)
+    public function authenticate(array $credentials, $login = true)
     {
         $storageResult = $this->storage->query();  // First do query to permanent memory block if user exists return to cached auth
 
         /**
          * If cached identity does not exist in memory do SQL query
          */
-        $this->resultRowArray = ($storageResult === false) ? $this->c['auth.model']->execQuery($genericUser) : $storageResult;
+        $this->resultRowArray = ($storageResult === false) ? $this->c['auth.model']->query($credentials) : $storageResult;
 
         if (is_array($this->resultRowArray) && isset($this->resultRowArray[$this->columnIdentifier])) {
-            $plain = $genericUser->getPassword();
+
+            $plain = $credentials[$this->columnPassword];
             $hash  = $this->resultRowArray[$this->columnPassword];
 
             if ($passwordNeedsRehash = $this->verifyPassword($plain, $hash)) {  // In here hash may cause performance bottleneck depending to passwordNeedHash "cost" value
                                                                                 // default is 6 for best performance.
                 if ($login) {  // If login process allowed.
-                    $this->generateUser($genericUser, $this->resultRowArray, $passwordNeedsRehash);
+                    $this->generateUser($credentials, $this->resultRowArray, $passwordNeedsRehash);
                 }
                 return true;
             }
@@ -204,18 +203,20 @@ class Database extends AbstractAdapter
     /**
      * Set identities data to AuthorizedUser object
      * 
-     * @param array $genericUser         generic identity array
+     * @param array $credentials         username and plain password
      * @param array $resultRowArray      success auth query user data
      * @param array $passwordNeedsRehash marks attribute if password needs rehash
      *
      * @return object
      */
-    public function generateUser(GenericUser $genericUser, $resultRowArray, $passwordNeedsRehash = array())
+    public function generateUser(array $credentials, $resultRowArray, $passwordNeedsRehash = array())
     {
+        $rememberMe = $this->c['auth.identity']->getRememberMe();
+
         $attributes = array(
-            $this->columnIdentifier => $genericUser->getIdentifier(),
+            $this->columnIdentifier => $credentials[$this->columnIdentifier],
             $this->columnPassword => $resultRowArray[$this->columnPassword],
-            '__rememberMe' => $genericUser->getRememberMe(),
+            '__rememberMe' => $rememberMe,
             '__time' => ceil(microtime(true)),
         );
         /**
@@ -226,8 +227,10 @@ class Database extends AbstractAdapter
         if ($this->params['session']['regenerateSessionId']) {
             $this->regenerateSessionId(true); // Delete old session after regenerate !
         }
-        if ($genericUser->getRememberMe()) {  // If user choosed remember feature
-            $this->c['auth.model']->updateRememberToken(Token::getRememberToken($this->c['cookie'], $this->params), $genericUser); // refresh rememberToken
+        if ($rememberMe) {  // If user choosed remember feature
+
+            $token = Token::getRememberToken($this->c['cookie'], $this->params);
+            $this->c['auth.model']->updateRememberToken($token, $credentials); // refresh rememberToken
         }
         if ($this->storage->isEmpty('__temporary')) {
             $this->storage->createPermanent($attributes);

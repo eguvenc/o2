@@ -2,17 +2,12 @@
 
 namespace Obullo\Authentication\Identity;
 
-use Obullo\Authentication\AuthConfig;
-
 /**
- * O2 Authentication - General Identity
- *
- * @category  Authentication
- * @package   UserIdentity
+ * Abstract Identity
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 abstract class AbstractIdentity
 {
@@ -56,7 +51,7 @@ abstract class AbstractIdentity
      */
     public function getColumnIdentifier()
     {
-        return AuthConfig::get('db.identifier');
+        return $this->c['auth.params']['db.identifier'];
     }
 
     /**
@@ -66,7 +61,7 @@ abstract class AbstractIdentity
      */
     public function getColumnPassword()
     {
-        return AuthConfig::get('db.password');
+        return $this->c['auth.params']['db.password'];
     }
 
     /**
@@ -111,8 +106,8 @@ abstract class AbstractIdentity
      */
     public function __set($key, $val)
     {
-        if ($this->__isAuthenticated == 1) {  // Reserved symbol
-            $this->storage->update($key, $val);  // save to storage
+        if ($this->__isAuthenticated == 1) {     // Check user has auth
+            $this->storage->update($key, $val);  // then accept update operation
         }
         return $this->attributes[$key] = $val;
     }

@@ -2,25 +2,17 @@
 
 namespace Obullo\Authentication;
 
-use Auth\Identities\GenericUser;
-use Obullo\Container\ContainerInterface;
-use Obullo\Authentication\AuthConfig;
-use Obullo\Authentication\Model\UserInterface;
-use Obullo\Authentication\User\IdentityInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+use Obullo\Container\ContainerInterface as Container;
+use Obullo\Authentication\Model\UserInterface as UserModel;
+use Obullo\Authentication\User\IdentityInterface as Identity;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
- * O2 Authentication - Recaller
- *
- * Remember the users when they come back, if remeber me cookie exist
- * authenticate the user using recaller.
- *
- * @category  Authentication
- * @package   Token
+ * Recaller
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Recaller
 {
@@ -68,7 +60,7 @@ class Recaller
      * @param array  $identity \Obullo\Authentication\Identity\Identity
      * @param array  $params   auth
      */
-    public function __construct(ContainerInterface $c, StorageInterface $storage, UserInterface $model, IdentityInterface $identity, array $params)
+    public function __construct(Container $c, Storage $storage, UserModel $model, Identity $identity, array $params)
     {
         $this->c = $c;
         $this->model = $model;
@@ -89,7 +81,7 @@ class Recaller
      */
     public function recallUser($token)
     {
-        $resultRowArray = $this->model->execRecallerQuery($token);
+        $resultRowArray = $this->model->recallerQuery($token);
 
         if (! is_array($resultRowArray)) {            // If login query not success.
             $this->storage->setIdentifier('Guest');   // Mark user as guest
@@ -99,15 +91,15 @@ class Recaller
         $id = $resultRowArray[$this->columnIdentifier];
         $this->storage->setIdentifier($id);
 
-        $genericUser = new GenericUser;
-        $genericUser->setCredentials(
-            [
-                $this->columnIdentifier => $id,
-                '__rememberMe' => 1,
-                '__rememberToken' => $resultRowArray[$this->columnRememberToken]
-            ]
-        );
-        $this->c['auth.adapter']->generateUser($genericUser, $resultRowArray);  // Generate authenticated user without validation
+        $credentials = [
+            $this->columnIdentifier => $id,
+            '__rememberMe' => 1,
+            '__rememberToken' => $resultRowArray[$this->columnRememberToken]
+        ];
+        $this->identity->setCredentials($credentials);
+
+        $this->c['auth.adapter']->generateUser($credentials, $resultRowArray);  // Generate authenticated user without validation
+
         $this->removeInactiveSessions(); // Kill all inactive sessions of current user
     }
 

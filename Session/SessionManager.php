@@ -3,7 +3,7 @@
 namespace Obullo\Session;
 
 use Obullo\Container\ServiceInterface;
-use Obullo\Container\ContainerInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Session Manager
@@ -27,7 +27,7 @@ class SessionManager implements ServiceInterface
      * @param ContainerInterface $c      container
      * @param array              $params service parameters
      */
-    public function __construct(ContainerInterface $c, array $params)
+    public function __construct(Container $c, array $params)
     {
         $this->c = $c;
         $params['locale']['timezone'] = $this->c['config']['locale']['timezone'];
@@ -43,13 +43,14 @@ class SessionManager implements ServiceInterface
     {
         $this->c['session'] = function () {
 
-            $name = $this->c['session.params']['provider']['name'];
+            $params = $this->c['session.params'];
+            $provider = $params['provider']['name'];
 
-            return $this->session = new Session(
-                $this->c[$name],  // Service Provider
+            return new Session(
+                $this->c[$provider],  // Service Provider
                 $this->c['request'],
                 $this->c['logger'],
-                $this->c['session.params']
+                $params
             );
 
         };

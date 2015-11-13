@@ -39,8 +39,9 @@ class Next
      *
      * Clones the queue provided to allow re-use.
      *
-     * @param SplQueue $queue
-     * @param callable $done
+     * @param SplQueue  $queue queue
+     * @param callable  $done  done
+     * @param container $c     container
      */
     public function __construct(SplQueue $queue, callable $done, Container $c)
     {
@@ -65,9 +66,10 @@ class Next
      * value will be returned; otherwise, the currently registered response
      * instance will be returned.
      *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     * @param null|mixed $err
+     * @param ServerRequestInterface $request  request
+     * @param ResponseInterface      $response response
+     * @param null|mixed             $err      error
+     * 
      * @return ResponseInterface
      */
     public function __invoke(
@@ -113,7 +115,8 @@ class Next
     /**
      * Reset the path, if a segment was previously stripped
      *
-     * @param ServerRequestInterface $request
+     * @param ServerRequestInterface $request request
+     * 
      * @return ServerRequestInterface
      */
     private function resetPath(ServerRequestInterface $request)
@@ -150,8 +153,9 @@ class Next
     /**
      * Determine the border between the request path and current route
      *
-     * @param string $path
-     * @param string $route
+     * @param string $path  path
+     * @param string $route route
+     * 
      * @return string
      */
     private function getBorder($path, $route)
@@ -166,8 +170,9 @@ class Next
     /**
      * Strip the route from the request path
      *
-     * @param ServerRequestInterface $request
-     * @param string $route
+     * @param ServerRequestInterface $request request
+     * @param string                 $route   route
+     * 
      * @return ServerRequestInterface
      */
     private function stripRouteFromPath(ServerRequestInterface $request, $route)
@@ -189,26 +194,24 @@ class Next
     /**
      * Strip the segment from the start of the given path.
      *
-     * @param string $segment
-     * @param string $path
+     * @param string $segment segment
+     * @param string $path    path
+     * 
      * @return string Truncated path
      * @throws RuntimeException if the segment does not begin the path.
      */
     private function getTruncatedPath($segment, $path)
     {
-        if ($path === $segment) {
-            // Segment and path are same; return empty string
+        if ($path === $segment) {  // Segment and path are same; return empty string
             return '';
         }
 
         $segmentLength = strlen($segment);
-        if (strlen($path) > $segmentLength) {
-            // Strip segment from start of path
+        if (strlen($path) > $segmentLength) {  // Strip segment from start of path
             return substr($path, $segmentLength);
         }
 
-        if ('/' === substr($segment, -1)) {
-            // Re-try by submitting with / stripped from end of segment
+        if ('/' === substr($segment, -1)) {             // Re-try by submitting with / stripped from end of segment
             return $this->getTruncatedPath(rtrim($segment, '/'), $path);
         }
 

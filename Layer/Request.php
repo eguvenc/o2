@@ -50,14 +50,14 @@ class Request
      *
      * @param object $c      ContainerInterface
      * @param object $logger LoggerInterface
-     * @param object $config ConfigInterface
+     * @param array  $params service parameters
      */
-    public function __construct(Container $c, Logger $logger, Config $config)
+    public function __construct(Container $c, Logger $logger, array $params)
     {   
         $this->c = $c;
         $this->logger = $logger;
-        $this->params = $config['layer'];
-
+        $this->params = $params;
+        
         $this->createEnvironment();
     }
 
@@ -194,6 +194,10 @@ class Request
             return Error::getError($response);  // Error template support
         }
         
+        if ($this->params['log']) {
+            $this->log($uri, $id, $response);
+        }
+
         return (string)$response;
     }
 
@@ -215,22 +219,19 @@ class Request
     /**
      * Log response data
      * 
-     * @param string $label    log label
      * @param string $uri      uri string
-     * @param string $start    start time
      * @param string $id       layer id
      * @param string $response data
      * 
      * @return void
      */
-    protected function log($label, $uri, $start, $id, $response)
+    protected function log($uri, $id, $response)
     {
         $uriString = md5($this->c['app']->request->getUri()->getPath());
 
         $this->logger->debug(
-            $label.' '.strtolower($uri), 
+            '$_LAYER: '.strtolower($uri), 
             array(
-                'time' => number_format(microtime(true) - $start, 4),
                 'id' => $id, 
                 'output' => '<div class="obullo-layer" data-unique="u'.uniqid().'" data-id="'.$id.'" data-uristring="'.$uriString.'">' .$response. '</div>',
             )

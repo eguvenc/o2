@@ -2,14 +2,13 @@
 
 namespace Obullo\Http\Zend\Stratigility;
 
-use Obullo\Log\Benchmark;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
+use SplQueue;
+use InvalidArgumentException;
 use Obullo\Http\Middleware\MiddlewareInterface;
 use Obullo\Container\ContainerInterface as Container;
-
-use InvalidArgumentException;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Message\ResponseInterface as Response;
-use SplQueue;
 
 /**
  * Pipe middleware like unix pipes.
@@ -48,20 +47,17 @@ class MiddlewarePipe implements MiddlewareInterface
 
     /**
      * Constructor
-     *
-     * Initializes the queue.
      * 
-     * @param Container $c container
+     * @param Container $container container
      */
-    public function __construct(Container $c)
+    public function __construct(Container $container)
     {
-        $this->c = $c;
+        $this->c = $container;
         $this->pipeline = new SplQueue();
-
-        $c['middleware']->queue('App');
-        $c['middleware']->queue('Error');  // Error middleware must be defined end of the queue.
         
-        foreach ($c['middleware']->getQueue() as $middleware) {
+        $this->c['middleware']->queue('Error')->setContainer($container);  // Error middleware must be defined end of the queue.
+        
+        foreach ($this->c['middleware']->getQueue() as $middleware) {
             $this->pipe($middleware);
         }
     }
@@ -73,7 +69,7 @@ class MiddlewarePipe implements MiddlewareInterface
      */
     public function getRequest()
     {
-        return Benchmark::start($this->c['request']);
+        return $this->c['request'];
     }
 
     /**
@@ -86,14 +82,14 @@ class MiddlewarePipe implements MiddlewareInterface
     public function getFinalHandler($response)
     {
         $class = '\\Http\Middlewares\FinalHandler\\Zend';
-
-        return new $class(
+        $handler = new $class(
             [
                 'env' => $this->c['app.env']
             ],
-            $this->c['logger'],
             $response
         );
+        $handler->setContainer($this->c);
+        return $handler;
     }
 
     /**
@@ -115,10 +111,7 @@ class MiddlewarePipe implements MiddlewareInterface
     public function __invoke(Request $request, Response $response, callable $out = null)
     {
         $out = null;
-
-        $request  = $this->decorateRequest($request);
-        $response = $this->decorateResponse($response);
-        $done     = $this->getFinalHandler($response);
+        $done = $this->getFinalHandler($response);
 
         $next   = new Next($this->pipeline, $done, $this->c);
         $result = $next($request, $response);
@@ -141,11 +134,9 @@ class MiddlewarePipe implements MiddlewareInterface
      * are considered error handlers, and will be executed when a handler calls
      * $next with an error or raises an exception.
      *
-     * @see MiddlewareInterface
-     * @see ErrorMiddlewareInterface
-     * @see Next
-     * @param string|callable|object $path Either a URI path prefix, or middleware.
-     * @param null|callable|object $middleware Middleware
+     * @param string|callable|object $path       Either a URI path prefix, or middleware.
+     * @param null|callable|object   $middleware Middleware
+     * 
      * @return self
      */
     public function pipe($path, $middleware = null)
@@ -176,7 +167,8 @@ class MiddlewarePipe implements MiddlewareInterface
      *
      * Strips trailing slashes, and prepends a slash.
      *
-     * @param string $path
+     * @param string $path path
+     * 
      * @return string
      */
     private function normalizePipePath($path)
@@ -192,35 +184,5 @@ class MiddlewarePipe implements MiddlewareInterface
         }
 
         return $path;
-    }
-
-    /**
-     * Decorate the Request instance
-     *
-     * @param Request $request
-     * @return Http\Request
-     */
-    private function decorateRequest(Request $request)
-    {
-        if ($request instanceof Http\Request) {
-            return $request;
-        }
-
-        return new Http\Request($request);
-    }
-
-    /**
-     * Decorate the Response instance
-     *
-     * @param Response $response
-     * @return Http\Response
-     */
-    private function decorateResponse(Response $response)
-    {
-        if ($response instanceof Http\Response) {
-            return $response;
-        }
-
-        return new Http\Response($response);
     }
 }

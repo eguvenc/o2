@@ -2,18 +2,15 @@
 
 namespace Obullo\Authentication\User;
 
-use Obullo\Authentication\User\IdentityInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+use Obullo\Authentication\User\IdentityInterface as Identity;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
- * O2 Authentication - Online Users Activity Class
- *
- * @category  Authentication
- * @package   Activity
+ * Online users activity
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Activity
 {
@@ -51,7 +48,7 @@ class Activity
      * @param StorageInterface  $storage  \Obullo\Authentication\Storage\StorageInterface;
      * @param IdentityInterface $identity \Obullo\Authentication\User\IdentityInterface
      */
-    public function __construct(StorageInterface $storage, IdentityInterface $identity)
+    public function __construct(Storage $storage, Identity $identity)
     {
         $this->storage = $storage;
         $this->identity = $identity;

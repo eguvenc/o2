@@ -1,13 +1,14 @@
 <?php
 
-namespace Obullo\Http;
+namespace Obullo\Http\Relay;
 
-use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-use Obullo\Container\ContainerInterface as Container;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 use Exception;
 use Relay\RelayBuilder;
+use Obullo\Http\Middleware\MiddlewareInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
  * Relay wrapper
@@ -16,7 +17,7 @@ use Relay\RelayBuilder;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class Relay
+class MiddlewarePipe implements MiddlewareInterface
 {
     /**
      * Container
@@ -28,11 +29,11 @@ class Relay
     /**
      * Constructor
      * 
-     * @param Obullo\Container\ContainerInterface $c container
+     * @param Obullo\Container\ContainerInterface $container container
      */
-    public function __construct(Container $c)
+    public function __construct(Container $container)
     {
-        $this->c = $c;
+        $this->c = $container;
     }
 
     /**
@@ -59,8 +60,6 @@ class Relay
             [
                 'env' => $this->c['app.env']
             ],
-            $this->c['app'],
-            $this->c['logger'],
             $response
         );
         $handler->setContainer($this->c);

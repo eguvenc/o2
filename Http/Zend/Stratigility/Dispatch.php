@@ -100,9 +100,7 @@ class Dispatch
         } catch (Exception $e) {
 
             $err = $e;
-            $this->c['app']->handleException($err);
         }
-
         return $next($request, $response, $err);
     }
 }

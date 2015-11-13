@@ -23,7 +23,8 @@ trait MaintenanceTrait
         $maintenance = $this->c['config']['maintenance'];  // Default loaded in config class.
         $maintenance['root']['regex'] = null;
 
-        $domain = (isset($this->options['domain'])) ? $this->options['domain'] : null;
+        $domain = (isset($this->params['domain'])) ? $this->params['domain'] : null;
+        
         foreach ($maintenance as $label) {
             if (! empty($label['regex']) && $label['regex'] == $domain) {  // If route domain equal to domain.php regex config
                 $this->maintenance = $label['maintenance'];

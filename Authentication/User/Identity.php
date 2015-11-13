@@ -3,22 +3,19 @@
 namespace Obullo\Authentication\User;
 
 use Obullo\Authentication\Token;
-use Auth\Identities\GenericUser;
-use Auth\Identities\AuthorizedUser;
 use Obullo\Authentication\Recaller;
-use Obullo\Session\SessionInterface;
-use Obullo\Container\ContainerInterface;
-use Obullo\Authentication\Storage\StorageInterface;
+use Auth\Identities\AuthorizedUser;
+
+use Obullo\Session\SessionInterface as Session;
+use Obullo\Container\ContainerInterface as Container;
+use Obullo\Authentication\Storage\StorageInterface as Storage;
 
 /**
- * O2 Authentication - User Identity Class
- *
- * @category  Users
- * @package   Identity
+ * User Identity
+ * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class Identity extends AuthorizedUser implements IdentityInterface
 {
@@ -66,7 +63,7 @@ class Identity extends AuthorizedUser implements IdentityInterface
      * @param object $storage auth storage
      * @param object $params  auth config parameters
      */
-    public function __construct(ContainerInterface $c, SessionInterface $session, StorageInterface $storage, array $params)
+    public function __construct(Container $c, Session $session, Storage $storage, array $params)
     {
         $this->c = $c;
         $this->params = $params;
@@ -76,11 +73,14 @@ class Identity extends AuthorizedUser implements IdentityInterface
         $this->initialize();
 
         if ($rememberToken = $this->recallerExists()) {   // Remember the user if recaller cookie exists
+            
             $recaller = new Recaller($c, $storage, $c['auth.model'], $this, $params);
             $recaller->recallUser($rememberToken);
+
             $this->initialize();  // We need initialize again otherwise ignoreRecaller() does not work in Login class.
         }
-        if ($this->params['middleware']['unique.login']) {
+        if ($this->params['middleware']['unique.session']) {
+            
             register_shutdown_function(array($this, 'close'));
         }
     }
@@ -321,31 +321,30 @@ class Identity extends AuthorizedUser implements IdentityInterface
         if ($this->getRememberMe() == 1) {  // If user checked rememberMe option
 
             $rememberMeCookie = $this->params['login']['rememberMe']['cookie'];
-            $rememberToken = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
+            $rememberToken    = $this->c['cookie']->get($rememberMeCookie['name'], $rememberMeCookie['prefix']);
 
-            $genericUser = new GenericUser;
-            $genericUser->setCredentials(
-                [
-                    $this->params['db.identifier'] => $this->getIdentifier(),
-                    '__rememberToken' => $rememberToken
-                ]
-            );
-            return $this->refreshRememberToken($genericUser);
+            $credentials = [
+                $this->params['db.identifier'] => $this->getIdentifier(),
+                '__rememberToken' => $rememberToken
+            ];
+            $this->setCredentials($credentials);
+
+            return $this->refreshRememberToken($credentials);
         }
     }
 
     /**
      * Refresh the rememberMe token
      *
-     * @param object $genericUser GenericUser
+     * @param array $credentials credentials
      *
      * @return int|boolean
      */
-    public function refreshRememberToken(GenericUser $genericUser)
+    public function refreshRememberToken(array $credentials)
     {
         $token = Token::getRememberToken($this->c['cookie'], $this->params);
 
-        return $this->c['auth.model']->updateRememberToken($token, $genericUser); // refresh rememberToken
+        return $this->c['auth.model']->updateRememberToken($token, $credentials); // refresh rememberToken
     }
 
     /**

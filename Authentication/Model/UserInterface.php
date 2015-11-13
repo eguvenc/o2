@@ -2,18 +2,14 @@
 
 namespace Obullo\Authentication\Model;
 
-use Auth\Identities\GenericUser;
 use Obullo\Container\ServiceProviderInterface;
 
 /**
  * User Provider Interface
  * 
- * @category  Authentication
- * @package   ModelUserInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 interface UserInterface
 {
@@ -28,11 +24,11 @@ interface UserInterface
     /**
      * Execute sql query
      *
-     * @param array $user GenericUser object to get user's identifier
+     * @param array $credentials user credentials
      * 
      * @return mixed boolean|array
      */
-    public function execQuery(GenericUser $user);
+    public function query(array $credentials);
     
     /**
      * Recalled user sql query using remember cookie
@@ -41,16 +37,16 @@ interface UserInterface
      * 
      * @return array
      */
-    public function execRecallerQuery($token);
+    public function recallerQuery($token);
     
     /**
      * Update remember token upon every login & logout requests
      * 
-     * @param string $token name
-     * @param object $user  object GenericUser
+     * @param string $token       name
+     * @param array  $credentials credentials
      * 
      * @return void
      */
-    public function updateRememberToken($token, GenericUser $user);
+    public function updateRememberToken($token, array $credentials);
 
 }

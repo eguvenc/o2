@@ -21,7 +21,7 @@ class Cli extends Application
         $c = $this->c;
         include APP .'errors.php';
 
-        $this->registerErrorHandlers();
+        // $this->registerErrorHandlers();
 
         $logger     = $c['logger'];
         $request    = $c['request'];

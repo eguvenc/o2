@@ -1,18 +1,18 @@
 <?php
 
-namespace Obullo\Url;
+namespace Obullo\Layer;
 
-use Obullo\Container\ContainerInterface as Container;
 use Obullo\Container\ServiceInterface;
+use Obullo\Container\ContainerInterface as Container;
 
 /**
- * Url Service Manager
+ * Layer Manager
  * 
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class UrlManager implements ServiceInterface
+class LayerManager implements ServiceInterface
 {
     /**
      * Container class
@@ -30,24 +30,24 @@ class UrlManager implements ServiceInterface
     public function __construct(Container $c, array $params)
     {
         $this->c = $c;
-        $params['webhost'] = $c['config']['http']['webhost'];
-        $this->c['url.params'] = $params;
+        $this->c['layer.params'] = $params;
     }
 
     /**
      * Register
      * 
-     * @return object url
+     * @return object logger
      */
     public function register()
     {
-        $this->c['url'] = function () {
-            
-            return new Url(
-                $this->c['request'],
+        $this->c['layer'] = function () {
+
+            return new Request(
+                $this->c,
                 $this->c['logger'],
-                $this->c['url.params']
+                $this->c['layer.params']
             );
+
         };
     }
 

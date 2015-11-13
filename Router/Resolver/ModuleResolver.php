@@ -42,7 +42,7 @@ class ModuleResolver
         $module = $this->router->getModule('/');
         $directory = $this->router->getDirectory();
         $hasSegmentOne = empty($segments[1]) ? false : true;
-
+        
         // Add support e.g http://project/widgets/tutorials/helloWorld.php
 
         if ($hasSegmentOne && is_file(MODULES.$module.$directory.'/'.$this->router->ucwordsUnderscore($segments[1]).'.php')) {

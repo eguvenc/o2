@@ -5,6 +5,9 @@ namespace Obullo\Authentication;
 use Obullo\Authentication\User\Login;
 use Obullo\Authentication\User\Activity;
 use Obullo\Authentication\User\Identity;
+use Obullo\Authentication\User\UserInterface;
+
+use Obullo\Container\ServiceInterface;
 use Obullo\Container\ContainerInterface as Container;
 
 /**
@@ -14,7 +17,7 @@ use Obullo\Container\ContainerInterface as Container;
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
  */
-class AuthManager implements ServiceInterface
+class AuthManager implements ServiceInterface, UserInterface
 {
     /**
      * Container class
@@ -31,8 +34,8 @@ class AuthManager implements ServiceInterface
      */
     public function __construct(Container $c, array $params)
     {
+        $c['auth.params'] = $params;
         $this->c = $c;
-        $this->c['auth.params'] = $params;
     }
 
     /**
@@ -41,6 +44,22 @@ class AuthManager implements ServiceInterface
      * @return object logger
      */
     public function register()
+    {
+        include VENDOR .'ircmaxell/password-compat/lib/password.php';
+
+        $this->init();
+
+        $this->c['user'] = function () {
+            return $this;
+        };
+    }
+
+    /**
+     * Register
+     * 
+     * @return object logger
+     */
+    public function init()
     {
         $parameters = $this->c['auth.params'];
 

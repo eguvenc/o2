@@ -14,18 +14,6 @@ use Obullo\Cli\NullRequest;
 class Exception
 {
     /**
-     * Constructor
-     * 
-     * @param app     $app     application
-     * @param request $request http / cli request
-     */
-    public function __construct($app, $request)
-    {
-        $this->app = $app;
-        $this->request = $request;
-    }
-
-    /**
      * Get exception view with http stream body
      * 
      * @param object  $e          exception object
@@ -106,13 +94,16 @@ class Exception
      */
     protected function display($e, $fatalError = false)
     {
+        global $c;
+        $request = $c['request'];
+
         if ($fatalError == false) { 
             unset($fatalError);  // Fatal error variable used in view file
         }
-        if ($this->request instanceof NullRequest) {  // Cli
+        if (defined('STDIN')) {
             return $this->view('console', $e);
         }
-        if ($this->request->isAjax()) {
+        if ($request->isAjax()) {
             return $this->view('ajax', $e);
         }
         return '<!DOCTYPE html> 

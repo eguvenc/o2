@@ -3,20 +3,16 @@
 namespace Obullo\Authentication\Model\Pdo;
 
 use Pdo;
-use Auth\Identities\GenericUser;
 use Auth\Identities\AuthorizedUser;
 use Obullo\Container\ServiceProviderInterface;
 use Obullo\Authentication\Model\UserInterface;
 
 /**
- * O2 User Model
+ * User Model
  * 
- * @category  Authentication
- * @package   Model
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/authentication
  */
 class User implements UserInterface
 {
@@ -86,14 +82,14 @@ class User implements UserInterface
     /**
      * Execute sql query
      *
-     * @param object $user GenericUser object to get user's identifier
+     * @param array $credentials credentials
      * 
      * @return mixed boolean|array
      */
-    public function execQuery(GenericUser $user)
+    public function query(array $credentials)
     {
         return $this->db->prepare(sprintf('SELECT %s FROM %s WHERE BINARY %s = ?', $this->select, $this->tablename, $this->columnIdentifier))
-            ->bindValue(1, $user->getIdentifier(), PDO::PARAM_STR)
+            ->bindValue(1, $credentials[$this->columnIdentifier], PDO::PARAM_STR)
             ->execute()
             ->rowArray();
     }
@@ -105,7 +101,7 @@ class User implements UserInterface
      * 
      * @return array
      */
-    public function execRecallerQuery($token)
+    public function recallerQuery($token)
     {
         return $this->db->prepare(sprintf('SELECT %s FROM %s WHERE %s = ?', $this->select, $this->tablename, $this->columnRememberToken))
             ->bindValue(1, $token, PDO::PARAM_STR)
@@ -116,16 +112,16 @@ class User implements UserInterface
     /**
      * Update remember me token upon every login & logout
      * 
-     * @param string $token name
-     * @param object $user  object GenericUser
+     * @param string $token       name
+     * @param array  $credentials credentials
      * 
      * @return integer
      */
-    public function updateRememberToken($token, GenericUser $user)
+    public function updateRememberToken($token, array $credentials)
     {
         return $this->db->prepare(sprintf('UPDATE %s SET %s = ? WHERE BINARY %s = ?', $this->tablename, $this->columnRememberToken, $this->columnIdentifier))
             ->bindValue(1, $token, PDO::PARAM_STR)
-            ->bindValue(2, $user->getIdentifier(), PDO::PARAM_STR)
+            ->bindValue(2, $credentials[$this->columnIdentifier], PDO::PARAM_STR)
             ->execute();
     }
 }
