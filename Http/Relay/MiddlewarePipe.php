@@ -32,7 +32,7 @@ class MiddlewarePipe implements MiddlewareInterface
      * @param Obullo\Container\ContainerInterface $container container
      */
     public function __construct(Container $container)
-    {
+    {   
         $this->c = $container;
     }
 
@@ -78,11 +78,10 @@ class MiddlewarePipe implements MiddlewareInterface
     public function __invoke(Request $request, Response $response, callable $out = null)
     {
         $out = $err = null;
+        $done = $this->getFinalHandler($response);
 
         try {
-
-            $this->c['middleware']->queue('App');
-            
+                    
             $dispatcher = $this->pipe($this->c['middleware']->getQueue(), $response);
             $response = $dispatcher($request, $response);
 
@@ -90,8 +89,6 @@ class MiddlewarePipe implements MiddlewareInterface
         
             $err = $e;
         }
-
-        $done = $this->getFinalHandler($response);
 
         return $done($request, $response, $err);
     }

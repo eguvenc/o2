@@ -32,10 +32,10 @@ class Http extends Application
         $c = $this->c;  // make global
 
         include APP .'errors.php';
-        include APP .'middlewares.php';
-
+        
         $this->registerErrorHandlers();
 
+        include APP .'middlewares.php';
         include APP .'events.php';
         include APP .'routes.php';
 

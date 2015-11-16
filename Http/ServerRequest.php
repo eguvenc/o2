@@ -379,15 +379,20 @@ class ServerRequest implements ServerRequestInterface
         return $this;
     }
 
-    /**
-     * Returns to container object
-     * 
-     * @return object
-     */
-    public function getContainer()
-    {
-        return $this->c;
-    }
+    // /**
+    //  * Returns to Cookie object
+    //  *
+    //  * @param array|null $cookieParams null or inject cookies
+    //  *
+    //  * @return object
+    //  */
+    // public function getCookie($cookieParams = null)
+    // {
+    //     $cookie = $this->c['cookie'];
+
+    //     $cookie->setCookieParams((empty($cookieParams)) ? $this->getCookieParams() : $cookieParams);
+    //     return $cookie;
+    // }
 
     /**
      * This method borrowed from slim framework
@@ -526,6 +531,7 @@ class ServerRequest implements ServerRequestInterface
     public function server($key) 
     {
         $server = $this->getServerParams();
+        
         if (is_bool($key)) {
             return $server;
         }
@@ -543,63 +549,13 @@ class ServerRequest implements ServerRequestInterface
     public function getIpAddress()
     {
         static $ipAddress = '';
-        $server = $this->getServerParams();
-        $REMOTE_ADDR = isset($server['REMOTE_ADDR']) ? $server['REMOTE_ADDR'] : '0.0.0.0';
-        if ($ipAddress != '') {
-            return $ipAddress;
-        }
-        $ipAddress = $this->getRealIp($REMOTE_ADDR);
-        if (! $this->isValidIp($ipAddress)) {
-            $ipAddress = '0.0.0.0';
+        $ipAddress = $this->getAttribute('TRUSTED_IP');
+
+        if (empty($ipAddress)) {
+            $server = $this->getServerParams();
+            $ipAddress = isset($server['REMOTE_ADDR']) ? $server['REMOTE_ADDR'] : '0.0.0.0';
         }
         return $ipAddress;
-    }
-
-    /**
-     * Get real ip address if we have proxies in front of the web server
-     * 
-     * @param string $REMOTE_ADDR server remote addr ip
-     * 
-     * @return string
-     */
-    protected function getRealIp($REMOTE_ADDR)
-    {
-        $proxyIps  = $this->c['config']['trusted']['ips'];
-        $ipAddress = $REMOTE_ADDR;
-        $server = $this->getServerParams();
-        $headers = array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP');
-
-        if (! empty($proxyIps)) {
-            $proxyIps = explode(',', str_replace(' ', '', $proxyIps));
-            foreach ($headers as $header) {
-                $spoof = (isset($server[$header])) ? $server[$header] : false;
-                if ($spoof !== false) {
-                    if (strpos($spoof, ',') !== false) {   // Some proxies typically list the whole chain of IP addresses through which the client has reached us.
-                        $spoof = explode(',', $spoof, 2);  // e.g. client_ip, proxy_ip1, proxy_ip2, etc.
-                        $spoof = $spoof[0];
-                    }
-                    if (! $this->isValidIp($spoof)) {
-                        $spoof = false;
-                    } else {
-                        break;
-                    }
-                }
-            }
-            $ipAddress = ($spoof !== false && in_array($REMOTE_ADDR, $proxyIps, true)) ? $spoof : $REMOTE_ADDR;
-        }
-        return $ipAddress;
-    }
-
-    /**
-     * Validate IP adresss
-     * 
-     * @param string $ip ip address
-     * 
-     * @return boolean
-     */
-    public function isValidIp($ip)
-    {
-        return (bool) filter_var($ip, FILTER_VALIDATE_IP);
     }
     
     /**
@@ -610,6 +566,7 @@ class ServerRequest implements ServerRequestInterface
     public function isLayer()
     {
         $server = $this->getServerParams();
+
         if (isset($server['LAYER_REQUEST']) && $server['LAYER_REQUEST'] == true) {
             return true;
         }
@@ -634,6 +591,7 @@ class ServerRequest implements ServerRequestInterface
     public function isSecure()
     {
         $server = $this->getServerParams();
+
         if (! empty($server['HTTPS']) && strtolower($server['HTTPS']) !== 'off') {
             return true;
         } elseif (isset($server['HTTP_X_FORWARDED_PROTO']) && $server['HTTP_X_FORWARDED_PROTO'] === 'https') {

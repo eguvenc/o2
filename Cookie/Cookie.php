@@ -2,19 +2,18 @@
 
 namespace Obullo\Cookie;
 
+use Psr\Http\Message\ServerRequestInterface as Request;
+
 use RuntimeException;
-use Obullo\Log\LoggerInterface;
-use Obullo\Config\ConfigInterface;
+use Obullo\Log\LoggerInterface as Logger;
+use Obullo\Config\ConfigInterface as Config;
 
 /**
  * Control cookie set, get, delete and queue operations
  * 
- * @category  Cookie
- * @package   Cookie
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cookie
  */
 class Cookie implements CookieInterface
 {
@@ -33,34 +32,36 @@ class Cookie implements CookieInterface
     protected $logger;
 
     /**
-     * Config
-     * 
-     * @var object
-     */
-    protected $config;
-
-    /**
-     * Queued cookies
+     * Cookie response headers
      * 
      * @var array
      */
-    protected $queued = array();
+    protected $headers = array();
 
     /**
-     * Standart cookies
+     * Request cookies
      * 
      * @var array
      */
-    protected $cookies = array();
+    protected $requestCookies = array();
+
+    /**
+     * Response cookies
+     * 
+     * @var array
+     */
+    protected $responseCookies = array();
 
     /**
      * Constructor
      * 
-     * @param object $config \Obullo\Config\ConfigInterface
-     * @param object $logger \Obullo\Log\LoggerInterface
+     * @param Request $request request
+     * @param Config  $config  config
+     * @param Logger  $logger  logger
      */
-    public function __construct(ConfigInterface $config, LoggerInterface $logger)
+    public function __construct(Request $request, Config $config, Logger $logger)
     {
+        $this->requestCookies = $request->getCookieParams();
         $this->config = $config;
         $this->logger = $logger;
         $this->logger->debug('Cookie Class Initialized');
@@ -88,7 +89,7 @@ class Cookie implements CookieInterface
     public function name($name)
     {
         $this->createId();
-        $this->cookies[$this->id]['name'] = trim($name);
+        $this->responseCookies[$this->id]['name'] = trim($name);
         return $this;
     }
     
@@ -102,7 +103,7 @@ class Cookie implements CookieInterface
     public function value($value = '')
     {
         $this->createId();
-        $this->cookies[$this->id]['value'] = $value;
+        $this->responseCookies[$this->id]['value'] = $value;
         return $this;
     }
 
@@ -116,7 +117,7 @@ class Cookie implements CookieInterface
     public function expire($expire = 0)
     {
         $this->createId();
-        $this->cookies[$this->id]['expire'] = (int)$expire;
+        $this->responseCookies[$this->id]['expire'] = (int)$expire;
         return $this;
     }
 
@@ -130,7 +131,7 @@ class Cookie implements CookieInterface
     public function domain($domain = '')
     {
         $this->createId();
-        $this->cookies[$this->id]['domain'] = $domain;
+        $this->responseCookies[$this->id]['domain'] = $domain;
         return $this;
     }
 
@@ -144,7 +145,7 @@ class Cookie implements CookieInterface
     public function path($path = '/')
     {
         $this->createId();
-        $this->cookies[$this->id]['path'] = $path;
+        $this->responseCookies[$this->id]['path'] = $path;
         return $this;
     }
 
@@ -158,7 +159,7 @@ class Cookie implements CookieInterface
     public function secure($bool = false)
     {
         $this->createId();
-        $this->cookies[$this->id]['secure'] = $bool;
+        $this->responseCookies[$this->id]['secure'] = $bool;
         return $this;
     }
 
@@ -172,7 +173,7 @@ class Cookie implements CookieInterface
     public function httpOnly($bool = false)
     {
         $this->createId();
-        $this->cookies[$this->id]['httpOnly'] = $bool;
+        $this->responseCookies[$this->id]['httpOnly'] = $bool;
         return $this;
     }
 
@@ -186,7 +187,7 @@ class Cookie implements CookieInterface
     public function prefix($prefix = '')
     {
         $this->createId();
-        $this->cookies[$this->id]['prefix'] = $prefix;
+        $this->responseCookies[$this->id]['prefix'] = $prefix;
         return $this;
     }
 
@@ -196,147 +197,28 @@ class Cookie implements CookieInterface
      * Accepts six parameter, or you can submit an associative
      * array in the first parameter containing all the values.
      * 
-     * @param string  $name  cookie name
-     * @param string  $value cookie value
-     * @param boolean $queue send to queue
+     * @param string $name  cookie name
+     * @param string $value cookie value
      *
      * @return array
      */
-    public function set($name = null, $value = null, $queue = false)
+    public function set($name = null, $value = null)
     {
         if (is_string($name) && $name != null) {    // Build method chain parameters
 
-            if (! isset($this->cookies[$this->id]['name'])) {
+            if (! isset($this->responseCookies[$this->id]['name'])) {
                 $this->name($name);   // Set cookie name
             }
-            if (! isset($this->cookies[$this->id]['value'])) {
+            if (! isset($this->responseCookies[$this->id]['value'])) {
                 $this->value($value); // Set cookie value
             }
-            $name = $this->cookies[$this->id];
+            $properties = $this->buildParameters($this->responseCookies[$this->id]);
         }
         if ($name == null && $value == null) {  // If user want to use this way $this->cookie->name()->value()->set();
-            $name = $this->cookies[$this->id];
-        }
-        $cookie = $this->buildParameters($name);
-        if ($queue == false) {
-            $this->write($cookie);
-        }
-        unset($this->cookies[$this->id]);  // Remove latest cookie from cookie array
-        return $cookie;
-    }
 
-    /**
-     * Write cookie to headers
-     * 
-     * @param array $cookie params
-     * 
-     * @return void
-     */
-    public function write(array $cookie)
-    {
-        setcookie(
-            trim($cookie['prefix'].$cookie['name']),
-            $cookie['value'],
-            $cookie['expire'],
-            $cookie['path'],
-            $cookie['domain'],
-            $cookie['secure'],
-            $cookie['httpOnly']
-        );
-    }
-
-    /**
-     * Send cookies to queue with cookie name
-     * 
-     * @param string $name  cookie name
-     * @param string $value cookie value
-     * 
-     * @return void
-     */
-    public function queue($name = null, $value = null)
-    {
-        $cookie = $this->set($name, $value, true);
-        $this->queued[$cookie['prefix'].$cookie['name']] = $cookie;
-    }
-
-    /**
-     * Get a queued cookie array
-     *
-     * @param string $name   cookie name
-     * @param string $prefix prefix
-     * 
-     * @return string
-     */
-    public function queued($name, $prefix = '')
-    {
-        $prefix = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
-        return isset($this->queued[$prefix.$name]) ? $this->queued[$prefix.$name]['value'] : false;
-    }
-
-    /**
-     * Remove a cookie from the queue.
-     *
-     * @param string $name   cookie name
-     * @param string $prefix prefix
-     * 
-     * @return void
-     */
-    public function unqueue($name, $prefix = '')
-    {
-        $prefix = empty($prefix) ? $this->config['cookie']['prefix'] : $prefix;
-        unset($this->queued[$prefix.$name]);
-    }
-
-    /**
-     * Get cookie
-     * 
-     * @param string $key    cookie key
-     * @param string $prefix cookie prefix
-     * 
-     * @return string sanizited cookie
-     */
-    public function get($key, $prefix = '')
-    {
-        if (! isset($_COOKIE[$key]) && empty($prefix) && ! empty($this->config['cookie']['prefix'])) {
-            $prefix = $this->config['cookie']['prefix'];
+            $properties = $this->buildParameters($this->responseCookies[$this->id]);
         }
-        $realKey = trim($prefix.$key);
-        if (! isset($_COOKIE[$realKey])) {
-            return false;
-        }
-        return $_COOKIE[$realKey];
-    }
-
-    /**
-     * Returns id of current cookie
-     * 
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-    * Delete a cookie
-    *
-    * @param string $name   cookie
-    * @param string $prefix custom prefix
-    * 
-    * @return void
-    */
-    public function delete($name = null, $prefix = null)
-    {
-        if ($name != null) {
-            $this->name($name);
-        }
-        if ($prefix != null) {
-            $this->prefix($prefix);
-        }
-        if (isset($_COOKIE[$prefix.$name])) {
-            unset($_COOKIE[$prefix.$name]);
-        }
-        $this->value(null)->expire(-1)->prefix($prefix)->set();
+        $this->toHeader($this->id, $properties);
     }
 
     /**
@@ -359,8 +241,105 @@ class Cookie implements CookieInterface
                 $cookie[$k] = $this->config['cookie'][$k];
             }
         }
+        $cookie['name'] = trim($cookie['prefix'].$cookie['name']);
         $cookie['expire'] = $this->getExpiration($cookie['expire']);
         return $cookie;
+    }
+
+    /**
+     * Convert to `Set-Cookie` header
+     *
+     * @param string $id         Cookie-id
+     * @param array  $properties Cookie properties
+     *
+     * @return string
+     */
+    protected function toHeader($id, array $properties)
+    {
+        $result = urlencode($properties['name']) . '=' . urlencode($properties['value']);
+
+        if (isset($properties['domain'])) {
+            $result .= '; domain=' . $properties['domain'];
+        }
+
+        if (isset($properties['path'])) {
+            $result .= '; path=' . $properties['path'];
+        }
+
+        $timestamp = $this->getTimestamp($properties);
+
+        if ($timestamp !== 0) {
+            $result .= '; expires=' . gmdate('D, d-M-Y H:i:s e', $timestamp);
+        }
+
+        if (isset($properties['secure']) && $properties['secure']) {
+            $result .= '; secure';
+        }
+
+        if (isset($properties['httponly']) && $properties['httponly']) {
+            $result .= '; HttpOnly';
+        }
+        $this->headers[$id] = $result;
+    }
+
+    /**
+     * Returns to cookie response header array
+     * 
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Create timestamp
+     * 
+     * @param array $properties cookie properties
+     * 
+     * @return mixed
+     */
+    protected function getTimestamp(array $properties)
+    {
+        $timestamp = 0;
+        if (isset($properties['expire'])) {
+            if (is_string($properties['expire'])) {
+                $timestamp = strtotime($properties['expire']);
+            } else {
+                $timestamp = (int)$properties['expire'];
+            }
+        }
+        return $timestamp;
+    }
+
+    /**
+     * Get cookie
+     * 
+     * @param string $key    cookie key
+     * @param string $prefix cookie prefix
+     * 
+     * @return string sanizited cookie
+     */
+    public function get($key, $prefix = null)
+    {
+        if (! isset($this->requestCookies[$key]) && empty($prefix) && ! empty($this->config['cookie']['prefix'])) {
+            $prefix = $this->config['cookie']['prefix'];
+        }
+        $realKey = trim($prefix.$key);
+        if (! isset($this->requestCookies[$realKey])) {
+            return false;
+        }
+        return $this->requestCookies[$realKey];
+    }
+
+    /**
+     * Returns to id of response cookie
+     * 
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -383,13 +362,48 @@ class Cookie implements CookieInterface
     }
 
     /**
-     * Get the cookies which have been queued for the next request
-     *
-     * @return array
-     */
-    public function getQueuedCookies()
+    * Delete a cookie
+    *
+    * @param string $name   cookie
+    * @param string $prefix custom prefix
+    * 
+    * @return void
+    */
+    public function delete($name = null, $prefix = null)
     {
-        return $this->queued;
+        $prefix = ($prefix == null) ? $this->config['cookie']['prefix'] : $prefix;
+
+        if ($name != null) {
+            $this->name($name);
+        }
+        if ($prefix != null) {
+            $this->prefix($prefix);
+        }
+        $this->value(null)->expire(-1)->prefix($prefix)->set();
     }
+
+    /**
+     * Removes cookie from response headers
+     * 
+     * @param string $name   cookie name
+     * @param string $prefix cookie name
+     * 
+     * @return void
+     */
+    public function remove($name, $prefix = null)
+    {
+        $prefix = ($prefix == null) ? $this->config['cookie']['prefix'] : $prefix;
+
+        if (! empty($prefix)) {
+            $name = trim($prefix.$name);
+        }
+        foreach ($this->responseCookies as $id => $value) {
+            if ($name == $value['name'] && isset($this->headers[$id])) {
+                unset($this->headers[$id]);
+                unset($this->responseCookies[$id]);
+            }
+        }
+    }
+
 
 }

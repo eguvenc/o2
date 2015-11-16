@@ -21,7 +21,7 @@ use Obullo\Container\ContainerInterface as Container;
  */
 class Application implements ApplicationInterface
 {
-    const VERSION = '2.0rc1';
+    const VERSION = '1.0rc1';
 
     protected $c;
     protected $fatalError;

@@ -3,14 +3,11 @@
 namespace Obullo\Cookie;
 
 /**
- * Control cookie set, get, delete and queue operations
+ * Cookie Interface
  * 
- * @category  Cookie
- * @package   CookieInterface
  * @author    Obullo Framework <obulloframework@gmail.com>
  * @copyright 2009-2015 Obullo
  * @license   http://opensource.org/licenses/MIT MIT license
- * @link      http://obullo.com/package/cookie
  */
 interface CookieInterface
 {
@@ -92,52 +89,12 @@ interface CookieInterface
      * Accepts six parameter, or you can submit an associative
      * array in the first parameter containing all the values.
      * 
-     * @param string  $name  cookie name
-     * @param string  $value cookie value
-     * @param boolean $queue send to queue
-     *
-     * @return array
-     */
-    public function set($name = null, $value = null, $queue = false);
-
-    /**
-     * Write cookie to headers
-     * 
-     * @param array $cookie params
-     * 
-     * @return void
-     */
-    public function write(array $cookie);
-
-    /**
-     * Send cookies to queue with cookie name
-     * 
      * @param string $name  cookie name
      * @param string $value cookie value
      * 
-     * @return void
+     * @return array
      */
-    public function queue($name = null, $value = null);
-
-    /**
-     * Get a queued cookie array
-     *
-     * @param string $name   cookie name
-     * @param string $prefix prefix
-     * 
-     * @return string
-     */
-    public function queued($name, $prefix = '');
-
-    /**
-     * Remove a cookie from the queue.
-     *
-     * @param string $name   cookie name
-     * @param string $prefix prefix
-     * 
-     * @return void
-     */
-    public function unqueue($name, $prefix = '');
+    public function set($name = null, $value = null);
 
     /**
      * Get cookie
@@ -158,12 +115,5 @@ interface CookieInterface
     * @return void
     */
     public function delete($name = null, $prefix = null);
-
-    /**
-     * Get the cookies which have been queued for the next request
-     *
-     * @return array
-     */
-    public function getQueuedCookies();
 
 }
